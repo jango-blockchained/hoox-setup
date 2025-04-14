@@ -96,7 +96,23 @@ Before deploying or running the scripts, you'll need to create and configure a C
    # Follow prompts to enter your API token
    ```
 
-3. **Verify the Token is Working**:
+3. **Set Cloudflare Account ID**:
+   
+   You must set the correct Cloudflare account ID in each worker's `wrangler.toml` file:
+   ```toml
+   name = "worker-name"
+   account_id = "your_account_id_here"
+   main = "src/index.js"
+   ```
+
+   You can find your Cloudflare account ID in the Cloudflare dashboard URL:
+   ```
+   https://dash.cloudflare.com/your_account_id_here
+   ```
+   
+   All workers must use the same account ID that matches your authenticated Cloudflare account.
+
+4. **Verify the Token is Working**:
    ```bash
    wrangler whoami
    ```

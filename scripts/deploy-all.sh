@@ -13,6 +13,15 @@ deploy_worker() {
         return 1
     fi
     
+    # Check if account_id is set in wrangler.toml
+    if ! grep -q "account_id" wrangler.toml; then
+        echo "Error: account_id not set in workers/$worker_name/wrangler.toml"
+        echo "Please add your Cloudflare account ID to the wrangler.toml file:"
+        echo "account_id = \"your_account_id_here\""
+        cd ../..
+        return 1
+    fi
+    
     # Deploy using wrangler
     echo "Running wrangler deploy for $worker_name..."
     bunx wrangler deploy
