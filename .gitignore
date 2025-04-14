@@ -2,6 +2,7 @@ node_modules/
 .wrangler/
 dist/
 .env
+*/*.env
 .DS_Store
 
 # Ignore node_modules in all subdirectories
