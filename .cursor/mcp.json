@@ -11,11 +11,10 @@
         "memory": {
           "command": "npx",
           "args": [
-            "-y",
             "@modelcontextprotocol/server-memory"
           ],
           "env": {
-            "MEMORY_FILE_PATH": ".cursor/memory.json"
+            "MEMORY_FILE_PATH": "/home/jango/Dokumente/cryptolinx/Pine Script/grid/worker/.cursor/knowledge-graph.json"
           }
         }
       }

@@ -29,3 +29,5 @@ cf-worker/
 
 .cursor/rules/
 .cursor/mcp.json
+
+.install-wizard-state.json

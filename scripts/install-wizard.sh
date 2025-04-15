@@ -349,21 +349,14 @@ setup_cloudflare_account() {
     
     if [ $? -eq 0 ] && [ -n "$account_info" ]; then
         log "INFO" "Successfully ran wrangler whoami"
-        
-        # First try to extract from URL in output
-        detected_id=$(echo "$account_info" | grep -o "dash\.cloudflare\.com/[a-zA-Z0-9]*" | head -1 | sed 's/dash\.cloudflare\.com\///')
-        log "INFO" "URL extraction attempt result: '$detected_id'"
-        
-        # If URL extraction failed, try to find the ID directly mentioned
+        # New robust method: Extract the 32-hex ID from the table row
+        detected_id=$(echo "$account_info" | grep -o '│ [a-f0-9]\{32\} │' | head -1 | tr -d '│ ')
+        log "INFO" "Table row hex extraction attempt: '$detected_id'"
+
+        # Fallback: Keep the original 32-hex search as a last resort
         if [ -z "$detected_id" ]; then
-            detected_id=$(echo "$account_info" | grep -o "Account ID: [a-zA-Z0-9]*" | head -1 | sed 's/Account ID: //')
-            log "INFO" "Direct ID mention extraction attempt: '$detected_id'"
-        fi
-        
-        # Try to find a 32-character hex ID anywhere in the output as last resort
-        if [ -z "$detected_id" ]; then
-            detected_id=$(echo "$account_info" | grep -o '[a-f0-9]\{32\}' | head -1)
-            log "INFO" "32-character hex extraction attempt: '$detected_id'"
+          detected_id=$(echo "$account_info" | grep -o '[a-f0-9]\{32\}' | head -1)
+          log "INFO" "Fallback 32-hex search attempt: '$detected_id'"
         fi
     else
         log "WARNING" "wrangler whoami failed or returned empty output"
@@ -779,12 +772,14 @@ setup_d1_database() {
         # First check if there's a d1_databases section
         if grep -q "\[\[d1_databases\]\]" "$WORKER_DIR/d1-worker/wrangler.toml"; then
             log "INFO" "Found [[d1_databases]] section, updating database_id"
-            sed -i "/\[\[d1_databases\]\]/,/^\[/ s/database_id = \"[^\"]*\"/database_id = \"$D1_DATABASE_ID\"/" "$WORKER_DIR/d1-worker/wrangler.toml"
+            # Use a temporary file for compatibility with macOS sed
+            sed -e "/\[\[d1_databases\]\]/,/^\[/ s/database_id = \"[^\"]*\"/database_id = \"$D1_DATABASE_ID\"/" "$WORKER_DIR/d1-worker/wrangler.toml" > "$WORKER_DIR/d1-worker/wrangler.toml.tmp" && mv "$WORKER_DIR/d1-worker/wrangler.toml.tmp" "$WORKER_DIR/d1-worker/wrangler.toml"
         else
             # If no d1_databases section, check for standalone database_id
             if grep -q "database_id = " "$WORKER_DIR/d1-worker/wrangler.toml"; then
                 log "INFO" "Found standalone database_id, updating"
-                sed -i "s/database_id = \"[^\"]*\"/database_id = \"$D1_DATABASE_ID\"/" "$WORKER_DIR/d1-worker/wrangler.toml"
+                # Use a temporary file for compatibility with macOS sed
+                sed -e "s/database_id = \"[^\"]*\"/database_id = \"$D1_DATABASE_ID\"/" "$WORKER_DIR/d1-worker/wrangler.toml" > "$WORKER_DIR/d1-worker/wrangler.toml.tmp" && mv "$WORKER_DIR/d1-worker/wrangler.toml.tmp" "$WORKER_DIR/d1-worker/wrangler.toml"
             else
                 # Add the entire d1_databases section
                 log "INFO" "No database config found, adding [[d1_databases]] section"
@@ -834,7 +829,48 @@ EOL
         log "ERROR" "Could not verify database ID in wrangler.toml"
         echo -e "Please manually edit $WORKER_DIR/d1-worker/wrangler.toml"
         echo -e "Set database_id = \"$D1_DATABASE_ID\""
+        # Ask if user wants to continue despite the error
+        echo -e "Continue D1 setup? [y/N]"
+        read -r proceed_verify
+        if [[ ! "$proceed_verify" =~ ^[Yy]$ ]]; then
+            print_error "Aborting D1 database setup due to verification failure"
+            selected_workers["d1-worker"]=false
+            return 0
+        fi
     fi
+    
+    # --- Execute the database setup script --- 
+    echo -e "\n${BLUE}Running database setup script...${NC}"
+    log "INFO" "Executing scripts/setup-db.sh"
+    
+    if [ -f "$SCRIPT_DIR/setup-db.sh" ]; then
+        # Make sure it's executable
+        chmod +x "$SCRIPT_DIR/setup-db.sh"
+        
+        # Run the setup script
+        bash "$SCRIPT_DIR/setup-db.sh"
+        local setup_status=$?
+        
+        if [ $setup_status -eq 0 ]; then
+            print_success "Database setup script completed successfully."
+            log "SUCCESS" "setup-db.sh completed successfully"
+        else
+            print_error "Database setup script failed with exit code $setup_status."
+            log "ERROR" "setup-db.sh failed with exit code $setup_status"
+            echo -e "Check the output above for details. You may need to run the setup manually."
+            # Ask if user wants to continue despite the error
+            echo -e "Continue installation? [y/N]"
+            read -r proceed_setup
+            if [[ ! "$proceed_setup" =~ ^[Yy]$ ]]; then
+                print_error "Aborting installation due to database setup failure"
+                exit 1
+            fi
+        fi
+    else
+        print_warning "scripts/setup-db.sh not found. Skipping schema/migration step."
+        log "WARNING" "setup-db.sh not found, skipping database schema/migration"
+    fi
+    # --- End of database setup script execution ---
     
     print_success "D1 database setup complete"
     log "SUCCESS" "D1 database setup completed"
@@ -1165,9 +1201,9 @@ fi
 # Main script flow
 check_dependencies || exit 1
 
-setup_logging
-print_banner
-setup_state_file
+# setup_logging
+# print_banner
+# setup_state_file
 
 # Resume an existing installation if available
 if [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
