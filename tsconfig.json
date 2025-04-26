@@ -1,35 +1,29 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
-        "types": [
-            "bun-types",
-            "@types/jest",
-            "@types/node"
-        ],
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "allowJs": true,
-        "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true,
-        "baseUrl": ".",
-        "outDir": "./dist",
-        "paths": {
-            "@/*": [
-                "src/*"
-            ]
-        }
-    },
-    "include": [
-        "src/**/*",
-        "test/**/*",
-        "scripts/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["bun-types", "@types/jest", "@types/node"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "workers/**/*.ts",
+    "workers/**/*.js",
+    "shared/**/*.js"
+  ],
+  "exclude": ["node_modules", "dist"]
 }

@@ -10,9 +10,9 @@ This project contains a collection of Cloudflare Workers managed by a unified Ty
 
 ## Prerequisites
 
-*   **Bun:** This project uses Bun as the JavaScript runtime and package manager. Follow the installation instructions at [https://bun.sh/](https://bun.sh/).
-*   **Node.js:** While Bun is the primary runtime, some Node.js APIs are used. Ensure you have a recent LTS version installed.
-*   **Cloudflare Account:** You need a Cloudflare account ID and an API token with appropriate permissions (e.g., Workers, D1, Secrets).
+- **Bun:** This project uses Bun as the JavaScript runtime and package manager. Follow the installation instructions at [https://bun.sh/](https://bun.sh/).
+- **Node.js:** While Bun is the primary runtime, some Node.js APIs are used. Ensure you have a recent LTS version installed.
+- **Cloudflare Account:** You need a Cloudflare account ID and an API token with appropriate permissions (e.g., Workers, D1, Secrets).
 
 ## Project Structure
 
@@ -83,12 +83,12 @@ secrets = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]
 
 ### Key Management (`.keys/`)
 
-*   The `.keys/` directory stores sensitive API keys locally.
-*   `local_keys.env`: Used for local development secrets (e.g., testnet keys).
-*   `prod_keys.env`: Used for production secrets.
-*   **These files are gitignored.** You need to create them manually or via the `keys generate` command.
-*   The format is simple `KEY_NAME=VALUE` pairs.
-*   The `secrets update-cf` command reads values from these files to upload to Cloudflare.
+- The `.keys/` directory stores sensitive API keys locally.
+- `local_keys.env`: Used for local development secrets (e.g., testnet keys).
+- `prod_keys.env`: Used for production secrets.
+- **These files are gitignored.** You need to create them manually or via the `keys generate` command.
+- The format is simple `KEY_NAME=VALUE` pairs.
+- The `secrets update-cf` command reads values from these files to upload to Cloudflare.
 
 ## Initial Setup (Wizard)
 
@@ -117,45 +117,55 @@ Use `bun run manage.ts <command>` for ongoing management.
 
 **Commands:**
 
-*   `bun run manage.ts init`
-    *   Runs the interactive first-time setup wizard (see above).
+- `bun run manage.ts init`
 
-*   `bun run manage.ts workers setup`
-    *   Configures all *enabled* workers based on `config.toml`.
-    *   Updates `wrangler.toml` files (name, account ID, vars, D1 bindings if applicable).
-    *   Prompts for missing secrets (checking env/local keys first) and uploads them.
-    *   Runs D1 migrations if the `d1-worker` is enabled and has a `migrations/` directory.
+  - Runs the interactive first-time setup wizard (see above).
 
-*   `bun run manage.ts workers deploy`
-    *   Deploys all *enabled* workers using `wrangler deploy`.
-    *   Captures the deployed URL and saves it back to `config.toml` under the worker's `deployed_url` key.
+- `bun run manage.ts workers setup`
 
-*   `bun run manage.ts workers dev <workerName>`
-    *   Starts a local development server for the specified worker using `wrangler dev`.
+  - Configures all _enabled_ workers based on `config.toml`.
+  - Updates `wrangler.toml` files (name, account ID, vars, D1 bindings if applicable).
+  - Prompts for missing secrets (checking env/local keys first) and uploads them.
+  - Runs D1 migrations if the `d1-worker` is enabled and has a `migrations/` directory.
 
-*   `bun run manage.ts workers status`
-    *   Displays a summary of all workers defined in `config.toml`, showing their enabled/disabled status, path, deployed URL (if known), and counts of vars/secrets.
+- `bun run manage.ts workers deploy`
 
-*   `bun run manage.ts workers test [workerName]`
-    *   Runs tests using `bun test` within the specified worker's directory (or all enabled workers if `workerName` is omitted). Assumes tests are in a `test/` subdirectory.
-    *   Supports `--coverage` and `--watch` flags passed to `bun test`.
+  - Deploys all _enabled_ workers using `wrangler deploy`.
+  - Captures the deployed URL and saves it back to `config.toml` under the worker's `deployed_url` key.
 
-*   `bun run manage.ts workers update-internal-urls`
-    *   Updates `*_WORKER_URL` variables in all `wrangler.toml` files based on the `deployed_url` values stored in `config.toml`. Useful after deploying all workers.
+- `bun run manage.ts workers dev <workerName>`
 
-*   `bun run manage.ts keys generate <keyName> [-e local|prod]`
-    *   Generates a new secure random key and saves it to the specified environment's `.keys/*.env` file (`local` by default).
+  - Starts a local development server for the specified worker using `wrangler dev`.
 
-*   `bun run manage.ts keys get <keyName> [-e local|prod]`
-    *   Retrieves and prints the value of a key from the specified environment's `.keys/*.env` file.
+- `bun run manage.ts workers status`
 
-*   `bun run manage.ts keys list [-e local|prod]`
-    *   Lists all keys stored in the specified environment's `.keys/*.env` file (`local` by default).
+  - Displays a summary of all workers defined in `config.toml`, showing their enabled/disabled status, path, deployed URL (if known), and counts of vars/secrets.
 
-*   `bun run manage.ts secrets update-cf <keyName> <workerName> [-e local|prod]`
-    *   Updates a Cloudflare secret for a specific worker.
-    *   Reads the value for `<keyName>` from the specified environment's `.keys/*.env` file (`local` by default).
-    *   Uploads this value as a secret named `<keyName>` to the specified `<workerName>` using `wrangler secret put`.
+- `bun run manage.ts workers test [workerName]`
+
+  - Runs tests using `bun test` within the specified worker's directory (or all enabled workers if `workerName` is omitted). Assumes tests are in a `test/` subdirectory.
+  - Supports `--coverage` and `--watch` flags passed to `bun test`.
+
+- `bun run manage.ts workers update-internal-urls`
+
+  - Updates `*_WORKER_URL` variables in all `wrangler.toml` files based on the `deployed_url` values stored in `config.toml`. Useful after deploying all workers.
+
+- `bun run manage.ts keys generate <keyName> [-e local|prod]`
+
+  - Generates a new secure random key and saves it to the specified environment's `.keys/*.env` file (`local` by default).
+
+- `bun run manage.ts keys get <keyName> [-e local|prod]`
+
+  - Retrieves and prints the value of a key from the specified environment's `.keys/*.env` file.
+
+- `bun run manage.ts keys list [-e local|prod]`
+
+  - Lists all keys stored in the specified environment's `.keys/*.env` file (`local` by default).
+
+- `bun run manage.ts secrets update-cf <keyName> <workerName> [-e local|prod]`
+  - Updates a Cloudflare secret for a specific worker.
+  - Reads the value for `<keyName>` from the specified environment's `.keys/*.env` file (`local` by default).
+  - Uploads this value as a secret named `<keyName>` to the specified `<workerName>` using `wrangler secret put`.
 
 ## Development
 

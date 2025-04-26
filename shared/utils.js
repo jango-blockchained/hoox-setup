@@ -30,13 +30,16 @@ export function createTradeMessage(data) {
 
 // Verify internal service authentication
 export function verifyInternalService(request, env) {
-  const internalKey = request.headers.get('X-Internal-Key');
-  const requestId = request.headers.get('X-Request-ID');
+  const internalKey = request.headers.get("X-Internal-Key");
+  const requestId = request.headers.get("X-Request-ID");
 
   if (!internalKey || internalKey !== env.INTERNAL_SERVICE_KEY || !requestId) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Unauthorized'
-    }), { status: 403 });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Unauthorized",
+      }),
+      { status: 403 }
+    );
   }
 }
