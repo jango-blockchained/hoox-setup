@@ -21,7 +21,7 @@ subdomain_prefix = "" # CHOOSE A PREFIX or leave empty to be prompted
 # TELEGRAM_BOT_TOKEN = "" # Leave value empty, script will prompt or use environment variable if needed
 
 [workers.d1-worker]
-enabled = false # Set to true to enable this worker during setup/deployment
+enabled = true # Set to true to enable this worker during setup/deployment
 # Path relative to the project root
 path = "workers/d1-worker"
 # Worker-specific environment variables for wrangler.toml or .dev.vars
@@ -31,26 +31,26 @@ vars = { database_name = "my-database" }
 secrets = [] # Example: ["DATABASE_URL_SECRET"]
 
 [workers.telegram-worker]
-enabled = false
+enabled = true
 path = "workers/telegram-worker"
 vars = {}
 secrets = ["TELEGRAM_BOT_TOKEN"] # Assumes a secret named TELEGRAM_BOT_TOKEN exists in Cloudflare
 
 [workers.trade-worker]
-enabled = false
+enabled = true
 path = "workers/trade-worker"
 vars = {}
 secrets = ["API_SERVICE_KEY"] # Example
 
 [workers.web3-wallet-worker]
-enabled = false
+enabled = true
 path = "workers/web3-wallet-worker"
 vars = {}
 # The mnemonic needs to be stored securely. The script should prompt for it.
 secrets = ["MNEMONIC"]
 
 [workers.webhook-receiver]
-enabled = false
+enabled = true
 path = "workers/webhook-receiver"
 vars = {}
 secrets = []
