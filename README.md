@@ -108,8 +108,8 @@ The wizard will guide you through:
 4.  **D1 Database Setup:** If the `d1-worker` is enabled, prompts for a database name and runs `wrangler d1 create` to create it, storing the ID in `config.toml`.
 5.  **Configuration Save:** Writes the selected worker configurations and global settings (including D1 ID) to `config.toml`.
 6.  **Secret Configuration:** For each enabled worker, checks the `secrets` array defined in `config.toml`.
-    *   **Local Secrets:** It attempts to find the secret value in `process.env` or `.keys/local_keys.env`. If found, it can be uploaded using `wrangler secret put` (useful for `wrangler dev`). If not found, it prompts you.
-    *   **Production Secrets:** For production deployments, you should configure secrets **directly** in the Cloudflare dashboard or via `wrangler secret put`. The wizard does not handle production secrets.
+    - **Local Secrets:** It attempts to find the secret value in `process.env` or `.keys/local_keys.env`. If found, it can be uploaded using `wrangler secret put` (useful for `wrangler dev`). If not found, it prompts you.
+    - **Production Secrets:** For production deployments, you should configure secrets **directly** in the Cloudflare dashboard or via `wrangler secret put`. The wizard does not handle production secrets.
 7.  **Initial Deployment (Optional):** Asks if you want to deploy the enabled workers immediately.
 
 The wizard uses `.install-wizard-state.json` to save progress, allowing you to resume if interrupted.
@@ -176,9 +176,9 @@ To run a worker locally during development:
 
 1.  Ensure the worker is enabled in `config.toml`.
 2.  Make sure any necessary secrets are available for local development. You can:
-    *   Place them in `.keys/local_keys.env` and use `bun run manage.ts secrets update-cf <keyName> <workerName>` to upload them to Cloudflare (so `wrangler dev` can access them).
-    *   Set them as environment variables.
-    *   Manage them directly in Cloudflare if `wrangler dev` should pull them from there.
+    - Place them in `.keys/local_keys.env` and use `bun run manage.ts secrets update-cf <keyName> <workerName>` to upload them to Cloudflare (so `wrangler dev` can access them).
+    - Set them as environment variables.
+    - Manage them directly in Cloudflare if `wrangler dev` should pull them from there.
 3.  Run `bun run manage.ts workers dev <workerName>`.
 
 ## Testing

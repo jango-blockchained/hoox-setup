@@ -50,3 +50,5 @@ lerna-debug.log*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+config.toml

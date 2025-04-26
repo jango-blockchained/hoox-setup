@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@types/blessed": "^0.1.25",
+    "ansis": "^3.17.0",
     "blessed": "^0.1.81",
     "toml": "^3.0.0"
   }
