@@ -21,6 +21,7 @@ interface WorkerConfig {
     path: string;
     vars?: Record<string, string>; // Key-value pairs for environment variables
     secrets?: string[]; // Array of secret names
+    deployed_url?: string; // Added field for deployed URL
 }
 
 interface Config {
@@ -63,41 +64,96 @@ async function promptForSecret(secretName: string): Promise<string> {
     return answer.trim();
 }
 
-function loadConfig(): Config {
-    if (!fs.existsSync(CONFIG_PATH)) {
-        console.error(`Error: Configuration file not found at ${CONFIG_PATH}`);
-        console.error('Please create a config.toml file in the project root.');
-        process.exit(1);
-    }
+/**
+ * Saves the provided configuration object to config.toml.
+ * @param config The configuration object to save.
+ */
+async function saveConfig(config: Config): Promise<void> {
     try {
-        const fileContent = fs.readFileSync(CONFIG_PATH, 'utf-8');
-        // Use the imported 'toml' parser here
-        const parsedConfig = toml.parse(fileContent) as any;
-
-        // Basic validation to ensure top-level keys exist
-        if (!parsedConfig.global || !parsedConfig.workers) {
-            throw new Error('Config file must contain [global] and [workers] sections.');
-        }
-
-        // TODO: Add more detailed validation of the parsed config structure against the interfaces
-
-        return parsedConfig as Config;
+        console.log(dim(`Attempting to save configuration to ${CONFIG_PATH}...`));
+        const newTomlContent = stringifyIarna(config as any); // Use stringifyIarna
+        fs.writeFileSync(CONFIG_PATH, newTomlContent);
+        console.log(green(`Configuration successfully saved to ${CONFIG_PATH}`));
     } catch (error: any) {
-        console.error(`Error parsing config.toml: ${error.message}`);
-        process.exit(1);
+        console.error(red(`Error saving config.toml: ${error.message}`));
+        // Decide if this should be a fatal error or just a warning
+        // For now, just log the error and continue
+        console.warn(yellow('Proceeding with in-memory configuration.'));
     }
 }
 
-function validateGlobalConfig(config: Config): void {
-    const required: (keyof GlobalConfig)[] = ['cloudflare_api_token', 'cloudflare_account_id', 'subdomain_prefix'];
-    const missing = required.filter(key => !config.global[key]);
-
-    if (missing.length > 0) {
-        console.error('Error: Missing required global settings in config.toml:');
-        missing.forEach(key => console.error(`- global.${key}`));
-        console.error('Please add these values to your config.toml file.');
+/**
+ * Loads configuration from config.toml, prompts for missing required global settings,
+ * and optionally saves the updated config back to the file.
+ * @returns The validated and potentially updated Config object.
+ * @throws Error if required global settings are missing and not provided by the user.
+ */
+async function loadConfig(): Promise<Config> {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        console.error(red(`Error: Configuration file not found at ${CONFIG_PATH}`));
+        console.error(yellow('Please create a config.toml file in the project root or run a setup command that generates it.'));
         process.exit(1);
     }
+
+    let fileContent = '';
+    let parsedConfig: any;
+    try {
+        fileContent = fs.readFileSync(CONFIG_PATH, 'utf-8');
+        parsedConfig = toml.parse(fileContent);
+    } catch (error: any) {
+        console.error(red(`Error parsing config.toml: ${error.message}`));
+        process.exit(1);
+    }
+
+    // Basic validation
+    if (!parsedConfig.global) {
+         parsedConfig.global = {}; // Initialize if missing
+         console.warn(yellow('Warning: [global] section missing in config.toml. Initializing empty.'));
+    }
+     if (!parsedConfig.workers) {
+         parsedConfig.workers = {}; // Initialize if missing
+         console.warn(yellow('Warning: [workers] section missing in config.toml. Initializing empty.'));
+    }
+
+    // --- Interactive check for required global settings ---
+    const requiredGlobal: (keyof GlobalConfig)[] = ['cloudflare_api_token', 'cloudflare_account_id', 'subdomain_prefix'];
+    let configWasModified = false;
+    const missingSettings: string[] = [];
+
+    for (const key of requiredGlobal) {
+        if (!parsedConfig.global[key]) {
+            console.log(yellow(`Missing required global setting: global.${key}`));
+            const answer = await rl.question(blue(`Please enter value for global.${key}: `));
+            const value = answer.trim();
+            if (value) {
+                parsedConfig.global[key] = value;
+                configWasModified = true;
+            } else {
+                 missingSettings.push(`global.${key}`);
+            }
+        }
+    }
+
+    if (missingSettings.length > 0) {
+        console.error(red('Error: The following required global settings are still missing after prompt:'));
+        missingSettings.forEach(key => console.error(red(`- ${key}`)));
+        if (rl && !(rl as any).closed) { rl.close(); }
+        throw new Error('Missing required global configuration values.');
+    }
+
+    // Save if modifications were made by the prompt
+    if (configWasModified) {
+        console.log(green('Global configuration updated in memory.'));
+         const saveAnswer = await rl.question(blue(`Do you want to save these updated global settings to ${CONFIG_PATH}? (y/N): `));
+         if (saveAnswer.trim().toLowerCase() === 'y') {
+             await saveConfig(parsedConfig as Config); // Call the new save function
+        }
+    }
+    // --- End interactive check ---
+
+    // TODO: Add more detailed validation of the rest of the config structure
+
+    return parsedConfig as Config;
 }
 
 // Modified runCommand to capture stdout
@@ -343,10 +399,46 @@ async function getCloudflareToken(config: Config): Promise<string | null> {
     return null;
 }
 
+/**
+ * Runs a potentially long-running/interactive command asynchronously using spawn,
+ * streaming stdout and stderr to the console.
+ * Suitable for commands like `wrangler dev` or `bun test --watch`.
+ * @param command The command to run (e.g., 'bun', 'wrangler').
+ * @param args Array of arguments for the command (e.g., ['test', '--watch']).
+ * @param cwd The working directory for the command.
+ * @param env Additional environment variables.
+ * @returns A promise resolving with the exit code of the command.
+ */
+async function runInteractiveCommand(
+    command: string,
+    args: string[],
+    cwd: string,
+    env: Record<string, string> = {}
+): Promise<number | null> { // Returns exit code or null on error
+    return new Promise((resolve) => {
+        console.log(dim(`Running interactively in ${cwd}: ${command} ${args.join(' ')}`));
+        const fullEnv = { ...process.env, ...env };
+        const child = spawn(command, args, {
+            cwd: cwd,
+            env: fullEnv,
+            stdio: 'inherit' // Inherit stdin, stdout, stderr from parent process
+        });
+
+        child.on('error', (error) => {
+            console.error(red(`Spawn error for interactive command "${command}": ${error.message}`));
+            resolve(null); // Indicate error with null
+        });
+
+        child.on('close', (code) => {
+            console.log(dim(`Interactive command finished: ${command} ${args.join(' ')} (exit code: ${code})`));
+            resolve(code); // Resolve with the exit code
+        });
+    });
+}
+
 // --- Main Setup Logic --- (Now Async)
 async function setupWorkers(config: Config): Promise<void> { // Make async
     console.log('Starting worker setup...');
-    validateGlobalConfig(config);
 
     const cloudflareEnv = {
         CLOUDFLARE_API_TOKEN: config.global.cloudflare_api_token,
@@ -364,38 +456,60 @@ async function setupWorkers(config: Config): Promise<void> { // Make async
                 continue;
             }
 
-            // 1. Update wrangler.toml (synchronous part)
+            // 1. Update wrangler.toml (now using TOML parser)
             const wranglerTomlPath = path.join(workerDir, 'wrangler.toml');
             if (fs.existsSync(wranglerTomlPath)) {
                 try {
-                    let wranglerTomlContent = fs.readFileSync(wranglerTomlPath, 'utf-8');
-
-                    // Update basic fields
-                    wranglerTomlContent = wranglerTomlContent.replace(/^name\s*=\s*".*"/m, `name = "${workerName}"`);
-                    wranglerTomlContent = wranglerTomlContent.replace(/^account_id\s*=\s*".*"/m, `account_id = "${config.global.cloudflare_account_id}"`);
-                    // TODO: Add/verify other necessary fields like compatibility_date if missing
-
-                    // Remove existing [vars] section completely before adding the new one
-                    wranglerTomlContent = wranglerTomlContent.replace(/\n?\[vars\][\s\S]*?(?=\n\[|$)/, '');
-
-                    // Add new [vars] section if vars are defined
-                    if (workerConfig.vars && Object.keys(workerConfig.vars).length > 0) {
-                        let varsSection = '\n\n[vars]\n'; // Add extra newline for separation
-                        for (const [key, value] of Object.entries(workerConfig.vars)) {
-                            // Ensure values are properly quoted
-                            varsSection += `${key} = "${String(value).replace(/"/g, '\\"' )}"\n`;
-                        }
-                        wranglerTomlContent += varsSection;
+                    const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, 'utf-8');
+                    // Parse the TOML content
+                    let parsedToml: any;
+                    try {
+                         parsedToml = parseIarna(wranglerTomlContent);
+                    } catch (parseError: any) {
+                        console.error(red(`Error parsing ${wranglerTomlPath}: ${parseError.message}`));
+                        console.warn(yellow(`Skipping wrangler.toml update for ${workerName} due to parsing error.`));
+                        continue; // Skip to the next worker if TOML is invalid
                     }
 
-                    fs.writeFileSync(wranglerTomlPath, wranglerTomlContent.trim() + '\n'); // Ensure trailing newline
-                    console.log(`Updated ${wranglerTomlPath}`);
+                    // --- Modify the parsed TOML object --- 
+                    parsedToml.name = workerName;
+                    parsedToml.account_id = config.global.cloudflare_account_id;
+
+                    // Ensure compatibility_date exists (add a default if not present)
+                    // You might want to make this configurable in config.toml later
+                    if (!parsedToml.compatibility_date) {
+                        const defaultCompatDate = new Date().toISOString().split('T')[0]; // e.g., '2024-04-09'
+                        parsedToml.compatibility_date = defaultCompatDate;
+                         console.log(dim(`Added default compatibility_date: ${defaultCompatDate}`));
+                    }
+
+                    // Remove existing vars section if it exists
+                    delete parsedToml.vars;
+
+                    // Add new [vars] section if vars are defined in config
+                    if (workerConfig.vars && Object.keys(workerConfig.vars).length > 0) {
+                        parsedToml.vars = {}; // Create the vars object
+                        for (const [key, value] of Object.entries(workerConfig.vars)) {
+                            // Values in TOML vars should typically be strings
+                            parsedToml.vars[key] = String(value);
+                        }
+                         console.log(dim(`Set [vars] based on config.toml`));
+                    }
+                    // --- End modifications ---
+
+                    // Stringify the modified object back to TOML
+                    const newTomlContent = stringifyIarna(parsedToml);
+
+                    fs.writeFileSync(wranglerTomlPath, newTomlContent);
+                    console.log(`Updated ${wranglerTomlPath} using TOML parser.`);
+
                 } catch (error: any) {
-                     console.error(`Error updating ${wranglerTomlPath}: ${error.message}`);
+                    // Catch errors from file reading/writing or stringifying
+                    console.error(red(`Error processing ${wranglerTomlPath}: ${error.message}`));
                 }
             } else {
-                console.warn(`Warning: wrangler.toml not found for ${workerName} at ${wranglerTomlPath}. Cannot update.`);
-                // Optionally, generate a basic wrangler.toml here
+                console.warn(yellow(`Warning: wrangler.toml not found for ${workerName} at ${wranglerTomlPath}. Cannot update.`));
+                // Consider generating a basic wrangler.toml here if needed
             }
 
             // 2. Set Secrets (now async)
@@ -477,15 +591,15 @@ async function setupWorkers(config: Config): Promise<void> { // Make async
 // --- Deployment Logic --- (Adjusted to capture URL)
 async function deployWorkers(config: Config): Promise<void> {
     console.log('Starting worker deployment...');
-    validateGlobalConfig(config);
 
     const cloudflareEnv = {
         CLOUDFLARE_API_TOKEN: config.global.cloudflare_api_token,
         CLOUDFLARE_ACCOUNT_ID: config.global.cloudflare_account_id,
     };
 
-    const deployedUrls: Record<string, string> = {}; // Store URLs temporarily
+    const deployedUrls: Record<string, string> = {}; // Keep for summary
     let anyErrors = false;
+    let configNeedsSaving = false; // Flag to track if config was modified
 
     for (const [workerName, workerConfig] of Object.entries(config.workers)) {
         if (workerConfig.enabled) {
@@ -493,76 +607,94 @@ async function deployWorkers(config: Config): Promise<void> {
             const workerDir = path.resolve(process.cwd(), workerConfig.path);
 
             if (!fs.existsSync(workerDir)) {
-                console.warn(`Warning: Directory not found for worker ${workerName} at ${workerDir}. Skipping deployment.`);
+                console.warn(yellow(`Warning: Directory not found for worker ${workerName} at ${workerDir}. Skipping deployment.`));
                 continue;
             }
 
             const wranglerTomlPath = path.join(workerDir, 'wrangler.toml');
             if (!fs.existsSync(wranglerTomlPath)) {
-                console.warn(`Warning: wrangler.toml not found for worker ${workerName} at ${wranglerTomlPath}. Skipping deployment.`);
+                console.warn(yellow(`Warning: wrangler.toml not found for worker ${workerName} at ${wranglerTomlPath}. Skipping deployment.`));
                 continue;
             }
 
-            // Ensure wrangler.toml has the correct account_id before deploying
-            // (The setup command should have done this, but double-check)
+            // Verify account_id (optional, but good practice)
             try {
                 const content = fs.readFileSync(wranglerTomlPath, 'utf-8');
                 if (!content.includes(`account_id = "${config.global.cloudflare_account_id}"`)) {
-                    console.warn(`Warning: ${wranglerTomlPath} might have the wrong account_id. Running setup first is recommended.`);
-                    // Optionally, force update here or just warn
+                    console.warn(yellow(`Warning: ${wranglerTomlPath} might have the wrong account_id. Running setup first is recommended.`));
                 }
             } catch (e: any) {
-                console.warn(`Warning: Could not read ${wranglerTomlPath} to verify account ID: ${e.message}`);
+                console.warn(yellow(`Warning: Could not read ${wranglerTomlPath} to verify account ID: ${e.message}`));
             }
 
             const result = runCommand('wrangler deploy', workerDir, cloudflareEnv);
 
             if (!result.success) {
-                console.error(`--- Failed to deploy worker: ${workerName} ---`);
+                console.error(red(`--- Failed to deploy worker: ${workerName} ---`));
                 anyErrors = true;
+                 // Ensure URL is cleared in config if deployment fails after it was previously set
+                 if (config.workers[workerName].deployed_url) {
+                     delete config.workers[workerName].deployed_url;
+                     configNeedsSaving = true;
+                 }
             } else {
-                console.log(`--- Successfully deployed worker: ${workerName} ---`);
-                // Try to extract URL from stdout
-                // Example Regex: Looks for https://<worker-name>.<subdomain>.workers.dev
+                console.log(green(`--- Successfully deployed worker: ${workerName} ---`));
+                // Try to extract URL
                 const urlMatch = result.stdout.match(/https:\/\/.*workers\.dev/m);
                 if (urlMatch) {
                     const url = urlMatch[0];
                     deployedUrls[workerName] = url;
-                    console.log(`   URL: ${url}`);
+                    console.log(`   URL: ${blue(url)}`);
+                    // Update config object
+                    if (config.workers[workerName].deployed_url !== url) {
+                        config.workers[workerName].deployed_url = url;
+                        configNeedsSaving = true;
+                        console.log(dim(`   (URL updated in config object)`));
+                    }
                 } else {
-                    console.warn(`   Could not extract URL from wrangler output for ${workerName}.`);
-                     console.log("   Full stdout:", result.stdout); // Log full output for debugging
+                    console.warn(yellow(`   Could not extract URL from wrangler output for ${workerName}.`));
+                    console.log(dim("   Full stdout:"), result.stdout); // Log full output for debugging
+                     // Clear URL in config if extraction fails after it was previously set
+                     if (config.workers[workerName].deployed_url) {
+                         delete config.workers[workerName].deployed_url;
+                         configNeedsSaving = true;
+                     }
                 }
             }
 
         } else {
-            console.log(`Skipping deployment for disabled worker: ${workerName}`);
+            console.log(dim(`Skipping deployment for disabled worker: ${workerName}`));
         }
+    }
+
+    // Save the config file if any URLs were updated or removed
+    if (configNeedsSaving) {
+        console.log(blue('\nSaving updated URLs to config.toml...'));
+        await saveConfig(config);
     }
 
     // --- Summary --- 
     console.log("\n--- Deployment Summary ---");
     if (anyErrors) {
-         console.error('Deployment process completed with errors.');
+         console.error(red('Deployment process completed with errors.'));
     } else {
-         console.log('Worker deployment process completed successfully.');
+         console.log(green('Worker deployment process completed successfully.'));
     }
 
     if (Object.keys(deployedUrls).length > 0) {
-        console.log("\nDeployed Worker URLs:");
+        console.log("\nDeployed Worker URLs (from this run):");
         for(const [name, url] of Object.entries(deployedUrls)) {
-            console.log(`- ${name}: ${url}`);
+            console.log(`- ${name}: ${blue(url)}`);
         }
     }
     console.log("-------------------------");
 
-    rl.close(); // Close readline interface
+    // rl.close(); // Readline is likely closed by loadConfig or not needed here
 }
 
 // --- Local Development Logic --- (New Async Function)
 async function startDevServer(config: Config, workerNameToStart: string): Promise<void> {
     console.log(`Attempting to start development server for worker: ${workerNameToStart}...`);
-    validateGlobalConfig(config); // Validate global config first
 
     const workerConfig = config.workers[workerNameToStart];
 
@@ -614,22 +746,31 @@ async function main() {
     program
         .name('bun run scripts/manage.ts')
         .description('CLI tool to manage worker project setup, deployment, keys, and development servers.')
-        .version('0.1.0'); // Example version
+        .version('0.1.0');
 
-    const config = loadConfig(); // Load config once
+    // Load config at the start, handling prompts
+    let config: Config;
+    try {
+        config = await loadConfig();
+    } catch (error: any) {
+        console.error(red(`Failed to load configuration: ${error.message}`));
+        // Ensure readline is closed if loadConfig threw an error after using it
+        if (rl && !(rl as any).closed) { rl.close(); }
+        process.exit(1); // Exit if config loading fails critically
+    }
 
     program
         .command('setup')
         .description('Configures enabled workers (prompts for missing secrets, sets up D1, updates wrangler.toml).')
         .action(async () => {
+            // No need for validateGlobalConfig here anymore
             try {
                 await setupWorkers(config);
             } catch (error) {
                 console.error(red(`Setup failed: ${error instanceof Error ? error.message : String(error)}`));
                 process.exitCode = 1;
             } finally {
-                // Ensure readline is closed if setupWorkers used it
-                 if (rl && !(rl as any).closed) { rl.close(); }
+                if (rl && !(rl as any).closed) { rl.close(); }
             }
         });
 
@@ -637,14 +778,14 @@ async function main() {
         .command('deploy')
         .description('Deploys enabled workers based on config.toml and outputs their URLs.')
         .action(async () => {
+            // No need for validateGlobalConfig here anymore
             try {
                 await deployWorkers(config);
             } catch (error) {
                 console.error(red(`Deployment failed: ${error instanceof Error ? error.message : String(error)}`));
                 process.exitCode = 1;
             } finally {
-                // Ensure readline is closed if deployWorkers used it (less likely, but for safety)
-                 if (rl && !(rl as any).closed) { rl.close(); }
+                if (rl && !(rl as any).closed) { rl.close(); }
             }
         });
 
@@ -652,17 +793,18 @@ async function main() {
         .command('dev <workerName>')
         .description('Starts local development server for a specific worker.')
         .action(async (workerName: string) => {
-            const workerConfig = config.workers[workerName];
+            // No need for validateGlobalConfig here anymore
+            const workerConfig = config.workers[workerName]; // config is already loaded and validated
              if (!workerConfig) {
                 console.error(red(`Error: Worker "${workerName}" not found in config.toml.`));
-                 printAvailableWorkers(config);
+                printAvailableWorkers(config);
                 process.exitCode = 1;
-                 return; // Exit action
+                return;
             }
             if (!workerConfig.enabled) {
                 console.error(red(`Error: Worker "${workerName}" is not enabled in config.toml. Set enabled = true to run it.`));
                 process.exitCode = 1;
-                 return; // Exit action
+                return;
             }
 
             try {
@@ -671,7 +813,6 @@ async function main() {
                 console.error(red(`Failed to start dev server for ${workerName}: ${error instanceof Error ? error.message : String(error)}`));
                 process.exitCode = 1;
             } finally {
-                 // Ensure readline is closed if startDevServer used it
                  if (rl && !(rl as any).closed) { rl.close(); }
             }
         });
@@ -781,18 +922,12 @@ async function main() {
         .description('Updates a secret in Cloudflare for a specific worker using the stored key value.')
         .option('-e, --env <environment>', 'Environment to get the key value from (local or prod)', 'prod')
         .action(async (keyName: string, workerName: string, options: { env: 'local' | 'prod' }) => {
-            // Validate environment
-            if (options.env !== 'local' && options.env !== 'prod') {
-                console.error(red('Error: Invalid environment specified for key source. Use "local" or "prod".'));
-                process.exitCode = 1;
-                return;
-            }
+            // No need for validateGlobalConfig here anymore
 
-            // 1. Get Cloudflare Token
-            const apiToken = await getCloudflareToken(config);
+            // 1. Get Cloudflare Token (still uses getCloudflareToken helper)
+            const apiToken = await getCloudflareToken(config); // Pass the loaded config
             if (!apiToken) {
                 process.exitCode = 1;
-                // Close readline if token prompt was the last interaction
                  if (rl && !(rl as any).closed) { rl.close(); }
                 return;
             }
@@ -804,7 +939,7 @@ async function main() {
                 console.error(red(`Error: Key "${keyName}" not found in [${options.env}] environment.`));
                 console.log(dim(`Checked file: ${getKeyFilePath(options.env)}`));
                 process.exitCode = 1;
-                 if (rl && !(rl as any).closed) { rl.close(); } // Close readline if needed
+                 if (rl && !(rl as any).closed) { rl.close(); }
                 return;
             }
 
@@ -812,14 +947,13 @@ async function main() {
             const workerConfig = config.workers[workerName];
             if (!workerConfig) {
                 console.error(red(`Error: Worker "${workerName}" not found in config.toml.`));
-                printAvailableWorkers(config); // Assumes printAvailableWorkers exists
+                printAvailableWorkers(config); 
                 process.exitCode = 1;
                  if (rl && !(rl as any).closed) { rl.close(); }
                 return;
             }
              if (!workerConfig.enabled) {
                  console.warn(yellow(`Warning: Worker "${workerName}" is not enabled in config.toml. Proceeding anyway...`));
-                 // Allow updating secrets even for disabled workers
             }
             const workerDir = path.resolve(process.cwd(), workerConfig.path);
             if (!fs.existsSync(workerDir)) {
@@ -833,7 +967,7 @@ async function main() {
             console.log(blue(`Updating secret "${keyName}" for worker "${workerName}" in Cloudflare...`));
             try {
                 const result = await runCommandWithStdin(
-                    'bunx', // Use bunx to run wrangler
+                    'bunx',
                     ['wrangler', 'secret', 'put', keyName],
                     keyValue,
                     workerDir,
@@ -842,10 +976,9 @@ async function main() {
 
                 if (result.success) {
                     console.log(green(`✅ Successfully updated secret "${keyName}" for worker "${workerName}".`));
-                     console.log(dim(result.stdout)); // Show wrangler output
+                     console.log(dim(result.stdout));
                 } else {
                      console.error(red(`❌ Failed to update secret "${keyName}" for worker "${workerName}".`));
-                     // Stderr already printed by runCommandWithStdin on failure
                     process.exitCode = 1;
                 }
             } catch (error) {
@@ -853,8 +986,269 @@ async function main() {
                 process.exitCode = 1;
             }
 
-             // Ensure readline is closed if token prompt was used
              if (rl && !(rl as any).closed) { rl.close(); }
+        });
+
+    // --- New Command: status ---
+    program
+        .command('status')
+        .description('Displays the status and configuration summary of enabled/disabled workers.')
+        .action(() => {
+            // Config is already loaded at the start of main
+            console.log(blue('\n--- Worker Status Summary ---'));
+
+            if (Object.keys(config.workers).length === 0) {
+                console.log(yellow('No workers defined in config.toml.'));
+                console.log("---------------------------");
+                return;
+            }
+
+            for (const [workerName, workerConfig] of Object.entries(config.workers)) {
+                const status = workerConfig.enabled ? green('Enabled') : red('Disabled');
+                console.log(`\nWorker: ${yellow(workerName)}`);
+                console.log(`  Status: ${status}`);
+                console.log(`  Path:   ${dim(workerConfig.path)}`);
+                if (workerConfig.deployed_url) {
+                    console.log(`  URL:    ${blue(workerConfig.deployed_url)}`);
+                } else {
+                    console.log(`  URL:    ${dim('(Not deployed or URL not stored)')}`);
+                }
+                const varCount = Object.keys(workerConfig.vars || {}).length;
+                const secretCount = (workerConfig.secrets || []).length;
+                console.log(`  Vars:   ${varCount}`);
+                console.log(`  Secrets: ${secretCount}`);
+            }
+            console.log("\n---------------------------");
+            // Ensure readline is closed if it was used by loadConfig
+            if (rl && !(rl as any).closed) { rl.close(); }
+        });
+
+    // --- New Command: test ---
+    program
+        .command('test [workerName]') // workerName is optional
+        .description('Runs tests for a specific worker or all enabled workers.')
+        .option('--coverage', 'Run tests with coverage reporting')
+        .option('--watch', 'Run tests in watch mode')
+        .action(async (workerName: string | undefined, options: { coverage?: boolean, watch?: boolean }) => {
+            
+            let workersToTest: { name: string, config: WorkerConfig }[] = [];
+
+            if (workerName) {
+                // Test specific worker
+                const workerConfig = config.workers[workerName];
+                if (!workerConfig) {
+                    console.error(red(`Error: Worker "${workerName}" not found in config.toml.`));
+                    printAvailableWorkers(config);
+                    process.exitCode = 1;
+                    return;
+                }
+                 if (!workerConfig.enabled) {
+                    console.warn(yellow(`Warning: Worker "${workerName}" is not enabled in config.toml, but running tests anyway.`));
+                    // Allow testing disabled workers if specified explicitly
+                 }
+                 workersToTest.push({ name: workerName, config: workerConfig });
+            } else {
+                // Test all enabled workers
+                workersToTest = Object.entries(config.workers)
+                    .filter(([, wc]) => wc.enabled)
+                    .map(([name, wc]) => ({ name, config: wc }));
+                
+                if (workersToTest.length === 0) {
+                    console.log(yellow('No enabled workers found in config.toml to test.'));
+                    return;
+                }
+                 console.log(blue(`Running tests for all enabled workers...`));
+            }
+
+            let overallExitCode = 0;
+            let allTestsPassed = true;
+
+            for (const { name, config: workerConfig } of workersToTest) {
+                console.log(`\n--- Testing worker: ${yellow(name)} ---`);
+                const workerDir = path.resolve(process.cwd(), workerConfig.path);
+                const testDir = path.join(workerDir, 'test'); // Standard test dir
+
+                if (!fs.existsSync(workerDir)) {
+                    console.error(red(`Error: Directory not found for worker ${name} at ${workerDir}. Skipping tests.`));
+                    allTestsPassed = false;
+                    continue;
+                }
+                if (!fs.existsSync(testDir)) {
+                    console.log(yellow(`No test directory found at ${testDir}. Skipping tests for ${name}.`));
+                    continue;
+                }
+
+                 // Assemble bun test arguments
+                 const testArgs = ['test'];
+                 if (options.coverage) {
+                     testArgs.push('--coverage');
+                 }
+                 if (options.watch) {
+                    testArgs.push('--watch');
+                 }
+
+                 try {
+                     let exitCode: number | null | boolean = 0; // Use boolean for runCommand result
+                     if (options.watch) {
+                         // Use interactive command for watch mode
+                         exitCode = await runInteractiveCommand('bun', testArgs, workerDir);
+                         // In watch mode, we might not want to aggregate exit codes from multiple workers
+                         // Typically you watch one worker at a time
+                         if (workersToTest.length > 1) {
+                             console.warn(yellow('Watch mode started. It will run indefinitely for this worker.'));
+                             console.warn(yellow('Testing for other workers will be skipped in watch mode.'));
+                             // Exit the loop after starting the first watch session
+                              overallExitCode = exitCode === null ? 1 : exitCode; // Set overall code based on this run
+                             break;
+                         }
+                     } else {
+                        // Use runCommand for standard test runs
+                         const result = runCommand(`bun ${testArgs.join(' ')}`, workerDir);
+                         exitCode = result.success ? 0 : 1; // Convert success boolean to exit code
+                         if (!result.success) {
+                            console.error(red(`Tests failed for ${name}.`));
+                         } else {
+                             console.log(green(`Tests passed for ${name}.`));
+                         }
+                     }
+
+                     if (exitCode !== 0 && exitCode !== null) { // Check for non-zero exit code (or spawn error for interactive)
+                         allTestsPassed = false;
+                         // If running multiple tests, keep the first non-zero exit code
+                         if (overallExitCode === 0) {
+                             overallExitCode = exitCode === null ? 1 : exitCode; 
+                         }
+                     }
+
+                 } catch (error) {
+                     console.error(red(`Error running tests for ${name}: ${error instanceof Error ? error.message : String(error)}`));
+                     allTestsPassed = false;
+                      if (overallExitCode === 0) { overallExitCode = 1; }
+                 }
+             }
+
+            // --- Summary --- 
+             // Avoid summary if we started watch mode for a single worker
+             if (!(options.watch && workersToTest.length <= 1)) {
+                console.log("\n--- Test Summary ---");
+                 if (allTestsPassed) {
+                     console.log(green("✅ All tests passed!"));
+                 } else {
+                     console.error(red("❌ Some tests failed."));
+                 }
+                 console.log("--------------------");
+             }
+
+            process.exitCode = overallExitCode;
+             // Ensure readline is closed if it was used by loadConfig
+             if (rl && !(rl as any).closed) { rl.close(); }
+        });
+
+    // --- New Command: update-internal-urls ---
+    program
+        .command('update-internal-urls')
+        .description('Updates *_URL variables in wrangler.toml files based on deployed URLs stored in config.toml.')
+        .action(async () => {
+            console.log(blue('\n--- Updating Internal Worker URL Variables ---'));
+
+            // 1. Build map of worker names to URLs
+            const workerUrlMap: Record<string, string> = {};
+            for (const [name, wc] of Object.entries(config.workers)) {
+                if (wc.deployed_url) {
+                    workerUrlMap[name] = wc.deployed_url;
+                } else if (config.global.subdomain_prefix) {
+                    // Fallback to constructing the URL
+                    const derivedUrl = `https://${name}.${config.global.subdomain_prefix}.workers.dev`;
+                    workerUrlMap[name] = derivedUrl;
+                    console.log(dim(`  Using derived URL for ${name}: ${derivedUrl} (deploy first for actual URL)`));
+                } else {
+                     console.warn(yellow(`  Cannot determine URL for worker ${name}: No deployed_url and no global.subdomain_prefix.`));
+                }
+            }
+            if (Object.keys(workerUrlMap).length === 0) {
+                console.warn(yellow('Could not determine URLs for any workers. Cannot update internal references.'));
+                return;
+            }
+
+            let anyTomlFileUpdated = false;
+            const updatedWorkerNames: string[] = [];
+
+            // 2. Iterate through each worker to update its wrangler.toml
+            for (const [targetWorkerName, targetWorkerConfig] of Object.entries(config.workers)) {
+                console.log(dim(`\nChecking worker: ${targetWorkerName}...`));
+                const workerDir = path.resolve(process.cwd(), targetWorkerConfig.path);
+                const wranglerTomlPath = path.join(workerDir, 'wrangler.toml');
+
+                if (!fs.existsSync(wranglerTomlPath)) {
+                     console.warn(yellow(`  wrangler.toml not found at ${wranglerTomlPath}. Skipping.`));
+                    continue;
+                }
+
+                let parsedToml: any;
+                try {
+                    const content = fs.readFileSync(wranglerTomlPath, 'utf-8');
+                    parsedToml = parseIarna(content);
+                } catch (parseError: any) {
+                     console.error(red(`  Error parsing ${wranglerTomlPath}: ${parseError.message}. Skipping.`));
+                    continue;
+                }
+
+                // Check if [vars] exists
+                if (!parsedToml.vars || typeof parsedToml.vars !== 'object') {
+                    console.log(dim(`  No [vars] section found in ${targetWorkerName}'s wrangler.toml. Skipping.`));
+                    continue;
+                }
+
+                let thisTomlUpdated = false;
+
+                // 3. Check vars for references to other workers
+                for (const [sourceWorkerName, sourceWorkerUrl] of Object.entries(workerUrlMap)) {
+                    if (sourceWorkerName === targetWorkerName) continue; // Skip self-reference
+
+                    // Construct the expected variable name (e.g., D1_WORKER_URL)
+                    const varName = `${sourceWorkerName.replace(/-/g, '_').toUpperCase()}_URL`;
+
+                    if (varName in parsedToml.vars) {
+                        const currentVarValue = parsedToml.vars[varName];
+                        if (currentVarValue !== sourceWorkerUrl) {
+                            console.log(`  Updating ${green(varName)} in ${targetWorkerName}'s wrangler.toml:`);
+                            console.log(`    Old: ${dim(String(currentVarValue))}`);
+                            console.log(`    New: ${blue(sourceWorkerUrl)}`);
+                            parsedToml.vars[varName] = sourceWorkerUrl;
+                            thisTomlUpdated = true;
+                        } else {
+                             console.log(dim(`  Variable ${varName} in ${targetWorkerName} is already up-to-date.`));
+                        }
+                    } // else: Variable not found, nothing to update
+                }
+
+                // 4. Write back if updated
+                if (thisTomlUpdated) {
+                    try {
+                        const newTomlContent = stringifyIarna(parsedToml);
+                        fs.writeFileSync(wranglerTomlPath, newTomlContent);
+                         console.log(green(`  Successfully updated ${wranglerTomlPath}`));
+                        anyTomlFileUpdated = true;
+                        updatedWorkerNames.push(targetWorkerName);
+                    } catch (writeError: any) {
+                        console.error(red(`  Error writing updated ${wranglerTomlPath}: ${writeError.message}`));
+                    }
+                }
+            }
+
+            // 5. Summary
+            console.log("\n--- Update Summary ---");
+            if (anyTomlFileUpdated) {
+                 console.log(green('The following worker wrangler.toml files were updated:'));
+                 updatedWorkerNames.forEach(name => console.log(`- ${yellow(name)}`));
+                 console.log(yellow('IMPORTANT: You need to run ' + blue('deploy') + ' for these workers again for the changes to take effect.'));
+            } else {
+                 console.log(green('All internal worker URL variables seem to be up-to-date.'));
+            }
+             console.log("------------------------");
+
+            // Ensure readline is closed if it was used by loadConfig
+            if (rl && !(rl as any).closed) { rl.close(); }
         });
 
     // Add a helper function (can be placed within main or outside)
@@ -878,8 +1272,12 @@ async function main() {
 
      // Exit with the determined code if any command set it
     if (process.exitCode !== undefined && process.exitCode !== 0) {
+         // Ensure readline is closed before exiting on error
+         if (rl && !(rl as any).closed) { rl.close(); }
          process.exit(process.exitCode);
     }
+    // Ensure readline is closed on successful completion if it was used
+     if (rl && !(rl as any).closed) { rl.close(); }
 }
 
-main(); // Execute the main async function 
+main(); 
