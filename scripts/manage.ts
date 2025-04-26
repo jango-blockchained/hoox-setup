@@ -60,6 +60,9 @@ const blue = (text: string) => `\x1b[34m${text}${NC}`;
 const cyan = (text: string) => `\x1b[36m${text}${NC}`;
 const dim = (text: string) => `\x1b[2m${text}${NC}`;
 
+const print_success = (text: string) => {
+    console.log(green(`✅ ${text}`));
+};
 // --- Helper Functions ---
 
 const rl = readline.createInterface({
@@ -770,6 +773,8 @@ async function startDevServer(config: Config, workerNameToStart: string): Promis
     console.log(`Wrangler dev for ${workerNameToStart} stopped.`);
     rl.close(); // Close readline interface if wrangler dev exits cleanly
 }
+
+
 
 // --- Script Execution using Commander ---
 async function main() {
@@ -1733,10 +1738,6 @@ function listKeys(environment: 'local' | 'prod'): void {
     console.log(dim(`File: ${getKeyFilePath(environment)}`));
 }
 
-// Added print_success function
-const print_success = (text: string) => {
-    console.log(green(`✅ ${text}`));
-};
 
 main().catch(error => {
     console.error(red(`Unhandled error: ${error.message}`));
