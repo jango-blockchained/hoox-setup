@@ -10,3 +10,6 @@
 [submodule "d1-worker"]
 	path = workers/d1-worker
 	url = ./workers/d1-worker
+[submodule "web3-wallet-worker"]
+	path = workers/web3-wallet-worker
+	url = ./workers/web3-wallet-worker

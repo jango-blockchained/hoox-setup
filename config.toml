@@ -1,0 +1,58 @@
+[global]
+# Cloudflare API Token (Recommended over API Key/Email for better security)
+# Obtain from: Cloudflare Dashboard > My Profile > API Tokens > Create Token > Use "Edit Cloudflare Workers" template
+cloudflare_api_token = "" # PASTE YOUR TOKEN HERE or leave empty to be prompted
+
+# Cloudflare Account ID
+# Obtain from: Cloudflare Dashboard > Select your domain > Overview page (bottom right)
+cloudflare_account_id = "" # PASTE YOUR ACCOUNT ID HERE or leave empty to be prompted
+
+# A unique prefix for your worker subdomains (e.g., "my-app")
+# Final URLs will look like: worker-name.prefix.workers.dev
+subdomain_prefix = "" # CHOOSE A PREFIX or leave empty to be prompted
+
+# Optional: Specify the path to your global .env file if you use one for secrets NOT managed by wrangler
+# dotenv_path = ".env"
+
+[secrets]
+# Define names for secrets that might be shared or referenced across workers
+# The actual values should be set via wrangler secret put (handled by the script) or manually in the dashboard
+# Example:
+# TELEGRAM_BOT_TOKEN = "" # Leave value empty, script will prompt or use environment variable if needed
+
+[workers.d1-worker]
+enabled = false # Set to true to enable this worker during setup/deployment
+# Path relative to the project root
+path = "workers/d1-worker"
+# Worker-specific environment variables for wrangler.toml or .dev.vars
+vars = { database_name = "my-database" }
+# Secrets needed by this worker (names defined in Cloudflare secrets)
+# The script will try to set these using wrangler secret put
+secrets = [] # Example: ["DATABASE_URL_SECRET"]
+
+[workers.telegram-worker]
+enabled = false
+path = "workers/telegram-worker"
+vars = {}
+secrets = ["TELEGRAM_BOT_TOKEN"] # Assumes a secret named TELEGRAM_BOT_TOKEN exists in Cloudflare
+
+[workers.trade-worker]
+enabled = false
+path = "workers/trade-worker"
+vars = {}
+secrets = ["API_SERVICE_KEY"] # Example
+
+[workers.web3-wallet-worker]
+enabled = false
+path = "workers/web3-wallet-worker"
+vars = {}
+# The mnemonic needs to be stored securely. The script should prompt for it.
+secrets = ["MNEMONIC"]
+
+[workers.webhook-receiver]
+enabled = false
+path = "workers/webhook-receiver"
+vars = {}
+secrets = []
+
+# Add more workers here following the same structure 

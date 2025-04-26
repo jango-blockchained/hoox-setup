@@ -3,22 +3,26 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "test": "bash scripts/run-tests.sh",
-        "test:watch": "bash scripts/run-tests.sh --watch",
-        "test:coverage": "bash scripts/run-tests.sh --coverage",
+        "tests": "bash scripts/run-tests.sh",
+        "tests:watch": "bash scripts/run-tests.sh --watch",
+        "tests:coverage": "bash scripts/run-tests.sh --coverage",
         "dev:start": "bash scripts/dev-start.sh",
         "tui": "./hoox-tui",
         "dev": "./hoox-tui",
         "status": "bash scripts/status.sh"
     },
     "devDependencies": {
+        "@types/commander": "^2.12.5",
+        "@types/iarna__toml": "^2.0.5",
         "@types/jest": "^29.5.12",
+        "@types/node": "^20",
         "bun-types": "latest",
         "jest-mock": "^29.7.0",
         "tsx": "^4.19.3"
     },
     "dependencies": {
         "@types/blessed": "^0.1.25",
-        "blessed": "^0.1.81"
+        "blessed": "^0.1.81",
+        "toml": "^3.0.0"
     }
 }

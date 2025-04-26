@@ -1,21 +1,22 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "types": [
             "bun-types",
-            "@types/jest"
+            "@types/jest",
+            "@types/node"
         ],
         "esModuleInterop": true,
         "skipLibCheck": true,
         "strict": true,
-        "noEmit": true,
         "allowJs": true,
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "baseUrl": ".",
+        "outDir": "./dist",
         "paths": {
             "@/*": [
                 "src/*"
@@ -24,9 +25,11 @@
     },
     "include": [
         "src/**/*",
-        "test/**/*"
+        "test/**/*",
+        "scripts/**/*"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "dist"
     ]
 }
