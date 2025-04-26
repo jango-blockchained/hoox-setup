@@ -13,6 +13,8 @@ This project contains a collection of Cloudflare Workers managed by a unified Ty
 - **Bun:** This project uses Bun as the JavaScript runtime and package manager. Follow the installation instructions at [https://bun.sh/](https://bun.sh/).
 - **Node.js:** While Bun is the primary runtime, some Node.js APIs are used. Ensure you have a recent LTS version installed.
 - **Cloudflare Account:** You need a Cloudflare account ID and an API token with appropriate permissions (e.g., Workers, D1, Secrets).
+- **Cloudflare Worker Subdomain:** Ensure you have configured your desired Workers subdomain (e.g., `your-subdomain.workers.dev`) in your Cloudflare account settings under Workers & Pages > Overview.
+- **Cloudflare D1 Database (If using `d1-worker`):** If you plan to enable the `d1-worker`, ensure a D1 database is created. The setup wizard (`manage.ts init`) or the `manage.ts workers setup` command can assist with this.
 
 ## Project Structure
 
@@ -20,7 +22,7 @@ This project contains a collection of Cloudflare Workers managed by a unified Ty
 .
 ├── .keys/                # Stores local/production API keys (gitignored)
 │   ├── local_keys.env
-│   └── prod_keys.env
+│   └── prod_keys.env     # DEPRECATED: Use Cloudflare secrets directly for production.
 ├── docs/                 # Project documentation (optional)
 ├── scripts/              # Management scripts
 │   └── manage.ts         # The main CLI tool
@@ -83,12 +85,11 @@ secrets = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"]
 
 ### Key Management (`.keys/`)
 
-- The `.keys/` directory stores sensitive API keys locally.
-- `local_keys.env`: Used for local development secrets (e.g., testnet keys).
-- `prod_keys.env`: Used for production secrets.
-- **These files are gitignored.** You need to create them manually or via the `keys generate` command.
-- The format is simple `KEY_NAME=VALUE` pairs.
-- The `secrets update-cf` command reads values from these files to upload to Cloudflare.
+- The `.keys/` directory stores sensitive API keys locally, primarily intended for **local development**.
+- `local_keys.env`: Used for local development secrets (e.g., testnet keys). This file is gitignored. Create it manually or use `keys generate`.
+- `prod_keys.env`: **DEPRECATED.** Storing production keys locally, even if gitignored, is discouraged. **Manage production secrets directly in the Cloudflare dashboard or using `wrangler secret put`.**
+- The format for `local_keys.env` is simple `KEY_NAME=VALUE` pairs.
+- The `secrets update-cf` command (using `-e local`, the default) can read values from `local_keys.env` to upload to Cloudflare, which is useful for populating secrets needed for local development (`wrangler dev`).
 
 ## Initial Setup (Wizard)
 
@@ -106,7 +107,9 @@ The wizard will guide you through:
 3.  **Worker Selection:** Lists workers found in the `workers/` directory and asks which ones to enable.
 4.  **D1 Database Setup:** If the `d1-worker` is enabled, prompts for a database name and runs `wrangler d1 create` to create it, storing the ID in `config.toml`.
 5.  **Configuration Save:** Writes the selected worker configurations and global settings (including D1 ID) to `config.toml`.
-6.  **Secret Configuration:** For each enabled worker, checks the `secrets` array defined in `config.toml`. It attempts to find the secret value in `process.env` or `.keys/local_keys.env`. If not found, it prompts you for the value and uploads it using `wrangler secret put`.
+6.  **Secret Configuration:** For each enabled worker, checks the `secrets` array defined in `config.toml`.
+    *   **Local Secrets:** It attempts to find the secret value in `process.env` or `.keys/local_keys.env`. If found, it can be uploaded using `wrangler secret put` (useful for `wrangler dev`). If not found, it prompts you.
+    *   **Production Secrets:** For production deployments, you should configure secrets **directly** in the Cloudflare dashboard or via `wrangler secret put`. The wizard does not handle production secrets.
 7.  **Initial Deployment (Optional):** Asks if you want to deploy the enabled workers immediately.
 
 The wizard uses `.install-wizard-state.json` to save progress, allowing you to resume if interrupted.
@@ -158,21 +161,24 @@ Use `bun run manage.ts <command>` for ongoing management.
 
   - Retrieves and prints the value of a key from the specified environment's `.keys/*.env` file.
 
-- `bun run manage.ts keys list [-e local|prod]`
+- `bun run manage.ts keys list [-e local]`
 
-  - Lists all keys stored in the specified environment's `.keys/*.env` file (`local` by default).
+  - Lists all keys stored in `.keys/local_keys.env`. (The `-e prod` option is deprecated).
 
-- `bun run manage.ts secrets update-cf <keyName> <workerName> [-e local|prod]`
-  - Updates a Cloudflare secret for a specific worker.
-  - Reads the value for `<keyName>` from the specified environment's `.keys/*.env` file (`local` by default).
-  - Uploads this value as a secret named `<keyName>` to the specified `<workerName>` using `wrangler secret put`.
+- `bun run manage.ts secrets update-cf <keyName> <workerName> [-e local]`
+  - Updates a Cloudflare secret for a specific worker, reading the value from `.keys/local_keys.env`.
+  - This is primarily useful for setting up secrets required by `wrangler dev` for local development.
+  - **For production secrets, manage them directly via the Cloudflare dashboard or `wrangler secret put`.**
 
 ## Development
 
 To run a worker locally during development:
 
 1.  Ensure the worker is enabled in `config.toml`.
-2.  Make sure any necessary secrets are available (e.g., in `.keys/local_keys.env` or environment variables). You might need to run `secrets update-cf` with `-e local` if the worker depends on secrets uploaded to Cloudflare for local dev.
+2.  Make sure any necessary secrets are available for local development. You can:
+    *   Place them in `.keys/local_keys.env` and use `bun run manage.ts secrets update-cf <keyName> <workerName>` to upload them to Cloudflare (so `wrangler dev` can access them).
+    *   Set them as environment variables.
+    *   Manage them directly in Cloudflare if `wrangler dev` should pull them from there.
 3.  Run `bun run manage.ts workers dev <workerName>`.
 
 ## Testing

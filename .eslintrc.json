@@ -23,6 +23,7 @@
       { "argsIgnorePattern": "^_" }
     ], // Warn about unused vars, allow underscores
     "@typescript-eslint/explicit-module-boundary-types": "off", // Optional: Allow implicit return types
+    "@typescript-eslint/no-var-requires": "off", // Disable require check for now
     "no-console": "off" // Allow console logs (common in scripts/workers)
     // Add other project-specific rules here
   },
@@ -32,5 +33,14 @@
     "*.bak",
     ".wrangler/",
     "*.md" // Don't lint markdown files
+  ],
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "parserOptions": {
+        "project": null // Don't use project settings for JS files
+      },
+      "parser": "espree" // Use default JS parser
+    }
   ]
 }

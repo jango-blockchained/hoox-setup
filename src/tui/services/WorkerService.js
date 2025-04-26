@@ -1,9 +1,9 @@
 import { spawn } from "child_process";
-import { exec } from "child_process";
+import { exec } from "child_process"; // Restore exec import
 import path from "path";
 import { promisify } from "util";
 
-const execPromise = promisify(exec);
+const _execPromise = promisify(exec); // Now exec is defined
 
 export class WorkerService {
   constructor(setWorkers, setLogs, setStatusMessage) {

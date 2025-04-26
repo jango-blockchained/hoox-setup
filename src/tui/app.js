@@ -90,7 +90,7 @@ const workerService = new WorkerService(
 // --- UI Elements ---
 
 // Header
-const header = blessed.box({
+const _header = blessed.box({
   parent: screen,
   top: 0,
   left: 0,
@@ -202,7 +202,7 @@ const controlBox = blessed.box({
   },
 });
 
-const commandBox = blessed.box({
+const _commandBox = blessed.box({
   parent: detailsPane,
   top: 5,
   left: 0,
@@ -330,7 +330,7 @@ const actionsBox = blessed.box({
   },
 });
 
-const actionsText = blessed.text({
+const _actionsText = blessed.text({
   parent: actionsBox,
   content:
     "{bold}Global Actions{/}\n\n[S] Start All\n[K] Stop All\n[R] Restart All",
@@ -496,8 +496,9 @@ screen.key(["C-q", "q"], () => {
 });
 
 // Worker navigation and selection
-statusList.on("select item", (item, index) => {
-  selectedWorkerId = Object.keys(workers)[index];
+statusList.on("select", (_item, index) => {
+  const workerId = Object.keys(workers)[index];
+  selectedWorkerId = workerId;
   updateControlBox();
   updateLogView();
   screen.render();
