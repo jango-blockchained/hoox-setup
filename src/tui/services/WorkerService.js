@@ -178,43 +178,33 @@ export class WorkerService {
     }
 
     /**
-     * Check status of all workers
+     * Check status of all workers based on internal tracking.
+     * Note: This doesn't verify if the process is *actually* healthy,
+     * only if this service believes it's running.
      */
     async checkAllStatus() {
-        try {
-            const workerIds = ['d1', 'trade', 'webhook', 'telegram'];
+        // No external command needed now. Status is primarily tracked internally.
+        // We can trigger an update to ensure UI reflects the internal state.
+        this.setWorkers(prevWorkers => {
+             const updatedWorkers = { ...prevWorkers };
+             for (const workerId in updatedWorkers) {
+                 const processExists = !!this.workerProcesses[workerId];
+                 const currentStatus = updatedWorkers[workerId].status;
 
-            // Use ps command to find running node processes
-            const { stdout } = await execPromise("ps aux | grep 'bun run dev --' | grep -v grep");
-
-            // Update workers based on running processes
-            this.setWorkers(prevWorkers => {
-                const newWorkers = { ...prevWorkers };
-
-                // First mark all as stopped
-                workerIds.forEach(id => {
-                    newWorkers[id] = {
-                        ...newWorkers[id],
-                        status: 'stopped'
-                    };
-                });
-
-                // Then check which ones are running
-                stdout.split('\n').filter(Boolean).forEach(line => {
-                    workerIds.forEach(id => {
-                        if (line.includes(`port ${prevWorkers[id].port}`)) {
-                            newWorkers[id].status = 'running';
-                        }
-                    });
-                });
-
-                return newWorkers;
-            });
-
-        } catch (error) {
-            // If ps command fails, don't update statuses
-            console.error('Error checking worker status:', error);
-        }
+                 if (processExists && currentStatus !== 'running' && currentStatus !== 'starting' && currentStatus !== 'stopping') {
+                     // If we have a process but status isn't running/starting/stopping, mark as running
+                     // This handles cases where the initial state might be inaccurate
+                      updatedWorkers[workerId].status = 'running';
+                 } else if (!processExists && (currentStatus === 'running' || currentStatus === 'starting' || currentStatus === 'stopping')) {
+                     // If we *don't* have a process but status is running/starting/stopping, mark as stopped
+                     // This handles cases where the process died unexpectedly without triggering 'exit'
+                      updatedWorkers[workerId].status = 'stopped';
+                 }
+                 // Otherwise, trust the existing status (stopped, error, starting, stopping)
+             }
+             return updatedWorkers;
+         });
+         this.setStatusMessage("Worker status refreshed (internal check).");
     }
 
     /**
