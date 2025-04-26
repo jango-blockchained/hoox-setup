@@ -968,8 +968,8 @@ async function runWizard() {
         if (state.currentStep <= 3) {
             printWizardStep(state, 'Selecting Workers to Enable');
             // TODO: Implement worker selection logic
-            console.log(yellow('Worker selection step not yet implemented.'));
-            // await step_selectWorkers(state);
+            // console.log(yellow('Worker selection step not yet implemented.'));
+            await step_selectWorkers(state); // Implement this
             state.currentStep++;
             saveWizardState(state);
         }
@@ -978,7 +978,8 @@ async function runWizard() {
         if (state.currentStep <= 4) {
             printWizardStep(state, 'Setting up D1 Database');
             // TODO: Implement D1 setup logic - only if needed by selected workers
-            console.log(yellow('D1 Database setup step not yet implemented.'));
+            // console.log(yellow('D1 Database setup step not yet implemented.'));
+            await step_setupD1(state); // Implement and call this
             // const d1Id = await step_setupD1(state);
             // if (d1Id) state.config.global!.d1_database_id = d1Id;
             state.currentStep++;
@@ -1131,7 +1132,75 @@ async function step_saveConfig(configToSave: Config): Promise<void> {
     print_success(`Configuration saved to ${CONFIG_PATH}.`);
 }
 
-// TODO: Implement step_selectWorkers
+// Implement step_selectWorkers
+async function step_selectWorkers(state: WizardState): Promise<void> {
+    console.log(dim('Scanning for available workers in:'), WORKERS_DIR);
+
+    let availableWorkers: string[] = [];
+    try {
+        availableWorkers = fs.readdirSync(WORKERS_DIR).filter(entry => {
+            const entryPath = path.join(WORKERS_DIR, entry);
+            // Basic check: is it a directory and does it contain wrangler.toml or src/?
+            return fs.statSync(entryPath).isDirectory() &&
+                   (fs.existsSync(path.join(entryPath, 'wrangler.toml')) || fs.existsSync(path.join(entryPath, 'src')));
+        });
+    } catch (error: any) {
+        throw new Error(`Failed to read workers directory ${WORKERS_DIR}: ${error.message}`);
+    }
+
+    if (availableWorkers.length === 0) {
+        console.warn(yellow('Warning: No potential worker directories found.'));
+        // Ensure workers object exists in state config
+        if (!state.config.workers) {
+            state.config.workers = {};
+        }
+        return; // Nothing to select
+    }
+
+    console.log(blue('Available workers found:'));
+    availableWorkers.forEach(w => console.log(`- ${w}`));
+
+    // Initialize workers in state if they don't exist
+    if (!state.config.workers) {
+        state.config.workers = {};
+    }
+    for (const workerName of availableWorkers) {
+        if (!state.config.workers[workerName]) {
+            state.config.workers[workerName] = {
+                enabled: false, // Default to disabled
+                path: path.relative(process.cwd(), path.join(WORKERS_DIR, workerName))
+            };
+        } else {
+            // Ensure path is correct even if worker was already in state
+             state.config.workers[workerName].path = path.relative(process.cwd(), path.join(WORKERS_DIR, workerName));
+        }
+    }
+
+    console.log(blue('\nPlease configure which workers should be enabled:'));
+
+    // Interactive loop
+    for (const workerName of availableWorkers) {
+        const currentStatus = state.config.workers[workerName]?.enabled ? green('Enabled') : red('Disabled');
+        const answer = await rl.question(`Enable worker "${yellow(workerName)}"? (${currentStatus}) (y/N/Enter to keep): `);
+        const choice = answer.trim().toLowerCase();
+
+        if (choice === 'y') {
+            state.config.workers[workerName].enabled = true;
+            console.log(green(` -> Worker "${workerName}" Enabled.`));
+        } else if (choice === 'n') {
+            state.config.workers[workerName].enabled = false;
+            console.log(red(` -> Worker "${workerName}" Disabled.`));
+        } else {
+             console.log(dim(` -> Status for "${workerName}" remains ${currentStatus}.`));
+        }
+    }
+
+    console.log(green('Worker selection updated.'));
+
+    // Optional: Clean up workers from state if the directory was removed?
+    // For now, we keep all discovered workers in the state.
+}
+
 // TODO: Implement step_setupD1
 // TODO: Implement step_configureSecrets
 // TODO: Implement step_initialDeploy
