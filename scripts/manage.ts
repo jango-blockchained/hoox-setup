@@ -248,6 +248,101 @@ function setKey(keyName: string, keyValue: string, environment: 'local' | 'prod'
     writeKeys(keys, environment);
 }
 
+/**
+ * Runs a command asynchronously using spawn, allowing data to be piped via stdin.
+ * @param command The command to run (e.g., 'wrangler').
+ * @param args Array of arguments for the command (e.g., ['secret', 'put', 'KEY_NAME']).
+ * @param stdinData The string data to pipe to the command's stdin.
+ * @param cwd The working directory for the command.
+ * @param env Additional environment variables.
+ * @returns A promise resolving with success status, stdout, and stderr.
+ */
+async function runCommandWithStdin(
+    command: string,
+    args: string[],
+    stdinData: string,
+    cwd: string,
+    env: Record<string, string> = {}
+): Promise<{ success: boolean; stdout: string; stderr: string }> {
+    return new Promise((resolve) => {
+        console.log(dim(`Running in ${cwd}: ${command} ${args.join(' ')} (with stdin)`));
+        const fullEnv = { ...process.env, ...env };
+        const child = spawn(command, args, {
+            cwd: cwd,
+            env: fullEnv,
+            stdio: ['pipe', 'pipe', 'pipe'] // stdin, stdout, stderr
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        child.stdout.on('data', (data) => {
+            stdout += data.toString();
+        });
+
+        child.stderr.on('data', (data) => {
+            stderr += data.toString();
+        });
+
+        child.on('error', (error) => {
+            console.error(red(`Spawn error for command "${command}": ${error.message}`));
+            resolve({ success: false, stdout, stderr: stderr || error.message });
+        });
+
+        child.on('close', (code) => {
+            if (code === 0) {
+                console.log(dim(`Successfully ran: ${command} ${args.join(' ')}`));
+                resolve({ success: true, stdout, stderr });
+            } else {
+                console.error(red(`Error running command: ${command} ${args.join(' ')} (exit code: ${code})`));
+                console.error("Stderr:\n", stderr); // Log stderr on error
+                resolve({ success: false, stdout, stderr });
+            }
+        });
+
+        // Write data to stdin and close it
+        try {
+             child.stdin.write(stdinData);
+             child.stdin.end();
+        } catch (error: any) {
+             console.error(red(`Error writing to stdin for command "${command}": ${error.message}`));
+             // Attempt to kill the child if stdin write fails
+             child.kill();
+             resolve({ success: false, stdout, stderr: stderr || error.message });
+        }
+    });
+}
+
+/**
+ * Gets the Cloudflare API token, checking environment variables,
+ * config file, and prompting the user if necessary.
+ * @param config The loaded configuration object.
+ * @returns The Cloudflare API token, or null if not found/provided.
+ */
+async function getCloudflareToken(config: Config): Promise<string | null> {
+    if (process.env.CLOUDFLARE_API_TOKEN) {
+        console.log(dim('Using CLOUDFLARE_API_TOKEN from environment variable.'));
+        return process.env.CLOUDFLARE_API_TOKEN;
+    }
+    if (config.global.cloudflare_api_token) {
+        console.log(dim('Using cloudflare_api_token from config.toml.'));
+        return config.global.cloudflare_api_token;
+    }
+
+    console.log(yellow('Cloudflare API Token not found in environment variables or config.toml.'));
+    const answer = await rl.question(blue('Please enter your Cloudflare API Token (or leave blank to skip): '));
+    const token = answer.trim();
+    if (token) {
+        // Optionally, offer to save it somewhere (e.g., back to config or shell profile)
+        // For now, just use it for this session
+        console.log(dim('Using provided token for this session.'));
+        return token;
+    }
+
+    console.error(red('Cloudflare API Token is required for this operation and was not provided.'));
+    return null;
+}
+
 // --- Main Setup Logic --- (Now Async)
 async function setupWorkers(config: Config): Promise<void> { // Make async
     console.log('Starting worker setup...');
@@ -513,54 +608,278 @@ async function startDevServer(config: Config, workerNameToStart: string): Promis
     rl.close(); // Close readline interface if wrangler dev exits cleanly
 }
 
-// --- Script Execution --- (main remains async)
+// --- Script Execution using Commander ---
 async function main() {
-    // Use a more robust argument parsing approach if needed (e.g., minimist, yargs)
-    const args = process.argv.slice(2);
-    const command = args[0];
-    const arg1 = args[1]; // Argument after command (e.g., worker name for dev)
+    const program = new Command();
+    program
+        .name('bun run scripts/manage.ts')
+        .description('CLI tool to manage worker project setup, deployment, keys, and development servers.')
+        .version('0.1.0'); // Example version
 
-    const config = loadConfig();
+    const config = loadConfig(); // Load config once
 
-    try {
-        if (command === 'setup') {
-            await setupWorkers(config);
-        } else if (command === 'deploy') {
-            await deployWorkers(config);
-        } else if (command === 'dev') {
-            const workerNameToStart = arg1;
-            if (!workerNameToStart) {
-                console.error('Error: Missing worker name for the dev command.');
-                console.log('\nUsage: bun run scripts/manage.ts dev <worker-name>');
-                console.log('\nAvailable enabled workers:');
-                Object.entries(config.workers)
-                    .filter(([, wc]) => wc.enabled)
-                    .forEach(([name]) => console.log(`- ${name}`));
-                process.exitCode = 1; // Set exit code for error
-            } else {
-                await startDevServer(config, workerNameToStart);
+    program
+        .command('setup')
+        .description('Configures enabled workers (prompts for missing secrets, sets up D1, updates wrangler.toml).')
+        .action(async () => {
+            try {
+                await setupWorkers(config);
+            } catch (error) {
+                console.error(red(`Setup failed: ${error instanceof Error ? error.message : String(error)}`));
+                process.exitCode = 1;
+            } finally {
+                // Ensure readline is closed if setupWorkers used it
+                 if (rl && !(rl as any).closed) { rl.close(); }
             }
-        } else {
-            console.log('Usage: bun run scripts/manage.ts <command> [options]');
-            console.log('\nAvailable commands:');
-            console.log('  setup          - Configures enabled workers (prompts for missing secrets, sets up D1)');
-            console.log('  deploy         - Deploys enabled workers based on config.toml');
-            console.log('  dev <worker-name> - Starts local development server for a specific worker');
-            process.exitCode = 1; // Set exit code for invalid command
-        }
-    } catch (error) {
-        console.error("Script failed unexpectedly:", error);
-        process.exitCode = 1; // Set exit code for unexpected errors
-    } finally {
-        // Ensure readline is always closed before exiting
-        // Check if rl is still open before closing
-        if (rl && !(rl as any).closed) { // Check if rl exists and is not already closed
-             rl.close();
-        }
+        });
+
+    program
+        .command('deploy')
+        .description('Deploys enabled workers based on config.toml and outputs their URLs.')
+        .action(async () => {
+            try {
+                await deployWorkers(config);
+            } catch (error) {
+                console.error(red(`Deployment failed: ${error instanceof Error ? error.message : String(error)}`));
+                process.exitCode = 1;
+            } finally {
+                // Ensure readline is closed if deployWorkers used it (less likely, but for safety)
+                 if (rl && !(rl as any).closed) { rl.close(); }
+            }
+        });
+
+    program
+        .command('dev <workerName>')
+        .description('Starts local development server for a specific worker.')
+        .action(async (workerName: string) => {
+            const workerConfig = config.workers[workerName];
+             if (!workerConfig) {
+                console.error(red(`Error: Worker "${workerName}" not found in config.toml.`));
+                 printAvailableWorkers(config);
+                process.exitCode = 1;
+                 return; // Exit action
+            }
+            if (!workerConfig.enabled) {
+                console.error(red(`Error: Worker "${workerName}" is not enabled in config.toml. Set enabled = true to run it.`));
+                process.exitCode = 1;
+                 return; // Exit action
+            }
+
+            try {
+                await startDevServer(config, workerName);
+            } catch (error) {
+                console.error(red(`Failed to start dev server for ${workerName}: ${error instanceof Error ? error.message : String(error)}`));
+                process.exitCode = 1;
+            } finally {
+                 // Ensure readline is closed if startDevServer used it
+                 if (rl && !(rl as any).closed) { rl.close(); }
+            }
+        });
+
+    // --- Key Management Commands ---
+
+    program
+        .command('generate-key <keyName>')
+        .description('Generates and stores a new secret key.')
+        .option('-e, --env <environment>', 'Environment (local or prod)', 'local')
+        .option('-l, --length <length>', 'Length of the key', '64')
+        .action((keyName: string, options: { env: 'local' | 'prod', length: string }) => {
+             // Validate environment
+            if (options.env !== 'local' && options.env !== 'prod') {
+                console.error(red('Error: Invalid environment specified. Use "local" or "prod".'));
+                process.exitCode = 1;
+                return;
+            }
+            // Validate and parse length
+            const length = parseInt(options.length, 10);
+            if (isNaN(length) || length <= 0) {
+                 console.error(red('Error: Invalid length specified. Length must be a positive number.'));
+                 process.exitCode = 1;
+                 return;
+            }
+
+            try {
+                const newKey = generateKey(length);
+                setKey(keyName, newKey, options.env);
+                 console.log(`Generated key "${green(keyName)}" for [${blue(options.env)}] environment:`);
+                console.log(yellow(newKey));
+                console.log(dim(`Stored in: ${getKeyFilePath(options.env)}`));
+            } catch (error) {
+                console.error(red(`Failed to generate key: ${error instanceof Error ? error.message : String(error)}`));
+                process.exitCode = 1;
+            }
+        });
+
+    program
+        .command('get-key <keyName>')
+        .description('Retrieves a stored secret key.')
+        .option('-e, --env <environment>', 'Environment (local or prod)', 'local')
+        .action((keyName: string, options: { env: 'local' | 'prod' }) => {
+             // Validate environment
+            if (options.env !== 'local' && options.env !== 'prod') {
+                console.error(red('Error: Invalid environment specified. Use "local" or "prod".'));
+                process.exitCode = 1;
+                return;
+            }
+
+            try {
+                const keyValue = getKey(keyName, options.env);
+                if (keyValue) {
+                     console.log(`Value for key "${green(keyName)}" [${blue(options.env)}]:`);
+                    console.log(yellow(keyValue));
+                } else {
+                    console.log(yellow(`Key "${keyName}" not found in [${options.env}] environment.`));
+                     console.log(dim(`Checked file: ${getKeyFilePath(options.env)}`));
+                }
+            } catch (error) {
+                 console.error(red(`Failed to get key: ${error instanceof Error ? error.message : String(error)}`));
+                 process.exitCode = 1;
+            }
+        });
+
+    program
+        .command('list-keys')
+        .description('Lists stored secret keys.')
+        .option('-e, --env <environment>', 'Environment (local or prod)')
+        .action((options: { env?: 'local' | 'prod' }) => {
+             // Validate environment if provided
+            if (options.env && options.env !== 'local' && options.env !== 'prod') {
+                console.error(red('Error: Invalid environment specified. Use "local" or "prod".'));
+                process.exitCode = 1;
+                return;
+            }
+
+            try {
+                const listEnv = (env: 'local' | 'prod') => {
+                    console.log(`\n--- Keys for [${blue(env)}] ---`);
+                     const keys = readKeys(env);
+                    if (Object.keys(keys).length === 0) {
+                        console.log(dim('No keys found.'));
+                    } else {
+                        Object.entries(keys).forEach(([key, value]) => {
+                             console.log(`${green(key)}=${yellow(value)}`);
+                        });
+                    }
+                    console.log(dim(`File: ${getKeyFilePath(env)}`));
+                };
+
+                if (options.env) {
+                    listEnv(options.env);
+                } else {
+                     listEnv('local');
+                    listEnv('prod');
+                }
+            } catch (error) {
+                 console.error(red(`Failed to list keys: ${error instanceof Error ? error.message : String(error)}`));
+                 process.exitCode = 1;
+            }
+        });
+
+    // --- New Command: update-cloudflare-secret ---
+    program
+        .command('update-cloudflare-secret <keyName> <workerName>')
+        .description('Updates a secret in Cloudflare for a specific worker using the stored key value.')
+        .option('-e, --env <environment>', 'Environment to get the key value from (local or prod)', 'prod')
+        .action(async (keyName: string, workerName: string, options: { env: 'local' | 'prod' }) => {
+            // Validate environment
+            if (options.env !== 'local' && options.env !== 'prod') {
+                console.error(red('Error: Invalid environment specified for key source. Use "local" or "prod".'));
+                process.exitCode = 1;
+                return;
+            }
+
+            // 1. Get Cloudflare Token
+            const apiToken = await getCloudflareToken(config);
+            if (!apiToken) {
+                process.exitCode = 1;
+                // Close readline if token prompt was the last interaction
+                 if (rl && !(rl as any).closed) { rl.close(); }
+                return;
+            }
+            const cloudflareEnv = { CLOUDFLARE_API_TOKEN: apiToken };
+
+            // 2. Get Key Value from local store
+            const keyValue = getKey(keyName, options.env);
+            if (!keyValue) {
+                console.error(red(`Error: Key "${keyName}" not found in [${options.env}] environment.`));
+                console.log(dim(`Checked file: ${getKeyFilePath(options.env)}`));
+                process.exitCode = 1;
+                 if (rl && !(rl as any).closed) { rl.close(); } // Close readline if needed
+                return;
+            }
+
+            // 3. Get Worker Path
+            const workerConfig = config.workers[workerName];
+            if (!workerConfig) {
+                console.error(red(`Error: Worker "${workerName}" not found in config.toml.`));
+                printAvailableWorkers(config); // Assumes printAvailableWorkers exists
+                process.exitCode = 1;
+                 if (rl && !(rl as any).closed) { rl.close(); }
+                return;
+            }
+             if (!workerConfig.enabled) {
+                 console.warn(yellow(`Warning: Worker "${workerName}" is not enabled in config.toml. Proceeding anyway...`));
+                 // Allow updating secrets even for disabled workers
+            }
+            const workerDir = path.resolve(process.cwd(), workerConfig.path);
+            if (!fs.existsSync(workerDir)) {
+                console.error(red(`Error: Directory not found for worker ${workerName} at ${workerDir}.`));
+                process.exitCode = 1;
+                 if (rl && !(rl as any).closed) { rl.close(); }
+                return;
+            }
+
+            // 4. Run wrangler secret put
+            console.log(blue(`Updating secret "${keyName}" for worker "${workerName}" in Cloudflare...`));
+            try {
+                const result = await runCommandWithStdin(
+                    'bunx', // Use bunx to run wrangler
+                    ['wrangler', 'secret', 'put', keyName],
+                    keyValue,
+                    workerDir,
+                    cloudflareEnv
+                );
+
+                if (result.success) {
+                    console.log(green(`✅ Successfully updated secret "${keyName}" for worker "${workerName}".`));
+                     console.log(dim(result.stdout)); // Show wrangler output
+                } else {
+                     console.error(red(`❌ Failed to update secret "${keyName}" for worker "${workerName}".`));
+                     // Stderr already printed by runCommandWithStdin on failure
+                    process.exitCode = 1;
+                }
+            } catch (error) {
+                console.error(red(`Error executing wrangler command: ${error instanceof Error ? error.message : String(error)}`));
+                process.exitCode = 1;
+            }
+
+             // Ensure readline is closed if token prompt was used
+             if (rl && !(rl as any).closed) { rl.close(); }
+        });
+
+    // Add a helper function (can be placed within main or outside)
+    function printAvailableWorkers(cfg: Config) {
+        console.log(blue('\nAvailable enabled workers:'));
+        Object.entries(cfg.workers)
+            .filter(([, wc]) => wc.enabled)
+            .forEach(([name]) => console.log(`- ${name}`));
     }
 
-    // Exit with the determined exit code (0 if no error, 1 otherwise)
-    process.exit(process.exitCode);
+
+    // Fallback for no command or invalid command
+    program.on('command:*', () => {
+        console.error(red(`Invalid command: ${program.args.join(' ')}\n`));
+        program.outputHelp();
+        process.exitCode = 1;
+    });
+
+    // Parse arguments
+    await program.parseAsync(process.argv);
+
+     // Exit with the determined code if any command set it
+    if (process.exitCode !== undefined && process.exitCode !== 0) {
+         process.exit(process.exitCode);
+    }
 }
 
-main(); // Removed top-level .catch, handling within main 
+main(); // Execute the main async function 
