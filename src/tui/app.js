@@ -52,6 +52,18 @@ let workers = {
     port: 8790,
     extraArgs: "",
   },
+  "home-assistant": {
+    name: "Home Assistant",
+    status: "stopped",
+    port: 8791,
+    extraArgs: "",
+  },
+  "web3-wallet": {
+    name: "Web3 Wallet",
+    status: "stopped",
+    port: 8792,
+    extraArgs: "",
+  },
 };
 let selectedWorkerId = "d1";
 let logs = {}; // Store logs { workerId: [log lines] }
@@ -98,7 +110,7 @@ const _header = blessed.box({
   height: 3,
   tags: true,
   padding: { left: 1, right: 1 },
-  content: "{bold}Cryptolinx Worker Control System{/}",
+  content: "{bold}Cryptolinx Worker Control System{/} \nMode: {yellow-fg}Local Development{/}",
   style: {
     fg: THEME.accent,
     bg: THEME.bg,
@@ -333,7 +345,7 @@ const actionsBox = blessed.box({
 const _actionsText = blessed.text({
   parent: actionsBox,
   content:
-    "{bold}Global Actions{/}\n\n[S] Start All\n[K] Stop All\n[R] Restart All",
+    "{bold}Global Actions{/}\n\n[Ctrl+S] Start All\n[Ctrl+K] Stop All\n[Ctrl+R] Restart All",
   tags: true,
   style: {
     bg: THEME.bg,
@@ -357,7 +369,7 @@ const statusBar = blessed.box({
 
 const statusText = blessed.text({
   parent: statusBar,
-  content: " Ready | Press Ctrl+Q to exit",
+  content: " Ready | Mode: Local | Press Ctrl+Q to exit",
   tags: true,
   style: {
     bg: THEME.accent,
@@ -472,8 +484,8 @@ function updateSystemInfo() {
 
 function updateStatusBar() {
   const text = statusMessage
-    ? ` ${statusMessage} | Press Ctrl+Q to exit`
-    : ` Ready | Press Ctrl+Q to exit`;
+    ? ` ${statusMessage} | Mode: Local | Ctrl+Q to exit`
+    : ` Ready | Mode: Local | Ctrl+Q to exit`;
   statusText.setContent(text);
   screen.render();
 }
@@ -518,9 +530,18 @@ screen.key("r", () => {
 });
 
 // Global actions
-screen.key("S", () => workerService.startAllWorkers());
-screen.key("K", () => workerService.stopAllWorkers());
-screen.key("R", () => workerService.restartAllWorkers());
+screen.key(["C-s"], () => {
+  console.error("Global C-s key pressed");
+  workerService.startAllWorkers();
+});
+screen.key(["C-k"], () => {
+  console.error("Global C-k key pressed");
+  workerService.stopAllWorkers();
+});
+screen.key(["C-r"], () => {
+  console.error("Global C-r key pressed");
+  workerService.restartAllWorkers();
+});
 
 // Focus management (cycle through panels)
 screen.key("tab", () => {
@@ -549,6 +570,7 @@ function initializeUI() {
   screen.render();
 
   // Initial status check
+  setStatusMessageState("Checking local worker status...");
   workerService.checkAllStatus();
 
   // Periodic status checks

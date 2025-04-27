@@ -16,6 +16,8 @@ export class WorkerService {
       trade: [],
       webhook: [],
       telegram: [],
+      "home-assistant": [],
+      "web3-wallet": [],
     };
   }
 
@@ -163,6 +165,13 @@ export class WorkerService {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await this.startWorker("webhook");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Start new workers
+    await this.startWorker("home-assistant");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await this.startWorker("web3-wallet");
 
     this.setStatusMessage("All workers started");
   }
@@ -172,6 +181,11 @@ export class WorkerService {
    */
   async stopAllWorkers() {
     this.setStatusMessage("Stopping all workers...");
+
+    // Stop new workers first
+    await this.stopWorker("web3-wallet");
+    await this.stopWorker("home-assistant");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // First stop the webhook receiver (entry point)
     await this.stopWorker("webhook");
@@ -253,6 +267,9 @@ export class WorkerService {
   addToLogs(workerId, data) {
     // Add to buffer
     const lines = data.split("\n").filter(Boolean);
+    if (!this.logBuffers[workerId]) {
+      this.logBuffers[workerId] = [];
+    }
     this.logBuffers[workerId].push(...lines);
 
     // Keep only last 500 lines

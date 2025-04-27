@@ -15,7 +15,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # Make the script executable if needed
 chmod +x ./src/tui/app.js
 
-# Run the TUI application with node, redirecting stdin from the TTY
-node ./src/tui/app.js < /dev/tty
+# Run the TUI application with bun, redirecting stdin from the TTY
+bun ./src/tui/app.js < /dev/tty
 
 echo "TUI terminated." 

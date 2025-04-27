@@ -1,8 +1,8 @@
 import readline from "node:readline/promises";
 import ansis from "ansis";
 import { execSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
+import fs from "node:fs/promises";
+import path from "path";
 import { loadConfig, saveConfig } from "./configUtils.js";
 import {
   type GlobalConfig,
@@ -10,6 +10,7 @@ import {
   type WizardState,
   type CommandResult,
   type Config,
+  ConfigSchema,
 } from "./types.js";
 import {
   checkCommandExists,
@@ -76,41 +77,49 @@ export async function step_configureGlobals(
 
   for (const key of required) {
     let value = updatedGlobals[key];
-    if (!value) {
+    let wasAutoDetected = false;
+
+    if (!value || value.trim() === "") {
       if (key === "cloudflare_api_token") {
-        const tempConfigForTokenCheck = {
-          global: currentGlobals,
-          workers: {},
-        } as Config; // Temporary partial config
-        const token = await getCloudflareToken(tempConfigForTokenCheck);
-        if (token === null) {
-          throw new Error(
-            "Failed to get Cloudflare API token automatically. Please set it manually."
-          );
+        const tempConfigForTokenCheck = { global: updatedGlobals } as Partial<Config>;
+        try {
+          const token = await getCloudflareToken(tempConfigForTokenCheck);
+          if (token) {
+            value = token;
+            wasAutoDetected = true;
+            console.log(ansis.green(`  ✓ Auto-detected ${key}.`));
+          } else {
+            value = await rl.question(ansis.blue(`Enter value for ${key}: `));
+          }
+        } catch (tokenError: unknown) {
+          const errorMsg = tokenError instanceof Error ? tokenError.message : String(tokenError);
+          print_warning(`Could not auto-detect Cloudflare token (${errorMsg}). Please enter manually.`);
+          value = await rl.question(ansis.blue(`Enter value for ${key}: `));
         }
-        value = token;
       } else {
         value = await rl.question(ansis.blue(`Enter value for ${key}: `));
       }
-      if (!value) {
+      
+      if (!value || value.trim() === "") {
         throw new Error(
           `Global setting "${key}" is required and cannot be empty.`
         );
       }
-      updatedGlobals[key] = value as any;
-    } else {
+      updatedGlobals[key] = value as string;
+    } else if (!wasAutoDetected) {
+      const displayValue = (typeof value === 'string' && value.length > 8)
+        ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+        : '********';
       console.log(
         ansis.green(
-          `Using existing value for ${key}: ${value.substring(0, 5)}...`
+          `  ✓ Using existing value for ${key}: ${displayValue}`
         )
       );
     }
   }
 
-  // Add logic for optional globals if needed
-
   print_success("Global settings configured.");
-  return updatedGlobals as GlobalConfig; // Cast to full type after validation
+  return updatedGlobals as GlobalConfig;
 }
 
 // --- Step: Select Workers ---
@@ -123,20 +132,21 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
   );
   let workerDirs: string[] = [];
   try {
-    const dirents = await fs.promises.readdir(WORKERS_DIR, {
+    const dirents = await fs.readdir(WORKERS_DIR, {
       withFileTypes: true,
     });
     workerDirs = dirents
-      .filter((dirent) => dirent.isDirectory())
+      .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
       .map((dirent) => dirent.name);
-  } catch (error: any) {
-    if (error.code === "ENOENT") {
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (typeof error === 'object' && error !== null && (error as { code?: string }).code === "ENOENT") {
       print_error(`Workers directory not found: ${WORKERS_DIR}`);
       print_warning("No workers can be selected.");
       return;
     } else {
       throw new Error(
-        `Failed to read workers directory ${WORKERS_DIR}: ${error.message}`
+        `Failed to read workers directory ${WORKERS_DIR}: ${errorMsg}`
       );
     }
   }
@@ -149,14 +159,12 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
   console.log(ansis.blue("Configure which workers to enable:"));
 
   for (const workerName of workerDirs) {
-    // Ensure we start with a potentially partial config
     const initialWorkerConfig: Partial<WorkerConfig> = state.config.workers[workerName] || {};
-    const workerPath = initialWorkerConfig.path || path.join(WORKERS_DIR, workerName); // Default path if missing
+    const workerPath = path.join("workers", workerName);
 
-    // Construct a more complete default/current state, ensuring path exists
     const currentWorkerConfig: Partial<WorkerConfig> = {
-      enabled: initialWorkerConfig.enabled ?? false, // Default enabled to false
-      path: workerPath,
+      enabled: initialWorkerConfig.enabled ?? false,
+      path: initialWorkerConfig.path || workerPath,
       vars: initialWorkerConfig.vars,
       secrets: initialWorkerConfig.secrets,
       deployed_url: initialWorkerConfig.deployed_url,
@@ -170,39 +178,31 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
       `  - ${ansis.yellow(workerName)} [Currently: ${currentStatus}]: Enable? (y/N): `
     );
     choice = choice.trim().toLowerCase();
+    let enableWorker: boolean | undefined;
 
     if (choice === "y") {
-      // Explicitly cast the final object to WorkerConfig
-      state.config.workers[workerName] = {
-        ...currentWorkerConfig,
-        enabled: true,
-        path: workerPath, 
-      } as WorkerConfig;
-      console.log(
-        ansis.dim(
-          ` -> Status for "${workerName}" set to ${ansis.green("Enabled")}.`
-        )
-      );
+      enableWorker = true;
     } else if (choice === "n" || choice === "") {
-      // Explicitly cast the final object to WorkerConfig
-      state.config.workers[workerName] = {
-        ...currentWorkerConfig,
-        enabled: false, 
-        path: workerPath, 
-      } as WorkerConfig;
-      console.log(
-        ansis.dim(
-          ` -> Status for "${workerName}" set to ${ansis.red("Disabled")}.`
-        )
-      );
+      enableWorker = false;
     } else {
-       // Keep existing or default state if input invalid
-       // Cast to WorkerConfig, assuming currentWorkerConfig has necessary defaults.
       print_warning(
         `Invalid input "${choice}". Status for "${workerName}" remains ${currentStatus}.`
       );
-      state.config.workers[workerName] = currentWorkerConfig as WorkerConfig;
+      enableWorker = currentWorkerConfig.enabled;
     }
+
+    state.config.workers[workerName] = {
+      ...(state.config.workers[workerName] || {}),
+      enabled: enableWorker,
+      path: currentWorkerConfig.path,
+    };
+    
+    const finalStatus = enableWorker ? ansis.green("Enabled") : ansis.red("Disabled");
+    console.log(
+      ansis.dim(
+        ` -> Status for "${workerName}" set to ${finalStatus}.`
+      )
+    );
   }
   print_success("Worker selection updated.");
 }
@@ -313,7 +313,6 @@ export async function step_setupD1(state: WizardState): Promise<void> {
   );
 
   if (listResult.success) {
-    // Use correct escaping for regex literal
     const listRegex = new RegExp(
       `^\\│\\s+([a-f0-9-]+)\\s+\\│\\s+${dbName}\\s+\\│`,
       "m"

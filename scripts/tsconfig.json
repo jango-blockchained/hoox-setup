@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ES2020", // Target a recent Node.js compatible version
+    "allowJs": false,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true, // Good practice
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+
+    /* If NOT transpiling with ts-node: */
+    // "outDir": "dist", // Output directory for compiled JS
+    // "module": "NodeNext", // Use Node.js module system
+    
+    /* If your scripts need type checking only (e.g. using ts-node or esbuild-runner): */
+     "module": "NodeNext", // Changed from ESNext to NodeNext to match moduleResolution
+     "moduleResolution": "NodeNext", // Or Node10/Node16 if using CommonJS
+     "noEmit": true, // Don't output JS files if only type checking
+
+     /* Node Types */
+    "types": ["node"],
+    "lib": ["es2020"]
+
+    // Add "baseUrl" and "paths" if needed for aliases within scripts
+  },
+  "include": ["./**/*.ts"], // Include all TS files in the scripts directory
+  "exclude": ["node_modules", "dist"]
+}

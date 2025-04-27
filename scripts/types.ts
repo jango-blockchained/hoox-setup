@@ -1,4 +1,4 @@
-import { TomlPrimitive } from "@iarna/toml"; // Assuming this might be needed, adjust if not
+import { z } from "zod";
 
 // --- Configuration Type Definitions ---
 
@@ -18,10 +18,12 @@ export interface GlobalConfig {
  * Represents the configuration for a single worker under [workers.*]
  */
 export interface WorkerConfig {
-  enabled: boolean;
-  path: string;
-  vars?: Record<string, string | TomlPrimitive>; // Allow primitive TOML types for vars
-  secrets?: string[]; // Array of secret names (to be bound from Secret Store)
+  name?: string; // Optional: Name of the worker
+  path?: string; // Optional: Path relative to workers directory
+  enabled?: boolean;
+  vars?: Record<string, string>; // Simplified to string values for now
+  secrets?: string[];
+  d1_databases?: { binding: string; database_id: string }[]; // Array for D1 bindings
   deployed_url?: string; // Added field for deployed URL
 }
 
@@ -33,6 +35,31 @@ export interface Config {
   secrets?: Record<string, string>; // Optional legacy section (consider removing/repurposing)
   workers: Record<string, WorkerConfig>; // Worker name -> Worker config
 }
+
+// --- Zod Schemas for Validation ---
+
+// Optional: Define more specific types if needed (e.g., for secrets, vars)
+const WorkerConfigSchema = z.object({
+  enabled: z.boolean().optional(),
+  path: z.string().optional(), // Path might be automatically added later
+  vars: z.record(z.string()).optional(),
+  secrets: z.array(z.string()).optional(),
+  deployed_url: z.string().optional(),
+  // Allow other keys but don't strictly validate them unless needed
+}).passthrough(); 
+
+const GlobalConfigSchema = z.object({
+  cloudflare_api_token: z.string().min(1, "Cloudflare API token is required"),
+  cloudflare_account_id: z.string().min(1, "Cloudflare Account ID is required"),
+  cloudflare_secret_store_id: z.string().min(1, "Cloudflare Secret Store ID is required"),
+  subdomain_prefix: z.string().min(1, "Subdomain prefix is required"),
+  d1_database_id: z.string().optional(), // Optional, added during setup
+}).passthrough(); 
+
+export const ConfigSchema = z.object({
+    global: GlobalConfigSchema,
+    workers: z.record(WorkerConfigSchema).optional().default({}), // Default to empty object if missing
+});
 
 // --- Wizard State Definition ---
 
@@ -48,6 +75,14 @@ export interface WizardState {
   }; // Allow deep partials during setup
   // Add other state fields as needed, e.g., selectedWorkers, dbName
 }
+
+// Zod schema for WizardState
+export const WizardStateSchema = z.object({
+    currentStep: z.number().int().positive(),
+    totalSteps: z.number().int().positive(),
+    config: ConfigSchema.partial().optional(), // Config might be partially built
+    // Add other state fields if they exist
+});
 
 // --- Command Execution Result ---
 /**
