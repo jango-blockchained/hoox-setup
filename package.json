@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "tests": "bash scripts/run-tests.sh",
-    "tests:watch": "bash scripts/run-tests.sh --watch",
-    "tests:coverage": "bash scripts/run-tests.sh --coverage",
-    "dev:start": "bash scripts/dev-start.sh",
+    "tests": "bun run ./scripts/run-tests.ts",
+    "tests:watch": "bun run ./scripts/run-tests.ts --watch",
+    "tests:coverage": "bun run ./scripts/run-tests.ts --coverage",
     "tui": "./hoox-tui",
     "dev": "./hoox-tui",
-    "status": "bash scripts/status.sh",
+    "manage": "bun run scripts/manage.ts",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --write ."

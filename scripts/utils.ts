@@ -1,6 +1,6 @@
 import readline from "node:readline/promises";
 import util from "node:util";
-import { exec, spawn, type ChildProcess } from "node:child_process";
+import { exec, spawn, execSync, type ChildProcess } from "node:child_process";
 import type { Config, CommandResult } from "./types.js"; // Import necessary types
 
 // --- Color Constants ---
@@ -81,7 +81,16 @@ export function runCommandSync(
       execError.stderr?.toString() ||
       (execError.message.includes(command) ? "" : execError.message);
     print_error(`Command failed: ${command}`);
-    if (stderr) console.error(dim(`Stderr: ${stderr}`));
+    if (stderr) {
+        console.error(dim(`Stderr: ${stderr}`));
+    } else {
+        console.error(dim(`Stderr was empty.`));
+        if (stdout) {
+            console.error(dim(`Stdout: ${stdout}`)); // Log stdout if stderr is empty
+        }
+        // Log the main error message regardless, as stderr was empty
+        console.error(dim(`Error Message: ${execError.message}`)); 
+    }
     return {
       success: false,
       stdout: stdout,
