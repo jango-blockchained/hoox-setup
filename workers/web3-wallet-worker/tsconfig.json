@@ -1,21 +1,26 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
+    "target": "ES2022",
     "module": "ESNext",
-    "target": "ESNext",
-    "lib": ["ESNext"],
-    "moduleResolution": "node",
-    "types": ["@cloudflare/workers-types"],
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "isolatedModules": true,
+    "types": [],
+    "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["node_modules", "dist", ".wrangler"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
 }

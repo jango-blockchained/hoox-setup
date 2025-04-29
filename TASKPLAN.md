@@ -4,23 +4,23 @@
 
 1.  **Project Audit & Standardization:**
     - [ ] **1.1:** Review each existing worker (`d1-worker`, `home-assistant-worker`, `telegram-worker`, `trade-worker`, `web3-wallet-worker`, `webhook-receiver`) to understand current functionality and identify immediate opportunities for improvement or integration.
-    - [ ] **1.2:** Ensure all workers use `wrangler.jsonc` (migrate from `.toml` if necessary).
+    - [X] **1.2:** Ensure all workers use `wrangler.jsonc` (migrate from `.toml` if necessary).
     - [ ] **1.3:** Standardize `wrangler.jsonc` settings across all workers:
-        *   Set `compatibility_date` to `"2025-03-07"`.
-        *   Set `compatibility_flags` to `["nodejs_compat"]`.
-        *   Ensure `observability.enabled = true` and `observability.head_sampling_rate = 1`.
-        *   Ensure `main` points to the correct entry file (e.g., `src/index.ts`).
-    - [ ] **1.4:** Standardize `tsconfig.json` settings for TypeScript projects.
-    - [ ] **1.5:** Update `worker-configuration.d.ts` for all workers using `npm run cf-typegen` or equivalent.
+        *   [X] Set `compatibility_date` to `"2025-03-07"`.
+        *   [X] Set `compatibility_flags` to `["nodejs_compat"]`.
+        *   [X] Ensure `observability.enabled = true` and `observability.head_sampling_rate = 1`.
+        *   [X] Ensure `main` points to the correct entry file (e.g., `src/index.ts`).
+    - [X] **1.4:** Standardize `tsconfig.json` settings for TypeScript projects.
+    - [X] **1.5:** Update `worker-configuration.d.ts` for all workers using `npm run cf-typegen` or equivalent.
 
 2.  **Workers KV Integration (Configuration & Session Data):**
-    - [ ] **2.1:** Identify needs for simple key-value storage (e.g., storing API keys securely, user preferences for `telegram-worker`, simple session management for `webhook-receiver`).
-    - [ ] **2.2:** Create necessary KV namespaces via Wrangler:
+    - [X] **2.1:** Identify needs for simple key-value storage (e.g., storing user preferences for `telegram-worker`, simple session management for `webhook-receiver`). // Proceeding with example plan (CONFIG_KV, SESSIONS_KV)
+    - [X] **2.2:** Create necessary KV namespaces via Wrangler:
         ```sh
         npx wrangler kv:namespace create CONFIG_KV
         npx wrangler kv:namespace create SESSIONS_KV
         ```
-    - [ ] **2.3:** Add KV bindings to the relevant `wrangler.jsonc` files:
+    - [X] **2.3:** Add KV bindings to the relevant `wrangler.jsonc` files:
         ```jsonc
         // Example for a worker needing config
         {
@@ -37,7 +37,7 @@
           ]
         }
         ```
-    - [ ] **2.4:** Update corresponding `worker-configuration.d.ts` files.
+    - [X] **2.4:** Update corresponding `worker-configuration.d.ts` files.
     - [ ] **2.5:** Implement logic in workers to read/write configuration or session data using `env.CONFIG_KV` or `env.SESSIONS_KV`.
     - [ ] **2.6:** Add basic tests (e.g., using `wrangler dev` and `curl`) to verify KV interactions.
 

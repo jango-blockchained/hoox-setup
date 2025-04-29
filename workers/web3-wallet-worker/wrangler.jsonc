@@ -1,0 +1,14 @@
+{
+  "name": "web3-wallet-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "WALLET_PK_SECRET": null,
+    "WALLET_MNEMONIC_SECRET": null
+  }
+} 
