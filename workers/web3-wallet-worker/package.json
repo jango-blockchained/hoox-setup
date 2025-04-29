@@ -12,7 +12,6 @@
     "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
-    // "@cloudflare/workers-types": "^4.20250426.0",
     "typescript": "^5.8.3",
     "wrangler": "^4.13.2",
     "bun-types": "^1.2.10",
@@ -20,6 +19,7 @@
     "jest-mock": "^29.7.0"
   },
   "dependencies": {
+    "@cloudflare/puppeteer": "^1.0.2",
     "ethers": "^6.13.7"
   }
 }
