@@ -263,3 +263,20 @@
 **Phase 5: D1 & Relational Data**
 
 11. **D1 Integration (Relational Data):**
+    - [-] **11.1:** Identify use cases for relational data (e.g., structured trade history, user profiles, session data requiring joins). // Identified trade signals for trade-worker
+    - [-] **11.2:** Define database schema(s) (e.g., in `schema.sql` files).
+        *   [X] Defined `trade_signals` table schema for `trade-worker`.
+    - [-] **11.3:** Create D1 database(s) via Wrangler: `npx wrangler d1 create <db_name>`.
+        *   [X] Created `trade-data-db` for `trade-worker`.
+    - [-] **11.4:** Add D1 bindings to relevant `wrangler.jsonc` files.
+        *   [X] Added `DB` binding for `trade-data-db` to `trade-worker`.
+    - [-] **11.5:** Update corresponding `worker-configuration.d.ts` files.
+        *   [X] Updated types for `trade-worker`.
+    - [-] **11.6:** Implement schema migration logic if needed (e.g., using D1 migrations feature or manual `wrangler d1 execute --file=...`).
+        *   [X] Applied initial schema using `wrangler d1 execute --file=./workers/trade-worker/schema.sql`.
+    - [-] **11.7:** Implement logic for CRUD operations using prepared statements (`env.DB.prepare(...)`).
+        *   [X] Implemented `insertSignal` and `getRecentSignals` in `trade-worker`.
+        *   [X] Added `/api/signals` endpoint (POST/GET) handlers in `trade-worker`.
+    - [-] **11.8:** Test D1 interactions (insertion, querying). // Deferred (Manual testing possible via endpoint)
+
+**Phase 6: Analytics & Monitoring**
