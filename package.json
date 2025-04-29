@@ -28,7 +28,11 @@
     "eslint-plugin-prettier": "^5.0.0",
     "jest-mock": "^29.7.0",
     "prettier": "^3.0.0",
-    "tsx": "^4.19.3"
+    "tsx": "^4.19.3",
+    "@hono/zod-validator": "^0.2.2",
+    "hono": "^4.4.12",
+    "postgres": "^3.4.4",
+    "zod": "^3.23.8"
   },
   "dependencies": {
     "@types/blessed": "^0.1.25",

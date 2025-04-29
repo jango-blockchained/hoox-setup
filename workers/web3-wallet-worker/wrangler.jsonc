@@ -10,5 +10,11 @@
   "vars": {
     "WALLET_PK_SECRET": null,
     "WALLET_MNEMONIC_SECRET": null
-  }
+  },
+  "browser": {
+    "binding": "BROWSER"
+  },
+  "services": [
+     { "binding": "TELEGRAM_API", "service": "telegram-worker" }
+  ]
 } 

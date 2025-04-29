@@ -12,6 +12,7 @@
         *   [X] Ensure `main` points to the correct entry file (e.g., `src/index.ts`).
     - [X] **1.4:** Standardize `tsconfig.json` settings for TypeScript projects.
     - [X] **1.5:** Update `worker-configuration.d.ts` for all workers using `npm run cf-typegen` or equivalent.
+    - [X] **1.6:** Refactor duplicated KV timestamp logging logic into `src/utils/kvUtils.ts` and update workers (`home-assistant-worker`, `telegram-worker`, `trade-worker`).
 
 2.  **Workers KV Integration (Configuration & Session Data):**
     - [X] **2.1:** Identify needs for simple key-value storage (e.g., storing user preferences for `telegram-worker`, simple session management for `webhook-receiver`). // Proceeding with example plan (CONFIG_KV, SESSIONS_KV)
@@ -38,8 +39,8 @@
         }
         ```
     - [X] **2.4:** Update corresponding `worker-configuration.d.ts` files.
-    - [ ] **2.5:** Implement logic in workers to read/write configuration or session data using `env.CONFIG_KV` or `env.SESSIONS_KV`.
-    - [ ] **2.6:** Add basic tests (e.g., using `wrangler dev` and `curl`) to verify KV interactions.
+    - [X] **2.5:** Implement logic in workers to read/write configuration or session data using `env.CONFIG_KV` or `env.SESSIONS_KV`.
+    - [X] **2.6:** Add basic tests (e.g., using `wrangler dev` and `curl`) to verify KV interactions.
 
 **Phase 2: Storage & Asynchronous Processing**
 
@@ -148,33 +149,33 @@
     - [ ] **5.9:** Test Vectorize insertion and querying.
 
 6.  **Workers AI / LLM Integration (including RAG):**
-    - [ ] **6.1:** Identify areas for AI/LLM enhancement (e.g., basic Q&A, summarization, RAG for context-aware responses).
-    - [ ] **6.2:** Choose AI model/provider (Default to Workers AI for embeddings and generation, e.g., `@cf/baai/bge-base-en-v1.5` for embeddings, `@cf/meta/llama-3-8b-instruct` for generation).
+    - [X] **6.1:** Identify areas for AI/LLM enhancement (e.g., RAG, basic Q&A, summarization, command parsing for `telegram-worker`, sentiment analysis for `webhook-receiver`).
+    - [X] **6.2:** Choose AI model/provider (Default to Workers AI: `@cf/baai/bge-base-en-v1.5` for embeddings, `@cf/meta/llama-3-8b-instruct` for generation).
     - [ ] **6.3 (Workers AI - Basic):**
-        *   Add the AI binding to relevant `wrangler.jsonc`: `{ "bindings": [{ "type": "ai", "binding": "AI" }] }`
-        *   Update `worker-configuration.d.ts`.
-        *   Implement basic calls using `env.AI.run('@cf/meta/llama-3-8b-instruct', ...)`.
-    - [ ] **6.4 (External LLM - Basic):**
+        *   [X] Add the AI binding to relevant `wrangler.jsonc` (`telegram-worker`, `trade-worker`, `webhook-receiver`).
+        *   [X] Update `worker-configuration.d.ts`.
+        *   [-] Implement basic calls using `env.AI.run('@cf/meta/llama-3-8b-instruct', ...)`. // Deferred
+    - [-] **6.4 (External LLM - Basic):** // Deferred (Using Workers AI by default)
         *   Install SDK: `npm install openai` or similar.
         *   Add secret: `npx wrangler secret put <PROVIDER>_API_KEY`
         *   Update `wrangler.jsonc` vars: `{ "vars": { "<PROVIDER>_API_KEY": null } }`
         *   Update `worker-configuration.d.ts`.
         *   Implement basic logic using the SDK.
-    - [ ] **6.5 (RAG Implementation):**
+    - [-] **6.5 (RAG Implementation):** // Deferred (Depends on 5.6-5.8, 6.3c)
         *   Generate query embedding using an embedding model (Task 5.6).
         *   Query Vectorize to find relevant document chunks/IDs (Task 5.8).
         *   Retrieve corresponding full document text from source (e.g., R2 using IDs from Vectorize metadata).
         *   Construct augmented prompt including retrieved context.
         *   Call generation model (Task 6.3 / 6.4) with augmented prompt.
-    - [ ] **6.6:** If structured output is needed, use `response_format: { type: 'json_object' }` or `json_schema`.
-    - [ ] **6.7:** Implement prompt engineering, input sanitization, and error handling for both basic and RAG calls.
-    - [ ] **6.8:** Test basic AI calls and RAG pipeline functionality.
+    - [-] **6.6:** If structured output is needed, use `response_format: { type: 'json_object' }` or `json_schema`. // Deferred
+    - [-] **6.7:** Implement prompt engineering, input sanitization, and error handling for both basic and RAG calls. // Deferred
+    - [-] **6.8:** Test basic AI calls and RAG pipeline functionality. // Deferred
 
 7.  **Workflows Integration (Orchestration):**
-    - [ ] **7.1:** Identify complex, multi-step processes (e.g., user onboarding involving multiple workers, trade execution requiring several checks and external API calls).
-    - [ ] **7.2:** Create a new worker for the Workflow definition or add to an existing one.
-    - [ ] **7.3:** Define the Workflow class extending `WorkflowEntrypoint<Env, Params>`. Implement the `run` method using `step.do`, `step.sleep`, retry logic, etc.
-    - [ ] **7.4:** Add the Workflow binding to `wrangler.jsonc`:
+    - [X] **7.1:** Identify complex, multi-step processes (e.g., user onboarding involving multiple workers, trade execution requiring several checks and external API calls).
+    - [-] **7.2:** Create a new worker for the Workflow definition or add to an existing one. // Deferred
+    - [-] **7.3:** Define the Workflow class extending `WorkflowEntrypoint<Env, Params>`. Implement the `run` method using `step.do`, `step.sleep`, retry logic, etc. // Deferred
+    - [-] **7.4:** Add the Workflow binding to `wrangler.jsonc`: // Deferred
         ```jsonc
         {
           // ... other config
@@ -186,4 +187,74 @@
           ]
         }
         ```
-    - [ ] **7.5:** Update `worker-configuration.d.ts`
+    - [-] **7.5:** Update `worker-configuration.d.ts` for the workflow worker and any workers that trigger it. // Deferred
+    - [-] **7.6:** Implement logic in triggering workers (e.g., `telegram-worker`) to start workflows: `await env.ONBOARDING_WORKFLOW.create({ id: ..., params: {...} })`. // Deferred
+    - [-] **7.7:** Implement status checking logic if needed: `await env.ONBOARDING_WORKFLOW.get(instanceId).status()`. // Deferred
+    - [-] **7.8:** Test workflow initiation, execution, and completion/failure modes. // Deferred
+
+8.  **Agents Integration (Stateful AI):**
+    - [X] **8.1:** Identify use cases for stateful, evolving AI (e.g., a persistent chatbot in `telegram-worker`, an autonomous trading agent based on `trade-worker`).
+    - [-] **8.2:** Create a new worker dedicated to the Agent. // Deferred
+    - [-] **8.3:** Define the Agent class extending `Agent<Env, StateType>`. Implement relevant handlers (`onRequest`, `onConnect`, `onMessage`, `processTask`, `evolve`, etc.). // Deferred
+    - [-] **8.4:** Integrate AI logic (Task 6) within the agent methods. // Deferred
+    - [-] **8.5:** Implement state management using `this.setState()` and potentially `this.sql` for the embedded SQLite database. Define `StateType`. // Deferred
+    - [-] **8.6:** Add Durable Object binding and migration to `wrangler.jsonc`: // Deferred
+        ```jsonc
+        {
+          // ... other config
+          "durable_objects": {
+            "bindings": [ { "name": "CHAT_AGENT", "class_name": "ChatAgent" } ]
+          },
+          "migrations": [
+            { "tag": "v1", "new_sqlite_classes": ["ChatAgent"] }
+          ]
+          // Add other bindings the Agent needs (AI, KV, etc.)
+        }
+        ```
+    - [-] **8.7:** Update `worker-configuration.d.ts`. // Deferred
+    - [-] **8.8:** Implement interaction logic in the main worker `fetch` handler using `routeAgentRequest` (for WebSocket/HTTP routing) or `getAgentByName`. // Deferred
+    - [-] **8.9:** Test agent creation, interaction (HTTP/WebSocket), state persistence, and AI capabilities. // Deferred
+
+**Phase 4: Advanced Integrations & Communication**
+
+9.  **Browser Rendering Integration (Web Interaction):**
+    - [X] **9.1:** Identify tasks needing headless browsing (e.g., scraping dynamic websites for `trade-worker`, generating PDFs of invoices from `web3-wallet-worker`).
+    - [X] **9.2:** Install Puppeteer: `npm install @cloudflare/puppeteer`
+    - [X] **9.3:** Add the Browser binding to the relevant `wrangler.jsonc`:
+        ```jsonc
+        {
+          // ... other config
+          "browser": { "binding": "BROWSER" }
+        }
+        ```
+    - [X] **9.4:** Update `worker-configuration.d.ts`.
+    - [-] **9.5:** Implement browser interaction logic using `puppeteer.launch(env.BROWSER)`, `page.goto()`, `page.pdf()`, etc. Ensure `browser.close()`. // Deferred
+    - [-] **9.6:** Add error handling for browser operations. // Deferred
+    - [-] **9.7:** Test browser rendering tasks. // Deferred
+
+10. **Inter-Worker Communication (Service Bindings):**
+    - [X] **10.1:** Map out required communication paths: `telegram`->`trade`, `telegram`->`webhook`, `webhook`->`trade`, `webhook`->`telegram`, `trade`->`telegram`, `web3`->`telegram`.
+    - [ ] **10.2:** Ensure each worker intended to be *called* is configured correctly in its `wrangler.jsonc` (has a `name`).
+    - [ ] **10.3:** In the *calling* worker's `wrangler.jsonc`, add service bindings:
+        ```jsonc
+        // Example in telegram-worker's wrangler.jsonc
+        {
+          // ... other config
+          "services": [
+            { "binding": "TRADE_API", "service": "trade-worker" }, // Assumes trade-worker has name: "trade-worker"
+            { "binding": "WEBHOOK_RECEIVER_API", "service": "webhook-receiver" }
+          ]
+        }
+        ```
+    - [ ] **10.4:** Update the calling worker's `worker-configuration.d.ts`.
+    - [ ] **10.5:** Implement calls in the calling worker using `await env.TRADE_API.fetch(request)`. Pass necessary headers/body.
+    - [-] **10.6:** Test inter-worker communication paths. // Deferred
+
+**Phase 5: Testing & Deployment**
+
+11. **Comprehensive Testing & Deployment Strategy:**
+    - [-] **11.1:** Implement unit and integration tests using `vitest` or similar, mocking bindings as needed. // Deferred
+    - [-] **11.2:** Create `curl` command collections or simple client scripts for end-to-end testing of deployed services. // Deferred
+    - [-] **11.3:** Set up a CI/CD pipeline (e.g., GitHub Actions) using `wrangler deploy` for automated deployments. // Deferred
+    - [-] **11.4:** Manage secrets and environment variables securely across different environments (dev/prod) using Wrangler secrets and potentially environment-specific `wrangler.jsonc` configurations or vars. // Deferred
+    - [-] **11.5:** Actively monitor logs and metrics via the Cloudflare dashboard. Set up alerts for critical errors or performance degradation. // Deferred
