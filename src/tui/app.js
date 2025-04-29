@@ -10,6 +10,11 @@
 
 import blessed from "blessed";
 import { WorkerService } from "./services/WorkerService.js";
+import { spawn, exec } from "child_process";
+import { promisify } from "util";
+
+// Create the actual promisified exec function
+const execPromise = promisify(exec);
 
 // --- Color Theme ---
 const THEME = {
@@ -94,9 +99,12 @@ const setStatusMessageState = (msg) => {
 };
 
 const workerService = new WorkerService(
+  workers,
   setWorkersState,
   setLogsState,
-  setStatusMessageState
+  setStatusMessageState,
+  spawn,
+  execPromise
 );
 
 // --- UI Elements ---
