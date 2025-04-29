@@ -69,8 +69,8 @@
         }
         ```
     - [X] **3.4:** Update corresponding `worker-configuration.d.ts` files.
-    - [-] **3.5:** Implement logic for uploading (`put`) and retrieving (`get`) objects. Consider using pre-signed URLs for direct client uploads/downloads where appropriate. // Deferred
-    - [-] **3.6:** Implement error handling and potentially public access rules if needed. // Deferred
+    - [-] **3.5:** Implement logic for uploading (`put`) and retrieving (`get`) objects. Consider using pre-signed URLs for direct client uploads/downloads where appropriate. // Implemented put/get for trade-worker reports and put for telegram-worker test endpoint.
+    - [-] **3.6:** Implement error handling and potentially public access rules if needed. // Basic error handling added for trade-worker put/get and telegram-worker test put.
     - [-] **3.7:** Add tests for R2 upload and retrieval. // Deferred
 
 4.  **Queues Integration (Decoupling & Background Tasks):**
@@ -143,10 +143,10 @@
         }
         ```
     - [X] **5.5:** Update corresponding `worker-configuration.d.ts` files.
-    - [ ] **5.6:** Implement logic for generating embeddings (e.g., using `env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [...] })`).
-    - [ ] **5.7:** Implement logic for inserting embeddings and metadata into Vectorize (`env.VECTORIZE_INDEX.insert([{ id: ..., values: ..., metadata: ... }])`).
-    - [ ] **5.8:** Implement logic for querying Vectorize (`env.VECTORIZE_INDEX.query(queryVector, { topK: 3 })`).
-    - [ ] **5.9:** Test Vectorize insertion and querying.
+    - [X] **5.6:** Implement logic for generating embeddings (e.g., using `env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [...] })`).
+    - [X] **5.7:** Implement logic for inserting embeddings and metadata into Vectorize (`env.VECTORIZE_INDEX.insert([{ id: ..., values: ..., metadata: ... }])`).
+    - [X] **5.8:** Implement logic for querying Vectorize (`env.VECTORIZE_INDEX.query(queryVector, { topK: 3 })`).
+    - [X] **5.9:** Test Vectorize insertion and querying.
 
 6.  **Workers AI / LLM Integration (including RAG):**
     - [X] **6.1:** Identify areas for AI/LLM enhancement (e.g., RAG, basic Q&A, summarization, command parsing for `telegram-worker`, sentiment analysis for `webhook-receiver`).
@@ -154,7 +154,8 @@
     - [ ] **6.3 (Workers AI - Basic):**
         *   [X] Add the AI binding to relevant `wrangler.jsonc` (`telegram-worker`, `trade-worker`, `webhook-receiver`).
         *   [X] Update `worker-configuration.d.ts`.
-        *   [-] Implement basic calls using `env.AI.run('@cf/meta/llama-3-8b-instruct', ...)`. // Deferred
+        *   [X] Implement basic calls using `env.AI.run('@cf/meta/llama-3-8b-instruct', ...)`. // Implemented test endpoint in telegram-worker, trade-worker, webhook-receiver.
+        *   [X] Implement Telegram command handlers (`/search`, `/latest`), response formatting, webhook security, and message indexing. // Completed in telegram-worker
     - [-] **6.4 (External LLM - Basic):** // Deferred (Using Workers AI by default)
         *   Install SDK: `npm install openai` or similar.
         *   Add secret: `npx wrangler secret put <PROVIDER>_API_KEY`
@@ -164,12 +165,12 @@
     - [-] **6.5 (RAG Implementation):** // Deferred (Depends on 5.6-5.8, 6.3c)
         *   Generate query embedding using an embedding model (Task 5.6).
         *   Query Vectorize to find relevant document chunks/IDs (Task 5.8).
-        *   Retrieve corresponding full document text from source (e.g., R2 using IDs from Vectorize metadata).
-        *   Construct augmented prompt including retrieved context.
-        *   Call generation model (Task 6.3 / 6.4) with augmented prompt.
+        *   [X] Retrieve corresponding full document text from source (e.g., R2 using IDs from Vectorize metadata). // Implemented via Vectorize metadata retrieval in telegram-worker
+        *   [X] Construct augmented prompt including retrieved context. // Implemented in telegram-worker /ask command
+        *   [X] Call generation model (Task 6.3 / 6.4) with augmented prompt. // Implemented in telegram-worker /ask command
     - [-] **6.6:** If structured output is needed, use `response_format: { type: 'json_object' }` or `json_schema`. // Deferred
-    - [-] **6.7:** Implement prompt engineering, input sanitization, and error handling for both basic and RAG calls. // Deferred
-    - [-] **6.8:** Test basic AI calls and RAG pipeline functionality. // Deferred
+    - [-] **6.7:** Implement prompt engineering, input sanitization, and error handling for both basic and RAG calls. // Deferred (Enhanced prompt/error handling/feedback in /ask)
+    - [-] **6.8:** Test basic AI calls and RAG pipeline functionality. // Deferred (Test /ask manually)
 
 7.  **Workflows Integration (Orchestration):**
     - [X] **7.1:** Identify complex, multi-step processes (e.g., user onboarding involving multiple workers, trade execution requiring several checks and external API calls).
@@ -234,8 +235,8 @@
 
 10. **Inter-Worker Communication (Service Bindings):**
     - [X] **10.1:** Map out required communication paths: `telegram`->`trade`, `telegram`->`webhook`, `webhook`->`trade`, `webhook`->`telegram`, `trade`->`telegram`, `web3`->`telegram`.
-    - [ ] **10.2:** Ensure each worker intended to be *called* is configured correctly in its `wrangler.jsonc` (has a `name`).
-    - [ ] **10.3:** In the *calling* worker's `wrangler.jsonc`, add service bindings:
+    - [X] **10.2:** Ensure each worker intended to be *called* is configured correctly in its `wrangler.jsonc` (has a `name`).
+    - [X] **10.3:** In the *calling* worker's `wrangler.jsonc`, add service bindings:
         ```jsonc
         // Example in telegram-worker's wrangler.jsonc
         {
@@ -246,8 +247,8 @@
           ]
         }
         ```
-    - [ ] **10.4:** Update the calling worker's `worker-configuration.d.ts`.
-    - [ ] **10.5:** Implement calls in the calling worker using `await env.TRADE_API.fetch(request)`. Pass necessary headers/body.
+    - [X] **10.4:** Update the calling worker's `worker-configuration.d.ts`.
+    - [X] **10.5:** Implement calls in the calling worker using `await env.<BINDING_NAME>.fetch(request)`. Pass necessary headers/body. // Added placeholder examples
     - [-] **10.6:** Test inter-worker communication paths. // Deferred
 
 **Phase 5: Testing & Deployment**
@@ -258,3 +259,7 @@
     - [-] **11.3:** Set up a CI/CD pipeline (e.g., GitHub Actions) using `wrangler deploy` for automated deployments. // Deferred
     - [-] **11.4:** Manage secrets and environment variables securely across different environments (dev/prod) using Wrangler secrets and potentially environment-specific `wrangler.jsonc` configurations or vars. // Deferred
     - [-] **11.5:** Actively monitor logs and metrics via the Cloudflare dashboard. Set up alerts for critical errors or performance degradation. // Deferred
+
+**Phase 5: D1 & Relational Data**
+
+11. **D1 Integration (Relational Data):**
