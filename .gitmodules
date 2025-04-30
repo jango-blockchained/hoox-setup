@@ -10,9 +10,9 @@
 [submodule "d1-worker"]
 	path = workers/d1-worker
 	url = ./workers/d1-worker
+[submodule "home-assistant-worker"]
+	path = workers/home-assistant-worker
+	url = ./workers/home-assistant-worker
 [submodule "web3-wallet-worker"]
 	path = workers/web3-wallet-worker
 	url = ./workers/web3-wallet-worker
-[submodule "workers/home-assistant-worker"]
-	path = workers/home-assistant-worker
-	url = ./workers/home-assistant-worker
