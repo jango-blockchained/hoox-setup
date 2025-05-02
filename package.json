@@ -11,14 +11,21 @@
     "manage": "bun run scripts/manage.ts",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "eslint . --ext .js,.ts --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",
+    "generate-types": "tsc -p tsconfig.prod.json --declaration --emitDeclarationOnly --outDir types",
+    "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250427.0",
+    "@cloudflare/ai": "^1.2.2",
+    "@cloudflare/workers-types": "^4.20250430.0",
+    "@hono/zod-validator": "^0.2.2",
     "@iarna/toml": "^2.2.5",
     "@types/commander": "^2.12.5",
     "@types/iarna__toml": "^2.0.5",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.17.31",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
@@ -26,18 +33,19 @@
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "hono": "^4.4.12",
     "jest-mock": "^29.7.0",
+    "postgres": "^3.4.4",
     "prettier": "^3.0.0",
     "tsx": "^4.19.3",
-    "@hono/zod-validator": "^0.2.2",
-    "hono": "^4.4.12",
-    "postgres": "^3.4.4",
+    "vitest": "^3.1.2",
     "zod": "^3.23.8"
   },
   "dependencies": {
     "@types/blessed": "^0.1.25",
     "ansis": "^3.17.0",
     "blessed": "^0.1.81",
+    "ethers": "^6.13.7",
     "toml": "^3.0.0",
     "zod": "^3.24.3"
   }

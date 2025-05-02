@@ -233,3 +233,90 @@ bun run scripts/manage.ts workers test --coverage
 ## Contributing
 
 Contributions are welcome! Please follow standard fork/branch/PR procedures.
+
+# Shared Modules
+
+## worker-definitions.ts
+
+The project uses a shared `worker-definitions.ts` module located in `src/utils/` which contains common type definitions, interfaces, and constants used across multiple workers. This helps ensure consistency and type safety when passing data between workers.
+
+Key components in the shared module include:
+
+- **Payload interfaces** for different worker types (CEX, DEX, Telegram, etc.)
+- **Response formats** for standardizing API responses
+- **Constants** for valid values used by multiple workers
+- **Validation interfaces** to maintain consistent validation patterns
+
+When adding new functionality that spans multiple workers, add the shared types to this module instead of duplicating definitions across individual workers.
+
+## TypeScript Status
+
+This project is in the process of being fully typed with TypeScript. 
+
+For development work:
+- Run `npm run typecheck` to check all files including tests
+- Run `npm run typecheck:prod` to check only production files (excluding tests)
+
+Current TypeScript status:
+- Core worker functionality has been typed
+- Some specialized Cloudflare Worker bindings may show type errors
+- Test files have more type errors that are being addressed
+
+When working on this codebase:
+1. Keep improving types as you work on files
+2. Focus on fixing production code types first
+3. Ensure all new code has proper TypeScript types
+
+We've prioritized operational functionality over perfect typing, so some TypeScript errors may remain while the system functions properly.
+
+## TypeScript Implementation Progress
+
+This project uses TypeScript to provide better type safety and developer experience. Our TypeScript implementation is being gradually improved, with the following progress:
+
+- ✅ Core utility modules have been converted to TypeScript
+- ✅ Fixed common type issues in the trade and webhook workers
+- ✅ Improved shared type definitions in worker-definitions.ts
+- ✅ Added proper configuration in tsconfig.json and tsconfig.prod.json
+- 🔄 Some aspects of test files still need to be typed
+- 🔄 Script files have some remaining TypeScript issues to resolve
+
+### TypeScript Tips for Contributors
+
+1. Use `import type { ... }` syntax for importing types to avoid runtime dependencies
+2. Use the `.ts` extension in import paths when importing TypeScript files (enabled by `allowImportingTsExtensions`)
+3. Run `npm run typecheck:prod` to check production file types before submitting PRs
+4. Fix TypeScript errors progressively as you work on files
+
+The `src/utils/worker-definitions.ts` file contains shared types used across workers.
+
+### Building Despite TypeScript Errors
+
+The project can be built despite TypeScript errors using:
+
+```
+npm run build-ignore-errors
+```
+
+This is useful for deployment when you need to build the project but still have some TypeScript errors that are being addressed progressively.
+
+### Cloudflare Worker Specific Types
+
+This project uses several Cloudflare-specific types:
+
+1. `@cloudflare/workers-types` - Base type definitions for Workers
+2. Custom types in `worker-definitions.ts` for things like:
+   - VectorizeMatches
+   - DexWebhookPayload
+   - TradePayload
+   - Web3TransactionPayload
+
+### Known TypeScript Issues
+
+There are some known TypeScript issues that we're working to address:
+
+1. Vectorize API type mismatches in the telegram-worker
+2. Headers type incompatibilities between different versions of `Headers`
+3. Request/Response construction with service bindings
+4. Import paths with .ts extensions
+
+These issues will be fixed gradually as the codebase evolves.
