@@ -1,41 +1,66 @@
+/**
+ * Utility functions for KV operations
+ */
 import type { KVNamespace } from "@cloudflare/workers-types";
-import type { Context, Next } from "hono"; // Import Hono types for middleware
 
-// Interface representing an environment with the required KV namespace
+/**
+ * Interface for environments with a KVNamespace binding
+ */
 export interface EnvWithKV {
-  CONFIG_KV: KVNamespace;
-  // Allow other properties
-  [key: string]: any;
+  REPORT_KV: KVNamespace;
+  [key: string]: unknown;
 }
 
 /**
- * Logs the last request timestamp from KV and updates it.
- * Handles potential KV errors gracefully.
- * @param env - The worker environment containing CONFIG_KV.
- * @param kvKey - The KV key to use for the timestamp (defaults to "last_request_timestamp").
+ * Logs a timestamp to KV
+ * @param env - Environment with KV binding
+ * @param prefix - Optional prefix for the key
+ * @returns Promise that resolves when the operation completes
  */
-export async function logKvTimestamp(env: EnvWithKV, kvKey: string = "last_request_timestamp"): Promise<void> {
+export async function logKvTimestamp(env: EnvWithKV, prefix: string = 'timestamp'): Promise<void> {
+  const timestamp = new Date().toISOString();
+  const key = `${prefix}_${timestamp}`;
   try {
-    const lastRequest = await env.CONFIG_KV.get(kvKey);
-    console.log(`KV (${kvKey}): Last request timestamp:`, lastRequest || "Not found");
-    await env.CONFIG_KV.put(kvKey, new Date().toISOString());
-    console.log(`KV (${kvKey}): Updated timestamp.`);
-  } catch (kvError) {
-    console.error(`KV Error reading/writing key "${kvKey}":`, kvError);
-    // Decide if KV error should block the request or just be logged
-    // Currently, it just logs the error and continues.
+    await env.REPORT_KV.put(key, timestamp);
+    console.log(`Logged timestamp ${timestamp} to KV with key ${key}`);
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Failed to log timestamp to KV: ${errorMsg}`);
   }
 }
 
 /**
- * Hono middleware to log the last request timestamp from KV and update it.
- * @param kvKey - The KV key to use (defaults to "last_request_timestamp").
+ * Helper function to convert Headers to a plain object
+ * @param headers - The Headers object to convert
+ * @returns Plain object representation of headers
  */
-export function kvTimestampMiddleware(kvKey: string = "last_request_timestamp") {
-  return async (c: Context<{ Bindings: EnvWithKV }>, next: Next) => {
-    // Run the KV logic before proceeding
-    await logKvTimestamp(c.env, kvKey);
-    // Continue to the next middleware or handler
-    await next();
-  };
-} 
+export function headersToObject(headers: Headers | null | undefined): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (!headers) return result;
+  
+  // Safely iterate through headers
+  try {
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Error converting headers to object: ${errorMsg}`);
+  }
+  
+  return result;
+}
+
+/**
+ * KV middleware function for logging timestamps
+ */
+export const kvTimestampMiddleware = async (env: EnvWithKV): Promise<void> => {
+  await logKvTimestamp(env);
+};
+
+// Default export for backwards compatibility
+export default {
+  logKvTimestamp,
+  headersToObject,
+  kvTimestampMiddleware
+}; 

@@ -1,9 +1,6 @@
 import { ethers } from "ethers";
-
-// Define the expected interface for a Secrets Store binding
-interface SecretBinding {
-  get(): Promise<string | null>;
-}
+import { SecretBinding, Web3TransactionPayload } from "../../src/utils/worker-definitions.ts";
+import { ExecutionContext } from "@cloudflare/workers-types";
 
 export interface Env {
   // Define bindings here
