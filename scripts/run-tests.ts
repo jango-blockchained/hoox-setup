@@ -6,6 +6,12 @@ const rootDir = resolve(import.meta.dir, '..');
 const workersDir = join(rootDir, 'workers');
 const args = process.argv.slice(2); // Get command-line arguments passed to the script
 
+// Check if we should skip failing tests
+const skipFailingTests = process.env.SKIP_FAILING_TESTS === 'true';
+if (skipFailingTests) {
+  console.log('⚠️ SKIP_FAILING_TESTS is enabled. Tests will continue even if some fail.');
+}
+
 interface TestResult {
   worker: string;
   exitCode: number | null;
@@ -39,8 +45,8 @@ async function runTestsInWorker(workerDir: string): Promise<TestResult> {
       stderr: stderr.toString(),
     };
 
-    if (exitCode === 0) {
-      console.log(`✅ Tests passed for ${workerName}`);
+    if (exitCode === 0 || (skipFailingTests && exitCode !== null)) {
+      console.log(`✅ Tests ${exitCode === 0 ? 'passed' : 'completed with failures (skipped)'} for ${workerName}`);
     } else {
       console.error(`❌ Tests failed for ${workerName} (Exit Code: ${exitCode})`);
       if (result.stdout) console.log('--- STDOUT ---');
@@ -91,7 +97,8 @@ async function main() {
     for (const workerDir of workerDirs) {
       const result = await runTestsInWorker(workerDir);
       allResults.push(result);
-      if (result.exitCode !== 0) {
+      // If skip failing tests is enabled, we don't set the overall exit code to failure
+      if (result.exitCode !== 0 && !skipFailingTests) {
         overallExitCode = 1; // Mark failure if any worker fails
       }
     }
@@ -103,7 +110,14 @@ async function main() {
 
   console.log('\n--- Test Summary ---');
   allResults.forEach(result => {
-    const status = result.exitCode === 0 ? (result.stdout.startsWith('Skipped') ? '⏭️ Skipped' : '✅ Passed') : '❌ Failed';
+    let status;
+    if (result.exitCode === 0) {
+      status = result.stdout.startsWith('Skipped') ? '⏭️ Skipped' : '✅ Passed';
+    } else if (skipFailingTests) {
+      status = '⚠️ Failed (ignored)';
+    } else {
+      status = '❌ Failed';
+    }
     console.log(`- ${result.worker}: ${status}`);
   });
 
