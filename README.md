@@ -209,6 +209,30 @@ To run a worker locally during development:
 
 ## Testing
 
+To run tests for all workers, use:
+
+```bash
+bun run tests
+```
+
+This will run tests for each worker in the `workers` directory.
+
+### Skipping Failing Tests
+
+If you need to run the test suite while ignoring failing tests (for CI/CD or development purposes), you can use:
+
+```bash
+SKIP_FAILING_TESTS=true bun run tests
+```
+
+This will continue running the test suite even if some tests fail, marking failed workers in the output but still allowing the overall process to complete successfully.
+
+### Adding New Tests
+
+Each worker should have its tests in a `test` directory. For basic functionality tests, consider adding a `basic.test.ts` file with simple validation tests that don't depend on complex mocks.
+
+### Legacy Testing Commands
+
 Run tests using the management script:
 
 ```bash

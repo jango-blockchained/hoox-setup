@@ -16,3 +16,6 @@
 [submodule "web3-wallet-worker"]
 	path = workers/web3-wallet-worker
 	url = ./workers/web3-wallet-worker
+[submodule "workers/agent-worker"]
+	path = workers/agent-worker
+	url = https://github.com/YOUR_GITHUB_USERNAME/agent-worker.git
