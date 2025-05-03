@@ -1,21 +1,21 @@
-[submodule "telegram-worker"]
+[submodule "workers/telegram-worker"]
 	path = workers/telegram-worker
 	url = ./workers/telegram-worker
-[submodule "trade-worker"]
+[submodule "workers/trade-worker"]
 	path = workers/trade-worker
 	url = ./workers/trade-worker
-[submodule "webhook-receiver"]
+[submodule "workers/webhook-receiver"]
 	path = workers/webhook-receiver
 	url = ./workers/webhook-receiver
-[submodule "d1-worker"]
+[submodule "workers/d1-worker"]
 	path = workers/d1-worker
 	url = ./workers/d1-worker
-[submodule "home-assistant-worker"]
+[submodule "workers/home-assistant-worker"]
 	path = workers/home-assistant-worker
 	url = ./workers/home-assistant-worker
-[submodule "web3-wallet-worker"]
-	path = workers/web3-wallet-worker
-	url = ./workers/web3-wallet-worker
 [submodule "workers/agent-worker"]
 	path = workers/agent-worker
-	url = https://github.com/YOUR_GITHUB_USERNAME/agent-worker.git
+	url = ./workers/agent-worker
+[submodule "workers/web3-wallet-worker"]
+	path = workers/web3-wallet-worker
+	url = ./workers/web3-wallet-worker

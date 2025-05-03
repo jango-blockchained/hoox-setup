@@ -54,6 +54,7 @@ Thumbs.db
 config.toml
 TASKPLAN.md
 
-# Ignore all files in the workers directory
+# Ignore all files in the workers directory except for submodules
 workers/*
+!workers/*/
 
