@@ -63,136 +63,279 @@ export async function setupWorkers(config: Config): Promise<void> {
       continue;
     }
 
-    // 1. Update wrangler.toml
+    // Check for wrangler.jsonc first, then wrangler.toml if jsonc doesn't exist
+    const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    if (!fs.existsSync(wranglerTomlPath)) {
+    
+    // Determine which configuration file to use
+    let useJsonc = fs.existsSync(wranglerJsoncPath);
+    let useToml = !useJsonc && fs.existsSync(wranglerTomlPath);
+    
+    if (!useJsonc && !useToml) {
       print_warning(
-        `wrangler.toml not found for ${workerName} at ${wranglerTomlPath}. Skipping configuration.`
+        `Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`
       );
       continue;
     }
-
-    try {
-      const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
-      let parsedToml: any; // Use specific type if possible, but TOML structure varies
+    
+    // Process wrangler.jsonc
+    if (useJsonc) {
       try {
-        parsedToml = parseToml(wranglerTomlContent);
-      } catch (parseError: unknown) {
-        print_error(
-          `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}`
-        );
-        print_warning(
-          `Skipping wrangler.toml update for ${workerName} due to parsing error.`
-        );
-        continue;
-      }
-
-      // --- Modify the parsed TOML object ---
-      let tomlUpdated = false;
-
-      if (parsedToml.name !== workerName) {
-        parsedToml.name = workerName;
-        tomlUpdated = true;
-        console.log(dim(`Set name = "${workerName}"`));
-      }
-      if (parsedToml.account_id !== config.global.cloudflare_account_id) {
-        parsedToml.account_id = config.global.cloudflare_account_id;
-        tomlUpdated = true;
-        console.log(
-          dim(`Set account_id = "${config.global.cloudflare_account_id}"`)
-        );
-      }
-
-      // Ensure compatibility_date exists (add a default if not present)
-      if (!parsedToml.compatibility_date) {
-        const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
-        parsedToml.compatibility_date = defaultCompatDate;
-        tomlUpdated = true;
-        console.log(
-          dim(`Added default compatibility_date: ${defaultCompatDate}`)
-        );
-      }
-
-      // Add/Update [vars] section
-      const currentVars = parsedToml.vars || {};
-      const configVars = workerConfig.vars || {};
-      let varsUpdated = false;
-      // Update existing or add new vars from config
-      for (const [key, value] of Object.entries(configVars)) {
-        if (String(currentVars[key]) !== String(value)) {
-          if (!parsedToml.vars) parsedToml.vars = {};
-          parsedToml.vars[key] = value; // Keep original type from config (string | TomlPrimitive)
-          varsUpdated = true;
+        console.log(dim(`Using wrangler.jsonc for ${workerName}`));
+        const wranglerJsoncContent = fs.readFileSync(wranglerJsoncPath, "utf-8");
+        let parsedJsonc: any;
+        
+        try {
+          // Parse JSONC (JSON with comments)
+          // We need to handle comments, so we use a simple approach to strip comments before parsing
+          const jsonContent = wranglerJsoncContent
+            .replace(/\/\/.*$/gm, '') // Remove single-line comments
+            .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
+          
+          parsedJsonc = JSON.parse(jsonContent);
+        } catch (parseError: unknown) {
+          print_error(
+            `Error parsing ${wranglerJsoncPath}: ${(parseError as Error).message}`
+          );
+          print_warning(
+            `Skipping wrangler.jsonc update for ${workerName} due to parsing error.`
+          );
+          continue;
         }
-      }
-      // Optional: Remove vars present in wrangler.toml but not in config.toml?
-      // for (const key in currentVars) {
-      //     if (!(key in configVars)) {
-      //         delete parsedToml.vars[key];
-      //         varsUpdated = true;
-      //     }
-      // }
-      if (varsUpdated) {
-        console.log(dim(`Updated [vars] based on config.toml`));
-        tomlUpdated = true;
-      }
-
-      // --- NEW: Add/Update Secret Store Bindings ---
-      const requiredSecrets = workerConfig.secrets || [];
-      if (requiredSecrets.length > 0) {
-        console.log(dim(`Configuring Secret Store bindings...`));
-        const newBindings = requiredSecrets.map((secretName) => {
-          // Define a binding name convention (e.g., SECRET_NAME_BINDING)
-          const bindingName = `${secretName.replace(/[^A-Za-z0-9_]/g, "_").toUpperCase()}_BINDING`;
-          return {
-            binding: bindingName,
-            store_id: storeId,
-            secret_name: secretName,
-          };
-        });
-
-        // Compare with existing bindings to see if update is needed
-        const existingBindingsJson = JSON.stringify(
-          parsedToml.secrets_store_secrets || []
-        );
-        const newBindingsJson = JSON.stringify(newBindings);
-
-        if (existingBindingsJson !== newBindingsJson) {
-          parsedToml.secrets_store_secrets = newBindings;
-          tomlUpdated = true;
-          console.log(dim(`Updated [secrets_store_secrets] bindings.`));
-          requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
+        
+        // --- Modify the parsed JSONC object ---
+        let jsoncUpdated = false;
+        
+        if (parsedJsonc.name !== workerName) {
+          parsedJsonc.name = workerName;
+          jsoncUpdated = true;
+          console.log(dim(`Set name = "${workerName}"`));
+        }
+        
+        // Ensure compatibility_date exists
+        if (!parsedJsonc.compatibility_date) {
+          const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
+          parsedJsonc.compatibility_date = defaultCompatDate;
+          jsoncUpdated = true;
+          console.log(
+            dim(`Added default compatibility_date: ${defaultCompatDate}`)
+          );
+        }
+        
+        // Add/Update vars
+        const currentVars = parsedJsonc.vars || {};
+        const configVars = workerConfig.vars || {};
+        let varsUpdated = false;
+        
+        // Update existing or add new vars from config
+        for (const [key, value] of Object.entries(configVars)) {
+          if (String(currentVars[key]) !== String(value)) {
+            if (!parsedJsonc.vars) parsedJsonc.vars = {};
+            parsedJsonc.vars[key] = value;
+            varsUpdated = true;
+          }
+        }
+        
+        if (varsUpdated) {
+          console.log(dim(`Updated vars based on config.toml`));
+          jsoncUpdated = true;
+        }
+        
+        // --- Add/Update Secret Store Bindings ---
+        const requiredSecrets = workerConfig.secrets || [];
+        if (requiredSecrets.length > 0) {
+          console.log(dim(`Configuring Secret Store bindings...`));
+          
+          if (!parsedJsonc.secrets_store) {
+            parsedJsonc.secrets_store = { bindings: [] };
+            jsoncUpdated = true;
+          }
+          
+          const newBindings = requiredSecrets.map((secretName) => {
+            // Define a binding name convention
+            const bindingName = `${secretName.replace(/[^A-Za-z0-9_]/g, "_").toUpperCase()}_BINDING`;
+            return {
+              binding: bindingName,
+              store_id: storeId,
+              secret_name: secretName,
+            };
+          });
+          
+          // Compare with existing bindings
+          const existingBindingsJson = JSON.stringify(
+            parsedJsonc.secrets_store.bindings || []
+          );
+          const newBindingsJson = JSON.stringify(newBindings);
+          
+          if (existingBindingsJson !== newBindingsJson) {
+            parsedJsonc.secrets_store.bindings = newBindings;
+            jsoncUpdated = true;
+            console.log(dim(`Updated secrets_store bindings.`));
+            requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
+          } else {
+            console.log(
+              dim(`secrets_store bindings are already up-to-date.`)
+            );
+          }
         } else {
-          console.log(
-            dim(`[secrets_store_secrets] bindings are already up-to-date.`)
-          );
+          // If no secrets are defined in config, remove the binding section
+          if (parsedJsonc.secrets_store && parsedJsonc.secrets_store.bindings) {
+            if (parsedJsonc.secrets_store.bindings.length > 0) {
+              parsedJsonc.secrets_store.bindings = [];
+              jsoncUpdated = true;
+              console.log(
+                dim(
+                  `Cleared secrets_store.bindings as no secrets are defined in config.`
+                )
+              );
+            }
+          }
         }
-      } else {
-        // If no secrets are defined in config, remove the binding section
-        if (parsedToml.secrets_store_secrets) {
-          delete parsedToml.secrets_store_secrets;
+        
+        if (jsoncUpdated) {
+          // Preserve the original comments by inserting the updated JSON data
+          // between any comment blocks at the start and end
+          const commentHeaderMatch = wranglerJsoncContent.match(/^(\s*\/\*[\s\S]*?\*\/\s*)/);
+          const commentHeader = commentHeaderMatch ? commentHeaderMatch[1] : '';
+          
+          // Format with indentation for readability
+          const newJsoncContent = `${commentHeader}${JSON.stringify(parsedJsonc, null, 2)}`;
+          fs.writeFileSync(wranglerJsoncPath, newJsoncContent);
+          print_success(`Updated ${wranglerJsoncPath}`);
+        } else {
+          console.log(dim(`${wranglerJsoncPath} is already up-to-date.`));
+        }
+      } catch (error: unknown) {
+        print_error(
+          `Error processing ${wranglerJsoncPath}: ${(error as Error).message}`
+        );
+      }
+    }
+    // Process wrangler.toml
+    else if (useToml) {
+      try {
+        console.log(dim(`Using wrangler.toml for ${workerName}`));
+        const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
+        let parsedToml: any; // Use specific type if possible, but TOML structure varies
+        try {
+          parsedToml = parseToml(wranglerTomlContent);
+        } catch (parseError: unknown) {
+          print_error(
+            `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}`
+          );
+          print_warning(
+            `Skipping wrangler.toml update for ${workerName} due to parsing error.`
+          );
+          continue;
+        }
+
+        // --- Modify the parsed TOML object ---
+        let tomlUpdated = false;
+
+        if (parsedToml.name !== workerName) {
+          parsedToml.name = workerName;
+          tomlUpdated = true;
+          console.log(dim(`Set name = "${workerName}"`));
+        }
+        if (parsedToml.account_id !== config.global.cloudflare_account_id) {
+          parsedToml.account_id = config.global.cloudflare_account_id;
           tomlUpdated = true;
           console.log(
-            dim(
-              `Removed [secrets_store_secrets] section as no secrets are defined in config.`
-            )
+            dim(`Set account_id = "${config.global.cloudflare_account_id}"`)
           );
         }
-      }
 
-      // --- End modifications ---
+        // Ensure compatibility_date exists (add a default if not present)
+        if (!parsedToml.compatibility_date) {
+          const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
+          parsedToml.compatibility_date = defaultCompatDate;
+          tomlUpdated = true;
+          console.log(
+            dim(`Added default compatibility_date: ${defaultCompatDate}`)
+          );
+        }
 
-      if (tomlUpdated) {
-        const newTomlContent = stringifyToml(parsedToml);
-        fs.writeFileSync(wranglerTomlPath, newTomlContent);
-        print_success(`Updated ${wranglerTomlPath}`);
-      } else {
-        console.log(dim(`${wranglerTomlPath} is already up-to-date.`));
+        // Add/Update [vars] section
+        const currentVars = parsedToml.vars || {};
+        const configVars = workerConfig.vars || {};
+        let varsUpdated = false;
+        // Update existing or add new vars from config
+        for (const [key, value] of Object.entries(configVars)) {
+          if (String(currentVars[key]) !== String(value)) {
+            if (!parsedToml.vars) parsedToml.vars = {};
+            parsedToml.vars[key] = value; // Keep original type from config (string | TomlPrimitive)
+            varsUpdated = true;
+          }
+        }
+        // Optional: Remove vars present in wrangler.toml but not in config.toml?
+        // for (const key in currentVars) {
+        //     if (!(key in configVars)) {
+        //         delete parsedToml.vars[key];
+        //         varsUpdated = true;
+        //     }
+        // }
+        if (varsUpdated) {
+          console.log(dim(`Updated [vars] based on config.toml`));
+          tomlUpdated = true;
+        }
+
+        // --- NEW: Add/Update Secret Store Bindings ---
+        const requiredSecrets = workerConfig.secrets || [];
+        if (requiredSecrets.length > 0) {
+          console.log(dim(`Configuring Secret Store bindings...`));
+          const newBindings = requiredSecrets.map((secretName) => {
+            // Define a binding name convention (e.g., SECRET_NAME_BINDING)
+            const bindingName = `${secretName.replace(/[^A-Za-z0-9_]/g, "_").toUpperCase()}_BINDING`;
+            return {
+              binding: bindingName,
+              store_id: storeId,
+              secret_name: secretName,
+            };
+          });
+
+          // Compare with existing bindings to see if update is needed
+          const existingBindingsJson = JSON.stringify(
+            parsedToml.secrets_store_secrets || []
+          );
+          const newBindingsJson = JSON.stringify(newBindings);
+
+          if (existingBindingsJson !== newBindingsJson) {
+            parsedToml.secrets_store_secrets = newBindings;
+            tomlUpdated = true;
+            console.log(dim(`Updated [secrets_store_secrets] bindings.`));
+            requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
+          } else {
+            console.log(
+              dim(`[secrets_store_secrets] bindings are already up-to-date.`)
+            );
+          }
+        } else {
+          // If no secrets are defined in config, remove the binding section
+          if (parsedToml.secrets_store_secrets) {
+            delete parsedToml.secrets_store_secrets;
+            tomlUpdated = true;
+            console.log(
+              dim(
+                `Removed [secrets_store_secrets] section as no secrets are defined in config.`
+              )
+            );
+          }
+        }
+
+        // --- End modifications ---
+
+        if (tomlUpdated) {
+          const newTomlContent = stringifyToml(parsedToml);
+          fs.writeFileSync(wranglerTomlPath, newTomlContent);
+          print_success(`Updated ${wranglerTomlPath}`);
+        } else {
+          console.log(dim(`${wranglerTomlPath} is already up-to-date.`));
+        }
+      } catch (error: unknown) {
+        print_error(
+          `Error processing ${wranglerTomlPath}: ${(error as Error).message}`
+        );
       }
-    } catch (error: unknown) {
-      print_error(
-        `Error processing ${wranglerTomlPath}: ${(error as Error).message}`
-      );
     }
 
     // 2. Set Secrets - REMOVED (User must create in CF Store)

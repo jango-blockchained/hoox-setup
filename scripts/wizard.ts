@@ -126,6 +126,29 @@ export async function runWizard(): Promise<void> {
 
   let state: WizardState | null = loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;
+  
+  // Check which config format to use
+  let configFormat: 'jsonc' | 'toml' = 'toml'; // Default to TOML
+  const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
+  const configTomlPath = path.resolve(process.cwd(), "config.toml");
+  
+  // If config.jsonc exists, use JSONC format, otherwise use TOML
+  if (fs.existsSync(configJsoncPath)) {
+    configFormat = 'jsonc';
+    console.log(ansis.blue("Using JSONC configuration format (config.jsonc)"));
+  } else if (fs.existsSync(configTomlPath)) {
+    configFormat = 'toml';
+    console.log(ansis.blue("Using TOML configuration format (config.toml)"));
+  } else {
+    // Neither exists, check for example files to determine format
+    const exampleJsoncPath = path.resolve(process.cwd(), "config.jsonc.example");
+    if (fs.existsSync(exampleJsoncPath)) {
+      configFormat = 'jsonc';
+      console.log(ansis.blue("No config file found. Will create config.jsonc based on example"));
+    } else {
+      console.log(ansis.blue("No config file found. Will create config.toml based on example"));
+    }
+  }
 
   // Initialize state if null or invalid
   if (!state) {
@@ -133,7 +156,7 @@ export async function runWizard(): Promise<void> {
     let initialConfig: Partial<Config> = {};
     try {
         initialConfig = await loadConfig(); // Load config might return defaults or throw
-        print_success("Loaded initial configuration for wizard state.");
+        print_success(`Loaded initial configuration for wizard state from ${configFormat === 'jsonc' ? 'config.jsonc' : 'config.toml'}.`);
     } catch (configError: unknown) {
         const errorMsg = configError instanceof Error ? configError.message : String(configError);
         print_error(`Failed to load initial config: ${errorMsg}`);
@@ -154,6 +177,7 @@ export async function runWizard(): Promise<void> {
       currentStep: 1,
       totalSteps: totalSteps,
       config: initialConfig, // Use loaded/default config
+      configFormat: configFormat, // Store the format being used
     };
     saveWizardState(state); // Save initial state
     console.log(ansis.yellow("Starting new setup process."));
@@ -169,6 +193,16 @@ export async function runWizard(): Promise<void> {
       state.totalSteps = totalSteps;
       // Config is already loaded, no need to reload unless desired
       saveWizardState(state);
+    }
+    
+    // Store the config format if not already set
+    if (!state.configFormat) {
+      state.configFormat = configFormat;
+      saveWizardState(state);
+    } else {
+      // Use the format stored in state
+      configFormat = state.configFormat;
+      console.log(ansis.blue(`Using ${configFormat.toUpperCase()} configuration format from previous state`));
     }
   }
 

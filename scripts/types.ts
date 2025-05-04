@@ -73,6 +73,7 @@ export interface WizardState {
     global?: Partial<GlobalConfig>;
     workers?: Record<string, Partial<WorkerConfig>>;
   }; // Allow deep partials during setup
+  configFormat?: 'jsonc' | 'toml'; // Format of the config file being used
   // Add other state fields as needed, e.g., selectedWorkers, dbName
 }
 
@@ -81,6 +82,7 @@ export const WizardStateSchema = z.object({
     currentStep: z.number().int().positive(),
     totalSteps: z.number().int().positive(),
     config: ConfigSchema.partial().optional(), // Config might be partially built
+    configFormat: z.enum(['jsonc', 'toml']).optional(), // Format of the config file
     // Add other state fields if they exist
 });
 
