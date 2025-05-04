@@ -338,13 +338,19 @@ export async function step_setupD1(state: WizardState): Promise<void> {
   }
 }
 
-export async function step_saveConfig(configToSave: Config): Promise<void> {
+export async function step_saveConfig(state: WizardState): Promise<void> {
   console.log(ansis.dim("Preparing configuration object..."));
+  
+  const configToSave = state.config as Config;
   if (!configToSave.global)
     throw new Error("Internal Error: Global config missing before save.");
   if (!configToSave.workers) configToSave.workers = {};
-
-  print_success("Configuration prepared. Saving to config.toml...");
+  
+  // Get the format from state, default to TOML if not specified
+  const format = state.configFormat || 'toml';
+  const configFileName = format === 'jsonc' ? 'config.jsonc' : 'config.toml';
+  
+  print_success(`Configuration prepared. Saving to ${configFileName} (${format.toUpperCase()} format)...`);
   await saveConfig(configToSave);
 }
 

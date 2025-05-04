@@ -77,6 +77,57 @@ async function main() {
     .description("Run the interactive first-time setup wizard.")
     .action(runWizard); // Use imported function
 
+  program
+    .command("check-setup")
+    .description("Check the current setup for issues without modifying anything.")
+    .action(async () => {
+      // Dynamically import and run the check-setup script
+      import("./check-setup.js").catch(e => {
+        print_error(`Failed to run check-setup: ${e.message}`);
+        process.exit(1);
+      });
+    });
+
+  program
+    .command("config")
+    .description("Shows information about the current configuration format.")
+    .action(async () => {
+      try {
+        const fs = await import("node:fs");
+        const path = await import("node:path");
+        
+        const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
+        const configTomlPath = path.resolve(process.cwd(), "config.toml");
+        
+        if (fs.existsSync(configJsoncPath)) {
+          console.log(green("Using: config.jsonc (JSONC format)"));
+        } else if (fs.existsSync(configTomlPath)) {
+          console.log(green("Using: config.toml (TOML format)"));
+        } else {
+          console.log(yellow("No configuration file found. Run 'init' to create one."));
+        }
+        
+        // Show information about both example files
+        const exampleJsoncPath = path.resolve(process.cwd(), "config.jsonc.example");
+        const exampleTomlPath = path.resolve(process.cwd(), "config.toml.example");
+        
+        console.log("\nExample files available:");
+        if (fs.existsSync(exampleJsoncPath)) {
+          console.log(green("- config.jsonc.example (JSONC format)"));
+        } else {
+          console.log(red("- config.jsonc.example not found"));
+        }
+        
+        if (fs.existsSync(exampleTomlPath)) {
+          console.log(green("- config.toml.example (TOML format)"));
+        } else {
+          console.log(red("- config.toml.example not found"));
+        }
+      } catch (error) {
+        print_error(`Error checking configuration: ${error.message}`);
+      }
+    });
+
   // --- Worker Management Commands ---
   const workersCommand = program
     .command("workers")

@@ -29,21 +29,64 @@ export interface Config {
 
 // --- Constants ---
 
-const CONFIG_FILE = path.resolve(process.cwd(), "config.toml");
-const EXAMPLE_CONFIG_FILE = path.resolve(process.cwd(), "config.toml.example");
+const CONFIG_TOML = path.resolve(process.cwd(), "config.toml");
+const CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc");
+const EXAMPLE_CONFIG_TOML = path.resolve(process.cwd(), "config.toml.example");
+const EXAMPLE_CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc.example");
 
 // --- Utility Functions ---
 
 /**
- * Loads configuration from config.toml.
+ * Parse JSONC (JSON with comments) content.
+ * Strips comments and parses the resulting JSON.
+ */
+function parseJsonc(content: string): any {
+  // Strip comments before parsing
+  const jsonContent = content
+    .replace(/\/\/.*$/gm, '') // Remove single-line comments
+    .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
+  
+  return JSON.parse(jsonContent);
+}
+
+/**
+ * Determine the format of the configuration file.
+ * Returns an object with the path to the user config file and example config file.
+ */
+async function determineConfigFormat(): Promise<{ userConfig: string, exampleConfig: string, format: 'jsonc' | 'toml' }> {
+  // Check if config.jsonc exists
+  try {
+    await fs.access(CONFIG_JSONC);
+    return { 
+      userConfig: CONFIG_JSONC, 
+      exampleConfig: EXAMPLE_CONFIG_JSONC,
+      format: 'jsonc'
+    };
+  } catch (error) {
+    // config.jsonc doesn't exist, use config.toml
+    return {
+      userConfig: CONFIG_TOML,
+      exampleConfig: EXAMPLE_CONFIG_TOML,
+      format: 'toml'
+    };
+  }
+}
+
+/**
+ * Loads configuration from either config.jsonc or config.toml.
  * Merges with example config for defaults.
  * Throws error if essential global keys are missing.
  */
 export async function loadConfig(): Promise<Config> {
-  let userConfigToml = "";
+  // Determine which config format to use
+  const { userConfig, exampleConfig, format } = await determineConfigFormat();
+  
+  console.log(`Using ${format.toUpperCase()} configuration format`);
+  
+  let userConfigContent = "";
   try {
-    userConfigToml = await fs.readFile(CONFIG_FILE, "utf-8");
-    console.log(`Loaded configuration from ${CONFIG_FILE}`);
+    userConfigContent = await fs.readFile(userConfig, "utf-8");
+    console.log(`Loaded configuration from ${userConfig}`);
   } catch (error: unknown) {
     if (
       typeof error === "object" &&
@@ -51,83 +94,94 @@ export async function loadConfig(): Promise<Config> {
       (error as { code?: string }).code === "ENOENT"
     ) {
       console.warn(
-        `Warning: ${CONFIG_FILE} not found. Using example configuration as base.`
+        `Warning: ${userConfig} not found. Using example configuration as base.`
       );
     } else {
       const errorMsg =
         error instanceof Error
           ? error.message
           : String(error || "Unknown read error");
-      throw new Error(`Failed to read config file ${CONFIG_FILE}: ${errorMsg}`);
+      throw new Error(`Failed to read config file ${userConfig}: ${errorMsg}`);
     }
   }
 
-  let exampleConfigToml = "";
+  let exampleConfigContent = "";
   try {
-    exampleConfigToml = await fs.readFile(EXAMPLE_CONFIG_FILE, "utf-8");
+    exampleConfigContent = await fs.readFile(exampleConfig, "utf-8");
   } catch (error: unknown) {
     const errorMsg =
       error instanceof Error
         ? error.message
         : String(error || "Unknown read error");
     throw new Error(
-      `Failed to read example config file ${EXAMPLE_CONFIG_FILE}: ${errorMsg}`
+      `Failed to read example config file ${exampleConfig}: ${errorMsg}`
     );
   }
 
-  let userConfig: Partial<Config> = {};
-  if (userConfigToml) {
+  let userConfigObj: Partial<Config> = {};
+  if (userConfigContent) {
     try {
-      const parsedUser = TOML.parse(userConfigToml) as unknown;
-      userConfig = parsedUser as Partial<Config>;
+      if (format === 'jsonc') {
+        const parsedUser = parseJsonc(userConfigContent) as unknown;
+        userConfigObj = parsedUser as Partial<Config>;
+      } else {
+        const parsedUser = TOML.parse(userConfigContent) as unknown;
+        userConfigObj = parsedUser as Partial<Config>;
+      }
     } catch (error: unknown) {
       const errorMsg =
         error instanceof Error
           ? error.message
           : String(error || "Unknown parse error");
-      throw new Error(`Failed to parse ${CONFIG_FILE}: ${errorMsg}`);
+      throw new Error(`Failed to parse ${userConfig}: ${errorMsg}`);
     }
   }
 
-  let exampleConfig: Config;
+  let exampleConfigObj: Config;
   try {
-    const parsedExample = TOML.parse(exampleConfigToml) as unknown;
+    let parsedExample;
+    if (format === 'jsonc') {
+      parsedExample = parseJsonc(exampleConfigContent) as unknown;
+    } else {
+      parsedExample = TOML.parse(exampleConfigContent) as unknown;
+    }
+    
     if (typeof parsedExample !== "object" || parsedExample === null) {
       throw new Error(
-        `Example config ${EXAMPLE_CONFIG_FILE} did not parse to an object.`
+        `Example config ${exampleConfig} did not parse to an object.`
       );
     }
     if (!("global" in parsedExample) || !("workers" in parsedExample)) {
       throw new Error(
-        `Example config ${EXAMPLE_CONFIG_FILE} missing required 'global' or 'workers' sections.`
+        `Example config ${exampleConfig} missing required 'global' or 'workers' sections.`
       );
     }
-    exampleConfig = parsedExample as Config;
+    exampleConfigObj = parsedExample as Config;
   } catch (error: unknown) {
     const errorMsg =
       error instanceof Error
         ? error.message
         : String(error || "Unknown parse error");
-    throw new Error(`Failed to parse ${EXAMPLE_CONFIG_FILE}: ${errorMsg}`);
+    throw new Error(`Failed to parse ${exampleConfig}: ${errorMsg}`);
   }
 
   // Deep merge logic (simple example, consider a library for complex cases)
   const mergedConfig: Config = {
     global: {
-      ...(exampleConfig.global || {}),
-      ...(userConfig.global || {}),
+      ...(exampleConfigObj.global || {}),
+      ...(userConfigObj.global || {}),
     } as GlobalConfig,
-    workers: { ...(exampleConfig.workers || {}) },
+    workers: { ...(exampleConfigObj.workers || {}) },
   };
 
-  if (userConfig.workers) {
-    for (const workerName in userConfig.workers) {
+  if (userConfigObj.workers) {
+    for (const workerName in userConfigObj.workers) {
       if (
-        Object.prototype.hasOwnProperty.call(userConfig.workers, workerName)
+        Object.prototype.hasOwnProperty.call(userConfigObj.workers, workerName)
       ) {
         mergedConfig.workers[workerName] = {
-          ...(exampleConfig.workers?.[workerName] || {}),
-          ...(userConfig.workers[workerName] || {}),
+          ...(exampleConfigObj.workers?.[workerName] || {}),
+          ...(userConfigObj.workers[workerName] || {}),
         };
       }
     }
@@ -146,7 +200,7 @@ export async function loadConfig(): Promise<Config> {
     // Check if the key is missing or empty after merging
     if (!mergedConfig.global[key]) {
       console.error(
-        `Error: Missing required global configuration key "${key}" in ${CONFIG_FILE} (or example). Please define it.`
+        `Error: Missing required global configuration key "${key}" in ${userConfig} (or example). Please define it.`
       );
       missingKeys = true;
     }
@@ -154,7 +208,7 @@ export async function loadConfig(): Promise<Config> {
 
   if (missingKeys) {
     throw new Error(
-      `Missing required global configuration keys in ${CONFIG_FILE}. Please check the errors above.`
+      `Missing required global configuration keys in ${userConfig}. Please check the errors above.`
     );
   }
 
@@ -162,20 +216,29 @@ export async function loadConfig(): Promise<Config> {
 }
 
 /**
- * Saves the configuration object to config.toml.
+ * Saves the configuration object to the appropriate format file.
  */
 export async function saveConfig(config: Config): Promise<void> {
+  const { userConfig, format } = await determineConfigFormat();
+  
   try {
-    const tomlString = TOML.stringify(config as any);
-    await fs.writeFile(CONFIG_FILE, tomlString);
-    console.log(`Configuration saved successfully to ${CONFIG_FILE}`);
+    let content: string;
+    if (format === 'jsonc') {
+      // Pretty print JSON with 2 spaces indentation
+      content = JSON.stringify(config, null, 2);
+    } else {
+      content = TOML.stringify(config as any);
+    }
+    
+    await fs.writeFile(userConfig, content);
+    console.log(`Configuration saved successfully to ${userConfig}`);
   } catch (error: unknown) {
     const errorMsg =
       error instanceof Error
         ? error.message
         : String(error || "Unknown save error");
     console.error(
-      `Error saving configuration to ${CONFIG_FILE}:`,
+      `Error saving configuration to ${userConfig}:`,
       errorMsg,
       error
     );
@@ -184,7 +247,7 @@ export async function saveConfig(config: Config): Promise<void> {
 }
 
 /**
- * Parses the configuration from the TOML file.
+ * Parses the configuration from the config file.
  * Simple wrapper around loadConfig.
  */
 export async function parseConfig(): Promise<Config> {

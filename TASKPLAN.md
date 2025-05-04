@@ -207,7 +207,7 @@
 **Phase 5: Testing & Deployment**
 
 12. **Comprehensive Testing & Deployment Strategy:**
-    - [ ] **12.1:** Implement unit and integration tests using `vitest` or similar, mocking bindings as needed. // Deferred
+    - [ ] **12.1:** Implement unit and integration tests using `vitest` or similar, mocking bindings as needed. // Partially implemented - d1-worker REST API tests completed
     - [ ] **12.2:** Create `curl` command collections or simple client scripts for end-to-end testing of deployed services. // Deferred
     - [ ] **12.3:** Set up a CI/CD pipeline (e.g., GitHub Actions) using `wrangler deploy` for automated deployments. // Deferred
     - [ ] **12.4:** Manage secrets and environment variables securely across different environments (dev/prod) using Wrangler secrets and potentially environment-specific `wrangler.jsonc` configurations or vars. // Deferred
@@ -238,10 +238,10 @@
 - Phase 2 (Storage & Asynchronous Processing): **50% Complete** (R2 implemented, Queues deferred as enterprise feature)
 - Phase 3 (Advanced Capabilities): **70% Complete** (Vectorize, AI/RAG, and Agent implemented; Workflows deferred)
 - Phase 4 (Advanced Integrations & Communication): **100% Complete** (All service bindings and REST API endpoints implemented)
-- Phase 5 (Testing & Deployment): **20% Complete** (Agent tests implemented, other tests deferred)
+- Phase 5 (Testing & Deployment): **40% Complete** (Agent tests and d1-worker REST API tests implemented, other tests deferred)
 - Phase 6 (D1 & Relational Data): **100% Complete** for trade-worker and agent-worker use cases
 
 **Next Priority Tasks:**
 1. Implement Browser Rendering functionality
 2. Begin planning for Workflows implementation
-3. Complete testing for implemented features (R2, AI/RAG)
+3. Complete testing for remaining implemented features (R2, AI/RAG)
