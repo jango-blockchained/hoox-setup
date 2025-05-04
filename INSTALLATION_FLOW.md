@@ -278,6 +278,35 @@ After installation, you can use the following commands to manage your workers:
   bun run manage.ts workers test [worker-name]
   ```
 
+## Clone Worker Repositories
+
+This project supports two ways of initializing your worker directories:
+
+1. **Clone the main repository with all worker repositories** (using Git submodules)
+2. **Clone only the main repository and then selectively clone worker repositories**
+
+If you've cloned only the main repository without workers, you can use the worker clone command:
+
+```bash
+bun run workers:clone
+# or with the full command
+bun run manage.ts workers clone
+```
+
+This command will:
+1. Check if the workers directory exists and create it if needed
+2. Provide a list of available worker repositories to clone
+3. Allow you to select specific workers or clone all of them
+4. Clone the selected workers as Git submodules by default
+
+Options:
+- Use `--direct` to clone repositories directly instead of as submodules:
+  ```bash
+  bun run manage.ts workers clone --direct
+  ```
+
+**Note:** When you run `bun run init`, the wizard will automatically detect if you have no worker directories and prompt you to clone them.
+
 ## Troubleshooting
 
 - **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `bun run manage.ts init` again to continue.
