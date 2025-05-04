@@ -52,6 +52,9 @@ import {
   printWizardStep,
 } from "./wizardSteps.js"; // Import steps
 
+// Import the cloneWorkerRepositories function
+import { cloneWorkerRepositories } from "./manage.js";
+
 const STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
 const TOTAL_WIZARD_STEPS = 7;
 
@@ -123,6 +126,74 @@ export function cleanupWizardState(): void {
 
 export async function runWizard(): Promise<void> {
   console.log(ansis.blue("\n--- Hoox Worker Setup Wizard ---"));
+
+  // First, check if workers directory exists and has any workers
+  const workersDir = path.resolve(process.cwd(), "workers");
+  let hasWorkers = false;
+  
+  try {
+    // Check if workers directory exists
+    if (fs.existsSync(workersDir)) {
+      // Check if it has any non-hidden directories
+      const files = fs.readdirSync(workersDir);
+      const nonHiddenDirectories = files.filter(file => 
+        !file.startsWith('.') && 
+        fs.statSync(path.join(workersDir, file)).isDirectory()
+      );
+      
+      hasWorkers = nonHiddenDirectories.length > 0;
+      
+      if (!hasWorkers) {
+        console.log(ansis.yellow("\nWorkers directory exists but contains no worker folders."));
+      }
+    } else {
+      console.log(ansis.yellow("\nWorkers directory does not exist."));
+    }
+    
+    if (!hasWorkers) {
+      console.log(ansis.blue("You need to clone worker repositories before proceeding with setup."));
+      
+      const cloneNow = await rl.question(ansis.blue("Do you want to clone worker repositories now? (Y/n): "));
+      
+      if (cloneNow.toLowerCase() !== "n") {
+        console.log(ansis.blue("\nExiting wizard to run worker clone command..."));
+        console.log(ansis.dim("Run 'bun run manage.ts init' again after cloning worker repositories."));
+        
+        // Call the imported function directly
+        await cloneWorkerRepositories(false);
+        
+        // Ask if they want to continue with the wizard
+        const continueSetup = await rl.question(ansis.blue("\nContinue with the setup wizard now? (Y/n): "));
+        if (continueSetup.toLowerCase() === "n") {
+          console.log(ansis.dim("Run 'bun run manage.ts init' when you're ready to continue setup."));
+          return;
+        }
+        
+        // Re-check if we have workers now
+        if (fs.existsSync(workersDir)) {
+          const updatedFiles = fs.readdirSync(workersDir);
+          const updatedNonHiddenDirectories = updatedFiles.filter(file => 
+            !file.startsWith('.') && 
+            fs.statSync(path.join(workersDir, file)).isDirectory()
+          );
+          
+          hasWorkers = updatedNonHiddenDirectories.length > 0;
+          
+          if (!hasWorkers) {
+            console.log(ansis.red("\nNo worker directories found after cloning. Please check for errors and try again."));
+            return;
+          }
+        }
+      } else {
+        console.log(ansis.yellow("\nYou chose not to clone worker repositories."));
+        console.log(ansis.dim("You can clone them later with 'bun run manage.ts workers clone'"));
+        console.log(ansis.dim("Then restart the wizard with 'bun run manage.ts init'"));
+        return;
+      }
+    }
+  } catch (error) {
+    console.log(ansis.red(`Error checking workers directory: ${error instanceof Error ? error.message : String(error)}`));
+  }
 
   let state: WizardState | null = loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;

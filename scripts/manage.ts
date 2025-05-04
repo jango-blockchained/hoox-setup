@@ -7,6 +7,8 @@ import util from "node:util";
 import { exec } from "node:child_process"; // Import exec
 import { Command } from "commander";
 import * as crypto from "node:crypto"; // Needed?
+import { promisify } from "node:util";
+import { readdir } from "node:fs/promises";
 
 // Import types
 import { Config, WizardState, GlobalConfig } from "./types.js";
@@ -132,6 +134,14 @@ async function main() {
   const workersCommand = program
     .command("workers")
     .description("Manage workers (setup, deploy, dev, status, test)");
+
+  workersCommand
+    .command("clone")
+    .description("Clone selected worker repositories as git submodules")
+    .option("-d, --direct", "Clone repositories directly instead of using submodules")
+    .action(async (options) => {
+      await cloneWorkerRepositories(options.direct || false);
+    });
 
   workersCommand
     .command("setup")
@@ -348,6 +358,152 @@ async function main() {
   ) {
     rlInstance.close();
   }
+}
+
+/**
+ * Checks if the workers directory is empty and provides an interactive prompt to clone worker repositories.
+ * @param direct If true, clone repositories directly instead of using git submodules
+ */
+export async function cloneWorkerRepositories(direct: boolean = false): Promise<void> {
+  const workersDir = path.resolve(process.cwd(), "workers");
+  
+  // Create workers directory if it doesn't exist
+  if (!fs.existsSync(workersDir)) {
+    console.log(yellow("Workers directory does not exist. Creating it..."));
+    fs.mkdirSync(workersDir, { recursive: true });
+  }
+  
+  // Check if the workers directory is empty
+  const files = await readdir(workersDir);
+  const nonHiddenFiles = files.filter(file => !file.startsWith('.'));
+  
+  if (nonHiddenFiles.length > 0) {
+    console.log(yellow("Workers directory is not empty. Existing workers:"));
+    nonHiddenFiles.forEach(file => console.log(`- ${file}`));
+    
+    const proceed = await rl.question(blue("Do you want to proceed with cloning additional workers? (y/N): "));
+    if (proceed.toLowerCase() !== "y") {
+      console.log(dim("Aborted worker clone operation."));
+      return;
+    }
+  }
+  
+  // Define available worker repositories
+  const availableWorkers = [
+    { 
+      name: "d1-worker",
+      repo: "https://github.com/hoox-worker/d1-worker.git",
+      description: "Worker for D1 database operations"
+    },
+    { 
+      name: "telegram-worker",
+      repo: "https://github.com/hoox-worker/telegram-worker.git",
+      description: "Worker for Telegram bot integration"
+    },
+    { 
+      name: "trade-worker",
+      repo: "https://github.com/hoox-worker/trade-worker.git",
+      description: "Worker for trading operations"
+    },
+    { 
+      name: "web3-wallet-worker",
+      repo: "https://github.com/hoox-worker/web3-wallet-worker.git",
+      description: "Worker for web3 wallet integration"
+    },
+    { 
+      name: "webhook-receiver",
+      repo: "https://github.com/hoox-worker/webhook-receiver.git",
+      description: "Worker for receiving webhook calls"
+    },
+    { 
+      name: "home-assistant-worker",
+      repo: "https://github.com/hoox-worker/home-assistant-worker.git",
+      description: "Worker for Home Assistant integration"
+    },
+  ];
+  
+  console.log(blue("\nAvailable worker repositories to clone:"));
+  availableWorkers.forEach((worker, index) => {
+    console.log(`${index + 1}. ${yellow(worker.name)} - ${worker.description}`);
+  });
+  console.log(`${availableWorkers.length + 1}. ${yellow("All workers")} - Clone all available workers`);
+  
+  const selection = await rl.question(blue("Enter the numbers of workers to clone (comma-separated) or 'all': "));
+  
+  let selectedWorkers: typeof availableWorkers = [];
+  
+  if (selection.toLowerCase() === "all") {
+    selectedWorkers = [...availableWorkers];
+  } else {
+    const selectedIndices = selection.split(",")
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .map(s => parseInt(s, 10) - 1);
+    
+    if (selectedIndices.includes(availableWorkers.length)) {
+      // Selected "All workers" option
+      selectedWorkers = [...availableWorkers];
+    } else {
+      // Filter valid indices and map to worker objects
+      selectedWorkers = selectedIndices
+        .filter(i => i >= 0 && i < availableWorkers.length)
+        .map(i => availableWorkers[i])
+        .filter((worker): worker is typeof availableWorkers[0] => worker !== undefined);
+    }
+  }
+  
+  if (selectedWorkers.length === 0) {
+    console.log(yellow("No valid workers selected. Aborting."));
+    return;
+  }
+  
+  console.log(blue(`\nCloning ${selectedWorkers.length} worker repositories...`));
+  const execP = promisify(exec);
+  
+  for (const worker of selectedWorkers) {
+    const targetDir = path.join(workersDir, worker.name);
+    
+    // Skip if directory already exists
+    if (fs.existsSync(targetDir)) {
+      console.log(yellow(`Worker directory ${worker.name} already exists. Skipping.`));
+      continue;
+    }
+    
+    try {
+      if (direct) {
+        // Clone directly
+        console.log(dim(`Cloning ${worker.name} directly...`));
+        await execP(`git clone ${worker.repo} ${targetDir}`);
+        print_success(`Successfully cloned ${worker.name}`);
+      } else {
+        // Clone as submodule
+        console.log(dim(`Adding ${worker.name} as git submodule...`));
+        await execP(`git submodule add ${worker.repo} ${targetDir}`);
+        print_success(`Successfully cloned ${worker.name}`);
+      }
+    } catch (err) {
+      const error = err as Error;
+      print_error(`Failed to clone ${worker.name}: ${error.message}`);
+    }
+  }
+  
+  if (!direct) {
+    try {
+      // Initialize and update submodules
+      console.log(dim("Initializing and updating git submodules..."));
+      await execP("git submodule update --init --recursive");
+      print_success("Git submodules initialized and updated successfully");
+    } catch (err) {
+      const error = err as Error;
+      print_error(`Failed to update submodules: ${error.message}`);
+    }
+  }
+  
+  console.log(green("\nWorker clone operations completed."));
+  console.log(blue("Next steps:"));
+  console.log("1. Run 'bun run manage.ts init' to complete setup");
+  console.log("2. Configure settings in config.toml or config.jsonc");
+  console.log("3. Run 'bun run manage.ts workers setup' to configure workers");
 }
 
 main().catch((error) => {
