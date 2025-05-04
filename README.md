@@ -427,3 +427,81 @@ There are some known TypeScript issues that we're working to address:
 4. Import paths with .ts extensions
 
 These issues will be fixed gradually as the codebase evolves.
+
+## Dynamic Routing System
+
+The `webhook-receiver` worker includes a dynamic routing system that allows for configurable API endpoints without code changes. This system enables flexible routing of incoming requests to various backend services.
+
+### Key Components
+
+1. **Route Configuration**: Routes are stored in KV and can be managed via an admin API or UI interface. Each route specifies:
+   - Target worker service
+   - Path within the worker
+   - Authentication requirements
+   - Allowed HTTP methods
+   - Optional transforms for requests/responses
+   - Documentation metadata
+
+2. **Admin Interface**: An admin UI is available at `/admin/ui` for managing routes through a web interface.
+
+3. **API Documentation**: Automatically generated documentation is available at:
+   - `/docs/api` - HTML documentation
+   - `/docs/api/openapi` - OpenAPI specification
+
+### Example Configuration
+
+```json
+{
+  "routes": {
+    "/api/trade": {
+      "worker": "TRADE_SERVICE",
+      "path": "/webhook",
+      "requiresAuth": true,
+      "methods": ["POST"],
+      "description": "Process trading signals",
+      "tags": ["trade"]
+    },
+    "/api/notify": {
+      "worker": "TELEGRAM_SERVICE",
+      "path": "/process",
+      "requiresAuth": true,
+      "methods": ["POST"],
+      "description": "Send notifications"
+    },
+    "/api/ha/:action": {
+      "worker": "HOME_ASSISTANT_SERVICE",
+      "path": "/process",
+      "requiresAuth": true,
+      "methods": ["POST"],
+      "description": "Control home automation"
+    }
+  }
+}
+```
+
+### Testing Dynamic Routing
+
+The dynamic routing system includes comprehensive tests that can be run using:
+
+```bash
+# Run all dynamic routing tests
+./workers/webhook-receiver/scripts/run-tests.sh
+
+# Run all webhook-receiver tests
+./workers/webhook-receiver/scripts/run-tests.sh --all
+
+# Run a specific test file
+./workers/webhook-receiver/scripts/run-tests.sh test/dynamic-routing.test.ts
+```
+
+These tests cover:
+- Route management and configuration
+- Dynamic request routing with path parameters
+- Authentication and validation
+- Admin UI functionality
+- API documentation generation
+- Integration tests for the entire request flow
+
+### Enabling Dynamic Routing
+
+Dynamic routing is enabled by default. If needed, you can toggle it using the KV flag `routing:dynamic:enabled` (set to `true` or `false`).
