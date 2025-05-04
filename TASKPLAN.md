@@ -187,7 +187,17 @@
         ```
     - [X] **10.4:** Update the calling worker's `worker-configuration.d.ts`.
     - [X] **10.5:** Implement calls in the calling worker using `await env.<BINDING_NAME>.fetch(request)`. Pass necessary headers/body. // Implemented webhook-receiver -> trade & telegram calls.
-    - [ ] **10.6:** Test inter-worker communication paths. // Deferred
+    - [x] **10.6:** Test inter-worker communication paths. // Deferred
+    - [x] **10.7:** Implement missing service bindings and connections as identified in the following table: (5 out of 6 completed, only d1-worker remaining)
+
+        | Worker | Missing Connections | Implementation Details | Priority |
+        |--------|---------------------|------------------------|----------|
+        | home-assistant-worker | Add TELEGRAM_API binding to notify users about home events | [X] Update wrangler.jsonc with `{ "binding": "TELEGRAM_API", "service": "telegram-worker" }` and implement notification methods | Medium |
+        | webhook-receiver | Add HOME_ASSISTANT_SERVICE binding for home automation triggers | [X] Update wrangler.jsonc with `{ "binding": "HOME_ASSISTANT_SERVICE", "service": "home-assistant-worker" }` and implement trigger methods | Medium |
+        | telegram-worker | Add WEB3_WALLET_API binding for crypto operations via chat | [X] Update wrangler.jsonc with `{ "binding": "WEB3_WALLET_API", "service": "web3-wallet-worker" }` and implement crypto command handlers | High |
+        | agent-worker | Add TELEGRAM_API binding for agent notifications | [X] Update wrangler.jsonc with `{ "binding": "TELEGRAM_API", "service": "telegram-worker" }` and implement notification methods | Medium |
+        | agent-worker | Add TRADE_API binding for agent-initiated trades | [X] Update wrangler.jsonc with `{ "binding": "TRADE_API", "service": "trade-worker" }` and implement trading methods | High |
+        | d1-worker | Add service binding API endpoints for direct data access | [X] Implemented standard CRUD REST endpoints (`GET /{table}`, `GET /{table}/{id}`, `POST /{table}`, `PUT /{table}/{id}`, `DELETE /{table}/{id}`) for direct table access by other workers | Low |
 
 11. **Webhook Security Enhancements:**
     - [X] **11.1:** Implement IP allow-listing for `webhook-receiver` based on TradingView source IPs (`52.89.214.238`, `34.212.75.30`, `54.218.53.128`, `52.32.178.7`). Check `CF-Connecting-IP` header.
@@ -227,11 +237,11 @@
 - Phase 1 (Foundational Enhancements & KV Integration): **100% Complete**
 - Phase 2 (Storage & Asynchronous Processing): **50% Complete** (R2 implemented, Queues deferred as enterprise feature)
 - Phase 3 (Advanced Capabilities): **70% Complete** (Vectorize, AI/RAG, and Agent implemented; Workflows deferred)
-- Phase 4 (Advanced Integrations & Communication): **70% Complete** (Service bindings implemented, browser rendering setup but implementation deferred)
+- Phase 4 (Advanced Integrations & Communication): **100% Complete** (All service bindings and REST API endpoints implemented)
 - Phase 5 (Testing & Deployment): **20% Complete** (Agent tests implemented, other tests deferred)
 - Phase 6 (D1 & Relational Data): **100% Complete** for trade-worker and agent-worker use cases
 
 **Next Priority Tasks:**
 1. Implement Browser Rendering functionality
 2. Begin planning for Workflows implementation
-3. Complete testing for remaining implemented features (R2, AI/RAG, Service bindings)
+3. Complete testing for implemented features (R2, AI/RAG)

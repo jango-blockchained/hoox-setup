@@ -254,6 +254,89 @@ bun run scripts/manage.ts workers test --coverage
     bun run scripts/manage.ts workers deploy
     ```
 
+## Worker Intercommunication
+
+This project uses Cloudflare Workers service bindings for intercommunication between workers. The following diagram and table show how the workers are connected.
+
+### Intercommunication Diagram
+
+```mermaid
+graph TB
+    webhook[webhook-receiver]
+    trade[trade-worker]
+    telegram[telegram-worker]
+    web3[web3-wallet-worker]
+    d1[d1-worker]
+    ha[home-assistant-worker]
+    agent[agent-worker]
+    
+    webhook -- TRADE_SERVICE --> trade
+    webhook -- TELEGRAM_SERVICE --> telegram
+    
+    trade -- D1_SERVICE --> d1
+    trade -- TELEGRAM_API --> telegram
+    trade -- WEB3_WALLET_WORKER --> web3
+    
+    telegram -- TRADE_API --> trade
+    telegram -- WEBHOOK_RECEIVER_API --> webhook
+    
+    web3 -- TELEGRAM_API --> telegram
+    
+    subgraph "Shared Resources"
+        CONFIG_KV[(CONFIG_KV)]
+        SESSIONS_KV[(SESSIONS_KV)]
+        VECTORIZE_INDEX[(Vectorize)]
+        REPORTS_BUCKET[(R2 Bucket)]
+        UPLOADS_BUCKET[(R2 Bucket)]
+        AI_BINDING[AI Binding]
+        DB[D1 Database]
+    end
+    
+    webhook -.- CONFIG_KV
+    webhook -.- SESSIONS_KV
+    webhook -.- VECTORIZE_INDEX
+    webhook -.- AI_BINDING
+    
+    trade -.- CONFIG_KV
+    trade -.- VECTORIZE_INDEX
+    trade -.- REPORTS_BUCKET
+    trade -.- AI_BINDING
+    trade -.- DB
+    
+    telegram -.- CONFIG_KV
+    telegram -.- UPLOADS_BUCKET
+    telegram -.- VECTORIZE_INDEX
+    telegram -.- AI_BINDING
+    
+    agent -.- CONFIG_KV
+    agent -.- AI_BINDING
+    agent -.- DB
+```
+
+### Worker Communication Table
+
+| Worker | Outbound Connections | Inbound Connections | Shared Resources |
+|--------|----------------------|---------------------|------------------|
+| webhook-receiver | TRADE_SERVICE → trade-worker<br>TELEGRAM_SERVICE → telegram-worker | telegram-worker | CONFIG_KV<br>SESSIONS_KV<br>VECTORIZE_INDEX<br>AI |
+| trade-worker | D1_SERVICE → d1-worker<br>TELEGRAM_API → telegram-worker<br>WEB3_WALLET_WORKER → web3-wallet-worker | webhook-receiver<br>telegram-worker | CONFIG_KV<br>REPORTS_BUCKET<br>VECTORIZE_INDEX<br>AI<br>D1 Database |
+| telegram-worker | TRADE_API → trade-worker<br>WEBHOOK_RECEIVER_API → webhook-receiver | trade-worker<br>web3-wallet-worker | CONFIG_KV<br>UPLOADS_BUCKET<br>VECTORIZE_INDEX<br>AI |
+| web3-wallet-worker | TELEGRAM_API → telegram-worker | trade-worker | Browser |
+| d1-worker | | trade-worker | D1 Database |
+| home-assistant-worker | | | CONFIG_KV |
+| agent-worker | | | CONFIG_KV<br>AI<br>D1 Database |
+
+### Payload Types and Communication Patterns
+
+Workers communicate using standardized payload interfaces defined in `src/utils/worker-definitions.ts`, including:
+
+- **TradePayload**: Used for CEX trading operations
+- **DexTradePayload**: Used for DEX operations like swaps and liquidity management
+- **Web3TransactionPayload**: Used for blockchain transactions
+- **WebhookPayload**: Common structure for incoming webhook data
+- **StandardResponse**: Consistent response format across workers
+
+These shared type definitions ensure type safety and consistent data structures when passing information between workers through service bindings.
+
 ## Contributing
 
 Contributions are welcome! Please follow standard fork/branch/PR procedures.
