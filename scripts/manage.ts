@@ -392,32 +392,32 @@ export async function cloneWorkerRepositories(direct: boolean = false): Promise<
   const availableWorkers = [
     { 
       name: "d1-worker",
-      repo: "https://github.com/hoox-worker/d1-worker.git",
+      repo: "https://github.com/jango-blockchained/d1-worker.git",
       description: "Worker for D1 database operations"
     },
     { 
       name: "telegram-worker",
-      repo: "https://github.com/hoox-worker/telegram-worker.git",
+      repo: "https://github.com/jango-blockchained/telegram-worker.git",
       description: "Worker for Telegram bot integration"
     },
     { 
       name: "trade-worker",
-      repo: "https://github.com/hoox-worker/trade-worker.git",
+      repo: "https://github.com/jango-blockchained/trade-worker.git",
       description: "Worker for trading operations"
     },
     { 
       name: "web3-wallet-worker",
-      repo: "https://github.com/hoox-worker/web3-wallet-worker.git",
+      repo: "https://github.com/jango-blockchained/web3-wallet-worker.git",
       description: "Worker for web3 wallet integration"
     },
     { 
       name: "webhook-receiver",
-      repo: "https://github.com/hoox-worker/webhook-receiver.git",
+      repo: "https://github.com/jango-blockchained/webhook-receiver.git",
       description: "Worker for receiving webhook calls"
     },
     { 
       name: "home-assistant-worker",
-      repo: "https://github.com/hoox-worker/home-assistant-worker.git",
+      repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
       description: "Worker for Home Assistant integration"
     },
   ];

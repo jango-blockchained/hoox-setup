@@ -233,6 +233,132 @@
     - [X] **13.8:** Test D1 interactions (insertion, querying).
         *   [X] Added unit tests for `/api/signals` endpoint in `trade-worker` (using vitest mocks). // Note: Legacy tests skipped/deleted due to runner issues.
 
+**Phase 7: API Architecture Improvements**
+
+14. **Dynamic Routing System:**
+    - [ ] **14.1:** Create a configuration schema for route mapping in `webhook-receiver`:
+        ```typescript
+        interface RouteConfig {
+          worker: string;      // Target worker service binding name
+          path: string;        // Target endpoint path within worker
+          requiresAuth: boolean; // Whether API key auth is required
+          methods: string[];   // Allowed HTTP methods
+          transforms?: {       // Optional payload transformations
+            request?: string;  // Transform function name for request
+            response?: string; // Transform function name for response
+          };
+        }
+        ```
+    - [ ] **14.2:** Implement KV storage for route configuration by storing route maps in `CONFIG_KV` with keys like `routes:v1:trades`.
+    - [ ] **14.3:** Create a management API in `webhook-receiver` for updating route configurations (admin access only):
+        * [ ] `POST /admin/routes` - Add/update route configuration
+        * [ ] `GET /admin/routes` - List all route configurations
+        * [ ] `DELETE /admin/routes/:path` - Remove a route configuration
+    - [ ] **14.4:** Implement the dynamic router in `webhook-receiver` that:
+        * [ ] Retrieves route configuration from KV
+        * [ ] Validates request against configuration
+        * [ ] Performs any required transformations
+        * [ ] Forwards request to appropriate worker via service binding
+        * [ ] Transforms response if needed
+    - [ ] **14.5:** Add caching for route configurations to improve performance.
+    - [ ] **14.6:** Implement a fallback mechanism for missing routes.
+
+15. **API Versioning & Standardization:**
+    - [ ] **15.1:** Define API versioning convention (e.g., `/v1/trades`, `/v2/notifications`).
+    - [ ] **15.2:** Create standard response envelope format across all workers:
+        ```typescript
+        interface StandardResponse<T> {
+          success: boolean;
+          data?: T;
+          error?: {
+            code: string;
+            message: string;
+            details?: any;
+          };
+          meta?: {
+            requestId: string;
+            timestamp: string;
+            version: string;
+          };
+        }
+        ```
+    - [ ] **15.3:** Implement middleware in each worker for standardizing response format.
+    - [ ] **15.4:** Update error handling across all workers to use the standard format.
+    - [ ] **15.5:** Create centralized documentation for API versioning and response formats.
+
+16. **Middleware Framework:**
+    - [ ] **16.1:** Create a reusable middleware library in `src/utils/middleware.ts` with common functions:
+        * [ ] Authentication middleware (API key, JWT)
+        * [ ] Request validation middleware (schema validation)
+        * [ ] Logging middleware
+        * [ ] Error handling middleware
+        * [ ] Response transformation middleware
+        * [ ] Rate limiting middleware
+    - [ ] **16.2:** Refactor `webhook-receiver` to use the middleware pattern.
+    - [ ] **16.3:** Implement middleware composition to allow chaining multiple middleware functions.
+    - [ ] **16.4:** Create documentation for middleware usage.
+
+17. **Service Registry & Discovery:**
+    - [ ] **17.1:** Implement a service registry in KV store with service metadata:
+        ```typescript
+        interface ServiceRegistration {
+          name: string;          // Service name
+          version: string;       // Service version
+          capabilities: string[]; // Service capabilities/features
+          endpoints: {
+            path: string;        // Endpoint path
+            methods: string[];   // Supported HTTP methods
+            description: string; // Endpoint description
+          }[];
+          status: 'active' | 'deprecated' | 'maintenance';
+          lastUpdated: string;   // ISO timestamp
+        }
+        ```
+    - [ ] **17.2:** Modify each worker to register itself on startup (first request).
+    - [ ] **17.3:** Create a discovery API in `webhook-receiver`:
+        * [ ] `GET /api` - List all available services and their capabilities
+        * [ ] `GET /api/:service` - Get details about a specific service
+    - [ ] **17.4:** Implement health checks for registered services.
+    - [ ] **17.5:** Add automatic status update based on health checks.
+
+18. **Event-Based Architecture:**
+    - [ ] **18.1:** Adopt an event-driven approach for async operations using either:
+        * [ ] Cloudflare Queues (if available)
+        * [ ] Durable Objects as message brokers
+        * [ ] Workerd Streams for real-time updates
+    - [ ] **18.2:** Define standard event schema:
+        ```typescript
+        interface Event<T> {
+          id: string;           // Unique event ID
+          type: string;         // Event type (e.g., 'trade.executed')
+          source: string;       // Source service
+          timestamp: string;    // ISO timestamp
+          data: T;              // Event payload
+          correlationId?: string; // For tracing related events
+        }
+        ```
+    - [ ] **18.3:** Implement event publishers in source workers.
+    - [ ] **18.4:** Implement event subscribers in target workers.
+    - [ ] **18.5:** Add event logging and replay capabilities.
+
+19. **Analytics & Observability:**
+    - [ ] **19.1:** Implement structured logging across all workers:
+        * [ ] Request logging
+        * [ ] Error logging
+        * [ ] Performance metrics
+    - [ ] **19.2:** Add distributed tracing with correlation IDs.
+    - [ ] **19.3:** Create a centralized logging API endpoint.
+    - [ ] **19.4:** Implement usage analytics for API endpoints.
+    - [ ] **19.5:** Create a dashboard for monitoring API usage and performance.
+
+**Summary of Phase 7:**
+Phase 7 focuses on transforming the API architecture from a hardcoded approach to a dynamic, configuration-driven system. This includes implementing a dynamic routing system, standardizing APIs across workers, creating a reusable middleware framework, establishing a service registry, adopting an event-driven architecture, and enhancing observability. These improvements will make the system more maintainable, scalable, and easier to extend with new capabilities.
+
+**Next Steps After Phase 7:**
+1. Evaluate moving to a multi-zone deployment for geographic optimization
+2. Consider implementing a GraphQL API layer for more flexible data querying
+3. Develop a client SDK for simplified API consumption
+
 **Summary of Progress (As of June 2025):**
 - Phase 1 (Foundational Enhancements & KV Integration): **100% Complete**
 - Phase 2 (Storage & Asynchronous Processing): **50% Complete** (R2 implemented, Queues deferred as enterprise feature)
@@ -240,6 +366,7 @@
 - Phase 4 (Advanced Integrations & Communication): **100% Complete** (All service bindings and REST API endpoints implemented)
 - Phase 5 (Testing & Deployment): **40% Complete** (Agent tests and d1-worker REST API tests implemented, other tests deferred)
 - Phase 6 (D1 & Relational Data): **100% Complete** for trade-worker and agent-worker use cases
+- Phase 7 (API Architecture Improvements): **0% Complete** (No tasks started)
 
 **Next Priority Tasks:**
 1. Implement Browser Rendering functionality
