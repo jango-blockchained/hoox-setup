@@ -129,6 +129,7 @@ export interface CexTradePayload {
 
 // Common webhook payload structure
 export interface WebhookPayload {
+  apiKey?: string;
   exchange?: string;
   notify?: boolean;
   requestId?: string;
@@ -136,6 +137,22 @@ export interface WebhookPayload {
   tradeData?: CexTradePayload;
   dexData?: DexTradePayload;
   web3Data?: Web3TransactionPayload;
+  agent?: {
+    action: 'updateSettings';
+    settings: {
+      model?: string;
+      systemPrompt?: string;
+      temperature?: number;
+      maxMessages?: number;
+    };
+  };
+  // Generic worker action format for dynamic routing
+  worker?: {
+    name: string;       // Name of the worker (must match a service binding name)
+    action: string;     // Action to perform
+    path?: string;      // Optional path override (defaults to /{action})
+    payload: Record<string, any>; // Payload to send to the worker
+  }
 }
 
 // Generic worker response
