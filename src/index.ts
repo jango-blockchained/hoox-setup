@@ -11,7 +11,7 @@ export async function insertEmbeddings(
   env: Env
 ): Promise<void> {
   // Check for empty array first before validation
-  if (!vectors.length || !metadata.length) {
+  if (vectors.length === 0 || metadata.length === 0) {
     console.log("No data to insert into Vectorize.");
     return; // Return early without throwing if either array is empty
   }
