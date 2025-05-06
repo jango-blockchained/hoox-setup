@@ -17,6 +17,20 @@ This project contains a collection of Cloudflare Workers managed by a unified Ty
 - **Cloudflare Worker Subdomain:** Ensure you have configured your desired Workers subdomain (e.g., `your-subdomain.workers.dev`) in your Cloudflare account settings under Workers & Pages > Overview.
 - **Cloudflare Resources:** Depending on the workers you enable, you might need to pre-create D1 databases, R2 buckets, KV namespaces, or Vectorize indexes using Wrangler commands before running the setup/deploy steps.
 
+## Installation
+
+To install the project with all its submodules, clone the repository using:
+
+```bash
+# Clone the repository with submodules
+git clone --recurse-submodules https://github.com/yourusername/worker.git
+
+# Or if you've already cloned the repository without submodules:
+git submodule update --init --recursive
+```
+
+This ensures that all necessary submodules are properly initialized and updated.
+
 ## Project Structure
 
 ```
