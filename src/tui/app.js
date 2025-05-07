@@ -118,7 +118,8 @@ const _header = blessed.box({
   height: 3,
   tags: true,
   padding: { left: 1, right: 1 },
-  content: "{bold}Cryptolinx Worker Control System{/} \nMode: {yellow-fg}Local Development{/}",
+  content:
+    "{bold}Cryptolinx Worker Control System{/} \nMode: {yellow-fg}Local Development{/}",
   style: {
     fg: THEME.accent,
     bg: THEME.bg,

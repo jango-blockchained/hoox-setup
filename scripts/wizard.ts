@@ -1,52 +1,52 @@
 import fs from "fs";
 import path from "path";
 import ansis from "ansis"; // Import ansis directly
-import { z } from "zod"; // Import Zod
+// Import Zod
 
 // Import types and schemas
 import {
   type Config,
   type GlobalConfig,
-  type WorkerConfig,
+  // type WorkerConfig, // Removed
   type WizardState,
-  type CommandResult,
+  // type CommandResult, // Removed
   ConfigSchema, // Import Zod schema for Config
   WizardStateSchema, // Import Zod schema for WizardState
 } from "./types.js";
 
 // Import utils (assuming these will be converted to .ts)
 import {
-  checkCommandExists,
-  runCommandSync,
-  runCommandWithStdin,
-  getCloudflareToken,
-  promptForSecret,
+  // checkCommandExists, // Removed
+  // runCommandSync, // Removed
+  // runCommandWithStdin, // Removed
+  // getCloudflareToken, // Removed
+  // promptForSecret, // Removed
   rl,
-  red,
-  yellow,
-  blue,
-  green,
+  // red, // Removed
+  // yellow, // Removed
+  // blue, // Removed
+  // green, // Removed
   dim,
-  cyan,
+  // cyan, // Removed
   print_success,
   print_error,
   print_warning,
 } from "./utils.js";
 import {
-  getKeyFilePath,
-  readKeys,
-  setKey,
-  generateKey,
-  listKeys,
-  LOCAL_KEYS_FILE,
+  // getKeyFilePath, // Removed
+  // readKeys, // Removed
+  // setKey, // Removed
+  // generateKey, // Removed
+  // listKeys, // Removed
+  // LOCAL_KEYS_FILE, // Removed
 } from "./keyUtils.js";
-import { parseConfig, saveConfig, loadConfig } from "./configUtils.js";
+import { saveConfig, loadConfig } from "./configUtils.js"; // parseConfig removed
 import {
   step_checkDependencies,
   step_configureGlobals,
   step_selectWorkers,
   step_setupD1,
-  step_saveConfig,
+  // step_saveConfig, // Removed
   step_configureSecrets,
   step_initialDeploy,
   printWizardStep,
@@ -68,16 +68,19 @@ export function loadWizardState(): WizardState | null {
       const result = WizardStateSchema.safeParse(jsonData);
 
       if (!result.success) {
-        print_warning(`State file ${STATE_FILE} has invalid structure. Starting fresh.`);
+        print_warning(
+          `State file ${STATE_FILE} has invalid structure. Starting fresh.`
+        );
         console.error(dim("Validation Errors:"), result.error.flatten());
         cleanupWizardState(); // Clean up invalid state file
         return null;
       }
       return result.data;
-
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      print_error(`Error reading or parsing state file ${STATE_FILE}: ${errorMsg}`);
+      print_error(
+        `Error reading or parsing state file ${STATE_FILE}: ${errorMsg}`
+      );
       print_warning("Assuming clean start.");
       cleanupWizardState(); // Clean up potentially corrupted file
       return null;
@@ -88,16 +91,16 @@ export function loadWizardState(): WizardState | null {
 }
 
 export function saveWizardState(state: WizardState): void {
-    // Optional: Validate state before saving?
-    // const validation = WizardStateSchema.safeParse(state);
-    // if (!validation.success) {
-    //     print_error("Attempted to save invalid wizard state:");
-    //     console.error(validation.error.flatten());
-    //     // Decide whether to throw or just warn
-    //     // throw new Error("Internal error: Invalid wizard state cannot be saved.");
-    //     print_warning("State was not saved due to validation errors.");
-    //     return;
-    // }
+  // Optional: Validate state before saving?
+  // const validation = WizardStateSchema.safeParse(state);
+  // if (!validation.success) {
+  //     print_error("Attempted to save invalid wizard state:");
+  //     console.error(validation.error.flatten());
+  //     // Decide whether to throw or just warn
+  //     // throw new Error("Internal error: Invalid wizard state cannot be saved.");
+  //     print_warning("State was not saved due to validation errors.");
+  //     return;
+  // }
   try {
     // Save the validated data if validation was performed
     // fs.writeFileSync(STATE_FILE, JSON.stringify(validation.data, null, 2));
@@ -130,94 +133,145 @@ export async function runWizard(): Promise<void> {
   // First, check if workers directory exists and has any workers
   const workersDir = path.resolve(process.cwd(), "workers");
   let hasWorkers = false;
-  
+
   try {
     // Check if workers directory exists
     if (fs.existsSync(workersDir)) {
       // Check if it has any non-hidden directories
       const files = fs.readdirSync(workersDir);
-      const nonHiddenDirectories = files.filter(file => 
-        !file.startsWith('.') && 
-        fs.statSync(path.join(workersDir, file)).isDirectory()
+      const nonHiddenDirectories = files.filter(
+        (file) =>
+          !file.startsWith(".") &&
+          fs.statSync(path.join(workersDir, file)).isDirectory()
       );
-      
+
       hasWorkers = nonHiddenDirectories.length > 0;
-      
+
       if (!hasWorkers) {
-        console.log(ansis.yellow("\nWorkers directory exists but contains no worker folders."));
+        console.log(
+          ansis.yellow(
+            "\nWorkers directory exists but contains no worker folders."
+          )
+        );
       }
     } else {
       console.log(ansis.yellow("\nWorkers directory does not exist."));
     }
-    
+
     if (!hasWorkers) {
-      console.log(ansis.blue("You need to clone worker repositories before proceeding with setup."));
-      
-      const cloneNow = await rl.question(ansis.blue("Do you want to clone worker repositories now? (Y/n): "));
-      
+      console.log(
+        ansis.blue(
+          "You need to clone worker repositories before proceeding with setup."
+        )
+      );
+
+      const cloneNow = await rl.question(
+        ansis.blue("Do you want to clone worker repositories now? (Y/n): ")
+      );
+
       if (cloneNow.toLowerCase() !== "n") {
-        console.log(ansis.blue("\nExiting wizard to run worker clone command..."));
-        console.log(ansis.dim("Run 'bun run manage.ts init' again after cloning worker repositories."));
-        
+        console.log(
+          ansis.blue("\nExiting wizard to run worker clone command...")
+        );
+        console.log(
+          ansis.dim(
+            "Run 'bun run manage.ts init' again after cloning worker repositories."
+          )
+        );
+
         // Call the imported function directly
         await cloneWorkerRepositories(false);
-        
+
         // Ask if they want to continue with the wizard
-        const continueSetup = await rl.question(ansis.blue("\nContinue with the setup wizard now? (Y/n): "));
+        const continueSetup = await rl.question(
+          ansis.blue("\nContinue with the setup wizard now? (Y/n): ")
+        );
         if (continueSetup.toLowerCase() === "n") {
-          console.log(ansis.dim("Run 'bun run manage.ts init' when you're ready to continue setup."));
+          console.log(
+            ansis.dim(
+              "Run 'bun run manage.ts init' when you're ready to continue setup."
+            )
+          );
           return;
         }
-        
+
         // Re-check if we have workers now
         if (fs.existsSync(workersDir)) {
           const updatedFiles = fs.readdirSync(workersDir);
-          const updatedNonHiddenDirectories = updatedFiles.filter(file => 
-            !file.startsWith('.') && 
-            fs.statSync(path.join(workersDir, file)).isDirectory()
+          const updatedNonHiddenDirectories = updatedFiles.filter(
+            (file) =>
+              !file.startsWith(".") &&
+              fs.statSync(path.join(workersDir, file)).isDirectory()
           );
-          
+
           hasWorkers = updatedNonHiddenDirectories.length > 0;
-          
+
           if (!hasWorkers) {
-            console.log(ansis.red("\nNo worker directories found after cloning. Please check for errors and try again."));
+            console.log(
+              ansis.red(
+                "\nNo worker directories found after cloning. Please check for errors and try again."
+              )
+            );
             return;
           }
         }
       } else {
-        console.log(ansis.yellow("\nYou chose not to clone worker repositories."));
-        console.log(ansis.dim("You can clone them later with 'bun run manage.ts workers clone'"));
-        console.log(ansis.dim("Then restart the wizard with 'bun run manage.ts init'"));
+        console.log(
+          ansis.yellow("\nYou chose not to clone worker repositories.")
+        );
+        console.log(
+          ansis.dim(
+            "You can clone them later with 'bun run manage.ts workers clone'"
+          )
+        );
+        console.log(
+          ansis.dim("Then restart the wizard with 'bun run manage.ts init'")
+        );
         return;
       }
     }
-  } catch (error) {
-    console.log(ansis.red(`Error checking workers directory: ${error instanceof Error ? error.message : String(error)}`));
+  } catch (error: unknown) {
+    console.log(
+      ansis.red(
+        `Error checking workers directory: ${error instanceof Error ? error.message : String(error)}`
+      )
+    );
   }
 
   let state: WizardState | null = loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;
-  
+
   // Check which config format to use
-  let configFormat: 'jsonc' | 'toml' = 'toml'; // Default to TOML
+  let configFormat: "jsonc" | "toml" = "toml"; // Default to TOML
   const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
   const configTomlPath = path.resolve(process.cwd(), "config.toml");
-  
+
   // If config.jsonc exists, use JSONC format, otherwise use TOML
   if (fs.existsSync(configJsoncPath)) {
-    configFormat = 'jsonc';
+    configFormat = "jsonc";
     console.log(ansis.blue("Using JSONC configuration format (config.jsonc)"));
   } else if (fs.existsSync(configTomlPath)) {
-    configFormat = 'toml';
+    configFormat = "toml";
     console.log(ansis.blue("Using TOML configuration format (config.toml)"));
   } else {
     // Neither exists, check for example files to determine format
-    const exampleJsoncPath = path.resolve(process.cwd(), "config.jsonc.example");
+    const exampleJsoncPath = path.resolve(
+      process.cwd(),
+      "config.jsonc.example"
+    );
     if (fs.existsSync(exampleJsoncPath)) {
-      configFormat = 'jsonc';
-      console.log(ansis.blue("No config file found. Will create config.jsonc based on example"));
+      configFormat = "jsonc";
+      console.log(
+        ansis.blue(
+          "No config file found. Will create config.jsonc based on example"
+        )
+      );
     } else {
-      console.log(ansis.blue("No config file found. Will create config.toml based on example"));
+      console.log(
+        ansis.blue(
+          "No config file found. Will create config.toml based on example"
+        )
+      );
     }
   }
 
@@ -226,22 +280,29 @@ export async function runWizard(): Promise<void> {
     // Attempt to load base config from config.toml or example
     let initialConfig: Partial<Config> = {};
     try {
-        initialConfig = await loadConfig(); // Load config might return defaults or throw
-        print_success(`Loaded initial configuration for wizard state from ${configFormat === 'jsonc' ? 'config.jsonc' : 'config.toml'}.`);
+      initialConfig = await loadConfig(); // Load config might return defaults or throw
+      print_success(
+        `Loaded initial configuration for wizard state from ${configFormat === "jsonc" ? "config.jsonc" : "config.toml"}.`
+      );
     } catch (configError: unknown) {
-        const errorMsg = configError instanceof Error ? configError.message : String(configError);
-        print_error(`Failed to load initial config: ${errorMsg}`);
-        print_warning("Proceeding with minimal default state. Configuration might be incomplete.");
-        // Initialize with minimal structure if load fails
-         initialConfig = {
-            global: {
-                cloudflare_api_token: "",
-                cloudflare_account_id: "",
-                cloudflare_secret_store_id: "",
-                subdomain_prefix: "",
-             } as GlobalConfig, // Cast needed for partial init
-            workers: {},
-        }; 
+      const errorMsg =
+        configError instanceof Error
+          ? configError.message
+          : String(configError);
+      print_error(`Failed to load initial config: ${errorMsg}`);
+      print_warning(
+        "Proceeding with minimal default state. Configuration might be incomplete."
+      );
+      // Initialize with minimal structure if load fails
+      initialConfig = {
+        global: {
+          cloudflare_api_token: "",
+          cloudflare_account_id: "",
+          cloudflare_secret_store_id: "",
+          subdomain_prefix: "",
+        } as GlobalConfig, // Cast needed for partial init
+        workers: {},
+      };
     }
 
     state = {
@@ -252,7 +313,6 @@ export async function runWizard(): Promise<void> {
     };
     saveWizardState(state); // Save initial state
     console.log(ansis.yellow("Starting new setup process."));
-
   } else {
     console.log(
       ansis.green(
@@ -265,7 +325,7 @@ export async function runWizard(): Promise<void> {
       // Config is already loaded, no need to reload unless desired
       saveWizardState(state);
     }
-    
+
     // Store the config format if not already set
     if (!state.configFormat) {
       state.configFormat = configFormat;
@@ -273,7 +333,11 @@ export async function runWizard(): Promise<void> {
     } else {
       // Use the format stored in state
       configFormat = state.configFormat;
-      console.log(ansis.blue(`Using ${configFormat.toUpperCase()} configuration format from previous state`));
+      console.log(
+        ansis.blue(
+          `Using ${configFormat.toUpperCase()} configuration format from previous state`
+        )
+      );
     }
   }
 
@@ -292,10 +356,13 @@ export async function runWizard(): Promise<void> {
     // Step 2: Configure Globals
     if (currentState.currentStep <= 2) {
       printWizardStep(currentState, "Configuring Global Settings");
-       // Ensure config and global exist before passing
-       if (!currentState.config) currentState.config = {};
-       if (!currentState.config.global) currentState.config.global = {} as GlobalConfig;
-      const updatedGlobalConfig = await step_configureGlobals(currentState.config.global);
+      // Ensure config and global exist before passing
+      if (!currentState.config) currentState.config = {};
+      if (!currentState.config.global)
+        currentState.config.global = {} as GlobalConfig;
+      const updatedGlobalConfig = await step_configureGlobals(
+        currentState.config.global
+      );
       currentState.config.global = updatedGlobalConfig; // No cast needed if step returns GlobalConfig
       currentState.currentStep++;
       saveWizardState(currentState);
@@ -320,14 +387,15 @@ export async function runWizard(): Promise<void> {
     // Step 5: Save Configuration File
     if (currentState.currentStep <= 5) {
       printWizardStep(currentState, "Saving Configuration");
-      if (!currentState.config) throw new Error("Cannot save undefined config.");
-       // Validate final config before saving (optional but recommended)
-       const finalConfigCheck = ConfigSchema.safeParse(currentState.config);
-        if (!finalConfigCheck.success) {
-            print_error("Final configuration validation failed before saving:");
-            console.error(dim(finalConfigCheck.error.flatten()));
-            throw new Error("Could not save invalid final configuration.");
-        }
+      if (!currentState.config)
+        throw new Error("Cannot save undefined config.");
+      // Validate final config before saving (optional but recommended)
+      const finalConfigCheck = ConfigSchema.safeParse(currentState.config);
+      if (!finalConfigCheck.success) {
+        print_error("Final configuration validation failed before saving:");
+        console.error(dim(finalConfigCheck.error.flatten()));
+        throw new Error("Could not save invalid final configuration.");
+      }
       await saveConfig(finalConfigCheck.data as Config); // Save validated data
       currentState.currentStep++;
       saveWizardState(currentState);
@@ -360,7 +428,7 @@ export async function runWizard(): Promise<void> {
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     print_error(
-      `\n❌ Wizard Error on step ${currentState?.currentStep ?? 'unknown'}: ${errorMsg}`
+      `\n❌ Wizard Error on step ${currentState?.currentStep ?? "unknown"}: ${errorMsg}`
     );
     console.error(error); // Log full error
     print_warning(

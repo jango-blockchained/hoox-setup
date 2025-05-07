@@ -82,14 +82,14 @@ export function runCommandSync(
       (execError.message.includes(command) ? "" : execError.message);
     print_error(`Command failed: ${command}`);
     if (stderr) {
-        console.error(dim(`Stderr: ${stderr}`));
+      console.error(dim(`Stderr: ${stderr}`));
     } else {
-        console.error(dim(`Stderr was empty.`));
-        if (stdout) {
-            console.error(dim(`Stdout: ${stdout}`)); // Log stdout if stderr is empty
-        }
-        // Log the main error message regardless, as stderr was empty
-        console.error(dim(`Error Message: ${execError.message}`)); 
+      console.error(dim(`Stderr was empty.`));
+      if (stdout) {
+        console.error(dim(`Stdout: ${stdout}`)); // Log stdout if stderr is empty
+      }
+      // Log the main error message regardless, as stderr was empty
+      console.error(dim(`Error Message: ${execError.message}`));
     }
     return {
       success: false,
@@ -101,6 +101,7 @@ export function runCommandSync(
 }
 
 // Promisified spawn for async execution with streaming potential
+/*
 async function runCommandAsync(
   command: string,
   args: string[],
@@ -152,6 +153,7 @@ async function runCommandAsync(
     });
   });
 }
+*/
 
 /**
  * Runs a command that might require stdin input.

@@ -4,8 +4,6 @@ import { parse as parseToml, stringify as stringifyToml } from "@iarna/toml";
 import type {
   Config,
   WorkerConfig,
-  CommandResult,
-  GlobalConfig,
 } from "./types.js";
 import {
   red,
@@ -17,14 +15,10 @@ import {
   print_success,
   print_error,
   print_warning,
-  runCommandSync,
-  runCommandWithStdin,
   runInteractiveCommand,
   getCloudflareToken,
-  promptForSecret, // Added promptForSecret
 } from "./utils.js";
 import { saveConfig } from "./configUtils.js"; // Needed for deployWorkers
-import { getKey } from "./keyUtils.js"; // Needed for updateCloudflareSecret
 
 // --- Worker Setup Logic --- (Moved from manage.ts)
 // TODO: Refactor this heavily for Secret Store binding
@@ -66,32 +60,35 @@ export async function setupWorkers(config: Config): Promise<void> {
     // Check for wrangler.jsonc first, then wrangler.toml if jsonc doesn't exist
     const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    
+
     // Determine which configuration file to use
-    let useJsonc = fs.existsSync(wranglerJsoncPath);
-    let useToml = !useJsonc && fs.existsSync(wranglerTomlPath);
-    
+    const useJsonc = fs.existsSync(wranglerJsoncPath);
+    const useToml = !useJsonc && fs.existsSync(wranglerTomlPath);
+
     if (!useJsonc && !useToml) {
       print_warning(
         `Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`
       );
       continue;
     }
-    
+
     // Process wrangler.jsonc
     if (useJsonc) {
       try {
         console.log(dim(`Using wrangler.jsonc for ${workerName}`));
-        const wranglerJsoncContent = fs.readFileSync(wranglerJsoncPath, "utf-8");
-        let parsedJsonc: any;
-        
+        const wranglerJsoncContent = fs.readFileSync(
+          wranglerJsoncPath,
+          "utf-8"
+        );
+        let parsedJsonc: Record<string, unknown>;
+
         try {
           // Parse JSONC (JSON with comments)
           // We need to handle comments, so we use a simple approach to strip comments before parsing
           const jsonContent = wranglerJsoncContent
-            .replace(/\/\/.*$/gm, '') // Remove single-line comments
-            .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
-          
+            .replace(/\/\/.*$/gm, "") // Remove single-line comments
+            .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
+
           parsedJsonc = JSON.parse(jsonContent);
         } catch (parseError: unknown) {
           print_error(
@@ -102,16 +99,16 @@ export async function setupWorkers(config: Config): Promise<void> {
           );
           continue;
         }
-        
+
         // --- Modify the parsed JSONC object ---
         let jsoncUpdated = false;
-        
+
         if (parsedJsonc.name !== workerName) {
           parsedJsonc.name = workerName;
           jsoncUpdated = true;
           console.log(dim(`Set name = "${workerName}"`));
         }
-        
+
         // Ensure compatibility_date exists
         if (!parsedJsonc.compatibility_date) {
           const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
@@ -121,12 +118,12 @@ export async function setupWorkers(config: Config): Promise<void> {
             dim(`Added default compatibility_date: ${defaultCompatDate}`)
           );
         }
-        
+
         // Add/Update vars
         const currentVars = parsedJsonc.vars || {};
         const configVars = workerConfig.vars || {};
         let varsUpdated = false;
-        
+
         // Update existing or add new vars from config
         for (const [key, value] of Object.entries(configVars)) {
           if (String(currentVars[key]) !== String(value)) {
@@ -135,22 +132,22 @@ export async function setupWorkers(config: Config): Promise<void> {
             varsUpdated = true;
           }
         }
-        
+
         if (varsUpdated) {
           console.log(dim(`Updated vars based on config.toml`));
           jsoncUpdated = true;
         }
-        
+
         // --- Add/Update Secret Store Bindings ---
         const requiredSecrets = workerConfig.secrets || [];
         if (requiredSecrets.length > 0) {
           console.log(dim(`Configuring Secret Store bindings...`));
-          
+
           if (!parsedJsonc.secrets_store) {
             parsedJsonc.secrets_store = { bindings: [] };
             jsoncUpdated = true;
           }
-          
+
           const newBindings = requiredSecrets.map((secretName) => {
             // Define a binding name convention
             const bindingName = `${secretName.replace(/[^A-Za-z0-9_]/g, "_").toUpperCase()}_BINDING`;
@@ -160,22 +157,20 @@ export async function setupWorkers(config: Config): Promise<void> {
               secret_name: secretName,
             };
           });
-          
+
           // Compare with existing bindings
           const existingBindingsJson = JSON.stringify(
             parsedJsonc.secrets_store.bindings || []
           );
           const newBindingsJson = JSON.stringify(newBindings);
-          
+
           if (existingBindingsJson !== newBindingsJson) {
             parsedJsonc.secrets_store.bindings = newBindings;
             jsoncUpdated = true;
             console.log(dim(`Updated secrets_store bindings.`));
             requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
           } else {
-            console.log(
-              dim(`secrets_store bindings are already up-to-date.`)
-            );
+            console.log(dim(`secrets_store bindings are already up-to-date.`));
           }
         } else {
           // If no secrets are defined in config, remove the binding section
@@ -191,13 +186,15 @@ export async function setupWorkers(config: Config): Promise<void> {
             }
           }
         }
-        
+
         if (jsoncUpdated) {
           // Preserve the original comments by inserting the updated JSON data
           // between any comment blocks at the start and end
-          const commentHeaderMatch = wranglerJsoncContent.match(/^(\s*\/\*[\s\S]*?\*\/\s*)/);
-          const commentHeader = commentHeaderMatch ? commentHeaderMatch[1] : '';
-          
+          const commentHeaderMatch = wranglerJsoncContent.match(
+            /^(\s*\/\*[\s\S]*?\*\/\s*)/
+          );
+          const commentHeader = commentHeaderMatch ? commentHeaderMatch[1] : "";
+
           // Format with indentation for readability
           const newJsoncContent = `${commentHeader}${JSON.stringify(parsedJsonc, null, 2)}`;
           fs.writeFileSync(wranglerJsoncPath, newJsoncContent);
@@ -216,7 +213,7 @@ export async function setupWorkers(config: Config): Promise<void> {
       try {
         console.log(dim(`Using wrangler.toml for ${workerName}`));
         const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
-        let parsedToml: any; // Use specific type if possible, but TOML structure varies
+        let parsedToml: unknown; // Use specific type if possible, but TOML structure varies
         try {
           parsedToml = parseToml(wranglerTomlContent);
         } catch (parseError: unknown) {
@@ -482,7 +479,7 @@ export async function deployWorkers(config: Config): Promise<void> {
     try {
       const content = fs.readFileSync(wranglerTomlPath, "utf-8");
       // Use TOML parser for more reliable check
-      const parsedToml = parseToml(content) as any;
+      const parsedToml: unknown = parseToml(content);
       if (parsedToml.account_id !== config.global.cloudflare_account_id) {
         print_warning(
           `${wranglerTomlPath} has account_id "${parsedToml.account_id}", but config.toml global expects "${config.global.cloudflare_account_id}". Running setup first is recommended.`
@@ -890,21 +887,29 @@ export async function updateInternalUrls(config: Config): Promise<void> {
       continue;
     }
 
-    let parsedToml: any; // Use specific type?
-    try {
-      const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-      parsedToml = parseToml(content);
-    } catch (parseError: unknown) {
-      print_error(
-        `  Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}. Skipping.`
-      );
-      continue;
+    let wranglerConfigContent: string;
+    let wranglerConfigPath: string;
+    let isJsonc = false;
+    let wranglerConfig: unknown;
+
+    if (fs.existsSync(path.join(workerDir, "wrangler.jsonc"))) {
+      wranglerConfigPath = path.join(workerDir, "wrangler.jsonc");
+      wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
+      const jsonContent = wranglerConfigContent
+        .replace(/\/\/.*$/gm, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "");
+      wranglerConfig = JSON.parse(jsonContent) as Record<string, unknown>;
+      isJsonc = true;
+    } else if (fs.existsSync(path.join(workerDir, "wrangler.toml"))) {
+      wranglerConfigPath = path.join(workerDir, "wrangler.toml");
+      wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
+      wranglerConfig = parseToml(wranglerConfigContent);
     }
 
-    if (!parsedToml.vars || typeof parsedToml.vars !== "object") {
+    if (!wranglerConfig) {
       console.log(
         dim(
-          `  No [vars] section found in ${targetWorkerName}'s wrangler.toml. Skipping URL updates.`
+          `  No valid wrangler configuration found in ${targetWorkerName}'s wrangler.toml. Skipping URL updates.`
         )
       );
       continue;
@@ -920,15 +925,15 @@ export async function updateInternalUrls(config: Config): Promise<void> {
       // Convention: FOO_BAR_WORKER_URL
       const varName = `${sourceWorkerName.replace(/-/g, "_").toUpperCase()}_URL`;
 
-      if (varName in parsedToml.vars) {
-        const currentVarValue = String(parsedToml.vars[varName]);
+      if (varName in wranglerConfig) {
+        const currentVarValue = String(wranglerConfig[varName]);
         if (currentVarValue !== sourceWorkerUrl) {
           console.log(
             `  Updating ${green(varName)} in ${targetWorkerName}'s wrangler.toml:`
           );
           console.log(`    Old: ${dim(currentVarValue)}`);
           console.log(`    New: ${blue(sourceWorkerUrl)}`);
-          parsedToml.vars[varName] = sourceWorkerUrl; // Assign as string
+          wranglerConfig[varName] = sourceWorkerUrl; // Assign as string
           thisTomlUpdated = true;
         } else {
           // console.log(dim(`  Variable ${varName} in ${targetWorkerName} is already up-to-date.`));
@@ -941,8 +946,13 @@ export async function updateInternalUrls(config: Config): Promise<void> {
 
     if (thisTomlUpdated) {
       try {
-        const newTomlContent = stringifyToml(parsedToml);
-        fs.writeFileSync(wranglerTomlPath, newTomlContent);
+        let updatedContent: string;
+        if (isJsonc) {
+          updatedContent = JSON.stringify(wranglerConfig, null, 2);
+        } else {
+          updatedContent = stringifyToml(wranglerConfig as Record<string, unknown>);
+        }
+        fs.writeFileSync(wranglerTomlPath, updatedContent);
         print_success(
           `Successfully updated ${path.basename(wranglerTomlPath)} for ${targetWorkerName}`
         );
@@ -976,78 +986,6 @@ export async function updateInternalUrls(config: Config): Promise<void> {
   }
   console.log("----------------------------------");
 }
-
-// --- Legacy Cloudflare Secret Update Function --- (Moved from manage.ts)
-// !! THIS FUNCTION IS DEPRECATED with the move to Secret Store bindings !!
-// It uses the old `wrangler secret put` method.
-// Keep for reference or remove? Let's comment it out for now.
-/*
-export async function updateCloudflareSecret(
-    config: Config,
-    keyName: string, // This is the SECRET name in CF, and maybe the key name in local files
-    workerName: string,
-    environment: "local" | "prod" // Source of the key *value*
-): Promise<void> {
-    print_warning(`DEPRECATED: The 'secrets update-cf' command uses the legacy 'wrangler secret put'.`);
-    print_warning(`Secrets should now be managed in the Cloudflare Secret Store and bound via 'workers setup'.`);
-
-    const apiToken = await getCloudflareToken(config);
-    if (!apiToken) {
-        process.exitCode = 1;
-        return;
-    }
-    const cloudflareEnv = { CLOUDFLARE_API_TOKEN: apiToken };
-
-    // Get the value from the specified local .env file
-    const keyValue = getKey(keyName, environment);
-    if (!keyValue) {
-        print_error(`Error: Key value for "${keyName}" not found in [${environment}] environment's key file.`);
-        // console.log(dim(`Checked file: ${getKeyFilePath(environment)}`)); // Need getKeyFilePath from keyUtils
-        process.exitCode = 1;
-        return;
-    }
-
-    const workerConfig = config.workers[workerName];
-    if (!workerConfig) {
-        print_error(`Error: Worker "${workerName}" not found in config.toml.`);
-        printAvailableWorkers(config);
-        process.exitCode = 1;
-        return;
-    }
-    if (!workerConfig.enabled) {
-         print_warning(`Worker "${workerName}" is not enabled in config.toml. Proceeding anyway...`);
-    }
-    const workerDir = path.resolve(process.cwd(), workerConfig.path);
-    if (!fs.existsSync(workerDir)) {
-        print_error(`Directory not found for worker ${workerName} at ${workerDir}.`);
-        process.exitCode = 1;
-        return;
-    }
-
-    console.log(blue(`Attempting legacy 'wrangler secret put ${keyName}' for worker "${workerName}" using key value from [${environment}]...`));
-    try {
-        const result = await runCommandWithStdin(
-            "bunx", // Use bunx to ensure wrangler is available
-            ["wrangler", "secret", "put", keyName], // keyName is the Cloudflare secret name
-            keyValue, // The value to upload
-            workerDir,
-            cloudflareEnv
-        );
-
-        if (result.success) {
-            print_success(`Legacy secret "${keyName}" updated for worker "${workerName}".`);
-            console.log(dim(result.stdout));
-        } else {
-            print_error(`Failed to update legacy secret "${keyName}" for worker "${workerName}".`);
-            console.error(dim(`Stderr: ${result.stderr || "(No stderr output)"}`));
-            process.exitCode = 1;
-        }
-    } catch (error) {
-        print_error(`Error executing wrangler command: ${error instanceof Error ? error.message : String(error)}`);
-        process.exitCode = 1;
-    }
-}
-*/
 
 // --- Helper to print worker names --- (Moved from manage.ts)
 export function printAvailableWorkers(cfg: Config): void {
@@ -1100,7 +1038,7 @@ export async function checkSecretBindings(
     return;
   }
 
-  let parsedToml: any;
+  let parsedToml: unknown;
   try {
     const content = fs.readFileSync(wranglerTomlPath, "utf-8");
     parsedToml = parseToml(content);

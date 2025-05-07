@@ -1,15 +1,17 @@
-import { readdir } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { $ } from 'bun';
+import { readdir } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { $ } from "bun";
 
-const rootDir = resolve(import.meta.dir, '..');
-const workersDir = join(rootDir, 'workers');
+const rootDir = resolve(import.meta.dir, "..");
+const workersDir = join(rootDir, "workers");
 const args = process.argv.slice(2); // Get command-line arguments passed to the script
 
 // Check if we should skip failing tests
-const skipFailingTests = process.env.SKIP_FAILING_TESTS === 'true';
+const skipFailingTests = process.env.SKIP_FAILING_TESTS === "true";
 if (skipFailingTests) {
-  console.log('⚠️ SKIP_FAILING_TESTS is enabled. Tests will continue even if some fail.');
+  console.log(
+    "⚠️ SKIP_FAILING_TESTS is enabled. Tests will continue even if some fail."
+  );
 }
 
 interface TestResult {
@@ -20,13 +22,13 @@ interface TestResult {
 }
 
 async function runTestsInWorker(workerDir: string): Promise<TestResult> {
-  const workerName = workerDir.split('/').pop() ?? workerDir;
+  const workerName = workerDir.split("/").pop() ?? workerDir;
   console.log(`\n🧪 Running tests for ${workerName}...`);
   // Pass arguments to the bun test command
-  const commandArgs = ['bun', 'test', ...args];
+  const commandArgs = ["bun", "test", ...args];
 
   try {
-    const testDir = join(workerDir, 'test');
+    const testDir = join(workerDir, "test");
     // Check if test directory exists
     await readdir(testDir); // Throws if directory doesn't exist
 
@@ -36,7 +38,9 @@ async function runTestsInWorker(workerDir: string): Promise<TestResult> {
 
     // Use shell-escape logic and pass arguments
     // Note: $.cwd(...).$(...) creates a subshell, respecting cwd
-    const { exitCode, stdout, stderr } = await $.cwd(workerDir)`${commandArgs}`.nothrow().quiet();
+    const { exitCode, stdout, stderr } = await $.cwd(workerDir)`${commandArgs}`
+      .nothrow()
+      .quiet();
 
     const result: TestResult = {
       worker: workerName,
@@ -46,32 +50,40 @@ async function runTestsInWorker(workerDir: string): Promise<TestResult> {
     };
 
     if (exitCode === 0 || (skipFailingTests && exitCode !== null)) {
-      console.log(`✅ Tests ${exitCode === 0 ? 'passed' : 'completed with failures (skipped)'} for ${workerName}`);
+      console.log(
+        `✅ Tests ${exitCode === 0 ? "passed" : "completed with failures (skipped)"} for ${workerName}`
+      );
     } else {
-      console.error(`❌ Tests failed for ${workerName} (Exit Code: ${exitCode})`);
-      if (result.stdout) console.log('--- STDOUT ---');
+      console.error(
+        `❌ Tests failed for ${workerName} (Exit Code: ${exitCode})`
+      );
+      if (result.stdout) console.log("--- STDOUT ---");
       console.log(result.stdout);
-      if (result.stderr) console.error('--- STDERR ---');
+      if (result.stderr) console.error("--- STDERR ---");
       console.error(result.stderr);
     }
     return result;
-
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
       // console.log(`ℹ️ No 'test' directory found for ${workerName}, skipping.`);
       // Return a "skipped" result
       return {
         worker: workerName,
         exitCode: 0, // Treat as success (skipped)
         stdout: "Skipped: No 'test' directory found.",
-        stderr: '',
+        stderr: "",
       };
     } else {
       console.error(`🚨 Error running tests for ${workerName}:`, error);
       return {
         worker: workerName,
         exitCode: 1, // Indicate failure due to error
-        stdout: '',
+        stdout: "",
         stderr: String(error),
       };
     }
@@ -79,19 +91,19 @@ async function runTestsInWorker(workerDir: string): Promise<TestResult> {
 }
 
 async function main() {
-  console.log('🔍 Discovering workers and running tests...');
+  console.log("🔍 Discovering workers and running tests...");
   let overallExitCode = 0;
   const allResults: TestResult[] = [];
 
   try {
     const entries = await readdir(workersDir, { withFileTypes: true });
     const workerDirs = entries
-      .filter(entry => entry.isDirectory())
-      .map(entry => join(workersDir, entry.name));
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(workersDir, entry.name));
 
     if (workerDirs.length === 0) {
-        console.log('🤷 No worker directories found in ./workers');
-        process.exit(0);
+      console.log("🤷 No worker directories found in ./workers");
+      process.exit(0);
     }
 
     for (const workerDir of workerDirs) {
@@ -102,32 +114,31 @@ async function main() {
         overallExitCode = 1; // Mark failure if any worker fails
       }
     }
-
   } catch (error) {
-    console.error('🚨 Failed to read workers directory:', error);
+    console.error("🚨 Failed to read workers directory:", error);
     overallExitCode = 1;
   }
 
-  console.log('\n--- Test Summary ---');
-  allResults.forEach(result => {
+  console.log("\n--- Test Summary ---");
+  allResults.forEach((result) => {
     let status;
     if (result.exitCode === 0) {
-      status = result.stdout.startsWith('Skipped') ? '⏭️ Skipped' : '✅ Passed';
+      status = result.stdout.startsWith("Skipped") ? "⏭️ Skipped" : "✅ Passed";
     } else if (skipFailingTests) {
-      status = '⚠️ Failed (ignored)';
+      status = "⚠️ Failed (ignored)";
     } else {
-      status = '❌ Failed';
+      status = "❌ Failed";
     }
     console.log(`- ${result.worker}: ${status}`);
   });
 
   if (overallExitCode === 0) {
-    console.log('\n🎉 All worker tests passed (or were skipped)!');
+    console.log("\n🎉 All worker tests passed (or were skipped)!");
   } else {
-    console.error('\n🔥 Some worker tests failed.');
+    console.error("\n🔥 Some worker tests failed.");
   }
 
   process.exit(overallExitCode);
 }
 
-await main(); 
+await main();

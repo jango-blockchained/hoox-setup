@@ -2,14 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import * as crypto from "node:crypto";
 import {
-  red,
   yellow,
   blue,
   green,
   dim,
   print_success,
   print_error,
-  print_warning,
 } from "./utils.js";
 
 const KEYS_DIR = path.resolve(process.cwd(), ".keys");

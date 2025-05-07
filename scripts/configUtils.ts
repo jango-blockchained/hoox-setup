@@ -32,7 +32,10 @@ export interface Config {
 const CONFIG_TOML = path.resolve(process.cwd(), "config.toml");
 const CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc");
 const EXAMPLE_CONFIG_TOML = path.resolve(process.cwd(), "config.toml.example");
-const EXAMPLE_CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc.example");
+const EXAMPLE_CONFIG_JSONC = path.resolve(
+  process.cwd(),
+  "config.jsonc.example"
+);
 
 // --- Utility Functions ---
 
@@ -40,12 +43,12 @@ const EXAMPLE_CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc.example")
  * Parse JSONC (JSON with comments) content.
  * Strips comments and parses the resulting JSON.
  */
-function parseJsonc(content: string): any {
+function parseJsonc(content: string): unknown {
   // Strip comments before parsing
   const jsonContent = content
-    .replace(/\/\/.*$/gm, '') // Remove single-line comments
-    .replace(/\/\*[\s\S]*?\*\//g, ''); // Remove multi-line comments
-  
+    .replace(/\/\/.*$/gm, "") // Remove single-line comments
+    .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
+
   return JSON.parse(jsonContent);
 }
 
@@ -53,21 +56,25 @@ function parseJsonc(content: string): any {
  * Determine the format of the configuration file.
  * Returns an object with the path to the user config file and example config file.
  */
-async function determineConfigFormat(): Promise<{ userConfig: string, exampleConfig: string, format: 'jsonc' | 'toml' }> {
+async function determineConfigFormat(): Promise<{
+  userConfig: string;
+  exampleConfig: string;
+  format: "jsonc" | "toml";
+}> {
   // Check if config.jsonc exists
   try {
     await fs.access(CONFIG_JSONC);
-    return { 
-      userConfig: CONFIG_JSONC, 
+    return {
+      userConfig: CONFIG_JSONC,
       exampleConfig: EXAMPLE_CONFIG_JSONC,
-      format: 'jsonc'
+      format: "jsonc",
     };
   } catch (error) {
     // config.jsonc doesn't exist, use config.toml
     return {
       userConfig: CONFIG_TOML,
       exampleConfig: EXAMPLE_CONFIG_TOML,
-      format: 'toml'
+      format: "toml",
     };
   }
 }
@@ -80,9 +87,9 @@ async function determineConfigFormat(): Promise<{ userConfig: string, exampleCon
 export async function loadConfig(): Promise<Config> {
   // Determine which config format to use
   const { userConfig, exampleConfig, format } = await determineConfigFormat();
-  
+
   console.log(`Using ${format.toUpperCase()} configuration format`);
-  
+
   let userConfigContent = "";
   try {
     userConfigContent = await fs.readFile(userConfig, "utf-8");
@@ -121,7 +128,7 @@ export async function loadConfig(): Promise<Config> {
   let userConfigObj: Partial<Config> = {};
   if (userConfigContent) {
     try {
-      if (format === 'jsonc') {
+      if (format === "jsonc") {
         const parsedUser = parseJsonc(userConfigContent) as unknown;
         userConfigObj = parsedUser as Partial<Config>;
       } else {
@@ -140,12 +147,12 @@ export async function loadConfig(): Promise<Config> {
   let exampleConfigObj: Config;
   try {
     let parsedExample;
-    if (format === 'jsonc') {
+    if (format === "jsonc") {
       parsedExample = parseJsonc(exampleConfigContent) as unknown;
     } else {
       parsedExample = TOML.parse(exampleConfigContent) as unknown;
     }
-    
+
     if (typeof parsedExample !== "object" || parsedExample === null) {
       throw new Error(
         `Example config ${exampleConfig} did not parse to an object.`
@@ -220,16 +227,16 @@ export async function loadConfig(): Promise<Config> {
  */
 export async function saveConfig(config: Config): Promise<void> {
   const { userConfig, format } = await determineConfigFormat();
-  
+
   try {
     let content: string;
-    if (format === 'jsonc') {
+    if (format === "jsonc") {
       // Pretty print JSON with 2 spaces indentation
       content = JSON.stringify(config, null, 2);
     } else {
       content = TOML.stringify(config as any);
     }
-    
+
     await fs.writeFile(userConfig, content);
     console.log(`Configuration saved successfully to ${userConfig}`);
   } catch (error: unknown) {

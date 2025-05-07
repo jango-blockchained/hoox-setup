@@ -1,16 +1,12 @@
-import readline from "node:readline/promises";
 import ansis from "ansis";
-import { execSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "path";
-import { loadConfig, saveConfig } from "./configUtils.js";
+import { saveConfig } from "./configUtils.js";
 import {
   type GlobalConfig,
   type WorkerConfig,
   type WizardState,
-  type CommandResult,
   type Config,
-  ConfigSchema,
 } from "./types.js";
 import {
   checkCommandExists,
@@ -20,12 +16,6 @@ import {
   print_error,
   print_warning,
   getCloudflareToken,
-  red,
-  yellow,
-  blue,
-  green,
-  dim,
-  cyan,
 } from "./utils.js";
 import { deployWorkers } from "./workerCommands.js";
 import { LOCAL_KEYS_FILE, getKey } from "./keyUtils.js";
@@ -81,7 +71,9 @@ export async function step_configureGlobals(
 
     if (!value || value.trim() === "") {
       if (key === "cloudflare_api_token") {
-        const tempConfigForTokenCheck = { global: updatedGlobals } as Partial<Config>;
+        const tempConfigForTokenCheck = {
+          global: updatedGlobals,
+        } as Partial<Config>;
         try {
           const token = await getCloudflareToken(tempConfigForTokenCheck);
           if (token) {
@@ -92,14 +84,19 @@ export async function step_configureGlobals(
             value = await rl.question(ansis.blue(`Enter value for ${key}: `));
           }
         } catch (tokenError: unknown) {
-          const errorMsg = tokenError instanceof Error ? tokenError.message : String(tokenError);
-          print_warning(`Could not auto-detect Cloudflare token (${errorMsg}). Please enter manually.`);
+          const errorMsg =
+            tokenError instanceof Error
+              ? tokenError.message
+              : String(tokenError);
+          print_warning(
+            `Could not auto-detect Cloudflare token (${errorMsg}). Please enter manually.`
+          );
           value = await rl.question(ansis.blue(`Enter value for ${key}: `));
         }
       } else {
         value = await rl.question(ansis.blue(`Enter value for ${key}: `));
       }
-      
+
       if (!value || value.trim() === "") {
         throw new Error(
           `Global setting "${key}" is required and cannot be empty.`
@@ -107,13 +104,12 @@ export async function step_configureGlobals(
       }
       updatedGlobals[key] = value as string;
     } else if (!wasAutoDetected) {
-      const displayValue = (typeof value === 'string' && value.length > 8)
-        ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
-        : '********';
+      const displayValue =
+        typeof value === "string" && value.length > 8
+          ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+          : "********";
       console.log(
-        ansis.green(
-          `  ✓ Using existing value for ${key}: ${displayValue}`
-        )
+        ansis.green(`  ✓ Using existing value for ${key}: ${displayValue}`)
       );
     }
   }
@@ -124,7 +120,8 @@ export async function step_configureGlobals(
 
 // --- Step: Select Workers ---
 export async function step_selectWorkers(state: WizardState): Promise<void> {
-  if (!state.config) throw new Error("Internal Error: Config object missing in state.");
+  if (!state.config)
+    throw new Error("Internal Error: Config object missing in state.");
   if (!state.config.workers) state.config.workers = {};
 
   console.log(
@@ -136,11 +133,15 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
       withFileTypes: true,
     });
     workerDirs = dirents
-      .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
+      .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith("."))
       .map((dirent) => dirent.name);
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    if (typeof error === 'object' && error !== null && (error as { code?: string }).code === "ENOENT") {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      (error as { code?: string }).code === "ENOENT"
+    ) {
       print_error(`Workers directory not found: ${WORKERS_DIR}`);
       print_warning("No workers can be selected.");
       return;
@@ -159,7 +160,8 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
   console.log(ansis.blue("Configure which workers to enable:"));
 
   for (const workerName of workerDirs) {
-    const initialWorkerConfig: Partial<WorkerConfig> = state.config.workers[workerName] || {};
+    const initialWorkerConfig: Partial<WorkerConfig> =
+      state.config.workers[workerName] || {};
     const workerPath = path.join("workers", workerName);
 
     const currentWorkerConfig: Partial<WorkerConfig> = {
@@ -196,12 +198,12 @@ export async function step_selectWorkers(state: WizardState): Promise<void> {
       enabled: enableWorker,
       path: currentWorkerConfig.path,
     };
-    
-    const finalStatus = enableWorker ? ansis.green("Enabled") : ansis.red("Disabled");
+
+    const finalStatus = enableWorker
+      ? ansis.green("Enabled")
+      : ansis.red("Disabled");
     console.log(
-      ansis.dim(
-        ` -> Status for "${workerName}" set to ${finalStatus}.`
-      )
+      ansis.dim(` -> Status for "${workerName}" set to ${finalStatus}.`)
     );
   }
   print_success("Worker selection updated.");
@@ -340,17 +342,19 @@ export async function step_setupD1(state: WizardState): Promise<void> {
 
 export async function step_saveConfig(state: WizardState): Promise<void> {
   console.log(ansis.dim("Preparing configuration object..."));
-  
+
   const configToSave = state.config as Config;
   if (!configToSave.global)
     throw new Error("Internal Error: Global config missing before save.");
   if (!configToSave.workers) configToSave.workers = {};
-  
+
   // Get the format from state, default to TOML if not specified
-  const format = state.configFormat || 'toml';
-  const configFileName = format === 'jsonc' ? 'config.jsonc' : 'config.toml';
-  
-  print_success(`Configuration prepared. Saving to ${configFileName} (${format.toUpperCase()} format)...`);
+  const format = state.configFormat || "toml";
+  const configFileName = format === "jsonc" ? "config.jsonc" : "config.toml";
+
+  print_success(
+    `Configuration prepared. Saving to ${configFileName} (${format.toUpperCase()} format)...`
+  );
   await saveConfig(configToSave);
 }
 

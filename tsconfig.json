@@ -26,6 +26,6 @@
     "emitDeclarationOnly": false,
     "noEmit": true
   },
-  "include": ["src/**/*", "workers/**/*", "scripts/**/*"],
+  "include": ["src/**/*", "workers/**/*", "scripts/**/*", "test/**/*"],
   "exclude": ["node_modules", "**/node_modules/*", "dist"]
 }

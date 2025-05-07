@@ -17,7 +17,10 @@ export interface EnvWithKV {
  * @param prefix - Optional prefix for the key
  * @returns Promise that resolves when the operation completes
  */
-export async function logKvTimestamp(env: EnvWithKV, prefix: string = 'timestamp'): Promise<void> {
+export async function logKvTimestamp(
+  env: EnvWithKV,
+  prefix: string = "timestamp"
+): Promise<void> {
   const timestamp = new Date().toISOString();
   const key = `${prefix}_${timestamp}`;
   try {
@@ -34,10 +37,12 @@ export async function logKvTimestamp(env: EnvWithKV, prefix: string = 'timestamp
  * @param headers - The Headers object to convert
  * @returns Plain object representation of headers
  */
-export function headersToObject(headers: Headers | null | undefined): Record<string, string> {
+export function headersToObject(
+  headers: Headers | null | undefined
+): Record<string, string> {
   const result: Record<string, string> = {};
   if (!headers) return result;
-  
+
   // Safely iterate through headers
   try {
     headers.forEach((value, key) => {
@@ -47,7 +52,7 @@ export function headersToObject(headers: Headers | null | undefined): Record<str
     const errorMsg = error instanceof Error ? error.message : "Unknown error";
     console.error(`Error converting headers to object: ${errorMsg}`);
   }
-  
+
   return result;
 }
 
@@ -62,5 +67,5 @@ export const kvTimestampMiddleware = async (env: EnvWithKV): Promise<void> => {
 export default {
   logKvTimestamp,
   headersToObject,
-  kvTimestampMiddleware
-}; 
+  kvTimestampMiddleware,
+};

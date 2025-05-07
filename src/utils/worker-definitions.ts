@@ -2,15 +2,15 @@
  * WORKER TYPE DEFINITIONS
  * ----------------------
  * This file provides shared type definitions for all workers.
- * 
+ *
  * DEVELOPMENT NOTES:
- * 
+ *
  * 1. The project's TypeScript typing is still being improved - some errors may exist.
  * 2. Cloudflare Workers have specialized bindings that may not be fully covered by
  *    standard @cloudflare/workers-types. We've provided custom type definitions for
  *    some of these cases.
  * 3. All new additions should be properly typed to avoid increasing technical debt.
- * 4. When using these types, you should use `import type { ... }` to avoid 
+ * 4. When using these types, you should use `import type { ... }` to avoid
  *    runtime dependencies.
  */
 
@@ -58,8 +58,8 @@ export interface VectorizeVectorMetadata {
 export interface TradePayload {
   exchange: string;
   symbol: string;
-  side: 'buy' | 'sell';
-  type: 'market' | 'limit';
+  side: "buy" | "sell";
+  type: "market" | "limit";
   quantity: number;
   price?: number;
   leverage?: number;
@@ -73,7 +73,7 @@ export interface TradePayload {
 // DEX trade types
 export interface DexTradePayload {
   exchange: string;
-  action: 'swap' | 'add_liquidity' | 'remove_liquidity';
+  action: "swap" | "add_liquidity" | "remove_liquidity";
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
@@ -115,8 +115,8 @@ export interface Web3TransactionPayload {
 export interface CexTradePayload {
   exchange?: string;
   symbol?: string;
-  side?: 'buy' | 'sell';
-  type?: 'market' | 'limit';
+  side?: "buy" | "sell";
+  type?: "market" | "limit";
   price?: number;
   quantity?: number;
   leverage?: number;
@@ -138,7 +138,7 @@ export interface WebhookPayload {
   dexData?: DexTradePayload;
   web3Data?: Web3TransactionPayload;
   agent?: {
-    action: 'updateSettings';
+    action: "updateSettings";
     settings: {
       model?: string;
       systemPrompt?: string;
@@ -148,11 +148,11 @@ export interface WebhookPayload {
   };
   // Generic worker action format for dynamic routing
   worker?: {
-    name: string;       // Name of the worker (must match a service binding name)
-    action: string;     // Action to perform
-    path?: string;      // Optional path override (defaults to /{action})
+    name: string; // Name of the worker (must match a service binding name)
+    action: string; // Action to perform
+    path?: string; // Optional path override (defaults to /{action})
     payload: Record<string, any>; // Payload to send to the worker
-  }
+  };
 }
 
 // Generic worker response
@@ -208,4 +208,4 @@ export interface WebhookRequest {
 }
 
 // Export using 'export type' syntax for these imported types
-export type { ExecutionContext }; 
+export type { ExecutionContext };
