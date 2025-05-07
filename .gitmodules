@@ -1,21 +1,21 @@
 [submodule "workers/telegram-worker"]
 	path = workers/telegram-worker
-	url = ./workers/telegram-worker
+	url = https://github.com/jango-blockchained/telegram-worker.git
 [submodule "workers/trade-worker"]
 	path = workers/trade-worker
-	url = ./workers/trade-worker
-[submodule "workers/webhook-receiver"]
-	path = workers/webhook-receiver
-	url = ./workers/webhook-receiver
+	url = https://github.com/jango-blockchained/trade-worker.git
+[submodule "workers/hoox"]
+	path = workers/hoox
+	url = https://github.com/jango-blockchained/hoox.git
 [submodule "workers/d1-worker"]
 	path = workers/d1-worker
-	url = ./workers/d1-worker
+	url = https://github.com/jango-blockchained/d1-worker.git
 [submodule "workers/home-assistant-worker"]
 	path = workers/home-assistant-worker
-	url = ./workers/home-assistant-worker
+	url = https://github.com/jango-blockchained/home-assistant-worker.git
 [submodule "workers/agent-worker"]
 	path = workers/agent-worker
-	url = ./workers/agent-worker
+	url = https://github.com/jango-blockchained/agent-worker.git
 [submodule "workers/web3-wallet-worker"]
 	path = workers/web3-wallet-worker
-	url = ./workers/web3-wallet-worker
+	url = https://github.com/jango-blockchained/web3-wallet-worker.git
