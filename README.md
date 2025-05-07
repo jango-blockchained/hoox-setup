@@ -57,7 +57,7 @@ This ensures that all necessary submodules are properly initialized and updated.
 │   │   └── ...
 │   ├── web3-wallet-worker/
 │   │   └── ...
-│   ├── webhook-receiver/ # Gateway worker using service bindings
+│   ├── hoox/ # Gateway worker using service bindings
 │   │   └── ...
 │   └── ...               # Other workers
 ├── .eslintrc.json
@@ -125,9 +125,9 @@ secrets = [
 ]
 # vars = {}
 
-[workers.webhook-receiver]
+[workers.hoox]
 enabled = true
-path = "workers/webhook-receiver"
+path = "workers/hoox"
 secrets = ["WEBHOOK_API_KEY", "INTERNAL_KEY"]
 # vars = {}
 
@@ -276,7 +276,7 @@ This project uses Cloudflare Workers service bindings for intercommunication bet
 
 ```mermaid
 graph TB
-    webhook[webhook-receiver]
+    hoox[hoox]
     trade[trade-worker]
     telegram[telegram-worker]
     web3[web3-wallet-worker]
@@ -284,15 +284,15 @@ graph TB
     ha[home-assistant-worker]
     agent[agent-worker]
     
-    webhook -- TRADE_SERVICE --> trade
-    webhook -- TELEGRAM_SERVICE --> telegram
+    hoox -- TRADE_SERVICE --> trade
+    hoox -- TELEGRAM_SERVICE --> telegram
     
     trade -- D1_SERVICE --> d1
     trade -- TELEGRAM_API --> telegram
     trade -- WEB3_WALLET_WORKER --> web3
     
     telegram -- TRADE_API --> trade
-    telegram -- WEBHOOK_RECEIVER_API --> webhook
+    telegram -- WEBHOOK_RECEIVER_API --> hoox
     
     web3 -- TELEGRAM_API --> telegram
     
@@ -306,10 +306,10 @@ graph TB
         DB[D1 Database]
     end
     
-    webhook -.- CONFIG_KV
-    webhook -.- SESSIONS_KV
-    webhook -.- VECTORIZE_INDEX
-    webhook -.- AI_BINDING
+    hoox -.- CONFIG_KV
+    hoox -.- SESSIONS_KV
+    hoox -.- VECTORIZE_INDEX
+    hoox -.- AI_BINDING
     
     trade -.- CONFIG_KV
     trade -.- VECTORIZE_INDEX
@@ -331,9 +331,9 @@ graph TB
 
 | Worker | Outbound Connections | Inbound Connections | Shared Resources |
 |--------|----------------------|---------------------|------------------|
-| webhook-receiver | TRADE_SERVICE → trade-worker<br>TELEGRAM_SERVICE → telegram-worker | telegram-worker | CONFIG_KV<br>SESSIONS_KV<br>VECTORIZE_INDEX<br>AI |
-| trade-worker | D1_SERVICE → d1-worker<br>TELEGRAM_API → telegram-worker<br>WEB3_WALLET_WORKER → web3-wallet-worker | webhook-receiver<br>telegram-worker | CONFIG_KV<br>REPORTS_BUCKET<br>VECTORIZE_INDEX<br>AI<br>D1 Database |
-| telegram-worker | TRADE_API → trade-worker<br>WEBHOOK_RECEIVER_API → webhook-receiver | trade-worker<br>web3-wallet-worker | CONFIG_KV<br>UPLOADS_BUCKET<br>VECTORIZE_INDEX<br>AI |
+| hoox | TRADE_SERVICE → trade-worker<br>TELEGRAM_SERVICE → telegram-worker | telegram-worker | CONFIG_KV<br>SESSIONS_KV<br>VECTORIZE_INDEX<br>AI |
+| trade-worker | D1_SERVICE → d1-worker<br>TELEGRAM_API → telegram-worker<br>WEB3_WALLET_WORKER → web3-wallet-worker | hoox<br>telegram-worker | CONFIG_KV<br>REPORTS_BUCKET<br>VECTORIZE_INDEX<br>AI<br>D1 Database |
+| telegram-worker | TRADE_API → trade-worker<br>WEBHOOK_RECEIVER_API → hoox | trade-worker<br>web3-wallet-worker | CONFIG_KV<br>UPLOADS_BUCKET<br>VECTORIZE_INDEX<br>AI |
 | web3-wallet-worker | TELEGRAM_API → telegram-worker | trade-worker | Browser |
 | d1-worker | | trade-worker | D1 Database |
 | home-assistant-worker | | | CONFIG_KV |
@@ -444,7 +444,7 @@ These issues will be fixed gradually as the codebase evolves.
 
 ## Dynamic Routing System
 
-The `webhook-receiver` worker includes a dynamic routing system that allows for configurable API endpoints without code changes. This system enables flexible routing of incoming requests to various backend services.
+The `hoox` worker includes a dynamic routing system that allows for configurable API endpoints without code changes. This system enables flexible routing of incoming requests to various backend services.
 
 ### Key Components
 
@@ -499,13 +499,13 @@ The dynamic routing system includes comprehensive tests that can be run using:
 
 ```bash
 # Run all dynamic routing tests
-./workers/webhook-receiver/scripts/run-tests.sh
+./workers/hoox/scripts/run-tests.sh
 
-# Run all webhook-receiver tests
-./workers/webhook-receiver/scripts/run-tests.sh --all
+# Run all hoox tests
+./workers/hoox/scripts/run-tests.sh --all
 
-# Run a specific test file
-./workers/webhook-receiver/scripts/run-tests.sh test/dynamic-routing.test.ts
+# Run a specific hoox test file
+./workers/hoox/scripts/run-tests.sh test/dynamic-routing.test.ts
 ```
 
 These tests cover:

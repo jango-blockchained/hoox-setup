@@ -61,9 +61,10 @@
       "secrets": ["MNEMONIC"] // The mnemonic needs to be stored securely. The script should prompt for it.
     },
 
-    "webhook-receiver": {
+    "hoox": {
       "enabled": true,
-      "path": "workers/webhook-receiver",
+      "path": "workers/hoox",
+      "description": "Central webhook processing and dynamic routing worker",
       "vars": {},
       "secrets": []
     },

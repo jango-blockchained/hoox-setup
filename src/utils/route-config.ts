@@ -1,6 +1,6 @@
 /**
  * Route configuration types and helpers for the dynamic routing system.
- * These configurations will be stored in KV and used by webhook-receiver to route requests.
+ * These configurations will be stored in KV and used by hoox to route requests.
  */
 
 /**
