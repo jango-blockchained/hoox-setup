@@ -8,9 +8,9 @@ This document catalogs all exposed endpoints from the various workers in the sys
 
 ```mermaid
 graph TD
-    Client[Client] -->|External Request| WH[webhook-receiver]
+    Client[Client] -->|External Request| WH[hoox]
     
-    %% webhook-receiver connections
+    %% hoox connections
     WH -->|Process Trade| TR[trade-worker]
     WH -->|Send Notification| TG[telegram-worker]
     WH -->|Home Automation| HA[home-assistant-worker]
@@ -33,9 +33,9 @@ graph TD
 
 ## Endpoint Catalogs by Worker
 
-### webhook-receiver
+### hoox
 
-The webhook-receiver is the primary entry point for external requests.
+The hoox is the primary entry point for external requests.
 
 | Endpoint | Method | Description | Request Format | Response Format |
 |----------|--------|-------------|----------------|-----------------|
@@ -149,7 +149,7 @@ Agent-specific endpoints (through routed or direct access):
 
 ### Request Flow Analysis
 
-1. **External Requests**: All external requests enter through the webhook-receiver, which validates the API key and routes to appropriate service workers.
+1. **External Requests**: All external requests enter through the hoox, which validates the API key and routes to appropriate service workers.
 
 2. **Inter-Worker Communication**: Workers communicate with each other through internal service bindings, using a common authentication mechanism (`internalAuthKey`).
 
@@ -157,21 +157,21 @@ Agent-specific endpoints (through routed or direct access):
 
 ### Current Limitations
 
-1. **Single Entry Point**: The webhook-receiver is the only public entry point, which could become a bottleneck.
+1. **Single Entry Point**: The hoox is the only public entry point, which could become a bottleneck.
 
-2. **Hardcoded Functions**: The current architecture relies on hardcoded functions in the webhook-receiver to route requests to different services.
+2. **Hardcoded Functions**: The current architecture relies on hardcoded functions in the hoox to route requests to different services.
 
 ## Proposed Architecture Improvements
 
 ### Dynamic Routing Solution
 
-Rather than hardcoding functions in the webhook-receiver, consider implementing a dynamic routing system:
+Rather than hardcoding functions in the hoox, consider implementing a dynamic routing system:
 
 1. **Configuration-Based Routing**: Store route configurations in KV store that map external webhook paths to internal services.
 
 2. **Service Registry**: Implement a service discovery mechanism where workers register their capabilities.
 
-3. **Middleware Architecture**: Create a middleware-based pipeline in the webhook-receiver that can:
+3. **Middleware Architecture**: Create a middleware-based pipeline in the hoox that can:
    - Validate requests
    - Transform payloads as needed
    - Apply appropriate security measures

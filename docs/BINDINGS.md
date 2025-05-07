@@ -17,13 +17,13 @@ This document provides a comprehensive reference for all bindings, environment v
 
 | Variable | Type | Workers | Description |
 |----------|------|---------|-------------|
-| `INTERNAL_KEY_BINDING` | Secret | telegram-worker, webhook-receiver, trade-worker | Internal authentication key for worker-to-worker communication |
+| `INTERNAL_KEY_BINDING` | Secret | telegram-worker, hoox, trade-worker | Internal authentication key for worker-to-worker communication |
 | `TG_BOT_TOKEN_BINDING` | Secret | telegram-worker | Telegram Bot API token |
 | `TG_CHAT_ID_BINDING` | Secret | telegram-worker | Telegram chat ID for notifications |
 | `TELEGRAM_SECRET_TOKEN` | Secret | telegram-worker | Webhook verification token for Telegram |
-| `WEBHOOK_API_KEY_BINDING` | Secret | webhook-receiver | API key for webhook endpoints |
-| `ADMIN_API_KEY_BINDING` | Secret | webhook-receiver | Admin API authentication key |
-| `HA_TOKEN_BINDING` | Secret | webhook-receiver | Home Assistant authentication token |
+| `WEBHOOK_API_KEY_BINDING` | Secret | hoox | API key for webhook endpoints |
+| `ADMIN_API_KEY_BINDING` | Secret | hoox | Admin API authentication key |
+| `HA_TOKEN_BINDING` | Secret | hoox | Home Assistant authentication token |
 | `WALLET_PK_SECRET` | Secret | web3-wallet-worker | Private key for Web3 wallet operations |
 | `WALLET_MNEMONIC_SECRET` | Secret | web3-wallet-worker | Mnemonic phrase for wallet generation |
 | `MEXC_KEY_BINDING` | Secret | trade-worker | MEXC exchange API key |
@@ -40,11 +40,11 @@ This document provides a comprehensive reference for all bindings, environment v
 | Binding | Worker | Connected Service | Description |
 |---------|--------|------------------|-------------|
 | `TRADE_API` | telegram-worker | trade-worker | Access to trading functionality |
-| `WEBHOOK_RECEIVER_API` | telegram-worker | webhook-receiver | Access to webhook handling |
+| `WEBHOOK_RECEIVER_API` | telegram-worker | hoox | Access to webhook handling |
 | `WEB3_WALLET_API` | telegram-worker | web3-wallet-worker | Access to wallet functionality |
-| `TRADE_SERVICE` | webhook-receiver | trade-worker | Access to trading functionality |
-| `TELEGRAM_SERVICE` | webhook-receiver | telegram-worker | Access to Telegram notification service |
-| `HOME_ASSISTANT_SERVICE` | webhook-receiver | home-assistant-worker | Access to Home Assistant service |
+| `TRADE_SERVICE` | hoox | trade-worker | Access to trading functionality |
+| `TELEGRAM_SERVICE` | hoox | telegram-worker | Access to Telegram notification service |
+| `HOME_ASSISTANT_SERVICE` | hoox | home-assistant-worker | Access to Home Assistant service |
 | `TELEGRAM_API` | trade-worker, web3-wallet-worker | telegram-worker | Access to Telegram notification service |
 | `D1_SERVICE` | trade-worker | d1-worker | Access to D1 database service |
 | `WEB3_WALLET_WORKER` | trade-worker | web3-wallet-worker | Access to wallet functionality |
@@ -54,8 +54,8 @@ This document provides a comprehensive reference for all bindings, environment v
 | Binding | Worker | Description |
 |---------|--------|-------------|
 | `CONFIG_KV` | telegram-worker, trade-worker | Store configuration data |
-| `SESSIONS_KV` | webhook-receiver | Store session data |
-| `CONFIG_KV` | webhook-receiver | Store configuration data |
+| `SESSIONS_KV` | hoox | Store session data |
+| `CONFIG_KV` | hoox | Store configuration data |
 
 ## R2 Bucket Bindings
 
@@ -75,13 +75,13 @@ This document provides a comprehensive reference for all bindings, environment v
 
 | Binding | Worker | Description |
 |---------|--------|-------------|
-| `AI` | telegram-worker, webhook-receiver, trade-worker | Access to Cloudflare Workers AI capabilities |
+| `AI` | telegram-worker, hoox, trade-worker | Access to Cloudflare Workers AI capabilities |
 
 ## Vectorize Bindings
 
 | Binding | Worker | Index Name | Description |
 |---------|--------|------------|-------------|
-| `VECTORIZE_INDEX` | telegram-worker, webhook-receiver, trade-worker | my-rag-index | Vector database for RAG applications |
+| `VECTORIZE_INDEX` | telegram-worker, hoox, trade-worker | my-rag-index | Vector database for RAG applications |
 
 ## Browser Bindings
 
@@ -96,10 +96,10 @@ For local development with `wrangler dev`, the following service URLs are used:
 | Service | Local URL | Used By |
 |---------|-----------|---------|
 | D1 Worker | http://localhost:8789 | trade-worker |
-| Telegram Worker | http://localhost:8790 | webhook-receiver, trade-worker, web3-wallet-worker |
+| Telegram Worker | http://localhost:8790 | hoox, trade-worker, web3-wallet-worker |
 | Web3 Wallet Worker | http://localhost:8792 | trade-worker |
-| Trade Worker | http://localhost:8788 | webhook-receiver |
-| Home Assistant Worker | http://localhost:8791 | webhook-receiver |
+| Trade Worker | http://localhost:8788 | hoox |
+| Home Assistant Worker | http://localhost:8791 | hoox |
 
 ## Configuration
 

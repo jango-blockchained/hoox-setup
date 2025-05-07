@@ -53,11 +53,10 @@ vars = {}
 # The mnemonic needs to be stored securely. The script should prompt for it.
 secrets = ["MNEMONIC"]
 
-[workers.webhook-receiver]
+[workers.hoox]
 enabled = true
-path = "workers/webhook-receiver"
-vars = {}
-secrets = []
+path = "workers/hoox"
+description = "Central webhook processing and dynamic routing worker"
 
 [workers.home-assistant]
 enabled = true
