@@ -1,4 +1,14 @@
-import { jest, mock, describe, it, expect, beforeEach, afterAll, beforeAll, advanceTimersByTime } from "@jest/globals";
+import {
+  jest,
+  mock,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterAll,
+  beforeAll,
+  advanceTimersByTime,
+} from "@jest/globals";
 import { EventEmitter } from "events";
 import { WorkerService as ActualWorkerService } from "./WorkerService.js"; // Import the actual service
 
@@ -13,12 +23,9 @@ const mockExec = jest.fn(); // This is the raw exec mock
 
 // Create a mock for the *promisified* exec
 const mockExecPromise = jest.fn(async (...args) => {
-  try {
-    const result = await mockExec(...args); // Call the raw mock
-    return result; // Return what the raw mock returns (e.g., {stdout, stderr})
-  } catch (error) {
-    throw error; // Propagate errors
-  }
+  // Directly return the result of the raw mock (without try/catch)
+  const result = await mockExec(...args);
+  return result;
 });
 
 // Mock path (optional, but good practice if paths get complex)
@@ -35,12 +42,42 @@ describe("WorkerService", () => {
 
   // Define a default initial worker state for tests
   const defaultTestWorkers = {
-      d1: { name: "D1 Worker", port: 8787, status: "stopped", extraArgs: "--local" },
-      trade: { name: "Trade Worker", port: 8788, status: "stopped", extraArgs: "" },
-      webhook: { name: "Webhook Receiver", port: 8789, status: "stopped", extraArgs: "" },
-      telegram: { name: "Telegram Worker", port: 8790, status: "stopped", extraArgs: "" },
-      "home-assistant": { name: "Home Assistant", port: 8791, status: "stopped", extraArgs: "" },
-      "web3-wallet": { name: "Web3 Wallet", port: 8792, status: "stopped", extraArgs: "" },
+    d1: {
+      name: "D1 Worker",
+      port: 8787,
+      status: "stopped",
+      extraArgs: "--local",
+    },
+    trade: {
+      name: "Trade Worker",
+      port: 8788,
+      status: "stopped",
+      extraArgs: "",
+    },
+    webhook: {
+      name: "Webhook Receiver",
+      port: 8789,
+      status: "stopped",
+      extraArgs: "",
+    },
+    telegram: {
+      name: "Telegram Worker",
+      port: 8790,
+      status: "stopped",
+      extraArgs: "",
+    },
+    "home-assistant": {
+      name: "Home Assistant",
+      port: 8791,
+      status: "stopped",
+      extraArgs: "",
+    },
+    "web3-wallet": {
+      name: "Web3 Wallet",
+      port: 8792,
+      status: "stopped",
+      extraArgs: "",
+    },
   };
 
   beforeAll(() => {
@@ -191,7 +228,7 @@ describe("WorkerService", () => {
       mockSpawnInstance.emit("exit", 0);
 
       // Allow the event loop to process the exit handler
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
 
       await stopPromise;
 
@@ -224,7 +261,7 @@ describe("WorkerService", () => {
       // We can't test the timeout directly, but we can simulate the SIGKILL call
       // that *should* happen after the timeout.
       // Manually call kill with SIGKILL to simulate the force kill
-      mockSpawnInstance.kill('SIGKILL');
+      mockSpawnInstance.kill("SIGKILL");
 
       // Simulate the exit event firing *after* the SIGKILL
       mockSpawnInstance.emit("exit", null); // Process exits (non-zero usually after SIGKILL)
@@ -252,12 +289,42 @@ describe("WorkerService", () => {
       );
       // Initial state needed for port lookup
       const initialWorkers = {
-        d1: { name: "D1 Worker", port: 8787, status: "unknown", extraArgs: "--local" }, // Added name/extraArgs
-        trade: { name: "Trade Worker", port: 8788, status: "unknown", extraArgs: "" },
-        webhook: { name: "Webhook Receiver", port: 8789, status: "unknown", extraArgs: "" },
-        telegram: { name: "Telegram Worker", port: 8790, status: "unknown", extraArgs: "" },
-        "home-assistant": { name: "Home Assistant", port: 8791, status: "unknown", extraArgs: "" },
-        "web3-wallet": { name: "Web3 Wallet", port: 8792, status: "unknown", extraArgs: "" },
+        d1: {
+          name: "D1 Worker",
+          port: 8787,
+          status: "unknown",
+          extraArgs: "--local",
+        }, // Added name/extraArgs
+        trade: {
+          name: "Trade Worker",
+          port: 8788,
+          status: "unknown",
+          extraArgs: "",
+        },
+        webhook: {
+          name: "Webhook Receiver",
+          port: 8789,
+          status: "unknown",
+          extraArgs: "",
+        },
+        telegram: {
+          name: "Telegram Worker",
+          port: 8790,
+          status: "unknown",
+          extraArgs: "",
+        },
+        "home-assistant": {
+          name: "Home Assistant",
+          port: 8791,
+          status: "unknown",
+          extraArgs: "",
+        },
+        "web3-wallet": {
+          name: "Web3 Wallet",
+          port: 8792,
+          status: "unknown",
+          extraArgs: "",
+        },
       };
       // REMOVE: No need to mock implementation here, we just need the initial object
       // mockSetWorkers.mockImplementation((fn) => fn(initialWorkers));

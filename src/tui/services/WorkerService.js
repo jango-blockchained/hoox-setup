@@ -7,13 +7,21 @@ import path from "path";
 // const _execPromise = promisify(exec); // Remove promisify here
 
 export class WorkerService {
-  constructor(initialWorkers, setWorkers, setLogs, setStatusMessage, spawnFn, execFn) { // Add initialWorkers
+  constructor(
+    initialWorkers,
+    setWorkers,
+    setLogs,
+    setStatusMessage,
+    spawnFn,
+    execFn
+  ) {
+    // Add initialWorkers
     this.workers = { ...initialWorkers }; // Store initial config internally
     this.setWorkers = setWorkers;
     this.setLogs = setLogs;
     this.setStatusMessage = setStatusMessage;
     this.spawnFn = spawnFn; // Store injected functions
-    this.execFn = execFn;   // Store injected functions
+    this.execFn = execFn; // Store injected functions
     this.workerProcesses = {};
     this.logBuffers = {
       d1: [],
@@ -42,7 +50,8 @@ export class WorkerService {
 
     try {
       const worker = this.getWorkerConfig(workerId); // Use internal getter
-      if (!worker) { // Add check in case workerId is invalid
+      if (!worker) {
+        // Add check in case workerId is invalid
         throw new Error(`Worker configuration not found for ${workerId}`);
       }
       const workingDir = path.resolve(process.cwd(), `${workerId}-worker`);
@@ -99,8 +108,9 @@ export class WorkerService {
       );
     } catch (error) {
       // Update internal state and call external setter
-      if (this.workers[workerId]) { // Check if worker exists before updating
-         this.workers[workerId].status = "error";
+      if (this.workers[workerId]) {
+        // Check if worker exists before updating
+        this.workers[workerId].status = "error";
       }
       this.updateWorkerStatus(workerId, "error");
       this.setStatusMessage(
@@ -113,7 +123,8 @@ export class WorkerService {
   /**
    * Stop a worker by its ID
    */
-  stopWorker(workerId) { // Make it return a Promise explicitly
+  stopWorker(workerId) {
+    // Make it return a Promise explicitly
     return new Promise((resolve, reject) => {
       const process = this.workerProcesses[workerId];
       if (!process) {
@@ -129,28 +140,30 @@ export class WorkerService {
 
       let killTimeout;
       const exitHandler = () => {
-          clearTimeout(killTimeout);
-          // Update internal state and call external setter on exit
-          if (this.workers[workerId]) { // Check if worker config still exists
-            this.workers[workerId].status = "stopped";
-          }
-          delete this.workerProcesses[workerId]; // Ensure delete happens
-          this.updateWorkerStatus(workerId, "stopped");
-          this.setStatusMessage(`${workerId} worker stopped`);
-          resolve(); // Resolve the promise AFTER cleanup
+        clearTimeout(killTimeout);
+        // Update internal state and call external setter on exit
+        if (this.workers[workerId]) {
+          // Check if worker config still exists
+          this.workers[workerId].status = "stopped";
+        }
+        delete this.workerProcesses[workerId]; // Ensure delete happens
+        this.updateWorkerStatus(workerId, "stopped");
+        this.setStatusMessage(`${workerId} worker stopped`);
+        resolve(); // Resolve the promise AFTER cleanup
       };
 
       const errorHandler = (error) => {
-          clearTimeout(killTimeout);
-          // Update internal state and call external setter
-          if (this.workers[workerId]) { // Check if worker exists before updating
-            this.workers[workerId].status = "error";
-          }
-          this.updateWorkerStatus(workerId, "error");
-          this.setStatusMessage(
-            `Error stopping ${workerId} worker: ${error.message}`
-          );
-          reject(error); // Reject the promise on error
+        clearTimeout(killTimeout);
+        // Update internal state and call external setter
+        if (this.workers[workerId]) {
+          // Check if worker exists before updating
+          this.workers[workerId].status = "error";
+        }
+        this.updateWorkerStatus(workerId, "error");
+        this.setStatusMessage(
+          `Error stopping ${workerId} worker: ${error.message}`
+        );
+        reject(error); // Reject the promise on error
       };
 
       // Add listeners ONCE
@@ -168,18 +181,17 @@ export class WorkerService {
             process.removeListener("exit", exitHandler);
             process.removeListener("error", errorHandler);
             try {
-                process.kill("SIGKILL");
-                // Manually trigger cleanup as exit event might not fire after SIGKILL
-                exitHandler();
+              process.kill("SIGKILL");
+              // Manually trigger cleanup as exit event might not fire after SIGKILL
+              exitHandler();
             } catch (killError) {
-                errorHandler(killError);
+              errorHandler(killError);
             }
           }
         }, 5000);
-
       } catch (error) {
-         // Handle immediate kill errors (e.g., process already exited)
-         errorHandler(error);
+        // Handle immediate kill errors (e.g., process already exited)
+        errorHandler(error);
       }
     });
   }
@@ -271,56 +283,64 @@ export class WorkerService {
       );
 
       // Process the ps output to determine actual running state
-      const psLines = stdout.split('\n');
-      const runningPortPids = psLines.map(line => {
+      const psLines = stdout.split("\n");
+      const runningPortPids = psLines
+        .map((line) => {
           const match = line.match(/\s+(\d+)\s+.*bun run dev -- --port (\d+)/);
-          return match ? { pid: parseInt(match[1]), port: parseInt(match[2]) } : null;
-      }).filter(Boolean);
+          return match
+            ? { pid: parseInt(match[1]), port: parseInt(match[2]) }
+            : null;
+        })
+        .filter(Boolean);
       const runningPortMap = runningPortPids.reduce((map, p) => {
-          map[p.port] = p.pid;
-          return map;
+        map[p.port] = p.pid;
+        return map;
       }, {});
 
       // Update worker statuses based on ps output vs internal state
       this.setWorkers((prevWorkers) => {
-          const updatedWorkers = { ...prevWorkers }; // Start with previous state
+        const updatedWorkers = { ...prevWorkers }; // Start with previous state
 
-          for (const workerId in updatedWorkers) {
-              const workerConfig = this.workers[workerId]; // Use internal config for port info
-              if (!workerConfig) continue;
+        for (const workerId in updatedWorkers) {
+          const workerConfig = this.workers[workerId]; // Use internal config for port info
+          if (!workerConfig) continue;
 
-              const isRunningInPs = runningPortMap[workerConfig.port] !== undefined;
-              const currentProcessInMemory = this.workerProcesses[workerId];
+          const isRunningInPs = runningPortMap[workerConfig.port] !== undefined;
+          const currentProcessInMemory = this.workerProcesses[workerId];
 
-              if (isRunningInPs) {
-                  updatedWorkers[workerId].status = "running";
-                  if (!currentProcessInMemory) {
-                      // Discrepancy: ps says running, but we have no process object.
-                      // Might happen if TUI restarted but worker didn't.
-                      // Log this, but trust ps for status.
-                      this.addToLogs(workerId, `[checkAllStatus] Detected running process via ps (PID ${runningPortMap[workerConfig.port]}) but no internal handle exists.`);
-                  }
-              } else {
-                  // Not running according to ps
-                  updatedWorkers[workerId].status = "stopped";
-                  if (currentProcessInMemory) {
-                      // Discrepancy: ps says stopped, but we still have a process object.
-                      // The 'exit' event likely hasn't fired or was missed.
-                      this.addToLogs(workerId, `[checkAllStatus] Internal process handle exists but process not found via ps. Forcing cleanup.`);
-                      // Force cleanup of the potentially orphaned process handle
-                      currentProcessInMemory.removeAllListeners(); // Prevent memory leaks
-                      delete this.workerProcesses[workerId];
-                  }
-              }
+          if (isRunningInPs) {
+            updatedWorkers[workerId].status = "running";
+            if (!currentProcessInMemory) {
+              // Discrepancy: ps says running, but we have no process object.
+              // Might happen if TUI restarted but worker didn't.
+              // Log this, but trust ps for status.
+              this.addToLogs(
+                workerId,
+                `[checkAllStatus] Detected running process via ps (PID ${runningPortMap[workerConfig.port]}) but no internal handle exists.`
+              );
+            }
+          } else {
+            // Not running according to ps
+            updatedWorkers[workerId].status = "stopped";
+            if (currentProcessInMemory) {
+              // Discrepancy: ps says stopped, but we still have a process object.
+              // The 'exit' event likely hasn't fired or was missed.
+              this.addToLogs(
+                workerId,
+                `[checkAllStatus] Internal process handle exists but process not found via ps. Forcing cleanup.`
+              );
+              // Force cleanup of the potentially orphaned process handle
+              currentProcessInMemory.removeAllListeners(); // Prevent memory leaks
+              delete this.workerProcesses[workerId];
+            }
           }
-          return updatedWorkers;
+        }
+        return updatedWorkers;
       });
 
       this.setStatusMessage("Worker status refreshed via ps aux.");
     } catch (error) {
-      this.setStatusMessage(
-        `Error checking worker status: ${error.message}`
-      );
+      this.setStatusMessage(`Error checking worker status: ${error.message}`);
     }
   }
 

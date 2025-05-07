@@ -81,10 +81,12 @@ async function main() {
 
   program
     .command("check-setup")
-    .description("Check the current setup for issues without modifying anything.")
+    .description(
+      "Check the current setup for issues without modifying anything."
+    )
     .action(async () => {
       // Dynamically import and run the check-setup script
-      import("./check-setup.js").catch(e => {
+      import("./check-setup.js").catch((e) => {
         print_error(`Failed to run check-setup: ${e.message}`);
         process.exit(1);
       });
@@ -97,29 +99,37 @@ async function main() {
       try {
         const fs = await import("node:fs");
         const path = await import("node:path");
-        
+
         const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
         const configTomlPath = path.resolve(process.cwd(), "config.toml");
-        
+
         if (fs.existsSync(configJsoncPath)) {
           console.log(green("Using: config.jsonc (JSONC format)"));
         } else if (fs.existsSync(configTomlPath)) {
           console.log(green("Using: config.toml (TOML format)"));
         } else {
-          console.log(yellow("No configuration file found. Run 'init' to create one."));
+          console.log(
+            yellow("No configuration file found. Run 'init' to create one.")
+          );
         }
-        
+
         // Show information about both example files
-        const exampleJsoncPath = path.resolve(process.cwd(), "config.jsonc.example");
-        const exampleTomlPath = path.resolve(process.cwd(), "config.toml.example");
-        
+        const exampleJsoncPath = path.resolve(
+          process.cwd(),
+          "config.jsonc.example"
+        );
+        const exampleTomlPath = path.resolve(
+          process.cwd(),
+          "config.toml.example"
+        );
+
         console.log("\nExample files available:");
         if (fs.existsSync(exampleJsoncPath)) {
           console.log(green("- config.jsonc.example (JSONC format)"));
         } else {
           console.log(red("- config.jsonc.example not found"));
         }
-        
+
         if (fs.existsSync(exampleTomlPath)) {
           console.log(green("- config.toml.example (TOML format)"));
         } else {
@@ -138,7 +148,10 @@ async function main() {
   workersCommand
     .command("clone")
     .description("Clone selected worker repositories as git submodules")
-    .option("-d, --direct", "Clone repositories directly instead of using submodules")
+    .option(
+      "-d, --direct",
+      "Clone repositories directly instead of using submodules"
+    )
     .action(async (options) => {
       await cloneWorkerRepositories(options.direct || false);
     });
@@ -364,111 +377,127 @@ async function main() {
  * Checks if the workers directory is empty and provides an interactive prompt to clone worker repositories.
  * @param direct If true, clone repositories directly instead of using git submodules
  */
-export async function cloneWorkerRepositories(direct: boolean = false): Promise<void> {
+export async function cloneWorkerRepositories(
+  direct: boolean = false
+): Promise<void> {
   const workersDir = path.resolve(process.cwd(), "workers");
-  
+
   // Create workers directory if it doesn't exist
   if (!fs.existsSync(workersDir)) {
     console.log(yellow("Workers directory does not exist. Creating it..."));
     fs.mkdirSync(workersDir, { recursive: true });
   }
-  
+
   // Check if the workers directory is empty
   const files = await readdir(workersDir);
-  const nonHiddenFiles = files.filter(file => !file.startsWith('.'));
-  
+  const nonHiddenFiles = files.filter((file) => !file.startsWith("."));
+
   if (nonHiddenFiles.length > 0) {
     console.log(yellow("Workers directory is not empty. Existing workers:"));
-    nonHiddenFiles.forEach(file => console.log(`- ${file}`));
-    
-    const proceed = await rl.question(blue("Do you want to proceed with cloning additional workers? (y/N): "));
+    nonHiddenFiles.forEach((file) => console.log(`- ${file}`));
+
+    const proceed = await rl.question(
+      blue("Do you want to proceed with cloning additional workers? (y/N): ")
+    );
     if (proceed.toLowerCase() !== "y") {
       console.log(dim("Aborted worker clone operation."));
       return;
     }
   }
-  
+
   // Define available worker repositories
   const availableWorkers = [
-    { 
+    {
       name: "d1-worker",
       repo: "https://github.com/jango-blockchained/d1-worker.git",
-      description: "Worker for D1 database operations"
+      description: "Worker for D1 database operations",
     },
-    { 
+    {
       name: "telegram-worker",
       repo: "https://github.com/jango-blockchained/telegram-worker.git",
-      description: "Worker for Telegram bot integration"
+      description: "Worker for Telegram bot integration",
     },
-    { 
+    {
       name: "trade-worker",
       repo: "https://github.com/jango-blockchained/trade-worker.git",
-      description: "Worker for trading operations"
+      description: "Worker for trading operations",
     },
-    { 
+    {
       name: "web3-wallet-worker",
       repo: "https://github.com/jango-blockchained/web3-wallet-worker.git",
-      description: "Worker for web3 wallet integration"
+      description: "Worker for web3 wallet integration",
     },
-    { 
+    {
       name: "webhook-receiver",
       repo: "https://github.com/jango-blockchained/webhook-receiver.git",
-      description: "Worker for receiving webhook calls"
+      description: "Worker for receiving webhook calls",
     },
-    { 
+    {
       name: "home-assistant-worker",
       repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
-      description: "Worker for Home Assistant integration"
+      description: "Worker for Home Assistant integration",
     },
   ];
-  
+
   console.log(blue("\nAvailable worker repositories to clone:"));
   availableWorkers.forEach((worker, index) => {
     console.log(`${index + 1}. ${yellow(worker.name)} - ${worker.description}`);
   });
-  console.log(`${availableWorkers.length + 1}. ${yellow("All workers")} - Clone all available workers`);
-  
-  const selection = await rl.question(blue("Enter the numbers of workers to clone (comma-separated) or 'all': "));
-  
+  console.log(
+    `${availableWorkers.length + 1}. ${yellow("All workers")} - Clone all available workers`
+  );
+
+  const selection = await rl.question(
+    blue("Enter the numbers of workers to clone (comma-separated) or 'all': ")
+  );
+
   let selectedWorkers: typeof availableWorkers = [];
-  
+
   if (selection.toLowerCase() === "all") {
     selectedWorkers = [...availableWorkers];
   } else {
-    const selectedIndices = selection.split(",")
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-      .map(s => parseInt(s, 10) - 1);
-    
+    const selectedIndices = selection
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((s) => parseInt(s, 10) - 1);
+
     if (selectedIndices.includes(availableWorkers.length)) {
       // Selected "All workers" option
       selectedWorkers = [...availableWorkers];
     } else {
       // Filter valid indices and map to worker objects
       selectedWorkers = selectedIndices
-        .filter(i => i >= 0 && i < availableWorkers.length)
-        .map(i => availableWorkers[i])
-        .filter((worker): worker is typeof availableWorkers[0] => worker !== undefined);
+        .filter((i) => i >= 0 && i < availableWorkers.length)
+        .map((i) => availableWorkers[i])
+        .filter(
+          (worker): worker is (typeof availableWorkers)[0] =>
+            worker !== undefined
+        );
     }
   }
-  
+
   if (selectedWorkers.length === 0) {
     console.log(yellow("No valid workers selected. Aborting."));
     return;
   }
-  
-  console.log(blue(`\nCloning ${selectedWorkers.length} worker repositories...`));
+
+  console.log(
+    blue(`\nCloning ${selectedWorkers.length} worker repositories...`)
+  );
   const execP = promisify(exec);
-  
+
   for (const worker of selectedWorkers) {
     const targetDir = path.join(workersDir, worker.name);
-    
+
     // Skip if directory already exists
     if (fs.existsSync(targetDir)) {
-      console.log(yellow(`Worker directory ${worker.name} already exists. Skipping.`));
+      console.log(
+        yellow(`Worker directory ${worker.name} already exists. Skipping.`)
+      );
       continue;
     }
-    
+
     try {
       if (direct) {
         // Clone directly
@@ -486,7 +515,7 @@ export async function cloneWorkerRepositories(direct: boolean = false): Promise<
       print_error(`Failed to clone ${worker.name}: ${error.message}`);
     }
   }
-  
+
   if (!direct) {
     try {
       // Initialize and update submodules
@@ -498,7 +527,7 @@ export async function cloneWorkerRepositories(direct: boolean = false): Promise<
       print_error(`Failed to update submodules: ${error.message}`);
     }
   }
-  
+
   console.log(green("\nWorker clone operations completed."));
   console.log(blue("Next steps:"));
   console.log("1. Run 'bun run manage.ts init' to complete setup");

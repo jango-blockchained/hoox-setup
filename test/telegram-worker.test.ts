@@ -19,8 +19,8 @@ const mockVectorizeInsert = jest.fn().mockResolvedValue({ success: true });
 // Mock environment with required bindings
 const mockEnv: Env = {
   VECTORIZE_INDEX: {
-    insert: mockVectorizeInsert
-  }
+    insert: mockVectorizeInsert,
+  },
 };
 
 describe("Vector Operations", () => {
@@ -35,12 +35,14 @@ describe("Vector Operations", () => {
     // Reset the mock
     mockVectorizeInsert.mockReset();
     mockVectorizeInsert.mockResolvedValueOnce({ success: true });
-    
+
     const vectors = [[0.1, 0.2, 0.3]];
-    const metadata = [{ id: "1", text: "Test message" }] as TelegramMessageMetadata[];
-    
+    const metadata = [
+      { id: "1", text: "Test message" },
+    ] as TelegramMessageMetadata[];
+
     await insertEmbeddings(vectors, metadata, mockEnv);
-    
+
     expect(mockVectorizeInsert).toHaveBeenCalledWith(vectors, metadata);
   });
 
@@ -49,16 +51,20 @@ describe("Vector Operations", () => {
     mockVectorizeInsert.mockReset();
     const error = new Error("Insert failed");
     mockVectorizeInsert.mockRejectedValueOnce(error);
-    
+
     const vectors = [[0.1, 0.2, 0.3]];
-    const metadata = [{ id: "1", text: "Test message" }] as TelegramMessageMetadata[];
-    
+    const metadata = [
+      { id: "1", text: "Test message" },
+    ] as TelegramMessageMetadata[];
+
     try {
       await insertEmbeddings(vectors, metadata, mockEnv);
       // If we get here, the test should fail because no error was thrown
       expect(true).toBe(false); // Force the test to fail
     } catch (error: any) {
-      expect(error.message).toContain("Failed to insert embeddings: Insert failed");
+      expect(error.message).toContain(
+        "Failed to insert embeddings: Insert failed"
+      );
     }
   });
-}); 
+});

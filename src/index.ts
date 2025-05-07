@@ -15,22 +15,26 @@ export async function insertEmbeddings(
     console.log("No data to insert into Vectorize.");
     return; // Return early without throwing if either array is empty
   }
-  
+
   if (vectors.length !== metadata.length) {
     throw new Error("Number of vectors must match number of metadata objects.");
   }
 
   if (!env.VECTORIZE_INDEX) {
-    console.error("VECTORIZE_INDEX binding is not configured in the environment.");
+    console.error(
+      "VECTORIZE_INDEX binding is not configured in the environment."
+    );
     throw new Error("Vectorize service not available.");
   }
 
   try {
-    console.log(`Inserting ${vectors.length} vector(s) into Vectorize index...`);
+    console.log(
+      `Inserting ${vectors.length} vector(s) into Vectorize index...`
+    );
     const response = await env.VECTORIZE_INDEX.insert(vectors, metadata);
     console.log("Vectorize insertion successful:", response);
   } catch (error: any) {
     console.error("Error inserting embeddings into Vectorize:", error);
     throw new Error(`Failed to insert embeddings: ${error.message}`);
   }
-} 
+}
