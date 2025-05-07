@@ -428,8 +428,8 @@ export async function cloneWorkerRepositories(
       description: "Worker for web3 wallet integration",
     },
     {
-      name: "webhook-receiver",
-      repo: "https://github.com/jango-blockchained/webhook-receiver.git",
+      name: "hoox",
+      repo: "https://github.com/jango-blockchained/hoox.git",
       description: "Worker for receiving webhook calls",
     },
     {
