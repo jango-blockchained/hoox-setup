@@ -77,15 +77,18 @@ async function main() {
   console.log(blue("\n=== Setup Validation Tool ==="));
 
   // Determine which config format is being used
-  const { userConfig, exampleConfig, format } =
-    await determineConfigFormat();
+  const {
+    userConfig,
+    exampleConfig: exConfigPath,
+    format,
+  } = await determineConfigFormat();
 
   console.log(blue(`\nUsing ${format.toUpperCase()} configuration format`));
 
   // Check if essential files exist
   const fileChecks = [
     { path: userConfig, name: path.basename(userConfig), required: true },
-    { path: exampleConfig, name: path.basename(exampleConfig), required: true },
+    { path: exConfigPath, name: path.basename(exConfigPath), required: true },
     {
       path: WIZARD_STATE_FILE,
       name: ".install-wizard-state.json",
@@ -126,7 +129,7 @@ async function main() {
 
   // Load config file
   let configContent, exampleConfigContent;
-  let config: Config, exampleConfig: Config;
+  let config: Config, exampleConfigData: Config;
 
   try {
     configContent = await fs.readFile(userConfig, "utf-8");
@@ -137,27 +140,27 @@ async function main() {
     }
     console.log(green(`✓ ${path.basename(userConfig)} parsed successfully`));
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.log(
-      red(
-        `✗ Error reading or parsing ${path.basename(userConfig)}: ${(error as Error).message}`
-      )
+      red(`✗ Error reading or parsing ${path.basename(userConfig)}: ${errMsg}`)
     );
     process.exit(1);
   }
 
   // Load example config file
   try {
-    exampleConfigContent = await fs.readFile(exampleConfig, "utf-8");
+    exampleConfigContent = await fs.readFile(exConfigPath, "utf-8");
     if (format === "jsonc") {
-      exampleConfig = parseJsonc(exampleConfigContent);
+      exampleConfigData = parseJsonc(exampleConfigContent);
     } else {
-      exampleConfig = TOML.parse(exampleConfigContent) as Config;
+      exampleConfigData = TOML.parse(exampleConfigContent) as Config;
     }
-    console.log(green(`✓ ${path.basename(exampleConfig)} parsed successfully`));
+    console.log(green(`✓ ${path.basename(exConfigPath)} parsed successfully`));
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.log(
       red(
-        `✗ Error reading or parsing ${path.basename(exampleConfig)}: ${(error as Error).message}`
+        `✗ Error reading or parsing ${path.basename(exConfigPath)}: ${errMsg}`
       )
     );
     process.exit(1);
@@ -178,10 +181,9 @@ async function main() {
       process.exit(1);
     }
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.log(
-      red(
-        `✗ Error validating ${path.basename(userConfig)}: ${(error as Error).message}`
-      )
+      red(`✗ Error validating ${path.basename(userConfig)}: ${errMsg}`)
     );
     process.exit(1);
   }
@@ -189,13 +191,13 @@ async function main() {
   // Compare structure between config and config.example
   console.log(
     blue(
-      `\nComparing ${path.basename(userConfig)} and ${path.basename(exampleConfig)}:`
+      `\nComparing ${path.basename(userConfig)} and ${path.basename(exConfigPath)}:`
     )
   );
 
   // Check global section keys
   const configGlobalKeys = Object.keys(config.global || {}).sort();
-  const exampleGlobalKeys = Object.keys(exampleConfig.global || {}).sort();
+  const exampleGlobalKeys = Object.keys(exampleConfigData.global || {}).sort();
 
   // Identify missing keys in each direction
   const missingInConfig = exampleGlobalKeys.filter(
@@ -227,7 +229,7 @@ async function main() {
 
   // Check workers sections
   const configWorkers = Object.keys(config.workers || {}).sort();
-  const exampleWorkers = Object.keys(exampleConfig.workers || {}).sort();
+  const exampleWorkers = Object.keys(exampleConfigData.workers || {}).sort();
 
   const missingWorkersInConfig = exampleWorkers.filter(
     (worker) => !configWorkers.includes(worker)
@@ -305,11 +307,11 @@ async function main() {
 
         // Check for secrets binding if worker has secrets
         if (workerConfig.secrets && workerConfig.secrets.length > 0) {
-          const configContent = await fs.readFile(configPath, "utf-8");
+          const configFileContent = await fs.readFile(configPath, "utf-8");
 
           if (hasJsonc) {
             // For JSONC, remove comments before parsing
-            const jsonContent = configContent
+            const jsonContent = configFileContent
               .replace(/\/\/.*$/gm, "") // Remove single-line comments
               .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
 
@@ -334,9 +336,11 @@ async function main() {
                 );
               }
             } catch (error) {
+              const errMsg =
+                error instanceof Error ? error.message : String(error);
               console.log(
                 red(
-                  `  ✗ Error parsing wrangler.jsonc for ${workerName}: ${(error as Error).message}`
+                  `  ✗ Error parsing wrangler.jsonc for ${workerName}: ${errMsg}`
                 )
               );
               allWorkersValid = false;
@@ -344,7 +348,7 @@ async function main() {
           } else {
             // For TOML
             try {
-              const wranglerConfig = TOML.parse(configContent);
+              const wranglerConfig = TOML.parse(configFileContent);
 
               if (!wranglerConfig.secrets_store_secrets) {
                 console.log(
@@ -360,16 +364,18 @@ async function main() {
                 );
               }
             } catch (error) {
+              const errMsg =
+                error instanceof Error ? error.message : String(error);
               console.log(
                 red(
-                  `  ✗ Error parsing wrangler.toml for ${workerName}: ${(error as Error).message}`
+                  `  ✗ Error parsing wrangler.toml for ${workerName}: ${errMsg}`
                 )
               );
               allWorkersValid = false;
             }
           }
         }
-      } catch (error) {
+      } catch {
         console.log(red(`✗ Worker directory for ${workerName} does not exist`));
         allWorkersValid = false;
       }
@@ -412,6 +418,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(red(`Fatal error: ${error.message}`));
+  const errMsg = error instanceof Error ? error.message : String(error);
+  console.error(red(`Fatal error: ${errMsg}`));
   process.exit(1);
 });

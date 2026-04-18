@@ -1,58 +1,29 @@
 import fs from "fs";
 import path from "path";
-import ansis from "ansis"; // Import ansis directly
-// Import Zod
+import ansis from "ansis";
 
-// Import types and schemas
 import {
   type Config,
   type GlobalConfig,
-  // type WorkerConfig, // Removed
   type WizardState,
-  // type CommandResult, // Removed
-  ConfigSchema, // Import Zod schema for Config
-  WizardStateSchema, // Import Zod schema for WizardState
+  ConfigSchema,
+  WizardStateSchema,
 } from "./types.js";
 
-// Import utils (assuming these will be converted to .ts)
-import {
-  // checkCommandExists, // Removed
-  // runCommandSync, // Removed
-  // runCommandWithStdin, // Removed
-  // getCloudflareToken, // Removed
-  // promptForSecret, // Removed
-  rl,
-  // red, // Removed
-  // yellow, // Removed
-  // blue, // Removed
-  // green, // Removed
-  dim,
-  // cyan, // Removed
-  print_success,
-  print_error,
-  print_warning,
-} from "./utils.js";
-import {
-  // getKeyFilePath, // Removed
-  // readKeys, // Removed
-  // setKey, // Removed
-  // generateKey, // Removed
-  // listKeys, // Removed
-  // LOCAL_KEYS_FILE, // Removed
-} from "./keyUtils.js";
-import { saveConfig, loadConfig } from "./configUtils.js"; // parseConfig removed
+import { rl, dim, print_success, print_error, print_warning } from "./utils.js";
+
+import { saveConfig, loadConfig } from "./configUtils.js";
+
 import {
   step_checkDependencies,
   step_configureGlobals,
   step_selectWorkers,
   step_setupD1,
-  // step_saveConfig, // Removed
   step_configureSecrets,
   step_initialDeploy,
   printWizardStep,
-} from "./wizardSteps.js"; // Import steps
+} from "./wizardSteps.js";
 
-// Import the cloneWorkerRepositories function
 import { cloneWorkerRepositories } from "./manage.js";
 
 const STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
@@ -389,14 +360,20 @@ export async function runWizard(): Promise<void> {
       printWizardStep(currentState, "Saving Configuration");
       if (!currentState.config)
         throw new Error("Cannot save undefined config.");
-      // Validate final config before saving (optional but recommended)
+
       const finalConfigCheck = ConfigSchema.safeParse(currentState.config);
       if (!finalConfigCheck.success) {
         print_error("Final configuration validation failed before saving:");
-        console.error(dim(finalConfigCheck.error.flatten()));
+        console.error(
+          dim(JSON.stringify(finalConfigCheck.error.flatten(), null, 2))
+        );
         throw new Error("Could not save invalid final configuration.");
       }
-      await saveConfig(finalConfigCheck.data as Config); // Save validated data
+
+      // Cast to Config from configUtils for saveConfig
+      const configToSave =
+        finalConfigCheck.data as unknown as import("./configUtils.js").Config;
+      await saveConfig(configToSave);
       currentState.currentStep++;
       saveWizardState(currentState);
     }

@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { $ } from "bun";
 
-const rootDir = resolve(import.meta.dir, "..");
+const rootDir = process.cwd();
 const workersDir = join(rootDir, "workers");
 const args = process.argv.slice(2); // Get command-line arguments passed to the script
 

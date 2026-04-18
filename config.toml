@@ -1,69 +1,63 @@
 [global]
-# Cloudflare API Token (Recommended over API Key/Email for better security)
-# Obtain from: Cloudflare Dashboard > My Profile > API Tokens > Create Token > Use "Edit Cloudflare Workers" template
-cloudflare_api_token = "" # PASTE YOUR TOKEN HERE or leave empty to be prompted
-
-# Cloudflare Account ID
-# Obtain from: Cloudflare Dashboard > Select your domain > Overview page (bottom right)
-cloudflare_account_id = "" # PASTE YOUR ACCOUNT ID HERE or leave empty to be prompted
-
-# Cloudflare Secret Store ID (Required for Secret Store bindings)
-# Obtain from: Cloudflare Dashboard > Secrets Store or `wrangler secrets-store store list`
-cloudflare_secret_store_id = "" # PASTE YOUR STORE ID HERE
-
-# A unique prefix for your worker subdomains (e.g., "my-app")
-# Final URLs will look like: worker-name.prefix.workers.dev
-subdomain_prefix = "" # CHOOSE A PREFIX or leave empty to be prompted
-
-# Optional: Specify the path to your global .env file if you use one for secrets NOT managed by wrangler
-# dotenv_path = ".env"
-
-[secrets]
-# Define names for secrets that might be shared or referenced across workers
-# The actual values should be set via wrangler secret put (handled by the script) or manually in the dashboard
-# Example:
-# TELEGRAM_BOT_TOKEN = "" # Leave value empty, script will prompt or use environment variable if needed
+cloudflare_api_token = "cfut_Q7jLzuf3IO1Gh1uvia8Fz2vpmW3I9CEcFcDDPJWmd1bc339d"
+cloudflare_account_id = "debc6545e63bea36be059cbc82d80ec8"
+cloudflare_secret_store_id = "48433bc559a943f09d9d6c622e188fd5"
+subdomain_prefix = "cryptolinx"
 
 [workers.d1-worker]
-enabled = true # Set to true to enable this worker during setup/deployment
-# Path relative to the project root
+enabled = true
 path = "workers/d1-worker"
-# Worker-specific environment variables for wrangler.toml or .dev.vars
-vars = { database_name = "my-database" }
-# Secrets needed by this worker (names defined in Cloudflare secrets)
-# The script will try to set these using wrangler secret put
-secrets = [] # Example: ["DATABASE_URL_SECRET"]
+secrets = [ ]
+deployed_url = "https://d1-worker.cryptolinx.workers.dev"
+
+  [workers.d1-worker.vars]
+  database_name = "my-database"
 
 [workers.telegram-worker]
 enabled = true
 path = "workers/telegram-worker"
-vars = {}
-secrets = ["TELEGRAM_BOT_TOKEN"] # Assumes a secret named TELEGRAM_BOT_TOKEN exists in Cloudflare
+vars = { }
+secrets = [ "TELEGRAM_BOT_TOKEN" ]
+deployed_url = "https://telegram-worker.cryptolinx.workers.dev"
 
 [workers.trade-worker]
 enabled = true
 path = "workers/trade-worker"
-vars = {}
-secrets = ["API_SERVICE_KEY"] # Example
+vars = { }
+secrets = [ "API_SERVICE_KEY" ]
+deployed_url = "https://trade-worker.cryptolinx.workers.dev"
 
 [workers.web3-wallet-worker]
 enabled = true
 path = "workers/web3-wallet-worker"
-vars = {}
-# The mnemonic needs to be stored securely. The script should prompt for it.
-secrets = ["MNEMONIC"]
+vars = { }
+secrets = [ "MNEMONIC" ]
+deployed_url = "https://web3-wallet-worker.cryptolinx.workers.dev"
 
 [workers.hoox]
 enabled = true
 path = "workers/hoox"
 description = "Central webhook processing and dynamic routing worker"
-secrets = []
+secrets = [ ]
+deployed_url = "https://hoox.cryptolinx.workers.dev"
 
 [workers.home-assistant]
-enabled = true
+enabled = false
 path = "workers/home-assistant-worker"
-vars = {}
-secrets = ["HA_TOKEN","HA_SECURE_URL"] # Token for Home Assistant API authentication
+vars = { }
+secrets = [ "HA_TOKEN", "HA_SECURE_URL" ]
 
+[workers.agent-worker]
+enabled = false
+path = "workers/agent-worker"
+vars = { }
+secrets = [ ]
 
-# Add more workers here following the same structure 
+[workers.email-worker]
+enabled = true
+path = "workers/email-worker"
+secrets = [ "EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY" ]
+deployed_url = "https://email-worker.cryptolinx.workers.dev"
+
+  [workers.email-worker.vars]
+  USE_IMAP = "false"

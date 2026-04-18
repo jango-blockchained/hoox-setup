@@ -101,8 +101,7 @@ export function runCommandSync(
 }
 
 // Promisified spawn for async execution with streaming potential
-/*
-async function runCommandAsync(
+export async function runCommandAsync(
   command: string,
   args: string[],
   cwd: string,
@@ -153,7 +152,6 @@ async function runCommandAsync(
     });
   });
 }
-*/
 
 /**
  * Runs a command that might require stdin input.

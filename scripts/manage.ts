@@ -136,7 +136,8 @@ async function main() {
           console.log(red("- config.toml.example not found"));
         }
       } catch (error) {
-        print_error(`Error checking configuration: ${error.message}`);
+        const errMsg = error instanceof Error ? error.message : String(error);
+        print_error(`Error checking configuration: ${errMsg}`);
       }
     });
 
@@ -436,6 +437,12 @@ export async function cloneWorkerRepositories(
       name: "home-assistant-worker",
       repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
       description: "Worker for Home Assistant integration",
+    },
+    {
+      name: "email-worker",
+      repo: "https://github.com/jango-blockchained/email-worker.git",
+      description:
+        "Worker for email webhook processing (Gmail, Mailgun, SendGrid)",
     },
   ];
 
