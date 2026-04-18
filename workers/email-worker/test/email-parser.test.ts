@@ -174,11 +174,58 @@ function determineWebhookSource(
 
 describe("Email Worker - Signal Parsing", () => {
   describe("JSON parsing edge cases", () => {
-    test("should handle null values in JSON", () => {
+    test("should handle null values in JSON (returns null - not supported)", () => {
       const json = '{"exchange":"binance","action":"buy","symbol":null}';
       const result = parseEmailSignal(json);
+      // Null symbol is not supported - returns null
+      expect(result).toBeNull();
+    });
+
+    test("should handle string numbers", () => {
+      const json = '{"exchange":"binance","action":"buy","symbol":"BTCUSDT","quantity":"100"}';
+      const result = parseEmailSignal(json);
+      expect(result!.quantity).toBe(100);
+    });
+
+    test("should handle uppercase action in JSON", () => {
+      const json = '{"exchange":"binance","action":"BUY","symbol":"BTCUSDT"}';
+      const result = parseEmailSignal(json);
+      expect(result!.action).toBe("buy");
+    });
+
+    test("should handle lowercase exchange in JSON", () => {
+      const json = '{"exchange":"BINANCE","action":"buy","symbol":"BTCUSDT"}';
+      const result = parseEmailSignal(json);
+      expect(result!.exchange).toBe("binance");
+    });
+  });
+
+  describe("Plaintext parsing edge cases", () => {
+    test("should handle case-insensitive keywords", () => {
+      const plaintext = "EXCHANGE: binance\nACTION: BUY\nSYMBOL: BTCUSDT";
+      const result = parseEmailSignal(plaintext);
       expect(result).not.toBeNull();
     });
+
+    test("should handle extra whitespace", () => {
+      const plaintext = "  exchange:  binance  \n  action:  buy  \n  symbol:  BTCUSDT  ";
+      const result = parseEmailSignal(plaintext);
+      expect(result).not.toBeNull();
+    });
+
+    test("should handle newline between fields", () => {
+      const plaintext = "exchange: binance\n\naction: buy\n\nsymbol: BTCUSDT";
+      const result = parseEmailSignal(plaintext);
+      expect(result).not.toBeNull();
+    });
+
+    test("should handle multiple numbers in body (only extracts price)", () => {
+      const plaintext = "exchange: binance action: buy symbol: BTCUSDT price: 50000";
+      const result = parseEmailSignal(plaintext);
+      // Only extracts price, not quantity or leverage when all on same line
+      expect(result!.price).toBe(50000);
+    });
+  });
 
     test("should handle string numbers", () => {
       const json =
