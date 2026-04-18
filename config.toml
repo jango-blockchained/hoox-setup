@@ -8,7 +8,6 @@ subdomain_prefix = "cryptolinx"
 enabled = true
 path = "workers/d1-worker"
 secrets = [ ]
-deployed_url = "https://d1-worker.cryptolinx.workers.dev"
 
   [workers.d1-worker.vars]
   database_name = "my-database"
@@ -18,14 +17,12 @@ enabled = true
 path = "workers/telegram-worker"
 vars = { }
 secrets = [ "TELEGRAM_BOT_TOKEN" ]
-deployed_url = "https://telegram-worker.cryptolinx.workers.dev"
 
 [workers.trade-worker]
 enabled = true
 path = "workers/trade-worker"
 vars = { }
 secrets = [ "API_SERVICE_KEY" ]
-deployed_url = "https://trade-worker.cryptolinx.workers.dev"
 
 [workers.web3-wallet-worker]
 enabled = true
@@ -39,7 +36,6 @@ enabled = true
 path = "workers/hoox"
 description = "Central webhook processing and dynamic routing worker"
 secrets = [ ]
-deployed_url = "https://hoox.cryptolinx.workers.dev"
 
 [workers.home-assistant]
 enabled = false
