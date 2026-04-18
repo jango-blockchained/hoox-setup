@@ -23,7 +23,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",
     "generate-types": "tsc -p tsconfig.prod.json --declaration --emitDeclarationOnly --outDir types",
-    "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'"
+    "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'",
+    "migrate:tracking": "bash scripts/migrate-tracking.sh"
   },
   "devDependencies": {
     "@cloudflare/ai": "^1.2.2",
