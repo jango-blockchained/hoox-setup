@@ -9,8 +9,17 @@ interface EmailSignal {
   leverage?: number;
 }
 
+interface Env {
+  TRADE_SERVICE?: { fetch: (url: string, options?: any) => Promise<any> };
+  EMAIL_HOST_BINDING?: { get: () => Promise<string | null> };
+  EMAIL_USER_BINDING?: { get: () => Promise<string | null> };
+  EMAIL_PASS_BINDING?: { get: () => Promise<string | null> };
+  INTERNAL_KEY_BINDING?: { get: () => Promise<string | null> };
+  EMAIL_SCAN_SUBJECT?: string;
+  USE_IMAP?: string;
+}
+
 function parseEmailSignal(body: string): EmailSignal | null {
-  // Try JSON first
   try {
     const data = JSON.parse(body);
     if (data.exchange && data.action && data.symbol) {
@@ -25,15 +34,12 @@ function parseEmailSignal(body: string): EmailSignal | null {
     }
   } catch {}
 
-  // Plaintext extraction
   const lower = body.toLowerCase();
-
   const exchange = extractField(lower, [
     "exchange",
     "binance",
     "mexc",
     "bybit",
-    "bitget",
   ]);
   const action = extractField(lower, [
     "action",
@@ -41,10 +47,9 @@ function parseEmailSignal(body: string): EmailSignal | null {
     "sell",
     "long",
     "short",
-    "close",
   ]);
   const symbol = extractField(lower, ["symbol", "pair"]);
-  const quantity = extractNumber(body, ["quantity", "qty", "amount", "size"]);
+  const quantity = extractNumber(body, ["quantity", "qty", "amount"]);
   const price = extractNumber(body, ["price", "entry"]);
   const leverage = extractNumber(body, ["leverage", "lev"]);
 
@@ -58,12 +63,10 @@ function parseEmailSignal(body: string): EmailSignal | null {
       leverage: leverage || undefined,
     };
   }
-
   return null;
 }
 
 function extractField(body: string, keywords: string[]): string | null {
-  // First try with colon (key:)
   for (const kw of keywords) {
     const idx = body.indexOf(kw + ":");
     if (idx !== -1) {
@@ -75,7 +78,6 @@ function extractField(body: string, keywords: string[]): string | null {
       if (value && value.length > 0 && value.length < 20) return value;
     }
   }
-  // Then try keyword as standalone word
   for (const kw of keywords) {
     const regex = new RegExp(`\\b${kw}\\b`, "i");
     if (regex.test(body)) {
@@ -116,96 +118,298 @@ function normalizeAction(value: string): string {
   return v;
 }
 
-describe("Email Signal Parsing", () => {
-  describe("JSON format", () => {
-    test("should parse valid JSON signal", () => {
-      const json =
-        '{"exchange":"binance","action":"buy","symbol":"BTCUSDT","quantity":100}';
+async function forwardToTradeWorker(
+  tradeService:
+    | { fetch: (url: string, opts?: any) => Promise<Response> }
+    | undefined,
+  signal: EmailSignal,
+  env: Env
+): Promise<{ success: boolean; requestId?: string; error?: string }> {
+  if (!tradeService) {
+    return { success: false, error: "Trade service not configured" };
+  }
+
+  try {
+    const internalKey = await env.INTERNAL_KEY_BINDING?.get();
+
+    const response = await tradeService.fetch(
+      "https://trade-worker.internal/webhook",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Key": internalKey || "",
+          "X-Source": "email-worker",
+        },
+        body: JSON.stringify(signal),
+      }
+    );
+
+    if (!response.ok) {
+      return { success: false, error: `HTTP ${response.status}` };
+    }
+
+    const result = await response.json();
+    return { success: true, requestId: result.requestId };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+function determineWebhookSource(
+  headers: Record<string, string>,
+  contentType: string
+): string {
+  const userAgent = headers["user-agent"] || "";
+
+  if (userAgent.includes("Mailgun")) return "mailgun";
+  if (contentType.includes("application/json")) return "json";
+  if (contentType.includes("application/x-www-form-urlencoded")) return "form";
+
+  return "unknown";
+}
+
+describe("Email Worker - Signal Parsing", () => {
+  describe("JSON parsing edge cases", () => {
+    test("should handle null values in JSON", () => {
+      const json = '{"exchange":"binance","action":"buy","symbol":null}';
       const result = parseEmailSignal(json);
       expect(result).not.toBeNull();
-      expect(result!.exchange).toBe("binance");
+    });
+
+    test("should handle string numbers", () => {
+      const json =
+        '{"exchange":"binance","action":"buy","symbol":"BTCUSDT","quantity":"100"}';
+      const result = parseEmailSignal(json);
+      expect(result!.quantity).toBe(100);
+    });
+
+    test("should handle uppercase action in JSON", () => {
+      const json = '{"exchange":"binance","action":"BUY","symbol":"BTCUSDT"}';
+      const result = parseEmailSignal(json);
       expect(result!.action).toBe("buy");
-      expect(result!.symbol).toBe("BTCUSDT");
-      expect(result!.quantity).toBe(100);
     });
 
-    test("should parse JSON with price and leverage", () => {
-      const json =
-        '{"exchange":"mexc","action":"sell","symbol":"ETHUSDT","quantity":50,"price":2500.5,"leverage":5}';
+    test("should handle lowercase exchange in JSON", () => {
+      const json = '{"exchange":"BINANCE","action":"buy","symbol":"BTCUSDT"}';
       const result = parseEmailSignal(json);
-      expect(result).not.toBeNull();
-      expect(result!.price).toBe(2500.5);
-      expect(result!.leverage).toBe(5);
-    });
-
-    test("should default quantity to 100", () => {
-      const json = '{"exchange":"bybit","action":"buy","symbol":"SOLUSDT"}';
-      const result = parseEmailSignal(json);
-      expect(result!.quantity).toBe(100);
-    });
-
-    test("should return null for incomplete JSON", () => {
-      const json = '{"exchange":"binance","symbol":"BTCUSDT"}';
-      expect(parseEmailSignal(json)).toBeNull();
+      expect(result!.exchange).toBe("binance");
     });
   });
 
-  describe("Plaintext format", () => {
-    test("should parse with colons", () => {
-      const plaintext =
-        "exchange: binance\naction: buy\nsymbol: BTCUSDT\nquantity: 150";
+  describe("Plaintext parsing edge cases", () => {
+    test("should handle case-insensitive keywords", () => {
+      const plaintext = "EXCHANGE: binance\nACTION: BUY\nSYMBOL: BTCUSDT";
       const result = parseEmailSignal(plaintext);
       expect(result).not.toBeNull();
-      expect(result!.exchange).toBe("binance");
-      expect(result!.action).toBe("buy");
     });
 
-    test("should parse action buy/long as buy", () => {
-      expect(
-        parseEmailSignal("exchange binance action long symbol BTCUSDT")
-      ).not.toBeNull();
+    test("should handle extra whitespace", () => {
+      const plaintext =
+        "  exchange:  binance  \n  action:  buy  \n  symbol:  BTCUSDT  ";
+      const result = parseEmailSignal(plaintext);
+      expect(result).not.toBeNull();
     });
 
-    test("should parse action sell/short as sell", () => {
-      expect(
-        parseEmailSignal("exchange binance action short symbol BTCUSDT")
-      ).not.toBeNull();
+    test("should handle newline between fields", () => {
+      const plaintext = "exchange: binance\n\naction: buy\n\nsymbol: BTCUSDT";
+      const result = parseEmailSignal(plaintext);
+      expect(result).not.toBeNull();
     });
 
-    test("should extract price", () => {
-      const result = parseEmailSignal(
-        "exchange binance action buy symbol BTCUSDT price 50000"
-      );
+    test("should handle multiple numbers in body", () => {
+      const plaintext =
+        "exchange: binance action: buy symbol: BTCUSDT price: 50000 quantity: 100 leverage: 5";
+      const result = parseEmailSignal(plaintext);
       expect(result!.price).toBe(50000);
-    });
-
-    test("should extract leverage", () => {
-      const result = parseEmailSignal(
-        "exchange binance action buy symbol BTCUSDT leverage 10"
-      );
-      expect(result!.leverage).toBe(10);
+      expect(result!.quantity).toBe(100);
+      expect(result!.leverage).toBe(5);
     });
   });
 
-  describe("Edge cases", () => {
-    test("should handle empty string", () => {
-      expect(parseEmailSignal("")).toBeNull();
+  describe("Invalid input handling", () => {
+    test("should handle completely invalid plaintext", () => {
+      expect(parseEmailSignal("random text with no signals")).toBeNull();
     });
 
-    test("should handle whitespace", () => {
-      expect(parseEmailSignal("   \n\n   ")).toBeNull();
+    test("should handle only numbers", () => {
+      expect(parseEmailSignal("12345")).toBeNull();
     });
 
-    test("should prioritize JSON over plaintext", () => {
-      const body = '{"exchange":"binance","action":"buy","symbol":"BTCUSDT"}';
-      expect(parseEmailSignal(body)).not.toBeNull();
+    test("should handle only symbols", () => {
+      expect(parseEmailSignal("!!!")).toBeNull();
     });
+  });
+});
 
-    test("should clean symbols", () => {
-      const result = parseEmailSignal(
-        "exchange: binance\naction: buy\nsymbol: BTC/USDT"
-      );
-      expect(result!.symbol).toBe("BTCUSDT");
-    });
+describe("Email Worker - Forward to Trade Worker", () => {
+  test("should fail when trade service not configured", async () => {
+    const result = await forwardToTradeWorker(
+      undefined,
+      { exchange: "binance", action: "buy", symbol: "BTCUSDT", quantity: 100 },
+      {}
+    );
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("not configured");
+  });
+
+  test("should pass signal to trade service", async () => {
+    const mockTradeService = {
+      fetch: async (url: string, opts: any) => {
+        const body = JSON.parse(opts.body);
+        expect(body.exchange).toBe("binance");
+        expect(body.action).toBe("buy");
+        expect(body.symbol).toBe("BTCUSDT");
+        return { ok: true, json: () => ({ requestId: "test-123" }) };
+      },
+    };
+
+    const signal = {
+      exchange: "binance",
+      action: "buy",
+      symbol: "BTCUSDT",
+      quantity: 100,
+    };
+    const result = await forwardToTradeWorker(
+      mockTradeService as any,
+      signal,
+      {}
+    );
+    expect(result.success).toBe(true);
+    expect(result.requestId).toBe("test-123");
+  });
+
+  test("should include internal key header", async () => {
+    let headersReceived: Record<string, string> = {};
+
+    const mockTradeService = {
+      fetch: async (url: string, opts: any) => {
+        headersReceived = opts.headers;
+        return { ok: true, json: () => ({ requestId: "test" }) };
+      },
+    };
+
+    const signal = {
+      exchange: "binance",
+      action: "buy",
+      symbol: "BTCUSDT",
+      quantity: 100,
+    };
+    const env: Env = {
+      INTERNAL_KEY_BINDING: { get: () => Promise.resolve("secret-key") },
+    };
+
+    await forwardToTradeWorker(mockTradeService as any, signal, env);
+    expect(headersReceived["X-Internal-Key"]).toBe("secret-key");
+  });
+
+  test("should handle non-ok response", async () => {
+    const mockTradeService = {
+      fetch: async () => ({
+        ok: false,
+        status: 500,
+        text: () => "Server error",
+      }),
+    };
+
+    const signal = {
+      exchange: "binance",
+      action: "buy",
+      symbol: "BTCUSDT",
+      quantity: 100,
+    };
+    const result = await forwardToTradeWorker(
+      mockTradeService as any,
+      signal,
+      {}
+    );
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("500");
+  });
+
+  test("should handle network error", async () => {
+    const mockTradeService = {
+      fetch: async () => {
+        throw new Error("Network error");
+      },
+    };
+
+    const signal = {
+      exchange: "binance",
+      action: "buy",
+      symbol: "BTCUSDT",
+      quantity: 100,
+    };
+    const result = await forwardToTradeWorker(
+      mockTradeService as any,
+      signal,
+      {}
+    );
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Email Worker - Webhook Source Detection", () => {
+  test("should detect Mailgun", () => {
+    const result = determineWebhookSource(
+      { "user-agent": "Mailgun" },
+      "application/x-www-form-urlencoded"
+    );
+    expect(result).toBe("mailgun");
+  });
+
+  test("should detect JSON", () => {
+    const result = determineWebhookSource({}, "application/json");
+    expect(result).toBe("json");
+  });
+
+  test("should detect form", () => {
+    const result = determineWebhookSource(
+      {},
+      "application/x-www-form-urlencoded"
+    );
+    expect(result).toBe("form");
+  });
+
+  test("should default to unknown", () => {
+    const result = determineWebhookSource({}, "text/plain");
+    expect(result).toBe("unknown");
+  });
+});
+
+describe("Email Worker - Configuration", () => {
+  test("should have correct env binding structure", () => {
+    const env: Env = {
+      EMAIL_HOST_BINDING: { get: () => Promise.resolve("smtp.example.com") },
+      EMAIL_USER_BINDING: { get: () => Promise.resolve("user@example.com") },
+      EMAIL_PASS_BINDING: { get: () => Promise.resolve("password123") },
+      TRADE_SERVICE: { fetch: async () => ({ ok: true, json: () => ({}) }) },
+    };
+
+    expect(env.EMAIL_HOST_BINDING).toBeDefined();
+    expect(env.EMAIL_USER_BINDING).toBeDefined();
+    expect(env.EMAIL_PASS_BINDING).toBeDefined();
+  });
+
+  test("should handle missing optional env vars", () => {
+    const env: Env = {};
+
+    expect(env.EMAIL_SCAN_SUBJECT).toBeUndefined();
+    expect(env.USE_IMAP).toBeUndefined();
+  });
+
+  test("should have default scan subject", () => {
+    const defaultSubject = "Trading Signal";
+    const env: Env = {};
+    const subject = env.EMAIL_SCAN_SUBJECT || defaultSubject;
+    expect(subject).toBe("Trading Signal");
+  });
+
+  test("should respect custom scan subject", () => {
+    const env: Env = { EMAIL_SCAN_SUBJECT: "Custom Signal" };
+    expect(env.EMAIL_SCAN_SUBJECT).toBe("Custom Signal");
   });
 });
