@@ -19,3 +19,6 @@
 [submodule "workers/web3-wallet-worker"]
 	path = workers/web3-wallet-worker
 	url = https://github.com/jango-blockchained/web3-wallet-worker.git
+[submodule "workers/email-worker"]
+	path = workers/email-worker
+	url = https://github.com/jango-blockchained/email-worker.git

@@ -57,4 +57,5 @@ TASKPLAN.md
 # Ignore all files in the workers directory except for submodules
 workers/*
 !workers/*/
+!workers/email-worker/
 
