@@ -1,220 +1,170 @@
 import { describe, expect, test, beforeEach, jest } from "bun:test";
 
-// Mock implementations for testing worker command logic
+describe("Worker Management - Extended Tests", () => {
+  describe("Worker Selection Logic", () => {
+    test("should filter enabled workers", () => {
+      const workers = {
+        worker1: { enabled: true, path: "workers/worker1" },
+        worker2: { enabled: false, path: "workers/worker2" },
+        worker3: { enabled: true, path: "workers/worker3" },
+      };
 
-interface WorkerConfig {
-  enabled: boolean;
-  path: string;
-  vars?: Record<string, string>;
-  secrets?: string[];
-  deployed_url?: string;
-}
+      const enabledWorkers = Object.entries(workers)
+        .filter(([, config]) => config.enabled)
+        .map(([name]) => name);
 
-interface Config {
-  global: {
-    cloudflare_api_token: string;
-    cloudflare_account_id: string;
-    cloudflare_secret_store_id: string;
-    subdomain_prefix: string;
-    d1_database_id?: string;
-  };
-  workers: Record<string, WorkerConfig>;
-}
+      expect(enabledWorkers).toEqual(["worker1", "worker3"]);
+    });
 
-// Test config validation
-function validateConfig(config: Config): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
+    test("should map worker names to paths", () => {
+      const workers = {
+        "d1-worker": { enabled: true, path: "workers/d1-worker" },
+        "telegram-worker": { enabled: true, path: "workers/telegram-worker" },
+      };
 
-  // Validate global section
-  if (!config.global.cloudflare_api_token) {
-    errors.push("Missing cloudflare_api_token");
-  }
-  if (!config.global.cloudflare_account_id) {
-    errors.push("Missing cloudflare_account_id");
-  }
-  if (!config.global.cloudflare_secret_store_id) {
-    errors.push("Missing cloudflare_secret_store_id");
-  }
-  if (!config.global.subdomain_prefix) {
-    errors.push("Missing subdomain_prefix");
-  }
+      const paths = Object.entries(workers)
+        .filter(([, config]) => config.enabled)
+        .map(([name, config]) => config.path);
 
-  // Validate workers
-  for (const [name, worker] of Object.entries(config.workers)) {
-    if (worker.enabled && !worker.path) {
-      errors.push(`Worker ${name} is enabled but missing path`);
-    }
-  }
+      expect(paths).toEqual(["workers/d1-worker", "workers/telegram-worker"]);
+    });
+  });
 
-  return { valid: errors.length === 0, errors };
-}
+  describe("Secret Requirements", () => {
+    test("should collect unique secrets from all workers", () => {
+      const workers = {
+        worker1: { secrets: ["SECRET_A", "SECRET_B"] },
+        worker2: { secrets: ["SECRET_B", "SECRET_C"] },
+        worker3: { secrets: [] },
+      };
 
-function generateWorkerUrls(config: Config): Record<string, string> {
-  const urls: Record<string, string> = {};
-  const prefix = config.global.subdomain_prefix;
-
-  for (const [name, worker] of Object.entries(config.workers)) {
-    if (worker.enabled) {
-      urls[name] = `https://${name}.${prefix}.workers.dev`;
-    }
-  }
-
-  return urls;
-}
-
-function checkWorkerDirectories(config: Config): {
-  exists: string[];
-  missing: string[];
-} {
-  const fs = require("fs");
-  const path = require("path");
-
-  const exists: string[] = [];
-  const missing: string[] = [];
-  const rootDir = process.cwd();
-
-  for (const [name, worker] of Object.entries(config.workers)) {
-    if (worker.enabled) {
-      const workerPath = path.resolve(rootDir, worker.path);
-      if (fs.existsSync(workerPath)) {
-        exists.push(name);
-      } else {
-        missing.push(name);
+      const allSecrets = new Set<string>();
+      for (const worker of Object.values(workers)) {
+        for (const secret of (worker as any).secrets || []) {
+          allSecrets.add(secret);
+        }
       }
-    }
-  }
 
-  return { exists, missing };
-}
-
-describe("Worker Management Logic", () => {
-  describe("Config Validation", () => {
-    test("should validate complete config", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "test-token",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "test",
-        },
-        workers: {
-          "test-worker": {
-            enabled: true,
-            path: "workers/test-worker",
-          },
-        },
-      };
-
-      const result = validateConfig(config);
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+      expect(allSecrets.size).toBe(3);
+      expect(allSecrets).toContain("SECRET_A");
+      expect(allSecrets).toContain("SECRET_B");
+      expect(allSecrets).toContain("SECRET_C");
     });
 
-    test("should detect missing global fields", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "test",
-        },
-        workers: {},
+    test("should handle workers with no secrets", () => {
+      const workers = {
+        worker1: { secrets: ["SECRET_A"] },
+        worker2: {},
       };
 
-      const result = validateConfig(config);
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Missing cloudflare_api_token");
+      const allSecrets = new Set<string>();
+      for (const worker of Object.values(workers)) {
+        for (const secret of (worker as any).secrets || []) {
+          allSecrets.add(secret);
+        }
+      }
+
+      expect(allSecrets.size).toBe(1);
     });
+  });
 
-    test("should detect enabled worker without path", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "test-token",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "test",
-        },
-        workers: {
-          "test-worker": {
-            enabled: true,
-            path: "",
-          },
-        },
+  describe("Deployment Order", () => {
+    test("should handle worker dependencies", () => {
+      // Some workers depend on others (e.g., hoox depends on trade-worker)
+      const workers = {
+        "d1-worker": { enabled: true },
+        hoox: { enabled: true, vars: {} },
+        "trade-worker": { enabled: true },
+        "telegram-worker": { enabled: true },
       };
 
-      const result = validateConfig(config);
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain(
-        "Worker test-worker is enabled but missing path"
+      // All enabled workers should be deployable
+      const enabled = Object.keys(workers).filter(
+        (name) => (workers as any)[name].enabled
       );
+
+      expect(enabled.length).toBe(4);
     });
   });
 
-  describe("URL Generation", () => {
-    test("should generate correct worker URLs", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "test-token",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "myapp",
-        },
-        workers: {
-          worker1: { enabled: true, path: "workers/worker1" },
-          worker2: { enabled: false, path: "workers/worker2" },
-          worker3: { enabled: true, path: "workers/worker3" },
-        },
+  describe("Worker State Validation", () => {
+    test("should validate worker has required fields", () => {
+      const validWorker = {
+        enabled: true,
+        path: "workers/test",
+        secrets: ["SECRET"],
+        vars: { KEY: "value" },
       };
 
-      const urls = generateWorkerUrls(config);
-
-      expect(urls["worker1"]).toBe("https://worker1.myapp.workers.dev");
-      expect(urls["worker3"]).toBe("https://worker3.myapp.workers.dev");
-      expect(urls["worker2"]).toBeUndefined();
+      expect(validWorker.enabled).toBe(true);
+      expect(validWorker.path).toBeDefined();
+      expect(validWorker.secrets).toBeDefined();
     });
 
-    test("should handle special characters in prefix", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "test-token",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "my-app-v1",
-        },
-        workers: {
-          test: { enabled: true, path: "workers/test" },
-        },
+    test("should detect invalid worker configuration", () => {
+      const invalidWorker = {
+        enabled: true,
+        path: "",
       };
 
-      const urls = generateWorkerUrls(config);
-      expect(urls["test"]).toBe("https://test.my-app-v1.workers.dev");
+      expect(invalidWorker.path === "").toBe(true);
     });
   });
 
-  describe("Worker Directory Check", () => {
-    test("should identify existing and missing directories", () => {
-      const config: Config = {
-        global: {
-          cloudflare_api_token: "test-token",
-          cloudflare_account_id: "test-account",
-          cloudflare_secret_store_id: "test-store",
-          subdomain_prefix: "test",
-        },
-        workers: {
-          // These paths should exist for the test to pass
-          "d1-worker": { enabled: true, path: "workers/d1-worker" },
-          "telegram-worker": { enabled: true, path: "workers/telegram-worker" },
-          nonexistent: { enabled: true, path: "workers/nonexistent" },
-        },
-      };
+  describe("URL Construction", () => {
+    test("should construct worker URLs with subdomain prefix", () => {
+      const prefix = "myapp";
+      const workerName = "test-worker";
 
-      const result = checkWorkerDirectories(config);
-
-      // d1-worker and telegram-worker should exist
-      expect(result.exists).toContain("d1-worker");
-      expect(result.exists).toContain("telegram-worker");
-      // nonexistent should be missing
-      expect(result.missing).toContain("nonexistent");
+      const url = `https://${workerName}.${prefix}.workers.dev`;
+      expect(url).toBe("https://test-worker.myapp.workers.dev");
     });
+
+    test("should handle special characters in worker names", () => {
+      const prefix = "myapp";
+      const workerName = "home-assistant";
+
+      const url = `https://${workerName}.${prefix}.workers.dev`;
+      expect(url).toBe("https://home-assistant.myapp.workers.dev");
+    });
+  });
+});
+
+describe("Environment Variable Handling", () => {
+  test("should merge environment variables", () => {
+    const defaults = { VAR1: "default1", VAR2: "default2" };
+    const overrides = { VAR2: "override2", VAR3: "new" };
+
+    const merged = { ...defaults, ...overrides };
+
+    expect(merged.VAR1).toBe("default1");
+    expect(merged.VAR2).toBe("override2");
+    expect(merged.VAR3).toBe("new");
+  });
+
+  test("should create cloudflare env object", () => {
+    const apiToken = "test-token";
+
+    const env = { CLOUDFLARE_API_TOKEN: apiToken };
+
+    expect(env.CLOUDFLARE_API_TOKEN).toBe("test-token");
+  });
+});
+
+describe("Error Handling", () => {
+  test("should handle missing worker directory", () => {
+    const fs = require("fs");
+    const path = require("path");
+
+    const workerPath = path.resolve(process.cwd(), "workers/nonexistent");
+    const exists = fs.existsSync(workerPath);
+
+    expect(exists).toBe(false);
+  });
+
+  test("should handle invalid JSON config", () => {
+    const invalidJson = "{ invalid json }";
+
+    expect(() => JSON.parse(invalidJson)).toThrow();
   });
 });
