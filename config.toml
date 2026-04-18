@@ -1,7 +1,6 @@
 [global]
-cloudflare_api_token = "cfut_Q7jLzuf3IO1Gh1uvia8Fz2vpmW3I9CEcFcDDPJWmd1bc339d"
+cloudflare_api_token = "cfut_..."  # Your API token
 cloudflare_account_id = "debc6545e63bea36be059cbc82d80ec8"
-cloudflare_secret_store_id = "48433bc559a943f09d9d6c622e188fd5"
 subdomain_prefix = "cryptolinx"
 
 [workers.d1-worker]
@@ -17,12 +16,14 @@ enabled = true
 path = "workers/telegram-worker"
 vars = { }
 secrets = [ "TELEGRAM_BOT_TOKEN" ]
+deployed_url = "https://telegram-worker.cryptolinx.workers.dev"
 
 [workers.trade-worker]
 enabled = true
 path = "workers/trade-worker"
 vars = { }
 secrets = [ "API_SERVICE_KEY" ]
+deployed_url = "https://trade-worker.cryptolinx.workers.dev"
 
 [workers.web3-wallet-worker]
 enabled = true
@@ -36,6 +37,7 @@ enabled = true
 path = "workers/hoox"
 description = "Central webhook processing and dynamic routing worker"
 secrets = [ ]
+deployed_url = "https://hoox.cryptolinx.workers.dev"
 
 [workers.home-assistant]
 enabled = false

@@ -51,7 +51,7 @@ bun run scripts/manage.ts workers deploy
 Send a test webhook:
 
 ```bash
-curl -X POST https://your-prefix.workers.dev \
+curl -X POST https://hoox.cryptolinx.workers.dev \
   -H "Content-Type: application/json" \
   -d '{
     "apiKey": "YOUR_API_KEY",
