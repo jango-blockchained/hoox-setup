@@ -54,6 +54,9 @@ Thumbs.db
 config.toml
 TASKPLAN.md
 
+# Badge directory (can be generated)
+.badge/
+
 # Ignore all files in the workers directory except for submodules
 workers/*
 !workers/*/

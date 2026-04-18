@@ -18,12 +18,15 @@
 
 ### Workers
 
-- [hoox Gateway](workers/hoox.md)
-- [trade-worker](workers/trade-worker.md)
-- [telegram-worker](workers/telegram-worker.md)
-- [d1-worker](workers/d1-worker.md)
-- [web3-wallet-worker](workers/web3-wallet.md)
-- [home-assistant-worker](workers/home-assistant.md)
+Each worker has its own README in the worker directory:
+
+- [hoox Gateway](../workers/hoox/README.md) - Main gateway worker (81% coverage)
+- [trade-worker](../workers/trade-worker/README.md) - Trading engine (82% coverage)
+- [telegram-worker](../workers/telegram-worker/README.md) - Telegram bot & notifications
+- [d1-worker](../workers/d1-worker/README.md) - Database operations
+- [web3-wallet-worker](../workers/web3-wallet-worker/README.md) - Web3 interactions
+- [home-assistant-worker](../workers/home-assistant-worker/README.md) - Home automation
+- [email-worker](../workers/email-worker/README.md) - Email processing
 
 ### API Reference
 
