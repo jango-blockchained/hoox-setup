@@ -1,10 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { parse as parseToml, stringify as stringifyToml } from "@iarna/toml";
-import type {
-  Config,
-  WorkerConfig,
-} from "./types.js";
+import type { Config, WorkerConfig } from "./types.js";
 import {
   red,
   green,
@@ -17,8 +14,53 @@ import {
   print_warning,
   runInteractiveCommand,
   getCloudflareToken,
+  runCommandAsync,
 } from "./utils.js";
 import { saveConfig } from "./configUtils.js"; // Needed for deployWorkers
+
+// --- D1 Database Setup Helper ---
+async function setupD1Database(
+  workerName: string,
+  workerDir: string,
+  dbName: string,
+  config: Config,
+  cloudflareEnv: Record<string, string>
+): Promise<void> {
+  console.log(blue(`Setting up D1 Database: ${dbName}...`));
+
+  const databaseId = config.global.d1_database_id;
+  console.log(
+    `Attempting to create/verify D1 database ${dbName} (ID: ${databaseId || "Not specified"})...`
+  );
+
+  const migrationsDir = path.join(workerDir, "migrations");
+  if (fs.existsSync(migrationsDir)) {
+    console.log(
+      dim(`Applying D1 migrations for ${dbName} from ${migrationsDir}...`)
+    );
+    const migrateResult = await runCommandAsync(
+      "bunx",
+      ["wrangler", "d1", "migrations", "apply", dbName],
+      workerDir,
+      cloudflareEnv
+    );
+    if (!migrateResult.success) {
+      print_error(
+        `Failed to apply migrations for D1 database ${dbName}. Check output.`
+      );
+    } else {
+      print_success(
+        `Successfully applied migrations for D1 database ${dbName}.`
+      );
+    }
+  } else {
+    console.log(
+      dim(
+        `No migrations directory found at ${migrationsDir}. Skipping migration step.`
+      )
+    );
+  }
+}
 
 // --- Worker Setup Logic --- (Moved from manage.ts)
 // TODO: Refactor this heavily for Secret Store binding
@@ -84,10 +126,13 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         try {
           // Parse JSONC (JSON with comments)
-          // We need to handle comments, so we use a simple approach to strip comments before parsing
-          const jsonContent = wranglerJsoncContent
+          // First remove single-line comments that might leave trailing commas
+          let jsonContent = wranglerJsoncContent
             .replace(/\/\/.*$/gm, "") // Remove single-line comments
             .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
+
+          // Remove trailing commas before } or ]
+          jsonContent = jsonContent.replace(/,(\s*[}\]])/g, "$1");
 
           parsedJsonc = JSON.parse(jsonContent);
         } catch (parseError: unknown) {
@@ -102,6 +147,15 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         // --- Modify the parsed JSONC object ---
         let jsoncUpdated = false;
+
+        // Update account_id from config
+        if (parsedJsonc.account_id !== config.global.cloudflare_account_id) {
+          parsedJsonc.account_id = config.global.cloudflare_account_id;
+          jsoncUpdated = true;
+          console.log(
+            dim(`Set account_id = "${config.global.cloudflare_account_id}"`)
+          );
+        }
 
         if (parsedJsonc.name !== workerName) {
           parsedJsonc.name = workerName;
@@ -202,13 +256,51 @@ export async function setupWorkers(config: Config): Promise<void> {
         } else {
           console.log(dim(`${wranglerJsoncPath} is already up-to-date.`));
         }
+
+        // JSONC D1 Database Setup
+        let needsD1SetupJsonc = false;
+        let dbNameForSetupJsonc: string | undefined = undefined;
+        const d1DatabasesJsonc = parsedJsonc.d1_databases as
+          | unknown[]
+          | undefined;
+        if (Array.isArray(d1DatabasesJsonc) && d1DatabasesJsonc.length > 0) {
+          const firstDb = d1DatabasesJsonc[0] as { database_name?: string };
+          dbNameForSetupJsonc = firstDb.database_name;
+          if (dbNameForSetupJsonc) {
+            needsD1SetupJsonc = true;
+            console.log(
+              dim(`Worker seems to use D1 database: ${dbNameForSetupJsonc}`)
+            );
+          }
+        }
+
+        if (needsD1SetupJsonc && dbNameForSetupJsonc) {
+          await setupD1Database(
+            workerName,
+            workerDir,
+            dbNameForSetupJsonc,
+            config,
+            cloudflareEnv
+          );
+        }
       } catch (error: unknown) {
         print_error(
           `Error processing ${wranglerJsoncPath}: ${(error as Error).message}`
         );
       }
     }
-    // Process wrangler.toml
+
+    // Process wrangler.toml (or continue if already processed JSONC)
+    // Note: The variables parsedJsonc and parsedToml are defined in their respective blocks
+    // and won't be accessible here if we want to do common processing.
+    // However, the D1 setup code below doesn't need them directly if we refactor.
+    // But wait, the D1 setup code DOES need them (line 357 checks).
+    // So I need to move the variable extraction *outside* the if/else blocks or make them available.
+
+    // Since I just moved the D1 code inside the if/else block logic in the previous edit (which didn't actually change the structure, it just changed the variable check),
+    // let me check if I broke the structure. The previous edit replaced lines 353-369.
+
+    // Let's look at the current state around line 355 again to see where I should put the D1 logic.
     else if (useToml) {
       try {
         console.log(dim(`Using wrangler.toml for ${workerName}`));
@@ -333,6 +425,31 @@ export async function setupWorkers(config: Config): Promise<void> {
           `Error processing ${wranglerTomlPath}: ${(error as Error).message}`
         );
       }
+
+      // TOML D1 Database Setup
+      let needsD1SetupToml = false;
+      let dbNameForSetupToml: string | undefined = undefined;
+      const d1DatabasesToml = parsedToml.d1_databases as unknown[] | undefined;
+      if (Array.isArray(d1DatabasesToml) && d1DatabasesToml.length > 0) {
+        const firstDb = d1DatabasesToml[0] as { database_name?: string };
+        dbNameForSetupToml = firstDb.database_name;
+        if (dbNameForSetupToml) {
+          needsD1SetupToml = true;
+          console.log(
+            dim(`Worker seems to use D1 database: ${dbNameForSetupToml}`)
+          );
+        }
+      }
+
+      if (needsD1SetupToml && dbNameForSetupToml) {
+        await setupD1Database(
+          workerName,
+          workerDir,
+          dbNameForSetupToml,
+          config,
+          cloudflareEnv
+        );
+      }
     }
 
     // 2. Set Secrets - REMOVED (User must create in CF Store)
@@ -350,76 +467,6 @@ export async function setupWorkers(config: Config): Promise<void> {
       console.log(dim(`Ensure they exist in Store ID: ${storeId}`));
     } else {
       console.log(dim(`No secrets defined for ${workerName} in config.toml.`));
-    }
-
-    // 3. D1 Database Setup (if applicable)
-    // Check if this worker has a 'd1_databases' section in wrangler.toml
-    let needsD1Setup = false;
-    let dbNameForSetup: string | undefined = undefined;
-    if (
-      Array.isArray(parsedToml?.d1_databases) &&
-      parsedToml.d1_databases.length > 0
-    ) {
-      // Assuming the first D1 binding is the one to manage migrations for
-      dbNameForSetup = parsedToml.d1_databases[0].database_name;
-      if (dbNameForSetup) {
-        needsD1Setup = true;
-        console.log(dim(`Worker seems to use D1 database: ${dbNameForSetup}`));
-      }
-    }
-    // Fallback: check name (less reliable)
-    // if (!needsD1Setup && workerName === "d1-worker") { ... }
-
-    if (needsD1Setup && dbNameForSetup) {
-      console.log(blue(`Setting up D1 Database: ${dbNameForSetup}...`));
-
-      // Get D1 ID from config if available (set during wizard or manually)
-      const databaseId = config.global.d1_database_id;
-      const dbIdentifier = databaseId || dbNameForSetup; // Use ID if present, otherwise name
-
-      console.log(
-        `Attempting to create/verify D1 database ${dbNameForSetup} (ID: ${databaseId || "Not specified"})...`
-      );
-      // Use wrangler d1 info <db> instead of create? Or just proceed to migrations?
-      // `wrangler d1 migrations apply` likely handles creation if needed? Let's rely on that.
-      // const createResult = await runCommandAsync("wrangler", ["d1", "create", dbNameForSetup], workerDir, cloudflareEnv);
-      // // Check result... handle already exists error...
-
-      // Apply migrations
-      const migrationsDir = path.join(workerDir, "migrations");
-      if (fs.existsSync(migrationsDir)) {
-        console.log(
-          dim(
-            `Applying D1 migrations for ${dbNameForSetup} from ${migrationsDir}...`
-          )
-        );
-        // We need the *name* for migrations apply, not necessarily the ID
-        const migrateResult = await runCommandAsync(
-          // Using async now
-          "bunx",
-          ["wrangler", "d1", "migrations", "apply", dbNameForSetup, "--local"], // Check local first? Or always remote? Let's assume remote.
-          workerDir,
-          cloudflareEnv
-        );
-        if (!migrateResult.success) {
-          print_error(
-            `Failed to apply migrations for D1 database ${dbNameForSetup}. Check output.`
-          );
-          // Decide whether to stop the whole setup process
-        } else {
-          print_success(
-            `Successfully applied migrations for D1 database ${dbNameForSetup}.`
-          );
-        }
-      } else {
-        console.log(
-          dim(
-            `No migrations directory found at ${migrationsDir}. Skipping migration step.`
-          )
-        );
-      }
-    } else {
-      // console.log(dim(`Skipping D1 setup for ${workerName}.`));
     }
 
     console.log(`--- Finished configuring worker: ${yellow(workerName)} ---`);
@@ -467,34 +514,55 @@ export async function deployWorkers(config: Config): Promise<void> {
       continue;
     }
 
+    const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    if (!fs.existsSync(wranglerTomlPath)) {
+    const useJsonc = fs.existsSync(wranglerJsoncPath);
+    const useToml = fs.existsSync(wranglerTomlPath);
+
+    if (!useJsonc && !useToml) {
       print_warning(
-        `wrangler.toml not found for worker ${workerName} at ${wranglerTomlPath}. Skipping deployment.`
+        `No wrangler.jsonc or wrangler.toml found for worker ${workerName} at ${workerDir}. Skipping deployment.`
       );
       continue;
     }
 
-    // Verify account_id (optional, but good practice)
+    const wranglerConfigArg = useJsonc ? ["-c", "wrangler.jsonc"] : [];
+
+    // Verify account_id in wrangler config (toml or jsonc)
     try {
-      const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-      // Use TOML parser for more reliable check
-      const parsedToml: unknown = parseToml(content);
-      if (parsedToml.account_id !== config.global.cloudflare_account_id) {
+      let accountIdInConfig: string | undefined;
+      if (useJsonc) {
+        const jsoncContent = fs.readFileSync(wranglerJsoncPath, "utf-8");
+        const jsonContent = jsoncContent
+          .replace(/\/\/.*$/gm, "")
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/,(\s*[}\]])/g, "$1");
+        const parsedJsonc = JSON.parse(jsonContent);
+        accountIdInConfig = parsedJsonc.account_id;
+      } else if (useToml) {
+        const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+        const parsedToml: unknown = parseToml(content);
+        accountIdInConfig = parsedToml.account_id;
+      }
+
+      if (
+        accountIdInConfig &&
+        accountIdInConfig !== config.global.cloudflare_account_id
+      ) {
         print_warning(
-          `${wranglerTomlPath} has account_id "${parsedToml.account_id}", but config.toml global expects "${config.global.cloudflare_account_id}". Running setup first is recommended.`
+          `Wrangler config has account_id "${accountIdInConfig}", but config.toml expects "${config.global.cloudflare_account_id}". Running setup first is recommended.`
         );
       }
     } catch (e: unknown) {
       print_warning(
-        `Could not read or parse ${wranglerTomlPath} to verify account ID: ${(e as Error).message}`
+        `Could not read or parse wrangler config to verify account ID: ${(e as Error).message}`
       );
     }
 
     // const result = runCommandSync("wrangler deploy", workerDir, cloudflareEnv); // Original Sync
     const result = await runCommandAsync(
       "bunx",
-      ["wrangler", "deploy"],
+      ["wrangler", "deploy", ...wranglerConfigArg],
       workerDir,
       cloudflareEnv
     ); // Async
@@ -950,7 +1018,9 @@ export async function updateInternalUrls(config: Config): Promise<void> {
         if (isJsonc) {
           updatedContent = JSON.stringify(wranglerConfig, null, 2);
         } else {
-          updatedContent = stringifyToml(wranglerConfig as Record<string, unknown>);
+          updatedContent = stringifyToml(
+            wranglerConfig as Record<string, unknown>
+          );
         }
         fs.writeFileSync(wranglerTomlPath, updatedContent);
         print_success(

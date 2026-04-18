@@ -64,5 +64,29 @@ path = "workers/home-assistant-worker"
 vars = {}
 secrets = ["HA_TOKEN","HA_SECURE_URL"] # Token for Home Assistant API authentication
 
+[workers.agent-worker]
+enabled = false
+path = "workers/agent-worker"
+vars = {}
+secrets = []
+
+[workers.email-worker]
+enabled = true
+path = "workers/email-worker"
+vars = { "USE_IMAP" = "false" }
+# USE_IMAP=true - Scan inbox via IMAP (set secrets: EMAIL_HOST, EMAIL_USER, EMAIL_PASS)
+# USE_IMAP=false - Use email webhooks (default)
+# 
+# Supported webhooks:
+# - Mailgun: POST application/x-www-form-urlencoded
+# - SendGrid: POST application/json
+# - Gmail: POST from Google Workspace/gmail-api notifications
+# - Direct: POST JSON with signal data
+#
+# Email body formats supported:
+# - JSON: {"exchange":"binance","action":"buy","symbol":"BTCUSDT","quantity":100}
+# - Plaintext: keyword-based extraction (exchange, action, symbol, quantity, price, leverage)
+secrets = ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
+
 
 # Add more workers here following the same structure 

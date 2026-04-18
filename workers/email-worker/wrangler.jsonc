@@ -1,0 +1,52 @@
+{
+  "name": "email-worker",
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-18",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "TRADE_WORKER_NAME": "trade-worker",
+    "USE_IMAP": "false"
+  },
+  "services": [
+    {
+      "binding": "TRADE_SERVICE",
+      "service": "trade-worker"
+    }
+  ],
+  "secrets_store": {
+    "bindings": [
+      {
+        "binding": "EMAIL_HOST_BINDING",
+        "store_id": "48433bc559a943f09d9d6c622e188fd5",
+        "secret_name": "EMAIL_HOST"
+      },
+      {
+        "binding": "EMAIL_USER_BINDING",
+        "store_id": "48433bc559a943f09d9d6c622e188fd5",
+        "secret_name": "EMAIL_USER"
+      },
+      {
+        "binding": "EMAIL_PASS_BINDING",
+        "store_id": "48433bc559a943f09d9d6c622e188fd5",
+        "secret_name": "EMAIL_PASS"
+      },
+      {
+        "binding": "INTERNAL_KEY_BINDING",
+        "store_id": "48433bc559a943f09d9d6c622e188fd5",
+        "secret_name": "INTERNAL_KEY"
+      }
+    ]
+  },
+  "triggers": {
+    "crons": [
+      "*/5 * * * *"
+    ]
+  }
+}

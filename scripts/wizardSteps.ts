@@ -20,7 +20,6 @@ import {
 import { deployWorkers } from "./workerCommands.js";
 import { LOCAL_KEYS_FILE, getKey } from "./keyUtils.js";
 
-// --- Constants --- (Consider centralizing)
 const WORKERS_DIR = path.resolve(process.cwd(), "workers");
 
 // --- Wizard Step Implementations ---
@@ -73,9 +72,11 @@ export async function step_configureGlobals(
       if (key === "cloudflare_api_token") {
         const tempConfigForTokenCheck = {
           global: updatedGlobals,
-        } as Partial<Config>;
+        };
         try {
-          const token = await getCloudflareToken(tempConfigForTokenCheck);
+          const token = await getCloudflareToken(
+            tempConfigForTokenCheck as any
+          );
           if (token) {
             value = token;
             wasAutoDetected = true;
@@ -341,7 +342,7 @@ export async function step_setupD1(state: WizardState): Promise<void> {
 }
 
 export async function step_saveConfig(state: WizardState): Promise<void> {
-  console.log(ansis.dim("Preparing configuration object..."));
+  console.log(dim("Preparing configuration object..."));
 
   const configToSave = state.config as Config;
   if (!configToSave.global)
@@ -355,7 +356,11 @@ export async function step_saveConfig(state: WizardState): Promise<void> {
   print_success(
     `Configuration prepared. Saving to ${configFileName} (${format.toUpperCase()} format)...`
   );
-  await saveConfig(configToSave);
+
+  // Cast to the Config type expected by configUtils
+  await saveConfig(
+    configToSave as unknown as import("./configUtils.js").Config
+  );
 }
 
 export async function step_configureSecrets(state: WizardState): Promise<void> {
