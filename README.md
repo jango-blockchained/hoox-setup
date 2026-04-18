@@ -51,6 +51,29 @@ bun run scripts/manage.ts workers deploy
 bun test
 ```
 
+## ⚙️ Configuration Files
+
+This project uses example files for sensitive configuration. Copy them before editing:
+
+```bash
+# Copy the main config example
+cp config.toml.example config.toml
+
+# For each worker, copy .dev.vars.example to .dev.vars
+cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
+# Repeat for other workers as needed
+```
+
+### Available Example Files
+
+| File                          | Purpose                     |
+| ----------------------------- | --------------------------- |
+| `config.toml.example`         | Main configuration template |
+| `config.jsonc.example`        | Alternative JSONC config    |
+| `workers/*/.dev.vars.example` | Worker local dev secrets    |
+
+> **Important**: Never commit `.dev.vars` or `config.toml` with real secrets!
+
 ## 🏗️ Architecture
 
 ```mermaid
