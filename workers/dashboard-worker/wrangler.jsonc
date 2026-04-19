@@ -1,0 +1,22 @@
+{
+  "name": "dashboard-worker",
+  "main": "src/index.tsx",
+  "compatibility_date": "2025-03-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "services": [
+    {
+      "binding": "D1_SERVICE",
+      "service": "d1-worker"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d"
+    }
+  ]
+}

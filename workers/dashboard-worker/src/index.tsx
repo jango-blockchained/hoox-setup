@@ -4,6 +4,7 @@ import { basicAuth } from 'hono/basic-auth';
 // Define the environment variables bindings
 export interface Env {
   D1_SERVICE: Fetcher;
+  CONFIG_KV: KVNamespace;
   DASHBOARD_USER?: string;
   DASHBOARD_PASS?: string;
 }
@@ -12,7 +13,6 @@ const app = new Hono<{ Bindings: Env }>();
 
 // Basic Auth Middleware
 app.use('*', async (c, next) => {
-  // Try to use environment variables for credentials, fallback to defaults for testing
   const username = c.env.DASHBOARD_USER || 'admin';
   const password = c.env.DASHBOARD_PASS || 'hoox123';
   
@@ -25,7 +25,7 @@ app.use('*', async (c, next) => {
 });
 
 // A simple layout component
-const Layout = (props: { title: string; children: any }) => {
+const Layout = (props: { title: string; activeTab: string; children: any }) => {
   return (
     <html>
       <head>
@@ -61,12 +61,10 @@ const Layout = (props: { title: string; children: any }) => {
             </div>
           </div>
           <div class="container mx-auto px-2 mt-4 flex gap-6 text-sm text-neutral-400 border-b border-neutral-800 pb-0">
-            <a href="#" class="pb-3 border-b-2 border-orange-500 text-white font-medium">Overview</a>
-            <a href="#" class="pb-3 hover:text-neutral-200 transition-colors">Metrics</a>
-            <a href="#" class="pb-3 hover:text-neutral-200 transition-colors">Deployments</a>
-            <a href="#" class="pb-3 hover:text-neutral-200 transition-colors">Bindings</a>
-            <a href="#" class="pb-3 hover:text-neutral-200 transition-colors">Observability</a>
-            <a href="#" class="pb-3 hover:text-neutral-200 transition-colors">Settings</a>
+            <a href="/" class={`pb-3 ${props.activeTab === 'overview' ? 'border-b-2 border-orange-500 text-white font-medium' : 'hover:text-neutral-200 transition-colors'}`}>Overview</a>
+            <a href="/positions" class={`pb-3 ${props.activeTab === 'positions' ? 'border-b-2 border-orange-500 text-white font-medium' : 'hover:text-neutral-200 transition-colors'}`}>Positions</a>
+            <a href="/logs" class={`pb-3 ${props.activeTab === 'logs' ? 'border-b-2 border-orange-500 text-white font-medium' : 'hover:text-neutral-200 transition-colors'}`}>Logs</a>
+            <a href="/settings" class={`pb-3 ${props.activeTab === 'settings' ? 'border-b-2 border-orange-500 text-white font-medium' : 'hover:text-neutral-200 transition-colors'}`}>Settings</a>
           </div>
         </nav>
         <main class="container mx-auto p-4 mt-6">
@@ -77,53 +75,21 @@ const Layout = (props: { title: string; children: any }) => {
   );
 };
 
+// --- ROUTES ---
+
 app.get('/', async (c) => {
   let stats = { totalTrades: 0, openPositions: 0 };
   let error = null;
-  
-  // Try to fetch basic stats from D1 or Trade Worker
   let recentActivity = [];
+
   try {
     if (c.env.D1_SERVICE) {
-      // Get total trades
-      const tradesRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: 'SELECT COUNT(*) as count FROM trades' })
-      }));
-      
-      if (tradesRes.ok) {
-        const tradesData = await tradesRes.json() as any;
-        if (tradesData.success && tradesData.results && tradesData.results.length > 0) {
-           stats.totalTrades = tradesData.results[0].count || 0;
-        }
-      }
-
-      // Get open positions
-      const posRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: "SELECT COUNT(*) as count FROM positions WHERE status = 'open'" })
-      }));
-
-      if (posRes.ok) {
-        const posData = await posRes.json() as any;
-        if (posData.success && posData.results && posData.results.length > 0) {
-           stats.openPositions = posData.results[0].count || 0;
-        }
-      }
-
-      // Get recent activity
-      const activityRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: 'SELECT * FROM trades ORDER BY timestamp DESC LIMIT 10' })
-      }));
-
-      if (activityRes.ok) {
-         const activityData = await activityRes.json() as any;
-         if (activityData.success && activityData.results) {
-            recentActivity = activityData.results;
+      const statsRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/stats'));
+      if (statsRes.ok) {
+         const data = await statsRes.json() as any;
+         if (data.success) {
+            stats = data.stats;
+            recentActivity = data.recentActivity;
          }
       }
     }
@@ -132,13 +98,13 @@ app.get('/', async (c) => {
   }
 
   return c.html(
-    <Layout title="Dashboard">
+    <Layout title="Dashboard - Overview" activeTab="overview">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column: Stats & Activity */}
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6">
-            <h2 class="text-sm font-semibold mb-4 text-white uppercase tracking-wide">Metrics <span class="text-neutral-500 font-normal normal-case ml-2 bg-neutral-800 px-2 py-0.5 rounded text-xs">Last 24 hours</span></h2>
+            <h2 class="text-sm font-semibold mb-4 text-white uppercase tracking-wide">Metrics <span class="text-neutral-500 font-normal normal-case ml-2 bg-neutral-800 px-2 py-0.5 rounded text-xs">Overall</span></h2>
             
             {error && (
               <div class="bg-red-950 border border-red-900 text-red-200 px-4 py-3 rounded text-sm mb-4">
@@ -153,7 +119,7 @@ app.get('/', async (c) => {
                 <p class="text-2xl font-semibold text-white mt-1">{stats.totalTrades}</p>
                 <p class="text-xs text-blue-500 mt-2 flex items-center gap-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-                  100%
+                  Lifetime
                 </p>
               </div>
               
@@ -175,7 +141,7 @@ app.get('/', async (c) => {
             <div>
               <h3 class="text-sm font-semibold mb-4 text-white flex justify-between items-center">
                 Versions (Recent Activity)
-                <span class="text-neutral-500 cursor-pointer hover:text-white transition-colors">→</span>
+                <a href="/logs" class="text-neutral-500 cursor-pointer hover:text-white transition-colors">→</a>
               </h3>
               <div class="overflow-x-auto rounded border border-neutral-800">
                 <table class="min-w-full bg-[#0f0f0f] border-collapse">
@@ -187,7 +153,7 @@ app.get('/', async (c) => {
                         </td>
                         <td class="py-3 px-4 text-sm text-neutral-300 italic">{activity.symbol || activity.asset || 'UNKNOWN'} - {(activity.action || activity.side) === 'BUY' || (activity.action || activity.side) === 'LONG' ? 'Long' : 'Short'}</td>
                         <td class="py-3 px-4 text-sm text-neutral-400">Wrangler <span class="text-neutral-500">by hoox</span></td>
-                        <td class="py-3 px-4 text-sm text-neutral-400 text-right">{new Date(activity.timestamp || Date.now()).toLocaleTimeString()}</td>
+                        <td class="py-3 px-4 text-sm text-neutral-400 text-right">{new Date(activity.timestamp * 1000 || Date.now()).toLocaleTimeString()}</td>
                       </tr>
                     )) : (
                       <tr>
@@ -267,21 +233,196 @@ app.get('/', async (c) => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </Layout>
+  );
+});
 
-          <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-0 overflow-hidden">
-            <div class="p-4 border-b border-neutral-800 flex justify-between items-center">
-              <h2 class="text-sm font-semibold text-white">Domains &amp; Routes</h2>
-              <span class="text-neutral-500 cursor-pointer hover:text-white transition-colors">→</span>
-            </div>
-            <div class="p-4 border-b border-neutral-800">
-              <div class="text-xs text-neutral-400 mb-1">workers.dev</div>
-              <div class="text-sm text-blue-400 hover:underline cursor-pointer">hoox.cryptolinx.workers.dev</div>
-            </div>
-            <div class="p-4 border-b border-neutral-800">
-              <div class="text-xs text-neutral-400 mb-1">Custom domains</div>
-              <div class="text-sm text-neutral-500">—</div>
+// --- Settings Page ---
+app.get('/settings', async (c) => {
+  let killSwitch = "false";
+  let ipCheck = "true";
+  let allowedIps = "[]";
+  let defaultLev = "";
+  let maxPosSize = "";
+
+  if (c.env.CONFIG_KV) {
+    killSwitch = await c.env.CONFIG_KV.get('global:kill_switch') || "false";
+    ipCheck = await c.env.CONFIG_KV.get('webhook:tradingview:ip_check_enabled') || "true";
+    allowedIps = await c.env.CONFIG_KV.get('webhook:tradingview:allowed_ips') || "[]";
+    defaultLev = await c.env.CONFIG_KV.get('trade:default_leverage') || "";
+    maxPosSize = await c.env.CONFIG_KV.get('trade:max_position_size') || "";
+  }
+
+  return c.html(
+    <Layout title="Dashboard - Settings" activeTab="settings">
+      <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6 max-w-4xl mx-auto">
+        <h2 class="text-xl font-bold mb-6 text-white border-b border-neutral-800 pb-2">Configuration & Settings</h2>
+        
+        <form method="POST" action="/settings" class="space-y-8">
+          
+          {/* Global Kill Switch */}
+          <div>
+            <h3 class="text-md font-semibold text-red-400 mb-2">Global Kill Switch</h3>
+            <div class="bg-red-950/30 p-4 rounded border border-red-900/50">
+              <label class="flex items-center space-x-3">
+                <input type="checkbox" name="killSwitch" value="true" checked={killSwitch === 'true'} class="form-checkbox h-5 w-5 text-red-500 rounded bg-neutral-900 border-neutral-700" />
+                <span class="text-neutral-200">Pause all trading immediately</span>
+              </label>
+              <p class="text-xs text-neutral-500 mt-2 ml-8">If enabled, the hoox gateway will reject all incoming signals.</p>
             </div>
           </div>
+
+          {/* Webhook Security */}
+          <div>
+            <h3 class="text-md font-semibold text-white mb-2">Webhook Security</h3>
+            <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 space-y-4">
+              <label class="flex items-center space-x-3">
+                <input type="checkbox" name="ipCheck" value="true" checked={ipCheck === 'true'} class="form-checkbox h-5 w-5 text-orange-500 rounded bg-neutral-900 border-neutral-700" />
+                <span class="text-neutral-200">Enable TradingView IP Allowlist Validation</span>
+              </label>
+              
+              <div>
+                <label class="block text-sm text-neutral-400 mb-1">Custom Allowed IPs (JSON Array)</label>
+                <textarea name="allowedIps" rows={3} class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-mono text-neutral-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">{allowedIps}</textarea>
+                <p class="text-xs text-neutral-500 mt-1">Example: ["52.89.214.238", "34.212.75.30"]</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Risk Management */}
+          <div>
+            <h3 class="text-md font-semibold text-white mb-2">Risk Management Defaults</h3>
+            <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm text-neutral-400 mb-1">Default Leverage</label>
+                <input type="number" name="defaultLev" value={defaultLev} placeholder="e.g. 10" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-sm text-neutral-400 mb-1">Max Position Size</label>
+                <input type="number" step="0.001" name="maxPosSize" value={maxPosSize} placeholder="e.g. 1.5" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button type="submit" class="bg-[#0051c3] hover:bg-[#0046a6] text-white px-6 py-2 rounded font-medium transition-colors">
+              Save Configuration
+            </button>
+          </div>
+        </form>
+      </div>
+    </Layout>
+  );
+});
+
+app.post('/settings', async (c) => {
+  const body = await c.req.parseBody();
+  
+  if (c.env.CONFIG_KV) {
+    await c.env.CONFIG_KV.put('global:kill_switch', body.killSwitch ? 'true' : 'false');
+    await c.env.CONFIG_KV.put('webhook:tradingview:ip_check_enabled', body.ipCheck ? 'true' : 'false');
+    await c.env.CONFIG_KV.put('webhook:tradingview:allowed_ips', (body.allowedIps as string) || "[]");
+    await c.env.CONFIG_KV.put('trade:default_leverage', (body.defaultLev as string) || "");
+    await c.env.CONFIG_KV.put('trade:max_position_size', (body.maxPosSize as string) || "");
+  }
+
+  return c.redirect('/settings?saved=true');
+});
+
+// --- Positions Page ---
+app.get('/positions', async (c) => {
+  let positions = [];
+  let error = null;
+
+  try {
+    if (c.env.D1_SERVICE) {
+      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/positions'));
+      if (res.ok) {
+         const data = await res.json() as any;
+         if (data.success) positions = data.positions;
+      }
+    }
+  } catch (err) {
+    error = String(err);
+  }
+
+  return c.html(
+    <Layout title="Dashboard - Active Positions" activeTab="positions">
+      <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6">
+        <h2 class="text-xl font-bold mb-4 text-white border-b border-neutral-800 pb-2">Active Positions</h2>
+        
+        {error && <div class="text-red-500 mb-4">{error}</div>}
+
+        <div class="overflow-x-auto rounded border border-neutral-800">
+          <table class="min-w-full bg-[#0f0f0f] border-collapse">
+            <thead class="bg-neutral-900 border-b border-neutral-800">
+              <tr>
+                <th class="py-3 px-4 text-left text-xs font-semibold text-neutral-400 uppercase">Exchange</th>
+                <th class="py-3 px-4 text-left text-xs font-semibold text-neutral-400 uppercase">Symbol</th>
+                <th class="py-3 px-4 text-left text-xs font-semibold text-neutral-400 uppercase">Side</th>
+                <th class="py-3 px-4 text-left text-xs font-semibold text-neutral-400 uppercase">Size</th>
+                <th class="py-3 px-4 text-left text-xs font-semibold text-neutral-400 uppercase">Updated At</th>
+                <th class="py-3 px-4 text-right text-xs font-semibold text-neutral-400 uppercase">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-800">
+              {positions.length > 0 ? positions.map((p: any) => (
+                <tr class="hover:bg-neutral-900">
+                  <td class="py-3 px-4 text-sm text-neutral-300 capitalize">{p.exchange}</td>
+                  <td class="py-3 px-4 text-sm text-white font-medium">{p.symbol}</td>
+                  <td class="py-3 px-4 text-sm">
+                     <span class={`px-2 py-1 rounded text-xs font-bold ${p.side === 'LONG' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>{p.side}</span>
+                  </td>
+                  <td class="py-3 px-4 text-sm text-neutral-300">{p.size}</td>
+                  <td class="py-3 px-4 text-sm text-neutral-500">{new Date(p.updated_at * 1000).toLocaleString()}</td>
+                  <td class="py-3 px-4 text-right">
+                     <button class="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded hover:bg-red-900 transition">Close</button>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td class="py-6 px-4 text-sm text-neutral-500 text-center italic" colSpan={6}>No active positions.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Layout>
+  );
+});
+
+// --- Logs Page ---
+app.get('/logs', async (c) => {
+  let logs = [];
+  try {
+    if (c.env.D1_SERVICE) {
+      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/logs'));
+      if (res.ok) {
+         const data = await res.json() as any;
+         if (data.success) logs = data.logs;
+      }
+    }
+  } catch (err) {}
+
+  return c.html(
+    <Layout title="Dashboard - System Logs" activeTab="logs">
+      <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6">
+        <h2 class="text-xl font-bold mb-4 text-white border-b border-neutral-800 pb-2">System Logs</h2>
+        
+        <div class="bg-black border border-neutral-800 rounded p-4 h-96 overflow-y-auto font-mono text-xs space-y-2">
+           {logs.length > 0 ? logs.map((l: any) => (
+             <div class="flex gap-4">
+               <span class="text-neutral-500 whitespace-nowrap">[{new Date(l.timestamp * 1000).toISOString()}]</span>
+               <span class={`font-bold w-12 ${l.level === 'ERROR' ? 'text-red-500' : l.level === 'WARN' ? 'text-yellow-500' : 'text-blue-500'}`}>{l.level}</span>
+               <span class="text-neutral-400 w-24">[{l.service}]</span>
+               <span class="text-neutral-300">{l.message}</span>
+             </div>
+           )) : (
+             <div class="text-neutral-600 italic">No logs generated yet.</div>
+           )}
         </div>
       </div>
     </Layout>
