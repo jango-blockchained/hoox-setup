@@ -205,51 +205,63 @@ app.get('/', async (c) => {
         <div class="space-y-6">
           <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-0 overflow-hidden">
             <div class="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900">
-              <h2 class="text-sm font-semibold text-white">Bindings <span class="bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded ml-2 text-xs">7</span></h2>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              <h2 class="text-sm font-semibold text-white">Hoox Framework <span class="bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded ml-2 text-xs">7 Services</span></h2>
             </div>
             
             <div class="p-0">
-              <div class="flex justify-between items-center p-3 text-xs text-neutral-400 border-b border-neutral-800 hover:bg-neutral-900">
-                <span>Add a binding</span>
-                <span class="text-lg leading-none font-thin cursor-pointer hover:text-white">+</span>
+              <div class="p-4 text-xs text-neutral-400 border-b border-neutral-800 leading-relaxed">
+                Hoox is a modular, high-performance algorithmic trading and automation framework built entirely on Cloudflare Workers. It uses distributed microservices to process signals, execute trades, and manage state with near-zero latency worldwide.
               </div>
               
               <div class="p-3 border-b border-neutral-800">
-                <div class="text-xs text-neutral-400 mb-2">Workers AI</div>
+                <div class="text-xs text-neutral-400 mb-2">Gateway</div>
                 <div class="flex items-center text-sm text-neutral-300">
-                  <span class="font-mono text-xs w-28">AI</span>
+                  <span class="font-mono text-xs w-24">hoox</span>
                   <span class="text-neutral-600 mx-2">→</span>
-                  <span class="flex items-center gap-1 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> Workers AI</span>
+                  <span class="flex items-center gap-1 text-xs">Webhook Receiver</span>
                 </div>
               </div>
               
               <div class="p-3 border-b border-neutral-800">
-                <div class="text-xs text-neutral-400 mb-2">KV namespace</div>
+                <div class="text-xs text-neutral-400 mb-2">Execution</div>
                 <div class="flex items-center text-sm text-neutral-300">
-                  <span class="font-mono text-xs w-28">SESSIONS_KV</span>
+                  <span class="font-mono text-xs w-24 text-green-400">trade-worker</span>
                   <span class="text-neutral-600 mx-2">→</span>
-                  <span class="flex items-center gap-1 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect></svg> SESSIONS_KV</span>
+                  <span class="flex items-center gap-1 text-xs">Trading Engine</span>
+                </div>
+              </div>
+
+              <div class="p-3 border-b border-neutral-800">
+                <div class="text-xs text-neutral-400 mb-2">Storage</div>
+                <div class="flex items-center text-sm text-neutral-300">
+                  <span class="font-mono text-xs w-24 text-purple-400">d1-worker</span>
+                  <span class="text-neutral-600 mx-2">→</span>
+                  <span class="flex items-center gap-1 text-xs">Database Operations</span>
                 </div>
               </div>
               
               <div class="p-3">
-                <div class="text-xs text-neutral-400 mb-2">Service binding</div>
+                <div class="text-xs text-neutral-400 mb-2">Ancillary Services</div>
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center text-sm text-neutral-300">
-                    <span class="font-mono text-xs w-28">TELEGRAM_SER...</span>
+                    <span class="font-mono text-xs w-28 text-blue-400">telegram-worker</span>
                     <span class="text-neutral-600 mx-2">→</span>
-                    <span class="flex items-center gap-1 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> telegram-worker</span>
+                    <span class="flex items-center gap-1 text-xs">AI & Notifications</span>
                   </div>
                   <div class="flex items-center text-sm text-neutral-300">
-                    <span class="font-mono text-xs w-28">TRADE_SERVICE</span>
+                    <span class="font-mono text-xs w-28 text-yellow-400">web3-wallet</span>
                     <span class="text-neutral-600 mx-2">→</span>
-                    <span class="flex items-center gap-1 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> trade-worker</span>
+                    <span class="flex items-center gap-1 text-xs">On-Chain DEX</span>
                   </div>
                   <div class="flex items-center text-sm text-neutral-300">
-                    <span class="font-mono text-xs w-28">D1_SERVICE</span>
+                    <span class="font-mono text-xs w-28 text-teal-400">home-assistant</span>
                     <span class="text-neutral-600 mx-2">→</span>
-                    <span class="flex items-center gap-1 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg> d1-worker</span>
+                    <span class="flex items-center gap-1 text-xs">Local Control</span>
+                  </div>
+                  <div class="flex items-center text-sm text-neutral-300">
+                    <span class="font-mono text-xs w-28 text-pink-400">email-worker</span>
+                    <span class="text-neutral-600 mx-2">→</span>
+                    <span class="flex items-center gap-1 text-xs">IMAP Signals</span>
                   </div>
                 </div>
               </div>
