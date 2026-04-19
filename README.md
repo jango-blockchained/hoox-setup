@@ -14,7 +14,7 @@
 
 </div>
 
-> 🔄 A modular, service-oriented Cloudflare Edge Worker platform with AI integration, vector embeddings, trading automation, and home assistant control.
+> 🔄 Hoox is a modular, high-performance algorithmic trading and automation framework built entirely on Cloudflare Workers. It uses distributed microservices to process signals, execute trades, and manage state with near-zero latency worldwide.
 
 ## ✨ Features
 
