@@ -1,0 +1,21 @@
+{
+  "name": "dashboard-worker",
+  "version": "1.0.0",
+  "description": "Dashboard for Hoox trading system",
+  "main": "src/index.tsx",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "hono": "^4.4.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250430.0",
+    "wrangler": "^4.13.2",
+    "bun-types": "^1.2.10",
+    "typescript": "^5.8.3"
+  }
+}
