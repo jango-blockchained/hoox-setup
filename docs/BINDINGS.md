@@ -39,13 +39,13 @@ This document provides a comprehensive reference for all bindings, environment v
 
 | Binding | Worker | Connected Service | Description |
 |---------|--------|------------------|-------------|
-| `TRADE_API` | telegram-worker | trade-worker | Access to trading functionality |
+| `TRADE_SERVICE` | telegram-worker | trade-worker | Access to trading functionality |
 | `WEBHOOK_RECEIVER_API` | telegram-worker | hoox | Access to webhook handling |
 | `WEB3_WALLET_API` | telegram-worker | web3-wallet-worker | Access to wallet functionality |
 | `TRADE_SERVICE` | hoox | trade-worker | Access to trading functionality |
 | `TELEGRAM_SERVICE` | hoox | telegram-worker | Access to Telegram notification service |
 | `HOME_ASSISTANT_SERVICE` | hoox | home-assistant-worker | Access to Home Assistant service |
-| `TELEGRAM_API` | trade-worker, web3-wallet-worker | telegram-worker | Access to Telegram notification service |
+| `TELEGRAM_SERVICE` | trade-worker, web3-wallet-worker | telegram-worker | Access to Telegram notification service |
 | `D1_SERVICE` | trade-worker | d1-worker | Access to D1 database service |
 | `WEB3_WALLET_WORKER` | trade-worker | web3-wallet-worker | Access to wallet functionality |
 
