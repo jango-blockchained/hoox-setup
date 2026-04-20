@@ -13,14 +13,14 @@ The `agent-worker` acts proactively. It serves as an intelligent, autonomous lay
 
 ### A. Position & Market Monitoring (The "Observer")
 *   **Implementation:** 
-    *   Setup Cloudflare Worker Cron Triggers (`scheduled` event) in `agent-worker/wrangler.toml` to run every 1-5 minutes.
+    *   Setup Cloudflare® Worker Cron Triggers (`scheduled` event) in `agent-worker/wrangler.toml` to run every 1-5 minutes.
     *   During execution, the agent queries `d1-worker` for all rows where `status = 'OPEN'`.
     *   The agent then queries exchange APIs (via a new `/market` endpoint on `trade-worker` or direct lightweight clients) to get the live `mark_price` for those specific symbols.
 *   **Use Case:** Calculates real-time Unrealized PnL, distance to liquidation, and time-in-trade metrics without relying on the dashboard frontend.
 
 ### B. Risk Management Engine (The "Shield")
 *   **Implementation:**
-    *   **Global Kill Switch:** The agent checks the Cloudflare KV (`CONFIG_KV`) for a global risk threshold (e.g., `max_daily_drawdown: -5%`). If the calculated account-wide PnL drops below this, the agent flips the `kill_switch` to `true` in the KV, blocking the `hoox` worker from accepting new trades.
+    *   **Global Kill Switch:** The agent checks the Cloudflare® KV (`CONFIG_KV`) for a global risk threshold (e.g., `max_daily_drawdown: -5%`). If the calculated account-wide PnL drops below this, the agent flips the `kill_switch` to `true` in the KV, blocking the `hoox` worker from accepting new trades.
     *   **Exposure Limits:** Before an AI-driven or signal-driven trade is passed to `trade-worker`, the agent checks if the asset concentration is too high (e.g., "Already 50% exposed to BTC, reject new LONG").
 *   **Use Case:** Prevents flash crashes from wiping out the portfolio and overrides emotional or erroneous TradingView webhook spam.
 
@@ -51,6 +51,11 @@ To make this work seamlessly with your existing stack, the `agent-worker` will n
 
 ## 4. Trade-offs to Consider Before Implementation
 
-*   **Cron Frequency vs. Execution Cost:** Running a cron every 1 minute ensures tight risk management but consumes more Cloudflare Worker requests. Every 5 minutes is cheaper but riskier for highly leveraged scalps.
+*   **Cron Frequency vs. Execution Cost:** Running a cron every 1 minute ensures tight risk management but consumes more Cloudflare® Worker requests. Every 5 minutes is cheaper but riskier for highly leveraged scalps.
 *   **Exchange API Rate Limits:** If the agent pulls market data for every open position every minute, it could hit Binance/MEXC rate limits. *Solution:* Route all market queries through a cached KV layer or a single centralized function.
-*   **State Management:** Tracking the "Highest Watermark" for trailing stops requires fast, persistent storage. D1 might be too slow/costly for per-minute updates. *Solution:* Use Cloudflare KV or Durable Objects for active trade state.
+*   **State Management:** Tracking the "Highest Watermark" for trailing stops requires fast, persistent storage. D1 might be too slow/costly for per-minute updates. *Solution:* Use Cloudflare® KV or Durable Objects for active trade state.
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

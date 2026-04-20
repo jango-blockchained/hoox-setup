@@ -1,6 +1,6 @@
-# Cloudflare Workers Bindings & Environment Variables
+# Cloudflare® Workers Bindings & Environment Variables
 
-This document provides a comprehensive reference for all bindings, environment variables, and secrets used in the Cloudflare Workers project.
+This document provides a comprehensive reference for all bindings, environment variables, and secrets used in the Cloudflare® Workers project.
 
 ## Table of Contents
 
@@ -75,7 +75,7 @@ This document provides a comprehensive reference for all bindings, environment v
 
 | Binding | Worker                              | Description                                  |
 | ------- | ----------------------------------- | -------------------------------------------- |
-| `AI`    | telegram-worker, hoox, trade-worker | Access to Cloudflare Workers AI capabilities |
+| `AI`    | telegram-worker, hoox, trade-worker | Access to Cloudflare® Workers AI capabilities |
 
 ## Vectorize Bindings
 
@@ -116,3 +116,8 @@ wrangler secret put SECRET_NAME
 ```
 
 This will securely store the secret and make it available to the worker at runtime.
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

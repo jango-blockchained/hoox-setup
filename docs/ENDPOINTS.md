@@ -116,7 +116,7 @@ Response Example:
 
 ### agent-worker
 
-The `agent-worker` runs primarily via Cloudflare Cron Triggers (`*/5 * * * *`) but exposes REST endpoints for manual intervention.
+The `agent-worker` runs primarily via Cloudflare® Cron Triggers (`*/5 * * * *`) but exposes REST endpoints for manual intervention.
 
 | Endpoint | Method | Description | Request Format | Response Format |
 |----------|--------|-------------|----------------|-----------------|
@@ -222,8 +222,12 @@ async function routeRequest(request, env) {
 
 2. **Versioned API**: Implement API versioning in the route paths (e.g., `/v1/trades`, `/v2/trades`).
 
-3. **Event-Driven Architecture**: For non-realtime operations, consider using Cloudflare Queues to decouple services.
+3. **Event-Driven Architecture**: For non-realtime operations, consider using Cloudflare® Queues to decouple services.
 
 4. **Middleware Composition**: Build a library of reusable middleware functions that can be composed for different routes.
 
 By implementing these improvements, the system can evolve beyond hardcoded functions while maintaining security and providing better scalability and maintainability. 
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

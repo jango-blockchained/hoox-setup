@@ -2,9 +2,9 @@
 
 > Keeping an eye on system health and performance
 
-## Cloudflare Dashboard
+## Cloudflare® Dashboard
 
-The Cloudflare Dashboard provides out-of-the-box monitoring for your workers:
+The Cloudflare® Dashboard provides out-of-the-box monitoring for your workers:
 
 1. Go to **Workers & Pages**.
 2. Select your worker.
@@ -37,3 +37,7 @@ if (!response.ok) {
 ## Next Steps
 
 - [Debugging](../development/debugging.md)
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

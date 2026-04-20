@@ -34,7 +34,7 @@ This uses Wrangler under the hood: `wrangler dev --port 8787`.
 
 ### Local Service Bindings
 
-When running locally, Cloudflare Workers can communicate with each other using local service bindings. The ports for local development are mapped as follows:
+When running locally, Cloudflare® Workers can communicate with each other using local service bindings. The ports for local development are mapped as follows:
 
 | Service | Local Port |
 |---------|------------|
@@ -51,3 +51,7 @@ To test local bindings, you must have all dependent workers running in separate 
 
 - [Testing](testing.md)
 - [Debugging](debugging.md)
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

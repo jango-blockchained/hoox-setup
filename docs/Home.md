@@ -1,6 +1,6 @@
 # 📚 Hoox Documentation
 
-> Comprehensive guide to the Hoox Cloudflare Edge Worker Platform
+> Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform
 
 ## 📖 Table of Contents
 
@@ -68,3 +68,8 @@ Each worker has its own README in the worker directory:
 | KV Storage      | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    |
 | AI/Vectorize    | -    | -     | ✅       | ✅    | -    | -   | -    |
 | Cron Triggers   | -    | -     | -        | ✅    | -    | -   | -    |
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

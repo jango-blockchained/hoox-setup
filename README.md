@@ -4,14 +4,14 @@
 
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Runtime](https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&logo=bun)](https://bun.sh)
-[![Platform](https://img.shields.io/badge/Platform-Cloudflare%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
+[![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 **[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/README.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
 </div>
 
-> **Trade at the speed of light.** Hoox is a revolutionary, 100% free, and open-source algorithmic trading and automation framework. Built exclusively on **Cloudflare Workers**, Hoox abandons traditional clunky servers in favor of a globally distributed, microservice edge architecture. Process signals, execute trades, and manage state with **absolute zero latency**, right from the network edge closest to the exchange.
+> **Trade at the speed of light.** Hoox is a revolutionary, 100% free, and open-source algorithmic trading and automation framework. Built exclusively on **Cloudflare® Workers**, Hoox abandons traditional clunky servers in favor of a globally distributed, microservice edge architecture. Process signals, execute trades, and manage state with **absolute zero latency**, right from the network edge closest to the exchange.
 
 ---
 
@@ -19,9 +19,9 @@
 
 Hoox isn't just another trading bot; it's a paradigm shift in how algorithmic trading infrastructure is deployed.
 
-*   💸 **100% Free & Open Source:** Institutional-grade trading infrastructure shouldn't cost thousands of dollars in server fees. Hoox leverages Cloudflare's incredibly generous free tiers. You pay nothing to run your own high-frequency trading empire.
-*   ⚡ **Zero Latency Execution:** Your code runs on Cloudflare's Edge, mere milliseconds away from Binance, Bybit, and MEXC API servers worldwide. When a signal fires, Hoox executes before traditional VPS setups even register the network request.
-*   🛡️ **Superior Security by Cloudflare:** Forget managing firewalls, DDoS protection, or VPNs. Hoox inherits Cloudflare's enterprise-grade security. With Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are virtually impenetrable.
+*   💸 **100% Free & Open Source:** Institutional-grade trading infrastructure shouldn't cost thousands of dollars in server fees. Hoox leverages Cloudflare®'s incredibly generous free tiers. You pay nothing to run your own high-frequency trading empire.
+*   ⚡ **Zero Latency Execution:** Your code runs on Cloudflare®'s Edge, mere milliseconds away from Binance, Bybit, and MEXC API servers worldwide. When a signal fires, Hoox executes before traditional VPS setups even register the network request.
+*   🛡️ **Superior Security by Cloudflare®:** Forget managing firewalls, DDoS protection, or VPNs. Hoox inherits Cloudflare®'s enterprise-grade security. With Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are virtually impenetrable.
 *   🧠 **Autonomous AI Intelligence:** Featuring an embedded AI risk manager (`agent-worker`), Hoox monitors your portfolio 24/7, executes trailing stops, triggers global kill-switches during flash crashes, and sends natural language health summaries to your phone.
 
 ---
@@ -31,7 +31,7 @@ Hoox isn't just another trading bot; it's a paradigm shift in how algorithmic tr
 | Feature                 | Description                                                |
 | ----------------------- | ---------------------------------------------------------- |
 | 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing |
-| 🤖 **AI Integration**   | Cloudflare Workers AI for LLaMA 3 powered summaries & decisions |
+| 🤖 **AI Integration**   | Cloudflare® Workers AI for LLaMA 3 powered summaries & decisions |
 | 🗄️ **D1 Database**      | Globally distributed SQLite at the edge for persistent, atomic storage |
 | 📦 **R2 Storage**       | Zero-egress S3-compatible object storage for trade reports |
 | 🔐 **KV Storage**       | Global, ultra-fast key-value caching for dynamic settings and kill-switches |
@@ -54,7 +54,7 @@ bun install
 # 3. Initialize the platform (Interactive CLI Wizard)
 bun run scripts/manage.ts init
 
-# 4. Deploy your entire trading empire to the Cloudflare Edge!
+# 4. Deploy your entire trading empire to the Cloudflare® Edge!
 bun run scripts/manage.ts workers deploy
 ```
 
@@ -84,7 +84,7 @@ graph TB
         TG["💬 Telegram<br/>Commands"]
     end
 
-    subgraph "Cloudflare Edge Network (Zero Latency)"
+    subgraph "Cloudflare® Edge Network (Zero Latency)"
         hoox["🔐 hoox<br/>Gateway Firewall"]
         trade["📈 trade-worker<br/>Execution Engine"]
         telegram["💬 telegram-worker<br/>AI Notifications"]
@@ -94,7 +94,7 @@ graph TB
         web3["🌐 web3-wallet<br/>On-Chain Router"]
     end
 
-    subgraph "Cloudflare Infrastructure"
+    subgraph "Cloudflare® Infrastructure"
         KV[(💾 KV Store)]
         AI[(🤖 Workers AI)]
         DB[(🗄️ D1 SQL)]
@@ -147,8 +147,8 @@ Ancillary plugins allowing you to trigger trades via smart home events or raw em
 ## 🔐 Bulletproof Security
 
 When dealing with trading capital, security isn't a feature; it's the foundation.
-- **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare Service Bindings.
-- **Zero Trust Dashboard:** Your UI is secured behind Cloudflare Access, requiring rigorous authentication before you can even view the login page.
+- **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
+- **Zero Trust Dashboard:** Your UI is secured behind Cloudflare® Access, requiring rigorous authentication before you can even view the login page.
 - **Hardware-Level Secret Injection:** API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.
 
 ---
@@ -181,5 +181,9 @@ MIT License - Built for the community, by the community. See [LICENSE](LICENSE) 
 
 ---
 <div align="center">
-Built with 🔥 on the Cloudflare Edge.
+Built with 🔥 on the Cloudflare® Edge.
 </div>
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
