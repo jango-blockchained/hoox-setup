@@ -155,6 +155,15 @@ const response = await env.TRADE_SERVICE.fetch(url, {
 - **D1**: ~5ms query time
 - **R2**: ~10ms for large objects
 
+## Performance & Tooling: Powered by Bun 🥟
+
+Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bun is designed as a drop-in replacement for Node.js, providing significantly faster execution, immediate startup times, and built-in tooling for testing, running scripts, and managing dependencies.
+
+- **Super Fast Execution**: Native implementations and the JavaScriptCore engine make script execution near instantaneous.
+- **Lightning Fast Installs**: Dependency resolution and installation are optimized for speed, caching, and concurrent fetching.
+- **Built-in Test Runner**: Hoox uses `bun test`, giving you natively integrated testing without heavy additional dependencies like Jest or Mocha.
+- **TypeScript Out-of-the-Box**: Bun compiles TypeScript on the fly, eliminating the need for slow build steps during development.
+
 ## Next Steps
 
 - [Worker Communication](communication.md)
