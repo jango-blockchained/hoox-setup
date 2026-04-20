@@ -162,7 +162,7 @@ With money on the line, we test everything.
 bun test --coverage
 ```
 
-Current Test Coverage stands at **>80%** across all critical execution and gateway workers. 
+Current Test Coverage stands at **>65% average line coverage** across all critical execution and gateway workers. 
 
 ---
 
