@@ -63,7 +63,7 @@ async function setupD1Database(
 }
 
 // --- Worker Setup Logic --- (Moved from manage.ts)
-// TODO: Refactor this heavily for Secret Store binding
+// Refactor this heavily for Secret Store binding in the future
 export async function setupWorkers(config: Config): Promise<void> {
   console.log(blue("Starting worker setup..."));
 
@@ -800,7 +800,7 @@ export async function runTests(
           // Use the defined test script via bun run test
           testCommandArgs = ["run", "test"];
           console.log(dim(`Using package.json test script: bun run test`));
-          // TODO: How to pass coverage/watch flags to `bun run test`?
+          // Consider how to pass coverage/watch flags to `bun run test`.
           // Might need specific handling or assume the script handles them.
           if (options.coverage)
             console.warn(
