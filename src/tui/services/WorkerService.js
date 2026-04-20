@@ -30,6 +30,8 @@ export class WorkerService {
       telegram: [],
       "home-assistant": [],
       "web3-wallet": [],
+      agent: [],
+      dashboard: [],
     };
   }
 
@@ -236,6 +238,12 @@ export class WorkerService {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await this.startWorker("web3-wallet");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await this.startWorker("agent");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await this.startWorker("dashboard");
 
     this.setStatusMessage("All workers started");
   }
@@ -247,6 +255,8 @@ export class WorkerService {
     this.setStatusMessage("Stopping all workers...");
 
     // Stop new workers first
+    await this.stopWorker("dashboard");
+    await this.stopWorker("agent");
     await this.stopWorker("web3-wallet");
     await this.stopWorker("home-assistant");
     await new Promise((resolve) => setTimeout(resolve, 1000));

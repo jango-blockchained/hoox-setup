@@ -69,6 +69,18 @@ let workers = {
     port: 8792,
     extraArgs: "",
   },
+  agent: {
+    name: "Agent Worker",
+    status: "stopped",
+    port: 8793,
+    extraArgs: "",
+  },
+  dashboard: {
+    name: "Dashboard Worker",
+    status: "stopped",
+    port: 8794,
+    extraArgs: "",
+  },
 };
 let selectedWorkerId = "d1";
 let logs = {}; // Store logs { workerId: [log lines] }
