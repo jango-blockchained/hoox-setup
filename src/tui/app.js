@@ -329,7 +329,7 @@ const systemInfo = blessed.box({
   top: 0,
   left: 0,
   width: "100%-2", // Account for borders
-  height: "30%",
+  height: "20%",
   padding: { left: 1, top: 1 },
   tags: true,
   content: "Loading system info...",
@@ -339,19 +339,43 @@ const systemInfo = blessed.box({
   },
 });
 
-const actionsBox = blessed.box({
+const gatewayVisBox = blessed.box({
   parent: infoPane,
-  top: "30%",
+  top: "20%",
   left: 0,
   width: "100%-2", // Account for borders
-  height: "70%",
+  height: "50%",
+  label: " Architecture ",
+  border: {
+    type: "line",
+    bg: THEME.bg,
+    fg: THEME.border,
+  },
+  padding: { left: 1, top: 1, right: 1 },
+  tags: true,
+  style: {
+    bg: THEME.bg,
+    fg: THEME.accent,
+    border: {
+      fg: THEME.border,
+      bg: THEME.bg,
+    },
+  },
+});
+
+const actionsBox = blessed.box({
+  parent: infoPane,
+  top: "70%",
+  left: 0,
+  width: "100%-2", // Account for borders
+  height: "30%",
   label: " Global Actions ",
   border: {
     type: "line",
     bg: THEME.bg,
     fg: THEME.border,
   },
-  padding: { left: 1, top: 1 },
+  padding: { left: 1, top: 0 },
   tags: true,
   style: {
     bg: THEME.bg,
@@ -366,7 +390,7 @@ const actionsBox = blessed.box({
 const _actionsText = blessed.text({
   parent: actionsBox,
   content:
-    "{bold}Global Actions{/}\n\n[Ctrl+S] Start All\n[Ctrl+K] Stop All\n[Ctrl+R] Restart All",
+    "{bold}Actions{/}\n[Ctrl+S] Start All\n[Ctrl+K] Stop All\n[Ctrl+R] Restart All",
   tags: true,
   style: {
     bg: THEME.bg,
@@ -503,6 +527,32 @@ function updateSystemInfo() {
   screen.render();
 }
 
+function updateGatewayVis() {
+  const getCol = (id) => {
+    return workers[id]?.status === "running" ? "{green-fg}" : "{gray-fg}";
+  };
+  const getE = () => "{/}";
+
+  // Simple ASCII network map of the hoox architecture
+  const content = `
+ ${getCol("webhook")}[Webhooks]${getE()} -> ${getCol("webhook")}[Hoox]${getE()}
+               |
+               v
+     ${getCol("trade")}[Trade]${getE()} <--- ${getCol("agent")}[Agent]${getE()}
+      |    |            |
+      v    v            v
+ ${getCol("d1")}[D1]${getE()} ${getCol("web3-wallet")}[Web3]${getE()}   ${getCol("telegram")}[Telegram]${getE()}
+
+ ${getCol("dashboard")}[Dashboard]${getE()} -> ${getCol("d1")}[D1]${getE()}
+             \\-> ${getCol("agent")}[Agent]${getE()}
+             
+ ${getCol("home-assistant")}[Home Assistant]${getE()}
+`;
+
+  gatewayVisBox.setContent(content);
+  screen.render();
+}
+
 function updateStatusBar() {
   const text = statusMessage
     ? ` ${statusMessage} | Mode: Local | Ctrl+Q to exit`
@@ -582,6 +632,7 @@ function initializeUI() {
   updateControlBox();
   updateLogView();
   updateSystemInfo();
+  updateGatewayVis();
   updateStatusBar();
 
   // Set initial focus
@@ -598,6 +649,7 @@ function initializeUI() {
   setInterval(() => {
     workerService.checkAllStatus();
     updateSystemInfo();
+    updateGatewayVis();
   }, 5000);
 }
 
