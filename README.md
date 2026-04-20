@@ -166,6 +166,56 @@ Current Test Coverage stands at **>80%** across all critical execution and gatew
 
 ---
 
+## 🐳 Self-Hosting (Docker)
+
+Hoox supports a **Hybrid Edge** deployment model. You can run the worker logic entirely on your own infrastructure using Docker, while still leveraging Cloudflare's AI, D1, KV, and R2 for heavy lifting—no code rewrites required.
+
+### Prerequisites
+
+*   [Docker](https://www.docker.com/) & Docker Compose
+*   Bun runtime (included in our Docker images)
+
+### Development (Hot-Reload)
+
+Spin up all 8 workers locally with hot-reloading enabled. Changes to your code are reflected instantly without rebuilding the container.
+
+```bash
+# Build and start the dev environment
+bun run docker:dev
+```
+
+This launches all workers on the following ports:
+
+| Service | Port |
+|---------|------|
+| Gateway (hoox) | 8787 |
+| Trade Worker | 8789 |
+| Telegram Worker | 8791 |
+| D1 Worker | 8792 |
+| Web3 Wallet | 8793 |
+| Dashboard | 8794 |
+| Agent | 8795 |
+| Email | 8796 |
+
+### Production (Self-Hosted)
+
+Build and run the optimized production image. This compiles all TypeScript workers into high-performance JavaScript bundles served via a lightweight Bun runtime.
+
+```bash
+# Build the production image
+bun run docker:prod
+```
+
+**Configuration:**
+Ensure your `.env.local` or environment variables are set with your Cloudflare API Token and Account ID:
+
+```bash
+CLOUDFLARE_API_TOKEN=your_token_here
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+```
+
+---
+
 ## 🤝 Join the Revolution
 
 Traditional algorithmic trading is walled off by expensive data centers and bloated python monoliths. Hoox tears those walls down. 

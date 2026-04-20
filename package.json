@@ -24,7 +24,11 @@
     "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",
     "generate-types": "tsc -p tsconfig.prod.json --declaration --emitDeclarationOnly --outDir types",
     "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'",
-    "migrate:tracking": "bash scripts/migrate-tracking.sh"
+    "migrate:tracking": "bash scripts/migrate-tracking.sh",
+    "docker:dev": "docker-compose up --build",
+    "docker:dev:build": "docker build -f Dockerfile.dev . --tag hoox:dev",
+    "docker:prod": "docker build -f Dockerfile.prod . --tag hoox:prod && docker run -p 8080:8080 hoox:prod",
+    "docker:down": "docker-compose down"
   },
   "devDependencies": {
     "@cloudflare/ai": "^1.2.2",
