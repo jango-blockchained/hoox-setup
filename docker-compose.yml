@@ -1,0 +1,160 @@
+version: "3.8"
+
+services:
+  hoox:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-gateway
+    command: bunx wrangler dev -c workers/hoox/wrangler.jsonc --local
+    ports:
+      - "8787:8787"
+      - "8788:8788" # trade-worker internal
+    volumes:
+      - ./workers/hoox:/app/workers/hoox
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    restart: unless-stopped
+
+  trade-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-trade
+    command: bunx wrangler dev -c workers/trade-worker/wrangler.jsonc --local
+    ports:
+      - "8789:8789"
+      - "8790:8790" # telegram internal
+    volumes:
+      - ./workers/trade-worker:/app/workers/trade-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    environment:
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+
+  telegram-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-telegram
+    command: bunx wrangler dev -c workers/telegram-worker/wrangler.jsonc --local
+    ports:
+      - "8791:8791"
+    volumes:
+      - ./workers/telegram-worker:/app/workers/telegram-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+
+  d1-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-d1
+    command: bunx wrangler dev -c workers/d1-worker/wrangler.jsonc --local
+    ports:
+      - "8792:8792"
+    volumes:
+      - ./workers/d1-worker:/app/workers/d1-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+
+  web3-wallet-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-web3
+    command: bunx wrangler dev -c workers/web3-wallet-worker/wrangler.jsonc --local
+    ports:
+      - "8793:8793"
+    volumes:
+      - ./workers/web3-wallet-worker:/app/workers/web3-wallet-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+
+  dashboard-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-dashboard
+    command: bunx wrangler dev -c workers/dashboard-worker/wrangler.jsonc --local
+    ports:
+      - "8794:8794"
+    volumes:
+      - ./workers/dashboard-worker:/app/workers/dashboard-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+      - d1-worker
+    restart: unless-stopped
+
+  agent-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-agent
+    command: bunx wrangler dev -c workers/agent-worker/wrangler.jsonc --local
+    ports:
+      - "8795:8795"
+    volumes:
+      - ./workers/agent-worker:/app/workers/agent-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+      - d1-worker
+      - trade-worker
+    restart: unless-stopped
+
+  email-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-email
+    command: bunx wrangler dev -c workers/email-worker/wrangler.jsonc --local
+    ports:
+      - "8796:8796"
+    volumes:
+      - ./workers/email-worker:/app/workers/email-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+
+networks:
+  hoox-net:
+    driver: bridge

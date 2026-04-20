@@ -1,0 +1,21 @@
+# Hoox Development Environment
+# Uses Bun for ultra-fast development with hot-reloading via wrangler dev
+FROM oven/bun:1.3.12
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for dependency install
+COPY package.json bun.lock ./
+
+# Install dependencies
+RUN bun install --frozen-lockfile
+
+# Copy the rest of the application
+COPY . .
+
+# Expose the default worker port
+EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794
+
+# Default command: keep container running (specific worker will be run via docker-compose command override)
+CMD ["tail", "-f", "/dev/null"]
