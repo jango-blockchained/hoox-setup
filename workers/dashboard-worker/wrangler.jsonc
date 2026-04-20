@@ -13,6 +13,10 @@
     {
       "binding": "D1_SERVICE",
       "service": "d1-worker"
+    },
+    {
+      "binding": "TRADE_SERVICE",
+      "service": "trade-worker"
     }
   ],
   "kv_namespaces": [
