@@ -40,7 +40,7 @@
     "bun-types": "latest",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-prettier": "^5.5.5",
     "hono": "^4.4.12",
     "jest-mock": "^29.7.0",
     "postgres": "^3.4.4",
