@@ -56,11 +56,16 @@ export class WorkerService {
         // Add check in case workerId is invalid
         throw new Error(`Worker configuration not found for ${workerId}`);
       }
-      const workingDir = path.resolve(process.cwd(), `${workerId}-worker`);
+      let dirName = `${workerId}-worker`;
+      if (workerId === "webhook") {
+        dirName = "hoox";
+      }
+      
+      const workingDir = path.resolve(process.cwd(), "workers", dirName);
 
       // Start the process using injected function
       const childProcess = this.spawnFn(
-        "bun",
+        process.execPath,
         [
           "run",
           "dev",
