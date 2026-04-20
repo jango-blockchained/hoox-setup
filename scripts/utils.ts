@@ -301,7 +301,7 @@ export async function getCloudflareToken(
     print_error("Cloudflare API Token is required to proceed.");
     return null;
   }
-  // TODO: Optionally offer to save this back to config?
+  // Optionally offer to save this back to config in the future.
   return token.trim();
 }
 
