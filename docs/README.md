@@ -7,6 +7,7 @@
 ### Getting Started
 
 - [Installation](getting-started/installation.md)
+- [Installation Flow](getting-started/installation-flow.md)
 - [Quick Start Guide](getting-started/quick-start.md)
 - [Configuration](getting-started/configuration.md)
 
@@ -15,6 +16,7 @@
 - [System Overview](architecture/overview.md)
 - [Worker Communication](architecture/communication.md)
 - [Data Flow](architecture/data-flow.md)
+- [Bindings & Environment](architecture/bindings.md)
 
 ### Workers
 

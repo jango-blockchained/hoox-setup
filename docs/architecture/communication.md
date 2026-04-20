@@ -33,7 +33,7 @@ export default {
           symbol: "BTC_USDT",
           quantity: 0.01,
         }),
-      }
+      },
     );
 
     const result = await tradeResponse.json();
@@ -50,7 +50,7 @@ export default {
 | hoox → telegram-worker   | TELEGRAM_SERVICE | POST /process | Send notification |
 | trade-worker → d1-worker | D1_SERVICE       | SQL queries   | Log signals       |
 | trade-worker → web3      | WEB3_WALLET      | POST          | Web3 ops          |
-| telegram → trade-worker  | TRADE_SERVICE        | POST          | Status check      |
+| telegram → trade-worker  | TRADE_SERVICE    | POST          | Status check      |
 
 ## Request/Response Format
 
