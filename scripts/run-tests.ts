@@ -53,6 +53,10 @@ async function runTestsInWorker(workerDir: string): Promise<TestResult> {
       console.log(
         `✅ Tests ${exitCode === 0 ? "passed" : "completed with failures (skipped)"} for ${workerName}`
       );
+      if (args.includes("--coverage") && result.stdout) {
+        console.log("--- COVERAGE OUTPUT ---");
+        console.log(result.stdout);
+      }
     } else {
       console.error(
         `❌ Tests failed for ${workerName} (Exit Code: ${exitCode})`
