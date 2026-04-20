@@ -4,6 +4,7 @@ import { basicAuth } from 'hono/basic-auth';
 // Define the environment variables bindings
 export interface Env {
   D1_SERVICE: Fetcher;
+  TRADE_SERVICE: Fetcher;
   CONFIG_KV: KVNamespace;
   DASHBOARD_USER?: string;
   DASHBOARD_PASS?: string;
@@ -32,6 +33,7 @@ const Layout = (props: { title: string; activeTab: string; children: any }) => {
         <title>{props.title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
           {`
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -81,8 +83,13 @@ app.get('/', async (c) => {
   let stats = { totalTrades: 0, openPositions: 0 };
   let error = null;
   let recentActivity = [];
+  let aiSummary = "Waiting for AI observation...";
 
   try {
+    if (c.env.CONFIG_KV) {
+       aiSummary = await c.env.CONFIG_KV.get('dashboard:ai_health_summary') || aiSummary;
+    }
+
     if (c.env.D1_SERVICE) {
       const statsRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/stats'));
       if (statsRes.ok) {
@@ -113,6 +120,14 @@ app.get('/', async (c) => {
               </div>
             )}
             
+            <div class="mb-6 p-4 rounded border border-blue-900/50 bg-blue-950/20">
+              <h3 class="text-xs text-blue-400 font-medium mb-1 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                AI System Health
+              </h3>
+              <p class="text-sm text-neutral-300 italic">{aiSummary}</p>
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border-y border-neutral-800 py-4 mb-8">
               <div class="px-4 border-r border-neutral-800">
                 <h3 class="text-xs text-neutral-400 font-medium">Requests (Total Trades)</h3>
@@ -136,6 +151,43 @@ app.get('/', async (c) => {
                   Active
                 </p>
               </div>
+            </div>
+
+            {/* Performance Chart Placeholder */}
+            <div class="mb-8 border border-neutral-800 rounded bg-[#0f0f0f] p-4">
+              <h3 class="text-sm font-semibold text-white mb-4">Cumulative PnL (Mocked)</h3>
+              <div class="relative h-48 w-full">
+                <canvas id="pnlChart"></canvas>
+              </div>
+              <script dangerouslySetInnerHTML={{ __html: `
+                document.addEventListener('DOMContentLoaded', function() {
+                  const ctx = document.getElementById('pnlChart').getContext('2d');
+                  new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                      datasets: [{
+                        label: 'PnL ($)',
+                        data: [0, 150, -50, 300, 250, 600, 850],
+                        borderColor: '#f38020',
+                        backgroundColor: 'rgba(243, 128, 32, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } },
+                      scales: {
+                        y: { grid: { color: '#262626' }, ticks: { color: '#a3a3a3' } },
+                        x: { grid: { display: false }, ticks: { color: '#a3a3a3' } }
+                      }
+                    }
+                  });
+                });
+              `}} />
             </div>
             
             <div>
@@ -246,6 +298,7 @@ app.get('/settings', async (c) => {
   let allowedIps = "[]";
   let defaultLev = "";
   let maxPosSize = "";
+  let maxDrawdownPercent = "";
 
   if (c.env.CONFIG_KV) {
     killSwitch = await c.env.CONFIG_KV.get('global:kill_switch') || "false";
@@ -253,6 +306,7 @@ app.get('/settings', async (c) => {
     allowedIps = await c.env.CONFIG_KV.get('webhook:tradingview:allowed_ips') || "[]";
     defaultLev = await c.env.CONFIG_KV.get('trade:default_leverage') || "";
     maxPosSize = await c.env.CONFIG_KV.get('trade:max_position_size') || "";
+    maxDrawdownPercent = await c.env.CONFIG_KV.get('trade:max_daily_drawdown_percent') || "-5";
   }
 
   return c.html(
@@ -303,6 +357,11 @@ app.get('/settings', async (c) => {
                 <label class="block text-sm text-neutral-400 mb-1">Max Position Size</label>
                 <input type="number" step="0.001" name="maxPosSize" value={maxPosSize} placeholder="e.g. 1.5" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
               </div>
+              <div class="col-span-2">
+                <label class="block text-sm text-neutral-400 mb-1">Max Daily Drawdown (%)</label>
+                <input type="number" step="0.1" name="maxDrawdownPercent" value={maxDrawdownPercent} placeholder="e.g. -5" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
+                <p class="text-xs text-neutral-500 mt-1">If PnL drops below this percentage, the agent-worker will trigger the Global Kill Switch.</p>
+              </div>
             </div>
           </div>
 
@@ -326,12 +385,43 @@ app.post('/settings', async (c) => {
     await c.env.CONFIG_KV.put('webhook:tradingview:allowed_ips', (body.allowedIps as string) || "[]");
     await c.env.CONFIG_KV.put('trade:default_leverage', (body.defaultLev as string) || "");
     await c.env.CONFIG_KV.put('trade:max_position_size', (body.maxPosSize as string) || "");
+    await c.env.CONFIG_KV.put('trade:max_daily_drawdown_percent', (body.maxDrawdownPercent as string) || "-5");
   }
 
   return c.redirect('/settings?saved=true');
 });
 
 // --- Positions Page ---
+app.post('/positions/close', async (c) => {
+  const body = await c.req.parseBody();
+  const exchange = body.exchange as string;
+  const symbol = body.symbol as string;
+  const side = body.side as string;
+  const size = parseFloat(body.size as string);
+
+  if (c.env.TRADE_SERVICE) {
+    const action = side === 'LONG' ? 'CLOSE_LONG' : 'CLOSE_SHORT';
+    const payload = {
+      exchange,
+      symbol,
+      action,
+      quantity: size,
+    };
+    
+    try {
+      await c.env.TRADE_SERVICE.fetch(new Request('http://trade-worker/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }));
+    } catch (err) {
+      console.error("Failed to close position via TRADE_SERVICE:", err);
+    }
+  }
+
+  return c.redirect('/positions');
+});
+
 app.get('/positions', async (c) => {
   let positions = [];
   let error = null;
@@ -378,7 +468,13 @@ app.get('/positions', async (c) => {
                   <td class="py-3 px-4 text-sm text-neutral-300">{p.size}</td>
                   <td class="py-3 px-4 text-sm text-neutral-500">{new Date(p.updated_at * 1000).toLocaleString()}</td>
                   <td class="py-3 px-4 text-right">
-                     <button class="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded hover:bg-red-900 transition">Close</button>
+                     <form method="POST" action="/positions/close">
+                       <input type="hidden" name="exchange" value={p.exchange} />
+                       <input type="hidden" name="symbol" value={p.symbol} />
+                       <input type="hidden" name="side" value={p.side} />
+                       <input type="hidden" name="size" value={p.size} />
+                       <button type="submit" class="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded hover:bg-red-900 transition">Close</button>
+                     </form>
                   </td>
                 </tr>
               )) : (
