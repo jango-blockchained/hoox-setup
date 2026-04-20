@@ -22,15 +22,15 @@
 
 Each worker has its own README in the worker directory:
 
-- [hoox Gateway](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/hoox) - Main gateway worker (81% coverage)
-- [trade-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/trade-worker) - Trading engine (82% coverage)
-- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications
-- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations
-- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager
-- [dashboard-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/dashboard-worker) - UI & Settings Manager
-- [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions
-- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation
-- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing
+- [hoox Gateway](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/hoox) - Main gateway worker (65% line coverage)
+- [trade-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/trade-worker) - Trading engine (80% line coverage)
+- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications (45% line coverage)
+- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations (62% line coverage)
+- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (27% line coverage)
+- [dashboard-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/dashboard-worker) - UI & Settings Manager (47% line coverage)
+- [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions (83% line coverage)
+- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation (43% line coverage)
+- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (79% line coverage)
 
 ### API Reference
 
