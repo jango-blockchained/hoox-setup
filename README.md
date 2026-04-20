@@ -88,6 +88,8 @@ graph TB
         hoox["🔐 hoox<br/>Gateway"]
         trade["📈 trade-worker<br/>Trading Engine"]
         telegram["💬 telegram-worker<br/>Notifications"]
+        agent["🧠 agent-worker<br/>Autonomous AI"]
+        dash["📊 dashboard-worker<br/>UI & Settings"]
         d1["🗄️ d1-worker"]
         web3["🌐 web3-wallet"]
     end
@@ -103,9 +105,14 @@ graph TB
     TV --> hoox
     TG --> hoox
     TG --> telegram
+    dash --> KV
+    dash --> hoox
 
     hoox -->|TRADE_SERVICE| trade
     hoox -->|TELEGRAM_SERVICE| telegram
+    agent -->|TRADE_SERVICE| trade
+    agent -->|TELEGRAM_SERVICE| telegram
+    agent -->|D1_SERVICE| d1
 
     trade -->|D1_SERVICE| d1
     trade -->|WEB3_WALLET| web3
@@ -123,6 +130,9 @@ graph TB
     telegram -.-> R2
     telegram -.-> VEC
     telegram -.-> AI
+    
+    agent -.-> KV
+    agent -.-> AI
 ```
 
 ## 📁 Project Structure
@@ -138,6 +148,8 @@ hoox-setup/
 │   ├── hoox/         # Gateway worker (81% coverage)
 │   ├── trade-worker/  # Trading engine (82% coverage)
 │   ├── telegram-worker/ # Notifications (41% coverage)
+│   ├── agent-worker/ # Autonomous AI & Risk Management
+│   ├── dashboard-worker/ # UI & Settings Management
 │   ├── d1-worker/   # Database operations
 │   ├── web3-wallet/ # Web3 interactions
 │   └── home-assistant/ # Home automation
@@ -163,10 +175,20 @@ hoox-setup/
 - **Purpose**: Telegram bot & notifications
 - **Features**: RAG embeddings, R2 uploads, AI问答
 
+### 🧠 agent-worker
+
+- **Purpose**: Autonomous monitoring & risk management
+- **Features**: Cron-driven portfolio observer, global kill switch, trailing stops, AI health summaries
+
+### 📊 dashboard-worker
+
+- **Purpose**: Visual command center & dynamic settings
+- **Features**: Real-time position tracking, KV configuration management, performance analytics
+
 ### 🗄️ d1-worker
 
 - **Purpose**: Database operations
-- **Features**: Signals storage, response logging
+- **Features**: Signals storage, response logging, advanced aggregation endpoints
 
 ## 🔧 Configuration
 
@@ -188,6 +210,15 @@ enabled = true
 path = "workers/trade-worker"
 secrets = ["API_SERVICE_KEY"]
 vars = { DEFAULT_LEVERAGE = "20" }
+
+[workers.agent-worker]
+enabled = true
+path = "workers/agent-worker"
+crons = ["*/5 * * * *"]
+
+[workers.dashboard-worker]
+enabled = true
+path = "workers/dashboard-worker"
 ```
 
 ## 🧪 Testing
@@ -210,6 +241,8 @@ bun test --coverage
 | hoox            | 27    | 81.19%   |
 | trade-worker    | 93    | 82.44%   |
 | telegram-worker | 24    | 41.34%   |
+| agent-worker    | 0     | 0.00%    |
+| dashboard-worker| 0     | 0.00%    |
 | d1-worker       | 6     | 82.35%   |
 | web3-wallet     | 7     | 82.76%   |
 

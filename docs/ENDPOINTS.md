@@ -116,22 +116,16 @@ Response Example:
 
 ### agent-worker
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/agents/ChatAgent/:id` | Various | Routed agent access | Depends on operation | JSON response |
-| `/agent?id=<agent_id>` | Various | Direct agent access by ID | Depends on operation | JSON response |
-| `/agent/new` | GET | Create a new agent instance | N/A | JSON with agent ID |
-
-Agent-specific endpoints (through routed or direct access):
+The `agent-worker` runs primarily via Cloudflare Cron Triggers (`*/5 * * * *`) but exposes REST endpoints for manual intervention.
 
 | Endpoint | Method | Description | Request Format | Response Format |
 |----------|--------|-------------|----------------|-----------------|
-| `/settings` | POST | Update agent settings | JSON with settings | JSON with updated settings |
-| `/clear` | POST | Clear conversation history | Query param `userId` | JSON confirmation |
-| `/trade` | POST | Execute a trade via trade-worker | JSON with trade details | JSON with trade result |
-| `/schedule-notification` | POST | Schedule future notification | JSON with message and timing | JSON confirmation |
-| `/message` | POST | Send a direct message to agent | JSON with message | JSON with response |
-| `/conversations` | GET | List conversations | N/A | JSON with conversation list |
+| `/agent/risk-override` | POST | Manually enforce or release risk locks (e.g., global kill switch) | JSON with `action` and `reason` | JSON confirmation |
+| `/agent/status` | GET | Retrieve real-time health of the agent and active trailing stops | N/A | JSON with `status` and active states |
+
+### dashboard-worker
+
+The `dashboard-worker` is a frontend interface that interacts with the `d1-worker` and `CONFIG_KV`. It does not expose public APIs meant for internal service consumption, but rather serves the React application.
 
 ### d1-worker
 
@@ -139,6 +133,9 @@ Agent-specific endpoints (through routed or direct access):
 |----------|--------|-------------|----------------|-----------------|
 | `/query` | POST | Execute SQL queries against D1 | JSON with query and params | JSON with query results |
 | `/batch` | POST | Execute multiple SQL statements | JSON with queries array | JSON with batch results |
+| `/api/dashboard/stats` | GET | Retrieve high-level dashboard metrics | N/A | JSON with `totalTrades`, `openPositions`, and recent activity |
+| `/api/dashboard/positions` | GET | Retrieve all `OPEN` positions | N/A | JSON array of active positions |
+| `/api/dashboard/logs` | GET | Retrieve recent system logs | N/A | JSON array of `system_logs` |
 | `/{tableName}` | GET | List records with filtering | Query params for filters | JSON with record list |
 | `/{tableName}/{id}` | GET | Get a specific record | N/A | JSON with record data |
 | `/{tableName}` | POST | Create a new record | JSON with fields | JSON with created record |
