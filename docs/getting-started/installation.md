@@ -8,7 +8,7 @@
 | ------------------ | ------- | --------------------------------------- | ----- |
 | Bun                | ≥1.2    | `curl -fsSL https://bun.sh              | bash` |
 | Git                | ≥2.40   | `apt install git`                       |
-| Cloudflare Account | -       | [Sign up](https://dash.cloudflare.com/) |
+| Cloudflare® Account | -       | [Sign up](https://dash.cloudflare.com/) |
 
 ## Step 1: Clone Repository
 
@@ -27,7 +27,7 @@ git submodule update --init --recursive
 bun install
 ```
 
-## Step 3: Configure Cloudflare
+## Step 3: Configure Cloudflare®
 
 ### Option A: Interactive Wizard
 
@@ -38,7 +38,7 @@ bun run scripts/manage.ts init
 This wizard will:
 
 1. Check dependencies (bun, wrangler)
-2. Prompt for Cloudflare credentials
+2. Prompt for Cloudflare® credentials
 3. Enable workers in config.toml
 4. Create required secrets
 5. Deploy workers
@@ -65,7 +65,7 @@ secrets = ["WEBHOOK_API_KEY"]
 # Generate a secure API key
 bun run scripts/manage.ts keys generate WEBHOOK_API_KEY
 
-# Upload to Cloudflare
+# Upload to Cloudflare®
 bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
 ```
 
@@ -114,3 +114,8 @@ bun run scripts/manage.ts workers setup
 - [Quick Start Guide](quick-start.md)
 - [Configuration](configuration.md)
 - [Architecture Overview](../architecture/overview.md)
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

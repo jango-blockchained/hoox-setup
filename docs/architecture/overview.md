@@ -4,7 +4,7 @@
 
 ## High-Level Architecture
 
-Hoox is a **service-oriented** platform where multiple Cloudflare Workers communicate via:
+Hoox is a **service-oriented** platform where multiple Cloudflare® Workers communicate via:
 
 1. **Service Bindings** - Direct worker-to-worker calls
 2. **Shared Resources** - KV, D1, R2, Vectorize
@@ -30,7 +30,7 @@ graph TB
         d1["🗄️ d1-worker"]
     end
 
-    subgraph "Cloudflare"
+    subgraph "Cloudflare®"
         KV[(KV Namespace)]
         R2[(R2 Bucket)]
         AI[AI]
@@ -168,3 +168,8 @@ Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bu
 
 - [Worker Communication](communication.md)
 - [Data Flow](data-flow.md)
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

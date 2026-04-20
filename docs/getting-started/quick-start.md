@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - Bun ≥1.2
-- Cloudflare account
+- Cloudflare® account
 - Wrangler CLI (`npm install -g wrangler`)
 
 ## Step 1: Clone & Install
@@ -25,7 +25,7 @@ bun run scripts/manage.ts init
 Follow the wizard prompts:
 
 1. ✅ Check dependencies
-2. 👤 Enter Cloudflare Account ID
+2. 👤 Enter Cloudflare® Account ID
 3. 🔑 Enter API Token
 4. 🔤 Enter subdomain prefix (e.g., `myapp`)
 5. 📦 Select workers to enable
@@ -36,7 +36,7 @@ Follow the wizard prompts:
 # Generate or use your own key
 echo "YOUR_API_KEY" > .keys/local_keys.env
 
-# Upload to Cloudflare
+# Upload to Cloudflare®
 bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
 ```
 
@@ -79,3 +79,8 @@ curl -X POST https://hoox.cryptolinx.workers.dev \
 - [Architecture Overview](../architecture/overview.md)
 - [Worker Details](../workers/hoox.md)
 - [API Reference](../api/endpoints.md)
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

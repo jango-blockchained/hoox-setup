@@ -9,7 +9,7 @@ You can automate deployments using GitHub Actions. Create a `.github/workflows/d
 ### Example Workflow
 
 ```yaml
-name: Deploy Cloudflare Workers
+name: Deploy Cloudflare® Workers
 
 on:
   push:
@@ -47,8 +47,12 @@ Use GitHub Secrets to securely store:
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-Do not store worker-specific secrets in GitHub if they are already in Cloudflare's Secret Store. The workers will access them securely at runtime.
+Do not store worker-specific secrets in GitHub if they are already in Cloudflare®'s Secret Store. The workers will access them securely at runtime.
 
 ## Next Steps
 
 - [Monitoring](monitoring.md)
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

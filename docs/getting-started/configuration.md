@@ -11,10 +11,10 @@ The central configuration file is `config.toml`. Here's a complete example:
 # GLOBAL SETTINGS
 # ============================================
 [global]
-# Required: Cloudflare API Token
+# Required: Cloudflare® API Token
 cloudflare_api_token = "cfut_..."
 
-# Required: Your Cloudflare Account ID
+# Required: Your Cloudflare® Account ID
 cloudflare_account_id = "abc123..."
 
 # Optional: Subdomain prefix (used for worker names)
@@ -132,3 +132,8 @@ Configure KV settings via the `/admin/ui` or directly in KV:
 
 - [Architecture Overview](../architecture/overview.md)
 - [Worker Details](../workers/hoox.md)
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

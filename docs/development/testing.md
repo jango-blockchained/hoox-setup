@@ -4,7 +4,7 @@
 
 ## Overview
 
-We use **Bun**'s native test runner (`bun test`) to validate the logic of our Cloudflare Workers. Testing serverless edge functions requires a combination of unit tests and integration tests that mock Cloudflare's bindings (KV, D1, Service Bindings).
+We use **Bun**'s native test runner (`bun test`) to validate the logic of our Cloudflare® Workers. Testing serverless edge functions requires a combination of unit tests and integration tests that mock Cloudflare®'s bindings (KV, D1, Service Bindings).
 
 ## Running Tests
 
@@ -22,7 +22,7 @@ bun run scripts/manage.ts workers test hoox
 
 ## Mocking Bindings
 
-Cloudflare bindings must be mocked during local testing. We typically use standard JavaScript stubs to mock `env.SERVICE.fetch` or `env.KV.get`.
+Cloudflare® bindings must be mocked during local testing. We typically use standard JavaScript stubs to mock `env.SERVICE.fetch` or `env.KV.get`.
 
 Example of mocking a Service Binding in a unit test:
 
@@ -49,3 +49,7 @@ describe("hoox Gateway", () => {
 
 - [Local Development](local-dev.md)
 - [Debugging](debugging.md)
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

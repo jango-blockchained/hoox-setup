@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Platform](https://img.shields.io/badge/Platform-Cloudflare%20Pages-orange?logo=cloudflare)](https://pages.cloudflare.com/)
+[![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Pages-orange?logo=cloudflare)](https://pages.cloudflare.com/)
 
 </div>
 
@@ -17,7 +17,7 @@
 | 🎛️ **Dynamic KV Configuration** | Instantly update risk limits, default leverage, and API keys. Changes write directly to `CONFIG_KV` and are immediately respected by the `hoox` and `agent-worker`. |
 | 🛑 **Global Kill Switch Toggle** | A dedicated UI element to manually halt all automated trading during extreme market volatility. |
 | 📉 **Performance Analytics** | Visualizes win rates, total PnL, and AI-generated system health summaries. |
-| 🔒 **Secure Access** | Protected by Cloudflare Access (Zero Trust) to ensure enterprise-grade security for your trading terminal. |
+| 🔒 **Secure Access** | Protected by Cloudflare® Access (Zero Trust) to ensure enterprise-grade security for your trading terminal. |
 
 ## 🏗️ Architecture & Flow
 
@@ -51,3 +51,8 @@ The dashboard relies on the following internal APIs:
 | `GET /api/dashboard/positions` | `d1-worker` | List of currently `OPEN` positions. |
 | `GET /api/dashboard/logs` | `d1-worker` | Recent system and AI log events. |
 | `POST /agent/risk-override` | `agent-worker`| Manual override triggers. |
+
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

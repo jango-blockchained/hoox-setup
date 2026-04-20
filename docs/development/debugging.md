@@ -13,7 +13,7 @@ If you encounter issues with inter-worker communication, ensure that:
 
 ## Production Debugging
 
-Cloudflare provides `wrangler tail` to view real-time logs from your deployed workers.
+Cloudflare® provides `wrangler tail` to view real-time logs from your deployed workers.
 
 ```bash
 # View logs for the hoox gateway
@@ -44,3 +44,7 @@ npx wrangler d1 execute DB --local --file=schema.sql
 
 - [Testing](testing.md)
 - [Production Setup](../deployment/production.md)
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

@@ -1,10 +1,10 @@
-# Cloudflare Workers Installation Flow
+# Cloudflare® Workers Installation Flow
 
-This document outlines the installation and setup process for the Cloudflare Workers in this project.
+This document outlines the installation and setup process for the Cloudflare® Workers in this project.
 
 ## Overview
 
-This project uses a series of scripts to manage and deploy multiple Cloudflare Workers. The installation process is handled by a wizard that guides you through the necessary steps to configure and deploy all the workers.
+This project uses a series of scripts to manage and deploy multiple Cloudflare® Workers. The installation process is handled by a wizard that guides you through the necessary steps to configure and deploy all the workers.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Before starting the installation, ensure you have:
 
 - [Bun](https://bun.sh/) installed
 - [Wrangler](https://developers.cloudflare.com/workers/wrangler/) installed (`bun install -g wrangler`)
-- A Cloudflare account with:
+- A Cloudflare® account with:
   - Account ID
   - API Token with appropriate permissions
   - Secret Store set up (See the [Secrets Management](#secrets-management) section)
@@ -23,9 +23,9 @@ The installation wizard guides you through 7 steps:
 
 1. **Check Dependencies**: Verifies that bun and wrangler are installed.
 2. **Configure Global Settings**: Sets up global configuration parameters:
-   - Cloudflare API Token
-   - Cloudflare Account ID
-   - Cloudflare Secret Store ID
+   - Cloudflare® API Token
+   - Cloudflare® Account ID
+   - Cloudflare® Secret Store ID
    - Subdomain prefix for workers (e.g., "my-app" → worker-name.my-app.workers.dev)
 3. **Select Workers**: Choose which workers to enable from the available workers in the `workers/` directory.
 4. **Setup D1 Database**: If any worker requires a D1 database, it will be set up during this step.
@@ -117,7 +117,7 @@ Example:
 ```jsonc
 {
   "global": {
-    /* Cloudflare API Token - get this from your Cloudflare dashboard */
+    /* Cloudflare® API Token - get this from your Cloudflare® dashboard */
     "cloudflare_api_token": "your_api_token",
     "cloudflare_account_id": "your_account_id",
     "cloudflare_secret_store_id": "your_secret_store_id",
@@ -153,7 +153,7 @@ This is a temporary file created during the installation process to track progre
 
 ## Secrets Management
 
-This project uses Cloudflare's Secret Store for managing sensitive information. The Secret Store is a centralized location for storing secrets that can be safely accessed by your workers.
+This project uses Cloudflare®'s Secret Store for managing sensitive information. The Secret Store is a centralized location for storing secrets that can be safely accessed by your workers.
 
 ### Setting Up Secret Store
 
@@ -312,4 +312,8 @@ Options:
 - **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `bun run manage.ts init` again to continue.
 - **Secret Binding Issues**: Verify secrets exist in your Secret Store with `wrangler secrets-store secret list --store-id <your-store-id>`
 - **Check Worker Status**: Use `bun run manage.ts workers status` to see if any workers are misconfigured
-- **Deployment Failures**: Check the Cloudflare dashboard for errors or run `wrangler tail <worker-name>` to view logs 
+- **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs 
+
+---
+
+*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
