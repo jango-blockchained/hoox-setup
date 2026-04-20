@@ -1,6 +1,7 @@
 [global]
-cloudflare_api_token = "cfut_..."  # Your API token
+cloudflare_api_token = "cfut_..."
 cloudflare_account_id = "debc6545e63bea36be059cbc82d80ec8"
+cloudflare_secret_store_id = "48433bc559a943f09d9d6c622e188fd5"
 subdomain_prefix = "cryptolinx"
 
 [workers.d1-worker]
@@ -16,28 +17,24 @@ enabled = true
 path = "workers/telegram-worker"
 vars = { }
 secrets = [ "TELEGRAM_BOT_TOKEN" ]
-deployed_url = "https://telegram-worker.cryptolinx.workers.dev"
 
 [workers.trade-worker]
 enabled = true
 path = "workers/trade-worker"
 vars = { }
 secrets = [ "API_SERVICE_KEY" ]
-deployed_url = "https://trade-worker.cryptolinx.workers.dev"
 
 [workers.web3-wallet-worker]
 enabled = true
 path = "workers/web3-wallet-worker"
 vars = { }
 secrets = [ "MNEMONIC" ]
-deployed_url = "https://web3-wallet-worker.cryptolinx.workers.dev"
 
 [workers.hoox]
 enabled = true
 path = "workers/hoox"
 description = "Central webhook processing and dynamic routing worker"
 secrets = [ ]
-deployed_url = "https://hoox.cryptolinx.workers.dev"
 
 [workers.home-assistant]
 enabled = false
@@ -46,7 +43,7 @@ vars = { }
 secrets = [ "HA_TOKEN", "HA_SECURE_URL" ]
 
 [workers.agent-worker]
-enabled = false
+enabled = true
 path = "workers/agent-worker"
 vars = { }
 secrets = [ ]
@@ -55,7 +52,6 @@ secrets = [ ]
 enabled = true
 path = "workers/email-worker"
 secrets = [ "EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY" ]
-deployed_url = "https://email-worker.cryptolinx.workers.dev"
 
   [workers.email-worker.vars]
   USE_IMAP = "false"
