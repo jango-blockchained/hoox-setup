@@ -71,7 +71,7 @@ export class WorkerService {
         ],
         {
           cwd: workingDir,
-          shell: true,
+          env: process.env,
         }
       );
 
