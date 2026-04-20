@@ -22,15 +22,15 @@
 
 Each worker has its own README in the worker directory:
 
-- [hoox Gateway](../workers/hoox/README.md) - Main gateway worker (81% coverage)
-- [trade-worker](../workers/trade-worker/README.md) - Trading engine (82% coverage)
-- [telegram-worker](../workers/telegram-worker/README.md) - Telegram bot & notifications
-- [d1-worker](../workers/d1-worker/README.md) - Database operations
-- [agent-worker](../workers/agent-worker/README.md) - Autonomous AI & Risk Manager
-- [dashboard-worker](../workers/dashboard-worker/README.md) - UI & Settings Manager
-- [web3-wallet-worker](../workers/web3-wallet-worker/README.md) - Web3 interactions
-- [home-assistant-worker](../workers/home-assistant-worker/README.md) - Home automation
-- [email-worker](../workers/email-worker/README.md) - Email processing
+- [hoox Gateway](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/hoox) - Main gateway worker (81% coverage)
+- [trade-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/trade-worker) - Trading engine (82% coverage)
+- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications
+- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations
+- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager
+- [dashboard-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/dashboard-worker) - UI & Settings Manager
+- [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions
+- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation
+- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing
 
 ### API Reference
 
