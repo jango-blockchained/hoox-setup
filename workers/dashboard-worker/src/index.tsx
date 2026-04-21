@@ -305,26 +305,10 @@ app.get('/settings', async (c) => {
   };
   
   const pageConfig = await loadSettingsPageConfig(c.env.CONFIG_KV, services, DEFAULT_SCHEMA);
-  const { schema, loadedValues } = pageConfig;
-
-  const sectionsHtml = schema.sections.map(section => {
-    const fieldsHtml = section.fields.map(field => `
-      <div>
-        <label class="block text-sm text-neutral-400 mb-1">${field.label}</label>
-        ${renderFieldInput(field, loadedValues[field.key])}
-      </div>
-    `).join('');
-    
-    return `
-      <div>
-        <h3 class="text-md font-semibold text-white mb-2">${section.icon || ''} ${section.title}</h3>
-        ${section.description ? `<p class="text-xs text-neutral-500 mb-3">${section.description}</p>` : ''}
-        <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 grid grid-cols-2 gap-4">
-          ${fieldsHtml}
-        </div>
-      </div>
-    `;
-  }).join('');
+  const { schema, loadedValues, workers } = pageConfig;
+  
+  const enabledWorkers = workers.filter(w => w.enabled);
+  const disabledWorkers = workers.filter(w => !w.enabled);
 
   return c.html(
     <Layout title="Dashboard - Settings" activeTab="settings">
@@ -332,8 +316,39 @@ app.get('/settings', async (c) => {
         <h2 class="text-xl font-bold mb-6 text-white border-b border-neutral-800 pb-2">Configuration & Settings</h2>
         <p class="text-sm text-neutral-500 mb-6">Manage global settings and worker configurations</p>
         
+        <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 mb-6">
+          <h3 class="text-md font-semibold text-white mb-3">Connected Workers</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {enabledWorkers.map(w => (
+              <div class="flex items-center gap-2 bg-green-900/20 border border-green-800 rounded px-3 py-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span class="text-sm text-green-400">{w.displayName}</span>
+              </div>
+            ))}
+            {disabledWorkers.map(w => (
+              <div class="flex items-center gap-2 bg-neutral-800/30 border border-neutral-700 rounded px-3 py-2 opacity-50">
+                <span class="w-2 h-2 bg-neutral-600 rounded-full"></span>
+                <span class="text-sm text-neutral-500">{w.displayName}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
         <form method="post" action="/settings" class="space-y-8">
-          ${sectionsHtml}
+          {schema.sections.map(section => (
+            <div>
+              <h3 class="text-md font-semibold text-white mb-2">{section.icon} {section.title}</h3>
+              {section.description ? <p class="text-xs text-neutral-500 mb-3">{section.description}</p> : null}
+              <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 grid grid-cols-2 gap-4">
+                {section.fields.map(field => (
+                  <div>
+                    <label class="block text-sm text-neutral-400 mb-1">{field.label}</label>
+                    <div dangerouslySetInnerHTML={{ __html: renderFieldInput(field, loadedValues[field.key]) }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
 
           <div class="flex justify-end pt-4">
             <button type="submit" class="bg-[#0051c3] hover:bg-[#0046a6] text-white px-6 py-2 rounded font-medium transition-colors">
