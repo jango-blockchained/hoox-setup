@@ -91,6 +91,63 @@ bunx wrangler types
 bunx wrangler tail
 ```
 
+### Management CLI (manage.ts)
+
+The `manage.ts` script provides worker management commands:
+
+```bash
+# Run setup wizard
+bun run scripts/manage.ts init
+
+# Clone worker repositories
+bun run scripts/manage.ts workers clone
+
+# Setup workers (bindings, secrets, D1)
+bun run scripts/manage.ts workers setup
+
+# Deploy all workers
+bun run scripts/manage.ts workers deploy
+
+# Start dev server for a worker
+bun run scripts/manage.ts workers dev <worker-name>
+
+# Check worker status
+bun run scripts/manage.ts workers status
+
+# Run tests
+bun run scripts/manage.ts workers test
+
+# Update internal worker URLs
+bun run scripts/manage.ts workers update-internal-urls
+
+# Run housekeeping (check configurations)
+bun run scripts/manage.ts housekeeping
+
+# Run housekeeping with verbose output
+bun run scripts/manage.ts housekeeping --verbose
+
+# Secret store guide
+bun run scripts/manage.ts secrets guide
+```
+
+### Housekeeping
+
+The housekeeping system checks worker configurations for issues:
+
+- **CLI Command**: `bun run scripts/manage.ts housekeeping`
+- **Agent Worker**: Runs automatically every 5 minutes via cron
+- **API Endpoint**: `POST /agent/housekeeping`
+
+Checks performed:
+- Worker directory existence
+- wrangler config parsing
+- Required fields (name, compatibility_date)
+- account_id consistency
+- Secret bindings
+- Service bindings
+- D1 database bindings
+- Source file presence
+
 ---
 
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
