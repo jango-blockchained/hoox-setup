@@ -53,4 +53,44 @@ A comprehensive settings page that writes to Cloudflare® KV, dynamically updati
 
 ---
 
+## Development Commands
+
+### Using Bun (Native)
+
+All workers use native Bun for testing and package management. Scripts in package.json:
+
+```bash
+# Install dependencies
+bun install
+
+# Run tests
+bun test
+
+# Run tests in watch mode
+bun test:watch
+
+# Run typecheck
+bun run typecheck
+```
+
+### Using Wrangler
+
+Use `bunx wrangler` for all Wrangler commands:
+
+```bash
+# Local development
+bunx wrangler dev
+
+# Deploy to Cloudflare
+bunx wrangler deploy
+
+# Generate types (if needed)
+bunx wrangler types
+
+# View logs
+bunx wrangler tail
+```
+
+---
+
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*

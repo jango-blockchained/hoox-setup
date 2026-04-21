@@ -8,13 +8,18 @@ We use **Bun**'s native test runner (`bun test`) to validate the logic of our Cl
 
 ## Running Tests
 
-To run the test suite for all workers:
+### Per Worker
 
 ```bash
+# From any worker directory
+cd workers/agent-worker
 bun test
+
+# Or with watch mode
+bun test:watch
 ```
 
-To run tests for a specific worker via the management script:
+### Using Management Script
 
 ```bash
 bun run scripts/manage.ts workers test hoox
@@ -44,6 +49,40 @@ describe("hoox Gateway", () => {
   });
 });
 ```
+
+## Development Commands
+
+All workers follow standardized commands using Bun:
+
+```bash
+# Install dependencies (per worker)
+bun install
+
+# Run tests
+bun test
+
+# Run typecheck
+bun run typecheck
+# or
+npx tsc --noEmit
+
+# Local development
+bunx wrangler dev
+
+# Deploy to Cloudflare
+bunx wrangler deploy
+```
+
+## Test Coverage by Worker
+
+| Worker | Test Command | Status |
+|---|---|---|
+| agent-worker | `bun test` | ✓ Passing |
+| dashboard-worker | `bun test` | ✓ Passing |
+| d1-worker | `bun test` | ✓ Passing |
+| trade-worker | `bun test` | ✓ Passing |
+| hoox | `bun test` | ✓ Passing |
+| telegram-worker | `bun test` | ✓ Passing |
 
 ## Next Steps
 

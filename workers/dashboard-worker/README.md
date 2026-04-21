@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Pages-orange?logo=cloudflare)](https://pages.cloudflare.com/)
+[![Platform](https://img.shields.io/badge/Platform-Cloudflare%20Pages-orange?logo=cloudflare)](https://pages.cloudflare.com/)
 
 </div>
 
@@ -18,6 +18,7 @@
 | 🛑 **Global Kill Switch Toggle** | A dedicated UI element to manually halt all automated trading during extreme market volatility. |
 | 📉 **Performance Analytics** | Visualizes win rates, total PnL, and AI-generated system health summaries. |
 | 🔒 **Secure Access** | Protected by Cloudflare® Access (Zero Trust) to ensure enterprise-grade security for your trading terminal. |
+| ⚙️ **Schema-Driven Settings** | Extensible configuration system with type-safe settings form generation. |
 
 ## 🏗️ Architecture & Flow
 
@@ -26,24 +27,69 @@ The dashboard is designed to be lightweight. It does not directly manage trades.
 2. **Writes:** Form submissions (like updating the max drawdown) write directly to the shared `CONFIG_KV` namespace.
 3. **Actions:** Emergency actions (like closing a position) dispatch a payload to the `hoox` gateway.
 
+## 🔧 Configuration Schema
+
+The dashboard uses a schema-based configuration system defined in `config.schema.json` and `src/config.ts`.
+
+### Default Configuration Sections
+
+| Section | Description | Key Prefix |
+|---|---|---|
+| ⚡ **Global Settings** | System-wide configuration | `global:` |
+| 🔒 **Security** | Webhook and API security | `webhook:`, `global:` |
+| ⚠️ **Risk Management** | Position sizing and limits | `trade:` |
+| 🤖 **Agent Configuration** | AI agent and automation | `agent:` |
+| 🔔 **Notifications** | Alert settings | `notify:` |
+
+### Configuration Keys
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `global:kill_switch` | boolean | `false` | Pause all trading |
+| `global:maintenance_mode` | boolean | `false` | Show maintenance page |
+| `webhook:tradingview:ip_check_enabled` | boolean | `true` | Validate TradingView IPs |
+| `webhook:tradingview:allowed_ips` | json | `[]` | Allowed IP array |
+| `trade:default_leverage` | number | - | Default position leverage |
+| `trade:max_position_size` | number | - | Max position in USD |
+| `trade:max_daily_drawdown_percent` | number | `-5` | Kill switch trigger |
+| `agent:default_provider` | select | `workers-ai` | AI provider |
+| `agent:timeout_ms` | number | `30000` | AI request timeout |
+| `agent:retry_count` | number | `3` | AI retry attempts |
+| `notify:telegram_enabled` | boolean | - | Telegram alerts |
+| `notify:email_enabled` | boolean | - | Email alerts |
+
+### Extending Configuration
+
+To add new settings, update `config.schema.json`:
+
+```json
+{
+  "sections": [
+    {
+      "id": "custom",
+      "title": "Custom Settings",
+      "fields": [
+        {
+          "key": "custom:my_setting",
+          "label": "My Setting",
+          "type": "text",
+          "category": "custom"
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## 🚀 Local Development
 
-To run the dashboard locally and interact with your remote (or local) D1 and KV instances:
-
 ```bash
-# From the hoox-setup root
 cd workers/dashboard-worker
-
-# Install frontend dependencies (if not using bun globally)
 bun install
-
-# Start the local development server
-npm run dev
+bun run dev
 ```
 
 ## 🔧 Internal Service Endpoints Used
-
-The dashboard relies on the following internal APIs:
 
 | Endpoint | Worker | Purpose |
 |---|---|---|
@@ -52,6 +98,18 @@ The dashboard relies on the following internal APIs:
 | `GET /api/dashboard/logs` | `d1-worker` | Recent system and AI log events. |
 | `POST /agent/risk-override` | `agent-worker`| Manual override triggers. |
 
+## 📁 File Structure
+
+```
+dashboard-worker/
+├── src/
+│   ├── index.tsx          # Main app and routes
+│   ├── config.ts         # Config schema types
+│   └── configLoader.ts   # Config loading utilities
+├── config.schema.json    # JSON schema definition
+├── wrangler.toml       # Worker configuration
+└── README.md           # This file
+```
 
 ---
 

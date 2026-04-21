@@ -1,10 +1,14 @@
 import { Hono } from 'hono';
 import { basicAuth } from 'hono/basic-auth';
+import { DEFAULT_SCHEMA } from './config';
+import { loadSettingsPageConfig, renderFieldInput, parseSettingsFormData, validateJsonField } from './configLoader';
 
 // Define the environment variables bindings
 export interface Env {
   D1_SERVICE: Fetcher;
   TRADE_SERVICE: Fetcher;
+  TELEGRAM_SERVICE: Fetcher;
+  AGENT_SERVICE: Fetcher;
   CONFIG_KV: KVNamespace;
   DASHBOARD_USER?: string;
   DASHBOARD_PASS?: string;
@@ -291,79 +295,45 @@ app.get('/', async (c) => {
   );
 });
 
-// --- Settings Page ---
+// --- Settings Page (Schema-Based) ---
 app.get('/settings', async (c) => {
-  let killSwitch = "false";
-  let ipCheck = "true";
-  let allowedIps = "[]";
-  let defaultLev = "";
-  let maxPosSize = "";
-  let maxDrawdownPercent = "";
+  const services = {
+    D1_SERVICE: c.env.D1_SERVICE,
+    TRADE_SERVICE: c.env.TRADE_SERVICE,
+    TELEGRAM_SERVICE: c.env.TELEGRAM_SERVICE,
+    AGENT_SERVICE: c.env.AGENT_SERVICE
+  };
+  
+  const pageConfig = await loadSettingsPageConfig(c.env.CONFIG_KV, services, DEFAULT_SCHEMA);
+  const { schema, loadedValues } = pageConfig;
 
-  if (c.env.CONFIG_KV) {
-    killSwitch = await c.env.CONFIG_KV.get('global:kill_switch') || "false";
-    ipCheck = await c.env.CONFIG_KV.get('webhook:tradingview:ip_check_enabled') || "true";
-    allowedIps = await c.env.CONFIG_KV.get('webhook:tradingview:allowed_ips') || "[]";
-    defaultLev = await c.env.CONFIG_KV.get('trade:default_leverage') || "";
-    maxPosSize = await c.env.CONFIG_KV.get('trade:max_position_size') || "";
-    maxDrawdownPercent = await c.env.CONFIG_KV.get('trade:max_daily_drawdown_percent') || "-5";
-  }
+  const sectionsHtml = schema.sections.map(section => {
+    const fieldsHtml = section.fields.map(field => `
+      <div>
+        <label class="block text-sm text-neutral-400 mb-1">${field.label}</label>
+        ${renderFieldInput(field, loadedValues[field.key])}
+      </div>
+    `).join('');
+    
+    return `
+      <div>
+        <h3 class="text-md font-semibold text-white mb-2">${section.icon || ''} ${section.title}</h3>
+        ${section.description ? `<p class="text-xs text-neutral-500 mb-3">${section.description}</p>` : ''}
+        <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 grid grid-cols-2 gap-4">
+          ${fieldsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
 
   return c.html(
     <Layout title="Dashboard - Settings" activeTab="settings">
       <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6 max-w-4xl mx-auto">
         <h2 class="text-xl font-bold mb-6 text-white border-b border-neutral-800 pb-2">Configuration & Settings</h2>
+        <p class="text-sm text-neutral-500 mb-6">Manage global settings and worker configurations</p>
         
-        <form method="POST" action="/settings" class="space-y-8">
-          
-          {/* Global Kill Switch */}
-          <div>
-            <h3 class="text-md font-semibold text-red-400 mb-2">Global Kill Switch</h3>
-            <div class="bg-red-950/30 p-4 rounded border border-red-900/50">
-              <label class="flex items-center space-x-3">
-                <input type="checkbox" name="killSwitch" value="true" checked={killSwitch === 'true'} class="form-checkbox h-5 w-5 text-red-500 rounded bg-neutral-900 border-neutral-700" />
-                <span class="text-neutral-200">Pause all trading immediately</span>
-              </label>
-              <p class="text-xs text-neutral-500 mt-2 ml-8">If enabled, the hoox gateway will reject all incoming signals.</p>
-            </div>
-          </div>
-
-          {/* Webhook Security */}
-          <div>
-            <h3 class="text-md font-semibold text-white mb-2">Webhook Security</h3>
-            <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 space-y-4">
-              <label class="flex items-center space-x-3">
-                <input type="checkbox" name="ipCheck" value="true" checked={ipCheck === 'true'} class="form-checkbox h-5 w-5 text-orange-500 rounded bg-neutral-900 border-neutral-700" />
-                <span class="text-neutral-200">Enable TradingView IP Allowlist Validation</span>
-              </label>
-              
-              <div>
-                <label class="block text-sm text-neutral-400 mb-1">Custom Allowed IPs (JSON Array)</label>
-                <textarea name="allowedIps" rows={3} class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-mono text-neutral-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">{allowedIps}</textarea>
-                <p class="text-xs text-neutral-500 mt-1">Example: ["52.89.214.238", "34.212.75.30"]</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Risk Management */}
-          <div>
-            <h3 class="text-md font-semibold text-white mb-2">Risk Management Defaults</h3>
-            <div class="bg-neutral-900/50 p-4 rounded border border-neutral-800 grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm text-neutral-400 mb-1">Default Leverage</label>
-                <input type="number" name="defaultLev" value={defaultLev} placeholder="e.g. 10" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
-              </div>
-              <div>
-                <label class="block text-sm text-neutral-400 mb-1">Max Position Size</label>
-                <input type="number" step="0.001" name="maxPosSize" value={maxPosSize} placeholder="e.g. 1.5" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
-              </div>
-              <div class="col-span-2">
-                <label class="block text-sm text-neutral-400 mb-1">Max Daily Drawdown (%)</label>
-                <input type="number" step="0.1" name="maxDrawdownPercent" value={maxDrawdownPercent} placeholder="e.g. -5" class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
-                <p class="text-xs text-neutral-500 mt-1">If PnL drops below this percentage, the agent-worker will trigger the Global Kill Switch.</p>
-              </div>
-            </div>
-          </div>
+        <form method="post" action="/settings" class="space-y-8">
+          ${sectionsHtml}
 
           <div class="flex justify-end pt-4">
             <button type="submit" class="bg-[#0051c3] hover:bg-[#0046a6] text-white px-6 py-2 rounded font-medium transition-colors">
@@ -377,15 +347,24 @@ app.get('/settings', async (c) => {
 });
 
 app.post('/settings', async (c) => {
-  const body = await c.req.parseBody();
+  const body = await c.req.parseBody() as Record<string, string>;
   
   if (c.env.CONFIG_KV) {
-    await c.env.CONFIG_KV.put('global:kill_switch', body.killSwitch ? 'true' : 'false');
-    await c.env.CONFIG_KV.put('webhook:tradingview:ip_check_enabled', body.ipCheck ? 'true' : 'false');
-    await c.env.CONFIG_KV.put('webhook:tradingview:allowed_ips', (body.allowedIps as string) || "[]");
-    await c.env.CONFIG_KV.put('trade:default_leverage', (body.defaultLev as string) || "");
-    await c.env.CONFIG_KV.put('trade:max_position_size', (body.maxPosSize as string) || "");
-    await c.env.CONFIG_KV.put('trade:max_daily_drawdown_percent', (body.maxDrawdownPercent as string) || "-5");
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(body)) {
+      formData.append(key, value);
+    }
+    const updates = parseSettingsFormData(formData);
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (key.startsWith('_')) continue;
+      
+      if (typeof value === 'object') {
+        await c.env.CONFIG_KV.put(key, JSON.stringify(value));
+      } else {
+        await c.env.CONFIG_KV.put(key, String(value));
+      }
+    }
   }
 
   return c.redirect('/settings?saved=true');
@@ -468,7 +447,7 @@ app.get('/positions', async (c) => {
                   <td class="py-3 px-4 text-sm text-neutral-300">{p.size}</td>
                   <td class="py-3 px-4 text-sm text-neutral-500">{new Date(p.updated_at * 1000).toLocaleString()}</td>
                   <td class="py-3 px-4 text-right">
-                     <form method="POST" action="/positions/close">
+                     <form method="post" action="/positions/close">
                        <input type="hidden" name="exchange" value={p.exchange} />
                        <input type="hidden" name="symbol" value={p.symbol} />
                        <input type="hidden" name="side" value={p.side} />
