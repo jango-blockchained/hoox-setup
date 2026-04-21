@@ -3,6 +3,10 @@ import { basicAuth } from 'hono/basic-auth';
 import { DEFAULT_SCHEMA } from './config';
 import { loadSettingsPageConfig, renderFieldInput, parseSettingsFormData, validateJsonField } from './configLoader';
 
+interface SecretBinding {
+  get: () => Promise<string | null>;
+}
+
 // Define the environment variables bindings
 export interface Env {
   D1_SERVICE: Fetcher;
@@ -12,14 +16,56 @@ export interface Env {
   CONFIG_KV: KVNamespace;
   DASHBOARD_USER?: string;
   DASHBOARD_PASS?: string;
+  CSRF_SECRET?: string;
+  D1_INTERNAL_KEY?: SecretBinding;
+  TRADE_INTERNAL_KEY?: SecretBinding;
+  AGENT_INTERNAL_KEY?: SecretBinding;
 }
 
 const app = new Hono<{ Bindings: Env }>();
 
+async function createInternalAuthHeaders(env: Env): Promise<HeadersInit> {
+  const headers: HeadersInit = {};
+  const keys = await Promise.all([
+    env.D1_INTERNAL_KEY?.get(),
+    env.TRADE_INTERNAL_KEY?.get(),
+    env.AGENT_INTERNAL_KEY?.get()
+  ]);
+  // Use the first available key for all internal calls (they share the same secret)
+  const internalKey = keys.find(k => k !== null && k !== undefined);
+  if (internalKey) {
+    headers['X-Internal-Auth-Key'] = internalKey;
+  }
+  return headers;
+}
+
+function generateCsrfToken(secret: string, sessionId: string): string {
+  const data = sessionId + ':' + Date.now();
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const msgData = encoder.encode(data);
+  return crypto.subtle.sign('HMAC', keyData, msgData).then(buf => 
+    btoa(String.fromCharCode(...new Uint8Array(buf)))
+  ).then(s => s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''));
+}
+
+async function validateCsrfToken(secret: string, sessionId: string, token: string): Promise<boolean> {
+  if (!token) return false;
+  const expected = await generateCsrfToken(secret, sessionId);
+  return token === expected;
+}
+
 // Basic Auth Middleware
 app.use('*', async (c, next) => {
-  const username = c.env.DASHBOARD_USER || 'admin';
-  const password = c.env.DASHBOARD_PASS || 'hoox123';
+  const username = c.env.DASHBOARD_USER;
+  const password = c.env.DASHBOARD_PASS;
+  
+  if (!username || !password) {
+    return new Response("Dashboard authentication not configured", { 
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
   
   const auth = basicAuth({
     username,
@@ -95,7 +141,8 @@ app.get('/', async (c) => {
     }
 
     if (c.env.D1_SERVICE) {
-      const statsRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/stats'));
+      const internalHeaders = await createInternalAuthHeaders(c.env);
+      const statsRes = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/stats', { headers: internalHeaders }));
       if (statsRes.ok) {
          const data = await statsRes.json() as any;
          if (data.success) {
@@ -310,6 +357,8 @@ app.get('/settings', async (c) => {
   const enabledWorkers = workers.filter(w => w.enabled);
   const disabledWorkers = workers.filter(w => !w.enabled);
 
+  const csrfToken = c.env.CSRF_SECRET ? await generateCsrfToken(c.env.CSRF_SECRET, 'settings') : '';
+
   return c.html(
     <Layout title="Dashboard - Settings" activeTab="settings">
       <div class="bg-[#0f0f0f] rounded-lg border border-neutral-800 p-6 max-w-4xl mx-auto">
@@ -335,6 +384,7 @@ app.get('/settings', async (c) => {
         </div>
         
         <form method="post" action="/settings" class="space-y-8">
+          <input type="hidden" name="csrf_token" value={csrfToken} />
           {schema.sections.map(section => (
             <div>
               <h3 class="text-md font-semibold text-white mb-2">{section.icon} {section.title}</h3>
@@ -364,10 +414,20 @@ app.get('/settings', async (c) => {
 app.post('/settings', async (c) => {
   const body = await c.req.parseBody() as Record<string, string>;
   
+  if (c.env.CSRF_SECRET) {
+    const csrfToken = body.csrf_token;
+    const isValid = await validateCsrfToken(c.env.CSRF_SECRET, 'settings', csrfToken || '');
+    if (!isValid) {
+      return new Response("CSRF validation failed", { status: 403 });
+    }
+  }
+  
   if (c.env.CONFIG_KV) {
     const formData = new FormData();
     for (const [key, value] of Object.entries(body)) {
-      formData.append(key, value);
+      if (key !== 'csrf_token') {
+        formData.append(key, value);
+      }
     }
     const updates = parseSettingsFormData(formData);
     
@@ -393,6 +453,14 @@ app.post('/positions/close', async (c) => {
   const side = body.side as string;
   const size = parseFloat(body.size as string);
 
+  if (c.env.CSRF_SECRET) {
+    const csrfToken = body.csrf_token;
+    const isValid = await validateCsrfToken(c.env.CSRF_SECRET, 'positions', csrfToken as string || '');
+    if (!isValid) {
+      return new Response("CSRF validation failed", { status: 403 });
+    }
+  }
+
   if (c.env.TRADE_SERVICE) {
     const action = side === 'LONG' ? 'CLOSE_LONG' : 'CLOSE_SHORT';
     const payload = {
@@ -401,11 +469,12 @@ app.post('/positions/close', async (c) => {
       action,
       quantity: size,
     };
-    
+
+    const internalHeaders = await createInternalAuthHeaders(c.env);
     try {
       await c.env.TRADE_SERVICE.fetch(new Request('http://trade-worker/webhook', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...internalHeaders },
         body: JSON.stringify(payload)
       }));
     } catch (err) {
@@ -419,10 +488,12 @@ app.post('/positions/close', async (c) => {
 app.get('/positions', async (c) => {
   let positions = [];
   let error = null;
+  const csrfToken = c.env.CSRF_SECRET ? await generateCsrfToken(c.env.CSRF_SECRET, 'positions') : '';
 
   try {
     if (c.env.D1_SERVICE) {
-      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/positions'));
+      const internalHeaders = await createInternalAuthHeaders(c.env);
+      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/positions', { headers: internalHeaders }));
       if (res.ok) {
          const data = await res.json() as any;
          if (data.success) positions = data.positions;
@@ -462,13 +533,14 @@ app.get('/positions', async (c) => {
                   <td class="py-3 px-4 text-sm text-neutral-300">{p.size}</td>
                   <td class="py-3 px-4 text-sm text-neutral-500">{new Date(p.updated_at * 1000).toLocaleString()}</td>
                   <td class="py-3 px-4 text-right">
-                     <form method="post" action="/positions/close">
-                       <input type="hidden" name="exchange" value={p.exchange} />
-                       <input type="hidden" name="symbol" value={p.symbol} />
-                       <input type="hidden" name="side" value={p.side} />
-                       <input type="hidden" name="size" value={p.size} />
-                       <button type="submit" class="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded hover:bg-red-900 transition">Close</button>
-                     </form>
+<form method="post" action="/positions/close">
+                        <input type="hidden" name="exchange" value={p.exchange} />
+                        <input type="hidden" name="symbol" value={p.symbol} />
+                        <input type="hidden" name="side" value={p.side} />
+                        <input type="hidden" name="size" value={p.size} />
+                        <input type="hidden" name="csrf_token" value={csrfToken} />
+                        <button type="submit" class="text-xs bg-red-950 text-red-400 border border-red-900 px-2 py-1 rounded hover:bg-red-900 transition">Close</button>
+                      </form>
                   </td>
                 </tr>
               )) : (
@@ -489,7 +561,8 @@ app.get('/logs', async (c) => {
   let logs = [];
   try {
     if (c.env.D1_SERVICE) {
-      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/logs'));
+      const internalHeaders = await createInternalAuthHeaders(c.env);
+      const res = await c.env.D1_SERVICE.fetch(new Request('http://d1-service/api/dashboard/logs', { headers: internalHeaders }));
       if (res.ok) {
          const data = await res.json() as any;
          if (data.success) logs = data.logs;
