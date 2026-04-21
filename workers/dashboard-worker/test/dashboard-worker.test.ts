@@ -1,5 +1,7 @@
 import { describe, expect, test, beforeEach, jest } from "bun:test";
 
+const TEST_INTERNAL_KEY = "test-internal-key";
+
 const mockEnv = {
   D1_SERVICE: {
     fetch: jest.fn()
@@ -12,7 +14,11 @@ const mockEnv = {
     put: jest.fn()
   },
   DASHBOARD_USER: "admin",
-  DASHBOARD_PASS: "hoox123"
+  DASHBOARD_PASS: "hoox123",
+  D1_INTERNAL_KEY: { get: async () => TEST_INTERNAL_KEY },
+  TRADE_INTERNAL_KEY: { get: async () => TEST_INTERNAL_KEY },
+  AGENT_INTERNAL_KEY: { get: async () => TEST_INTERNAL_KEY },
+  CSRF_SECRET: "test-csrf-secret"
 };
 
 describe("dashboard-worker", () => {

@@ -1,6 +1,15 @@
 import { DEFAULT_SCHEMA, type ConfigSchema, type ConfigField } from './config';
 import { Fetcher, KVNamespace } from '@cloudflare/workers-types';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export interface WorkerBinding {
   name: string;
   service: string;
@@ -157,67 +166,67 @@ export function renderFieldInput(
 ): string {
   const fieldName = field.key;
   const fieldId = `field-${field.key.replace(/:/g, '_')}`;
-  const currentValue = value !== undefined ? String(value) : (field.value !== undefined ? String(field.value) : '');
-  
+  const currentValue = value !== undefined ? escapeHtml(String(value)) : (field.value !== undefined ? escapeHtml(String(field.value)) : '');
+
   switch (field.type) {
     case 'boolean':
       return `
         <input type="hidden" name="${fieldName}" value="false" />
         <label class="flex items-center space-x-3">
-          <input type="checkbox" 
-                 name="${fieldName}" 
-                 value="true" 
-                 ${currentValue === 'true' ? 'checked' : ''} 
+          <input type="checkbox"
+                 name="${fieldName}"
+                 value="true"
+                 ${currentValue === 'true' ? 'checked' : ''}
                  class="form-checkbox h-5 w-5 text-orange-500 rounded bg-neutral-900 border-neutral-700" />
-          <span class="text-neutral-200">${field.description || 'Enable'}</span>
+          <span class="text-neutral-200">${escapeHtml(field.description || 'Enable')}</span>
         </label>
       `;
-    
+
     case 'number':
       return `
-        <input type="number" 
-               name="${fieldName}" 
-               value="${currentValue}" 
-               placeholder="${field.placeholder || ''}"
+        <input type="number"
+               name="${fieldName}"
+               value="${currentValue}"
+               placeholder="${escapeHtml(field.placeholder || '')}"
                step="any"
                class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
       `;
-    
+
     case 'select':
-      const options = field.options?.map(opt => 
-        `<option value="${opt.value}" ${String(opt.value) === currentValue ? 'selected' : ''}>${opt.label}</option>`
+      const options = field.options?.map(opt =>
+        `<option value="${escapeHtml(String(opt.value))}" ${String(opt.value) === (value !== undefined ? String(value) : field.value) ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`
       ).join('') || '';
       return `
-        <select name="${fieldName}" 
+        <select name="${fieldName}"
                 class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none">
           ${options}
         </select>
       `;
-    
+
     case 'json':
       return `
-        <textarea name="${fieldName}" 
-                  rows="3" 
+        <textarea name="${fieldName}"
+                  rows="3"
                   class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm font-mono text-neutral-300 focus:border-orange-500 outline-none">${currentValue}</textarea>
-        <p class="text-xs text-neutral-500 mt-1">${field.description || 'Valid JSON required'}</p>
+        <p class="text-xs text-neutral-500 mt-1">${escapeHtml(field.description || 'Valid JSON required')}</p>
       `;
-    
+
     case 'textarea':
       return `
-        <textarea name="${fieldName}" 
-                  rows="3" 
+        <textarea name="${fieldName}"
+                  rows="3"
                   class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none">${currentValue}</textarea>
-        ${field.description ? `<p class="text-xs text-neutral-500 mt-1">${field.description}</p>` : ''}
+        ${field.description ? `<p class="text-xs text-neutral-500 mt-1">${escapeHtml(field.description)}</p>` : ''}
       `;
     
     default:
       return `
-        <input type="text" 
-               name="${fieldName}" 
-               value="${currentValue}" 
-               placeholder="${field.placeholder || ''}"
+        <input type="text"
+               name="${fieldName}"
+               value="${currentValue}"
+               placeholder="${escapeHtml(field.placeholder || '')}"
                class="w-full bg-neutral-950 border border-neutral-700 rounded p-2 text-sm text-neutral-300 focus:border-orange-500 outline-none" />
-        ${field.description ? `<p class="text-xs text-neutral-500 mt-1">${field.description}</p>` : ''}
+        ${field.description ? `<p class="text-xs text-neutral-500 mt-1">${escapeHtml(field.description)}</p>` : ''}
       `;
   }
 }
