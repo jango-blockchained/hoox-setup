@@ -25,6 +25,7 @@ export interface WorkerConfig {
   secrets?: string[];
   d1_databases?: { binding: string; database_id: string }[]; // Array for D1 bindings
   deployed_url?: string; // Added field for deployed URL
+  services?: { binding: string; service: string }[]; // Service bindings
 }
 
 /**

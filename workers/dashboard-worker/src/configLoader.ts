@@ -90,8 +90,7 @@ export async function loadSettingsPageConfig(
     const workerBinding = w.name.toUpperCase().replace(/-/g, '_') + '_WORKER';
     const isEnabled = services[serviceBinding] !== undefined || 
                      services[workerBinding] !== undefined || 
-                     w.name === 'hoox' ||
-                     w.name === 'd1-worker';
+                     w.enabled;
     
     if (isEnabled) {
       for (const settingKey of w.settings) {

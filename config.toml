@@ -55,3 +55,8 @@ secrets = [ "EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY" ]
 
   [workers.email-worker.vars]
   USE_IMAP = "false"
+
+[workers.dashboard-worker]
+enabled = true
+path = "workers/dashboard-worker"
+secrets = [ ]

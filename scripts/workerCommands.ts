@@ -192,6 +192,34 @@ export async function setupWorkers(config: Config): Promise<void> {
           jsoncUpdated = true;
         }
 
+        // --- Add/Update Service Bindings ---
+        const requiredServices = workerConfig.services || [];
+        if (requiredServices.length > 0) {
+          console.log(dim(`Configuring Service bindings...`));
+
+          if (!parsedJsonc.services) {
+            parsedJsonc.services = [];
+            jsoncUpdated = true;
+          }
+
+          const newServiceBindings = requiredServices.map(svc => ({
+            binding: svc.binding,
+            service: svc.service
+          }));
+
+          const existingServicesJson = JSON.stringify(parsedJsonc.services || []);
+          const newServicesJson = JSON.stringify(newServiceBindings);
+
+          if (existingServicesJson !== newServicesJson) {
+            parsedJsonc.services = newServiceBindings;
+            jsoncUpdated = true;
+            console.log(dim(`Updated service bindings.`));
+            requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
+          } else {
+            console.log(dim(`Service bindings are already up-to-date.`));
+          }
+        }
+
         // --- Add/Update Secret Store Bindings ---
         const requiredSecrets = workerConfig.secrets || [];
         if (requiredSecrets.length > 0) {
@@ -366,6 +394,29 @@ export async function setupWorkers(config: Config): Promise<void> {
         if (varsUpdated) {
           console.log(dim(`Updated [vars] based on config.toml`));
           tomlUpdated = true;
+        }
+
+        // --- Add/Update Service Bindings ---
+        const requiredServices = workerConfig.services || [];
+        if (requiredServices.length > 0) {
+          console.log(dim(`Configuring service bindings...`));
+
+          const newServiceBindings = requiredServices.map(svc => ({
+            binding: svc.binding,
+            service: svc.service
+          }));
+
+          const existingServicesJson = JSON.stringify(parsedToml.services || []);
+          const newServicesJson = JSON.stringify(newServiceBindings);
+
+          if (existingServicesJson !== newServicesJson) {
+            parsedToml.services = newServiceBindings;
+            tomlUpdated = true;
+            console.log(dim(`Updated service bindings.`));
+            requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
+          } else {
+            console.log(dim(`Service bindings are already up-to-date.`));
+          }
         }
 
         // --- NEW: Add/Update Secret Store Bindings ---
