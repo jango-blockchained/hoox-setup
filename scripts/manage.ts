@@ -61,6 +61,9 @@ import {
 // Import wizard functions
 import { runWizard } from "./wizard.js";
 
+// Import housekeeping
+import { runHousekeeping } from "./housekeeping.js";
+
 // Promisify exec for async checks - Stays here as it's small and related to CLI setup?
 const execAsync = util.promisify(exec);
 
@@ -220,6 +223,16 @@ async function main() {
     .action(async () => {
       const config = await loadConfig();
       await updateInternalUrls(config);
+    });
+
+  // --- Housekeeping Command ---
+  program
+    .command("housekeeping")
+    .description("Run housekeeping tasks to check worker configurations and sync status")
+    .option("-v, --verbose", "Show verbose output")
+    .action(async (options) => {
+      const config = await loadConfig();
+      await runHousekeeping(config, options.verbose || false);
     });
 
   // --- Key Management Commands ---

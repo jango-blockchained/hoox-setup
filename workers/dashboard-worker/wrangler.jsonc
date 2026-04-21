@@ -17,6 +17,14 @@
     {
       "binding": "TRADE_SERVICE",
       "service": "trade-worker"
+    },
+    {
+      "binding": "TELEGRAM_SERVICE",
+      "service": "telegram-worker"
+    },
+    {
+      "binding": "AGENT_SERVICE",
+      "service": "agent-worker"
     }
   ],
   "kv_namespaces": [
