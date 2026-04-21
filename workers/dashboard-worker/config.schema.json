@@ -1,0 +1,166 @@
+{
+  "$schema": "./config.schema.json",
+  "version": "1.0.0",
+  "lastUpdated": "2026-04-21T00:00:00.000Z",
+  "sections": [
+    {
+      "id": "global",
+      "title": "Global Settings",
+      "description": "High-level system configuration",
+      "icon": "⚡",
+      "fields": [
+        {
+          "key": "global:kill_switch",
+          "label": "Global Kill Switch",
+          "description": "Pause all trading immediately when enabled",
+          "type": "boolean",
+          "category": "global"
+        },
+        {
+          "key": "global:maintenance_mode",
+          "label": "Maintenance Mode",
+          "description": "Show maintenance page to users",
+          "type": "boolean",
+          "category": "global"
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security",
+      "description": "Webhook and API security settings",
+      "icon": "🔒",
+      "fields": [
+        {
+          "key": "webhook:tradingview:ip_check_enabled",
+          "label": "Enable TradingView IP Validation",
+          "type": "boolean",
+          "category": "security"
+        },
+        {
+          "key": "webhook:tradingview:allowed_ips",
+          "label": "Allowed IPs",
+          "description": "JSON array of allowed IP addresses",
+          "type": "json",
+          "category": "security"
+        },
+        {
+          "key": "global:api_key_required",
+          "label": "Require API Key",
+          "description": "All requests must include valid API key",
+          "type": "boolean",
+          "category": "security"
+        }
+      ]
+    },
+    {
+      "id": "risk",
+      "title": "Risk Management",
+      "description": "Position sizing and risk limits",
+      "icon": "⚠️",
+      "fields": [
+        {
+          "key": "trade:default_leverage",
+          "label": "Default Leverage",
+          "type": "number",
+          "placeholder": "10",
+          "category": "risk"
+        },
+        {
+          "key": "trade:max_position_size",
+          "label": "Max Position Size (USD)",
+          "type": "number",
+          "placeholder": "1000",
+          "category": "risk"
+        },
+        {
+          "key": "trade:max_daily_drawdown_percent",
+          "label": "Max Daily Drawdown (%)",
+          "type": "number",
+          "value": "-5",
+          "category": "risk"
+        }
+      ]
+    },
+    {
+      "id": "agent",
+      "title": "Agent Configuration",
+      "description": "AI agent and automation settings",
+      "icon": "🤖",
+      "fields": [
+        {
+          "key": "agent:default_provider",
+          "label": "Default AI Provider",
+          "type": "select",
+          "options": [
+            { "value": "workers-ai", "label": "Cloudflare Workers AI" },
+            { "value": "openai", "label": "OpenAI" },
+            { "value": "anthropic", "label": "Anthropic" },
+            { "value": "google", "label": "Google AI" }
+          ],
+          "category": "agent"
+        },
+        {
+          "key": "agent:timeout_ms",
+          "label": "AI Timeout (ms)",
+          "type": "number",
+          "value": 30000,
+          "category": "agent"
+        },
+        {
+          "key": "agent:retry_count",
+          "label": "AI Retry Count",
+          "type": "number",
+          "value": 3,
+          "category": "agent"
+        }
+      ]
+    },
+    {
+      "id": "notifications",
+      "title": "Notifications",
+      "description": "Alert and notification settings",
+      "icon": "🔔",
+      "fields": [
+        {
+          "key": "notify:telegram_enabled",
+          "label": "Enable Telegram Alerts",
+          "type": "boolean",
+          "category": "notifications"
+        },
+        {
+          "key": "notify:email_enabled",
+          "label": "Enable Email Alerts",
+          "type": "boolean",
+          "category": "notifications"
+        },
+        {
+          "key": "notify:on_error_only",
+          "label": "Notify on Errors Only",
+          "type": "boolean",
+          "category": "notifications"
+        }
+      ]
+    }
+  ],
+  "extend": {
+    "workers": {
+      "agent-worker": {
+        "enabled": true,
+        "settings": [
+          "agent:default_provider",
+          "agent:timeout_ms",
+          "trade:max_daily_drawdown_percent",
+          "trade:trailing_stop_percent"
+        ]
+      },
+      "trade-worker": {
+        "enabled": true,
+        "settings": [
+          "trade:default_leverage",
+          "trade:max_position_size"
+        ]
+      }
+    }
+  }
+}

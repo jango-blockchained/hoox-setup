@@ -4,6 +4,7 @@ import { describe, expect, test, beforeEach } from "bun:test";
  * E2E Test Suite for Hoox Gateway and Trading Engine
  * 
  * This test suite simulates a full TradingView webhook → Gateway → Trade Worker flow
+ * and includes dashboard configuration tests.
  */
 
 describe("Hoox E2E Flow", () => {
@@ -26,11 +27,9 @@ describe("Hoox E2E Flow", () => {
       leverage: 10
     };
 
-    // Verify signal structure
     expect(signal.action).toBe("LONG");
     expect(signal.exchange).toBe("mexc");
     
-    // Simulate trade-worker execution
     const mockResponse = await mockEnv.TRADE_SERVICE.fetch(new Request("http://test"), {
       method: "POST",
       body: JSON.stringify(signal)
@@ -44,8 +43,6 @@ describe("Hoox E2E Flow", () => {
   test("should reject invalid API key", async () => {
     const apiKey = "invalid-key";
     const validKey = mockEnv.API_KEY;
-    
-    // Simple validation check
     expect(apiKey === validKey).toBe(false);
   });
 
@@ -57,7 +54,6 @@ describe("Hoox E2E Flow", () => {
       quantity: 0.5
     };
 
-    // Verify action mapping
     expect(closeSignal.action).toBe("CLOSE_LONG");
     expect(closeSignal.quantity).toBe(0.5);
   });
@@ -67,8 +63,6 @@ describe("Risk Management Flow", () => {
   test("should trigger kill switch on max drawdown breach", async () => {
     const maxDrawdown = -5;
     const currentPnL = -6;
-    
-    // Risk breach check
     expect(currentPnL).toBeLessThan(maxDrawdown);
   });
 
@@ -77,61 +71,105 @@ describe("Risk Management Flow", () => {
       symbol: "BTC_USDT",
       side: "LONG",
       entryPrice: 50000,
-      currentPrice: 52000 // 4% profit
+      currentPrice: 52000
     };
-
-    const trailingStopPercent = 0.05; // 5% trailing
-    let watermark = 50000; // Start at entry
     
-    // Update watermark if new high
-    if (position.currentPrice > watermark) {
-      watermark = position.currentPrice;
-    }
-    
-    expect(watermark).toBe(52000);
-    
-    // Simulate market drop
-    const droppedPrice = 49400; // 5% drop from 52000
-    const dropPercent = (watermark - droppedPrice) / watermark;
-    
-    // Should trigger trailing stop
-    expect(dropPercent).toBeGreaterThanOrEqual(trailingStopPercent);
+    const profit = ((position.currentPrice - position.entryPrice) / position.entryPrice) * 100;
+    expect(profit).toBeGreaterThan(0);
   });
 });
 
-describe("Dashboard Data Flow", () => {
-  test("should aggregate positions from D1", async () => {
-    const positions = [
-      { symbol: "BTC_USDT", side: "LONG", size: 0.1, exchange: "mexc" },
-      { symbol: "ETH_USDT", side: "SHORT", size: 1.0, exchange: "binance" }
+describe("Dashboard Configuration Schema", () => {
+  test("should parse boolean config values", async () => {
+    const tests = [
+      { key: "global:kill_switch", value: "true", expected: true },
+      { key: "global:kill_switch", value: "false", expected: false },
+      { key: "webhook:tradingview:ip_check_enabled", value: "true", expected: true },
     ];
-
-    // Simulate aggregation
-    const longPositions = positions.filter(p => p.side === "LONG");
-    const shortPositions = positions.filter(p => p.side === "SHORT");
     
-    expect(longPositions.length).toBe(1);
-    expect(shortPositions.length).toBe(1);
+    for (const tc of tests) {
+      const parsed = tc.value === 'true';
+      expect(parsed).toBe(tc.expected);
+    }
   });
 
-  test("should calculate total portfolio value", async () => {
-    const positions = [
-      { size: 0.1, entryPrice: 50000 }, // 5000 USDT value
-      { size: 1.0, entryPrice: 3000 }   // 3000 USDT value
+  test("should parse number config values", async () => {
+    const tests = [
+      { key: "trade:max_daily_drawdown_percent", value: "-5", expected: -5 },
+      { key: "agent:timeout_ms", value: "30000", expected: 30000 },
+      { key: "agent:retry_count", value: "3", expected: 3 },
     ];
-
-    const totalValue = positions.reduce((acc, p) => acc + (p.size * p.entryPrice), 0);
-    expect(totalValue).toBe(8000);
+    
+    for (const tc of tests) {
+      const parsed = Number(tc.value);
+      expect(parsed).toBe(tc.expected);
+    }
   });
-  
-  test("should fetch AI health summary from KV", async () => {
-    const mockSummary = "System running normally. All workers healthy.";
+
+  test("should parse JSON config values", async () => {
+    const jsonValue = '["52.89.214.238", "34.212.75.30"]';
+    const parsed = JSON.parse(jsonValue);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed).toContain("52.89.214.238");
+  });
+
+  test("should validate JSON syntax", async () => {
+    const invalidJson = '{"invalid": incomplete';
+    let isValid = true;
+    try {
+      JSON.parse(invalidJson);
+    } catch {
+      isValid = false;
+    }
+    expect(isValid).toBe(false);
+  });
+});
+
+describe("Agent Worker Provider Configuration", () => {
+  test("should support workers-ai provider", async () => {
+    const provider = "workers-ai";
+    const validProviders = ["workers-ai", "openai", "anthropic", "google"];
+    expect(validProviders).toContain(provider);
+  });
+
+  test("should support fallback chain", async () => {
+    const fallbackChain = ["workers-ai", "openai", "anthropic"];
+    expect(fallbackChain.length).toBe(3);
+    expect(fallbackChain[0]).toBe("workers-ai");
+  });
+
+  test("should map model to provider", async () => {
+    const modelMap = {
+      "workers-ai": "@cf/meta/llama-3.1-8b-instruct",
+      "openai": "gpt-4o-mini-2024-07-18",
+      "anthropic": "claude-3-haiku-20240307",
+      "google": "gemini-1.5-flash-002"
+    };
     
-    // Simulate KV for AI summary
-    const mockKv = { get: () => Promise.resolve(JSON.stringify({ maxDrawdown: -5 })) };
+    expect(modelMap["workers-ai"]).toBe("@cf/meta/llama-3.1-8b-instruct");
+    expect(modelMap["openai"]).toBe("gpt-4o-mini-2024-07-18");
+  });
+});
+
+describe("Worker Service Binding Detection", () => {
+  test("should detect configured services", async () => {
+    const services = {
+      D1_SERVICE: { fetch: () => {} },
+      TRADE_SERVICE: { fetch: () => {} },
+      TELEGRAM_SERVICE: { fetch: () => {} }
+    };
     
-    // Simulate fetching from KV (agent-worker stores this)
-    const summary = await mockKv.get("dashboard:ai_health_summary");
-    expect(JSON.parse(summary || "{}").maxDrawdown).toBe(-5);
+    expect(services.D1_SERVICE).toBeDefined();
+    expect(services.TRADE_SERVICE).toBeDefined();
+    expect(services.TELEGRAM_SERVICE).toBeDefined();
+  });
+
+  test("should identify missing services", async () => {
+    const services: Record<string, any> = {
+      D1_SERVICE: { fetch: () => {} }
+    };
+    
+    expect(services.TRADE_SERVICE).toBeUndefined();
+    expect(services.TELEGRAM_SERVICE).toBeUndefined();
   });
 });

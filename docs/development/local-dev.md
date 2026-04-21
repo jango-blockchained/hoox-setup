@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - Bun ≥1.2
-- Wrangler CLI (`npm install -g wrangler`)
+- Wrangler CLI (`bunx wrangler` or `npm install -g wrangler`)
 - Cloned repository with initialized configuration
 
 ## Environment Setup
@@ -30,7 +30,12 @@ Use the management script to start a worker in dev mode:
 bun run scripts/manage.ts workers dev hoox
 ```
 
-This uses Wrangler under the hood: `wrangler dev --port 8787`.
+This uses Wrangler under the hood with bunx:
+
+```bash
+# Direct command
+bunx wrangler dev --port 8787
+```
 
 ### Local Service Bindings
 
