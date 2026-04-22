@@ -130,32 +130,32 @@ export function parseDashboardTOML(
 
 const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
   async hoox() {
-    const res = await fetch("/dashboard-worker/workers/hoox.toml");
+    const res = await fetch("/workers/hoox.toml");
     if (!res.ok) return { worker: "hoox", displayName: "Gateway", sections: [] };
     return parseDashboardTOML(await res.text(), "hoox");
   },
   async "trade-worker"() {
-    const res = await fetch("/dashboard-worker/workers/trade-worker.toml");
+    const res = await fetch("/workers/trade-worker.toml");
     if (!res.ok) return { worker: "trade-worker", displayName: "Trade Worker", sections: [] };
     return parseDashboardTOML(await res.text(), "trade-worker");
   },
   async "agent-worker"() {
-    const res = await fetch("/dashboard-worker/workers/agent-worker.toml");
+    const res = await fetch("/workers/agent-worker.toml");
     if (!res.ok) return { worker: "agent-worker", displayName: "Agent Worker", sections: [] };
     return parseDashboardTOML(await res.text(), "agent-worker");
   },
   async "telegram-worker"() {
-    const res = await fetch("/dashboard-worker/workers/telegram-worker.toml");
+    const res = await fetch("/workers/telegram-worker.toml");
     if (!res.ok) return { worker: "telegram-worker", displayName: "Telegram Worker", sections: [] };
     return parseDashboardTOML(await res.text(), "telegram-worker");
   },
   async "d1-worker"() {
-    const res = await fetch("/dashboard-worker/workers/d1-worker.toml");
+    const res = await fetch("/workers/d1-worker.toml");
     if (!res.ok) return { worker: "d1-worker", displayName: "D1 Worker", sections: [] };
     return parseDashboardTOML(await res.text(), "d1-worker");
   },
   async "email-worker"() {
-    const res = await fetch("/dashboard-worker/workers/email-worker.toml");
+    const res = await fetch("/workers/email-worker.toml");
     if (!res.ok) return { worker: "email-worker", displayName: "Email Worker", sections: [] };
     return parseDashboardTOML(await res.text(), "email-worker");
   },

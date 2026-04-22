@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 const DEFAULT_WORKERS = ["hoox", "trade-worker", "d1-worker", "agent-worker", "telegram-worker", "email-worker"];
