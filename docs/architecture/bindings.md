@@ -7,6 +7,8 @@ This document provides a comprehensive reference for all bindings, environment v
 - [Secrets & Environment Variables](#secrets--environment-variables)
 - [Service Bindings](#service-bindings)
 - [KV Namespace Bindings](#kv-namespace-bindings)
+- [Queue Bindings](#queue-bindings)
+- [Durable Object Bindings](#durable-object-bindings)
 - [R2 Bucket Bindings](#r2-bucket-bindings)
 - [D1 Database Bindings](#d1-database-bindings)
 - [AI Bindings](#ai-bindings)
@@ -57,6 +59,19 @@ This document provides a comprehensive reference for all bindings, environment v
 | `SESSIONS_KV` | hoox                          | Store session data       |
 | `CONFIG_KV`   | hoox                          | Store configuration data |
 | `CONFIG_KV`   | dashboard-worker (Pages)     | Store runtime settings   |
+
+## Queue Bindings
+
+| Binding        | Worker          | Queue Name         | Type      | Description                           |
+| -------------- | ---------------|------------------|----------| ------------------------------------ |
+| `TRADE_QUEUE` | hoox            | trade-execution | Producer | Sends trades for async processing      |
+| `TRADE_QUEUE` | trade-worker     | trade-execution | Consumer | Receives and processes queued trades  |
+
+## Durable Object Bindings
+
+| Binding              | Worker | Class Name         | Description                        |
+| --------------------- | ------ | ----------------| ---------------------------------- |
+| `IDEMPOTENCY_STORE` | hoox   | IdempotencyStore | Prevents duplicate trade requests |
 
 ## R2 Bucket Bindings
 

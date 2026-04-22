@@ -26,6 +26,14 @@ export interface WorkerConfig {
   d1_databases?: { binding: string; database_id: string }[]; // Array for D1 bindings
   deployed_url?: string; // Added field for deployed URL
   services?: { binding: string; service: string }[]; // Service bindings
+  queues?: {
+    producers?: { binding: string; queue: string }[];
+    consumers?: { queue: string }[];
+  }; // Queue bindings
+  durable_objects?: {
+    bindings?: { name: string; class_name: string }[];
+    migrations?: { tag: string; new_sqlite_classes?: string[] }[];
+  }; // Durable Object bindings
 }
 
 /**
@@ -47,6 +55,29 @@ const WorkerConfigSchema = z
     vars: z.record(z.string()).optional(),
     secrets: z.array(z.string()).optional(),
     deployed_url: z.string().optional(),
+    queues: z
+      .object({
+        producers: z
+          .array(z.object({ binding: z.string(), queue: z.string() }))
+          .optional(),
+        consumers: z.array(z.object({ queue: z.string() })).optional(),
+      })
+      .optional(),
+    durable_objects: z
+      .object({
+        bindings: z
+          .array(z.object({ name: z.string(), class_name: z.string() }))
+          .optional(),
+        migrations: z
+          .array(
+            z.object({
+              tag: z.string(),
+              new_sqlite_classes: z.array(z.string()).optional(),
+            })
+          )
+          .optional(),
+      })
+      .optional(),
     // Allow other keys but don't strictly validate them unless needed
   })
   .passthrough();
