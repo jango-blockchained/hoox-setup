@@ -1,0 +1,29 @@
+display_name = "Telegram Worker"
+description = "Telegram bot notifications and alerts"
+
+[sections.bot]
+title = "Bot Settings"
+description = "Telegram bot configuration"
+icon = "send"
+priority = 10
+
+[sections.bot.fields]
+enabled = true
+default_chat_id = ""
+notify_on_execution = true
+notify_on_error = true
+notify_on_startup = false
+
+[sections.ai]
+title = "AI Summaries"
+description = "AI-powered summary settings"
+icon = "sparkles"
+priority = 20
+
+[sections.ai.fields]
+ai_summaries_enabled = true
+summary_style = "concise"
+include_pnl = true
+
+[sections.ai.options]
+summary_style = ["concise", "detailed", "technical"]

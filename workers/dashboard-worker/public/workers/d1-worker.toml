@@ -1,0 +1,23 @@
+display_name = "D1 Worker"
+description = "Database and data layer"
+
+[sections.database]
+title = "Database"
+description = "D1 database settings"
+icon = "database"
+priority = 10
+
+[sections.database.fields]
+auto_vacuum = true
+cache_size_mb = 128
+
+[sections.retention]
+title = "Data Retention"
+description = "Log and trade retention policies"
+icon = "archive"
+priority = 20
+
+[sections.retention.fields]
+logs_retention_days = 30
+trades_retention_days = 90
+balances_snapshot_enabled = true

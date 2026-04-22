@@ -1,0 +1,39 @@
+display_name = "Agent Worker"
+description = "AI risk manager and autonomous agent"
+
+[sections.ai]
+title = "AI Configuration"
+description = "AI provider and model settings"
+icon = "brain"
+priority = 10
+
+[sections.ai.fields]
+default_provider = "workers-ai"
+model = "@cf/meta/llama-3.1-8b-instruct"
+timeout_ms = 30000
+retry_count = 3
+
+[sections.ai.options]
+default_provider = ["workers-ai", "openai", "anthropic", "google"]
+
+[sections.cron]
+title = "Schedule"
+description = "Cron and automation settings"
+icon = "clock"
+priority = 20
+
+[sections.cron.fields]
+enabled = true
+interval_minutes = 5
+housekeeping_enabled = true
+
+[sections.behavior]
+title = "Behavior"
+description = "Autonomous behavior settings"
+icon = "activity"
+priority = 30
+
+[sections.behavior.fields]
+auto_trailing_stop = true
+auto_rebalance = false
+risk_override_enabled = true
