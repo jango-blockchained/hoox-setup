@@ -88,5 +88,7 @@ vars = { "USE_IMAP" = "false" }
 # - Plaintext: keyword-based extraction (exchange, action, symbol, quantity, price, leverage)
 secrets = ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
 
-
-# Add more workers here following the same structure 
+[pages.dashboard]
+enabled = true
+path = "pages/dashboard"
+secrets = []

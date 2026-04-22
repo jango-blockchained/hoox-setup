@@ -62,7 +62,7 @@ This document provides comprehensive documentation of the Hoox trading system ar
                           │                 │
                           ▼                 ▼
 ┌────────────────────────────────────┐  ┌────────────────────────────────────┐
-│   agent-worker (AI Agent)          │  │       dashboard-worker (UI)           │
+│   agent-worker (AI Agent)          │  │       dashboard (UI)           │
 │   Runs every 5 minutes             │  │       Next.js + React               │
 │   - Portfolio monitoring          │  │       - Overview / Trades           │
 │   - Risk management               │  │       - Positions / Settings        │
@@ -82,7 +82,7 @@ This document provides comprehensive documentation of the Hoox trading system ar
 | 6 | trade-worker | d1-worker | Log trade/signal |
 | 7 | trade-worker | telegram-worker | Send notification |
 | 8 | d1-worker | D1 | Persist data |
-| 9 | dashboard-worker | d1-worker | Read for UI |
+| 9 | dashboard | d1-worker | Read for UI |
 | 10 | agent-worker | d1-worker | Analyze + autonomous actions |
 
 ### 1.3 Workers List
@@ -92,7 +92,7 @@ This document provides comprehensive documentation of the Hoox trading system ar
 | **hoox** | `workers/hoox/` | Gateway/firewall for webhooks | - |
 | **trade-worker** | `workers/trade-worker/` | Multi-exchange execution | - |
 | **agent-worker** | `workers/agent-worker/` | AI risk manager | `*/5 * * * *` |
-| **dashboard-worker** | `workers/dashboard-worker/` | React dashboard | - |
+| **dashboard** | `workers/dashboard/` | React dashboard | - |
 | **telegram-worker** | `workers/telegram-worker/` | Notifications | - |
 | **d1-worker** | `workers/d1-worker/` | D1 database ops | - |
 | **web3-wallet-worker** | `workers/web3-wallet-worker/` | DeFi/on-chain | - |
@@ -117,7 +117,7 @@ By worker (approximate line coverage):
 | email-worker | ~79% |
 | hoox | ~65% |
 | d1-worker | ~62% |
-| dashboard-worker | ~55% |
+| dashboard | ~55% |
 | telegram-worker | ~45% |
 | home-assistant-worker | ~43% |
 | agent-worker | ~27% |
@@ -289,11 +289,11 @@ By worker (approximate line coverage):
 
 ---
 
-### 3.4 dashboard-worker (Command Center)
+### 3.4 dashboard (Command Center)
 
 **Purpose:** React-based trading dashboard
 
-**Entry:** `workers/dashboard-worker/src/app/`
+**Entry:** `workers/dashboard/src/app/`
 
 **Tech Stack:**
 - Next.js 16 (App Router)
@@ -811,7 +811,7 @@ All inter-worker communication uses a standardized envelope:
 | telegram-worker | 8790 |
 | home-assistant | 8791 |
 | web3-wallet | 8792 |
-| dashboard-worker | 8783 |
+| dashboard | 8783 |
 | agent-worker | 8795 |
 | email-worker | 8796 |
 
@@ -825,7 +825,7 @@ bun run scripts/manage.ts workers dev hoox
 bunx wrangler dev --port 8787
 
 # Dashboard (Next.js)
-cd workers/dashboard-worker && bun run dev
+cd workers/dashboard && bun run dev
 ```
 
 ### 10.3 Deploy Commands
@@ -835,7 +835,7 @@ cd workers/dashboard-worker && bun run dev
 bun run scripts/manage.ts workers deploy
 
 # Deploy Dashboard (Cloudflare Pages + Next.js)
-cd workers/dashboard-worker
+cd workers/dashboard
 bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .vercel/output/static --project-name hoox-dashboard --commit-dirty
 ```
 
@@ -995,8 +995,8 @@ curl -X POST https://hoox.<prefix>.workers.dev \
 | `DEFAULT_LEVERAGE` | trade-worker | Default leverage |
 | `USE_TESTNET` | trade-worker | Use testnet |
 | `USE_IMAP` | email-worker | Enable IMAP |
-| `DASHBOARD_USER` | dashboard-worker | Dashboard username |
-| `DASHBOARD_PASS` | dashboard-worker | Dashboard password |
+| `DASHBOARD_USER` | dashboard | Dashboard username |
+| `DASHBOARD_PASS` | dashboard | Dashboard password |
 | `DEFAULT_CHAT_ID` | telegram-worker | Default Telegram chat |
 | `HA_SECURE_URL` | home-assistant | Home Assistant URL |
 | `HA_TOKEN` | home-assistant | Home Assistant token |
