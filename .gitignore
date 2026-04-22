@@ -9,11 +9,9 @@ dist/
 */node_modules/
 */.wrangler/
 */dist/
-*/.env
+*/.env/
 */.next/
 */.vercel/
-workers/dashboard-worker/.next/
-workers/dashboard-worker/.vercel/
 # Ignore bun files
 bun.lock
 .bun/
@@ -23,9 +21,9 @@ bun.lock
 */.bun/
 cf-worker/
 
-# Ignore .dev.vars files
-.dev.vars
-*/.dev.vars
+# Ignore pages build output
+pages/dashboard/.next/
+pages/dashboard/.vercel/
 
 # Ignore keys
 .keys/

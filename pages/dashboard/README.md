@@ -1,4 +1,4 @@
-# 📊 dashboard-worker - Hoox UI & Settings Manager
+# 📊 dashboard - Hoox UI & Settings Manager
 
 <div align="center">
 
@@ -7,7 +7,7 @@
 
 </div>
 
-> The `dashboard-worker` is the visual command center of the Hoox trading ecosystem. Built as a fast, edge-rendered web application, it provides real-time insights into your portfolio and allows for dynamic configuration of the entire system without code redeploys.
+> The `dashboard` is the visual command center of the Hoox trading ecosystem. Built as a fast, edge-rendered web application, it provides real-time insights into your portfolio and allows for dynamic configuration of the entire system without code redeploys.
 
 ## ✨ Core Capabilities
 

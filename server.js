@@ -9,7 +9,7 @@ const routes = {
   "telegram-worker": "./dist/telegram-worker/index.js",
   "d1-worker": "./dist/d1-worker/index.js",
   "agent-worker": "./dist/agent-worker/index.js",
-  "dashboard-worker": "./dist/dashboard-worker/index.js",
+  // "dashboard" is now pages/dashboard (Next.js) - built and served separately
   "web3-wallet-worker": "./dist/web3-wallet-worker/index.js",
 };
 

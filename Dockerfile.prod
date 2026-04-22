@@ -10,16 +10,17 @@ RUN bun install --frozen-lockfile
 
 # Copy worker source code
 COPY workers/ workers/
+COPY pages/ pages/
 
 # Compile workers to standalone JS (we do this for each worker)
 # Note: In a real setup, you would build each worker individually into separate dist/ folders
+# Dashboard (Pages) is built separately with next build
 RUN mkdir -p dist && \
     bun build workers/hoox/src/index.ts --outdir=dist/hoox --target=bun && \
     bun build workers/trade-worker/src/index.ts --outdir=dist/trade-worker --target=bun && \
     bun build workers/d1-worker/src/index.ts --outdir=dist/d1-worker --target=bun && \
     bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun && \
-    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun && \
-    bun build workers/dashboard-worker/src/index.tsx --outdir=dist/dashboard-worker --target=bun
+    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun
 
 # Final Runtime
 FROM alpine:3.19

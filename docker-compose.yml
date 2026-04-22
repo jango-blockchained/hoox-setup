@@ -95,17 +95,16 @@ services:
       - hoox
     restart: unless-stopped
 
-  dashboard-worker:
+  dashboard:
     build:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-dashboard
-    command: bunx wrangler dev -c workers/dashboard-worker/wrangler.jsonc --local
+    command: bun run dev --prefix pages/dashboard
     ports:
       - "8794:8794"
     volumes:
-      - ./workers/dashboard-worker:/app/workers/dashboard-worker
-      - ./.wrangler/state:/app/.wrangler/state
+      - ./pages/dashboard:/app/pages/dashboard
     env_file:
       - .env.local
     networks:
