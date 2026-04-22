@@ -269,7 +269,7 @@ export async function runHousekeeping(
         const srcContent = fs.readFileSync(srcIndexPath, "utf-8");
         const hasQueueExport = srcContent.includes("async queue(") ||
           srcContent.includes("export const queue") ||
-          srcContent.includes("queue:"),
+          srcContent.includes("queue:");
         if (!hasQueueExport) {
           result.issues.push({
             worker: workerName,
