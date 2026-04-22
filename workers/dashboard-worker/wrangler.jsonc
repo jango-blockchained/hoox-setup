@@ -2,5 +2,15 @@
   "name": "hoox-dashboard",
   "pages_build_output_dir": ".vercel/output/static",
   "compatibility_date": "2025-03-07",
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [
+    {
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d"
+    }
+  ],
+  "vars": {
+    "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev",
+    "D1_INTERNAL_KEY": ""
+  }
 }
