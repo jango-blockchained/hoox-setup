@@ -10,6 +10,10 @@ dist/
 */.wrangler/
 */dist/
 */.env
+*/.next/
+*/.vercel/
+workers/dashboard-worker/.next/
+workers/dashboard-worker/.vercel/
 # Ignore bun files
 bun.lock
 .bun/

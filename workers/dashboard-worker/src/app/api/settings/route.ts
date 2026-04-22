@@ -9,24 +9,20 @@ type Settings = Record<string, string | number | boolean>;
 type AllSettings = Record<string, Settings>;
 
 export async function GET() {
-  const settings: AllSettings = {};
+  try {
+    const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
+      headers: { "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "" },
+    });
 
-  for (const worker of DEFAULT_WORKERS) {
-    try {
-      const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings/${worker}`, {
-        headers: { "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "" },
-      });
-
-      if (res.ok) {
-        const data = (await res.json()) as { settings?: Settings };
-        settings[worker] = data.settings || {};
-      }
-    } catch {
-      // Worker unavailable, use defaults
+    if (res.ok) {
+      const data = (await res.json()) as { settings?: AllSettings };
+      return NextResponse.json({ settings: data.settings || {} });
     }
+  } catch (e) {
+    console.error("Failed to fetch settings from D1 worker:", e);
   }
 
-  return NextResponse.json({ settings });
+  return NextResponse.json({ settings: {} });
 }
 
 export async function POST(request: NextRequest) {

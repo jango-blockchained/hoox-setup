@@ -11,6 +11,10 @@ priority = 10
 auto_vacuum = true
 cache_size_mb = 128
 
+[sections.database.descriptions]
+auto_vacuum = "Automatically reclaim database space via VACUUM operations."
+cache_size_mb = "Maximum in-memory cache size for the D1 worker's queries."
+
 [sections.retention]
 title = "Data Retention"
 description = "Log and trade retention policies"
@@ -21,3 +25,8 @@ priority = 20
 logs_retention_days = 30
 trades_retention_days = 90
 balances_snapshot_enabled = true
+
+[sections.retention.descriptions]
+logs_retention_days = "Number of days to keep system logs in the D1 database before automatic deletion."
+trades_retention_days = "Number of days to keep historical trades in the active partition."
+balances_snapshot_enabled = "Take daily snapshots of exchange balances for historical performance tracking."

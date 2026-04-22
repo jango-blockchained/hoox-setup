@@ -1,40 +1,25 @@
 display_name = "Trade Worker"
 description = "Multi-exchange trade execution"
 
-[sections.execution]
-title = "Execution"
-description = "Trade execution settings"
+[sections.trade]
+title = "Execution Limits"
+description = "Global limits and overrides for trading execution."
 icon = "zap"
 priority = 10
 
-[sections.execution.fields]
+[sections.trade.fields]
+kill_switch = false
 default_leverage = 10
-max_position_usd = 1000
+max_position_size = 1000
 max_daily_drawdown_percent = -5
-use_testnet = false
 
-[sections.execution.options]
+[sections.trade.descriptions]
+kill_switch = "Emergency stop specifically for trade execution. If true, the trade-worker will reject all trade signals."
+default_leverage = "Default leverage for futures contracts when the signal doesn't specify one."
+max_position_size = "Maximum allowed position size in USD per trade."
+max_daily_drawdown_percent = "Hard stop trading limit if daily PnL drops below this percentage."
+
+[sections.trade.options]
 default_leverage = [1, 5, 10, 20, 50, 100]
-max_position_usd = [100, 500, 1000, 5000, 10000]
+max_position_size = [100, 500, 1000, 5000, 10000]
 max_daily_drawdown_percent = [-1, -2, -3, -5, -10]
-
-[sections.exchanges]
-title = "Exchanges"
-description = "Exchange-specific settings"
-icon = "layers"
-priority = 20
-
-[sections.exchanges.fields]
-binance_enabled = false
-mexc_enabled = true
-bybit_enabled = false
-
-[sections.fees]
-title = "Fees"
-description = "Fee and slippage configuration"
-icon = "percent"
-priority = 30
-
-[sections.fees.fields]
-default_slippage_bps = 5
-maker_fee rebate = false

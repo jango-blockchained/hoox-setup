@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -17,7 +19,7 @@ import {
 import { Field, FieldLabel, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { Zap, Shield, AlertTriangle, Brain, Bell, Save, KeyRound, Database, Mail, Layers, Clock, Activity, Search, Archive, Router, Send, Sparkles } from "lucide-react";
+import { Zap, Shield, AlertTriangle, Brain, Bell, Save, KeyRound, Database, Mail, Layers, Clock, Activity, Search, Archive, Router, Send, Sparkles, Percent } from "lucide-react";
 import type { WorkerConfigManifest } from "@/lib/settings/types";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
 
@@ -36,6 +38,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   archive: Archive,
   send: Send,
   sparkles: Sparkles,
+  percent: Percent,
 };
 
 interface SettingField {
@@ -224,8 +227,10 @@ export function SettingsForm() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <Spinner className="h-8 w-8" />
+      <div className="flex flex-col gap-6">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full max-w-[400px] rounded-lg" />
+        <Skeleton className="h-[400px] w-full rounded-xl" />
       </div>
     );
   }
@@ -257,31 +262,58 @@ export function SettingsForm() {
         </CardContent>
       </Card>
 
-      {configs.flatMap((config) =>
-        config.sections.map((section) => {
-          const Icon = section.icon ? ICON_MAP[section.icon] : Zap;
-          return (
-            <Card key={`${config.worker}-${section.id}`} className="bg-card border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                  <Icon className="h-4 w-4 text-primary" />
-                  {config.displayName}: {section.title}
-                </CardTitle>
-                <CardDescription>{section.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  {section.fields.map((field) => (
-                    <div key={field.key}>{renderField(config.worker, field)}</div>
-                  ))}
-                </FieldGroup>
-              </CardContent>
-            </Card>
-          );
-        })
+      {configs.length > 0 && (
+        <Tabs defaultValue={configs[0].worker} className="w-full">
+          <TabsList className="mb-4 flex flex-wrap h-auto gap-2 bg-transparent p-0">
+            {configs.map((config) => (
+              <TabsTrigger
+                key={config.worker}
+                value={config.worker}
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border border-border bg-card shadow-sm"
+              >
+                {config.displayName}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {configs.map((config) => (
+            <TabsContent key={config.worker} value={config.worker} className="space-y-6">
+              {config.sections.map((section) => {
+                const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
+                return (
+                  <Card key={`${config.worker}-${section.id}`} className="bg-card border-border">
+                    <CardHeader className="pb-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Icon className="h-5 w-5 text-primary" />
+                            {section.title}
+                            {section.priority !== undefined && (
+                              <Badge variant="secondary" className="ml-2 font-normal text-xs">
+                                Priority {section.priority}
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription>{section.description}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <FieldGroup>
+                        {section.fields.map((field) => (
+                          <div key={field.key}>{renderField(config.worker, field)}</div>
+                        ))}
+                      </FieldGroup>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </TabsContent>
+          ))}
+        </Tabs>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4">
         <Button onClick={handleSave} disabled={isSaving} className="gap-2">
           {isSaving ? (
             <>
