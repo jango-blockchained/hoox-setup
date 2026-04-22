@@ -38,6 +38,9 @@ Hoox isn't just another trading bot; it's a paradigm shift in how algorithmic tr
 | 📈 **Trading Engine**   | Multi-exchange automated execution (CEX & DEX) |
 | 📊 **Command Center**   | React-based Dashboard for real-time portfolio monitoring |
 | 🖥️ **Interactive TUI**  | Fully integrated Terminal UI (`hoox-tui`) for local process management |
+| 📨 **Queues**           | Async trade execution with guaranteed delivery—survives exchange downtime |
+| 🛡️ **Idempotency**    | Durable Object prevents duplicate trades on network retries |
+| ⚡ **Rate Limiting**    | Built-in protection against trade spam (10 trades/min) |
 
 ---
 
@@ -98,6 +101,8 @@ graph TB
         KV[(💾 KV Store)]
         AI[(🤖 Workers AI)]
         DB[(🗄️ D1 SQL)]
+        Q[(📨 Queue)]
+        DO[(🛡️ Durable Obj)]
     end
 
     TV --> hoox
@@ -107,6 +112,8 @@ graph TB
     dash --> hoox
 
     hoox -->|Isolated Binding| trade
+    hoox -->|Queue | Q
+    hoox -->|Durable Obj| DO
     hoox -->|Isolated Binding| telegram
     agent -->|Isolated Binding| trade
     agent -->|Isolated Binding| telegram
@@ -127,8 +134,16 @@ graph TB
 
 ### 🔐 hoox (The Gateway)
 The impenetrable front door. It validates incoming TradingView webhooks, checks IP allowlists, verifies API keys, and routes valid signals to the execution engine.
+- **Queue Producer**: Sends trades to async queue for guaranteed delivery
+- **Queue Modes**: `queue_failover` (default) or `queue_everywhere`
+- **Idempotency**: Prevents duplicate trades using Durable Objects
+- **Rate Limiting**: 10 trades/minute protection
+
 ### 📈 trade-worker (The Execution Engine)
 The core sniper. Executes Long/Short orders simultaneously across MEXC, Binance, and Bybit. Handles leverage calculation, size mapping, and logs every action to D1.
+- **Queue Consumer**: Processes trades from queue with guaranteed delivery
+- **Retry Logic**: 5 attempts with exponential backoff (30s, 1m, 5m, 15m)
+- **Dead Letter**: Failed trades logged to D1 after max retries
 ### 🧠 agent-worker (The Risk Manager)
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
 ### 📊 dashboard-worker (The Command Center)
@@ -150,6 +165,49 @@ When dealing with trading capital, security isn't a feature; it's the foundation
 - **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
 - **Zero Trust Dashboard:** Your UI is secured behind Cloudflare® Access, requiring rigorous authentication before you can even view the login page.
 - **Hardware-Level Secret Injection:** API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.
+- **Idempotent Execution:** Durable Objects prevent duplicate trades on network retries—no lost ETH from double-spending.
+- **Rate Limiting:** Built-in throttling prevents accidental trade spamming.
+
+---
+
+## 🎯 Async Trade Execution (Queues)
+
+Hoox uses Cloudflare® Queues for guaranteed trade delivery:
+
+| Mode | Description |
+|------|-------------|
+| `queue_failover` (default) | Try direct execution first, queue on failure |
+| `queue_everywhere` | Always queue trades asynchronously |
+
+### Configuration
+```bash
+# Set mode in KV
+wrangler kv key put webhooks:queue_mode queue_failover --binding CONFIG_KV --remote
+```
+
+### Retry Behavior
+- **Attempt 1**: Immediate
+- **Attempt 2**: 30 seconds
+- **Attempt 3**: 1 minute
+- **Attempt 4**: 5 minutes
+- **Attempt 5**: 15 minutes
+- After max retries: Trade logged to D1 as failed
+
+---
+
+## 💸 Free Tier Costs (Everything is Free!)
+
+Hoox runs entirely on Cloudflare® Workers Free tier:
+
+| Service | Free Limit | Notes |
+|---------|-----------|-------|
+| Workers | 100k req/day | ~3k trades/day |
+| D1 | 5M rows read, 100k writes/day | 5GB storage |
+| KV | 1GB, 1k ops/day | Config storage |
+| R2 | 10GB/month | Trade reports |
+| Queues | 10k ops/day | ~3k trades/day |
+| Durable Objects | SQLite-backed only | Idempotency |
+| Workers AI | 10k neurons/day | AI summaries |
 
 ---
 
