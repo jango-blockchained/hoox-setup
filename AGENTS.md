@@ -132,6 +132,8 @@ By worker (approximate line coverage):
 | R2 (Reports) | `trade-reports` | Trade reports |
 | R2 (Uploads) | `user-uploads` | User uploads |
 | Vectorize | `my-rag-index` | AI embeddings |
+| Queue | `trade-execution` | Trade execution queue |
+| Durable Object | `IdempotencyStore` | Duplicate prevention |
 | Account ID | `debc6545e63bea36be059cbc82d80ec8` | Cloudflare account |
 
 ---
@@ -197,6 +199,8 @@ By worker (approximate line coverage):
 | `TRADE_SERVICE` | Service | hoox, telegram-worker, email-worker |
 | `TELEGRAM_SERVICE` | Service | hoox, trade-worker, agent-worker |
 | `D1_SERVICE` | Service | agent-worker |
+| `TRADE_QUEUE` | Queue | hoox (producer), trade-worker (consumer) |
+| `IDEMPOTENCY_STORE` | Durable Object | hoox |
 
 ---
 
@@ -213,18 +217,25 @@ By worker (approximate line coverage):
 - `src/killSwitch.ts` - Global trading pause
 - `src/sessionManager.ts` - Session management
 - `src/tradeService.ts` - Trade routing
+- `src/idempotencyStore.ts` - Durable Object for duplicate prevention
 
 **Routes:**
 - `POST /webhook/tradingview` - TradingView signals
 - `POST /webhook/email` - Email-derived signals
 - `GET/POST /session/*` - Session management
 
+**Features:**
+- Queue Producer: Sends trades to `trade-execution` queue
+- Queue Modes: `queue_failover` (default) or `queue_everywhere`
+- Idempotency: Prevents duplicate trades via Durable Object
+- Rate Limiting: 10 trades/minute (in-memory)
+
+**KV Keys:**
+- `webhooks:queue_mode` - Queue mode setting
+- `webhooks:ip_check_enabled` - IP allowlist toggle
+
 **Secrets:**
 - `WEBHOOK_API_KEY_BINDING` - Webhook authentication
-
-**Environment Variables:**
-- `TRADE_WORKER_NAME` - Trade worker service name
-- `TELEGRAM_WORKER_NAME` - Telegram worker service name
 
 ---
 
@@ -240,6 +251,11 @@ By worker (approximate line coverage):
 - `src/bybit-client.ts` - Bybit API
 - `src/db-logger.ts` - D1 logging
 - `src/exchange-router.ts` - Exchange selection
+
+**Features:**
+- Queue Consumer: Consumes from `trade-execution` queue
+- Retry Logic: 5 attempts with exponential backoff (0s, 30s, 1m, 5m, 15m)
+- Dead Letter: Failed trades after max retries
 
 **Supported Exchanges:**
 - Binance (spot + futures)
@@ -863,6 +879,24 @@ cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
 | AI/Vectorize | - | - | ✅ | ✅ | - | - | - |
 | Cron Triggers | - | - | - | ✅ | - | - | - |
 | Cloudflare Pages | - | - | - | - | - | - | ✅ |
+| Queues Producer | ✅ | - | - | - | - | - | - |
+| Queues Consumer | - | ✅ | - | - | - | - | - |
+| Durable Objects | ✅ | - | - | - | - | - | - |
+| Rate Limiting | ✅ | - | - | - | - | - | - |
+
+---
+
+## 12. Free Tier Usage
+
+| Service | Free Limit | Notes |
+|---------|-----------|-------|
+| Workers | 100k req/day | Per day |
+| D1 | 5M rows read/day, 100k writes/day, 5GB | Rows read/written per day |
+| KV | 1GB stored, 1k ops/day | Per day |
+| R2 | 10GB storage | Monthly |
+| Queues | 10k ops/day | ~3k trades/day |
+| Durable Objects | SQLite-backed only | Free tier compatible |
+| Workers AI | 10k neurons/day | For AI summaries |
 
 ---
 

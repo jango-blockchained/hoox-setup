@@ -243,6 +243,91 @@ export async function runHousekeeping(
       }
     }
 
+    // Check Queue bindings (producers and consumers)
+    const configQueues = (wranglerConfig as any).queues || {};
+    const producers = configQueues.producers || [];
+    const consumers = configQueues.consumers || [];
+
+    // Check if required queues are defined in config
+    const requiredQueues = workerConfig.queues?.producers || [];
+    for (const q of requiredQueues) {
+      const found = producers.some((p: any) => p.binding === q.binding);
+      if (!found) {
+        result.issues.push({
+          worker: workerName,
+          type: "warning",
+          message: `Queue producer '${q.binding}' defined in config but not in wrangler`,
+        });
+        result.summary.warnings++;
+      }
+    }
+
+    // For queue consumers, check if handler is exported
+    if (consumers.length > 0) {
+      const srcIndexPath = path.join(workerDir, "src", "index.ts");
+      if (fs.existsSync(srcIndexPath)) {
+        const srcContent = fs.readFileSync(srcIndexPath, "utf-8");
+        const hasQueueExport = srcContent.includes("async queue(") ||
+          srcContent.includes("export const queue") ||
+          srcContent.includes("queue:"),
+        if (!hasQueueExport) {
+          result.issues.push({
+            worker: workerName,
+            type: "warning",
+            message: "Queue consumer configured but no queue handler found in index.ts",
+          });
+          result.summary.warnings++;
+        }
+      }
+    }
+
+    // Check Durable Objects bindings
+    const doBindings = (wranglerConfig as any).durable_objects?.bindings || [];
+    const migrations = (wranglerConfig as any).migrations || [];
+
+    // Validate DO classes are exported if bindings exist
+    if (doBindings.length > 0) {
+      const srcIndexPath = path.join(workerDir, "src", "index.ts");
+      if (fs.existsSync(srcIndexPath)) {
+        const srcContent = fs.readFileSync(srcIndexPath, "utf-8");
+        for (const doBinding of doBindings) {
+          const className = doBinding.class_name;
+          const hasExport = srcContent.includes(`export class ${className}`) ||
+            srcContent.includes(`export { ${className} }`);
+          if (!hasExport) {
+            result.issues.push({
+              worker: workerName,
+              type: "error",
+              message: `Durable Object '${class_name}': class not exported in index.ts`,
+            });
+            result.summary.errors++;
+          }
+        }
+      }
+
+      // Check migrations are defined
+      if (migrations.length === 0) {
+        result.issues.push({
+          worker: workerName,
+          type: "warning",
+          message: "Durable Objects configured but no migrations defined",
+        });
+        result.summary.warnings++;
+      } else {
+        // Check migration tags are unique
+        const tags = migrations.map((m: any) => m.tag);
+        const uniqueTags = new Set(tags);
+        if (tags.length !== uniqueTags.size) {
+          result.issues.push({
+            worker: workerName,
+            type: "error",
+            message: "Duplicate migration tags found",
+          });
+          result.summary.errors++;
+        }
+      }
+    }
+
     // Cross-reference: Check if other workers reference this worker
     for (const [otherName, otherConfig] of Object.entries(config.workers)) {
       if (otherName === workerName) continue;
