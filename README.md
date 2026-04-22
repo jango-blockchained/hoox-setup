@@ -162,6 +162,31 @@ Ancillary plugins allowing you to trigger trades via smart home events or raw em
 ## 🔐 Bulletproof Security
 
 When dealing with trading capital, security isn't a feature; it's the foundation.
+
+### Implemented Security Features
+
+| Feature | Description |
+|---------|-------------|
+| **CORS** | Disabled - same-origin only |
+| **X-Frame-Options** | DENY - prevents iframe embedding |
+| **X-Content-Type-Options** | nosnift - prevents MIME sniffing |
+| **X-XSS-Protection** | 1; mode=block |
+| **Referrer-Policy** | strict-origin-when-cross-origin |
+| **Permissions-Policy** | Blocks accelerometer, camera, geolocation, microphone, etc. |
+| **Strict-Transport-Security** | max-age=31536000; includeSubDomains |
+| **Content-Security-Policy** | default-src 'self' |
+| **Idempotent Execution** | Durable Objects prevent duplicate trades |
+| **Rate Limiting** | 10 trades/minute protection |
+| **IP Allow-listing** | Optional IP filtering via KV |
+| **API Key Auth** | Secret binding validation |
+| **Kill Switch** | Global trading pause via KV |
+
+### Security Layers
+
+1. **Edge-Level**: Cloudflare's DDoS protection, firewall, and WAF
+2. **Worker-Level**: IP allow-listing, API key validation, rate limiting
+3. **Execution-Level**: Idempotency keys prevent duplicates, kill switches halt trading
+4. **Response-Level**: All responses include security headers
 - **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
 - **Zero Trust Dashboard:** Your UI is secured behind Cloudflare® Access, requiring rigorous authentication before you can even view the login page.
 - **Hardware-Level Secret Injection:** API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.
