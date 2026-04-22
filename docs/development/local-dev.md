@@ -49,6 +49,19 @@ When running locally, Cloudflare® Workers can communicate with each other using
 | telegram-worker | 8790 |
 | home-assistant | 8791 |
 | web3-wallet | 8792 |
+| dashboard-worker (Pages) | 8783 |
+
+### Cloudflare Pages (dashboard-worker)
+
+The dashboard-worker uses Cloudflare Pages with Next.js. To run locally:
+
+```bash
+bun run scripts/manage.ts workers dev dashboard-worker
+# Or directly:
+cd workers/dashboard-worker && bun run dev
+```
+
+This runs the Next.js dev server, which can be accessed at `http://localhost:3000`.
 
 To test local bindings, you must have all dependent workers running in separate terminal windows.
 

@@ -579,6 +579,10 @@ export async function deployWorkers(config: Config): Promise<void> {
 
     const wranglerConfigArg = useJsonc ? ["-c", "wrangler.jsonc"] : [];
 
+    // Check if this is a Pages project
+    const isPages = isPagesProject(workerDir);
+    const deployCommand = isPages ? "wrangler pages project deploy" : "wrangler deploy";
+
     // Verify account_id in wrangler config (toml or jsonc)
     try {
       let accountIdInConfig: string | undefined;
@@ -611,9 +615,12 @@ export async function deployWorkers(config: Config): Promise<void> {
     }
 
     // const result = runCommandSync("wrangler deploy", workerDir, cloudflareEnv); // Original Sync
+    const deployArgs = isPages
+      ? ["wrangler", "pages", "project", "deploy", workerDir]
+      : ["wrangler", "deploy", ...wranglerConfigArg];
     const result = await runCommandAsync(
       "bunx",
-      ["wrangler", "deploy", ...wranglerConfigArg],
+      deployArgs,
       workerDir,
       cloudflareEnv
     ); // Async
@@ -723,8 +730,11 @@ export async function startDevServer(
     return;
   }
 
+  // Check if this is a Pages project
+  const isPages = isPagesProject(workerDir);
+
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-  if (!fs.existsSync(wranglerTomlPath)) {
+  if (!isPages && !fs.existsSync(wranglerTomlPath)) {
     print_warning(
       `wrangler.toml not found for worker ${workerNameToStart} at ${wranglerTomlPath}.`
     );
@@ -745,16 +755,24 @@ export async function startDevServer(
     // Add any other environment variables wrangler dev might need locally
   };
 
-  // Use runInteractiveCommand for wrangler dev
+  // Use runInteractiveCommand for wrangler dev or Pages dev
   try {
+    let devCommand: string[];
+    if (isPages) {
+      // Pages: Run Next.js dev server
+      console.log(dim("Detected Pages project. Running Next.js dev server..."));
+      devCommand = ["run", "dev"];
+    } else {
+      devCommand = ["wrangler", "dev"];
+    }
     await runInteractiveCommand(
       "bunx",
-      ["wrangler", "dev"],
+      devCommand,
       workerDir,
       cloudflareEnv
     );
     // This part is reached only when the interactive command exits (e.g., Ctrl+C)
-    console.log(blue(`Wrangler dev for ${workerNameToStart} stopped.`));
+    console.log(blue(`Dev server for ${workerNameToStart} stopped.`));
   } catch (error) {
     // Error is already logged by runInteractiveCommand
     process.exitCode = 1;
@@ -1106,6 +1124,38 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     );
   }
   console.log("----------------------------------");
+}
+
+// --- Pages Project Detection Helper ---
+function isPagesProject(workerDir: string): boolean {
+  const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
+  const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
+
+  if (fs.existsSync(wranglerJsoncPath)) {
+    try {
+      const content = fs.readFileSync(wranglerJsoncPath, "utf-8");
+      const cleanContent = content
+        .replace(/\/\/.*$/gm, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/,(\s*[}\]])/g, "$1");
+      const config = JSON.parse(cleanContent);
+      return !!config.pages_build_output_dir;
+    } catch {
+      return false;
+    }
+  }
+
+  if (fs.existsSync(wranglerTomlPath)) {
+    try {
+      const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+      const config = parseToml(content) as Record<string, unknown>;
+      return !!config.pages_build_output_dir;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 // --- Helper to print worker names --- (Moved from manage.ts)

@@ -56,6 +56,7 @@ This document provides a comprehensive reference for all bindings, environment v
 | `CONFIG_KV`   | telegram-worker, trade-worker | Store configuration data |
 | `SESSIONS_KV` | hoox                          | Store session data       |
 | `CONFIG_KV`   | hoox                          | Store configuration data |
+| `CONFIG_KV`   | dashboard-worker (Pages)     | Store runtime settings   |
 
 ## R2 Bucket Bindings
 
