@@ -128,6 +128,31 @@ export async function runHousekeeping(
       result.summary.warnings++;
     }
 
+    // Check for Pages project (pages_build_output_dir)
+    const isPages = !!wranglerConfig.pages_build_output_dir;
+    if (isPages) {
+      // Pages-specific checks
+      if (!wranglerConfig.pages_build_output_dir) {
+        result.issues.push({
+          worker: workerName,
+          type: "error",
+          message: "Pages project missing 'pages_build_output_dir'",
+        });
+        result.summary.errors++;
+      }
+
+      // Check for node compatibility (needed for Next.js)
+      const compatFlags = wranglerConfig.compatibility_flags as string[] | undefined;
+      if (!compatFlags?.includes("nodejs_compat")) {
+        result.issues.push({
+          worker: workerName,
+          type: "info",
+          message: "Pages project should have 'nodejs_compat' in compatibility_flags for Next.js",
+        });
+        result.summary.info++;
+      }
+    }
+
     // Check account_id matches config
     const configAccountId = config.global.cloudflare_account_id;
     const wranglerAccountId = wranglerConfig.account_id;
