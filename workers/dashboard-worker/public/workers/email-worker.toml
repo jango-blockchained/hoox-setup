@@ -12,6 +12,11 @@ use_imap = false
 poll_interval_minutes = 5
 mark_as_read = false
 
+[sections.email.descriptions]
+use_imap = "Enable active IMAP polling instead of relying solely on mail webhooks."
+poll_interval_minutes = "How frequently to poll the IMAP server for new trade signals."
+mark_as_read = "Mark signals as read on the IMAP server after processing to avoid duplicate trades."
+
 [sections.signal]
 title = "Signal Extraction"
 description = "Signal parsing settings"
@@ -22,3 +27,8 @@ priority = 20
 coin_pattern = "BTC|ETH|SOL"
 action_pattern = "BUY|SELL|LONG|SHORT"
 quantity_multiplier = 1.0
+
+[sections.signal.descriptions]
+coin_pattern = "Regex pattern to identify which assets are eligible for trading from email signals."
+action_pattern = "Regex pattern to extract the trade action direction."
+quantity_multiplier = "Global multiplier applied to any quantities extracted from email signals."
