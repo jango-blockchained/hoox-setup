@@ -9,7 +9,8 @@ import {
   ScrollText, 
   Settings,
   Boxes,
-  GitBranch
+  GitBranch,
+  Wrench
 } from "lucide-react"
 
 const nav_items = [
@@ -17,6 +18,11 @@ const nav_items = [
     title: "Overview",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Setup",
+    href: "/dashboard/setup",
+    icon: Wrench,
   },
   {
     title: "Signal Flow",
