@@ -235,6 +235,15 @@ async function main() {
       await runHousekeeping(config, options.verbose || false);
     });
 
+  // --- Pages Deploy Command ---
+  program
+    .command("pages deploy")
+    .description("Build and deploy dashboard to Cloudflare Pages")
+    .action(async () => {
+      const config = await loadConfig();
+      await deployPages(config);
+    });
+
   // --- Key Management Commands ---
   const keysCommand = program
     .command("keys")

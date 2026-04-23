@@ -694,6 +694,79 @@ export async function deployWorkers(config: Config): Promise<void> {
   process.exitCode = anyErrors ? 1 : 0;
 }
 
+// --- Pages Deployment Logic ---
+export async function deployPages(config: Config): Promise<void> {
+  console.log(blue("Starting dashboard deployment to Cloudflare Pages..."));
+
+  const apiToken = await getCloudflareToken(config);
+  if (!apiToken) {
+    process.exitCode = 1;
+    return;
+  }
+
+  const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
+  const packageJsonPath = path.join(dashboardPath, "package.json");
+  
+  // Check if dashboard exists
+  if (!fs.existsSync(packageJsonPath)) {
+    print_error("Dashboard not found at pages/dashboard. Please ensure the directory exists.");
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(blue("Building dashboard..."));
+  
+  // Run build
+  const buildResult = await runInteractiveCommand(
+    "bun run build",
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken }
+  );
+  
+  if (buildResult.code !== 0) {
+    print_error(`Build failed: ${buildResult.stderr || buildResult.stdout}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(blue("Building for Cloudflare Pages..."));
+  
+  // Run next-on-pages
+  const nopResult = await runInteractiveCommand(
+    "bunx @cloudflare/next-on-pages",
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken }
+  );
+  
+  if (nopResult.code !== 0) {
+    print_error(`Next-on-pages build failed: ${nopResult.stderr || nopResult.stdout}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  // Get project name from config
+  const projectName = `hoox-dashboard`;
+
+  console.log(blue("Deploying to Cloudflare Pages..."));
+  
+  // Deploy to Cloudflare Pages
+  const deployResult = await runInteractiveCommand(
+    `bunx wrangler pages deploy .vercel/output/static --project-name ${projectName} --commit-dirty`,
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken }
+  );
+  
+  if (deployResult.code !== 0) {
+    print_error(`Deployment failed: ${deployResult.stderr || deployResult.stdout}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(green(`Dashboard deployed successfully!`));
+  console.log(`URL: ${cyan(`https://${projectName}.pages.dev`)}`);
+  print_success("Deployment completed.");
+}
+
 // --- Local Development Logic --- (Moved from manage.ts)
 export async function startDevServer(
   config: Config,
