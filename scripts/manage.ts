@@ -391,8 +391,25 @@ async function main() {
             });
             print_success(`Successfully updated secret ${secretName} (ID: ${secretId}) in store ${storeId}`);
           } else {
-            throw new Error(`Could not find secret ID for ${secretName} to update it. List output:\\n${listOutput}`);
+            throw new Error(`Could not find secret ID for ${secretName} to update it. List output:\n${listOutput}`);
           }
+        }
+
+        // Automatically sync INTERNAL_KEYs to the dashboard Pages project
+        if (secretName.endsWith("_INTERNAL_KEY")) {
+          console.log(dim(`Syncing internal key ${secretName} to dashboard Pages project...`));
+          try {
+             execSync(`echo -n "${value.replace(/"/g, '\\"')}" | npx wrangler pages secret put ${secretName} --project-name hoox-dashboard`, {
+               stdio: "inherit",
+             });
+             print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
+          } catch (pagesErr) {
+             print_warning(`Could not automatically sync to Pages project (it may not be deployed yet). You can run this manually later: echo "${value}" | npx wrangler pages secret put ${secretName} --project-name hoox-dashboard`);
+          }
+        }
+      } catch (err) {
+        print_error(`Failed to update secret: ${(err as Error).message}`);
+      }
         }
       } catch (err) {
         print_error(`Failed to update secret: ${(err as Error).message}`);
