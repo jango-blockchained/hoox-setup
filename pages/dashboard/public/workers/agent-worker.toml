@@ -32,13 +32,11 @@ icon = "brain"
 priority = 10
 
 [sections.agent.fields]
-config = "{ \"enabled\": true, \"risk_mode\": \"conservative\" }"
 openai_key = "Requires CLI Setup"
 anthropic_key = "Requires CLI Setup"
 google_key = "Requires CLI Setup"
 
 [sections.agent.descriptions]
-config = "JSON configuration string governing the agent's behavior and risk management algorithms."
 openai_key = "OpenAI API Key (Secret). DO NOT save this plaintext via Dashboard. Manually execute: 'bun run scripts/manage.ts secrets update-cf openai_key agent-worker' in your terminal."
 anthropic_key = "Anthropic API Key (Secret). DO NOT save this plaintext via Dashboard. Manually execute: 'bun run scripts/manage.ts secrets update-cf anthropic_key agent-worker' in your terminal."
 google_key = "Google Gemini API Key (Secret). DO NOT save this plaintext via Dashboard. Manually execute: 'bun run scripts/manage.ts secrets update-cf google_key agent-worker' in your terminal."

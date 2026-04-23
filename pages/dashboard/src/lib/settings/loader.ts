@@ -242,7 +242,7 @@ export async function loadMergedSettings(
 ): Promise<MergedSettings> {
   const configs = await loadAllConfigs(workerNames);
   const defaults = flattenSettings(configs);
-  const overrides = await getRuntimeOverrides(workerNames);
+  const overrides = (await getRuntimeOverrides(workerNames)) as unknown as Record<string, Record<string, any>>;
 
   const merged: MergedSettings = {};
 
@@ -250,8 +250,13 @@ export async function loadMergedSettings(
     merged[worker] = { ...fields };
 
     for (const key of Object.keys(fields)) {
-      if (overrides[key] !== undefined) {
-        merged[worker][key] = overrides[key];
+      if (overrides[worker]) {
+        const rawKey = key.split(":")[1] || key;
+        if (overrides[worker][rawKey] !== undefined) {
+          merged[worker][key] = overrides[worker][rawKey];
+        } else if (overrides[worker][key] !== undefined) {
+          merged[worker][key] = overrides[worker][key];
+        }
       }
     }
   }
