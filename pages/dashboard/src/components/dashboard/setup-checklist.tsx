@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Terminal, RefreshCw, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, Terminal, RefreshCw, AlertTriangle, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const REQUIRED_SECRETS = [
   { worker: "hoox", secret: "WEBHOOK_API_KEY_BINDING", desc: "For TradingView/External webhooks" },
@@ -19,8 +20,19 @@ const REQUIRED_SECRETS = [
   { worker: "agent-worker", secret: "openai_key", desc: "OpenAI API Key" },
 ];
 
+function generateExampleSecret(secretName: string) {
+  const name = secretName.toLowerCase();
+  if (name.includes("key") || name.includes("token") || name.includes("secret")) {
+    return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  }
+  return "YOUR_SECRET_VALUE";
+}
+
 export function SetupChecklist() {
   const [housekeeping, setHousekeeping] = useState<any>(null);
+  const [secretsList, setSecretsList] = useState(
+    REQUIRED_SECRETS.map(req => ({ ...req, example: "..." }))
+  );
   const [loading, setLoading] = useState(true);
 
   const runCheck = async () => {
@@ -36,6 +48,10 @@ export function SetupChecklist() {
 
   useEffect(() => {
     runCheck();
+    setSecretsList(REQUIRED_SECRETS.map(req => ({
+      ...req,
+      example: generateExampleSecret(req.secret)
+    })));
   }, []);
 
   return (
@@ -95,21 +111,37 @@ export function SetupChecklist() {
         </CardHeader>
         <CardContent className="space-y-0">
           <div className="space-y-0 divide-y divide-border border border-border rounded-md">
-            {REQUIRED_SECRETS.map((req, i) => (
-              <div key={i} className="p-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <span className="font-medium text-sm">{req.secret}</span>
-                  <Badge variant="secondary" className="w-fit">{req.worker}</Badge>
+            {secretsList.map((req, i) => {
+              const cmd = `bun run scripts/manage.ts secrets update-cf ${req.secret} ${req.worker} "${req.example}"`;
+              return (
+                <div key={i} className="p-3 group">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <span className="font-medium text-sm">{req.secret}</span>
+                    <Badge variant="secondary" className="w-fit">{req.worker}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{req.desc}</p>
+                  <div className="bg-secondary/50 p-2 rounded-md flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                      <Terminal className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <code className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                        {cmd}
+                      </code>
+                    </div>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        navigator.clipboard.writeText(cmd);
+                        toast.success("Command copied to clipboard");
+                      }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mb-2">{req.desc}</p>
-                <div className="bg-secondary/50 p-2 rounded-md flex items-center gap-2 overflow-x-auto">
-                  <Terminal className="h-3 w-3 text-muted-foreground shrink-0" />
-                  <code className="text-xs text-muted-foreground font-mono whitespace-nowrap">
-                    bun run scripts/manage.ts secrets update-cf {req.secret} {req.worker}
-                  </code>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
