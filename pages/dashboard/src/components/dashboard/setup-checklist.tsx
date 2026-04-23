@@ -36,8 +36,6 @@ export function SetupChecklist() {
     REQUIRED_SECRETS.map(req => ({ ...req, example: "...", configured: false }))
   );
   const [loading, setLoading] = useState(true);
-  const [syncingSecrets, setSyncingSecrets] = useState(false);
-  const [secretValues, setSecretValues] = useState<Record<string, string>>({});
 
   const runCheck = async () => {
     setLoading(true);
@@ -67,29 +65,6 @@ export function SetupChecklist() {
         configured: false,
       })));
     }
-  };
-
-  const handleSyncSecret = async (secretName: string) => {
-    const value = secretValues[secretName];
-    if (!value) {
-      toast.error(`Please enter the value for ${secretName}`);
-      return;
-    }
-    
-    setSyncingSecrets(true);
-    try {
-      const res = await api.syncSecretToPages(secretName, value);
-      if (res.success) {
-        toast.success(res.message || `Synced ${secretName} to dashboard`);
-        setSecretValues(prev => ({ ...prev, [secretName]: "" }));
-        await checkSecretsStatus();
-      } else {
-        toast.error(res.error || "Failed to sync secret");
-      }
-    } catch (e) {
-      toast.error(String(e));
-    }
-    setSyncingSecrets(false);
   };
 
   useEffect(() => {
@@ -184,27 +159,6 @@ export function SetupChecklist() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">{req.desc}</p>
-                  {isInternalKey && !req.configured && (
-                    <div className="mb-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="password"
-                          placeholder={`Enter ${req.secret} value`}
-                          className="flex-1 h-8 px-2 text-xs border border-input bg-background rounded-md"
-                          value={secretValues[req.secret] || ""}
-                          onChange={(e) => setSecretValues(prev => ({ ...prev, [req.secret]: e.target.value }))}
-                        />
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleSyncSecret(req.secret)}
-                          disabled={syncingSecrets || !secretValues[req.secret]}
-                        >
-                          Sync
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                   <div className="bg-secondary/50 p-2 rounded-md flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-x-auto">
                       <Terminal className={`h-3 w-3 shrink-0 ${req.configured ? "text-emerald-500/50" : "text-muted-foreground"}`} />
@@ -232,8 +186,7 @@ export function SetupChecklist() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Internal Keys</AlertTitle>
             <AlertDescription className="text-xs text-muted-foreground mt-1">
-              After setting internal keys (AGENT_INTERNAL_KEY, D1_INTERNAL_KEY, API_SERVICE_KEY) in their workers, 
-              use the Sync button above or run <code className="text-xs">bun run scripts/manage.ts secrets update-cf &lt;key&gt; &lt;worker&gt;</code>
+              Internal keys (AGENT_INTERNAL_KEY, D1_INTERNAL_KEY, API_SERVICE_KEY) are automatically synced to the dashboard when you run the CLI command: <code className="text-xs">bun run secrets:update &lt;key&gt; &lt;worker&gt;</code>
             </AlertDescription>
           </Alert>
         </CardContent>
