@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -20,6 +32,10 @@ export function middleware(request: NextRequest) {
 
     if (sessionCookie && dashboardUser) {
       return NextResponse.next();
+    }
+
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized - Dashboard session expired or DASHBOARD_USER missing" }, { status: 401 });
     }
 
     return NextResponse.redirect(new URL("/login", request.url));
