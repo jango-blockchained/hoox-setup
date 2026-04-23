@@ -165,6 +165,21 @@ class ApiClient {
       return { error: e.message };
     }
   }
+
+  async getSecretsStatus(): Promise<{ success: boolean; secrets: { name: string; synced: boolean }[]; error?: string }> {
+    return this.fetchWithAuth('/api/secrets');
+  }
+
+  async syncSecretToPages(secretName: string, secretValue: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    return this.fetchWithAuth('/api/secrets', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'sync-to-pages',
+        secretName,
+        secretValue,
+      }),
+    });
+  }
 }
 
 export const api = new ApiClient();

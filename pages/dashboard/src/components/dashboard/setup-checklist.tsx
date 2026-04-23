@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Terminal, RefreshCw, AlertTriangle, Copy } from "lucide-react";
+import { CheckCircle2, XCircle, Terminal, RefreshCw, AlertTriangle, Copy, CloudOff, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ const REQUIRED_SECRETS = [
   { worker: "agent-worker", secret: "openai_key", desc: "OpenAI API Key" },
 ];
 
+const INTERNAL_KEY_SECRETS = ["API_SERVICE_KEY", "D1_INTERNAL_KEY", "AGENT_INTERNAL_KEY"];
+
 function generateExampleSecret(secretName: string) {
   const name = secretName.toLowerCase();
   if (name.includes("key") || name.includes("token") || name.includes("secret")) {
@@ -31,9 +33,11 @@ function generateExampleSecret(secretName: string) {
 export function SetupChecklist() {
   const [housekeeping, setHousekeeping] = useState<any>(null);
   const [secretsList, setSecretsList] = useState(
-    REQUIRED_SECRETS.map(req => ({ ...req, example: "..." }))
+    REQUIRED_SECRETS.map(req => ({ ...req, example: "...", configured: false }))
   );
   const [loading, setLoading] = useState(true);
+  const [syncingSecrets, setSyncingSecrets] = useState(false);
+  const [secretValues, setSecretValues] = useState<Record<string, string>>({});
 
   const runCheck = async () => {
     setLoading(true);
@@ -46,12 +50,51 @@ export function SetupChecklist() {
     setLoading(false);
   };
 
+  const checkSecretsStatus = async () => {
+    try {
+      const res = await api.getSecretsStatus();
+      if (res.success && res.secrets) {
+        setSecretsList(prev => prev.map(req => ({
+          ...req,
+          example: generateExampleSecret(req.secret),
+          configured: res.secrets.some(s => s.name === req.secret && s.synced),
+        })));
+      }
+    } catch {
+      setSecretsList(prev => prev.map(req => ({
+        ...req,
+        example: generateExampleSecret(req.secret),
+        configured: false,
+      })));
+    }
+  };
+
+  const handleSyncSecret = async (secretName: string) => {
+    const value = secretValues[secretName];
+    if (!value) {
+      toast.error(`Please enter the value for ${secretName}`);
+      return;
+    }
+    
+    setSyncingSecrets(true);
+    try {
+      const res = await api.syncSecretToPages(secretName, value);
+      if (res.success) {
+        toast.success(res.message || `Synced ${secretName} to dashboard`);
+        setSecretValues(prev => ({ ...prev, [secretName]: "" }));
+        await checkSecretsStatus();
+      } else {
+        toast.error(res.error || "Failed to sync secret");
+      }
+    } catch (e) {
+      toast.error(String(e));
+    }
+    setSyncingSecrets(false);
+  };
+
   useEffect(() => {
     runCheck();
-    setSecretsList(REQUIRED_SECRETS.map(req => ({
-      ...req,
-      example: generateExampleSecret(req.secret)
-    })));
+    checkSecretsStatus();
   }, []);
 
   return (
@@ -106,24 +149,66 @@ export function SetupChecklist() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Required Secrets</CardTitle>
-          <CardDescription>Run these commands in your CLI to configure missing secrets</CardDescription>
+          <CardTitle className="flex items-center justify-between">
+            <span>Required Secrets</span>
+            <Badge variant={secretsList.some(s => s.configured) ? "default" : "secondary"}>
+              {secretsList.filter(s => s.configured).length}/{secretsList.length} configured
+            </Badge>
+          </CardTitle>
+          <CardDescription>Internal keys are synced to dashboard automatically</CardDescription>
         </CardHeader>
         <CardContent className="space-y-0">
           <div className="space-y-0 divide-y divide-border border border-border rounded-md">
             {secretsList.map((req, i) => {
+              const isInternalKey = INTERNAL_KEY_SECRETS.includes(req.secret);
               const cmd = `bun run scripts/manage.ts secrets update-cf ${req.secret} ${req.worker} "${req.example}"`;
               return (
-                <div key={i} className="p-3 group">
+                <div 
+                  key={i} 
+                  className={`p-3 group ${req.configured ? "bg-muted/30" : ""}`}
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <span className="font-medium text-sm">{req.secret}</span>
-                    <Badge variant="secondary" className="w-fit">{req.worker}</Badge>
+                    <div className="flex items-center gap-2">
+                      {req.configured ? (
+                        <Cloud className="h-4 w-4 text-emerald-500 shrink-0" />
+                      ) : (
+                        <CloudOff className="h-4 w-4 text-muted-foreground shrink-0" />
+                      )}
+                      <span className={`font-medium text-sm ${req.configured ? "text-muted-foreground" : ""}`}>{req.secret}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {req.configured && (
+                        <Badge variant="outline" className="text-emerald-500 border-emerald-500 bg-emerald-500/10">Synced</Badge>
+                      )}
+                      <Badge variant="secondary" className="w-fit">{req.worker}</Badge>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">{req.desc}</p>
+                  {isInternalKey && !req.configured && (
+                    <div className="mb-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder={`Enter ${req.secret} value`}
+                          className="flex-1 h-8 px-2 text-xs border border-input bg-background rounded-md"
+                          value={secretValues[req.secret] || ""}
+                          onChange={(e) => setSecretValues(prev => ({ ...prev, [req.secret]: e.target.value }))}
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleSyncSecret(req.secret)}
+                          disabled={syncingSecrets || !secretValues[req.secret]}
+                        >
+                          Sync
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="bg-secondary/50 p-2 rounded-md flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 overflow-x-auto">
-                      <Terminal className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <code className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                      <Terminal className={`h-3 w-3 shrink-0 ${req.configured ? "text-emerald-500/50" : "text-muted-foreground"}`} />
+                      <code className={`text-xs font-mono whitespace-nowrap ${req.configured ? "text-muted-foreground/50" : "text-muted-foreground"}`}>
                         {cmd}
                       </code>
                     </div>
@@ -143,6 +228,14 @@ export function SetupChecklist() {
               );
             })}
           </div>
+          <Alert className="mt-4 bg-muted/50">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Internal Keys</AlertTitle>
+            <AlertDescription className="text-xs text-muted-foreground mt-1">
+              After setting internal keys (AGENT_INTERNAL_KEY, D1_INTERNAL_KEY, API_SERVICE_KEY) in their workers, 
+              use the Sync button above or run <code className="text-xs">bun run scripts/manage.ts secrets update-cf &lt;key&gt; &lt;worker&gt;</code>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </div>
