@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
-import { parse as parseToml, stringify as stringifyToml } from "@iarna/toml";
+import { parse as parseToml } from "toml";
 import type { Config, WorkerConfig } from "./types.js";
 import {
   red,
@@ -335,7 +335,7 @@ export async function setupWorkers(config: Config): Promise<void> {
         const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
         let parsedToml: unknown; // Use specific type if possible, but TOML structure varies
         try {
-          parsedToml = parseToml(wranglerTomlContent);
+          parsedToml = toml.parse(wranglerTomlContent);
         } catch (parseError: unknown) {
           print_error(
             `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}`
@@ -596,7 +596,7 @@ export async function deployWorkers(config: Config): Promise<void> {
         accountIdInConfig = parsedJsonc.account_id;
       } else if (useToml) {
         const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-        const parsedToml: unknown = parseToml(content);
+        const parsedToml: unknown = toml.parse(content);
         accountIdInConfig = parsedToml.account_id;
       }
 
@@ -1040,7 +1040,7 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     } else if (fs.existsSync(path.join(workerDir, "wrangler.toml"))) {
       wranglerConfigPath = path.join(workerDir, "wrangler.toml");
       wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
-      wranglerConfig = parseToml(wranglerConfigContent);
+      wranglerConfig = toml.parse(wranglerConfigContent);
     }
 
     if (!wranglerConfig) {
@@ -1148,7 +1148,7 @@ function isPagesProject(workerDir: string): boolean {
   if (fs.existsSync(wranglerTomlPath)) {
     try {
       const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-      const config = parseToml(content) as Record<string, unknown>;
+      const config = toml.parse(content) as Record<string, unknown>;
       return !!config.pages_build_output_dir;
     } catch {
       return false;
@@ -1212,7 +1212,7 @@ export async function checkSecretBindings(
   let parsedToml: unknown;
   try {
     const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-    parsedToml = parseToml(content);
+    parsedToml = toml.parse(content);
   } catch (parseError: unknown) {
     print_error(
       `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}.`

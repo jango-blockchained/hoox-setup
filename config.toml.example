@@ -73,7 +73,7 @@ secrets = []
 [workers.email-worker]
 enabled = true
 path = "workers/email-worker"
-vars = { "USE_IMAP" = "false" }
+vars = { USE_IMAP = "false" }
 # USE_IMAP=true - Scan inbox via IMAP (set secrets: EMAIL_HOST, EMAIL_USER, EMAIL_PASS)
 # USE_IMAP=false - Use email webhooks (default)
 # 
