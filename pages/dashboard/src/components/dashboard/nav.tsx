@@ -8,14 +8,20 @@ import {
   TrendingUp, 
   ScrollText, 
   Settings,
-  Boxes
+  Boxes,
+  GitBranch
 } from "lucide-react"
 
-const navItems = [
+const nav_items = [
   {
     title: "Overview",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Signal Flow",
+    href: "/dashboard/signal-flow",
+    icon: GitBranch,
   },
   {
     title: "Positions",
@@ -40,7 +46,7 @@ export function DashboardNav() {
   return (
     <aside className="hidden w-56 shrink-0 border-r border-border bg-sidebar lg:block">
       <nav className="flex flex-col gap-1 p-4">
-        {navItems.map((item) => {
+        {nav_items.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== "/dashboard" && pathname?.startsWith(item.href))
           
