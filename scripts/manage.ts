@@ -50,6 +50,7 @@ import {
 import {
   setupWorkers,
   deployWorkers,
+  deployPages,
   startDevServer,
   displayStatus,
   runTests,

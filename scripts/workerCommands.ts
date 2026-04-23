@@ -718,13 +718,14 @@ export async function deployPages(config: Config): Promise<void> {
   
   // Run build
   const buildResult = await runInteractiveCommand(
-    "bun run build",
+    "bun",
+    ["run", "build"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken }
   );
   
-  if (buildResult.code !== 0) {
-    print_error(`Build failed: ${buildResult.stderr || buildResult.stdout}`);
+  if (buildResult !== 0) {
+    print_error(`Build failed with code: ${buildResult}`);
     process.exitCode = 1;
     return;
   }
@@ -733,13 +734,14 @@ export async function deployPages(config: Config): Promise<void> {
   
   // Run next-on-pages
   const nopResult = await runInteractiveCommand(
-    "bunx @cloudflare/next-on-pages",
+    "bunx",
+    ["@cloudflare/next-on-pages"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken }
   );
   
-  if (nopResult.code !== 0) {
-    print_error(`Next-on-pages build failed: ${nopResult.stderr || nopResult.stdout}`);
+  if (nopResult !== 0) {
+    print_error(`Next-on-pages build failed with code: ${nopResult}`);
     process.exitCode = 1;
     return;
   }
@@ -751,13 +753,14 @@ export async function deployPages(config: Config): Promise<void> {
   
   // Deploy to Cloudflare Pages
   const deployResult = await runInteractiveCommand(
-    `bunx wrangler pages deploy .vercel/output/static --project-name ${projectName} --commit-dirty`,
+    "bunx",
+    ["wrangler", "pages", "deploy", ".vercel/output/static", "--project-name", projectName, "--commit-dirty"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken }
   );
   
-  if (deployResult.code !== 0) {
-    print_error(`Deployment failed: ${deployResult.stderr || deployResult.stdout}`);
+  if (deployResult !== 0) {
+    print_error(`Deployment failed with code: ${deployResult}`);
     process.exitCode = 1;
     return;
   }
