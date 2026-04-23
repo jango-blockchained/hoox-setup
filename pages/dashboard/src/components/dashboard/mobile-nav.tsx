@@ -18,7 +18,8 @@ import {
   TrendingUp, 
   ScrollText, 
   Settings,
-  Zap
+  Zap,
+  GitBranch
 } from "lucide-react"
 
 const navItems = [
@@ -26,6 +27,11 @@ const navItems = [
     title: "Overview",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Signal Flow",
+    href: "/dashboard/signal-flow",
+    icon: GitBranch,
   },
   {
     title: "Positions",
