@@ -318,6 +318,88 @@ async function main() {
     });
 
   secretsCommand
+    .command("update-cf <secretName> <workerName> [value]")
+    .description("Update a Cloudflare Secret Store secret for a worker")
+    .action(async (secretName, workerName, value) => {
+      console.log(blue(`\nUpdating secret ${secretName} for ${workerName}...`));
+      const config = await loadConfig();
+      
+      const storeId = config.global.cloudflare_secret_store_id;
+      if (!storeId) {
+        print_error("Missing 'cloudflare_secret_store_id' in [global] config.");
+        return;
+      }
+
+      if (!value) {
+        value = await rl.question(`Enter value for ${secretName}: `);
+      }
+
+      try {
+        console.log(dim(`Running: wrangler secrets-store secret create ${storeId} --name ${secretName}`));
+        const { execSync } = require("node:child_process");
+        
+        try {
+          // First try to create it
+          execSync(`npx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`, {
+            stdio: "inherit",
+          });
+          print_success(`Successfully set secret ${secretName} in store ${storeId}`);
+        } catch (createErr) {
+          // If it already exists, we would need to update it, but update requires secret ID.
+          // For now, we instruct the user, or let's try to list and get the ID if we wanted to be fully automatic.
+          // Let's get the list of secrets
+          const listOutput = execSync(`npx wrangler secrets-store secret list ${storeId}`, { encoding: 'utf-8' });
+          
+          // The output might contain JSON or be a table. Let's try to parse it if it has JSON or just regex it.
+          // Assuming the list command might output text, let's just show an error if create fails for a reason other than exists.
+          console.log(yellow(`Secret might already exist. Attempting to find ID and update...`));
+          
+          // Actually, let's just delete and recreate to be simple, since we don't know the exact format of the list output
+          // Oh wait, delete also needs the secret ID!
+          // So let's extract the ID from list output.
+          const lines = listOutput.split('\\n');
+          let secretId = null;
+          // Example list output:
+          // name: MY_SECRET, id: 1234, ...
+          // Or a table. We'll use a regex to find the ID.
+          // "id": "uuid", "name": "secretName"
+          
+          const match = listOutput.match(new RegExp(`"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${secretName}"`, 'i')) || 
+                        listOutput.match(new RegExp(`${secretName}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`, 'i'));
+          
+          if (!match && listOutput.includes(secretName)) {
+            // Just use a simple grep approach
+            const lines = listOutput.split('\\n');
+            for (const line of lines) {
+              if (line.includes(secretName)) {
+                 const tokens = line.split(/[\\s,|]+/);
+                 for (const token of tokens) {
+                    if (token.length >= 32 || token.length === 36) {
+                       secretId = token;
+                       break;
+                    }
+                 }
+              }
+            }
+          } else if (match) {
+             secretId = match[1];
+          }
+
+          if (secretId) {
+            execSync(`npx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`, {
+              stdio: "inherit",
+            });
+            print_success(`Successfully updated secret ${secretName} (ID: ${secretId}) in store ${storeId}`);
+          } else {
+            throw new Error(`Could not find secret ID for ${secretName} to update it. List output:\\n${listOutput}`);
+          }
+        }
+      } catch (err) {
+        print_error(`Failed to update secret: ${(err as Error).message}`);
+      }
+    });
+
+  secretsCommand
     .command("guide")
     .description(
       "Provides guidance on creating secrets in the Cloudflare Secret Store."
