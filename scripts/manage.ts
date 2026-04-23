@@ -410,10 +410,6 @@ async function main() {
       } catch (err) {
         print_error(`Failed to update secret: ${(err as Error).message}`);
       }
-        }
-      } catch (err) {
-        print_error(`Failed to update secret: ${(err as Error).message}`);
-      }
     });
 
   secretsCommand
