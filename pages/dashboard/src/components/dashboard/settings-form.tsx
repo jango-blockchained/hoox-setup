@@ -119,7 +119,7 @@ export function SettingsForm() {
     try {
       for (const [worker, fields] of Object.entries(settings)) {
         for (const [key, value] of Object.entries(fields)) {
-          const res = await fetch(`/api/settings/`, {
+          const res = await fetch(`/api/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ worker, key, value }),
