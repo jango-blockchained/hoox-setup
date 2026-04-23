@@ -149,6 +149,15 @@ class ApiClient {
       workers.map((w) => this.checkWorkerHealth(w.name, w.url))
     );
   }
+  async getHousekeeping(): Promise<{ timestamp?: string; checks?: any[]; error?: string }> {
+    try {
+      return await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/housekeeping`, {
+        method: "POST"
+      });
+    } catch (e: any) {
+      return { error: e.message };
+    }
+  }
 }
 
 export const api = new ApiClient();
