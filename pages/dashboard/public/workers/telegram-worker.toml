@@ -1,6 +1,8 @@
 display_name = "Telegram Worker"
 description = "Telegram bot notifications and alerts"
 
+[sections]
+
 [sections.bot]
 title = "Bot Settings"
 description = "Telegram bot configuration"
@@ -32,10 +34,10 @@ ai_summaries_enabled = true
 summary_style = "concise"
 include_pnl = true
 
+[sections.ai.options]
+summary_style = ["concise", "detailed", "technical"]
+
 [sections.ai.descriptions]
 ai_summaries_enabled = "Enable AI to periodically summarize your portfolio and recent trades."
 summary_style = "The tone and depth of the AI summary."
 include_pnl = "Include sensitive Profit and Loss (PnL) statistics in the Telegram summary."
-
-[sections.ai.options]
-summary_style = ["concise", "detailed", "technical"]
