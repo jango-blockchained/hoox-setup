@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
-import { parse as parseToml } from "@iarna/toml";
+import toml from "toml";
 import type { Config, WorkerConfig } from "./types.js";
 import {
   red,
@@ -97,7 +97,7 @@ export async function runHousekeeping(
         wranglerConfig = JSON.parse(jsonContent);
       } else if (hasToml) {
         const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-        wranglerConfig = parseToml(content) as Record<string, unknown>;
+        wranglerConfig = toml.parse(content) as Record<string, unknown>;
       }
     } catch (e) {
       result.issues.push({

@@ -1,5 +1,6 @@
 import { describe, expect, test, beforeEach } from "bun:test";
-import { loadConfig, saveConfig, parseJsonc, parseToml } from "../configUtils";
+import { loadConfig, saveConfig, parseJsonc } from "../configUtils";
+import toml from "toml";
 
 describe("Config Utils - Extended", () => {
   describe("Config loading", () => {
@@ -85,7 +86,7 @@ describe("TOML Parsing", () => {
 test_key = "test_value"
 number = 42
 `;
-    const result = parseToml(toml);
+    const result = toml.parse(toml);
     expect(result.global.test_key).toBe("test_value");
     expect(result.global.number).toBe(42);
   });
@@ -96,7 +97,7 @@ number = 42
 enabled = true
 path = "workers/test"
 `;
-    const result = parseToml(toml);
+    const result = toml.parse(toml);
     expect(result.workers["test-worker"].enabled).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import TOML from "@iarna/toml"; // Use the specific import name
+import { parse as parseToml } from "toml";
 
 // --- Basic Type Definitions (Refine or move to types.ts) ---
 
@@ -132,7 +132,7 @@ export async function loadConfig(): Promise<Config> {
         const parsedUser = parseJsonc(userConfigContent) as unknown;
         userConfigObj = parsedUser as Partial<Config>;
       } else {
-        const parsedUser = TOML.parse(userConfigContent) as unknown;
+        const parsedUser = parseToml(userConfigContent) as unknown;
         userConfigObj = parsedUser as Partial<Config>;
       }
     } catch (error: unknown) {
@@ -150,7 +150,7 @@ export async function loadConfig(): Promise<Config> {
     if (format === "jsonc") {
       parsedExample = parseJsonc(exampleConfigContent) as unknown;
     } else {
-      parsedExample = TOML.parse(exampleConfigContent) as unknown;
+      parsedExample = parseToml(exampleConfigContent) as unknown;
     }
 
     if (typeof parsedExample !== "object" || parsedExample === null) {

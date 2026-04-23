@@ -34,10 +34,7 @@
     "@cloudflare/ai": "^1.2.2",
     "@cloudflare/workers-types": "^4.20250430.0",
     "@hono/zod-validator": "^0.2.2",
-    "@iarna/toml": "^2.2.5",
     "@types/commander": "^2.12.5",
-    "@types/iarna__toml": "^2.0.5",
-    "@types/jest": "^29.5.14",
     "@types/node": "^20.17.31",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
@@ -46,11 +43,9 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.5.5",
     "hono": "^4.4.12",
-    "jest-mock": "^29.7.0",
     "postgres": "^3.4.4",
     "prettier": "^3.0.0",
     "tsx": "^4.19.3",
-    "vitest": "^4.1.4",
     "zod": "^3.23.8"
   },
   "dependencies": {

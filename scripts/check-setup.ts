@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import TOML from "@iarna/toml";
+import toml from "toml";
 import { Config, ConfigSchema } from "./types.js";
 
 // ANSI colors for output
@@ -136,7 +136,7 @@ async function main() {
     if (format === "jsonc") {
       config = parseJsonc(configContent);
     } else {
-      config = TOML.parse(configContent) as Config;
+      config = toml.parse(configContent) as Config;
     }
     console.log(green(`✓ ${path.basename(userConfig)} parsed successfully`));
   } catch (error) {
@@ -153,7 +153,7 @@ async function main() {
     if (format === "jsonc") {
       exampleConfigData = parseJsonc(exampleConfigContent);
     } else {
-      exampleConfigData = TOML.parse(exampleConfigContent) as Config;
+      exampleConfigData = toml.parse(exampleConfigContent) as Config;
     }
     console.log(green(`✓ ${path.basename(exConfigPath)} parsed successfully`));
   } catch (error) {
@@ -348,7 +348,7 @@ async function main() {
           } else {
             // For TOML
             try {
-              const wranglerConfig = TOML.parse(configFileContent);
+              const wranglerConfig = toml.parse(configFileContent);
 
               if (!wranglerConfig.secrets_store_secrets) {
                 console.log(
