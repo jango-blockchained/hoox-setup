@@ -151,7 +151,7 @@ class ApiClient {
   }
   async getHousekeeping(): Promise<{ timestamp?: string; checks?: any[]; error?: string }> {
     try {
-      const response = await fetch('/api/housekeeping/', {
+      const response = await fetch('/api/housekeeping', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
