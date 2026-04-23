@@ -113,23 +113,42 @@ export function SettingsForm() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    let savedCount = 0;
+    let failedCount = 0;
 
     try {
       for (const [worker, fields] of Object.entries(settings)) {
         for (const [key, value] of Object.entries(fields)) {
-          await fetch(`/api/settings`, {
+          const res = await fetch(`/api/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ worker, key, value }),
           });
+          
+          if (res.ok) {
+            savedCount++;
+          } else {
+            failedCount++;
+            const error = await res.json();
+            console.error(`Failed to save ${worker}.${key}:`, error);
+          }
         }
       }
 
-      toast.success("Settings saved successfully", {
-        description: "Your configuration has been updated.",
+      if (failedCount === 0) {
+        toast.success("Settings saved successfully", {
+          description: `${savedCount} setting(s) synced to workers.`,
+        });
+      } else {
+        toast.warning("Settings partially saved", {
+          description: `${savedCount} saved, ${failedCount} failed.`,
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to save settings", {
+        description: "Check console for details.",
       });
-    } catch {
-      toast.error("Failed to save settings");
+      console.error("Settings save error:", err);
     } finally {
       setIsSaving(false);
     }
