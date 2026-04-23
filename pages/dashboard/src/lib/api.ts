@@ -151,9 +151,16 @@ class ApiClient {
   }
   async getHousekeeping(): Promise<{ timestamp?: string; checks?: any[]; error?: string }> {
     try {
-      return await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/housekeeping`, {
-        method: "POST"
+      const response = await fetch('/api/housekeeping/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      if (!response.ok) {
+         throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
     } catch (e: any) {
       return { error: e.message };
     }
