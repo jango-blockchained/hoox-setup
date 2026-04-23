@@ -64,3 +64,4 @@ workers/*
 !workers/*/
 !workers/email-worker/
 
+config.toml
