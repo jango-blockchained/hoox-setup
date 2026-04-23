@@ -12,15 +12,27 @@ import { toast } from "sonner";
 const REQUIRED_SECRETS = [
   { worker: "hoox", secret: "WEBHOOK_API_KEY_BINDING", desc: "For TradingView/External webhooks" },
   { worker: "trade-worker", secret: "API_SERVICE_KEY", desc: "Internal Auth Key" },
-  { worker: "trade-worker", secret: "BINANCE_API_KEY", desc: "Binance Exchange API" },
+  { worker: "trade-worker", secret: "BINANCE_API_KEY", desc: "Binance Exchange API Key" },
   { worker: "trade-worker", secret: "BINANCE_API_SECRET", desc: "Binance Exchange Secret" },
+  { worker: "trade-worker", secret: "MEXC_API_KEY", desc: "MEXC Exchange API Key" },
+  { worker: "trade-worker", secret: "MEXC_API_SECRET", desc: "MEXC Exchange Secret" },
+  { worker: "trade-worker", secret: "BYBIT_API_KEY", desc: "Bybit Exchange API Key" },
+  { worker: "trade-worker", secret: "BYBIT_API_SECRET", desc: "Bybit Exchange Secret" },
   { worker: "telegram-worker", secret: "TELEGRAM_BOT_TOKEN", desc: "Telegram Bot Token" },
+  { worker: "telegram-worker", secret: "TELEGRAM_INTERNAL_KEY", desc: "Internal Auth Key" },
   { worker: "d1-worker", secret: "D1_INTERNAL_KEY", desc: "Internal Auth Key" },
   { worker: "agent-worker", secret: "AGENT_INTERNAL_KEY", desc: "Internal Auth Key" },
   { worker: "agent-worker", secret: "openai_key", desc: "OpenAI API Key" },
+  { worker: "email-worker", secret: "EMAIL_USER", desc: "Email IMAP Username" },
+  { worker: "email-worker", secret: "EMAIL_PASS", desc: "Email IMAP Password" },
 ];
 
-const INTERNAL_KEY_SECRETS = ["API_SERVICE_KEY", "D1_INTERNAL_KEY", "AGENT_INTERNAL_KEY"];
+const INTERNAL_KEY_SECRETS = [
+  "API_SERVICE_KEY",
+  "D1_INTERNAL_KEY",
+  "AGENT_INTERNAL_KEY",
+  "TELEGRAM_INTERNAL_KEY",
+];
 
 function generateExampleSecret(secretName: string) {
   const name = secretName.toLowerCase();

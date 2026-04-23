@@ -1,10 +1,16 @@
 function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
-  return process.env[envKey] || 
-    (key === "d1Service" ? "https://d1-worker.cryptolinx.workers.dev" :
-     key === "tradeService" ? "https://trade-worker.cryptolinx.workers.dev" :
-     key === "agentService" ? "https://agent-worker.cryptolinx.workers.dev" :
-     "https://telegram-worker.cryptolinx.workers.dev");
+  const envUrl = process.env[envKey];
+  if (envUrl) return envUrl;
+  
+  const defaultUrls: Record<string, string> = {
+    d1Service: "https://d1-worker.cryptolinx.workers.dev",
+    tradeService: "https://trade-worker.cryptolinx.workers.dev",
+    agentService: "https://agent-worker.cryptolinx.workers.dev",
+    telegramService: "https://telegram-worker.cryptolinx.workers.dev",
+  };
+  
+  return defaultUrls[key] || "";
 }
 
 export interface DashboardStats {

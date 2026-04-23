@@ -72,7 +72,9 @@ const DEFAULT_WORKERS: ConnectedWorker[] = [
   { name: "d1-worker", displayName: "D1 Worker", enabled: true },
   { name: "agent-worker", displayName: "Agent Worker", enabled: true },
   { name: "telegram-worker", displayName: "Telegram Worker", enabled: true },
-  { name: "email-worker", displayName: "Email Worker", enabled: false },
+  { name: "email-worker", displayName: "Email Worker", enabled: true },
+  { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: false },
+  { name: "home-assistant-worker", displayName: "Home Assistant", enabled: false },
 ];
 
 export function SettingsForm() {
