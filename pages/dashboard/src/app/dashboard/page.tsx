@@ -4,6 +4,7 @@ import { AiHealthCard } from "@/components/dashboard/ai-health-card"
 import { PnlChart } from "@/components/dashboard/pnl-chart"
 import { WorkersOverview } from "@/components/dashboard/workers-overview"
 import { QuickActions } from "@/components/dashboard/quick-actions"
+import { SignalFlowVisualization } from "@/components/dashboard/signal-flow-visualization"
 
 export default function DashboardPage() {
   return (
@@ -19,6 +20,8 @@ export default function DashboardPage() {
       </div>
 
       <MetricsCards />
+
+      <SignalFlowVisualization />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
