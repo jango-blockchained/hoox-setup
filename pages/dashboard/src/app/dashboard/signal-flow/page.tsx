@@ -1,6 +1,7 @@
 import { SignalFlowVisualization } from "@/components/dashboard/signal-flow-visualization"
 
 export const dynamic = "force-dynamic"
+export const runtime = "edge"
 
 export default function SignalFlowPage() {
   return (

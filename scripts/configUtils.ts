@@ -2,6 +2,50 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { parse as parseToml } from "toml";
 
+function stringifyToml(obj: any): string {
+  function serialize(value: any, prefix = ""): string {
+    let result = "";
+    
+    if (value === null || value === undefined) {
+      return "";
+    }
+    
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        result += prefix + serialize(item) + "\n";
+      }
+      return result;
+    }
+    
+    if (typeof value === "object") {
+      let hasNested = false;
+      for (const [key, val] of Object.entries(value)) {
+        if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+          hasNested = true;
+          result += prefix + "[" + key + "]\n";
+          result += serialize(val, prefix + "  ");
+        }
+      }
+      if (!hasNested) {
+        for (const [key, val] of Object.entries(value)) {
+          if (Array.isArray(val)) {
+            result += prefix + key + " = [";
+            result += val.map(v => typeof v === "string" ? `"${v}"` : String(v)).join(", ");
+            result += "]\n";
+          } else {
+            result += prefix + key + " = " + (typeof val === "string" ? `"${val}"` : String(val)) + "\n";
+          }
+        }
+      }
+      return result;
+    }
+    
+    return typeof value === "string" ? `"${value}"` : String(value);
+  }
+  
+  return serialize(obj);
+}
+
 // --- Basic Type Definitions (Refine or move to types.ts) ---
 
 interface WorkerConfig {
@@ -234,7 +278,7 @@ export async function saveConfig(config: Config): Promise<void> {
       // Pretty print JSON with 2 spaces indentation
       content = JSON.stringify(config, null, 2);
     } else {
-      content = TOML.stringify(config as any);
+      content = stringifyToml(config as any);
     }
 
     await fs.writeFile(userConfig, content);
