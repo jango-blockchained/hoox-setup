@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -77,13 +78,29 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
 
 export async function GET() {
   try {
-    const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
-      headers: { "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "" },
-    });
+    const env = getRequestContext().env as unknown as { CONFIG_KV?: KVNamespace };
+    
+    if (env?.CONFIG_KV) {
+      const settings: Record<string, any> = {};
+      const prefixes = [
+        "global:", "webhook:", "trade:", "agent:", "bot:",
+        "email:", "database:", "retention:", "routing:", "behavior:", "cron:", "ai:"
+      ];
+      
+      for (const prefix of prefixes) {
+        const list = await env.CONFIG_KV.list({ prefix });
+        for (const kv of list.keys) {
+          const value = await env.CONFIG_KV.get(kv.name);
+          if (value !== null) {
+            try {
+              settings[kv.name] = JSON.parse(value);
+            } catch {
+              settings[kv.name] = value;
+            }
+          }
+        }
+      }
 
-    if (res.ok) {
-      const data = (await res.json()) as { settings?: AllSettings };
-      const settings = data.settings || {};
       const normalized: AllSettings = {};
 
       for (const [key, value] of Object.entries(settings)) {
@@ -96,9 +113,31 @@ export async function GET() {
       }
 
       return NextResponse.json({ settings: normalized });
+    } else {
+      // Fallback to D1 worker if KV binding isn't available
+      const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
+        headers: { "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "" },
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { settings?: AllSettings };
+        const settings = data.settings || {};
+        const normalized: AllSettings = {};
+
+        for (const [key, value] of Object.entries(settings)) {
+          const worker = findWorkerByPrefix(key);
+          if (worker) {
+            const cleanKey = stripWorkerPrefix(key, worker);
+            if (!normalized[worker]) normalized[worker] = {};
+            normalized[worker][cleanKey] = value;
+          }
+        }
+
+        return NextResponse.json({ settings: normalized });
+      }
     }
   } catch (e) {
-    console.error("Failed to fetch settings from D1 worker:", e);
+    console.error("Failed to fetch settings:", e);
   }
 
   return NextResponse.json({ settings: {} });
@@ -114,22 +153,29 @@ export async function POST(request: NextRequest) {
     }
 
     const kvKey = getKVKey(worker, key);
+    const env = getRequestContext().env as unknown as { CONFIG_KV?: KVNamespace };
 
-    const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "",
-      },
-      body: JSON.stringify({ worker, key: kvKey, value }),
-    });
+    if (env?.CONFIG_KV) {
+      await env.CONFIG_KV.put(kvKey, JSON.stringify(value));
+      return NextResponse.json({ success: true, worker, key, value, kvKey });
+    } else {
+      // Fallback to D1 worker
+      const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "",
+        },
+        body: JSON.stringify({ worker, key: kvKey, value }),
+      });
 
-    if (!res.ok) {
-      const error = (await res.json()) as { error?: string };
-      return NextResponse.json({ error }, { status: res.status });
+      if (!res.ok) {
+        const error = (await res.json()) as { error?: string };
+        return NextResponse.json({ error }, { status: res.status });
+      }
+
+      return NextResponse.json({ success: true, worker, key, value, kvKey });
     }
-
-    return NextResponse.json({ success: true, worker, key, value, kvKey });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 400 });
   }

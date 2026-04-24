@@ -32,16 +32,48 @@ async function getCloudflareAccountId(): Promise<string | null> {
 }
 
 async function getCloudflareApiToken(): Promise<string | null> {
-  return process.env.CLOUDFLARE_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || null;
+  return process.env.CLOUDFLARE_API_TOKEN || null;
+}
+
+async function getCloudflareSecretStoreId(): Promise<string | null> {
+  return process.env.CLOUDFLARE_SECRET_STORE_ID || "48433bc559a943f09d9d6c622e188fd5";
 }
 
 export async function GET() {
   try {
-    // Pages secrets are loaded as environment variables
-    // Check if they're available in the edge runtime
+    const accountId = await getCloudflareAccountId();
+    const apiToken = await getCloudflareApiToken();
+    const storeId = await getCloudflareSecretStoreId();
+
+    let fetchedSecrets: { name: string }[] = [];
+
+    if (apiToken && accountId && storeId) {
+      // Fetch from Cloudflare Secret Store directly instead of reading process.env
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/secrets_store/stores/${storeId}/secrets`,
+        {
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        }
+      );
+
+      const data = await response.json() as { success: boolean; result?: { name: string }[] };
+      if (data.success && data.result) {
+        fetchedSecrets = data.result;
+      }
+    } else {
+      // Fallback to process.env if CF tokens are not set
+      fetchedSecrets = ALL_SECRETS.filter(name => !!process.env[name]).map(name => ({ name }));
+    }
+
+    const availableNames = new Set(fetchedSecrets.map(s => s.name));
+
     const syncedSecrets = ALL_SECRETS.map(name => ({
       name,
-      synced: !!process.env[name],
+      synced: availableNames.has(name) || !!process.env[name],
     }));
 
     return NextResponse.json({
@@ -49,7 +81,7 @@ export async function GET() {
       secrets: syncedSecrets,
       internalKeys: INTERNAL_KEY_SECRETS.map(name => ({
         name,
-        synced: !!process.env[name],
+        synced: availableNames.has(name) || !!process.env[name],
       })),
     });
   } catch (err) {
@@ -60,64 +92,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, secretName, secretValue } = body;
+    const { action } = body;
 
-    if (action === "sync-to-pages") {
-      if (!secretName) {
-        return NextResponse.json({ success: false, error: "secretName required" }, { status: 400 });
-      }
-
-      if (!secretValue) {
-        return NextResponse.json({
-          success: false,
-          error: "secretValue required for syncing",
-        }, { status: 400 });
-      }
-
-      const accountId = await getCloudflareAccountId();
-      const apiToken = await getCloudflareApiToken();
-
-      if (!apiToken) {
-        return NextResponse.json({
-          success: false,
-          error: "Cloudflare API token not configured",
-        }, { status: 400 });
-      }
-
-      const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/hoox-dashboard/secrets`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: secretName,
-            text: secretValue,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.success) {
-        return NextResponse.json({
-          success: true,
-          message: `Successfully synced ${secretName} to hoox-dashboard`,
-        });
-      } else {
-        return NextResponse.json({
-          success: false,
-          error: data.errors?.[0]?.message || "Failed to sync secret",
-        }, { status: 500 });
-      }
-    }
-
-    if (action === "sync-all-internal-keys") {
+    // We no longer sync to pages secrets for trading keys, the CLI manage.ts directly updates the Secret Store.
+    if (action === "sync-to-pages" || action === "sync-all-internal-keys") {
       return NextResponse.json({
         success: true,
-        message: "Use individual sync-to-pages for each secret. The command to run locally is:",
+        message: "Secrets should be updated via the CLI (bun run scripts/manage.ts secrets update-cf) or Cloudflare Dashboard. The UI check relies on the Cloudflare Secret Store API.",
         command: `bun run scripts/manage.ts secrets update-cf <secretName> <workerName>`,
       });
     }

@@ -390,22 +390,32 @@ async function main() {
           }
         }
 
-        // Automatically sync secrets to Pages for dashboard use
-        console.log(dim(`Syncing ${secretName} to dashboard Pages project...`));
+        // Also save to local .dev.vars for worker
+        console.log(dim(`Saving ${secretName} to local environment files...`));
         try {
-           const pagesResult = await runCommandWithStdin(
-             "bunx",
-             ["wrangler", "pages", "secret", "put", secretName, "--project-name", "hoox-dashboard"],
-             value,
-             process.cwd()
-           );
-           if (pagesResult.success) {
-             print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
-           } else {
-             throw new Error(pagesResult.stderr);
-           }
-        } catch (pagesErr) {
-           print_warning(`Could not sync to Pages project: ${(pagesErr as Error).message}`);
+          const fs = require('node:fs');
+          const path = require('node:path');
+          
+          const updateEnvFile = (filePath, key, val) => {
+            let lines = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8').split('\n') : [];
+            const idx = lines.findIndex(line => line.startsWith(key + '='));
+            if (idx !== -1) {
+              lines[idx] = `${key}="${val}"`;
+            } else {
+              if (lines.length > 0 && lines[lines.length - 1] !== '') lines.push('');
+              lines.push(`${key}="${val}"`);
+            }
+            fs.writeFileSync(filePath, lines.join('\n').trim() + '\n');
+          };
+
+          const workerDevVars = path.join(process.cwd(), 'workers', workerName, '.dev.vars');
+          if (fs.existsSync(path.dirname(workerDevVars))) {
+            updateEnvFile(workerDevVars, secretName, value);
+          }
+          
+          print_success(`Successfully saved ${secretName} to local environment files`);
+        } catch (localErr) {
+          print_warning(`Could not save to local environment files: ${(localErr as Error).message}`);
         }
       } catch (err) {
         print_error(`Failed to update secret: ${(err as Error).message}`);
@@ -502,7 +512,7 @@ export async function cloneWorkerRepositories(
   const workersDir = path.resolve(process.cwd(), "workers");
 
   // Create workers directory if it doesn't exist
-  if (!(await Bun.file(workersDir).exists())) {
+  if (!(fs.existsSync(workersDir))) {
     console.log(yellow("Workers directory does not exist. Creating it..."));
     fs.mkdirSync(workersDir, { recursive: true });
   }
@@ -615,7 +625,7 @@ export async function cloneWorkerRepositories(
     const targetDir = path.join(workersDir, worker.name);
 
     // Skip if directory already exists
-    if ((await Bun.file(targetDir).exists())) {
+    if ((fs.existsSync(targetDir))) {
       console.log(
         yellow(`Worker directory ${worker.name} already exists. Skipping.`)
       );
