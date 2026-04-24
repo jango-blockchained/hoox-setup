@@ -112,15 +112,14 @@ By worker (approximate line coverage):
 
 | Worker | Coverage |
 |--------|----------|
-| web3-wallet-worker | ~83% |
-| trade-worker | ~80% |
-| email-worker | ~79% |
-| hoox | ~65% |
-| d1-worker | ~62% |
-| dashboard | ~55% |
+| email-worker | ~94% |
+| web3-wallet-worker | ~78% |
+| home-assistant-worker | ~76% |
+| agent-worker | ~62% |
+| trade-worker | ~57% |
+| hoox | ~57% |
+| d1-worker | ~52% |
 | telegram-worker | ~45% |
-| home-assistant-worker | ~43% |
-| agent-worker | ~27% |
 
 ### 1.4 Shared Infrastructure
 

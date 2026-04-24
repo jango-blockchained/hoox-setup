@@ -245,7 +245,7 @@ With money on the line, we test everything.
 bun test --coverage
 ```
 
-Current Test Coverage stands at **>65% average line coverage** across all critical execution and gateway workers. 
+Current Test Coverage stands at **>65% average line coverage** across all critical execution and gateway workers. Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
 
 ---
 
