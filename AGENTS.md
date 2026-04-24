@@ -626,27 +626,81 @@ bun run scripts/manage.ts check-setup
 bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
 ```
 
-### 6.2 Configuration Files
+### 6.3 Full Push (submodules + main repo)
 
-**config.toml** - Main configuration:
+Commits and pushes all submodules with retry logic, then updates the main repo:
 
-```toml
-[global]
-cloudflare_api_token = "xxx"
-cloudflare_account_id = "xxx"
-subdomain_prefix = "cryptolinx"
+```bash
+# Usage with custom commit message
+bash scripts/full-push.sh "Your commit message"
 
-[workers.hoox]
-enabled = true
-path = "workers/hoox"
+# Default commit message
+bash scripts/full-push.sh
 
-[workers.trade-worker]
-enabled = true
-path = "workers/trade-worker"
-# ...secrets and vars
+# Or via manage.ts (if implemented)
+bun run scripts/manage.ts full-push
 ```
 
-### 6.3 Development Commands
+The procedure:
+1. Iterates through each git submodule
+2. For each submodule:
+   - Checks for changes, commits if any
+   - Pushes with retry up to 5 times on failure
+3. After all submodules pushed:
+   - Updates submodule pointers in main repo
+   - Commits main repo changes
+   - Pushes main repo with retry up to 5 times
+
+### 6.4 Configuration Files
+
+**workers.jsonc** - Main configuration (JSONC format):
+
+```jsonc
+{
+  "global": {
+    "cloudflare_api_token": "xxx",
+    "cloudflare_account_id": "xxx",
+    "cloudflare_secret_store_id": "xxx",
+    "subdomain_prefix": "cryptolinx"
+  },
+  "workers": {
+    "hoox": {
+      "enabled": true,
+      "path": "workers/hoox",
+      "vars": {}
+    },
+    "trade-worker": {
+      "enabled": true,
+      "path": "workers/trade-worker",
+      "secrets": ["API_SERVICE_KEY"]
+    }
+  }
+}
+```
+
+**pages.jsonc** - Pages configuration:
+
+```jsonc
+{
+  "global": {
+    "cloudflare_api_token": "xxx",
+    "cloudflare_account_id": "xxx",
+    "subdomain_prefix": "cryptolinx"
+  },
+  "pages": {
+    "dashboard": {
+      "enabled": true,
+      "path": "pages/dashboard",
+      "project_name": "hoox-dashboard",
+      "vars": {
+        "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev"
+      }
+    }
+  }
+}
+```
+
+### 6.5 Development Commands
 
 ```bash
 # Install dependencies
