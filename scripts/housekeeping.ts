@@ -57,7 +57,18 @@ export async function runHousekeeping(
     result.checkedWorkers++;
     console.log(blue(`Checking worker: ${yellow(workerName)}...`));
 
-    const workerDir = path.resolve(process.cwd(), workerConfig.path);
+    const definedPath = workerConfig.path;
+    if (!definedPath) {
+      result.issues.push({
+        worker: workerName,
+        type: "error",
+        message: `Worker path not defined in config for: ${workerName}`,
+      });
+      result.summary.errors++;
+      continue;
+    }
+
+    const workerDir = path.resolve(process.cwd(), definedPath);
 
     if (!fs.existsSync(workerDir)) {
       result.issues.push({
@@ -298,7 +309,7 @@ export async function runHousekeeping(
             result.issues.push({
               worker: workerName,
               type: "error",
-              message: `Durable Object '${class_name}': class not exported in index.ts`,
+              message: `Durable Object '${className}': class not exported in index.ts`,
             });
             result.summary.errors++;
           }
@@ -410,7 +421,18 @@ export async function generateHousekeepingReport(
     if (!workerConfig.enabled) continue;
     result.checkedWorkers++;
 
-    const workerDir = path.resolve(process.cwd(), workerConfig.path);
+    const definedPath = workerConfig.path;
+    if (!definedPath) {
+      result.issues.push({
+        worker: workerName,
+        type: "error",
+        message: `Worker path not defined in config for: ${workerName}`,
+      });
+      result.summary.errors++;
+      continue;
+    }
+
+    const workerDir = path.resolve(process.cwd(), definedPath);
     if (!fs.existsSync(workerDir)) {
       result.issues.push({
         worker: workerName,

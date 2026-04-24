@@ -340,7 +340,7 @@ async function main() {
         
         try {
           // First try to create it
-          execSync(`npx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`, {
+          execSync(`bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`, {
             stdio: "inherit",
           });
           print_success(`Successfully set secret ${secretName} in store ${storeId}`);
@@ -348,7 +348,7 @@ async function main() {
           // If it already exists, we would need to update it, but update requires secret ID.
           // For now, we instruct the user, or let's try to list and get the ID if we wanted to be fully automatic.
           // Let's get the list of secrets
-          const listOutput = execSync(`npx wrangler secrets-store secret list ${storeId}`, { encoding: 'utf-8' });
+          const listOutput = execSync(`bunx wrangler secrets-store secret list ${storeId}`, { encoding: 'utf-8' });
           
           // The output might contain JSON or be a table. Let's try to parse it if it has JSON or just regex it.
           // Assuming the list command might output text, let's just show an error if create fails for a reason other than exists.
@@ -386,7 +386,7 @@ async function main() {
           }
 
           if (secretId) {
-            execSync(`npx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`, {
+            execSync(`bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`, {
               stdio: "inherit",
             });
             print_success(`Successfully updated secret ${secretName} (ID: ${secretId}) in store ${storeId}`);
@@ -395,17 +395,15 @@ async function main() {
           }
         }
 
-        // Automatically sync INTERNAL_KEYs to the dashboard Pages project
-        if (secretName.endsWith("_INTERNAL_KEY")) {
-          console.log(dim(`Syncing internal key ${secretName} to dashboard Pages project...`));
-          try {
-             execSync(`echo -n "${value.replace(/"/g, '\\"')}" | npx wrangler pages secret put ${secretName} --project-name hoox-dashboard`, {
-               stdio: "inherit",
-             });
-             print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
-          } catch (pagesErr) {
-             print_warning(`Could not automatically sync to Pages project (it may not be deployed yet). You can run this manually later: echo "${value}" | npx wrangler pages secret put ${secretName} --project-name hoox-dashboard`);
-          }
+        // Automatically sync secrets to Pages for dashboard use
+        console.log(dim(`Syncing ${secretName} to dashboard Pages project...`));
+        try {
+           execSync(`echo -n "${value.replace(/"/g, '\\"')}" | bunx wrangler pages secret put ${secretName} --project-name hoox-dashboard`, {
+             stdio: "inherit",
+           });
+           print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
+        } catch (pagesErr) {
+           print_warning(`Could not sync to Pages project: ${(pagesErr as Error).message}`);
         }
       } catch (err) {
         print_error(`Failed to update secret: ${(err as Error).message}`);
@@ -436,7 +434,7 @@ async function main() {
       console.log(
         "2. Ensure you have a Cloudflare Secret Store. List stores using:"
       );
-      console.log(dim("   npx wrangler secrets-store store list"));
+      console.log(dim("   bunx wrangler secrets-store store list"));
       console.log(
         `3. Get your Store ID and add it to ${cyan(configPath)} under ${cyan("[global].cloudflare_secret_store_id")}.`
       );
@@ -445,7 +443,7 @@ async function main() {
       );
       console.log(
         dim(
-          "   npx wrangler secrets-store secret create <STORE_ID> --name YOUR_SECRET_NAME --scopes workers"
+          "   bunx wrangler secrets-store secret create <STORE_ID> --name YOUR_SECRET_NAME --scopes workers"
         )
       );
       console.log(
