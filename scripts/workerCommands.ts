@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
-import { parse as parseToml } from "toml";
+import * as toml from "toml";
 import type { Config, WorkerConfig } from "./types.js";
 import {
   red,
@@ -16,7 +16,7 @@ import {
   getCloudflareToken,
   runCommandAsync,
 } from "./utils.js";
-import { saveConfig } from "./configUtils.js"; // Needed for deployWorkers
+import { saveConfig } from "./configUtils.js";
 
 // --- D1 Database Setup Helper ---
 async function setupD1Database(
@@ -149,24 +149,24 @@ export async function setupWorkers(config: Config): Promise<void> {
         let jsoncUpdated = false;
 
         // Update account_id from config
-        if (parsedJsonc.account_id !== config.global.cloudflare_account_id) {
-          parsedJsonc.account_id = config.global.cloudflare_account_id;
+        if ((parsedJsonc as any).account_id !== config.global.cloudflare_account_id) {
+          (parsedJsonc as any).account_id = config.global.cloudflare_account_id;
           jsoncUpdated = true;
           console.log(
             dim(`Set account_id = "${config.global.cloudflare_account_id}"`)
           );
         }
 
-        if (parsedJsonc.name !== workerName) {
-          parsedJsonc.name = workerName;
+        if ((parsedJsonc as any).name !== workerName) {
+          (parsedJsonc as any).name = workerName;
           jsoncUpdated = true;
           console.log(dim(`Set name = "${workerName}"`));
         }
 
         // Ensure compatibility_date exists
-        if (!parsedJsonc.compatibility_date) {
+        if (!(parsedJsonc as any).compatibility_date) {
           const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
-          parsedJsonc.compatibility_date = defaultCompatDate;
+          (parsedJsonc as any).compatibility_date = defaultCompatDate;
           jsoncUpdated = true;
           console.log(
             dim(`Added default compatibility_date: ${defaultCompatDate}`)
@@ -174,15 +174,15 @@ export async function setupWorkers(config: Config): Promise<void> {
         }
 
         // Add/Update vars
-        const currentVars = parsedJsonc.vars || {};
+        const currentVars = (parsedJsonc as any).vars || {};
         const configVars = workerConfig.vars || {};
         let varsUpdated = false;
 
         // Update existing or add new vars from config
         for (const [key, value] of Object.entries(configVars)) {
           if (String(currentVars[key]) !== String(value)) {
-            if (!parsedJsonc.vars) parsedJsonc.vars = {};
-            parsedJsonc.vars[key] = value;
+            if (!(parsedJsonc as any).vars) (parsedJsonc as any).vars = {};
+            (parsedJsonc as any).vars[key] = value;
             varsUpdated = true;
           }
         }
@@ -197,8 +197,8 @@ export async function setupWorkers(config: Config): Promise<void> {
         if (requiredServices.length > 0) {
           console.log(dim(`Configuring Service bindings...`));
 
-          if (!parsedJsonc.services) {
-            parsedJsonc.services = [];
+          if (!(parsedJsonc as any).services) {
+            (parsedJsonc as any).services = [];
             jsoncUpdated = true;
           }
 
@@ -207,11 +207,11 @@ export async function setupWorkers(config: Config): Promise<void> {
             service: svc.service
           }));
 
-          const existingServicesJson = JSON.stringify(parsedJsonc.services || []);
+          const existingServicesJson = JSON.stringify((parsedJsonc as any).services || []);
           const newServicesJson = JSON.stringify(newServiceBindings);
 
           if (existingServicesJson !== newServicesJson) {
-            parsedJsonc.services = newServiceBindings;
+            (parsedJsonc as any).services = newServiceBindings;
             jsoncUpdated = true;
             console.log(dim(`Updated service bindings.`));
             requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
@@ -225,8 +225,8 @@ export async function setupWorkers(config: Config): Promise<void> {
         if (requiredSecrets.length > 0) {
           console.log(dim(`Configuring Secret Store bindings...`));
 
-          if (!parsedJsonc.secrets_store) {
-            parsedJsonc.secrets_store = { bindings: [] };
+          if (!(parsedJsonc as any).secrets_store) {
+            (parsedJsonc as any).secrets_store = { bindings: [] };
             jsoncUpdated = true;
           }
 
@@ -242,12 +242,12 @@ export async function setupWorkers(config: Config): Promise<void> {
 
           // Compare with existing bindings
           const existingBindingsJson = JSON.stringify(
-            parsedJsonc.secrets_store.bindings || []
+            (parsedJsonc as any).secrets_store.bindings || []
           );
           const newBindingsJson = JSON.stringify(newBindings);
 
           if (existingBindingsJson !== newBindingsJson) {
-            parsedJsonc.secrets_store.bindings = newBindings;
+            (parsedJsonc as any).secrets_store.bindings = newBindings;
             jsoncUpdated = true;
             console.log(dim(`Updated secrets_store bindings.`));
             requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
@@ -256,9 +256,9 @@ export async function setupWorkers(config: Config): Promise<void> {
           }
         } else {
           // If no secrets are defined in config, remove the binding section
-          if (parsedJsonc.secrets_store && parsedJsonc.secrets_store.bindings) {
-            if (parsedJsonc.secrets_store.bindings.length > 0) {
-              parsedJsonc.secrets_store.bindings = [];
+          if ((parsedJsonc as any).secrets_store && (parsedJsonc as any).secrets_store.bindings) {
+            if ((parsedJsonc as any).secrets_store.bindings.length > 0) {
+              (parsedJsonc as any).secrets_store.bindings = [];
               jsoncUpdated = true;
               console.log(
                 dim(
@@ -288,7 +288,7 @@ export async function setupWorkers(config: Config): Promise<void> {
         // JSONC D1 Database Setup
         let needsD1SetupJsonc = false;
         let dbNameForSetupJsonc: string | undefined = undefined;
-        const d1DatabasesJsonc = parsedJsonc.d1_databases as
+        const d1DatabasesJsonc = (parsedJsonc as any).d1_databases as
           | unknown[]
           | undefined;
         if (Array.isArray(d1DatabasesJsonc) && d1DatabasesJsonc.length > 0) {
@@ -335,7 +335,7 @@ export async function setupWorkers(config: Config): Promise<void> {
         const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
         let parsedToml: unknown; // Use specific type if possible, but TOML structure varies
         try {
-          parsedToml = toml.parse(wranglerTomlContent);
+          parsedToml = (toml as any).parse(wranglerTomlContent) as Record<string, unknown>;
         } catch (parseError: unknown) {
           print_error(
             `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}`
@@ -349,13 +349,13 @@ export async function setupWorkers(config: Config): Promise<void> {
         // --- Modify the parsed TOML object ---
         let tomlUpdated = false;
 
-        if (parsedToml.name !== workerName) {
-          parsedToml.name = workerName;
+        if ((parsedToml as any).name !== workerName) {
+          (parsedToml as any).name = workerName;
           tomlUpdated = true;
           console.log(dim(`Set name = "${workerName}"`));
         }
-        if (parsedToml.account_id !== config.global.cloudflare_account_id) {
-          parsedToml.account_id = config.global.cloudflare_account_id;
+        if ((parsedToml as any).account_id !== config.global.cloudflare_account_id) {
+          (parsedToml as any).account_id = config.global.cloudflare_account_id;
           tomlUpdated = true;
           console.log(
             dim(`Set account_id = "${config.global.cloudflare_account_id}"`)
@@ -363,9 +363,9 @@ export async function setupWorkers(config: Config): Promise<void> {
         }
 
         // Ensure compatibility_date exists (add a default if not present)
-        if (!parsedToml.compatibility_date) {
+        if (!(parsedToml as any).compatibility_date) {
           const defaultCompatDate = new Date().toISOString().split("T")[0]; // e.g., '2024-04-09'
-          parsedToml.compatibility_date = defaultCompatDate;
+          (parsedToml as any).compatibility_date = defaultCompatDate;
           tomlUpdated = true;
           console.log(
             dim(`Added default compatibility_date: ${defaultCompatDate}`)
@@ -373,21 +373,21 @@ export async function setupWorkers(config: Config): Promise<void> {
         }
 
         // Add/Update [vars] section
-        const currentVars = parsedToml.vars || {};
+        const currentVars = (parsedToml as any).vars || {};
         const configVars = workerConfig.vars || {};
         let varsUpdated = false;
         // Update existing or add new vars from config
         for (const [key, value] of Object.entries(configVars)) {
           if (String(currentVars[key]) !== String(value)) {
-            if (!parsedToml.vars) parsedToml.vars = {};
-            parsedToml.vars[key] = value; // Keep original type from config (string | TomlPrimitive)
+            if (!(parsedToml as any).vars) (parsedToml as any).vars = {};
+            (parsedToml as any).vars[key] = value; // Keep original type from config (string | TomlPrimitive)
             varsUpdated = true;
           }
         }
         // Optional: Remove vars present in wrangler.toml but not in config.toml?
         // for (const key in currentVars) {
         //     if (!(key in configVars)) {
-        //         delete parsedToml.vars[key];
+        //         delete (parsedToml as any).vars[key];
         //         varsUpdated = true;
         //     }
         // }
@@ -406,11 +406,11 @@ export async function setupWorkers(config: Config): Promise<void> {
             service: svc.service
           }));
 
-          const existingServicesJson = JSON.stringify(parsedToml.services || []);
+          const existingServicesJson = JSON.stringify((parsedToml as any).services || []);
           const newServicesJson = JSON.stringify(newServiceBindings);
 
           if (existingServicesJson !== newServicesJson) {
-            parsedToml.services = newServiceBindings;
+            (parsedToml as any).services = newServiceBindings;
             tomlUpdated = true;
             console.log(dim(`Updated service bindings.`));
             requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
@@ -435,12 +435,12 @@ export async function setupWorkers(config: Config): Promise<void> {
 
           // Compare with existing bindings to see if update is needed
           const existingBindingsJson = JSON.stringify(
-            parsedToml.secrets_store_secrets || []
+            (parsedToml as any).secrets_store_secrets || []
           );
           const newBindingsJson = JSON.stringify(newBindings);
 
           if (existingBindingsJson !== newBindingsJson) {
-            parsedToml.secrets_store_secrets = newBindings;
+            (parsedToml as any).secrets_store_secrets = newBindings;
             tomlUpdated = true;
             console.log(dim(`Updated [secrets_store_secrets] bindings.`));
             requiredSecrets.forEach((s) => console.log(dim(`  - ${s}`)));
@@ -451,8 +451,8 @@ export async function setupWorkers(config: Config): Promise<void> {
           }
         } else {
           // If no secrets are defined in config, remove the binding section
-          if (parsedToml.secrets_store_secrets) {
-            delete parsedToml.secrets_store_secrets;
+          if ((parsedToml as any).secrets_store_secrets) {
+            delete (parsedToml as any).secrets_store_secrets;
             tomlUpdated = true;
             console.log(
               dim(
@@ -480,7 +480,7 @@ export async function setupWorkers(config: Config): Promise<void> {
       // TOML D1 Database Setup
       let needsD1SetupToml = false;
       let dbNameForSetupToml: string | undefined = undefined;
-      const d1DatabasesToml = parsedToml.d1_databases as unknown[] | undefined;
+      const d1DatabasesToml = (parsedToml as any).d1_databases as unknown[] | undefined;
       if (Array.isArray(d1DatabasesToml) && d1DatabasesToml.length > 0) {
         const firstDb = d1DatabasesToml[0] as { database_name?: string };
         dbNameForSetupToml = firstDb.database_name;
@@ -593,11 +593,11 @@ export async function deployWorkers(config: Config): Promise<void> {
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/,(\s*[}\]])/g, "$1");
         const parsedJsonc = JSON.parse(jsonContent);
-        accountIdInConfig = parsedJsonc.account_id;
+        accountIdInConfig = (parsedJsonc as any).account_id;
       } else if (useToml) {
         const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-        const parsedToml: unknown = toml.parse(content);
-        accountIdInConfig = parsedToml.account_id;
+        const parsedToml: unknown = (toml as any).parse(content);
+        accountIdInConfig = (parsedToml as any).account_id;
       }
 
       if (
@@ -1116,7 +1116,7 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     } else if (fs.existsSync(path.join(workerDir, "wrangler.toml"))) {
       wranglerConfigPath = path.join(workerDir, "wrangler.toml");
       wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
-      wranglerConfig = toml.parse(wranglerConfigContent);
+      wranglerConfig = (toml as any).parse(wranglerConfigContent);
     }
 
     if (!wranglerConfig) {
@@ -1224,7 +1224,7 @@ function isPagesProject(workerDir: string): boolean {
   if (fs.existsSync(wranglerTomlPath)) {
     try {
       const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-      const config = toml.parse(content) as Record<string, unknown>;
+      const config = (toml as any).parse(content) as Record<string, unknown>;
       return !!config.pages_build_output_dir;
     } catch {
       return false;
@@ -1288,7 +1288,7 @@ export async function checkSecretBindings(
   let parsedToml: unknown;
   try {
     const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-    parsedToml = toml.parse(content);
+    parsedToml = (toml as any).parse(content);
   } catch (parseError: unknown) {
     print_error(
       `Error parsing ${wranglerTomlPath}: ${(parseError as Error).message}.`
@@ -1297,7 +1297,7 @@ export async function checkSecretBindings(
     return;
   }
 
-  const storeBindings = parsedToml.secrets_store_secrets;
+  const storeBindings = (parsedToml as any).secrets_store_secrets;
   const expectedSecrets = workerConfig.secrets || [];
 
   console.log(

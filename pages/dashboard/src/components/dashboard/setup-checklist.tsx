@@ -17,12 +17,11 @@ const REQUIRED_SECRETS = [
   { worker: "trade-worker", secret: "MEXC_API_KEY", desc: "MEXC Exchange API Key" },
   { worker: "trade-worker", secret: "MEXC_API_SECRET", desc: "MEXC Exchange Secret" },
   { worker: "trade-worker", secret: "BYBIT_API_KEY", desc: "Bybit Exchange API Key" },
-  { worker: "trade-worker", secret: "BYBIT_API_SECRET", desc: "Bybit Exchange Secret" },
+  { worker: "trade-worker", secret: "BYBIT_SECRET_BINDING", desc: "Bybit Secret" },
   { worker: "telegram-worker", secret: "TELEGRAM_BOT_TOKEN", desc: "Telegram Bot Token" },
   { worker: "telegram-worker", secret: "TELEGRAM_INTERNAL_KEY", desc: "Internal Auth Key" },
   { worker: "d1-worker", secret: "D1_INTERNAL_KEY", desc: "Internal Auth Key" },
   { worker: "agent-worker", secret: "AGENT_INTERNAL_KEY", desc: "Internal Auth Key" },
-  { worker: "agent-worker", secret: "openai_key", desc: "OpenAI API Key" },
   { worker: "email-worker", secret: "EMAIL_USER", desc: "Email IMAP Username" },
   { worker: "email-worker", secret: "EMAIL_PASS", desc: "Email IMAP Password" },
 ];
