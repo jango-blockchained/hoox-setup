@@ -1008,6 +1008,8 @@ secrets = []
 }
 ```
 
+> **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `WranglerConfig` and `Config` interfaces in `scripts/types.ts`. Avoid using `as any` when parsing or updating configurations. Always cast safely to the appropriate interface to maintain type safety across management scripts.
+
 ### 13.4 Secret Store Management
 
 ```bash

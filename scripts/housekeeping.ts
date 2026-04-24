@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import toml from "toml";
-import type { Config, WorkerConfig } from "./types.js";
+import type { Config, WorkerConfig, WranglerConfig } from "./types.js";
 import {
   red,
   green,
@@ -97,7 +97,7 @@ export async function runHousekeeping(
     }
 
     // Read and parse wrangler config
-    let wranglerConfig: Record<string, unknown> = {};
+    let wranglerConfig = {} as WranglerConfig;
     try {
       if (hasJsonc) {
         const content = fs.readFileSync(wranglerJsoncPath, "utf-8");
@@ -108,7 +108,7 @@ export async function runHousekeeping(
         wranglerConfig = JSON.parse(jsonContent);
       } else if (hasToml) {
         const content = fs.readFileSync(wranglerTomlPath, "utf-8");
-        wranglerConfig = toml.parse(content) as Record<string, unknown>;
+        wranglerConfig = toml.parse(content) as WranglerConfig;
       }
     } catch (e) {
       result.issues.push({
@@ -178,8 +178,8 @@ export async function runHousekeeping(
 
     // Check secrets are defined in config
     const requiredSecrets = workerConfig.secrets || [];
-    const secretStoreBindings = (wranglerConfig as any).secrets_store?.bindings || [];
-    const tomlSecrets = (wranglerConfig as any).secrets_store_secrets || [];
+    const secretStoreBindings = wranglerConfig.secrets_store?.bindings || [];
+    const tomlSecrets = wranglerConfig.secrets_store_secrets || [];
 
     for (const secretName of requiredSecrets) {
       const foundInJsonc = secretStoreBindings.some(
@@ -200,7 +200,7 @@ export async function runHousekeeping(
 
     // Check service bindings
     const requiredServices = workerConfig.services || [];
-    const configServices = (wranglerConfig as any).services || [];
+    const configServices = wranglerConfig.services || [];
 
     for (const svc of requiredServices) {
       const found = configServices.some(
@@ -240,7 +240,7 @@ export async function runHousekeeping(
 
     // Check D1 databases if configured
     const requiredDbs = workerConfig.d1_databases || [];
-    const configD1 = (wranglerConfig as any).d1_databases || [];
+    const configD1 = wranglerConfig.d1_databases || [];
 
     for (const db of requiredDbs) {
       const found = configD1.some((d: any) => d.binding === db.binding);
@@ -255,7 +255,7 @@ export async function runHousekeeping(
     }
 
     // Check Queue bindings (producers and consumers)
-    const configQueues = (wranglerConfig as any).queues || {};
+    const configQueues = wranglerConfig.queues || {};
     const producers = configQueues.producers || [];
     const consumers = configQueues.consumers || [];
 
@@ -293,8 +293,8 @@ export async function runHousekeeping(
     }
 
     // Check Durable Objects bindings
-    const doBindings = (wranglerConfig as any).durable_objects?.bindings || [];
-    const migrations = (wranglerConfig as any).migrations || [];
+    const doBindings = wranglerConfig.durable_objects?.bindings || [];
+    const migrations = wranglerConfig.migrations || [];
 
     // Validate DO classes are exported if bindings exist
     if (doBindings.length > 0) {
@@ -350,7 +350,7 @@ export async function runHousekeeping(
 
       if (referencesThis) {
         // Check if this worker's wrangler has service binding
-        const thisServices = (wranglerConfig as any).services || [];
+        const thisServices = wranglerConfig.services || [];
         const hasServiceBinding = thisServices.some(
           (s: any) => s.service === workerName
         );

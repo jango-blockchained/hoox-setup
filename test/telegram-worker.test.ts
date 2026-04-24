@@ -1,45 +1,31 @@
 import { describe, expect, test, jest } from "bun:test";
-import { insertEmbeddings } from "../src/index";
-
-// Mock interfaces
-interface TelegramMessageMetadata {
-  id: string;
-  [key: string]: any;
-}
-
-interface Env {
-  VECTORIZE_INDEX?: {
-    insert: (vectors: number[][], metadata: any[]) => Promise<any>;
-  };
-}
+import { insertEmbeddings, type TelegramMessageMetadata, type Env } from "../src/index";
 
 // Setup mocks
 const mockVectorizeInsert = jest.fn().mockResolvedValue({ success: true });
 
 // Mock environment with required bindings
-const mockEnv: Env = {
+const mockEnv = {
   VECTORIZE_INDEX: {
     insert: mockVectorizeInsert,
   },
-};
+} as unknown as Env;
 
 describe("Vector Operations", () => {
   test("should do nothing if vectors array is empty", async () => {
-    // Reset the mock completely before this test
     mockVectorizeInsert.mockReset();
     await insertEmbeddings([], [], mockEnv);
     expect(mockVectorizeInsert).not.toHaveBeenCalled();
   });
 
   test("should insert vectors and metadata into Vectorize", async () => {
-    // Reset the mock
     mockVectorizeInsert.mockReset();
     mockVectorizeInsert.mockResolvedValueOnce({ success: true });
 
     const vectors = [[0.1, 0.2, 0.3]];
     const metadata = [
-      { id: "1", text: "Test message" },
-    ] as TelegramMessageMetadata[];
+      { messageId: "1", chatId: "1", text: "Test message", timestamp: "123" },
+    ];
 
     await insertEmbeddings(vectors, metadata, mockEnv);
 
@@ -54,15 +40,14 @@ describe("Vector Operations", () => {
 
     const vectors = [[0.1, 0.2, 0.3]];
     const metadata = [
-      { id: "1", text: "Test message" },
-    ] as TelegramMessageMetadata[];
+      { messageId: "1", chatId: "1", text: "Test message", timestamp: "123" },
+    ];
 
     try {
       await insertEmbeddings(vectors, metadata, mockEnv);
-      // If we get here, the test should fail because no error was thrown
-      expect(true).toBe(false); // Force the test to fail
-    } catch (error: any) {
-      expect(error.message).toContain(
+      expect(true).toBe(false);
+    } catch (error: unknown) {
+      expect(error instanceof Error && error.message).toContain(
         "Failed to insert embeddings: Insert failed"
       );
     }

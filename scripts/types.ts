@@ -46,6 +46,26 @@ export interface Config {
   pages?: Record<string, PagesConfig>; // Pages name -> Pages config
 }
 
+export interface WranglerConfig {
+  name?: string;
+  account_id?: string;
+  compatibility_date?: string;
+  vars?: Record<string, string>;
+  services?: { binding: string; service: string }[];
+  d1_databases?: { binding: string; database_name?: string; database_id?: string }[];
+  secrets_store?: { bindings?: { name: string; secret_name: string; store_id?: string; binding?: string }[] };
+  secrets_store_secrets?: { name: string; secret_name: string; store_id?: string; binding?: string }[]; // TOML equivalent
+  queues?: {
+    producers?: { binding: string; queue: string }[];
+    consumers?: { queue: string }[];
+  };
+  durable_objects?: {
+    bindings?: { name: string; class_name: string }[];
+  };
+  migrations?: { tag: string; new_sqlite_classes?: string[] }[];
+  [key: string]: unknown;
+}
+
 // --- Zod Schemas for Validation ---
 
 // Optional: Define more specific types if needed (e.g., for secrets, vars)

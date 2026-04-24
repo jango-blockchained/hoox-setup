@@ -82,6 +82,8 @@ The validation tool provides a detailed report with color-coded results to help 
 
 ## Configuration Files
 
+> **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `WranglerConfig` and `Config` interfaces in `scripts/types.ts`. Avoid using `as any` when parsing or updating configurations. Always cast safely to the appropriate interface to maintain type safety across management scripts.
+
 The project supports two configuration file formats. The installation scripts automatically detect which format you're using:
 
 ### config.toml / config.toml.example

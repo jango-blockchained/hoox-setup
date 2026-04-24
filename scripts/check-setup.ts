@@ -136,7 +136,7 @@ async function main() {
     if (format === "jsonc") {
       config = parseJsonc(configContent);
     } else {
-      config = toml.parse(configContent) as Config;
+      config = toml.parse(configContent) as unknown as Config;
     }
     console.log(green(`✓ ${path.basename(userConfig)} parsed successfully`));
   } catch (error) {
@@ -153,7 +153,7 @@ async function main() {
     if (format === "jsonc") {
       exampleConfigData = parseJsonc(exampleConfigContent);
     } else {
-      exampleConfigData = toml.parse(exampleConfigContent) as Config;
+      exampleConfigData = toml.parse(exampleConfigContent) as unknown as Config;
     }
     console.log(green(`✓ ${path.basename(exConfigPath)} parsed successfully`));
   } catch (error) {

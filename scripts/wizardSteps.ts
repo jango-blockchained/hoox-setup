@@ -75,7 +75,7 @@ export async function step_configureGlobals(
         };
         try {
           const token = await getCloudflareToken(
-            tempConfigForTokenCheck as any
+            tempConfigForTokenCheck as unknown as Config
           );
           if (token) {
             value = token;
@@ -342,7 +342,7 @@ export async function step_setupD1(state: WizardState): Promise<void> {
 }
 
 export async function step_saveConfig(state: WizardState): Promise<void> {
-  console.log(dim("Preparing configuration object..."));
+  console.log(ansis.dim("Preparing configuration object..."));
 
   const configToSave = state.config as Config;
   if (!configToSave.global)
