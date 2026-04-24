@@ -34,7 +34,7 @@ async function setupD1Database(
   );
 
   const migrationsDir = path.join(workerDir, "migrations");
-  if (fs.existsSync(migrationsDir)) {
+  if ((await Bun.file(migrationsDir).exists())) {
     console.log(
       dim(`Applying D1 migrations for ${dbName} from ${migrationsDir}...`)
     );
@@ -92,7 +92,7 @@ export async function setupWorkers(config: Config): Promise<void> {
     console.log(`\n--- Configuring worker: ${yellow(workerName)} ---`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!fs.existsSync(workerDir)) {
+    if (!(await Bun.file(workerDir).exists())) {
       print_warning(
         `Directory not found for worker ${workerName} at ${workerDir}. Skipping.`
       );
@@ -104,8 +104,8 @@ export async function setupWorkers(config: Config): Promise<void> {
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
     // Determine which configuration file to use
-    const useJsonc = fs.existsSync(wranglerJsoncPath);
-    const useToml = !useJsonc && fs.existsSync(wranglerTomlPath);
+    const useJsonc = (await Bun.file(wranglerJsoncPath).exists());
+    const useToml = !useJsonc && (await Bun.file(wranglerTomlPath).exists());
 
     if (!useJsonc && !useToml) {
       print_warning(
@@ -279,7 +279,7 @@ export async function setupWorkers(config: Config): Promise<void> {
 
           // Format with indentation for readability
           const newJsoncContent = `${commentHeader}${JSON.stringify(parsedJsonc, null, 2)}`;
-          fs.writeFileSync(wranglerJsoncPath, newJsoncContent);
+          await Bun.write(wranglerJsoncPath, newJsoncContent);
           print_success(`Updated ${wranglerJsoncPath}`);
         } else {
           console.log(dim(`${wranglerJsoncPath} is already up-to-date.`));
@@ -333,7 +333,7 @@ export async function setupWorkers(config: Config): Promise<void> {
       let parsedToml = {} as WranglerConfig;
       try {
         console.log(dim(`Using wrangler.toml for ${workerName}`));
-        const wranglerTomlContent = fs.readFileSync(wranglerTomlPath, "utf-8");
+        const wranglerTomlContent = (await Bun.file(wranglerTomlPath).text());
         try {
           parsedToml = toml.parse(wranglerTomlContent) as WranglerConfig;
         } catch (parseError: unknown) {
@@ -466,7 +466,7 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         if (tomlUpdated) {
           const newTomlContent = stringifyToml(parsedToml);
-          fs.writeFileSync(wranglerTomlPath, newTomlContent);
+          await Bun.write(wranglerTomlPath, newTomlContent);
           print_success(`Updated ${wranglerTomlPath}`);
         } else {
           console.log(dim(`${wranglerTomlPath} is already up-to-date.`));
@@ -558,7 +558,7 @@ export async function deployWorkers(config: Config): Promise<void> {
     console.log(`\n--- Deploying worker: ${yellow(workerName)} ---`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!fs.existsSync(workerDir)) {
+    if (!(await Bun.file(workerDir).exists())) {
       print_warning(
         `Directory not found for worker ${workerName} at ${workerDir}. Skipping deployment.`
       );
@@ -567,8 +567,8 @@ export async function deployWorkers(config: Config): Promise<void> {
 
     const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    const useJsonc = fs.existsSync(wranglerJsoncPath);
-    const useToml = fs.existsSync(wranglerTomlPath);
+    const useJsonc = (await Bun.file(wranglerJsoncPath).exists());
+    const useToml = (await Bun.file(wranglerTomlPath).exists());
 
     if (!useJsonc && !useToml) {
       print_warning(
@@ -580,14 +580,14 @@ export async function deployWorkers(config: Config): Promise<void> {
     const wranglerConfigArg = useJsonc ? ["-c", "wrangler.jsonc"] : [];
 
     // Check if this is a Pages project
-    const isPages = isPagesProject(workerDir);
+    const isPages = await isPagesProject(workerDir);
     const deployCommand = isPages ? "wrangler pages project deploy" : "wrangler deploy";
 
     // Verify account_id in wrangler config (toml or jsonc)
     try {
       let accountIdInConfig: string | undefined;
       if (useJsonc) {
-        const jsoncContent = fs.readFileSync(wranglerJsoncPath, "utf-8");
+        const jsoncContent = (await Bun.file(wranglerJsoncPath).text());
         const jsonContent = jsoncContent
           .replace(/\/\/.*$/gm, "")
           .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -595,7 +595,7 @@ export async function deployWorkers(config: Config): Promise<void> {
         const parsedJsonc = JSON.parse(jsonContent);
         accountIdInConfig = parsedJsonc.account_id;
       } else if (useToml) {
-        const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+        const content = (await Bun.file(wranglerTomlPath).text());
         const parsedToml = toml.parse(content) as WranglerConfig;
         accountIdInConfig = parsedToml.account_id;
       }
@@ -708,7 +708,7 @@ export async function deployPages(config: Config): Promise<void> {
   const packageJsonPath = path.join(dashboardPath, "package.json");
   
   // Check if dashboard exists
-  if (!fs.existsSync(packageJsonPath)) {
+  if (!(await Bun.file(packageJsonPath).exists())) {
     print_error("Dashboard not found at pages/dashboard. Please ensure the directory exists.");
     process.exitCode = 1;
     return;
@@ -798,7 +798,7 @@ export async function startDevServer(
   }
 
   const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
-  if (!fs.existsSync(workerDir)) {
+  if (!(await Bun.file(workerDir).exists())) {
     print_error(
       `Directory not found for worker ${workerNameToStart} at ${workerDir}.`
     );
@@ -807,10 +807,10 @@ export async function startDevServer(
   }
 
   // Check if this is a Pages project
-  const isPages = isPagesProject(workerDir);
+  const isPages = await isPagesProject(workerDir);
 
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-  if (!isPages && !fs.existsSync(wranglerTomlPath)) {
+  if (!isPages && !(await Bun.file(wranglerTomlPath).exists())) {
     print_warning(
       `wrangler.toml not found for worker ${workerNameToStart} at ${wranglerTomlPath}.`
     );
@@ -928,7 +928,7 @@ export async function runTests(
     const testDir = path.join(workerDir, "test"); // Standard test dir
     const packageJsonPath = path.join(workerDir, "package.json");
 
-    if (!fs.existsSync(workerDir)) {
+    if (!(await Bun.file(workerDir).exists())) {
       print_error(
         `Directory not found for worker ${name} at ${workerDir}. Skipping tests.`
       );
@@ -938,9 +938,9 @@ export async function runTests(
 
     // Check for a test script in package.json or a test directory
     let testCommandArgs: string[] = [];
-    if (fs.existsSync(packageJsonPath)) {
+    if ((await Bun.file(packageJsonPath).exists())) {
       try {
-        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+        const pkg = JSON.parse((await Bun.file(packageJsonPath).text()));
         if (pkg.scripts?.test) {
           // Use the defined test script via bun run test
           testCommandArgs = ["run", "test"];
@@ -965,7 +965,7 @@ export async function runTests(
 
     // Fallback to direct bun test if no script or no package.json
     if (testCommandArgs.length === 0) {
-      if (!fs.existsSync(testDir)) {
+      if (!(await Bun.file(testDir).exists())) {
         console.log(
           yellow(
             `No test directory found at ${testDir} and no test script in package.json. Skipping tests for ${name}.`
@@ -1093,7 +1093,7 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     const workerDir = path.resolve(process.cwd(), targetWorkerConfig.path || "");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
-    if (!fs.existsSync(wranglerTomlPath)) {
+    if (!(await Bun.file(wranglerTomlPath).exists())) {
       print_warning(
         `  wrangler.toml not found at ${wranglerTomlPath}. Skipping.`
       );
@@ -1105,17 +1105,17 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     let isJsonc = false;
     let wranglerConfig: unknown;
 
-    if (fs.existsSync(path.join(workerDir, "wrangler.jsonc"))) {
+    if ((await Bun.file(path.join(workerDir, "wrangler.jsonc")).exists())) {
       wranglerConfigPath = path.join(workerDir, "wrangler.jsonc");
-      wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
+      wranglerConfigContent = (await Bun.file(wranglerConfigPath).text());
       const jsonContent = wranglerConfigContent
         .replace(/\/\/.*$/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "");
       wranglerConfig = JSON.parse(jsonContent) as Record<string, unknown>;
       isJsonc = true;
-    } else if (fs.existsSync(path.join(workerDir, "wrangler.toml"))) {
+    } else if ((await Bun.file(path.join(workerDir, "wrangler.toml")).exists())) {
       wranglerConfigPath = path.join(workerDir, "wrangler.toml");
-      wranglerConfigContent = fs.readFileSync(wranglerConfigPath, "utf-8");
+      wranglerConfigContent = (await Bun.file(wranglerConfigPath).text());
       wranglerConfig = toml.parse(wranglerConfigContent);
     }
 
@@ -1167,7 +1167,7 @@ export async function updateInternalUrls(config: Config): Promise<void> {
             wranglerConfig as Record<string, unknown>
           );
         }
-        fs.writeFileSync(wranglerTomlPath, updatedContent);
+        await Bun.write(wranglerTomlPath, updatedContent);
         print_success(
           `Successfully updated ${path.basename(wranglerTomlPath)} for ${targetWorkerName}`
         );
@@ -1203,13 +1203,13 @@ export async function updateInternalUrls(config: Config): Promise<void> {
 }
 
 // --- Pages Project Detection Helper ---
-function isPagesProject(workerDir: string): boolean {
+async function isPagesProject(workerDir: string): Promise<boolean> {
   const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
-  if (fs.existsSync(wranglerJsoncPath)) {
+  if ((await Bun.file(wranglerJsoncPath).exists())) {
     try {
-      const content = fs.readFileSync(wranglerJsoncPath, "utf-8");
+      const content = (await Bun.file(wranglerJsoncPath).text());
       const cleanContent = content
         .replace(/\/\/.*$/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -1221,9 +1221,9 @@ function isPagesProject(workerDir: string): boolean {
     }
   }
 
-  if (fs.existsSync(wranglerTomlPath)) {
+  if ((await Bun.file(wranglerTomlPath).exists())) {
     try {
-      const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+      const content = (await Bun.file(wranglerTomlPath).text());
       const config = toml.parse(content) as Record<string, unknown>;
       return !!config.pages_build_output_dir;
     } catch {
@@ -1277,7 +1277,7 @@ export async function checkSecretBindings(
   const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
-  if (!fs.existsSync(wranglerTomlPath)) {
+  if (!(await Bun.file(wranglerTomlPath).exists())) {
     print_error(
       `wrangler.toml not found at ${wranglerTomlPath}. Cannot check bindings.`
     );
@@ -1287,7 +1287,7 @@ export async function checkSecretBindings(
 
   let parsedToml = {} as WranglerConfig;
   try {
-    const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+    const content = (await Bun.file(wranglerTomlPath).text());
     parsedToml = toml.parse(content) as WranglerConfig;
   } catch (parseError: unknown) {
     print_error(
