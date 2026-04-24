@@ -195,9 +195,9 @@ export function SetupChecklist() {
           </div>
           <Alert className="mt-4 bg-muted/50">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Internal Keys</AlertTitle>
+            <AlertTitle>Secret Management</AlertTitle>
             <AlertDescription className="text-xs text-muted-foreground mt-1">
-              Internal keys (AGENT_INTERNAL_KEY, D1_INTERNAL_KEY, API_SERVICE_KEY) are automatically synced to the dashboard when you run the CLI command: <code className="text-xs">bun run secrets:update &lt;key&gt; &lt;worker&gt;</code>
+              Secrets are now directly loaded from your Cloudflare Secret Store. Run the CLI command: <code className="text-xs">bun run scripts/manage.ts secrets update-cf &lt;key&gt; &lt;worker&gt;</code> to manage them securely.
             </AlertDescription>
           </Alert>
         </CardContent>
