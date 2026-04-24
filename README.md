@@ -30,16 +30,16 @@ Hoox isn't just another trading bot; it's a paradigm shift in how algorithmic tr
 
 | Feature                 | Description                                                |
 | ----------------------- | ---------------------------------------------------------- |
-| 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing |
-| 🤖 **AI Integration**   | Cloudflare® Workers AI for LLaMA 3 powered summaries & decisions |
-| 🗄️ **D1 Database**      | Globally distributed SQLite at the edge for persistent, atomic storage |
-| 📦 **R2 Storage**       | Zero-egress S3-compatible object storage for trade reports |
-| 🔐 **KV Storage**       | Global, ultra-fast key-value caching for dynamic settings and kill-switches |
+| 🟠 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing |
+| 🟠 🤖 **AI Integration**   | Cloudflare® Workers AI for LLaMA 3 powered summaries & decisions |
+| 🟠 🗄️ **D1 Database**      | Globally distributed SQLite at the edge for persistent, atomic storage |
+| 🟠 📦 **R2 Storage**       | Zero-egress S3-compatible object storage for trade reports |
+| 🟠 🔐 **KV Storage**       | Global, ultra-fast key-value caching for dynamic settings and kill-switches |
 | 📈 **Trading Engine**   | Multi-exchange automated execution (CEX & DEX) |
 | 📊 **Command Center**   | React-based Dashboard for real-time portfolio monitoring |
 | 🖥️ **Interactive TUI**  | Fully integrated Terminal UI (`hoox-tui`) for local process management |
-| 📨 **Queues**           | Async trade execution with guaranteed delivery—survives exchange downtime |
-| 🛡️ **Idempotency**    | Durable Object prevents duplicate trades on network retries |
+| 🟠 📨 **Queues**           | Async trade execution with guaranteed delivery—survives exchange downtime |
+| 🟠 🛡️ **Idempotency**    | Durable Object prevents duplicate trades on network retries |
 | ⚡ **Rate Limiting**    | Built-in protection against trade spam (10 trades/min) |
 
 ---
@@ -98,11 +98,11 @@ graph TB
     end
 
     subgraph "Cloudflare® Infrastructure"
-        KV[(💾 KV Store)]
-        AI[(🤖 Workers AI)]
-        DB[(🗄️ D1 SQL)]
-        Q[(📨 Queue)]
-        DO[(🛡️ Durable Obj)]
+        KV[(🟠 💾 KV Store)]
+        AI[(🟠 🤖 Workers AI)]
+        DB[(🟠 🗄️ D1 SQL)]
+        Q[(🟠 📨 Queue)]
+        DO[(🟠 🛡️ Durable Obj)]
     end
 
     TV --> hoox
@@ -142,7 +142,7 @@ The impenetrable front door. It validates incoming TradingView webhooks, checks 
 ### 📈 trade-worker (The Execution Engine)
 The core sniper. Executes Long/Short orders simultaneously across MEXC, Binance, and Bybit. Handles leverage calculation, size mapping, and logs every action to D1.
 - **Queue Consumer**: Processes trades from queue with guaranteed delivery
-- **Retry Logic**: 5 attempts with exponential backoff (30s, 1m, 5m, 15m)
+- **Retry Logic**: 5 attempts with exponential backoff (0s, 30s, 1m, 5m, 15m)
 - **Dead Letter**: Failed trades logged to D1 after max retries
 ### 🧠 agent-worker (The Risk Manager)
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
@@ -169,7 +169,7 @@ When dealing with trading capital, security isn't a feature; it's the foundation
 |---------|-------------|
 | **CORS** | Disabled - same-origin only |
 | **X-Frame-Options** | DENY - prevents iframe embedding |
-| **X-Content-Type-Options** | nosnift - prevents MIME sniffing |
+| **X-Content-Type-Options** | nosniff - prevents MIME sniffing |
 | **X-XSS-Protection** | 1; mode=block |
 | **Referrer-Policy** | strict-origin-when-cross-origin |
 | **Permissions-Policy** | Blocks accelerometer, camera, geolocation, microphone, etc. |
@@ -226,13 +226,13 @@ Hoox runs entirely on Cloudflare® Workers Free tier:
 
 | Service | Free Limit | Notes |
 |---------|-----------|-------|
-| Workers | 100k req/day | ~3k trades/day |
-| D1 | 5M rows read, 100k writes/day | 5GB storage |
-| KV | 1GB, 1k ops/day | Config storage |
-| R2 | 10GB/month | Trade reports |
-| Queues | 10k ops/day | ~3k trades/day |
-| Durable Objects | SQLite-backed only | Idempotency |
-| Workers AI | 10k neurons/day | AI summaries |
+| 🟠 Workers | 100k req/day | ~3k trades/day |
+| 🟠 D1 | 5M rows read, 100k writes/day | 5GB storage |
+| 🟠 KV | 1GB, 1k ops/day | Config storage |
+| 🟠 R2 | 10GB/month | Trade reports |
+| 🟠 Queues | 10k ops/day | ~3k trades/day |
+| 🟠 Durable Objects | SQLite-backed only | Idempotency |
+| 🟠 Workers AI | 10k neurons/day | AI summaries |
 
 ---
 
