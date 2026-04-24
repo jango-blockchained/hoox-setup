@@ -70,7 +70,7 @@ export async function runHousekeeping(
 
     const workerDir = path.resolve(process.cwd(), definedPath);
 
-    if (!fs.existsSync(workerDir)) {
+    if (!(await Bun.file(workerDir).exists())) {
       result.issues.push({
         worker: workerName,
         type: "error",
@@ -83,8 +83,8 @@ export async function runHousekeeping(
     // Check for wrangler config file
     const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    const hasJsonc = fs.existsSync(wranglerJsoncPath);
-    const hasToml = fs.existsSync(wranglerTomlPath);
+    const hasJsonc = (await Bun.file(wranglerJsoncPath).exists());
+    const hasToml = (await Bun.file(wranglerTomlPath).exists());
 
     if (!hasJsonc && !hasToml) {
       result.issues.push({
@@ -100,14 +100,14 @@ export async function runHousekeeping(
     let wranglerConfig = {} as WranglerConfig;
     try {
       if (hasJsonc) {
-        const content = fs.readFileSync(wranglerJsoncPath, "utf-8");
+        const content = (await Bun.file(wranglerJsoncPath).text());
         const jsonContent = content
           .replace(/\/\/.*$/gm, "")
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/,(\s*[}\]])/g, "$1");
         wranglerConfig = JSON.parse(jsonContent);
       } else if (hasToml) {
-        const content = fs.readFileSync(wranglerTomlPath, "utf-8");
+        const content = (await Bun.file(wranglerTomlPath).text());
         wranglerConfig = toml.parse(content) as WranglerConfig;
       }
     } catch (e) {
@@ -218,7 +218,7 @@ export async function runHousekeeping(
 
     // Check if worker has source files
     const srcDir = path.join(workerDir, "src");
-    if (!fs.existsSync(srcDir)) {
+    if (!(await Bun.file(srcDir).exists())) {
       result.issues.push({
         worker: workerName,
         type: "warning",
@@ -229,7 +229,7 @@ export async function runHousekeeping(
 
     // Check if package.json exists
     const packageJsonPath = path.join(workerDir, "package.json");
-    if (!fs.existsSync(packageJsonPath)) {
+    if (!(await Bun.file(packageJsonPath).exists())) {
       result.issues.push({
         worker: workerName,
         type: "info",
@@ -276,8 +276,8 @@ export async function runHousekeeping(
     // For queue consumers, check if handler is exported
     if (consumers.length > 0) {
       const srcIndexPath = path.join(workerDir, "src", "index.ts");
-      if (fs.existsSync(srcIndexPath)) {
-        const srcContent = fs.readFileSync(srcIndexPath, "utf-8");
+      if ((await Bun.file(srcIndexPath).exists())) {
+        const srcContent = (await Bun.file(srcIndexPath).text());
         const hasQueueExport = srcContent.includes("async queue(") ||
           srcContent.includes("export const queue") ||
           srcContent.includes("queue:");
@@ -299,8 +299,8 @@ export async function runHousekeeping(
     // Validate DO classes are exported if bindings exist
     if (doBindings.length > 0) {
       const srcIndexPath = path.join(workerDir, "src", "index.ts");
-      if (fs.existsSync(srcIndexPath)) {
-        const srcContent = fs.readFileSync(srcIndexPath, "utf-8");
+      if ((await Bun.file(srcIndexPath).exists())) {
+        const srcContent = (await Bun.file(srcIndexPath).text());
         for (const doBinding of doBindings) {
           const className = doBinding.class_name;
           const hasExport = srcContent.includes(`export class ${className}`) ||
@@ -433,7 +433,7 @@ export async function generateHousekeepingReport(
     }
 
     const workerDir = path.resolve(process.cwd(), definedPath);
-    if (!fs.existsSync(workerDir)) {
+    if (!(await Bun.file(workerDir).exists())) {
       result.issues.push({
         worker: workerName,
         type: "error",

@@ -24,8 +24,8 @@ export function getKeyFilePath(environment: "local" | "prod"): string {
 /**
  * Ensures the .keys directory exists.
  */
-function ensureKeysDirectoryExists(): void {
-  if (!fs.existsSync(KEYS_DIR)) {
+async function ensureKeysDirectoryExists(): Promise<void> {
+  if (!(await Bun.file(KEYS_DIR).exists())) {
     try {
       fs.mkdirSync(KEYS_DIR, { recursive: true });
       console.log(dim(`Created directory: ${KEYS_DIR}`));
@@ -42,19 +42,19 @@ function ensureKeysDirectoryExists(): void {
  * Reads keys from the specified environment's .env file.
  * Returns an empty object if the file doesn't exist or is invalid.
  */
-export function readKeys(
+export async function readKeys(
   environment: "local" | "prod"
-): Record<string, string> {
+): Promise<Record<string, string>> {
   const filePath = getKeyFilePath(environment);
-  ensureKeysDirectoryExists(); // Make sure directory exists before reading
+  await ensureKeysDirectoryExists(); // Make sure directory exists before reading
 
-  if (!fs.existsSync(filePath)) {
+  if (!(await Bun.file(filePath).exists())) {
     return {};
   }
 
   const keys: Record<string, string> = {};
   try {
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = (await Bun.file(filePath).text());
     content.split("\n").forEach((line) => {
       const trimmedLine = line.trim();
       if (trimmedLine && !trimmedLine.startsWith("#")) {
@@ -87,22 +87,22 @@ export function readKeys(
 /**
  * Retrieves a specific key's value from the environment file.
  */
-export function getKey(
+export async function getKey(
   keyName: string,
   environment: "local" | "prod"
-): string | undefined {
-  const keys = readKeys(environment);
+): Promise<string | undefined> {
+  const keys = await readKeys(environment);
   return keys[keyName];
 }
 
 /**
  * Sets (adds or updates) a key=value pair in the environment file.
  */
-export function setKey(
+export async function setKey(
   keyName: string,
   keyValue: string,
   environment: "local" | "prod"
-): void {
+): Promise<void> {
   if (!/^[A-Za-z0-9_]+$/.test(keyName)) {
     print_error(
       `Invalid key name "${keyName}". Only alphanumeric characters and underscores are allowed.`
@@ -111,11 +111,11 @@ export function setKey(
   }
 
   const filePath = getKeyFilePath(environment);
-  ensureKeysDirectoryExists(); // Ensure directory exists before writing
+  await ensureKeysDirectoryExists(); // Ensure directory exists before writing
 
   let content = "";
-  if (fs.existsSync(filePath)) {
-    content = fs.readFileSync(filePath, "utf-8");
+  if ((await Bun.file(filePath).exists())) {
+    content = (await Bun.file(filePath).text());
   }
 
   const lines = content.split("\n");
@@ -156,7 +156,7 @@ export function setKey(
   }
 
   try {
-    fs.writeFileSync(filePath, newLines.join("\n") + "\n"); // Ensure trailing newline
+    await Bun.write(filePath, newLines.join("\n") + "\n"); // Ensure trailing newline
     print_success(`Key "${keyName}" saved to ${path.basename(filePath)}.`);
   } catch (error: unknown) {
     print_error(
@@ -175,9 +175,9 @@ export function generateKey(length: number): string {
 /**
  * Lists stored secret keys from the local .env file.
  */
-export function listKeys(environment: "local" | "prod"): void {
+export async function listKeys(environment: "local" | "prod"): Promise<void> {
   console.log(`\n--- Keys for [${blue(environment)}] environment ---`);
-  const keys = readKeys(environment);
+  const keys = await readKeys(environment);
   const filePath = getKeyFilePath(environment);
   if (Object.keys(keys).length === 0) {
     console.log(dim("No keys found."));

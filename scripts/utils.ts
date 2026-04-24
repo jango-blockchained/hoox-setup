@@ -1,6 +1,5 @@
 import readline from "node:readline/promises";
 import util from "node:util";
-import { exec, spawn, execSync, type ChildProcess } from "node:child_process";
 import type { Config, CommandResult } from "./types.js"; // Import necessary types
 
 // --- Color Constants ---
@@ -34,20 +33,15 @@ export const rl = readline.createInterface({
 
 // --- Command Execution Helpers --- (Stubs/Basic Implementations)
 
-const execAsync = util.promisify(exec);
-
 /**
  * Checks if a command exists in the system PATH.
  */
 export async function checkCommandExists(command: string): Promise<boolean> {
   try {
-    // Use a platform-independent command to check existence
-    const checkCmd =
-      process.platform === "win32"
-        ? `where ${command}`
-        : `command -v ${command}`;
-    await execAsync(checkCmd);
-    return true;
+    const checkCmd = process.platform === "win32" ? ["where", command] : ["command", "-v", command];
+    const proc = Bun.spawn(checkCmd);
+    const exitCode = await proc.exited;
+    return exitCode === 0;
   } catch (error) {
     return false;
   }
@@ -65,37 +59,40 @@ export function runCommandSync(
 ): CommandResult {
   console.log(dim(`Executing in ${cwd}: ${command}`));
   try {
-    const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
-    const output = execSync(command, { cwd, env: mergedEnv, stdio: "pipe" }); // Use pipe to capture
-    const stdout = output.toString();
-    console.log(dim(stdout)); // Log captured stdout
-    return { success: true, stdout: stdout, stderr: "", exitCode: 0 };
-  } catch (error: unknown) {
-    const execError = error as Error & {
-      stdout?: Buffer | string;
-      stderr?: Buffer | string;
-      status?: number;
-    };
-    const stdout = execError.stdout?.toString() || "";
-    const stderr =
-      execError.stderr?.toString() ||
-      (execError.message.includes(command) ? "" : execError.message);
-    print_error(`Command failed: ${command}`);
-    if (stderr) {
-      console.error(dim(`Stderr: ${stderr}`));
+    const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
+    const output = Bun.spawnSync(["sh", "-c", command], { cwd, env: mergedEnv });
+    const stdout = output.stdout?.toString() || "";
+    const stderr = output.stderr?.toString() || "";
+    
+    if (output.success) {
+      console.log(dim(stdout));
+      return { success: true, stdout, stderr, exitCode: 0 };
     } else {
-      console.error(dim(`Stderr was empty.`));
-      if (stdout) {
-        console.error(dim(`Stdout: ${stdout}`)); // Log stdout if stderr is empty
+      print_error(`Command failed: ${command}`);
+      if (stderr) {
+        console.error(dim(`Stderr: ${stderr}`));
+      } else {
+        console.error(dim(`Stderr was empty.`));
+        if (stdout) {
+          console.error(dim(`Stdout: ${stdout}`));
+        }
       }
-      // Log the main error message regardless, as stderr was empty
-      console.error(dim(`Error Message: ${execError.message}`));
+      return {
+        success: false,
+        stdout,
+        stderr,
+        exitCode: output.exitCode ?? 1,
+      };
     }
+  } catch (error: unknown) {
+    const execError = error as Error;
+    print_error(`Command failed: ${command}`);
+    print_error(execError.message);
     return {
       success: false,
-      stdout: stdout,
-      stderr: stderr,
-      exitCode: execError.status ?? 1,
+      stdout: "",
+      stderr: execError.message,
+      exitCode: 1,
     };
   }
 }
@@ -108,49 +105,35 @@ export async function runCommandAsync(
   env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
   console.log(dim(`Executing async in ${cwd}: ${command} ${args.join(" ")}`));
-  const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
+  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
-  return new Promise((resolve) => {
-    const process = spawn(command, args, {
+  try {
+    const proc = Bun.spawn([command, ...args], {
       cwd,
       env: mergedEnv,
-      shell: true,
-      stdio: "pipe",
-    });
-    let stdout = "";
-    let stderr = "";
-
-    process.stdout?.on("data", (data) => {
-      stdout += data.toString();
-      // Optional: log streaming output
-      // process.stdout.write(dim(data));
+      stdout: "pipe",
+      stderr: "pipe",
     });
 
-    process.stderr?.on("data", (data) => {
-      stderr += data.toString();
-      // Optional: log streaming error output
-      // process.stderr.write(red(data));
-    });
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const exitCode = await proc.exited;
 
-    process.on("close", (code) => {
-      const success = code === 0;
-      if (!success) {
-        print_error(
-          `Command failed: ${command} ${args.join(" ")} (exit code: ${code})`
-        );
-        if (stderr) console.error(dim(`Stderr: ${stderr}`));
-        if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`)); // Log stdout if stderr is empty but failed
-      }
-      resolve({ success, stdout, stderr, exitCode: code });
-    });
-
-    process.on("error", (err) => {
-      print_error(`Failed to start command: ${command} ${args.join(" ")}`);
-      print_error(err.message);
-      stderr += err.message;
-      resolve({ success: false, stdout, stderr, exitCode: 1 });
-    });
-  });
+    const success = exitCode === 0;
+    if (!success) {
+      print_error(
+        `Command failed: ${command} ${args.join(" ")} (exit code: ${exitCode})`
+      );
+      if (stderr) console.error(dim(`Stderr: ${stderr}`));
+      if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`));
+    }
+    return { success, stdout, stderr, exitCode: exitCode ?? 1 };
+  } catch (err: unknown) {
+    const error = err as Error;
+    print_error(`Failed to start command: ${command} ${args.join(" ")}`);
+    print_error(error.message);
+    return { success: false, stdout: "", stderr: error.message, exitCode: 1 };
+  }
 }
 
 /**
@@ -161,57 +144,46 @@ export async function runCommandWithStdin(
   args: string[],
   stdinData: string,
   cwd: string,
-  env?: NodeJS.ProcessEnv
+  env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
   console.log(
     dim(`Executing with stdin in ${cwd}: ${command} ${args.join(" ")}`)
   );
-  const mergedEnv = { ...process.env, ...env };
+  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
-  return new Promise((resolve) => {
-    const process = spawn(command, args, {
+  try {
+    const proc = Bun.spawn([command, ...args], {
       cwd,
       env: mergedEnv,
-      shell: true,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-
-    process.stdin.write(stdinData);
-    process.stdin.end();
-
-    process.stdout?.on("data", (data) => {
-      stdout += data.toString();
-      // console.log(dim(data.toString())); // Optional: Log stdout stream
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe",
     });
 
-    process.stderr?.on("data", (data) => {
-      stderr += data.toString();
-      // console.error(red(data.toString())); // Optional: Log stderr stream
-    });
+    proc.stdin.write(stdinData);
+    proc.stdin.end();
 
-    process.on("close", (code) => {
-      const success = code === 0;
-      if (!success) {
-        print_error(
-          `Command with stdin failed: ${command} ${args.join(" ")} (exit code: ${code})`
-        );
-        if (stderr) console.error(dim(`Stderr: ${stderr}`));
-        if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`));
-      }
-      resolve({ success, stdout, stderr, exitCode: code });
-    });
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const exitCode = await proc.exited;
 
-    process.on("error", (err) => {
+    const success = exitCode === 0;
+    if (!success) {
       print_error(
-        `Failed to start command with stdin: ${command} ${args.join(" ")}`
+        `Command with stdin failed: ${command} ${args.join(" ")} (exit code: ${exitCode})`
       );
-      print_error(err.message);
-      stderr += err.message;
-      resolve({ success: false, stdout, stderr, exitCode: 1 });
-    });
-  });
+      if (stderr) console.error(dim(`Stderr: ${stderr}`));
+      if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`));
+    }
+    return { success, stdout, stderr, exitCode: exitCode ?? 1 };
+  } catch (err: unknown) {
+    const error = err as Error;
+    print_error(
+      `Failed to start command with stdin: ${command} ${args.join(" ")}`
+    );
+    print_error(error.message);
+    return { success: false, stdout: "", stderr: error.message, exitCode: 1 };
+  }
 }
 
 /**
@@ -225,34 +197,30 @@ export async function runInteractiveCommand(
   env?: Record<string, string | undefined>
 ): Promise<number | null> {
   console.log(dim(`Executing interactive in ${cwd}: ${command} ${args.join(" ")}`));
-  const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
+  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
-  return new Promise((resolve, reject) => {
-    const process: ChildProcess = spawn(command, args, {
+  try {
+    const proc = Bun.spawn([command, ...args], {
       cwd,
       env: mergedEnv,
-      stdio: "inherit", // Crucial for interactivity
-      shell: true, // Use shell to handle path resolution etc.
+      stdio: ["inherit", "inherit", "inherit"],
     });
 
-    process.on("close", (code) => {
-      if (code === 0) {
-        console.log(green(`Interactive command finished successfully.`));
-        resolve(code);
-      } else {
-        console.log(yellow(`Interactive command finished with code: ${code}.`));
-        resolve(code); // Resolve with code, don't reject on non-zero exit for interactive
-      }
-    });
-
-    process.on("error", (err) => {
-      print_error(
-        `Failed to start interactive command: ${command} ${args.join(" ")}`
-      );
-      print_error(err.message);
-      reject(err);
-    });
-  });
+    const exitCode = await proc.exited;
+    if (exitCode === 0) {
+      console.log(green(`Interactive command finished successfully.`));
+    } else {
+      console.log(yellow(`Interactive command finished with code: ${exitCode}.`));
+    }
+    return exitCode;
+  } catch (err: unknown) {
+    const error = err as Error;
+    print_error(
+      `Failed to start interactive command: ${command} ${args.join(" ")}`
+    );
+    print_error(error.message);
+    throw error;
+  }
 }
 
 // --- User Interaction Helpers --- (Stubs)
@@ -281,9 +249,9 @@ export async function getCloudflareToken(
   if (config.global?.cloudflare_api_token) {
     return config.global.cloudflare_api_token;
   }
-  if (process.env.CLOUDFLARE_API_TOKEN) {
+  if (Bun.env.CLOUDFLARE_API_TOKEN) {
     console.log(dim("Using CLOUDFLARE_API_TOKEN from environment."));
-    return process.env.CLOUDFLARE_API_TOKEN;
+    return Bun.env.CLOUDFLARE_API_TOKEN;
   }
 
   print_warning(

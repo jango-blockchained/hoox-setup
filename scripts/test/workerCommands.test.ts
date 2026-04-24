@@ -153,12 +153,12 @@ describe("Environment Variable Handling", () => {
 });
 
 describe("Error Handling", () => {
-  test("should handle missing worker directory", () => {
+  test("should handle missing worker directory", async () => {
     const fs = require("fs");
     const path = require("path");
 
     const workerPath = path.resolve(process.cwd(), "workers/nonexistent");
-    const exists = fs.existsSync(workerPath);
+    const exists = (await Bun.file(workerPath).exists());
 
     expect(exists).toBe(false);
   });
