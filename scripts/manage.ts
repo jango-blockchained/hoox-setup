@@ -4,10 +4,8 @@ import path from "node:path";
 import fs from "node:fs";
 import readline from "node:readline/promises"; // Use promises interface
 import util from "node:util";
-import { exec } from "node:child_process"; // Import exec
 import { Command } from "commander";
 import * as crypto from "node:crypto"; // Needed?
-import { promisify } from "node:util";
 import { readdir } from "node:fs/promises";
 
 // Import types
@@ -26,6 +24,7 @@ import {
   print_warning,
   rl,
   runCommandSync,
+  runCommandAsync,
   runCommandWithStdin,
   checkCommandExists,
   promptForSecret,
@@ -64,9 +63,6 @@ import { runWizard } from "./wizard.js";
 
 // Import housekeeping
 import { runHousekeeping } from "./housekeeping.js";
-
-// Promisify exec for async checks - Stays here as it's small and related to CLI setup?
-const execAsync = util.promisify(exec);
 
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
@@ -107,9 +103,9 @@ async function main() {
         const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
         const configTomlPath = path.resolve(process.cwd(), "config.toml");
 
-        if (fs.existsSync(configJsoncPath)) {
+        if ((await Bun.file(configJsoncPath).exists())) {
           console.log(green("Using: config.jsonc (JSONC format)"));
-        } else if (fs.existsSync(configTomlPath)) {
+        } else if ((await Bun.file(configTomlPath).exists())) {
           console.log(green("Using: config.toml (TOML format)"));
         } else {
           console.log(
@@ -128,13 +124,13 @@ async function main() {
         );
 
         console.log("\nExample files available:");
-        if (fs.existsSync(exampleJsoncPath)) {
+        if ((await Bun.file(exampleJsoncPath).exists())) {
           console.log(green("- config.jsonc.example (JSONC format)"));
         } else {
           console.log(red("- config.jsonc.example not found"));
         }
 
-        if (fs.existsSync(exampleTomlPath)) {
+        if ((await Bun.file(exampleTomlPath).exists())) {
           console.log(green("- config.toml.example (TOML format)"));
         } else {
           console.log(red("- config.toml.example not found"));
@@ -336,39 +332,33 @@ async function main() {
 
       try {
         console.log(dim(`Running: wrangler secrets-store secret create ${storeId} --name ${secretName}`));
-        const { execSync } = require("node:child_process");
         
         try {
           // First try to create it
-          execSync(`bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`, {
-            stdio: "inherit",
-          });
-          print_success(`Successfully set secret ${secretName} in store ${storeId}`);
+          const createResult = runCommandSync(
+            `bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`,
+            process.cwd()
+          );
+          if (createResult.success) {
+            print_success(`Successfully set secret ${secretName} in store ${storeId}`);
+          } else {
+            throw new Error(createResult.stderr || "Failed to create secret");
+          }
         } catch (createErr) {
-          // If it already exists, we would need to update it, but update requires secret ID.
-          // For now, we instruct the user, or let's try to list and get the ID if we wanted to be fully automatic.
-          // Let's get the list of secrets
-          const listOutput = execSync(`bunx wrangler secrets-store secret list ${storeId}`, { encoding: 'utf-8' });
+          // If it already exists, list and update
+          const listOutputResult = runCommandSync(
+            `bunx wrangler secrets-store secret list ${storeId}`,
+            process.cwd()
+          );
+          const listOutput = listOutputResult.stdout;
           
-          // The output might contain JSON or be a table. Let's try to parse it if it has JSON or just regex it.
-          // Assuming the list command might output text, let's just show an error if create fails for a reason other than exists.
           console.log(yellow(`Secret might already exist. Attempting to find ID and update...`));
           
-          // Actually, let's just delete and recreate to be simple, since we don't know the exact format of the list output
-          // Oh wait, delete also needs the secret ID!
-          // So let's extract the ID from list output.
-          const lines = listOutput.split('\\n');
-          let secretId = null;
-          // Example list output:
-          // name: MY_SECRET, id: 1234, ...
-          // Or a table. We'll use a regex to find the ID.
-          // "id": "uuid", "name": "secretName"
-          
+          let secretId: string | null = null;
           const match = listOutput.match(new RegExp(`"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${secretName}"`, 'i')) || 
                         listOutput.match(new RegExp(`${secretName}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`, 'i'));
           
           if (!match && listOutput.includes(secretName)) {
-            // Just use a simple grep approach
             const lines = listOutput.split('\\n');
             for (const line of lines) {
               if (line.includes(secretName)) {
@@ -386,10 +376,15 @@ async function main() {
           }
 
           if (secretId) {
-            execSync(`bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`, {
-              stdio: "inherit",
-            });
-            print_success(`Successfully updated secret ${secretName} (ID: ${secretId}) in store ${storeId}`);
+            const updateResult = runCommandSync(
+              `bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`,
+              process.cwd()
+            );
+            if (updateResult.success) {
+              print_success(`Successfully updated secret ${secretName} (ID: ${secretId}) in store ${storeId}`);
+            } else {
+              throw new Error(`Failed to update secret ID: ${secretId}`);
+            }
           } else {
             throw new Error(`Could not find secret ID for ${secretName} to update it. List output:\n${listOutput}`);
           }
@@ -398,10 +393,17 @@ async function main() {
         // Automatically sync secrets to Pages for dashboard use
         console.log(dim(`Syncing ${secretName} to dashboard Pages project...`));
         try {
-           execSync(`echo -n "${value.replace(/"/g, '\\"')}" | bunx wrangler pages secret put ${secretName} --project-name hoox-dashboard`, {
-             stdio: "inherit",
-           });
-           print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
+           const pagesResult = await runCommandWithStdin(
+             "bunx",
+             ["wrangler", "pages", "secret", "put", secretName, "--project-name", "hoox-dashboard"],
+             value,
+             process.cwd()
+           );
+           if (pagesResult.success) {
+             print_success(`Successfully synced ${secretName} to hoox-dashboard Pages project`);
+           } else {
+             throw new Error(pagesResult.stderr);
+           }
         } catch (pagesErr) {
            print_warning(`Could not sync to Pages project: ${(pagesErr as Error).message}`);
         }
@@ -469,7 +471,7 @@ async function main() {
       print_error(
         `Command failed: ${error instanceof Error ? error.message : String(error)}`
       );
-      if (process.env.DEBUG) {
+      if (Bun.env.DEBUG) {
         // Optional: more detail on debug flag
         console.error(error);
       }
@@ -500,7 +502,7 @@ export async function cloneWorkerRepositories(
   const workersDir = path.resolve(process.cwd(), "workers");
 
   // Create workers directory if it doesn't exist
-  if (!fs.existsSync(workersDir)) {
+  if (!(await Bun.file(workersDir).exists())) {
     console.log(yellow("Workers directory does not exist. Creating it..."));
     fs.mkdirSync(workersDir, { recursive: true });
   }
@@ -608,13 +610,12 @@ export async function cloneWorkerRepositories(
   console.log(
     blue(`\nCloning ${selectedWorkers.length} worker repositories...`)
   );
-  const execP = promisify(exec);
 
   for (const worker of selectedWorkers) {
     const targetDir = path.join(workersDir, worker.name);
 
     // Skip if directory already exists
-    if (fs.existsSync(targetDir)) {
+    if ((await Bun.file(targetDir).exists())) {
       console.log(
         yellow(`Worker directory ${worker.name} already exists. Skipping.`)
       );
@@ -625,12 +626,14 @@ export async function cloneWorkerRepositories(
       if (direct) {
         // Clone directly
         console.log(dim(`Cloning ${worker.name} directly...`));
-        await execP(`git clone ${worker.repo} ${targetDir}`);
+        const res = await runCommandAsync("git", ["clone", worker.repo, targetDir], process.cwd());
+        if (!res.success) throw new Error(res.stderr);
         print_success(`Successfully cloned ${worker.name}`);
       } else {
         // Clone as submodule
         console.log(dim(`Adding ${worker.name} as git submodule...`));
-        await execP(`git submodule add ${worker.repo} ${targetDir}`);
+        const res = await runCommandAsync("git", ["submodule", "add", worker.repo, targetDir], process.cwd());
+        if (!res.success) throw new Error(res.stderr);
         print_success(`Successfully cloned ${worker.name}`);
       }
     } catch (err) {
@@ -643,7 +646,8 @@ export async function cloneWorkerRepositories(
     try {
       // Initialize and update submodules
       console.log(dim("Initializing and updating git submodules..."));
-      await execP("git submodule update --init --recursive");
+      const res = await runCommandAsync("git", ["submodule", "update", "--init", "--recursive"], process.cwd());
+      if (!res.success) throw new Error(res.stderr);
       print_success("Git submodules initialized and updated successfully");
     } catch (err) {
       const error = err as Error;
@@ -662,7 +666,7 @@ main().catch((error) => {
   print_error(
     `Unhandled error in main execution: ${error instanceof Error ? error.message : String(error)}`
   );
-  if (process.env.DEBUG) {
+  if (Bun.env.DEBUG) {
     console.error(error);
   }
   // Ensure readline is closed even on unhandled main errors

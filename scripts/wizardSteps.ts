@@ -442,17 +442,15 @@ export async function step_configureSecrets(state: WizardState): Promise<void> {
   if (checkLocal.trim().toLowerCase() === "y") {
     console.log(ansis.dim(`Checking ${LOCAL_KEYS_FILE}...`));
     let foundAnyLocal = false;
-    uniqueSecretsNeeded.forEach((secretName) => {
-      const localValue = getKey(secretName, "local");
+    for (const secretName of uniqueSecretsNeeded) {
+      const localValue = await getKey(secretName, "local");
       if (localValue) {
         console.log(
           `  - ${secretName}: ${ansis.yellow(localValue.substring(0, 5))}... ${ansis.dim("(from local_keys.env)")}`
         );
         foundAnyLocal = true;
-      } else {
-        // console.log(dim(`  - ${secretName}: Not found locally.`));
       }
-    });
+    }
     if (!foundAnyLocal) {
       console.log(
         ansis.dim(

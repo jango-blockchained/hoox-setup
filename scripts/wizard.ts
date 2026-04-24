@@ -31,10 +31,10 @@ const TOTAL_WIZARD_STEPS = 7;
 
 // --- Wizard State Management ---
 
-export function loadWizardState(): WizardState | null {
-  if (fs.existsSync(STATE_FILE)) {
+export async function loadWizardState(): Promise<WizardState | null> {
+  if ((await Bun.file(STATE_FILE).exists())) {
     try {
-      const content = fs.readFileSync(STATE_FILE, "utf-8");
+      const content = (await Bun.file(STATE_FILE).text());
       const jsonData = JSON.parse(content);
       const result = WizardStateSchema.safeParse(jsonData);
 
@@ -43,7 +43,7 @@ export function loadWizardState(): WizardState | null {
           `State file ${STATE_FILE} has invalid structure. Starting fresh.`
         );
         console.error(dim("Validation Errors:"), result.error.flatten());
-        cleanupWizardState(); // Clean up invalid state file
+        await cleanupWizardState(); // Clean up invalid state file
         return null;
       }
       return result.data as unknown as WizardState;
@@ -53,7 +53,7 @@ export function loadWizardState(): WizardState | null {
         `Error reading or parsing state file ${STATE_FILE}: ${errorMsg}`
       );
       print_warning("Assuming clean start.");
-      cleanupWizardState(); // Clean up potentially corrupted file
+      await cleanupWizardState(); // Clean up potentially corrupted file
       return null;
     }
   } else {
@@ -61,7 +61,7 @@ export function loadWizardState(): WizardState | null {
   }
 }
 
-export function saveWizardState(state: WizardState): void {
+export async function saveWizardState(state: WizardState): Promise<void> {
   // Optional: Validate state before saving?
   // const validation = WizardStateSchema.safeParse(state);
   // if (!validation.success) {
@@ -74,8 +74,8 @@ export function saveWizardState(state: WizardState): void {
   // }
   try {
     // Save the validated data if validation was performed
-    // fs.writeFileSync(STATE_FILE, JSON.stringify(validation.data, null, 2));
-    fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+    // await Bun.write(STATE_FILE, JSON.stringify(validation.data, null, 2));
+    await Bun.write(STATE_FILE, JSON.stringify(state, null, 2));
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     print_error(`Error saving state file ${STATE_FILE}: ${errorMsg}`);
@@ -83,10 +83,10 @@ export function saveWizardState(state: WizardState): void {
   }
 }
 
-export function cleanupWizardState(): void {
-  if (fs.existsSync(STATE_FILE)) {
+export async function cleanupWizardState(): Promise<void> {
+  if ((await Bun.file(STATE_FILE).exists())) {
     try {
-      fs.unlinkSync(STATE_FILE);
+      await fs.promises.unlink(STATE_FILE);
       console.log(dim("Setup state file cleaned up."));
     } catch (error: unknown) {
       print_error(
@@ -107,7 +107,7 @@ export async function runWizard(): Promise<void> {
 
   try {
     // Check if workers directory exists
-    if (fs.existsSync(workersDir)) {
+    if ((await Bun.file(workersDir).exists())) {
       // Check if it has any non-hidden directories
       const files = fs.readdirSync(workersDir);
       const nonHiddenDirectories = files.filter(
@@ -167,7 +167,7 @@ export async function runWizard(): Promise<void> {
         }
 
         // Re-check if we have workers now
-        if (fs.existsSync(workersDir)) {
+        if ((await Bun.file(workersDir).exists())) {
           const updatedFiles = fs.readdirSync(workersDir);
           const updatedNonHiddenDirectories = updatedFiles.filter(
             (file) =>
@@ -209,7 +209,7 @@ export async function runWizard(): Promise<void> {
     );
   }
 
-  let state: WizardState | null = loadWizardState();
+  let state: WizardState | null = await loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;
 
   // Check which config format to use
@@ -218,10 +218,10 @@ export async function runWizard(): Promise<void> {
   const configTomlPath = path.resolve(process.cwd(), "config.toml");
 
   // If config.jsonc exists, use JSONC format, otherwise use TOML
-  if (fs.existsSync(configJsoncPath)) {
+  if ((await Bun.file(configJsoncPath).exists())) {
     configFormat = "jsonc";
     console.log(ansis.blue("Using JSONC configuration format (config.jsonc)"));
-  } else if (fs.existsSync(configTomlPath)) {
+  } else if ((await Bun.file(configTomlPath).exists())) {
     configFormat = "toml";
     console.log(ansis.blue("Using TOML configuration format (config.toml)"));
   } else {
@@ -230,7 +230,7 @@ export async function runWizard(): Promise<void> {
       process.cwd(),
       "config.jsonc.example"
     );
-    if (fs.existsSync(exampleJsoncPath)) {
+    if ((await Bun.file(exampleJsoncPath).exists())) {
       configFormat = "jsonc";
       console.log(
         ansis.blue(
@@ -282,7 +282,7 @@ export async function runWizard(): Promise<void> {
       config: initialConfig, // Use loaded/default config
       configFormat: configFormat, // Store the format being used
     };
-    saveWizardState(state); // Save initial state
+    await saveWizardState(state); // Save initial state
     console.log(ansis.yellow("Starting new setup process."));
   } else {
     console.log(
@@ -294,13 +294,13 @@ export async function runWizard(): Promise<void> {
     if (state.totalSteps !== totalSteps) {
       state.totalSteps = totalSteps;
       // Config is already loaded, no need to reload unless desired
-      saveWizardState(state);
+      await saveWizardState(state);
     }
 
     // Store the config format if not already set
     if (!state.configFormat) {
       state.configFormat = configFormat;
-      saveWizardState(state);
+      await saveWizardState(state);
     } else {
       // Use the format stored in state
       configFormat = state.configFormat;
@@ -321,7 +321,7 @@ export async function runWizard(): Promise<void> {
       printWizardStep(currentState, "Checking Dependencies");
       await step_checkDependencies();
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 2: Configure Globals
@@ -336,7 +336,7 @@ export async function runWizard(): Promise<void> {
       );
       currentState.config.global = updatedGlobalConfig; // No cast needed if step returns GlobalConfig
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 3: Select Workers
@@ -344,7 +344,7 @@ export async function runWizard(): Promise<void> {
       printWizardStep(currentState, "Selecting Workers to Enable");
       await step_selectWorkers(currentState); // Modifies state directly
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 4: Setup D1 Database (Conditional)
@@ -352,7 +352,7 @@ export async function runWizard(): Promise<void> {
       printWizardStep(currentState, "Setting up D1 Database (if required)");
       await step_setupD1(currentState); // Modifies state directly
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 5: Save Configuration File
@@ -375,7 +375,7 @@ export async function runWizard(): Promise<void> {
         finalConfigCheck.data as unknown as Config;
       await saveConfig(configToSave);
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 6: Configure Secrets (Guidance/Check)
@@ -383,7 +383,7 @@ export async function runWizard(): Promise<void> {
       printWizardStep(currentState, "Configuring Secrets (Guidance)");
       await step_configureSecrets(currentState);
       currentState.currentStep++;
-      saveWizardState(currentState);
+      await saveWizardState(currentState);
     }
 
     // Step 7: Initial Deployment (Optional)
@@ -395,7 +395,7 @@ export async function runWizard(): Promise<void> {
     }
 
     // Cleanup on success
-    cleanupWizardState();
+    await cleanupWizardState();
     console.log(ansis.green("\n🎉 Setup Wizard Completed Successfully! 🎉"));
     console.log(
       ansis.blue(
