@@ -336,7 +336,7 @@ async function main() {
         try {
           // First try to create it
           const createResult = runCommandSync(
-            `bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}"`,
+            `bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}" --remote`,
             process.cwd()
           );
           if (createResult.success) {
@@ -347,7 +347,7 @@ async function main() {
         } catch (createErr) {
           // If it already exists, list and update
           const listOutputResult = runCommandSync(
-            `bunx wrangler secrets-store secret list ${storeId}`,
+            `bunx wrangler secrets-store secret list ${storeId} --remote`,
             process.cwd()
           );
           const listOutput = listOutputResult.stdout;
@@ -377,7 +377,7 @@ async function main() {
 
           if (secretId) {
             const updateResult = runCommandSync(
-              `bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}"`,
+              `bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}" --remote`,
               process.cwd()
             );
             if (updateResult.success) {
