@@ -3,6 +3,23 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
+const ALL_SECRETS = [
+  "AGENT_INTERNAL_KEY",
+  "D1_INTERNAL_KEY",
+  "API_SERVICE_KEY",
+  "TELEGRAM_INTERNAL_KEY",
+  "WEBHOOK_API_KEY_BINDING",
+  "BINANCE_API_KEY",
+  "BINANCE_API_SECRET",
+  "MEXC_API_KEY",
+  "MEXC_API_SECRET",
+  "BYBIT_API_KEY",
+  "BYBIT_SECRET_BINDING",
+  "TELEGRAM_BOT_TOKEN",
+  "EMAIL_USER",
+  "EMAIL_PASS",
+];
+
 const INTERNAL_KEY_SECRETS = [
   "AGENT_INTERNAL_KEY",
   "D1_INTERNAL_KEY",
@@ -15,49 +32,25 @@ async function getCloudflareAccountId(): Promise<string | null> {
 }
 
 async function getCloudflareApiToken(): Promise<string | null> {
-  return process.env.CLOUDFLARE_API_TOKEN || null;
+  return process.env.CLOUDFLARE_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || null;
 }
 
 export async function GET() {
   try {
-    const accountId = await getCloudflareAccountId();
-    const apiToken = await getCloudflareApiToken();
-
-    if (!apiToken) {
-      return NextResponse.json({
-        success: true,
-        secrets: INTERNAL_KEY_SECRETS.map(name => ({ name, synced: false })),
-        note: "Cloudflare API token not configured - showing all as unsynced",
-      });
-    }
-
-    const response = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/hoox-dashboard/secrets`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-    const pagesSecrets = new Set<string>();
-
-    if (data.result) {
-      for (const secret of data.result) {
-        pagesSecrets.add(secret.name);
-      }
-    }
-
-    const results = INTERNAL_KEY_SECRETS.map(name => ({
+    // Pages secrets are loaded as environment variables
+    // Check if they're available in the edge runtime
+    const syncedSecrets = ALL_SECRETS.map(name => ({
       name,
-      synced: pagesSecrets.has(name),
+      synced: !!process.env[name],
     }));
 
     return NextResponse.json({
       success: true,
-      secrets: results,
+      secrets: syncedSecrets,
+      internalKeys: INTERNAL_KEY_SECRETS.map(name => ({
+        name,
+        synced: !!process.env[name],
+      })),
     });
   } catch (err) {
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 });

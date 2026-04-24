@@ -43,6 +43,7 @@ export interface Config {
   global: GlobalConfig;
   secrets?: Record<string, string>; // Optional legacy section (consider removing/repurposing)
   workers: Record<string, WorkerConfig>; // Worker name -> Worker config
+  pages?: Record<string, PagesConfig>; // Pages name -> Pages config
 }
 
 // --- Zod Schemas for Validation ---
@@ -100,6 +101,18 @@ export const ConfigSchema = z.object({
   global: GlobalConfigSchema,
   workers: z.record(WorkerConfigSchema).optional().default({}), // Default to empty object if missing
 });
+
+/**
+ * Represents the configuration for a single Pages project under [pages.*]
+ */
+export interface PagesConfig {
+  enabled?: boolean;
+  path?: string;
+  project_name?: string;
+  vars?: Record<string, string>;
+  deployed_url?: string;
+  secrets?: string[];
+}
 
 // --- Wizard State Definition ---
 
