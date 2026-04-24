@@ -33,22 +33,27 @@ Example of mocking a Service Binding in a unit test:
 
 ```typescript
 import { describe, it, expect } from "bun:test";
+import type { Env } from "../src/index";
 
 describe("hoox Gateway", () => {
   it("should forward trade requests to trade-worker", async () => {
-    // Mock the environment
+    // Mock the environment safely without using 'as any'
     const mockEnv = {
       TRADE_SERVICE: {
-        fetch: async (url, options) => {
+        fetch: async (url: any, options: any) => {
           return new Response(JSON.stringify({ success: true }), { status: 200 });
         }
       }
-    };
+    } as unknown as Env;
 
     // Test logic here
   });
 });
 ```
+
+### Type Safety in Tests
+
+We enforce strict TypeScript typing across our codebase, including test files. **Do not use `as any`**. When mocking complex objects like the Cloudflare `Env`, cast your mock object securely using `as unknown as Env`.
 
 ## Development Commands
 

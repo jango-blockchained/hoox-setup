@@ -133,7 +133,7 @@ describe("KV Utilities", () => {
 
     const middleware = kvTimestampMiddleware();
     const mockNext = jest.fn().mockResolvedValue(undefined);
-    await middleware({} as any, mockNext);
+    await middleware({} as Parameters<typeof middleware>[0], mockNext);
 
     expect(mockNext).toHaveBeenCalled();
   });

@@ -1,4 +1,5 @@
 import { describe, expect, test, beforeEach, jest } from "bun:test";
+import type { WorkerConfig } from "../types.js";
 
 describe("Worker Management - Extended Tests", () => {
   describe("Worker Selection Logic", () => {
@@ -40,7 +41,7 @@ describe("Worker Management - Extended Tests", () => {
 
       const allSecrets = new Set<string>();
       for (const worker of Object.values(workers)) {
-        for (const secret of (worker as any).secrets || []) {
+        for (const secret of (worker as WorkerConfig).secrets || []) {
           allSecrets.add(secret);
         }
       }
@@ -59,7 +60,7 @@ describe("Worker Management - Extended Tests", () => {
 
       const allSecrets = new Set<string>();
       for (const worker of Object.values(workers)) {
-        for (const secret of (worker as any).secrets || []) {
+        for (const secret of (worker as WorkerConfig).secrets || []) {
           allSecrets.add(secret);
         }
       }
@@ -80,7 +81,7 @@ describe("Worker Management - Extended Tests", () => {
 
       // All enabled workers should be deployable
       const enabled = Object.keys(workers).filter(
-        (name) => (workers as any)[name].enabled
+        (name) => (workers as Record<string, WorkerConfig>)[name].enabled
       );
 
       expect(enabled.length).toBe(4);

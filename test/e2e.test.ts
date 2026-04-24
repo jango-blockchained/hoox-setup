@@ -9,9 +9,15 @@ import { describe, expect, test, beforeEach } from "bun:test";
 
 describe("Hoox E2E Flow", () => {
   const mockEnv = {
-    TRADE_SERVICE: { fetch: () => Promise.resolve(new Response(JSON.stringify({ success: true, requestId: "test-123" }), { status: 200 })) },
-    TELEGRAM_SERVICE: { fetch: () => Promise.resolve(new Response("OK")) },
-    D1_SERVICE: { fetch: () => Promise.resolve(new Response("OK")) },
+    TRADE_SERVICE: { 
+      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response(JSON.stringify({ success: true, requestId: "test-123" }), { status: 200 })) 
+    },
+    TELEGRAM_SERVICE: { 
+      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response("OK")) 
+    },
+    D1_SERVICE: { 
+      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response("OK")) 
+    },
     API_KEY: "test-api-key",
     INTERNAL_KEY: "test-internal-key",
     SESSIONS_KV: { get: () => Promise.resolve(null), put: () => Promise.resolve() },
@@ -36,7 +42,7 @@ describe("Hoox E2E Flow", () => {
     });
     
     expect(mockResponse.status).toBe(200);
-    const data = await mockResponse.json();
+    const data = (await mockResponse.json()) as { success: boolean };
     expect(data.success).toBe(true);
   });
 
