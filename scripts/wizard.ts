@@ -46,7 +46,7 @@ export function loadWizardState(): WizardState | null {
         cleanupWizardState(); // Clean up invalid state file
         return null;
       }
-      return result.data;
+      return result.data as unknown as WizardState;
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       print_error(
@@ -372,7 +372,7 @@ export async function runWizard(): Promise<void> {
 
       // Cast to Config from configUtils for saveConfig
       const configToSave =
-        finalConfigCheck.data as unknown as import("./configUtils.js").Config;
+        finalConfigCheck.data as unknown as Config;
       await saveConfig(configToSave);
       currentState.currentStep++;
       saveWizardState(currentState);
@@ -414,7 +414,7 @@ export async function runWizard(): Promise<void> {
     process.exitCode = 1; // Indicate failure
   } finally {
     // Close readline interface
-    if (rl && typeof (rl as any).closed === "boolean" && !(rl as any).closed) {
+    if (rl) {
       rl.close();
     }
   }

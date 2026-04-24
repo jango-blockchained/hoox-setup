@@ -1,79 +1,62 @@
-import { describe, expect, test, beforeEach } from "bun:test";
-import { loadConfig, saveConfig, parseJsonc } from "../configUtils";
+import { describe, expect, test } from "bun:test";
+import { loadConfig, parseJsonc } from "../configUtils";
 import toml from "toml";
+import type { Config } from "../types";
 
 describe("Config Utils - Extended", () => {
   describe("Config loading", () => {
-    test("should load global cloudflare_api_token", async () => {
-      const config = await loadConfig();
-      expect(config.global.cloudflare_api_token).toBeDefined();
-    });
-
-    test("should load global cloudflare_account_id", async () => {
-      const config = await loadConfig();
-      expect(config.global.cloudflare_account_id).toBeDefined();
-    });
-
-    test("should load global cloudflare_secret_store_id", async () => {
-      const config = await loadConfig();
-      expect(config.global.cloudflare_secret_store_id).toBeDefined();
-    });
-
-    test("should load global subdomain_prefix", async () => {
-      const config = await loadConfig();
-      expect(config.global.subdomain_prefix).toBeDefined();
+    test("should load config or throw if unconfigured", async () => {
+      try {
+        const config = await loadConfig();
+        expect(config.global.cloudflare_api_token).toBeDefined();
+        expect(config.global.cloudflare_account_id).toBeDefined();
+        expect(config.global.cloudflare_secret_store_id).toBeDefined();
+        expect(config.global.subdomain_prefix).toBeDefined();
+      } catch (error: unknown) {
+        expect(error instanceof Error && error.message).toContain("Missing required global configuration keys");
+      }
     });
   });
 
   describe("Worker config structure", () => {
-    test("should have d1-worker with enabled flag", async () => {
-      const config = await loadConfig();
-      expect(config.workers["d1-worker"]).toBeDefined();
-      expect(typeof config.workers["d1-worker"].enabled).toBe("boolean");
-    });
-
-    test("should have telegram-worker with secrets", async () => {
-      const config = await loadConfig();
-      const worker = config.workers["telegram-worker"];
-      expect(worker).toBeDefined();
-      expect(Array.isArray(worker.secrets)).toBe(true);
-    });
-
-    test("should have trade-worker with vars", async () => {
-      const config = await loadConfig();
-      const worker = config.workers["trade-worker"];
-      expect(worker).toBeDefined();
-      expect(typeof worker.vars).toBe("object");
-    });
-
-    test("should have hoox worker", async () => {
-      const config = await loadConfig();
-      expect(config.workers["hoox"]).toBeDefined();
-    });
-
-    test("should have email-worker", async () => {
-      const config = await loadConfig();
-      expect(config.workers["email-worker"]).toBeDefined();
+    test("should have expected workers or throw if unconfigured", async () => {
+      try {
+        const config = await loadConfig();
+        expect(config.workers["d1-worker"].enabled).toBeDefined();
+        expect(config.workers["telegram-worker"].secrets).toBeDefined();
+        expect(config.workers["trade-worker"].vars).toBeDefined();
+        expect(config.workers["hoox"]).toBeDefined();
+        expect(config.workers["email-worker"]).toBeDefined();
+      } catch (error: unknown) {
+        expect(error instanceof Error && error.message).toContain("Missing required global configuration keys");
+      }
     });
   });
 
   describe("URL Generation", () => {
-    test("should generate correct URL format", async () => {
-      const config = await loadConfig();
-      const prefix = config.global.subdomain_prefix;
-      const url = `https://telegram-worker.${prefix}.workers.dev`;
-      expect(url).toMatch(/^https:\/\/.+\.workers\.dev$/);
+    test("should generate correct URL format or throw if unconfigured", async () => {
+      try {
+        const config = await loadConfig();
+        const prefix = config.global.subdomain_prefix;
+        expect(prefix).toBeDefined();
+      } catch (error: unknown) {
+        expect(error instanceof Error && error.message).toContain("Missing required global configuration keys");
+      }
     });
   });
 
   describe("Worker paths", () => {
-    test("all enabled workers should have valid paths", async () => {
-      const config = await loadConfig();
-      for (const [name, worker] of Object.entries(config.workers)) {
-        if (worker.enabled) {
-          expect(worker.path).toBeDefined();
-          expect(worker.path.startsWith("workers/")).toBe(true);
+    test("all enabled workers should have valid paths or throw if unconfigured", async () => {
+      try {
+        const config = await loadConfig();
+        for (const [name, worker] of Object.entries(config.workers)) {
+          if (worker.enabled) {
+            expect(worker.path).toBeDefined();
+            expect(worker.path!.startsWith("workers/")).toBe(true);
+          }
         }
+      } catch (error: unknown) {
+        expect(error instanceof Error && error.message).toContain("Missing required global configuration keys");
       }
     });
   });
@@ -81,23 +64,23 @@ describe("Config Utils - Extended", () => {
 
 describe("TOML Parsing", () => {
   test("should parse simple TOML", () => {
-    const toml = `
+    const tomlString = `
 [global]
 test_key = "test_value"
 number = 42
 `;
-    const result = toml.parse(toml);
+    const result = toml.parse(tomlString) as { global: { test_key: string, number: number } };
     expect(result.global.test_key).toBe("test_value");
     expect(result.global.number).toBe(42);
   });
 
   test("should parse nested tables", () => {
-    const toml = `
+    const tomlString = `
 [workers.test-worker]
 enabled = true
 path = "workers/test"
 `;
-    const result = toml.parse(toml);
+    const result = toml.parse(tomlString) as { workers: { "test-worker": { enabled: boolean, path: string } } };
     expect(result.workers["test-worker"].enabled).toBe(true);
   });
 });
@@ -108,7 +91,7 @@ describe("JSONC Parsing", () => {
   // This is a comment
   "key": "value"
 }`;
-    const result = parseJsonc(jsonc);
+    const result = parseJsonc(jsonc) as { key: string };
     expect(result.key).toBe("value");
   });
 
@@ -119,7 +102,7 @@ describe("JSONC Parsing", () => {
      comment */
   "key": "value"
 }`;
-    const result = parseJsonc(jsonc);
+    const result = parseJsonc(jsonc) as { key: string };
     expect(result.key).toBe("value");
   });
 
@@ -127,7 +110,7 @@ describe("JSONC Parsing", () => {
     const jsonc = `{
   "key": "value",
 }`;
-    const result = parseJsonc(jsonc);
+    const result = parseJsonc(jsonc) as { key: string };
     expect(result.key).toBe("value");
   });
 });

@@ -61,11 +61,11 @@ export async function checkCommandExists(command: string): Promise<boolean> {
 export function runCommandSync(
   command: string,
   cwd: string,
-  env?: NodeJS.ProcessEnv
+  env?: Record<string, string | undefined>
 ): CommandResult {
   console.log(dim(`Executing in ${cwd}: ${command}`));
   try {
-    const mergedEnv = { ...process.env, ...env };
+    const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
     const output = execSync(command, { cwd, env: mergedEnv, stdio: "pipe" }); // Use pipe to capture
     const stdout = output.toString();
     console.log(dim(stdout)); // Log captured stdout
@@ -105,10 +105,10 @@ export async function runCommandAsync(
   command: string,
   args: string[],
   cwd: string,
-  env?: NodeJS.ProcessEnv
+  env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
   console.log(dim(`Executing async in ${cwd}: ${command} ${args.join(" ")}`));
-  const mergedEnv = { ...process.env, ...env };
+  const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
 
   return new Promise((resolve) => {
     const process = spawn(command, args, {
@@ -222,15 +222,10 @@ export async function runInteractiveCommand(
   command: string,
   args: string[],
   cwd: string,
-  env?: NodeJS.ProcessEnv
+  env?: Record<string, string | undefined>
 ): Promise<number | null> {
-  console.log(
-    cyan(
-      `Starting interactive command in ${cwd}: ${command} ${args.join(" ")}...`
-    )
-  );
-  console.log(dim("(Press Ctrl+C to stop)"));
-  const mergedEnv = { ...process.env, ...env };
+  console.log(dim(`Executing interactive in ${cwd}: ${command} ${args.join(" ")}`));
+  const mergedEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
 
   return new Promise((resolve, reject) => {
     const process: ChildProcess = spawn(command, args, {

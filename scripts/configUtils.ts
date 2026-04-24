@@ -2,7 +2,7 @@ import path from "node:path";
 import { parse as parseToml } from "toml";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";
 
-function stringifyToml(obj: any): string {
+export function stringifyToml(obj: any): string {
   function serialize(value: any, prefix = ""): string {
     let result = "";
 
@@ -53,18 +53,7 @@ interface WorkerConfig {
   [key: string]: unknown;
 }
 
-interface GlobalConfig {
-  cloudflare_api_token: string;
-  cloudflare_account_id: string;
-  cloudflare_secret_store_id: string;
-  subdomain_prefix: string;
-  [key: string]: unknown;
-}
-
-export interface Config {
-  global: GlobalConfig;
-  workers: Record<string, WorkerConfig>;
-}
+export { Config, GlobalConfig, PagesConfig };
 
 const WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc");
 const PAGES_JSONC = path.resolve(process.cwd(), "pages.jsonc");
@@ -213,7 +202,7 @@ export async function saveConfig(config: Config): Promise<void> {
     if (format === "jsonc") {
       content = JSON.stringify(config, null, 2);
     } else {
-      content = stringifyToml(config as any);
+      content = stringifyToml(config);
     }
 
     await Bun.file(userConfig).write(content);
