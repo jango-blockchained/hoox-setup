@@ -1,7 +1,19 @@
-import { describe, expect, test } from "bun:test";
-import { loadConfig, parseJsonc } from "../configUtils";
+import { describe, expect, test, beforeAll, afterAll } from "bun:test";
+import path from "node:path";
+
+const originalCwd = process.cwd;
+
+beforeAll(() => {
+  process.cwd = () => path.resolve(originalCwd(), "../../");
+});
+
+afterAll(() => {
+  process.cwd = originalCwd;
+});
+
+import { loadConfig, parseJsonc } from "../src/configUtils.js";
 import toml from "toml";
-import type { Config } from "../types";
+import type { Config } from "../src/types.js";
 
 describe("Config Utils - Extended", () => {
   describe("Config loading", () => {

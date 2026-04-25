@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parse as parseToml } from "toml";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";
 
 export function stringifyToml(obj: any): string {
@@ -47,23 +46,12 @@ export function stringifyToml(obj: any): string {
   return serialize(obj);
 }
 
-interface WorkerConfig {
-  enable?: boolean;
-  secrets?: string[];
-  vars?: Record<string, string>;
-  [key: string]: unknown;
-}
-
 export { Config, GlobalConfig, PagesConfig };
 
-const WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc");
-const PAGES_JSONC = path.resolve(process.cwd(), "pages.jsonc");
-const WORKERS_example = path.resolve(process.cwd(), "workers.jsonc.example");
-const PAGES_example = path.resolve(process.cwd(), "pages.jsonc.example");
-const CONFIG_TOML = path.resolve(process.cwd(), "config.toml");
-const CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc");
-const EXAMPLE_CONFIG_TOML = path.resolve(process.cwd(), "config.toml.example");
-const EXAMPLE_CONFIG_JSONC = path.resolve(process.cwd(), "config.jsonc.example");
+const getWorkersJsoncPath = () => path.resolve(process.cwd(), "workers.jsonc");
+const getPagesJsoncPath = () => path.resolve(process.cwd(), "pages.jsonc");
+const getWorkersExamplePath = () => path.resolve(process.cwd(), "workers.jsonc.example");
+const getPagesExamplePath = () => path.resolve(process.cwd(), "pages.jsonc.example");
 
 export function parseJsonc(content: string): unknown {
   // Remove single-line comments (only at start of line with optional whitespace)
@@ -77,84 +65,49 @@ export function parseJsonc(content: string): unknown {
   return JSON.parse(jsonContent);
 }
 
-async function determineConfigFormat(): Promise<{
-  userConfig: string;
-  exampleConfig: string;
-  format: "jsonc" | "toml";
-}> {
-  if (await Bun.file(WORKERS_JSONC).exists()) {
-    return { userConfig: WORKERS_JSONC, exampleConfig: WORKERS_example, format: "jsonc" };
-  }
-
-  if (await Bun.file(CONFIG_JSONC).exists()) {
-    return { userConfig: CONFIG_JSONC, exampleConfig: EXAMPLE_CONFIG_JSONC, format: "jsonc" };
-  }
-
-  if (await Bun.file(CONFIG_TOML).exists()) {
-    return { userConfig: CONFIG_TOML, exampleConfig: EXAMPLE_CONFIG_TOML, format: "toml" };
-  }
-
-  if (await Bun.file(WORKERS_example).exists()) {
-    return { userConfig: WORKERS_JSONC, exampleConfig: WORKERS_example, format: "jsonc" };
-  }
-
-  return { userConfig: CONFIG_TOML, exampleConfig: EXAMPLE_CONFIG_TOML, format: "toml" };
-}
-
 export async function loadConfig(): Promise<Config> {
-  const { userConfig, exampleConfig, format } = await determineConfigFormat();
+  console.log(`Using JSONC configuration format`);
 
-  console.log(`Using ${format.toUpperCase()} configuration format`);
-
-  const userFile = Bun.file(userConfig);
-  const exampleFile = Bun.file(exampleConfig);
+  const userFile = Bun.file(getWorkersJsoncPath());
+  const exampleFile = Bun.file(getWorkersExamplePath());
 
   let userConfigContent = "";
   if (await userFile.exists()) {
     userConfigContent = await userFile.text();
-    console.log(`Loaded configuration from ${userConfig}`);
+    console.log(`Loaded configuration from ${getWorkersJsoncPath()}`);
   } else {
-    console.warn(`Warning: ${userConfig} not found. Using example configuration as base.`);
+    console.warn(`Warning: ${getWorkersJsoncPath()} not found. Using example configuration as base.`);
   }
 
   if (!await exampleFile.exists()) {
-    throw new Error(`Example config file ${exampleConfig} not found.`);
+    throw new Error(`Example config file ${getWorkersExamplePath()} not found.`);
   }
   const exampleConfigContent = await exampleFile.text();
 
   let userConfigObj: Partial<Config> = {};
   if (userConfigContent) {
     try {
-      if (format === "jsonc") {
-        userConfigObj = parseJsonc(userConfigContent) as Partial<Config>;
-      } else {
-        userConfigObj = parseToml(userConfigContent) as Partial<Config>;
-      }
+      userConfigObj = parseJsonc(userConfigContent) as Partial<Config>;
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to parse ${userConfig}: ${errorMsg}`);
+      throw new Error(`Failed to parse ${getWorkersJsoncPath()}: ${errorMsg}`);
     }
   }
 
   let exampleConfigObj: Config;
   try {
-    let parsedExample;
-    if (format === "jsonc") {
-      parsedExample = parseJsonc(exampleConfigContent) as Partial<Config>;
-    } else {
-      parsedExample = parseToml(exampleConfigContent) as Partial<Config>;
-    }
+    const parsedExample = parseJsonc(exampleConfigContent) as Partial<Config>;
 
     if (typeof parsedExample !== "object" || parsedExample === null) {
-      throw new Error(`Example config ${exampleConfig} did not parse to an object.`);
+      throw new Error(`Example config ${getWorkersExamplePath()} did not parse to an object.`);
     }
     if (!("global" in parsedExample) || !("workers" in parsedExample)) {
-      throw new Error(`Example config ${exampleConfig} missing required 'global' or 'workers' sections.`);
+      throw new Error(`Example config ${getWorkersExamplePath()} missing required 'global' or 'workers' sections.`);
     }
     exampleConfigObj = parsedExample as Config;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to parse ${exampleConfig}: ${errorMsg}`);
+    throw new Error(`Failed to parse ${getWorkersExamplePath()}: ${errorMsg}`);
   }
 
   const mergedConfig: Config = {
@@ -183,47 +136,36 @@ export async function loadConfig(): Promise<Config> {
   let missingKeys = false;
   for (const key of requiredGlobalKeys) {
     if (!mergedConfig.global[key]) {
-      console.error(`Error: Missing required global configuration key "${key}" in ${userConfig} (or example). Please define it.`);
+      console.error(`Error: Missing required global configuration key "${key}" in ${getWorkersJsoncPath()} (or example). Please define it.`);
       missingKeys = true;
     }
   }
 
   if (missingKeys) {
-    throw new Error(`Missing required global configuration keys in ${userConfig}. Please check the errors above.`);
+    throw new Error(`Missing required global configuration keys in ${getWorkersJsoncPath()}. Please check the errors above.`);
   }
 
   return mergedConfig;
 }
 
 export async function saveConfig(config: Config): Promise<void> {
-  const { userConfig, format } = await determineConfigFormat();
-
   try {
-    let content: string;
-    if (format === "jsonc") {
-      content = JSON.stringify(config, null, 2);
-    } else {
-      content = stringifyToml(config);
-    }
-
-    await Bun.file(userConfig).write(content);
-    console.log(`Configuration saved successfully to ${userConfig}`);
+    const content = JSON.stringify(config, null, 2);
+    await Bun.file(getWorkersJsoncPath()).write(content);
+    console.log(`Configuration saved successfully to ${getWorkersJsoncPath()}`);
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`Error saving configuration to ${userConfig}:`, errorMsg);
+    console.error(`Error saving configuration to ${getWorkersJsoncPath()}:`, errorMsg);
     throw new Error(`Failed to save config: ${errorMsg}`);
   }
 }
 
 export async function loadPagesConfig(): Promise<{ global: GlobalConfig; pages: Record<string, PagesConfig> }> {
-  const pagesFile = Bun.file(PAGES_JSONC);
-  const pagesJson = PAGES_JSONC.replace(".jsonc", ".json");
+  const pagesFile = Bun.file(getPagesJsoncPath());
 
   if (!await pagesFile.exists()) {
-    if (!await Bun.file(pagesJson).exists()) {
-      console.warn("No pages.jsonc or pages.json found. Pages config will be empty.");
-      return { global: {} as GlobalConfig, pages: {} };
-    }
+    console.warn("No pages.jsonc found. Pages config will be empty.");
+    return { global: {} as GlobalConfig, pages: {} };
   }
 
   try {
@@ -240,11 +182,11 @@ export async function loadPagesConfig(): Promise<{ global: GlobalConfig; pages: 
 export async function savePagesConfig(pagesConfig: { global: GlobalConfig; pages: Record<string, PagesConfig> }): Promise<void> {
   try {
     const content = JSON.stringify(pagesConfig, null, 2);
-    await Bun.file(PAGES_JSONC).write(content);
-    console.log(`Pages configuration saved successfully to ${PAGES_JSONC}`);
+    await Bun.file(getPagesJsoncPath()).write(content);
+    console.log(`Pages configuration saved successfully to ${getPagesJsoncPath()}`);
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`Error saving pages configuration to ${PAGES_JSONC}:`, errorMsg);
+    console.error(`Error saving pages configuration to ${getPagesJsoncPath()}:`, errorMsg);
     throw new Error(`Failed to save pages config: ${errorMsg}`);
   }
 }

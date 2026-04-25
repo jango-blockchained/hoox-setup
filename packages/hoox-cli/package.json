@@ -1,0 +1,23 @@
+{
+  "name": "@hoox/cli",
+  "version": "1.0.0",
+  "description": "Hoox Worker Management CLI",
+  "type": "module",
+  "bin": {
+    "hoox": "./bin/hoox.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "toml": "^3.0.0",
+    "ansis": "^3.17.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.31",
+    "bun-types": "^1.3.13",
+    "typescript": "^5.0.0"
+  }
+}

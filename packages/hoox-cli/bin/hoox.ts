@@ -10,7 +10,7 @@ import * as crypto from "node:crypto"; // Needed?
 import { readdir } from "node:fs/promises";
 
 // Import types
-import { Config, WizardState, GlobalConfig } from "./types.js";
+import { Config, WizardState, GlobalConfig } from "../src/types.js";
 
 // Import utils
 import {
@@ -31,10 +31,10 @@ import {
   promptForSecret,
   getCloudflareToken,
   runInteractiveCommand,
-} from "./utils.js";
+} from "../src/utils.js";
 
 // Import config utils
-import { loadConfig, saveConfig } from "./configUtils.js";
+import { loadConfig, saveConfig } from "../src/configUtils.js";
 
 // Import key utils
 import {
@@ -44,7 +44,7 @@ import {
   generateKey,
   getKeyFilePath,
   readKeys,
-} from "./keyUtils.js";
+} from "../src/keyUtils.js";
 
 // Import worker commands
 import {
@@ -57,16 +57,17 @@ import {
   updateInternalUrls,
   checkSecretBindings,
   printAvailableWorkers,
-} from "./workerCommands.js";
+  cloneWorkerRepositories,
+} from "../src/workerCommands.js";
 
 // Import wizard functions
-import { runWizard } from "./wizard.js";
+import { runWizard } from "../src/wizard.js";
 
 // Import housekeeping
-import { runHousekeeping } from "./housekeeping.js";
+import { runHousekeeping } from "../src/housekeeping.js";
 
 // Import WAF
-import { setupWAF } from "./wafCommands.js";
+import { setupWAF } from "../src/wafCommands.js";
 
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
@@ -90,7 +91,7 @@ async function main() {
     )
     .action(async () => {
       // Dynamically import and run the check-setup script
-      import("./check-setup.js").catch((e) => {
+      import("../src/check-setup.js").catch((e) => {
         print_error(`Failed to run check-setup: ${e.message}`);
         process.exit(1);
       });
@@ -545,176 +546,6 @@ async function main() {
   ) {
     rlInstance.close();
   }
-}
-
-/**
- * Checks if the workers directory is empty and provides an interactive prompt to clone worker repositories.
- * @param direct If true, clone repositories directly instead of using git submodules
- */
-export async function cloneWorkerRepositories(
-  direct: boolean = false
-): Promise<void> {
-  const workersDir = path.resolve(process.cwd(), "workers");
-
-  // Create workers directory if it doesn't exist
-  if (!(fs.existsSync(workersDir))) {
-    console.log(yellow("Workers directory does not exist. Creating it..."));
-    fs.mkdirSync(workersDir, { recursive: true });
-  }
-
-  // Check if the workers directory is empty
-  const files = await readdir(workersDir);
-  const nonHiddenFiles = files.filter((file) => !file.startsWith("."));
-
-  if (nonHiddenFiles.length > 0) {
-    console.log(yellow("Workers directory is not empty. Existing workers:"));
-    nonHiddenFiles.forEach((file) => console.log(`- ${file}`));
-
-    const proceed = await rl.question(
-      blue("Do you want to proceed with cloning additional workers? (y/N): ")
-    );
-    if (proceed.toLowerCase() !== "y") {
-      console.log(dim("Aborted worker clone operation."));
-      return;
-    }
-  }
-
-  // Define available worker repositories
-  const availableWorkers = [
-    {
-      name: "d1-worker",
-      repo: "https://github.com/jango-blockchained/d1-worker.git",
-      description: "Worker for D1 database operations",
-    },
-    {
-      name: "telegram-worker",
-      repo: "https://github.com/jango-blockchained/telegram-worker.git",
-      description: "Worker for Telegram bot integration",
-    },
-    {
-      name: "trade-worker",
-      repo: "https://github.com/jango-blockchained/trade-worker.git",
-      description: "Worker for trading operations",
-    },
-    {
-      name: "web3-wallet-worker",
-      repo: "https://github.com/jango-blockchained/web3-wallet-worker.git",
-      description: "Worker for web3 wallet integration",
-    },
-    {
-      name: "hoox",
-      repo: "https://github.com/jango-blockchained/hoox.git",
-      description: "Worker for receiving webhook calls",
-    },
-    {
-      name: "home-assistant-worker",
-      repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
-      description: "Worker for Home Assistant integration",
-    },
-    {
-      name: "email-worker",
-      repo: "https://github.com/jango-blockchained/email-worker.git",
-      description:
-        "Worker for email webhook processing (Gmail, Mailgun, SendGrid)",
-    },
-  ];
-
-  console.log(blue("\nAvailable worker repositories to clone:"));
-  availableWorkers.forEach((worker, index) => {
-    console.log(`${index + 1}. ${yellow(worker.name)} - ${worker.description}`);
-  });
-  console.log(
-    `${availableWorkers.length + 1}. ${yellow("All workers")} - Clone all available workers`
-  );
-
-  const selection = await rl.question(
-    blue("Enter the numbers of workers to clone (comma-separated) or 'all': ")
-  );
-
-  let selectedWorkers: typeof availableWorkers = [];
-
-  if (selection.toLowerCase() === "all") {
-    selectedWorkers = [...availableWorkers];
-  } else {
-    const selectedIndices = selection
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .map((s) => parseInt(s, 10) - 1);
-
-    if (selectedIndices.includes(availableWorkers.length)) {
-      // Selected "All workers" option
-      selectedWorkers = [...availableWorkers];
-    } else {
-      // Filter valid indices and map to worker objects
-      selectedWorkers = selectedIndices
-        .filter((i) => i >= 0 && i < availableWorkers.length)
-        .map((i) => availableWorkers[i])
-        .filter(
-          (worker): worker is (typeof availableWorkers)[0] =>
-            worker !== undefined
-        );
-    }
-  }
-
-  if (selectedWorkers.length === 0) {
-    console.log(yellow("No valid workers selected. Aborting."));
-    return;
-  }
-
-  console.log(
-    blue(`\nCloning ${selectedWorkers.length} worker repositories...`)
-  );
-
-  for (const worker of selectedWorkers) {
-    const targetDir = path.join(workersDir, worker.name);
-
-    // Skip if directory already exists
-    if ((fs.existsSync(targetDir))) {
-      console.log(
-        yellow(`Worker directory ${worker.name} already exists. Skipping.`)
-      );
-      continue;
-    }
-
-    try {
-      if (direct) {
-        // Clone directly
-        console.log(dim(`Cloning ${worker.name} directly...`));
-        const res = await runCommandAsync("git", ["clone", worker.repo, targetDir], process.cwd());
-        if (!res.success) throw new Error(res.stderr);
-        print_success(`Successfully cloned ${worker.name}`);
-      } else {
-        // Clone as submodule
-        console.log(dim(`Adding ${worker.name} as git submodule...`));
-        const res = await runCommandAsync("git", ["submodule", "add", worker.repo, targetDir], process.cwd());
-        if (!res.success) throw new Error(res.stderr);
-        print_success(`Successfully cloned ${worker.name}`);
-      }
-    } catch (err) {
-      const error = err as Error;
-      print_error(`Failed to clone ${worker.name}: ${error.message}`);
-    }
-  }
-
-  if (!direct) {
-    try {
-      // Initialize and update submodules
-      console.log(dim("Initializing and updating git submodules..."));
-      const res = await runCommandAsync("git", ["submodule", "update", "--init", "--recursive"], process.cwd());
-      if (!res.success) throw new Error(res.stderr);
-      print_success("Git submodules initialized and updated successfully");
-    } catch (err) {
-      const error = err as Error;
-      print_error(`Failed to update submodules: ${error.message}`);
-    }
-  }
-
-  console.log(green("\nWorker clone operations completed."));
-  console.log(blue("Next steps:"));
-  console.log("1. Run 'bun run manage.ts init' to complete setup");
-  console.log("2. Configure settings in config.toml or config.jsonc");
-  console.log("3. Run 'bun run manage.ts workers setup' to configure workers");
 }
 
 main().catch((error) => {

@@ -255,7 +255,7 @@ export async function getCloudflareToken(
   }
 
   print_warning(
-    "Cloudflare API Token not found in config.toml or environment variables."
+    "Cloudflare API Token not found in workers.jsonc or environment variables."
   );
   const token = await rl.question(
     blue("Please enter your Cloudflare API Token: ")
