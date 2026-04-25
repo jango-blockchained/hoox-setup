@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseJsonc, stringifyJsonc, isValidJsonc } from "../jsoncUtils";
+import { parseJsonc, stringifyJsonc, isValidJsonc } from "../src/jsoncUtils.js";
 
 describe("JSONC Utilities", () => {
   describe("parseJsonc", () => {

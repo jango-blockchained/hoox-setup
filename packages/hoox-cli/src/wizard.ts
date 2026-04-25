@@ -24,7 +24,7 @@ import {
   printWizardStep,
 } from "./wizardSteps.js";
 
-import { cloneWorkerRepositories } from "./manage.js";
+import { cloneWorkerRepositories } from "./workerCommands.js";
 
 const STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
 const TOTAL_WIZARD_STEPS = 7;
@@ -215,7 +215,7 @@ export async function runWizard(): Promise<void> {
   // Check which config format to use
   let configFormat: "jsonc" | "toml" = "toml"; // Default to TOML
   const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
-  const configTomlPath = path.resolve(process.cwd(), "config.toml");
+  const configTomlPath = path.resolve(process.cwd(), "workers.jsonc");
 
   // If config.jsonc exists, use JSONC format, otherwise use TOML
   if ((await Bun.file(configJsoncPath).exists())) {
@@ -223,7 +223,7 @@ export async function runWizard(): Promise<void> {
     console.log(ansis.blue("Using JSONC configuration format (config.jsonc)"));
   } else if ((await Bun.file(configTomlPath).exists())) {
     configFormat = "toml";
-    console.log(ansis.blue("Using TOML configuration format (config.toml)"));
+    console.log(ansis.blue("Using TOML configuration format (workers.jsonc)"));
   } else {
     // Neither exists, check for example files to determine format
     const exampleJsoncPath = path.resolve(
@@ -240,7 +240,7 @@ export async function runWizard(): Promise<void> {
     } else {
       console.log(
         ansis.blue(
-          "No config file found. Will create config.toml based on example"
+          "No config file found. Will create workers.jsonc based on example"
         )
       );
     }
@@ -248,12 +248,12 @@ export async function runWizard(): Promise<void> {
 
   // Initialize state if null or invalid
   if (!state) {
-    // Attempt to load base config from config.toml or example
+    // Attempt to load base config from workers.jsonc or example
     let initialConfig: Partial<Config> = {};
     try {
       initialConfig = await loadConfig(); // Load config might return defaults or throw
       print_success(
-        `Loaded initial configuration for wizard state from ${configFormat === "jsonc" ? "config.jsonc" : "config.toml"}.`
+        `Loaded initial configuration for wizard state from ${configFormat === "jsonc" ? "config.jsonc" : "workers.jsonc"}.`
       );
     } catch (configError: unknown) {
       const errorMsg =

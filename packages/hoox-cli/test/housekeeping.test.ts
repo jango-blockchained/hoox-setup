@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { runHousekeeping, generateHousekeepingReport, type HousekeepingResult } from '../scripts/housekeeping';
-import type { Config } from '../scripts/types';
+import { runHousekeeping, generateHousekeepingReport, type HousekeepingResult } from '../src/housekeeping.js';
+import type { Config } from '../src/types.js';
 
-vi.mock('../scripts/utils', () => ({
+vi.mock('../src/utils.js', () => ({
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
   green: (s: string) => `\x1b[32m${s}\x1b[0m`,
   yellow: (s: string) => `\x1b[33m${s}\x1b[0m`,

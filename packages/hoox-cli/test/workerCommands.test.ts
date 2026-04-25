@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, test, beforeEach, jest } from "bun:test";
-import type { WorkerConfig } from "../types.js";
+import type { WorkerConfig } from "../src/types.js";
 
 describe("Worker Management - Extended Tests", () => {
   describe("Worker Selection Logic", () => {
