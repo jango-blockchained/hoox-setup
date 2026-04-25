@@ -64,6 +64,9 @@ import { runWizard } from "./wizard.js";
 // Import housekeeping
 import { runHousekeeping } from "./housekeeping.js";
 
+// Import WAF
+import { setupWAF } from "./wafCommands.js";
+
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
 // const CONFIG_PATH = path.resolve(process.cwd(), "config.toml"); // Maybe not needed here?
@@ -239,6 +242,47 @@ async function main() {
     .action(async () => {
       const config = await loadConfig();
       await deployPages(config);
+    });
+
+  // --- WAF Command ---
+  program
+    .command("waf")
+    .description("Configure Cloudflare WAF rules for IP Allowlist and Rate Limiting")
+    .action(async () => {
+      const config = await loadConfig();
+      await setupWAF(config);
+    });
+
+  // --- R2 Setup Command ---
+  program
+    .command("r2")
+    .description("Provision required R2 buckets (e.g., hoox-system-logs)")
+    .action(async () => {
+      console.log(blue("\n--- Provisioning R2 Buckets ---"));
+      
+      const bucketsToCreate = ["trade-reports", "user-uploads", "hoox-system-logs"];
+      
+      for (const bucket of bucketsToCreate) {
+        console.log(dim(`Checking/Creating bucket: ${bucket}...`));
+        const checkRes = runCommandSync(`bunx wrangler r2 bucket list`, process.cwd());
+        
+        if (checkRes.success && checkRes.stdout.includes(bucket)) {
+          print_success(`Bucket ${bucket} already exists.`);
+        } else {
+          const createRes = runCommandSync(`bunx wrangler r2 bucket create ${bucket}`, process.cwd());
+          if (createRes.success) {
+            print_success(`Created R2 bucket: ${bucket}`);
+          } else {
+             // Sometimes it fails if it already exists but list didn't parse well
+             if (createRes.stderr.includes("already exists") || createRes.stdout.includes("already exists")) {
+                 print_success(`Bucket ${bucket} already exists.`);
+             } else {
+                 print_error(`Failed to create bucket ${bucket}: ${createRes.stderr || createRes.stdout}`);
+             }
+          }
+        }
+      }
+      console.log(green("\nR2 Provisioning Complete."));
     });
 
   // --- Key Management Commands ---
