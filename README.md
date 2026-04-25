@@ -87,6 +87,10 @@ graph TB
         TG["💬 Telegram<br/>Commands"]
     end
 
+    subgraph "Cloudflare® WAF"
+        WAF["🛡️ IP Allowlist & Rate Limits"]
+    end
+
     subgraph "Cloudflare® Edge Network (Zero Latency)"
         hoox["🔐 hoox<br/>Gateway Firewall"]
         trade["📈 trade-worker<br/>Execution Engine"]
@@ -103,16 +107,18 @@ graph TB
         DB[(🟠 🗄️ D1 SQL)]
         Q[(🟠 📨 Queue)]
         DO[(🟠 🛡️ Durable Obj)]
+        R2[(🟠 🪣 R2 Logs)]
     end
 
-    TV --> hoox
+    TV --> WAF
+    WAF --> hoox
     TG --> hoox
     TG --> telegram
     dash --> KV
     dash --> hoox
 
-    hoox -->|Isolated Binding| trade
-    hoox -->|Queue | Q
+    hoox -->|Fast Path Binding| trade
+    hoox -->|Fallback Queue| Q
     hoox -->|Durable Obj| DO
     hoox -->|Isolated Binding| telegram
     agent -->|Isolated Binding| trade
@@ -124,6 +130,7 @@ graph TB
 
     hoox -.-> KV
     trade -.-> DB
+    trade -.-> R2
     telegram -.-> AI
     agent -.-> AI
 ```
@@ -133,17 +140,17 @@ graph TB
 ## 📋 The 8 Pillars of Hoox (Workers)
 
 ### 🔐 hoox (The Gateway)
-The impenetrable front door. It validates incoming TradingView webhooks, checks IP allowlists, verifies API keys, and routes valid signals to the execution engine.
-- **Queue Producer**: Sends trades to async queue for guaranteed delivery
-- **Queue Modes**: `queue_failover` (default) or `queue_everywhere`
+The impenetrable front door. It validates incoming TradingView webhooks, verifies API keys, and routes valid signals to the execution engine.
+- **WAF Integration**: IP allowlisting and rate limiting are handled via Cloudflare WAF to drop malicious traffic before it even hits the worker.
+- **Fast Path Execution**: Attempts to execute trades instantly via direct Service Bindings, falling back to queues only if necessary.
 - **Idempotency**: Prevents duplicate trades using Durable Objects
-- **Rate Limiting**: 10 trades/minute protection
+- **Trace IDs**: Generates distributed trace IDs for end-to-end signal tracking.
 
 ### 📈 trade-worker (The Execution Engine)
-The core sniper. Executes Long/Short orders simultaneously across MEXC, Binance, and Bybit. Handles leverage calculation, size mapping, and logs every action to D1.
-- **Queue Consumer**: Processes trades from queue with guaranteed delivery
-- **Retry Logic**: 5 attempts with exponential backoff (0s, 30s, 1m, 5m, 15m)
-- **Dead Letter**: Failed trades logged to D1 after max retries
+The core sniper. Executes orders simultaneously across MEXC, Binance, and Bybit. Handles leverage calculation, size mapping, and dynamic routing.
+- **Dynamic Routing**: Uses an `ExchangeRouter` with `CONFIG_KV` to instantly redirect symbols to different exchanges without code deployment.
+- **Smart Placement**: Automatically executes on the Cloudflare edge node closest to the exchange's API servers.
+- **R2 Log Offloading**: Verbose request and response logs are saved to R2 (`hoox-system-logs`), preserving D1 write limits for critical financial data.
 ### 🧠 agent-worker (The Risk Manager)
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
 ### 📊 dashboard-worker (The Command Center)

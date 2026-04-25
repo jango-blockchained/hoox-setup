@@ -29,14 +29,22 @@ This document provides comprehensive documentation of the Hoox trading system ar
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Cloudflare WAF                                    │
+│  ┌─────────────┐  ┌─────────────┐                                           │
+│  │ IP Allowlist│  │ Rate Limits │                                           │
+│  └─────────────┘  └─────────────┘                                           │
+└─────────────────────────────────┬─────────────────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
 │                           hoox (Gateway)                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │ IP Allowlist│  │ Kill Switch │  │ Session Mgr │  │ Trade Router│  │
+│  │ Kill Switch │  │ Session Mgr │  │ Idempotency │  │ Trade Router│  │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │
 └─────────────────────────────────┬─────────────────────────────────────┘
                                   │
                     ┌─────────────┴─────────────┐
-                    │                           │
+                    │ Fast Path (Direct Bind)   │ Fallback (Queue)
                     ▼                           ▼
 ┌─────────────────────────────┐  ┌─────────────────────────────────────────────┐
 │    trade-worker (Execution)   │  │      telegram-worker (Notifications)        │
@@ -44,16 +52,20 @@ This document provides comprehensive documentation of the Hoox trading system ar
 │  │Binance │ │  MEXC Client │ │  │  │Telegram Bot │ │  AI Summarizer       │  │
 │  │Client  │ │Bybit Client │ │  │  │             │  │                     │  │
 │  └─────────┘ └─────────────┘ │  │  └─────────────┘ └─────────────────────┘  │
-└──────────────┬──────────────┘  └──────────────────��─┬────────────────────┘
+└──────────────┬──────────────┘  └───────────────────┬────────────────────┘
                │                                       │
                │          ┌─────────────┬────────────┘
                │          │             │
                ▼          ▼             ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      d1-worker (Data Layer)                           │
+│                      d1-worker (Data Layer) & R2 Storage              │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │              D1 Database (SQLite)                           │   │
-│  │  trade_signals │ trades │ positions │ balances │ system_logs │   │
+│  │  trade_signals │ trades │ positions │ balances             │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │              R2 Object Storage                              │   │
+│  │  hoox-system-logs │ trade-reports                          │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
                                    ▲
@@ -74,12 +86,12 @@ This document provides comprehensive documentation of the Hoox trading system ar
 
 | Step | Source | Destination | Description |
 |------|--------|-------------|-------------|
-| 1 | TradingView/Email | hoox | Webhook received |
-| 2 | hoox | IP allowlist | Validate IP |
-| 3 | hoox | kill switch | Check trading enabled |
-| 4 | hoox | trade-worker | Forward valid signal |
-| 5 | trade-worker | exchange API | Execute trade |
-| 6 | trade-worker | d1-worker | Log trade/signal |
+| 1 | TradingView/Email | WAF/hoox | Webhook received and WAF rules applied |
+| 2 | hoox | Idempotency DO | Prevent duplicate signals |
+| 3 | hoox | kill switch | Check trading enabled in KV |
+| 4 | hoox | trade-worker | Fast path direct execution (fallback to Queue) |
+| 5 | trade-worker | exchange API | Execute trade via Smart Placement |
+| 6 | trade-worker | d1-worker / R2 | Log trade data to D1, verbose logs to R2 |
 | 7 | trade-worker | telegram-worker | Send notification |
 | 8 | d1-worker | D1 | Persist data |
 | 9 | dashboard | d1-worker | Read for UI |
