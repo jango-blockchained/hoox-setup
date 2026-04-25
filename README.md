@@ -318,11 +318,11 @@ Traditional algorithmic trading is often complex and difficult to deploy. Hoox a
 
 ---
 
-## 🔮 Future Plans: Backtesting & Pinescript Execution
+## 🔮 Future Plans: Backtesting & Pine Script™ Execution
 
 Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike. 
 
-However, our long-term vision includes native, edge-based execution of trading logic. In the future, we plan to implement a **100% fully featured Pinescript parser, converter, and executor**. This will involve an AST (Abstract Syntax Tree) generator and a Python compiler, allowing you to run complex Pinescript strategies natively within the Cloudflare Workers ecosystem (see `PYNESCRIPT.md` for upcoming technical details).
+However, our long-term vision includes native, edge-based execution of trading logic. In the future, we plan to implement a **100% fully featured Pine Script™ parser, converter, and executor**. This will involve an AST (Abstract Syntax Tree) generator and a Python compiler, allowing you to run complex Pine Script™ strategies natively within the Cloudflare Workers ecosystem (see `PYNESCRIPT.md` for upcoming technical details).
 
 ---
 
@@ -337,3 +337,4 @@ Built with 🔥 on the Cloudflare® Edge.
 ---
 
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+*Pine Script™ and TradingView® are trademarks of TradingView, Inc. This project is an independent effort and is not affiliated with or endorsed by TradingView, Inc.*

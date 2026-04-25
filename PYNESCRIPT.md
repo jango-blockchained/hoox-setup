@@ -23,7 +23,7 @@ _Pine Script™ and TradingView® are trademarks of TradingView, Inc. This proje
 
 Pynescript is a Python toolchain for TradingView® Pine Script™ that provides:
 
-- **Parser & AST** — Parse Pine Script into a navigable Python AST
+- **Parser & AST** — Parse Pine Script™ into a navigable Python AST
 - **LSP Server** — Full language server for professional IDE integration
 - **Pro API** — Cloud API for live chart previews and backtests
 - **Evaluator** — Run scripts with real or mock market data
@@ -54,7 +54,7 @@ pynescript-lsp
 
 **VS Code / Antigravity IDE:**
 
-1. Install the [Pine Script extension](https://marketplace.visualstudio.com/) from the marketplace
+1. Install the [Pine Script™ extension](https://marketplace.visualstudio.com/) from the marketplace
 2. Open a `.pine` file — the LSP activates automatically
 
 **Neovim (with nvim-lspconfig):**
@@ -99,7 +99,7 @@ Cloud API for live chart previews and strategy backtesting:
 
 | Endpoint | Description | Tier |
 |----------|-------------|------|
-| `POST /run` | Execute Pine Script | Free |
+| `POST /run` | Execute Pine Script™ | Free |
 | `POST /preview/chart` | Generate chart thumbnail | Pro |
 | `POST /preview/indicator` | Indicator chart (SMA, EMA, RSI, MACD) | Pro |
 | `POST /backtest/quick` | Quick backtest with equity curve | Pro |
