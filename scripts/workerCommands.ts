@@ -34,7 +34,7 @@ async function setupD1Database(
   );
 
   const migrationsDir = path.join(workerDir, "migrations");
-  if ((await Bun.file(migrationsDir).exists())) {
+  if ((fs.existsSync(migrationsDir))) {
     console.log(
       dim(`Applying D1 migrations for ${dbName} from ${migrationsDir}...`)
     );
@@ -92,7 +92,7 @@ export async function setupWorkers(config: Config): Promise<void> {
     console.log(`\n--- Configuring worker: ${yellow(workerName)} ---`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!(await Bun.file(workerDir).exists())) {
+    if (!(fs.existsSync(workerDir))) {
       print_warning(
         `Directory not found for worker ${workerName} at ${workerDir}. Skipping.`
       );
@@ -558,7 +558,7 @@ export async function deployWorkers(config: Config): Promise<void> {
     console.log(`\n--- Deploying worker: ${yellow(workerName)} ---`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!(await Bun.file(workerDir).exists())) {
+    if (!(fs.existsSync(workerDir))) {
       print_warning(
         `Directory not found for worker ${workerName} at ${workerDir}. Skipping deployment.`
       );
@@ -798,7 +798,7 @@ export async function startDevServer(
   }
 
   const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
-  if (!(await Bun.file(workerDir).exists())) {
+  if (!(fs.existsSync(workerDir))) {
     print_error(
       `Directory not found for worker ${workerNameToStart} at ${workerDir}.`
     );
@@ -928,7 +928,7 @@ export async function runTests(
     const testDir = path.join(workerDir, "test"); // Standard test dir
     const packageJsonPath = path.join(workerDir, "package.json");
 
-    if (!(await Bun.file(workerDir).exists())) {
+    if (!(fs.existsSync(workerDir))) {
       print_error(
         `Directory not found for worker ${name} at ${workerDir}. Skipping tests.`
       );
@@ -965,7 +965,7 @@ export async function runTests(
 
     // Fallback to direct bun test if no script or no package.json
     if (testCommandArgs.length === 0) {
-      if (!(await Bun.file(testDir).exists())) {
+      if (!(fs.existsSync(testDir))) {
         console.log(
           yellow(
             `No test directory found at ${testDir} and no test script in package.json. Skipping tests for ${name}.`

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { describe, expect, test, beforeEach, jest } from "bun:test";
 import type { WorkerConfig } from "../types.js";
 

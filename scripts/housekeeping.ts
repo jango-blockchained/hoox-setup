@@ -70,7 +70,7 @@ export async function runHousekeeping(
 
     const workerDir = path.resolve(process.cwd(), definedPath);
 
-    if (!(await Bun.file(workerDir).exists())) {
+    if (!(fs.existsSync(workerDir))) {
       result.issues.push({
         worker: workerName,
         type: "error",
@@ -218,7 +218,7 @@ export async function runHousekeeping(
 
     // Check if worker has source files
     const srcDir = path.join(workerDir, "src");
-    if (!(await Bun.file(srcDir).exists())) {
+    if (!(fs.existsSync(srcDir))) {
       result.issues.push({
         worker: workerName,
         type: "warning",
@@ -433,7 +433,7 @@ export async function generateHousekeepingReport(
     }
 
     const workerDir = path.resolve(process.cwd(), definedPath);
-    if (!(await Bun.file(workerDir).exists())) {
+    if (!(fs.existsSync(workerDir))) {
       result.issues.push({
         worker: workerName,
         type: "error",

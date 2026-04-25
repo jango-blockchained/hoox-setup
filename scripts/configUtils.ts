@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { parse as parseToml } from "toml";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";

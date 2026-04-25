@@ -1,4 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, mock } from "bun:test";
+
+mock.module("server-only", () => {
+  return {};
+});
 
 describe("dashboard-worker imports", () => {
   test("middleware module exists", async () => {

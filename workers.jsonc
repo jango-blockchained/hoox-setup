@@ -1,69 +1,93 @@
 {
   "global": {
-    "cloudflare_api_token": "",
-    "cloudflare_account_id": "",
-    "cloudflare_secret_store_id": "",
-    "subdomain_prefix": ""
+    "cloudflare_api_token": "xxx",
+    "cloudflare_account_id": "debc6545e63bea36be059cbc82d80ec8",
+    "cloudflare_secret_store_id": "48433bc559a943f09d9d6c622e188fd5",
+    "subdomain_prefix": "cryptolinx"
   },
-
   "workers": {
     "d1-worker": {
       "enabled": true,
       "path": "workers/d1-worker",
       "vars": {
         "database_name": "my-database"
-      }
+      },
+      "deployed_url": "https://d1-worker.cryptolinx.workers.dev"
     },
-
     "telegram-worker": {
       "enabled": true,
       "path": "workers/telegram-worker",
       "vars": {},
-      "secrets": ["TELEGRAM_BOT_TOKEN"]
+      "secrets": [
+        "TELEGRAM_BOT_TOKEN"
+      ],
+      "deployed_url": "https://telegram-worker.cryptolinx.workers.dev"
     },
-
     "trade-worker": {
       "enabled": true,
       "path": "workers/trade-worker",
       "vars": {},
-      "secrets": ["API_SERVICE_KEY", "BINANCE_API_KEY", "BINANCE_API_SECRET", "MEXC_API_KEY", "MEXC_API_SECRET", "BYBIT_API_KEY", "BYBIT_API_SECRET"]
+      "secrets": [
+        "API_SERVICE_KEY",
+        "BINANCE_API_KEY",
+        "BINANCE_API_SECRET",
+        "MEXC_API_KEY",
+        "MEXC_API_SECRET",
+        "BYBIT_API_KEY",
+        "BYBIT_API_SECRET"
+      ],
+      "deployed_url": "https://trade-worker.cryptolinx.workers.dev"
     },
-
     "web3-wallet-worker": {
       "enabled": true,
       "path": "workers/web3-wallet-worker",
       "vars": {},
-      "secrets": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"]
+      "secrets": [
+        "WALLET_MNEMONIC_SECRET",
+        "WALLET_PK_SECRET"
+      ],
+      "deployed_url": "https://web3-wallet-worker.cryptolinx.workers.dev"
     },
-
     "hoox": {
       "enabled": true,
       "path": "workers/hoox",
       "vars": {},
-      "secrets": ["WEBHOOK_API_KEY_BINDING"]
+      "secrets": [
+        "WEBHOOK_API_KEY_BINDING"
+      ],
+      "deployed_url": "https://hoox.cryptolinx.workers.dev"
     },
-
     "home-assistant": {
       "enabled": false,
       "path": "workers/home-assistant-worker",
       "vars": {},
-      "secrets": ["HA_TOKEN", "HA_SECURE_URL"]
+      "secrets": [
+        "HA_TOKEN",
+        "HA_SECURE_URL"
+      ]
     },
-
     "agent-worker": {
       "enabled": true,
       "path": "workers/agent-worker",
       "vars": {},
-      "secrets": ["AGENT_INTERNAL_KEY"]
+      "secrets": [
+        "AGENT_INTERNAL_KEY"
+      ],
+      "deployed_url": "https://agent-worker.cryptolinx.workers.dev"
     },
-
     "email-worker": {
       "enabled": true,
       "path": "workers/email-worker",
       "vars": {
         "USE_IMAP": "false"
       },
-      "secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
+      "secrets": [
+        "EMAIL_HOST",
+        "EMAIL_USER",
+        "EMAIL_PASS",
+        "INTERNAL_KEY"
+      ],
+      "deployed_url": "https://email-worker.cryptolinx.workers.dev"
     }
   }
 }
