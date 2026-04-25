@@ -65,3 +65,7 @@ workers/*
 !workers/email-worker/
 
 config.toml
+
+# Configs
+workers.jsonc
+pages.jsonc
