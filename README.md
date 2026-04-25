@@ -11,18 +11,18 @@
 
 </div>
 
-> **Trade at the speed of light.** Hoox is a revolutionary, 100% free, and open-source algorithmic trading and automation framework. Built exclusively on **Cloudflare® Workers**, Hoox abandons traditional clunky servers in favor of a globally distributed, microservice edge architecture. Process signals, execute trades, and manage state with **absolute zero latency**, right from the network edge closest to the exchange.
+> **Low-latency edge trading.** Hoox is a free and open-source algorithmic trading and automation framework. Built on **Cloudflare® Workers**, Hoox utilizes a globally distributed, microservice edge architecture. Process signals, execute trades, and manage state with **low latency**, directly from the network edge closest to the exchange.
 
 ---
 
-## 🌟 Why Hoox? The Edge Advantage
+## 🌟 Why Hoox?
 
-Hoox isn't just another trading bot; it's a paradigm shift in how algorithmic trading infrastructure is deployed.
+Hoox provides a modern approach to algorithmic trading infrastructure deployment.
 
-*   💸 **100% Free & Open Source:** Institutional-grade trading infrastructure shouldn't cost thousands of dollars in server fees. Hoox leverages Cloudflare®'s incredibly generous free tiers. You pay nothing to run your own high-frequency trading empire.
-*   ⚡ **Zero Latency Execution:** Your code runs on Cloudflare®'s Edge, mere milliseconds away from Binance, Bybit, and MEXC API servers worldwide. When a signal fires, Hoox executes before traditional VPS setups even register the network request.
-*   🛡️ **Superior Security by Cloudflare®:** Forget managing firewalls, DDoS protection, or VPNs. Hoox inherits Cloudflare®'s enterprise-grade security. With Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are virtually impenetrable.
-*   🧠 **Autonomous AI Intelligence:** Featuring an embedded AI risk manager (`agent-worker`), Hoox monitors your portfolio 24/7, executes trailing stops, triggers global kill-switches during flash crashes, and sends natural language health summaries to your phone.
+*   💸 **Cost-Effective & Open Source:** Hoox leverages Cloudflare®'s free tiers, allowing you to run your trading infrastructure with minimal or no server costs.
+*   ⚡ **Edge Execution:** Your code runs on Cloudflare®'s Edge, geographically close to exchange API servers (like Binance, Bybit, and MEXC). When a signal fires, Hoox executes with minimal network latency.
+*   🛡️ **Built-in Security:** Hoox inherits Cloudflare®'s security features. With a Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are well-protected.
+*   🧠 **Automated Management:** Featuring an embedded risk manager (`agent-worker`), Hoox can monitor your portfolio, manage trailing stops, trigger kill-switches, and send system health summaries.
 
 ---
 
@@ -140,14 +140,14 @@ graph TB
 ## 📋 The 8 Pillars of Hoox (Workers)
 
 ### 🔐 hoox (The Gateway)
-The impenetrable front door. It validates incoming TradingView webhooks, verifies API keys, and routes valid signals to the execution engine.
-- **WAF Integration**: IP allowlisting and rate limiting are handled via Cloudflare WAF to drop malicious traffic before it even hits the worker.
-- **Fast Path Execution**: Attempts to execute trades instantly via direct Service Bindings, falling back to queues only if necessary.
-- **Idempotency**: Prevents duplicate trades using Durable Objects
+The main entry point. It validates incoming TradingView webhooks, verifies API keys, and routes valid signals to the execution engine.
+- **WAF Integration**: IP allowlisting and rate limiting are handled via Cloudflare WAF to drop malicious traffic before it hits the worker.
+- **Fast Path Execution**: Attempts to execute trades instantly via direct Service Bindings, falling back to queues if necessary.
+- **Idempotency**: Prevents duplicate trades using Durable Objects.
 - **Trace IDs**: Generates distributed trace IDs for end-to-end signal tracking.
 
 ### 📈 trade-worker (The Execution Engine)
-The core sniper. Executes orders simultaneously across MEXC, Binance, and Bybit. Handles leverage calculation, size mapping, and dynamic routing.
+The execution module. Routes and executes orders across MEXC, Binance, and Bybit. Handles leverage calculation and size mapping.
 - **Dynamic Routing**: Uses an `ExchangeRouter` with `CONFIG_KV` to instantly redirect symbols to different exchanges without code deployment.
 - **Smart Placement**: Automatically executes on the Cloudflare edge node closest to the exchange's API servers.
 - **R2 Log Offloading**: Verbose request and response logs are saved to R2 (`hoox-system-logs`), preserving D1 write limits for critical financial data.
@@ -166,9 +166,9 @@ Ancillary plugins allowing you to trigger trades via smart home events or raw em
 
 ---
 
-## 🔐 Bulletproof Security
+## 🔐 Security Architecture
 
-When dealing with trading capital, security isn't a feature; it's the foundation.
+Security is a foundational aspect of the Hoox system.
 
 ### Implemented Security Features
 
@@ -306,15 +306,25 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id
 
 ---
 
-## 🤝 Join the Revolution
+## 🤝 Contribute
 
-Traditional algorithmic trading is walled off by expensive data centers and bloated python monoliths. Hoox tears those walls down. 
+Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this. 
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/alpha-strategy`)
-3. Commit your changes (`git commit -m 'Add revolutionary alpha'`)
-4. Push to the branch (`git push origin feature/alpha-strategy`)
+2. Create your feature branch (`git checkout -b feature/new-strategy`)
+3. Commit your changes (`git commit -m 'Add new strategy'`)
+4. Push to the branch (`git push origin feature/new-strategy`)
 5. Open a Pull Request
+
+---
+
+## 🔮 Future Plans: Backtesting & Pinescript Execution
+
+Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike. 
+
+However, our long-term vision includes native, edge-based execution of trading logic. In the future, we plan to implement a **100% fully featured Pinescript parser, converter, and executor**. This will involve an AST (Abstract Syntax Tree) generator and a Python compiler, allowing you to run complex Pinescript strategies natively within the Cloudflare Workers ecosystem (see `PYNESCRIPT.md` for upcoming technical details).
+
+---
 
 ## 📄 License
 MIT License - Built for the community, by the community. See [LICENSE](LICENSE) for details.
