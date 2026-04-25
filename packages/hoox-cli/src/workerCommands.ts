@@ -188,7 +188,7 @@ export async function setupWorkers(config: Config): Promise<void> {
         }
 
         if (varsUpdated) {
-          console.log(dim(`Updated vars based on config.toml`));
+          console.log(dim(`Updated vars based on workers.jsonc`));
           jsoncUpdated = true;
         }
 
@@ -393,7 +393,7 @@ export async function setupWorkers(config: Config): Promise<void> {
             varsUpdated = true;
           }
         }
-        // Optional: Remove vars present in wrangler.toml but not in config.toml?
+        // Optional: Remove vars present in wrangler.toml but not in workers.jsonc?
         // for (const key in currentVars) {
         //     if (!(key in configVars)) {
         //         delete parsedToml.vars[key];
@@ -401,7 +401,7 @@ export async function setupWorkers(config: Config): Promise<void> {
         //     }
         // }
         if (varsUpdated) {
-          console.log(dim(`Updated [vars] based on config.toml`));
+          console.log(dim(`Updated [vars] based on workers.jsonc`));
           tomlUpdated = true;
         }
 
@@ -535,7 +535,7 @@ export async function setupWorkers(config: Config): Promise<void> {
       );
       console.log(dim(`Ensure they exist in Store ID: ${storeId}`));
     } else {
-      console.log(dim(`No secrets defined for ${workerName} in config.toml.`));
+      console.log(dim(`No secrets defined for ${workerName} in workers.jsonc.`));
     }
 
     console.log(`--- Finished configuring worker: ${yellow(workerName)} ---`);
@@ -623,7 +623,7 @@ export async function deployWorkers(config: Config): Promise<void> {
         accountIdInConfig !== config.global.cloudflare_account_id
       ) {
         print_warning(
-          `Wrangler config has account_id "${accountIdInConfig}", but config.toml expects "${config.global.cloudflare_account_id}". Running setup first is recommended.`
+          `Wrangler config has account_id "${accountIdInConfig}", but workers.jsonc expects "${config.global.cloudflare_account_id}". Running setup first is recommended.`
         );
       }
     } catch (e: unknown) {
@@ -681,7 +681,7 @@ export async function deployWorkers(config: Config): Promise<void> {
 
   // Save the config file if any URLs were updated or removed
   if (configNeedsSaving) {
-    console.log(blue("\nSaving updated URLs to config.toml..."));
+    console.log(blue("\nSaving updated URLs to workers.jsonc..."));
     try {
       await saveConfig(config);
     } catch (saveError) {
@@ -802,14 +802,14 @@ export async function startDevServer(
   const workerConfig = config.workers[workerNameToStart];
 
   if (!workerConfig) {
-    print_error(`Worker "${workerNameToStart}" not found in config.toml.`);
+    print_error(`Worker "${workerNameToStart}" not found in workers.jsonc.`);
     process.exitCode = 1;
     return;
   }
 
   if (!workerConfig.enabled) {
     print_error(
-      `Worker "${workerNameToStart}" is not enabled in config.toml. Set enabled = true to run it.`
+      `Worker "${workerNameToStart}" is not enabled in workers.jsonc. Set enabled = true to run it.`
     );
     process.exitCode = 1;
     return;
@@ -878,7 +878,7 @@ export async function displayStatus(config: Config): Promise<void> {
   console.log(blue("\n--- Worker Status Summary ---"));
 
   if (Object.keys(config.workers).length === 0) {
-    print_warning("No workers defined in config.toml.");
+    print_warning("No workers defined in workers.jsonc.");
     console.log("---------------------------");
     return;
   }
@@ -914,14 +914,14 @@ export async function runTests(
   if (workerName) {
     const workerConfig = config.workers[workerName];
     if (!workerConfig) {
-      print_error(`Worker "${workerName}" not found in config.toml.`);
+      print_error(`Worker "${workerName}" not found in workers.jsonc.`);
       printAvailableWorkers(config); // Assumes printAvailableWorkers exists
       process.exitCode = 1;
       return;
     }
     if (!workerConfig.enabled) {
       print_warning(
-        `Worker "${workerName}" is not enabled in config.toml, but running tests anyway.`
+        `Worker "${workerName}" is not enabled in workers.jsonc, but running tests anyway.`
       );
     }
     workersToTest.push({ name: workerName, config: workerConfig });
@@ -931,7 +931,7 @@ export async function runTests(
       .map(([name, wc]) => ({ name, config: wc }));
 
     if (workersToTest.length === 0) {
-      print_warning("No enabled workers found in config.toml to test.");
+      print_warning("No enabled workers found in workers.jsonc to test.");
       return;
     }
     console.log(blue(`Running tests for all enabled workers...`));
@@ -1254,7 +1254,7 @@ async function isPagesProject(workerDir: string): Promise<boolean> {
 
 // --- Helper to print worker names --- (Moved from manage.ts)
 export function printAvailableWorkers(cfg: Config): void {
-  console.log(blue("\nAvailable workers defined in config.toml:"));
+  console.log(blue("\nAvailable workers defined in workers.jsonc:"));
   const workerNames = Object.keys(cfg.workers);
   if (workerNames.length === 0) {
     console.log(dim("(None)"));
@@ -1273,6 +1273,179 @@ export function printAvailableWorkers(cfg: Config): void {
 /**
  * Checks the status of Secret Store bindings in a worker's wrangler.toml.
  */
+import { readdir } from "node:fs/promises";
+import { rl } from "./utils.js";
+
+/**
+ * Checks if the workers directory is empty and provides an interactive prompt to clone worker repositories.
+ * @param direct If true, clone repositories directly instead of using git submodules
+ */
+export async function cloneWorkerRepositories(
+  direct: boolean = false
+): Promise<void> {
+  const workersDir = path.resolve(process.cwd(), "workers");
+
+  // Create workers directory if it doesn't exist
+  if (!(fs.existsSync(workersDir))) {
+    console.log(yellow("Workers directory does not exist. Creating it..."));
+    fs.mkdirSync(workersDir, { recursive: true });
+  }
+
+  // Check if the workers directory is empty
+  const files = await readdir(workersDir);
+  const nonHiddenFiles = files.filter((file) => !file.startsWith("."));
+
+  if (nonHiddenFiles.length > 0) {
+    console.log(yellow("Workers directory is not empty. Existing workers:"));
+    nonHiddenFiles.forEach((file) => console.log(`- ${file}`));
+
+    const proceed = await rl.question(
+      blue("Do you want to proceed with cloning additional workers? (y/N): ")
+    );
+    if (proceed.toLowerCase() !== "y") {
+      console.log(dim("Aborted worker clone operation."));
+      return;
+    }
+  }
+
+  // Define available worker repositories
+  const availableWorkers = [
+    {
+      name: "d1-worker",
+      repo: "https://github.com/jango-blockchained/d1-worker.git",
+      description: "Worker for D1 database operations",
+    },
+    {
+      name: "telegram-worker",
+      repo: "https://github.com/jango-blockchained/telegram-worker.git",
+      description: "Worker for Telegram bot integration",
+    },
+    {
+      name: "trade-worker",
+      repo: "https://github.com/jango-blockchained/trade-worker.git",
+      description: "Worker for trading operations",
+    },
+    {
+      name: "web3-wallet-worker",
+      repo: "https://github.com/jango-blockchained/web3-wallet-worker.git",
+      description: "Worker for web3 wallet integration",
+    },
+    {
+      name: "hoox",
+      repo: "https://github.com/jango-blockchained/hoox.git",
+      description: "Worker for receiving webhook calls",
+    },
+    {
+      name: "home-assistant-worker",
+      repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
+      description: "Worker for Home Assistant integration",
+    },
+    {
+      name: "email-worker",
+      repo: "https://github.com/jango-blockchained/email-worker.git",
+      description:
+        "Worker for email webhook processing (Gmail, Mailgun, SendGrid)",
+    },
+  ];
+
+  console.log(blue("\nAvailable worker repositories to clone:"));
+  availableWorkers.forEach((worker, index) => {
+    console.log(`${index + 1}. ${yellow(worker.name)} - ${worker.description}`);
+  });
+  console.log(
+    `${availableWorkers.length + 1}. ${yellow("All workers")} - Clone all available workers`
+  );
+
+  const selection = await rl.question(
+    blue("Enter the numbers of workers to clone (comma-separated) or 'all': ")
+  );
+
+  let selectedWorkers: typeof availableWorkers = [];
+
+  if (selection.toLowerCase() === "all") {
+    selectedWorkers = [...availableWorkers];
+  } else {
+    const selectedIndices = selection
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((s) => parseInt(s, 10) - 1);
+
+    if (selectedIndices.includes(availableWorkers.length)) {
+      // Selected "All workers" option
+      selectedWorkers = [...availableWorkers];
+    } else {
+      // Filter valid indices and map to worker objects
+      selectedWorkers = selectedIndices
+        .filter((i) => i >= 0 && i < availableWorkers.length)
+        .map((i) => availableWorkers[i])
+        .filter(
+          (worker): worker is (typeof availableWorkers)[0] =>
+            worker !== undefined
+        );
+    }
+  }
+
+  if (selectedWorkers.length === 0) {
+    console.log(yellow("No valid workers selected. Aborting."));
+    return;
+  }
+
+  console.log(
+    blue(`\nCloning ${selectedWorkers.length} worker repositories...`)
+  );
+
+  for (const worker of selectedWorkers) {
+    const targetDir = path.join(workersDir, worker.name);
+
+    // Skip if directory already exists
+    if ((fs.existsSync(targetDir))) {
+      console.log(
+        yellow(`Worker directory ${worker.name} already exists. Skipping.`)
+      );
+      continue;
+    }
+
+    try {
+      if (direct) {
+        // Clone directly
+        console.log(dim(`Cloning ${worker.name} directly...`));
+        const res = await runCommandAsync("git", ["clone", worker.repo, targetDir], process.cwd());
+        if (!res.success) throw new Error(res.stderr);
+        print_success(`Successfully cloned ${worker.name}`);
+      } else {
+        // Clone as submodule
+        console.log(dim(`Adding ${worker.name} as git submodule...`));
+        const res = await runCommandAsync("git", ["submodule", "add", worker.repo, targetDir], process.cwd());
+        if (!res.success) throw new Error(res.stderr);
+        print_success(`Successfully cloned ${worker.name}`);
+      }
+    } catch (err) {
+      const error = err as Error;
+      print_error(`Failed to clone ${worker.name}: ${error.message}`);
+    }
+  }
+
+  if (!direct) {
+    try {
+      // Initialize and update submodules
+      console.log(dim("Initializing and updating git submodules..."));
+      const res = await runCommandAsync("git", ["submodule", "update", "--init", "--recursive"], process.cwd());
+      if (!res.success) throw new Error(res.stderr);
+      print_success("Git submodules initialized and updated successfully");
+    } catch (err) {
+      const error = err as Error;
+      print_error(`Failed to update submodules: ${error.message}`);
+    }
+  }
+
+  console.log(green("\nWorker clone operations completed."));
+  console.log(blue("Next steps:"));
+  console.log("1. Run 'hoox init' to complete setup");
+  console.log("2. Configure settings in workers.jsonc");
+  console.log("3. Run 'hoox workers setup' to configure workers");
+}
+
 export async function checkSecretBindings(
   config: Config,
   workerName: string,
@@ -1286,7 +1459,7 @@ export async function checkSecretBindings(
 
   const workerConfig = config.workers[workerName];
   if (!workerConfig) {
-    print_error(`Worker "${workerName}" not found in config.toml.`);
+    print_error(`Worker "${workerName}" not found in workers.jsonc.`);
     printAvailableWorkers(config);
     process.exitCode = 1;
     return;
@@ -1320,21 +1493,21 @@ export async function checkSecretBindings(
 
   console.log(
     dim(
-      `Expected secrets based on config.toml: ${expectedSecrets.length > 0 ? expectedSecrets.join(", ") : "(None)"}`
+      `Expected secrets based on workers.jsonc: ${expectedSecrets.length > 0 ? expectedSecrets.join(", ") : "(None)"}`
     )
   );
 
   if (!Array.isArray(storeBindings) || storeBindings.length === 0) {
     if (expectedSecrets.length > 0) {
       print_warning(
-        `No [secrets_store_secrets] bindings found in ${path.basename(wranglerTomlPath)}, but config.toml expects secrets.`
+        `No [secrets_store_secrets] bindings found in ${path.basename(wranglerTomlPath)}, but workers.jsonc expects secrets.`
       );
       print_warning(
         `Run 'workers setup' for ${workerName} to create bindings.`
       );
     } else {
       print_success(
-        `No [secrets_store_secrets] bindings found, and none expected by config.toml.`
+        `No [secrets_store_secrets] bindings found, and none expected by workers.jsonc.`
       );
     }
     console.log("--------------------------------------------------");
@@ -1375,7 +1548,7 @@ export async function checkSecretBindings(
       console.log(`    Binding Var: ${binding.binding}`);
       console.log(`    Store ID:    ${binding.store_id} (${storeIdStatus})`);
       console.log(
-        `    Status:      ${status}${!expected ? " (Not listed in config.toml secrets)" : ""}`
+        `    Status:      ${status}${!expected ? " (Not listed in workers.jsonc secrets)" : ""}`
       );
 
       if (binding.store_id !== config.global.cloudflare_secret_store_id) {
@@ -1397,7 +1570,7 @@ export async function checkSecretBindings(
     if (!foundBindings[expectedSecret]) {
       if (!secretNameFilter || expectedSecret === secretNameFilter) {
         print_warning(
-          `Expected secret "${expectedSecret}" from config.toml is MISSING from bindings in wrangler.toml.`
+          `Expected secret "${expectedSecret}" from workers.jsonc is MISSING from bindings in wrangler.toml.`
         );
         foundMismatch = true;
       }
@@ -1408,13 +1581,13 @@ export async function checkSecretBindings(
   if (foundMismatch) {
     print_warning("Issues found with secret bindings.");
     print_warning(
-      `Ensure Store ID matches global config ('${config.global.cloudflare_secret_store_id}') and secrets match config.toml.`
+      `Ensure Store ID matches global config ('${config.global.cloudflare_secret_store_id}') and secrets match workers.jsonc.`
     );
     print_warning(`Run 'workers setup' for ${workerName} to fix bindings.`);
   } else if (secretNameFilter && Object.keys(foundBindings).length === 0) {
     print_warning(`Secret "${secretNameFilter}" not found in bindings.`);
   } else {
-    print_success("Secret Store bindings appear consistent with config.toml.");
+    print_success("Secret Store bindings appear consistent with workers.jsonc.");
   }
   console.log(
     dim(

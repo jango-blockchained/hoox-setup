@@ -3,7 +3,7 @@ import { z } from "zod";
 // --- Configuration Type Definitions ---
 
 /**
- * Represents the [global] section of config.toml
+ * Represents the [global] section of workers.jsonc
  */
 export interface GlobalConfig {
   cloudflare_api_token: string;
@@ -37,7 +37,7 @@ export interface WorkerConfig {
 }
 
 /**
- * Represents the entire parsed config.toml structure
+ * Represents the entire parsed workers.jsonc structure
  */
 export interface Config {
   global: GlobalConfig;

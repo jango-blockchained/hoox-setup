@@ -330,13 +330,13 @@ export async function step_setupD1(state: WizardState): Promise<void> {
       print_error(`Could not find database "${dbName}" in the list output.`);
       console.log(ansis.dim("List output:\n"), listResult.stdout);
       throw new Error(
-        `Failed to find ID for database "${dbName}". Please find the ID manually via Cloudflare Dashboard or \`wrangler d1 list\` and add it to config.toml [global] d1_database_id.`
+        `Failed to find ID for database "${dbName}". Please find the ID manually via Cloudflare Dashboard or \`wrangler d1 list\` and add it to workers.jsonc [global] d1_database_id.`
       );
     }
   } else {
     print_error(`Failed to list D1 databases to find the ID for "${dbName}".`);
     throw new Error(
-      `Database "${dbName}" may already exist, but failed to retrieve its ID. Please find the ID manually and add it to config.toml [global] d1_database_id.`
+      `Database "${dbName}" may already exist, but failed to retrieve its ID. Please find the ID manually and add it to workers.jsonc [global] d1_database_id.`
     );
   }
 }
@@ -351,7 +351,7 @@ export async function step_saveConfig(state: WizardState): Promise<void> {
 
   // Get the format from state, default to TOML if not specified
   const format = state.configFormat || "toml";
-  const configFileName = format === "jsonc" ? "config.jsonc" : "config.toml";
+  const configFileName = format === "jsonc" ? "config.jsonc" : "workers.jsonc";
 
   print_success(
     `Configuration prepared. Saving to ${configFileName} (${format.toUpperCase()} format)...`
@@ -408,7 +408,7 @@ export async function step_configureSecrets(state: WizardState): Promise<void> {
 
   if (uniqueSecretsNeeded.size === 0) {
     print_success(
-      "No secrets are required by the enabled workers according to config.toml."
+      "No secrets are required by the enabled workers according to workers.jsonc."
     );
     return;
   }
