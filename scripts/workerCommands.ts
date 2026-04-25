@@ -269,6 +269,15 @@ export async function setupWorkers(config: Config): Promise<void> {
           }
         }
 
+        // Smart Placement for trade-worker
+        if (workerName === "trade-worker") {
+          if (!parsedJsonc.placement || parsedJsonc.placement.mode !== "smart") {
+            parsedJsonc.placement = { mode: "smart" };
+            jsoncUpdated = true;
+            console.log(dim(`Enabled Smart Placement for ${workerName}`));
+          }
+        }
+
         if (jsoncUpdated) {
           // Preserve the original comments by inserting the updated JSON data
           // between any comment blocks at the start and end
@@ -463,6 +472,15 @@ export async function setupWorkers(config: Config): Promise<void> {
         }
 
         // --- End modifications ---
+
+        // Smart Placement for trade-worker
+        if (workerName === "trade-worker") {
+          if (!parsedToml.placement || (parsedToml.placement as any).mode !== "smart") {
+            parsedToml.placement = { mode: "smart" };
+            tomlUpdated = true;
+            console.log(dim(`Enabled Smart Placement for ${workerName}`));
+          }
+        }
 
         if (tomlUpdated) {
           const newTomlContent = stringifyToml(parsedToml);

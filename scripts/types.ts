@@ -63,6 +63,7 @@ export interface WranglerConfig {
     bindings?: { name: string; class_name: string }[];
   };
   migrations?: { tag: string; new_sqlite_classes?: string[] }[];
+  placement?: { mode: string };
   [key: string]: unknown;
 }
 
