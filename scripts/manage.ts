@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-escape */
 import path from "node:path";

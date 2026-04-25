@@ -2,6 +2,9 @@
   "name": "crypto-trading-system",
   "version": "1.0.0",
   "type": "module",
+  "bin": {
+    "hoox": "./scripts/manage.ts"
+  },
   "scripts": {
     "tests": "bun run ./scripts/run-tests.ts",
     "tests:watch": "bun run ./scripts/run-tests.ts --watch",
