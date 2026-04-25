@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { CFServiceBadge, CFServiceType } from "@/components/ui/cf-service-badge"
 import {
   Webhook,
   Split,
@@ -45,6 +46,7 @@ const stages = [
     color: "from-orange-500 to-amber-500",
     bgColor: "bg-orange-500/10",
     borderColor: "border-orange-500/30",
+    services: ["Rate Limiting", "Queues", "KV"] as CFServiceType[],
   },
   {
     id: 1,
@@ -56,6 +58,7 @@ const stages = [
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30",
+    services: ["Service Binding", "Durable Objects"] as CFServiceType[],
   },
   {
     id: 2,
@@ -67,6 +70,7 @@ const stages = [
     color: "from-purple-500 to-pink-500",
     bgColor: "bg-purple-500/10",
     borderColor: "border-purple-500/30",
+    services: ["Workers AI", "Vectorize"] as CFServiceType[],
   },
   {
     id: 3,
@@ -78,6 +82,7 @@ const stages = [
     color: "from-emerald-500 to-green-500",
     bgColor: "bg-emerald-500/10",
     borderColor: "border-emerald-500/30",
+    services: ["D1", "KV"] as CFServiceType[],
   },
   {
     id: 4,
@@ -89,6 +94,7 @@ const stages = [
     color: "from-yellow-500 to-orange-500",
     bgColor: "bg-yellow-500/10",
     borderColor: "border-yellow-500/30",
+    services: ["D1"] as CFServiceType[],
   },
   {
     id: 5,
@@ -100,6 +106,7 @@ const stages = [
     color: "from-red-500 to-rose-500",
     bgColor: "bg-red-500/10",
     borderColor: "border-red-500/30",
+    services: ["Service Binding", "R2"] as CFServiceType[],
   },
 ]
 
@@ -195,11 +202,11 @@ function StageNode({
       <AnimatePresence>
         {isProcessing && (
           <motion.div
-            className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${stage.color} blur-xl opacity-30`}
+            className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${stage.color} blur-xl opacity-10`}
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: [0.2, 0.4, 0.2], scale: 1 }}
+            animate={{ opacity: [0.05, 0.15, 0.05], scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 1, repeat: Infinity }}
+            transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity }}
           />
         )}
       </AnimatePresence>
@@ -225,8 +232,8 @@ function StageNode({
         {isProcessing && (
           <motion.div
             className={`absolute -inset-1 rounded-2xl border-2 ${stage.borderColor}`}
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1, repeat: Infinity }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 0.8, ease: "easeInOut", repeat: Infinity }}
           />
         )}
       </motion.div>
@@ -240,6 +247,20 @@ function StageNode({
         <span className="text-muted-foreground/50">|</span>
         <span>{stats.latency}ms</span>
       </div>
+
+      {/* Services */}
+      {stage.services && stage.services.length > 0 && (
+        <div className="mt-2 flex flex-nowrap overflow-x-auto scrollbar-none justify-start gap-1 w-full max-w-[80px] px-1 pb-1">
+          {stage.services.map((service) => (
+            <CFServiceBadge 
+              key={service} 
+              service={service} 
+              isActive={isProcessing}
+              mini
+            />
+          ))}
+        </div>
+      )}
     </motion.div>
   )
 }

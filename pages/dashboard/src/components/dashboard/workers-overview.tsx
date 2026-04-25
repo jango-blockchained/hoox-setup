@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { CFServiceBadge, CFServiceType } from "@/components/ui/cf-service-badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { 
@@ -25,6 +26,7 @@ interface Worker {
   description: string
   icon: typeof Shield
   status: "active" | "idle" | "disabled"
+  services?: CFServiceType[]
   metrics?: {
     requests?: number
     latency?: number
@@ -39,6 +41,7 @@ const initialWorkers: Worker[] = [
     description: "Webhook Receiver",
     icon: Shield,
     status: "active",
+    services: ["Rate Limiting", "Queues", "Service Binding", "Durable Objects", "KV"],
     metrics: { requests: 1247, latency: 12, cpu: 23 },
   },
   {
@@ -47,6 +50,7 @@ const initialWorkers: Worker[] = [
     description: "Trading Engine",
     icon: TrendingUp,
     status: "active",
+    services: ["D1", "Queues", "KV", "R2", "Service Binding"],
     metrics: { requests: 856, latency: 8, cpu: 45 },
   },
   {
@@ -55,6 +59,7 @@ const initialWorkers: Worker[] = [
     description: "Database Operations",
     icon: Database,
     status: "active",
+    services: ["D1", "Service Binding"],
     metrics: { requests: 3420, latency: 5, cpu: 18 },
   },
   {
@@ -63,6 +68,7 @@ const initialWorkers: Worker[] = [
     description: "Risk Manager",
     icon: Brain,
     status: "active",
+    services: ["Workers AI", "D1", "Service Binding", "KV"],
     metrics: { requests: 124, latency: 145, cpu: 67 },
   },
   {
@@ -71,6 +77,7 @@ const initialWorkers: Worker[] = [
     description: "Notifications",
     icon: MessageSquare,
     status: "active",
+    services: ["Service Binding", "R2", "KV", "Workers AI"],
     metrics: { requests: 89, latency: 25, cpu: 12 },
   },
   {
@@ -79,6 +86,7 @@ const initialWorkers: Worker[] = [
     description: "On-Chain DEX",
     icon: Globe,
     status: "idle",
+    services: ["Browser Rendering", "Service Binding"],
     metrics: { requests: 0, latency: 0, cpu: 0 },
   },
   {
@@ -87,6 +95,7 @@ const initialWorkers: Worker[] = [
     description: "Local Control",
     icon: Home,
     status: "disabled",
+    services: ["KV"],
   },
   {
     name: "email-worker",
@@ -94,6 +103,7 @@ const initialWorkers: Worker[] = [
     description: "IMAP Signals",
     icon: Mail,
     status: "disabled",
+    services: ["Service Binding"],
   },
 ]
 
@@ -240,16 +250,57 @@ export function WorkersOverview() {
                         </div>
                         <Progress value={worker.metrics.cpu} className="h-1.5" />
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="grid grid-cols-2 gap-4 text-[10px]">
                         <div>
-                          <span className="text-muted-foreground">Requests</span>
-                          <p className="font-medium text-foreground">{worker.metrics.requests.toLocaleString()}</p>
+                          <div className="flex justify-between items-end mb-1">
+                             <span className="text-muted-foreground">Requests</span>
+                             <p className="font-medium text-foreground">{worker.metrics.requests.toLocaleString()}</p>
+                          </div>
+                          <div className="h-4 w-full flex items-end gap-[1px]">
+                            {Array.from({ length: 20 }).map((_, i) => (
+                              <motion.div
+                                key={`req-${i}`}
+                                className="w-full bg-blue-500/40 rounded-t-[1px]"
+                                animate={{ height: [`${Math.random() * 40 + 20}%`, `${Math.random() * 80 + 20}%`, `${Math.random() * 40 + 20}%`] }}
+                                transition={{ duration: 1.5 + Math.random(), repeat: Infinity, ease: "easeInOut" }}
+                              />
+                            ))}
+                          </div>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Latency</span>
-                          <p className="font-medium text-foreground">{worker.metrics.latency.toFixed(1)}ms</p>
+                          <div className="flex justify-between items-end mb-1">
+                             <span className="text-muted-foreground">Latency</span>
+                             <p className="font-medium text-foreground">{worker.metrics.latency.toFixed(1)}ms</p>
+                          </div>
+                          <div className="h-4 w-full flex items-end gap-[1px]">
+                            {Array.from({ length: 20 }).map((_, i) => (
+                              <motion.div
+                                key={`lat-${i}`}
+                                className="w-full bg-emerald-500/40 rounded-t-[1px]"
+                                animate={{ height: [`${Math.random() * 30 + 10}%`, `${Math.random() * 60 + 10}%`, `${Math.random() * 30 + 10}%`] }}
+                                transition={{ duration: 2 + Math.random(), repeat: Infinity, ease: "easeInOut" }}
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
+                      
+                      {worker.services && worker.services.length > 0 && (
+                        <div className="pt-1">
+                          <span className="text-[10px] text-muted-foreground mb-1.5 block">Services Utilized</span>
+                          <div className="flex flex-nowrap overflow-x-auto scrollbar-none gap-1.5 pb-1">
+                            {worker.services.map((service) => (
+                              <CFServiceBadge 
+                                key={service} 
+                                service={service} 
+                                isActive={worker.status === "active"}
+                                mini
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="text-[10px]">
                         <span className="text-muted-foreground">Worker ID: </span>
                         <code className="font-mono text-foreground">{worker.name}</code>

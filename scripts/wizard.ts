@@ -107,7 +107,7 @@ export async function runWizard(): Promise<void> {
 
   try {
     // Check if workers directory exists
-    if ((await Bun.file(workersDir).exists())) {
+    if ((fs.existsSync(workersDir))) {
       // Check if it has any non-hidden directories
       const files = fs.readdirSync(workersDir);
       const nonHiddenDirectories = files.filter(
@@ -167,7 +167,7 @@ export async function runWizard(): Promise<void> {
         }
 
         // Re-check if we have workers now
-        if ((await Bun.file(workersDir).exists())) {
+        if ((fs.existsSync(workersDir))) {
           const updatedFiles = fs.readdirSync(workersDir);
           const updatedNonHiddenDirectories = updatedFiles.filter(
             (file) =>

@@ -22,9 +22,18 @@
       ],
       "enabled": true
     },
-"cloudflare": {
+    "cloudflare": {
       "type": "remote",
       "url": "https://mcp.cloudflare.com/mcp",
+      "enabled": true
+    },
+    "shadcn": {
+      "type": "local",
+      "command": [
+        "npx",
+        "shadcn@latest",
+        "mcp"
+      ],
       "enabled": true
     }
   }

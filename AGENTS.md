@@ -1092,4 +1092,16 @@ curl -X POST https://hoox.<prefix>.workers.dev \
 
 ---
 
+## 14. Design Ruleset (Dashboard)
+
+- **Theme**: Dark mode by default (`bg-black`, `bg-neutral-950`).
+- **Brand Colors**: Hoox signature orange (`orange-500`, `orange-600`) for primary actions.
+- **Textures**: Ambient background glows, noise overlays, and grid patterns for depth.
+- **Cards**: `border-neutral-800 bg-neutral-950/80 backdrop-blur-xl shadow-2xl`.
+- **Typography**: Uppercase, tracked-out labels (`text-xs uppercase tracking-wider text-neutral-400 font-semibold`).
+- **Animations**: Subtle `framer-motion` entrances (opacity and y-axis slides).
+- **Security**: Emphasize trust with icons (`Shield`, `Lock`) and clear error states.
+
+---
+
 *Cloudflare and the Cloudflare logo are trademarks of Cloudflare, Inc.*
