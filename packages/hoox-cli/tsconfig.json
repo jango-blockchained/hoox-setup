@@ -1,35 +1,11 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    /* Base Options: */
+    "jsx": "react",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "target": "ES2020", // Target a recent Node.js compatible version
-    "allowJs": false,
-    "resolveJsonModule": true,
-    "moduleDetection": "force",
-    "isolatedModules": true, // Good practice
-
-    /* Strictness */
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-
-    /* If NOT transpiling with ts-node: */
-    // "outDir": "dist", // Output directory for compiled JS
-    // "module": "NodeNext", // Use Node.js module system
-    
-    /* If your scripts need type checking only (e.g. using ts-node or esbuild-runner): */
-     "module": "NodeNext", // Changed from ESNext to NodeNext to match moduleResolution
-     "moduleResolution": "NodeNext", // Or Node10/Node16 if using CommonJS
-     "noEmit": true, // Don't output JS files if only type checking
-
-     /* Node Types */
-    "types": ["node", "bun-types"],
-    "lib": ["es2020"]
-
-    // Add "baseUrl" and "paths" if needed for aliases within scripts
+    "moduleResolution": "Bundler",
+    "outDir": "./dist",
+    "rootDir": "./"
   },
-  "include": ["./**/*.ts", "./**/*.tsx"], // Include all TS files in the scripts directory
-  "exclude": ["node_modules", "dist", "test"]
+  "include": ["src/**/*", "bin/**/*"]
 }
