@@ -19,7 +19,7 @@ bun install
 ## Step 2: Initialize
 
 ```bash
-bun run scripts/manage.ts init
+hoox init
 ```
 
 Follow the wizard prompts:
@@ -37,13 +37,13 @@ Follow the wizard prompts:
 echo "YOUR_API_KEY" > .keys/local_keys.env
 
 # Upload to Cloudflare®
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
+hoox secrets update-cf WEBHOOK_API_KEY_BINDING hoox
 ```
 
 ## Step 4: Deploy
 
 ```bash
-bun run scripts/manage.ts workers deploy
+hoox workers deploy
 ```
 
 ## Step 5: Test

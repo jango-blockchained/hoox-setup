@@ -86,7 +86,7 @@ To add new settings, update `config.schema.json`:
 ```bash
 cd pages/dashboard
 bun install
-bun run dev
+hoox dev
 ```
 
 ## ☁️ Deploy to Cloudflare Pages
@@ -98,7 +98,7 @@ bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .v
 
 Or using the manage script:
 ```bash
-bun run scripts/manage.ts workers deploy dashboard
+hoox workers deploy dashboard
 ```
 
 ## 📁 File Structure
