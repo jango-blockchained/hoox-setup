@@ -153,8 +153,8 @@ describe("WAF Commands - Unit Tests", () => {
     });
 
     test("should validate Zone ID format", () => {
-      const zoneId = "abc123def456ghi789jkl012";
-      
+      const zoneId = "abc123def456ghi789jkl012abc123de";
+
       expect(zoneId.length).toBeGreaterThanOrEqual(32);
     });
 

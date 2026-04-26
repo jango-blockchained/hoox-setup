@@ -14,20 +14,6 @@ vi.mock('../src/utils.js', () => ({
   print_warning: vi.fn(),
 }));
 
-vi.mock('node:fs', () => ({
-  default: {
-    existsSync: vi.fn().mockReturnValue(true),
-    readFileSync: vi.fn().mockReturnValue('{}'),
-    statSync: vi.fn().mockReturnValue({ isDirectory: () => true }),
-  },
-  readFileSync: vi.fn().mockReturnValue('{}'),
-  existsSync: vi.fn().mockReturnValue(true),
-}));
-
-vi.mock('@iarna/toml', () => ({
-  parse: vi.fn().mockReturnValue({}),
-}));
-
 const mockConfig: Config = {
   global: {
     cloudflare_api_token: 'test-token',

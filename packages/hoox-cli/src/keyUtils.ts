@@ -10,28 +10,37 @@ import {
   print_error,
 } from "./utils.js";
 
-const KEYS_DIR = path.resolve(process.cwd(), ".keys");
-export const LOCAL_KEYS_FILE = path.join(KEYS_DIR, "local_keys.env");
-const PROD_KEYS_FILE = path.join(KEYS_DIR, "prod_keys.env");
+export function getKeysDir(): string {
+  return path.resolve(process.cwd(), ".keys");
+}
+
+export function getLocalKeysFile(): string {
+  return path.join(getKeysDir(), "local_keys.env");
+}
+
+export function getProdKeysFile(): string {
+  return path.join(getKeysDir(), "prod_keys.env");
+}
 
 /**
  * Gets the full path to the key file for the specified environment.
  */
 export function getKeyFilePath(environment: "local" | "prod"): string {
-  return environment === "prod" ? PROD_KEYS_FILE : LOCAL_KEYS_FILE;
+  return environment === "prod" ? getProdKeysFile() : getLocalKeysFile();
 }
 
 /**
  * Ensures the .keys directory exists.
  */
 async function ensureKeysDirectoryExists(): Promise<void> {
-  if (!(await Bun.file(KEYS_DIR).exists())) {
+  const dir = getKeysDir();
+  if (!(await Bun.file(dir).exists())) {
     try {
-      fs.mkdirSync(KEYS_DIR, { recursive: true });
-      console.log(dim(`Created directory: ${KEYS_DIR}`));
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(dim(`Created directory: ${dir}`));
     } catch (error: unknown) {
       print_error(
-        `Failed to create keys directory ${KEYS_DIR}: ${(error as Error).message}`
+        `Failed to create keys directory ${dir}: ${(error as Error).message}`
       );
       throw error; // Rethrow if directory creation fails
     }

@@ -4,7 +4,7 @@ import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
 
-const testDir = path.join(os.tmpdir(), `hoox-wizard-test-${Date.now()}`);
+const testDir = path.join(os.tmpdir(), `hoox-wizard-test-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
 describe("Wizard - State Management Tests", () => {
   beforeEach(async () => {
@@ -212,10 +212,10 @@ describe("Wizard - State Management Tests", () => {
       };
 
       const isValid = 
-        config.cloudflare_api_token && 
+        !!(config.cloudflare_api_token && 
         config.cloudflare_account_id &&
         config.cloudflare_secret_store_id &&
-        config.subdomain_prefix;
+        config.subdomain_prefix);
 
       expect(isValid).toBe(true);
     });
@@ -223,7 +223,7 @@ describe("Wizard - State Management Tests", () => {
 });
 
 describe("Wizard - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-wizard-integration-${Date.now()}`);
+  const integrationDir = path.join(os.tmpdir(), `hoox-wizard-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });

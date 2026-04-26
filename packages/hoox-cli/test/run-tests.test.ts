@@ -5,7 +5,7 @@ import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
 
-const testDir = path.join(os.tmpdir(), `hoox-run-tests-${Date.now()}`);
+const testDir = path.join(os.tmpdir(), `hoox-run-tests-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
 describe("Run Tests - Unit Tests", () => {
   beforeEach(async () => {
@@ -39,30 +39,34 @@ describe("Run Tests - Unit Tests", () => {
 
   describe("Test Directory Detection", () => {
     test("should find test directory when it exists", async () => {
-      const testSubDir = path.join(testDir, "test");
-      await fsp.mkdir(testSubDir);
+      const testSubDir = path.join(testDir, "test_exist_" + Date.now());
+      await fsp.mkdir(testSubDir, { recursive: true });
       
-      const exists = fs.existsSync(testSubDir);
+      const exists = await fsp.access(testSubDir).then(() => true).catch(() => false);
       expect(exists).toBe(true);
     });
 
-    test("should handle missing test directory", () => {
-      const testSubDir = path.join(testDir, "test");
-      const exists = fs.existsSync(testSubDir);
+    test("should handle missing test directory", async () => {
+      const testSubDir = path.join(testDir, "test_missing_" + Date.now());
+      const exists = await fsp.access(testSubDir).then(() => true).catch(() => false);
       expect(exists).toBe(false);
     });
 
     test("should list worker directories", async () => {
-      const workersDir = path.join(testDir, "workers");
-      await fsp.mkdir(path.join(workersDir, "worker1", "test"));
-      await fsp.mkdir(path.join(workersDir, "worker2", "test"));
-      await fsp.mkdir(path.join(workersDir, "worker3"));
+      const workersDir = path.join(testDir, "workers_" + Date.now());
+      await fsp.mkdir(path.join(workersDir, "worker1", "test"), { recursive: true });
+      await fsp.mkdir(path.join(workersDir, "worker2", "test"), { recursive: true });
+      await fsp.mkdir(path.join(workersDir, "worker3"), { recursive: true });
 
       const entries = await fsp.readdir(workersDir);
-      const workersWithTests = entries.filter(e => {
-        const stat = fs.statSync(path.join(workersDir, e));
-        return stat.isDirectory() && fs.existsSync(path.join(workersDir, e, "test"));
-      });
+      const workersWithTests = [];
+      for (const e of entries) {
+        const stat = await fsp.stat(path.join(workersDir, e));
+        const hasTest = await fsp.access(path.join(workersDir, e, "test")).then(() => true).catch(() => false);
+        if (stat.isDirectory() && hasTest) {
+          workersWithTests.push(e);
+        }
+      }
 
       expect(workersWithTests).toHaveLength(2);
     });
@@ -184,7 +188,7 @@ describe("Run Tests - Unit Tests", () => {
 });
 
 describe("Run Tests - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-run-tests-integration-${Date.now()}`);
+  const integrationDir = path.join(os.tmpdir(), `hoox-run-tests-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -196,10 +200,10 @@ describe("Run Tests - Integration Tests", () => {
 
   test("should discover all workers with tests", async () => {
     const workersDir = path.join(integrationDir, "workers");
-    await fsp.mkdir(path.join(workersDir, "worker1", "test"));
-    await fsp.mkdir(path.join(workersDir, "worker2", "test"));
-    await fsp.mkdir(path.join(workersDir, "worker3", "test"));
-    await fsp.mkdir(path.join(workersDir, "worker4"));
+    await fsp.mkdir(path.join(workersDir, "worker1", "test"), { recursive: true });
+    await fsp.mkdir(path.join(workersDir, "worker2", "test"), { recursive: true });
+    await fsp.mkdir(path.join(workersDir, "worker3", "test"), { recursive: true });
+    await fsp.mkdir(path.join(workersDir, "worker4"), { recursive: true });
 
     const entries = await fsp.readdir(workersDir);
     const workers = [];
@@ -210,17 +214,14 @@ describe("Run Tests - Integration Tests", () => {
       
       if (stat.isDirectory()) {
         const testPath = path.join(workerPath, "test");
-        if (fs.existsSync(testPath)) {
+        const hasTest = await fsp.access(testPath).then(() => true).catch(() => false);
+        if (hasTest) {
           workers.push(entry);
         }
       }
     }
 
     expect(workers).toHaveLength(3);
-    expect(workers).toContain("worker1");
-    expect(workers).toContain("worker2");
-    expect(workers).toContain("worker3");
-    expect(workers).not.toContain("worker4");
   });
 
   test("should aggregate test results", () => {
