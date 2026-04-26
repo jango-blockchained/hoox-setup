@@ -93,6 +93,15 @@ async function main() {
     .description("Run the interactive first-time setup wizard.")
     .action(runWizard); // Use imported function
 
+  // --- Clone Command ---
+  program
+    .command("clone [destination]")
+    .description("Clone the main hoox-setup repository")
+    .action(async (destination) => {
+      const { cloneMainRepo } = await import("../src/cloneCommand.js");
+      await cloneMainRepo(destination);
+    });
+
   // --- Install Bun Command ---
   program
     .command("install-bun")
