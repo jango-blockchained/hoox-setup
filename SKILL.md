@@ -27,13 +27,13 @@ Specialized skills for AI agents working on the Hoox trading system - a Cloudfla
 
 ```bash
 # Local testing
-bun run scripts/manage.ts workers dev <worker-name>
+hoox workers dev <worker-name>
 
 # Deploy single worker
-bun run scripts/manage.ts workers deploy <worker-name>
+hoox workers deploy <worker-name>
 
 # Check status
-bun run scripts/manage.ts workers status
+hoox workers status
 ```
 
 **Key paths:**
@@ -45,13 +45,13 @@ bun run scripts/manage.ts workers status
 
 ```bash
 # Clone workers first (if needed)
-bun run scripts/manage.ts workers clone
+hoox workers clone
 
 # Deploy all workers
-bun run scripts/manage.ts workers deploy
+hoox workers deploy
 
 # Deploy single worker
-bun run scripts/manage.ts workers deploy hoox
+hoox workers deploy hoox
 ```
 
 ### 3. Troubleshooting
@@ -67,7 +67,7 @@ bun run scripts/manage.ts workers deploy hoox
 bunx wrangler tail <worker-name>
 
 # Run housekeeping
-bun run scripts/manage.ts housekeeping
+hoox housekeeping
 ```
 
 **Common issues:**
@@ -121,11 +121,11 @@ bun test:watch               # Watch mode
 
 | Task | Command |
 |------|---------|
-| Dev server | `bun run scripts/manage.ts workers dev <name>` |
-| Deploy | `bun run scripts/manage.ts workers deploy <name>` |
+| Dev server | `hoox workers dev <name>` |
+| Deploy | `hoox workers deploy <name>` |
 | Test | `bun test workers/<name>` |
 | Logs | `bunx wrangler tail <name>` |
-| Housekeeping | `bun run scripts/manage.ts housekeeping` |
+| Housekeeping | `hoox housekeeping` |
 
 ## Common Mistakes
 

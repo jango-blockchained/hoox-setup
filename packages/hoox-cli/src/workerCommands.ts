@@ -78,7 +78,7 @@ export async function setupWorkers(config: Config): Promise<void> {
     print_error(
       "Missing 'cloudflare_secret_store_id' in [global] config. Cannot bind secrets."
     );
-    print_warning("Run 'bun run manage.ts secrets guide' for help.");
+    print_warning("Run 'hoox secrets guide' for help.");
     // Optionally throw an error or return early
     return;
   }

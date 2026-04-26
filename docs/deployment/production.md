@@ -15,10 +15,10 @@ The management script simplifies deployment:
 
 ```bash
 # Deploy all enabled workers
-bun run scripts/manage.ts workers deploy
+hoox workers deploy
 
 # Deploy a specific worker
-bun run scripts/manage.ts workers deploy trade-worker
+hoox workers deploy trade-worker
 ```
 
 ## Secret Management
@@ -27,7 +27,7 @@ Production secrets should NEVER be committed to version control. They are manage
 
 ```bash
 # Upload a secret to Cloudflare®
-bun run scripts/manage.ts secrets update-cf <SECRET_NAME> <worker-name>
+hoox secrets update-cf <SECRET_NAME> <worker-name>
 ```
 
 ## Custom Domains
