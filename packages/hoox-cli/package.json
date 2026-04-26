@@ -1,13 +1,17 @@
 {
   "name": "@hoox/cli",
-  "version": "1.0.0",
-  "description": "Hoox Worker Management CLI",
+  "version": "0.1.0",
+  "description": "Hoox Worker Management CLI - Manage Cloudflare Workers for crypto trading",
   "type": "module",
+  "main": "./bin/hoox.ts",
   "bin": {
     "hoox": "./bin/hoox.ts"
   },
   "scripts": {
-    "test": "bun test"
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "eslint . --ext .ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "commander": "^11.1.0",
@@ -19,5 +23,28 @@
     "@types/node": "^20.17.31",
     "bun-types": "^1.3.13",
     "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jango-blockchained/hoox-setup.git"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "cli",
+    "trading",
+    "crypto",
+    "automation",
+    "hoox"
+  ],
+  "author": "Hoox Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0"
   }
 }

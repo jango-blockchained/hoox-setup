@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import fsp from "node:fs/promises";
 import { describe, expect, test, beforeEach, jest } from "bun:test";
 import type { WorkerConfig } from "../src/types.js";
 
