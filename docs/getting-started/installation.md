@@ -56,17 +56,17 @@ subdomain_prefix = "your-prefix"
 [workers.hoox]
 enabled = true
 path = "workers/hoox"
-secrets = ["WEBHOOK_API_KEY"]
+secrets = ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
 ```
 
 ## Step 4: Create Secrets
 
 ```bash
 # Generate a secure API key
-bun run scripts/manage.ts keys generate WEBHOOK_API_KEY
+bun run scripts/manage.ts keys generate WEBHOOK_API_KEY_BINDING
 
 # Upload to Cloudflare®
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
+bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
 ```
 
 ## Step 5: Deploy Workers

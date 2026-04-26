@@ -83,7 +83,7 @@ bunx wrangler deploy
 | Worker | Test Command | Status |
 |---|---|---|
 | agent-worker | `bun test` | ✓ Passing |
-| dashboard-worker | `bun test` | ✓ Passing |
+| dashboard | `bun test` | ✓ Passing |
 | d1-worker | `bun test` | ✓ Passing |
 | trade-worker | `bun test` | ✓ Passing |
 | hoox | `bun test` | ✓ Passing |
