@@ -11,7 +11,8 @@
 ## Step 1: Clone & Install
 
 ```bash
-git clone --recurse-submodules https://github.com/jango-blockchained/hoox-setup.git
+# Bootstrap the complete repository via hoox CLI
+bunx @hoox/cli clone hoox-setup
 cd hoox-setup
 bun install
 ```
@@ -19,6 +20,7 @@ bun install
 ## Step 2: Initialize
 
 ```bash
+hoox config setup
 hoox init
 ```
 
