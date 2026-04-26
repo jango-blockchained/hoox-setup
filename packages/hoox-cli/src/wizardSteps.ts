@@ -18,7 +18,7 @@ import {
   getCloudflareToken,
 } from "./utils.js";
 import { deployWorkers } from "./workerCommands.js";
-import { LOCAL_KEYS_FILE, getKey } from "./keyUtils.js";
+import { getLocalKeysFile, getKey } from "./keyUtils.js";
 
 const WORKERS_DIR = path.resolve(process.cwd(), "workers");
 
@@ -440,7 +440,7 @@ export async function step_configureSecrets(state: WizardState): Promise<void> {
     )
   );
   if (checkLocal.trim().toLowerCase() === "y") {
-    console.log(ansis.dim(`Checking ${LOCAL_KEYS_FILE}...`));
+    console.log(ansis.dim(`Checking ${getLocalKeysFile()}...`));
     let foundAnyLocal = false;
     for (const secretName of uniqueSecretsNeeded) {
       const localValue = await getKey(secretName, "local");
