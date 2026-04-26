@@ -84,7 +84,7 @@ To add new settings, update `config.schema.json`:
 ## 🚀 Local Development
 
 ```bash
-cd workers/dashboard-worker
+cd pages/dashboard
 bun install
 bun run dev
 ```
@@ -92,13 +92,13 @@ bun run dev
 ## ☁️ Deploy to Cloudflare Pages
 
 ```bash
-cd workers/dashboard-worker
+cd pages/dashboard
 bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .vercel/output/static --project-name hoox-dashboard --commit-dirty
 ```
 
 Or using the manage script:
 ```bash
-bun run scripts/manage.ts workers deploy dashboard-worker
+bun run scripts/manage.ts workers deploy dashboard
 ```
 
 ## 📁 File Structure
@@ -115,7 +115,7 @@ bun run scripts/manage.ts workers deploy dashboard-worker
 ## 📁 File Structure
 
 ```
-dashboard-worker/
+dashboard/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── api/settings/route.ts     # Settings API endpoints

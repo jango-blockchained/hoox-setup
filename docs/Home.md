@@ -27,7 +27,7 @@ Each worker has its own README in the worker directory:
 - [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications (45% line coverage)
 - [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations (62% line coverage)
 - [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (27% line coverage)
-- [dashboard-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/dashboard-worker) - UI & Settings Manager (55% line coverage)
+- [dashboard](https://github.com/jango-blockchained/hoox-setup/tree/main/pages/dashboard) - UI & Settings Manager
 - [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions (83% line coverage)
 - [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation (43% line coverage)
 - [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (79% line coverage)
