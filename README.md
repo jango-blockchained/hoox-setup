@@ -55,14 +55,24 @@ cd hoox-setup
 bun install
 
 # 3. Initialize the platform (Interactive CLI Wizard)
-bun run scripts/manage.ts init
+bun run hoox init
 
 # 4. Deploy your entire trading empire to the Cloudflare® Edge!
-bun run scripts/manage.ts workers deploy
+bun run hoox workers deploy
 ```
 
 > **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all 8 workers simultaneously on your local machine!
 >
+---
+
+## 🛠️ The `@hoox/cli` & Workspaces
+
+The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing Bun Workspaces, the core management commands are isolated in `packages/hoox-cli` and exposed directly to your terminal.
+
+- **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox workers deploy` or `hoox init`.
+- **Strict Configuration**: Configuration is distinctly split between `workers.jsonc` (backend worker settings) and `pages.jsonc` (dashboard settings), ensuring type-safe and validated deployments.
+- **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets (`hoox r2`) and updating WAF rules (`hoox waf`) through the Cloudflare API directly.
+
 ---
 
 ## 🥟 Performance & Tooling: Powered by Bun

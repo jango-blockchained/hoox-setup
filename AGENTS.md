@@ -547,14 +547,14 @@ All secrets stored in Cloudflare Secret Store:
 wrangler secret:list
 
 # Put a secret
-wrangler secret put WEBHOOK_API_KEY_BINDING --worker hoox
+wrangler secret put WEBHOOK_API_KEY --worker hoox
 ```
 
 **Required Secrets by Worker:**
 
 | Worker | Secrets |
 |--------|----------|
-| hoox | WEBHOOK_API_KEY_BINDING, INTERNAL_KEY_BINDING |
+| hoox | WEBHOOK_API_KEY_BINDING |
 | trade-worker | API_SERVICE_KEY, BINANCE_API_KEY, BINANCE_API_SECRET, MEXC_API_KEY, MEXC_API_SECRET, BYBIT_API_KEY, BYBIT_API_SECRET |
 | agent-worker | AGENT_INTERNAL_KEY |
 | telegram-worker | TELEGRAM_BOT_TOKEN |
@@ -593,48 +593,48 @@ bun run dev
 
 This runs all 8 workers simultaneously on your local machine with hot-reloading.
 
-### 6.2 manage.ts Commands
+### 6.2 hoox CLI Commands
 
 ```bash
 # Setup wizard (first time)
-bun run scripts/manage.ts init
+bun run hoox init
 
 # Clone worker repositories
-bun run scripts/manage.ts workers clone
+bun run hoox workers clone
 
 # Setup workers (bindings, secrets, D1)
-bun run scripts/manage.ts workers setup
+bun run hoox workers setup
 
 # Deploy all workers
-bun run scripts/manage.ts workers deploy
+bun run hoox workers deploy
 
 # Deploy single worker
-bun run scripts/manage.ts workers deploy hoox
+bun run hoox workers deploy hoox
 
 # Dev server for worker
-bun run scripts/manage.ts workers dev hoox
+bun run hoox workers dev hoox
 
 # Check worker status
-bun run scripts/manage.ts workers status
+bun run hoox workers status
 
 # Run tests
-bun run scripts/manage.ts workers test
+bun run hoox workers test
 
 # Update internal URLs
-bun run scripts/manage.ts workers update-internal-urls
+bun run hoox workers update-internal-urls
 
 # Housekeeping check
-bun run scripts/manage.ts housekeeping
-bun run scripts/manage.ts housekeeping --verbose
+bun run hoox housekeeping
+bun run hoox housekeeping --verbose
 
 # Secret management guide
-bun run scripts/manage.ts secrets guide
+bun run hoox secrets guide
 
 # Validate setup
-bun run scripts/manage.ts check-setup
+bun run hoox check-setup
 
 # Update CF secrets
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
+bun run hoox secrets update-cf WEBHOOK_API_KEY hoox
 ```
 
 ### 6.3 Full Push (submodules + main repo)
@@ -648,8 +648,8 @@ bash scripts/full-push.sh "Your commit message"
 # Default commit message
 bash scripts/full-push.sh
 
-# Or via manage.ts (if implemented)
-bun run scripts/manage.ts full-push
+# Or via hoox CLI (if implemented)
+bun run hoox full-push
 ```
 
 The procedure:
@@ -749,23 +749,23 @@ bunx wrangler tail
 
 ```bash
 # Clone workers (if not present)
-bun run scripts/manage.ts workers clone
+bun run hoox workers clone
 
 # Install dependencies
 bun install
 
 # Start dev server
-bun run scripts/manage.ts workers dev hoox
+bun run hoox workers dev hoox
 ```
 
 ### 7.2 Adding a New Worker
 
 1. Create worker in `workers/` directory
-2. Add configuration to `config.toml`
-3. Run `bun run scripts/manage.ts workers setup`
+2. Add configuration to `workers.jsonc`
+3. Run `bun run hoox workers setup`
 4. Add service bindings to consuming workers
-5. Test locally with `bun run scripts/manage.ts workers dev <name>`
-6. Deploy with `bun run scripts/manage.ts workers deploy <name>`
+5. Test locally with `bun run hoox workers dev <name>`
+6. Deploy with `bun run hoox workers deploy <name>`
 
 ### 7.3 Testing
 
@@ -788,7 +788,7 @@ bun test:watch
 
 The housekeeping system runs automated health checks on all workers:
 
-- **CLI:** `bun run scripts/manage.ts housekeeping`
+- **CLI:** `bun run hoox housekeeping`
 - **Cron:** Every 5 minutes via agent-worker
 - **API:** `POST /agent/housekeeping`
 
@@ -900,7 +900,7 @@ All inter-worker communication uses a standardized envelope:
 
 ```bash
 # Dev server for single worker
-bun run scripts/manage.ts workers dev hoox
+bun run hoox workers dev hoox
 
 # Or directly with wrangler
 bunx wrangler dev --port 8787
@@ -913,7 +913,7 @@ cd workers/dashboard && bun run dev
 
 ```bash
 # Deploy standard Workers
-bun run scripts/manage.ts workers deploy
+bun run hoox workers deploy
 
 # Deploy Dashboard (Cloudflare Pages + Next.js)
 cd workers/dashboard
@@ -979,7 +979,7 @@ cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
 2. **Configure Global Settings** - API token, account ID, Secret Store ID, subdomain prefix
 3. **Select Workers** - Choose which workers to enable
 4. **Setup D1 Database** - Auto-creates if needed
-5. **Save Configuration** - Writes to config.toml
+5. **Save Configuration** - Writes to workers.jsonc
 6. **Configure Secrets** - Guides through secret setup
 7. **Initial Deployment** - Optional deploy
 
@@ -987,7 +987,7 @@ cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
 
 The system supports two configuration file formats:
 
-**config.toml** (preferred):
+**workers.jsonc** (preferred):
 ```toml
 [global]
 cloudflare_api_token = "your_api_token"
@@ -1041,7 +1041,7 @@ npx wrangler secrets-store secret list --store-id <store-id>
 
 - **Wizard Interrupted**: Progress saved in `.install-wizard-state.json`, run wizard again to continue
 - **Secret Binding Issues**: Verify secrets with `wrangler secrets-store secret list --store-id <id>`
-- **Check Worker Status**: `bun run manage.ts workers status`
+- **Check Worker Status**: `bun run hoox workers status`
 - **Deployment Failures**: Run `wrangler tail <worker-name>` to view logs
 
 ### 13.6 Docker (Self-Hosting)
@@ -1071,10 +1071,10 @@ cd hoox-setup
 bun install
 
 # Run setup wizard
-bun run scripts/manage.ts init
+bun run hoox init
 
 # Deploy
-bun run scripts/manage.ts workers deploy
+bun run hoox workers deploy
 
 # Test webhook
 curl -X POST https://hoox.<prefix>.workers.dev \
