@@ -93,10 +93,17 @@ export async function setupWorkers(config: Config): Promise<void> {
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
     if (!(fs.existsSync(workerDir))) {
-      print_warning(
-        `Directory not found for worker ${workerName} at ${workerDir}. Skipping.`
-      );
-      continue;
+      print_warning(`Directory not found for worker ${workerName} at ${workerDir}.`);
+      const answer = await rl.question(yellow(`Do you want to attempt cloning it as a submodule now? (y/N): `));
+      if (answer.trim().toLowerCase() === "y") {
+        console.log(dim(`Attempting to initialize submodule at ${workerDir}...`));
+        await runCommandAsync("git", ["submodule", "update", "--init", "--recursive", workerConfig.path || ""], process.cwd());
+      }
+      if (!fs.existsSync(workerDir)) {
+        print_warning(`Directory still not found. Skipping ${workerName}.`);
+        continue;
+      }
+      print_success(`Successfully prepared directory for ${workerName}.`);
     }
 
     // Check for wrangler.jsonc first, then wrangler.toml if jsonc doesn't exist
@@ -180,9 +187,13 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         // Update existing or add new vars from config
         for (const [key, value] of Object.entries(configVars)) {
-          if (String(currentVars[key]) !== String(value)) {
+          let finalValue = value;
+          if (!finalValue || finalValue.trim() === "") {
+            finalValue = await rl.question(yellow(`Missing value for var '${key}' in ${workerName}. Enter value: `));
+          }
+          if (String(currentVars[key]) !== String(finalValue)) {
             if (!parsedJsonc.vars) parsedJsonc.vars = {};
-            parsedJsonc.vars[key] = value;
+            parsedJsonc.vars[key] = finalValue;
             varsUpdated = true;
           }
         }
@@ -387,9 +398,13 @@ export async function setupWorkers(config: Config): Promise<void> {
         let varsUpdated = false;
         // Update existing or add new vars from config
         for (const [key, value] of Object.entries(configVars)) {
-          if (String(currentVars[key]) !== String(value)) {
+          let finalValue = value;
+          if (!finalValue || finalValue.trim() === "") {
+            finalValue = await rl.question(yellow(`Missing value for var '${key}' in ${workerName}. Enter value: `));
+          }
+          if (String(currentVars[key]) !== String(finalValue)) {
             if (!parsedToml.vars) parsedToml.vars = {};
-            parsedToml.vars[key] = value; // Keep original type from config (string | TomlPrimitive)
+            parsedToml.vars[key] = finalValue; // Keep original type from config (string | TomlPrimitive)
             varsUpdated = true;
           }
         }
