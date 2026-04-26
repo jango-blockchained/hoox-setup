@@ -37,7 +37,7 @@ Follow the wizard prompts:
 echo "YOUR_API_KEY" > .keys/local_keys.env
 
 # Upload to Cloudflare®
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
+bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
 ```
 
 ## Step 4: Deploy

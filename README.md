@@ -96,7 +96,7 @@ graph TB
         trade["📈 trade-worker<br/>Execution Engine"]
         telegram["💬 telegram-worker<br/>AI Notifications"]
         agent["🧠 agent-worker<br/>Risk & AI Manager"]
-        dash["📊 dashboard-worker<br/>UI & Command Center"]
+        dash["📊 dashboard<br/>UI & Command Center"]
         d1["🗄️ d1-worker<br/>Data Aggregator"]
         web3["🌐 web3-wallet<br/>On-Chain Router"]
     end
@@ -153,7 +153,7 @@ The execution module. Routes and executes orders across MEXC, Binance, and Bybit
 - **R2 Log Offloading**: Verbose request and response logs are saved to R2 (`hoox-system-logs`), preserving D1 write limits for critical financial data.
 ### 🧠 agent-worker (The Risk Manager)
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
-### 📊 dashboard-worker (The Command Center)
+### 📊 dashboard (The Command Center)
 A secure, edge-rendered React dashboard. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.
 ### 💬 telegram-worker (The Communicator)
 Sends instant trade confirmations and AI-generated market summaries straight to your phone.
@@ -318,11 +318,20 @@ Traditional algorithmic trading is often complex and difficult to deploy. Hoox a
 
 ---
 
-## 🔮 Future Plans: Backtesting & Pine Script™ Execution
+## 🗺️ Roadmap & Future Plans
+
+### Coming Soon: Pynescript - Native Pine Script™ Execution
 
 Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike. 
 
-However, our long-term vision includes native, edge-based execution of trading logic. In the future, we plan to implement a **100% fully featured Pine Script™ parser, converter, and executor**. This will involve an AST (Abstract Syntax Tree) generator and a Python compiler, allowing you to run complex Pine Script™ strategies natively within the Cloudflare Workers ecosystem (see `PYNESCRIPT.md` for upcoming technical details).
+Our long-term vision includes native, edge-based execution of trading logic. **Pynescript** is a planned **100% fully featured Pine Script™ parser, converter, and executor** that will allow you to run complex Pine Script™ strategies natively within the Cloudflare Workers ecosystem.
+
+> ⚠️ **Status:** This project is not yet started. Track progress in our [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues).
+
+### Future Features
+- **Enhanced AI Analytics:** Automated reporting and personalized risk-management insights via LLaMA 3.
+- **Deeper DeFi Integration:** Expanded on-chain capabilities via the `web3-wallet-worker`.
+- **Advanced Dashboard:** More intuitive UI for deeper historical trade analysis.
 
 ---
 
