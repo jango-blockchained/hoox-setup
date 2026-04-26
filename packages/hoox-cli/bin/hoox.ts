@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-escape */
+import React from 'react';
+import { render } from 'ink';
+import { Text } from 'ink';
 import path from "node:path";
 import fs from "node:fs";
 import readline from "node:readline/promises"; // Use promises interface
@@ -192,12 +195,11 @@ async function main() {
 
   workersCommand
     .command("status")
-    .description(
-      "Displays the status and configuration summary of enabled/disabled workers."
-    )
+    .description("Check the status of all workers")
     .action(async () => {
-      const config = await loadConfig();
-      await displayStatus(config);
+      const { StatusView } = await import("../src/views/StatusView.js");
+      const { waitUntilExit } = render(React.createElement(StatusView));
+      await waitUntilExit();
     });
 
   workersCommand
