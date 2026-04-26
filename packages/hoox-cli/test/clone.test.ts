@@ -4,27 +4,13 @@ import * as utils from "../src/utils.js";
 import { cloneMainRepo } from "../src/cloneCommand.js";
 
 // Mock the command runner to prevent actual git clones during tests
-vi.mock("../src/utils.js", () => {
-  return {
-    runCommandAsync: vi.fn().mockResolvedValue({ success: true, stdout: "", stderr: "" }),
-    print_success: vi.fn(),
-    print_error: vi.fn(),
-    print_warning: vi.fn(),
-    runCommandSync: vi.fn(),
-    print_header: vi.fn(),
-    blue: vi.fn((s) => s),
-    green: vi.fn((s) => s)
-  };
-});
+vi.spyOn(utils, "runCommandAsync").mockResolvedValue({ success: true, stdout: "", stderr: "" } as any);
+vi.spyOn(utils, "print_success").mockImplementation(() => {});
+vi.spyOn(utils, "print_error").mockImplementation(() => {});
+vi.spyOn(utils, "print_warning").mockImplementation(() => {});
 
 // Mock fs to simulate directory existence
-vi.mock("node:fs", () => {
-  return {
-    default: {
-      existsSync: vi.fn().mockReturnValue(false)
-    }
-  };
-});
+vi.spyOn(fs, "existsSync").mockReturnValue(false);
 
 beforeEach(() => {
   vi.clearAllMocks();
