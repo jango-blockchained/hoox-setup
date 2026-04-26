@@ -207,8 +207,9 @@ async function main() {
     .description("Check the status of all workers")
     .action(async () => {
       const { StatusView } = await import("../src/views/StatusView.js");
-      const { waitUntilExit } = render(React.createElement(StatusView));
+      const { waitUntilExit, unmount } = render(React.createElement(StatusView));
       await waitUntilExit();
+      unmount();
     });
 
   workersCommand
@@ -543,6 +544,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
         console.error(error);
       }
       process.exitCode = 1;
+      process.exit(1);
     }
   }
 
@@ -557,6 +559,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
   ) {
     rlInstance.close();
   }
+  process.exit(0);
 }
 
 main().catch((error) => {
