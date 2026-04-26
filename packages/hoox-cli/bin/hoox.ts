@@ -418,7 +418,7 @@ async function main() {
               }
             }
           } else if (match) {
-             secretId = match[1];
+             secretId = match[1] ?? null;
           }
 
           if (secretId) {
@@ -442,9 +442,9 @@ async function main() {
           const fs = require('node:fs');
           const path = require('node:path');
           
-          const updateEnvFile = (filePath, key, val) => {
-            let lines = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8').split('\n') : [];
-            const idx = lines.findIndex(line => line.startsWith(key + '='));
+const updateEnvFile = (filePath: string, key: string, val: string) => {
+             let lines = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8').split('\n') : [];
+             const idx = lines.findIndex((line: string) => line.startsWith(key + '='));
             if (idx !== -1) {
               lines[idx] = `${key}="${val}"`;
             } else {

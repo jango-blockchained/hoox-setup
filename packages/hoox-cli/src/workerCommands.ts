@@ -647,7 +647,7 @@ export async function deployWorkers(config: Config): Promise<void> {
       print_error(`Failed to deploy worker: ${workerName}`);
       anyErrors = true;
       // Ensure URL is cleared in config if deployment fails after it was previously set
-      if (config.workers[workerName].deployed_url) {
+      if (config.workers[workerName]?.deployed_url) {
         delete config.workers[workerName].deployed_url;
         configNeedsSaving = true;
       }
@@ -660,8 +660,9 @@ export async function deployWorkers(config: Config): Promise<void> {
         deployedUrls[workerName] = url;
         console.log(`   URL: ${blue(url)}`);
         // Update config object
-        if (config.workers[workerName].deployed_url !== url) {
-          config.workers[workerName].deployed_url = url;
+        if (config.workers[workerName]?.deployed_url !== url) {
+          if (!config.workers[workerName]) config.workers[workerName] = {} as WorkerConfig;
+          (config.workers[workerName] as WorkerConfig).deployed_url = url;
           configNeedsSaving = true;
           console.log(dim(`   (URL updated in config object)`));
         }
@@ -671,7 +672,7 @@ export async function deployWorkers(config: Config): Promise<void> {
         );
         console.log(dim("   Full stdout:\n"), result.stdout); // Log full output
         // Clear URL in config if extraction fails after it was previously set
-        if (config.workers[workerName].deployed_url) {
+        if (config.workers[workerName]?.deployed_url) {
           delete config.workers[workerName].deployed_url;
           configNeedsSaving = true;
         }
@@ -1156,15 +1157,15 @@ export async function updateInternalUrls(config: Config): Promise<void> {
       // Convention: FOO_BAR_WORKER_URL
       const varName = `${sourceWorkerName.replace(/-/g, "_").toUpperCase()}_URL`;
 
-      if (varName in (wranglerConfig as Record<string, unknown>)) {
-        const currentVarValue = String((wranglerConfig as Record<string, unknown>)[varName]);
+      if (varName in (wranglerConfig as Record<string, string>)) {
+        const currentVarValue = String((wranglerConfig as Record<string, string>)[varName]);
         if (currentVarValue !== sourceWorkerUrl) {
           console.log(
             `  Updating ${green(varName)} in ${targetWorkerName}'s wrangler.toml:`
           );
           console.log(`    Old: ${dim(currentVarValue)}`);
           console.log(`    New: ${blue(sourceWorkerUrl)}`);
-          wranglerConfig[varName] = sourceWorkerUrl; // Assign as string
+          (wranglerConfig as Record<string, string>)[varName] = sourceWorkerUrl; // Assign as string
           thisTomlUpdated = true;
         } else {
           // console.log(dim(`  Variable ${varName} in ${targetWorkerName} is already up-to-date.`));

@@ -34,7 +34,7 @@ export function extractComments(content: string): {
   for (const line of lines) {
     const match = line.match(/\s*\/\/(.*)$/);
     if (match) {
-      inline.push(match[1]);
+      inline.push(match[1] ?? "");
     }
   }
 
