@@ -588,7 +588,7 @@ Launch the integrated Terminal UI for local process management:
 ```bash
 ./hoox-tui
 # or
-bun run dev
+hoox dev
 ```
 
 This runs all 8 workers simultaneously on your local machine with hot-reloading.
@@ -597,44 +597,44 @@ This runs all 8 workers simultaneously on your local machine with hot-reloading.
 
 ```bash
 # Setup wizard (first time)
-bun run hoox init
+hoox init
 
 # Clone worker repositories
-bun run hoox workers clone
+hoox workers clone
 
 # Setup workers (bindings, secrets, D1)
-bun run hoox workers setup
+hoox workers setup
 
 # Deploy all workers
-bun run hoox workers deploy
+hoox workers deploy
 
 # Deploy single worker
-bun run hoox workers deploy hoox
+hoox workers deploy hoox
 
 # Dev server for worker
-bun run hoox workers dev hoox
+hoox workers dev hoox
 
 # Check worker status
-bun run hoox workers status
+hoox workers status
 
 # Run tests
-bun run hoox workers test
+hoox workers test
 
 # Update internal URLs
-bun run hoox workers update-internal-urls
+hoox workers update-internal-urls
 
 # Housekeeping check
-bun run hoox housekeeping
-bun run hoox housekeeping --verbose
+hoox housekeeping
+hoox housekeeping --verbose
 
 # Secret management guide
-bun run hoox secrets guide
+hoox secrets guide
 
 # Validate setup
-bun run hoox check-setup
+hoox check-setup
 
 # Update CF secrets
-bun run hoox secrets update-cf WEBHOOK_API_KEY hoox
+hoox secrets update-cf WEBHOOK_API_KEY hoox
 ```
 
 ### 6.3 Full Push (submodules + main repo)
@@ -649,7 +649,7 @@ bash scripts/full-push.sh "Your commit message"
 bash scripts/full-push.sh
 
 # Or via hoox CLI (if implemented)
-bun run hoox full-push
+hoox full-push
 ```
 
 The procedure:
@@ -749,23 +749,23 @@ bunx wrangler tail
 
 ```bash
 # Clone workers (if not present)
-bun run hoox workers clone
+hoox workers clone
 
 # Install dependencies
 bun install
 
 # Start dev server
-bun run hoox workers dev hoox
+hoox workers dev hoox
 ```
 
 ### 7.2 Adding a New Worker
 
 1. Create worker in `workers/` directory
 2. Add configuration to `workers.jsonc`
-3. Run `bun run hoox workers setup`
+3. Run `hoox workers setup`
 4. Add service bindings to consuming workers
-5. Test locally with `bun run hoox workers dev <name>`
-6. Deploy with `bun run hoox workers deploy <name>`
+5. Test locally with `hoox workers dev <name>`
+6. Deploy with `hoox workers deploy <name>`
 
 ### 7.3 Testing
 
@@ -788,7 +788,7 @@ bun test:watch
 
 The housekeeping system runs automated health checks on all workers:
 
-- **CLI:** `bun run hoox housekeeping`
+- **CLI:** `hoox housekeeping`
 - **Cron:** Every 5 minutes via agent-worker
 - **API:** `POST /agent/housekeeping`
 
@@ -900,20 +900,20 @@ All inter-worker communication uses a standardized envelope:
 
 ```bash
 # Dev server for single worker
-bun run hoox workers dev hoox
+hoox workers dev hoox
 
 # Or directly with wrangler
 bunx wrangler dev --port 8787
 
 # Dashboard (Next.js)
-cd workers/dashboard && bun run dev
+cd workers/dashboard && hoox dev
 ```
 
 ### 10.3 Deploy Commands
 
 ```bash
 # Deploy standard Workers
-bun run hoox workers deploy
+hoox workers deploy
 
 # Deploy Dashboard (Cloudflare Pages + Next.js)
 cd workers/dashboard
@@ -1041,7 +1041,7 @@ npx wrangler secrets-store secret list --store-id <store-id>
 
 - **Wizard Interrupted**: Progress saved in `.install-wizard-state.json`, run wizard again to continue
 - **Secret Binding Issues**: Verify secrets with `wrangler secrets-store secret list --store-id <id>`
-- **Check Worker Status**: `bun run hoox workers status`
+- **Check Worker Status**: `hoox workers status`
 - **Deployment Failures**: Run `wrangler tail <worker-name>` to view logs
 
 ### 13.6 Docker (Self-Hosting)
@@ -1071,10 +1071,10 @@ cd hoox-setup
 bun install
 
 # Run setup wizard
-bun run hoox init
+hoox init
 
 # Deploy
-bun run hoox workers deploy
+hoox workers deploy
 
 # Test webhook
 curl -X POST https://hoox.<prefix>.workers.dev \

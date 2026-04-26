@@ -38,7 +38,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           # Use wrangler directly or your management script
-          bun run scripts/manage.ts workers deploy
+          hoox workers deploy
 ```
 
 ## Environment Management

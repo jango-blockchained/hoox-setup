@@ -27,7 +27,7 @@ You can run individual workers or multiple workers simultaneously for local test
 Use the management script to start a worker in dev mode:
 
 ```bash
-bun run scripts/manage.ts workers dev hoox
+hoox workers dev hoox
 ```
 
 This uses Wrangler under the hood with bunx:
@@ -56,13 +56,13 @@ When running locally, Cloudflare® Workers can communicate with each other using
 The dashboard uses Cloudflare Pages with Next.js. To run locally:
 
 ```
-bun run scripts/manage.ts workers dev dashboard
+hoox workers dev dashboard
 ```
 
 Or directly:
 
 ```
-cd pages/dashboard && bun run dev
+cd pages/dashboard && hoox dev
 ```
 ```
 
