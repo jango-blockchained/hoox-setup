@@ -51,7 +51,7 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 git clone --recurse-submodules https://github.com/jango-blockchained/hoox-setup.git
 cd hoox-setup
 
-# 2. Install ultra-fast Bun dependencies
+# 2. Install ultra-fast Bun dependencies (requires [Bun](https://bun.sh))
 bun install
 
 # 3. Initialize the platform (Interactive CLI Wizard)
@@ -75,7 +75,7 @@ The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing
 
 ---
 
-## 🥟 Performance & Tooling: Powered by Bun
+## 🧅 Performance & Tooling: Powered by Bun
 
 Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bun is designed as a drop-in replacement for Node.js, providing significantly faster execution, immediate startup times, and built-in tooling for testing, running scripts, and managing dependencies.
 
