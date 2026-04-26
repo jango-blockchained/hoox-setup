@@ -62,7 +62,7 @@ hoox workers dev dashboard
 Or directly:
 
 ```
-cd pages/dashboard && hoox dev
+cd pages/dashboard && bun run dev
 ```
 ```
 

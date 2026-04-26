@@ -86,7 +86,7 @@ To add new settings, update `config.schema.json`:
 ```bash
 cd pages/dashboard
 bun install
-hoox dev
+bun run dev
 ```
 
 ## ☁️ Deploy to Cloudflare Pages
