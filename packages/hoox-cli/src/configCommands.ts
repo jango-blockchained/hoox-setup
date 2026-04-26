@@ -1,95 +1,48 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { resolve } from "node:path";
+import { promises as fs } from "node:fs";
+import { rl, print_success, print_error, cyan, green, yellow } from "./utils.js";
 import { Glob } from "bun";
-import { rl, green, yellow, red, dim, print_success, print_error, print_warning } from "./utils.js";
-
-export async function infoConfigFormat() {
-  try {
-    const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
-    const configTomlPath = path.resolve(process.cwd(), "config.toml");
-
-    if ((await Bun.file(configJsoncPath).exists())) {
-      console.log(green("Using: config.jsonc (JSONC format)"));
-    } else if ((await Bun.file(configTomlPath).exists())) {
-      console.log(green("Using: config.toml (TOML format)"));
-    } else {
-      console.log(
-        yellow("No configuration file found. Run 'init' to create one.")
-      );
-    }
-
-    // Show information about both example files
-    const exampleJsoncPath = path.resolve(
-      process.cwd(),
-      "config.jsonc.example"
-    );
-    const exampleTomlPath = path.resolve(
-      process.cwd(),
-      "config.toml.example"
-    );
-
-    console.log("\nExample files available:");
-    if ((await Bun.file(exampleJsoncPath).exists())) {
-      console.log(green("- config.jsonc.example (JSONC format)"));
-    } else {
-      console.log(red("- config.jsonc.example not found"));
-    }
-
-    if ((await Bun.file(exampleTomlPath).exists())) {
-      console.log(green("- config.toml.example (TOML format)"));
-    } else {
-      console.log(red("- config.toml.example not found"));
-    }
-  } catch (error) {
-    const errMsg = error instanceof Error ? error.message : String(error);
-    print_error(`Error checking configuration: ${errMsg}`);
-  }
-}
 
 export async function setupConfigVariables() {
-  console.log(green("\n--- Setting up Configuration Files ---"));
-  
+  console.log(cyan("\n--- Setting up configuration files ---"));
+
   const glob = new Glob("**/*.example");
   const cwd = process.cwd();
-  
-  let found = 0;
-  let copied = 0;
-  let skipped = 0;
+  let copiedCount = 0;
+  let skippedCount = 0;
 
-  for await (const file of glob.scan({ cwd, onlyFiles: true, dot: true })) {
-    // Ignore node_modules, .git, .wrangler
-    if (file.includes("node_modules/") || file.includes(".git/") || file.includes(".wrangler/")) {
-        continue;
+  for await (const file of glob.scan({ cwd, dot: true })) {
+    // Ignore node_modules, .git, .wrangler, and .worktrees
+    if (file.includes("node_modules") || file.includes(".git") || file.includes(".wrangler") || file.includes(".worktrees")) {
+      continue;
     }
 
-    found++;
-    const examplePath = path.resolve(cwd, file);
-    const targetFile = file.replace(/\.example$/, "");
-    const targetPath = path.resolve(cwd, targetFile);
+    const examplePath = resolve(cwd, file);
+    const targetPath = examplePath.replace(/\.example$/, "");
 
     try {
-        await fs.access(targetPath);
-        // File exists, prompt user
-        const answer = await rl.question(yellow(`File ${targetFile} already exists. Overwrite? (y/N): `));
-        if (answer.trim().toLowerCase() === 'y') {
-            await fs.copyFile(examplePath, targetPath);
-            console.log(dim(`Overwrote: ${targetFile}`));
-            copied++;
+      const exists = await fs.access(targetPath).then(() => true).catch(() => false);
+
+      if (exists) {
+        console.log(yellow(`\nFile already exists: ${targetPath}`));
+        const answer = await rl.question("Overwrite? (y/N): ");
+        if (answer.toLowerCase() === "y" || answer.toLowerCase() === "yes") {
+          await fs.copyFile(examplePath, targetPath);
+          console.log(green(`✓ Overwrote: ${targetPath}`));
+          copiedCount++;
         } else {
-            console.log(dim(`Skipped: ${targetFile}`));
-            skipped++;
+          console.log(`Skipped: ${targetPath}`);
+          skippedCount++;
         }
-    } catch {
-        // File doesn't exist, safe to copy
+      } else {
         await fs.copyFile(examplePath, targetPath);
-        console.log(dim(`Created: ${targetFile}`));
-        copied++;
+        console.log(green(`✓ Copied: ${targetPath}`));
+        copiedCount++;
+      }
+    } catch (error) {
+      print_error(`Failed to copy ${file}: ${(error as Error).message}`);
     }
   }
 
-  if (found === 0) {
-      print_warning("No .example files found.");
-  } else {
-      print_success(`Setup complete. Copied: ${copied}, Skipped: ${skipped}.`);
-  }
+  console.log(cyan(`\nSetup complete! Copied: ${copiedCount}, Skipped: ${skippedCount}\n`));
 }

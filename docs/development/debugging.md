@@ -4,7 +4,7 @@
 
 ## Local Debugging
 
-When running locally with `bun run scripts/manage.ts workers dev <worker-name>`, standard `console.log` statements will output directly to your terminal.
+When running locally with `hoox workers dev <worker-name>`, standard `console.log` statements will output directly to your terminal.
 
 If you encounter issues with inter-worker communication, ensure that:
 1. Both workers are running.

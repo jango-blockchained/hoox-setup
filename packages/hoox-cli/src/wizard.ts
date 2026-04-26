@@ -242,7 +242,7 @@ export async function runWizard(): Promise<void> {
     console.log(ansis.green("\n🎉 Setup Wizard Completed Successfully! 🎉"));
     console.log(
       ansis.blue(
-        "You can now manage your workers using other 'bun run manage.ts' commands."
+        "You can now manage your workers using other 'hoox' commands."
       )
     );
   } catch (error: unknown) {
@@ -252,7 +252,7 @@ export async function runWizard(): Promise<void> {
     );
     console.error(error); // Log full error
     print_warning(
-      "Setup was interrupted. Run 'bun run manage.ts init' again to resume."
+      "Setup was interrupted. Run 'hoox init' again to resume."
     );
     process.exitCode = 1; // Indicate failure
   } finally {

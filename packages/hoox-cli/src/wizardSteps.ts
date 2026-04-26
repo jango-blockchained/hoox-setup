@@ -443,7 +443,7 @@ export async function step_configureSecrets(state: WizardState): Promise<void> {
   console.log(
     "2. Once secrets are created in the store, run the setup command to create bindings in wrangler.toml:"
   );
-  console.log(ansis.dim("   bun run manage.ts workers setup"));
+  console.log(ansis.dim("   hoox workers setup"));
 
   const checkLocal = await rl.question(
     ansis.blue(
@@ -518,7 +518,7 @@ export async function step_initialDeploy(state: WizardState): Promise<void> {
       );
       print_warning(
         "Deployment failed. You may need to run 'workers setup' first, then deploy manually using " +
-          ansis.blue("'bun run manage.ts workers deploy'") +
+          ansis.blue("'hoox workers deploy'") +
           "."
       );
     }
@@ -527,7 +527,7 @@ export async function step_initialDeploy(state: WizardState): Promise<void> {
     console.log(
       ansis.blue(
         "You can deploy later using " +
-          ansis.dim("'bun run manage.ts workers deploy'") +
+          ansis.dim("'hoox workers deploy'") +
           "."
       )
     );
