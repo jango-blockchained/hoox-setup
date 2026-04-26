@@ -32,7 +32,7 @@ bun install
 ### Option A: Interactive Wizard
 
 ```bash
-bun run scripts/manage.ts init
+hoox init
 ```
 
 This wizard will:
@@ -63,20 +63,20 @@ secrets = ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
 
 ```bash
 # Generate a secure API key
-bun run scripts/manage.ts keys generate WEBHOOK_API_KEY_BINDING
+hoox keys generate WEBHOOK_API_KEY_BINDING
 
 # Upload to Cloudflare®
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
+hoox secrets update-cf WEBHOOK_API_KEY_BINDING hoox
 ```
 
 ## Step 5: Deploy Workers
 
 ```bash
 # Deploy all enabled workers
-bun run scripts/manage.ts workers deploy
+hoox workers deploy
 
 # Or deploy specific worker
-bun run scripts/manage.ts workers deploy hoox
+hoox workers deploy hoox
 ```
 
 ## Verification
@@ -86,7 +86,7 @@ bun run scripts/manage.ts workers deploy hoox
 bun test
 
 # Check worker status
-bun run scripts/manage.ts workers status
+hoox workers status
 ```
 
 ## 🆘 Troubleshooting
@@ -106,7 +106,7 @@ wrangler login
 ### Missing Secrets
 
 ```bash
-bun run scripts/manage.ts workers setup
+hoox workers setup
 ```
 
 ## Next Steps

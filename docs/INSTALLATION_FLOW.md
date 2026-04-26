@@ -38,9 +38,9 @@ The installation wizard guides you through 7 steps:
 To start the installation process, run:
 
 ```bash
-bun run init
+hoox init
 # or with the full command
-bun run manage.ts init
+hoox manage.ts init
 ```
 
 The installation wizard will:
@@ -66,9 +66,9 @@ You can switch formats manually after setup by creating a new file in the desire
 After installation, or any time you want to check if your configuration is valid, you can run:
 
 ```bash
-bun run check-setup
+hoox check-setup
 # or with the full command
-bun run manage.ts check-setup
+hoox manage.ts check-setup
 ```
 
 This command verifies:
@@ -247,37 +247,37 @@ After installation, you can use the following commands to manage your workers:
 
 - **Setup (without deploying)**:
   ```bash
-  bun run workers:setup
+  hoox workers setup
   # or with the full command
-  bun run manage.ts workers setup
+  hoox manage.ts workers setup
   ```
 
 - **Deploy**:
   ```bash
-  bun run workers:deploy
+  hoox workers deploy
   # or with the full command
-  bun run manage.ts workers deploy
+  hoox manage.ts workers deploy
   ```
 
 - **Run Dev Server**:
   ```bash
-  bun run workers:dev <worker-name>
+  hoox workers dev <worker-name>
   # or with the full command
-  bun run manage.ts workers dev <worker-name>
+  hoox manage.ts workers dev <worker-name>
   ```
 
 - **Check Status**:
   ```bash
-  bun run workers:status
+  hoox workers status
   # or with the full command
-  bun run manage.ts workers status
+  hoox manage.ts workers status
   ```
 
 - **Run Tests**:
   ```bash
-  bun run tests
+  hoox tests
   # or with the full command
-  bun run manage.ts workers test [worker-name]
+  hoox manage.ts workers test [worker-name]
   ```
 
 ## Clone Worker Repositories
@@ -290,9 +290,9 @@ This project supports two ways of initializing your worker directories:
 If you've cloned only the main repository without workers, you can use the worker clone command:
 
 ```bash
-bun run workers:clone
+hoox workers clone
 # or with the full command
-bun run manage.ts workers clone
+hoox manage.ts workers clone
 ```
 
 This command will:
@@ -304,16 +304,16 @@ This command will:
 Options:
 - Use `--direct` to clone repositories directly instead of as submodules:
   ```bash
-  bun run manage.ts workers clone --direct
+  hoox manage.ts workers clone --direct
   ```
 
-**Note:** When you run `bun run init`, the wizard will automatically detect if you have no worker directories and prompt you to clone them.
+**Note:** When you run `hoox init`, the wizard will automatically detect if you have no worker directories and prompt you to clone them.
 
 ## Troubleshooting
 
-- **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `bun run manage.ts init` again to continue.
+- **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `hoox manage.ts init` again to continue.
 - **Secret Binding Issues**: Verify secrets exist in your Secret Store with `wrangler secrets-store secret list --store-id <your-store-id>`
-- **Check Worker Status**: Use `bun run manage.ts workers status` to see if any workers are misconfigured
+- **Check Worker Status**: Use `hoox manage.ts workers status` to see if any workers are misconfigured
 - **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs 
 
 ---

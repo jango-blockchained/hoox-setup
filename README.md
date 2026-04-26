@@ -56,10 +56,10 @@ bun install
 bun run build
 
 # 3. Initialize the platform (Interactive CLI Wizard)
-bun run hoox init
+hoox init
 
 # 4. Deploy your entire trading empire to the Cloudflare® Edge!
-bun run hoox workers deploy
+hoox workers deploy
 ```
 
 > **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all 8 workers simultaneously on your local machine!
