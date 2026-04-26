@@ -4,7 +4,7 @@ import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
 
-const testDir = path.join(os.tmpdir(), `hoox-check-setup-test-${Date.now()}`);
+const testDir = path.join(os.tmpdir(), `hoox-check-setup-test-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
 describe("Check Setup - Unit Tests", () => {
   beforeEach(async () => {
@@ -20,7 +20,7 @@ describe("Check Setup - Unit Tests", () => {
       const testFile = path.join(testDir, "workers.jsonc");
       await fsp.writeFile(testFile, '{"global": {}}');
       
-      const exists = fs.existsSync(testFile);
+      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
       expect(exists).toBe(true);
     });
 
@@ -28,20 +28,20 @@ describe("Check Setup - Unit Tests", () => {
       const testFile = path.join(testDir, "workers.jsonc.example");
       await fsp.writeFile(testFile, '{"global": {}}');
       
-      const exists = fs.existsSync(testFile);
+      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
       expect(exists).toBe(true);
     });
 
     test("should report missing required files", async () => {
-      const testFile = path.join(testDir, "workers.jsonc");
-      const exists = fs.existsSync(testFile);
+      const testFile = path.join(testDir, "workers_missing_" + Date.now() + ".jsonc");
+      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
       expect(exists).toBe(false);
     });
 
-    test("should report optional files as not required", () => {
+    test("should report optional files as not required", async () => {
       const testFile = path.join(testDir, ".install-wizard-state.json");
       const required = false;
-      const exists = fs.existsSync(testFile);
+      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
       
       if (!exists && !required) {
         expect(true).toBe(true);
