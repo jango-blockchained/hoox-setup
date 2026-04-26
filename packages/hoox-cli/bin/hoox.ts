@@ -75,6 +75,9 @@ import { setupWAF } from "../src/wafCommands.js";
 // Import Installers
 import { downloadBun } from "../src/installers.js";
 
+// Import log commands
+import { downloadLogs } from "../src/logCommands.js";
+
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
 // const CONFIG_PATH = path.resolve(process.cwd(), "config.toml"); // Maybe not needed here?
@@ -524,6 +527,16 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
       );
       console.log(dim("   bun run manage.ts workers setup"));
       console.log("-----------------------------------------------------");
+    });
+
+  // --- Logs Command ---
+  const logsCommand = program.command("logs").description("Manage worker logs");
+
+  logsCommand
+    .command("download <workerName>")
+    .description("Download latest logs for a worker from R2")
+    .action(async (workerName) => {
+      await downloadLogs(workerName);
     });
 
   // Parse arguments
