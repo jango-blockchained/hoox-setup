@@ -55,6 +55,18 @@ describe("hoox Gateway", () => {
 
 We enforce strict TypeScript typing across our codebase, including test files. **Do not use `as any`**. When mocking complex objects like the Cloudflare `Env`, cast your mock object securely using `as unknown as Env`.
 
+## Integration Tests
+
+We use `@cloudflare/vitest-pool-workers` to run full end-to-end integration tests that mock the Cloudflare Workers environment and service bindings.
+
+To run the integration test suite:
+
+```bash
+bun run test:integration
+```
+
+Integration tests are located in the `tests/integration` directory and utilize a `vitest.config.ts` configuration.
+
 ## Development Commands
 
 All workers follow standardized commands using Bun:

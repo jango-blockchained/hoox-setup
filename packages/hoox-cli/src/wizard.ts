@@ -25,6 +25,7 @@ import {
   step_configureSecrets,
   step_initialDeploy,
   printWizardStep,
+  step_cloneRepositories,
 } from "./wizardSteps.js";
 
 import { cloneWorkerRepositories } from "./workerCommands.js";
@@ -214,6 +215,9 @@ export async function runWizard(): Promise<void> {
     print_error("The interactive setup wizard requires a TTY terminal. Please run this command in a fully interactive terminal environment.");
     process.exit(1);
   }
+
+  // Ensure worker repositories are present before we try to select/configure them
+  await step_cloneRepositories();
 
   try {
     const { waitUntilExit, unmount } = render(
