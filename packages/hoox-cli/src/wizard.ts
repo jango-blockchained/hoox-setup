@@ -1,3 +1,6 @@
+import React from "react";
+import { render } from "ink";
+import { WizardView } from "./views/WizardView.js";
 import fs from "fs";
 import path from "path";
 import ansis from "ansis";
@@ -100,114 +103,6 @@ export async function cleanupWizardState(): Promise<void> {
 
 export async function runWizard(): Promise<void> {
   console.log(ansis.blue("\n--- Hoox Worker Setup Wizard ---"));
-
-  // First, check if workers directory exists and has any workers
-  const workersDir = path.resolve(process.cwd(), "workers");
-  let hasWorkers = false;
-
-  try {
-    // Check if workers directory exists
-    if ((fs.existsSync(workersDir))) {
-      // Check if it has any non-hidden directories
-      const files = fs.readdirSync(workersDir);
-      const nonHiddenDirectories = files.filter(
-        (file) =>
-          !file.startsWith(".") &&
-          fs.statSync(path.join(workersDir, file)).isDirectory()
-      );
-
-      hasWorkers = nonHiddenDirectories.length > 0;
-
-      if (!hasWorkers) {
-        console.log(
-          ansis.yellow(
-            "\nWorkers directory exists but contains no worker folders."
-          )
-        );
-      }
-    } else {
-      console.log(ansis.yellow("\nWorkers directory does not exist."));
-    }
-
-    if (!hasWorkers) {
-      console.log(
-        ansis.blue(
-          "You need to clone worker repositories before proceeding with setup."
-        )
-      );
-
-      const cloneNow = await rl.question(
-        ansis.blue("Do you want to clone worker repositories now? (Y/n): ")
-      );
-
-      if (cloneNow.toLowerCase() !== "n") {
-        console.log(
-          ansis.blue("\nExiting wizard to run worker clone command...")
-        );
-        console.log(
-          ansis.dim(
-            "Run 'bun run manage.ts init' again after cloning worker repositories."
-          )
-        );
-
-        // Call the imported function directly
-        await cloneWorkerRepositories(false);
-
-        // Ask if they want to continue with the wizard
-        const continueSetup = await rl.question(
-          ansis.blue("\nContinue with the setup wizard now? (Y/n): ")
-        );
-        if (continueSetup.toLowerCase() === "n") {
-          console.log(
-            ansis.dim(
-              "Run 'bun run manage.ts init' when you're ready to continue setup."
-            )
-          );
-          return;
-        }
-
-        // Re-check if we have workers now
-        if ((fs.existsSync(workersDir))) {
-          const updatedFiles = fs.readdirSync(workersDir);
-          const updatedNonHiddenDirectories = updatedFiles.filter(
-            (file) =>
-              !file.startsWith(".") &&
-              fs.statSync(path.join(workersDir, file)).isDirectory()
-          );
-
-          hasWorkers = updatedNonHiddenDirectories.length > 0;
-
-          if (!hasWorkers) {
-            console.log(
-              ansis.red(
-                "\nNo worker directories found after cloning. Please check for errors and try again."
-              )
-            );
-            return;
-          }
-        }
-      } else {
-        console.log(
-          ansis.yellow("\nYou chose not to clone worker repositories.")
-        );
-        console.log(
-          ansis.dim(
-            "You can clone them later with 'bun run manage.ts workers clone'"
-          )
-        );
-        console.log(
-          ansis.dim("Then restart the wizard with 'bun run manage.ts init'")
-        );
-        return;
-      }
-    }
-  } catch (error: unknown) {
-    console.log(
-      ansis.red(
-        `Error checking workers directory: ${error instanceof Error ? error.message : String(error)}`
-      )
-    );
-  }
 
   let state: WizardState | null = await loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;
@@ -315,87 +210,31 @@ export async function runWizard(): Promise<void> {
   // State should be valid here due to load/init logic
   const currentState = state as WizardState; // Non-null assertion or keep checks
 
+  if (!process.stdin.isTTY) {
+    print_error("The interactive setup wizard requires a TTY terminal. Please run this command in a fully interactive terminal environment.");
+    process.exit(1);
+  }
+
   try {
-    // Step 1: Check Dependencies
-    if (currentState.currentStep <= 1) {
-      printWizardStep(currentState, "Checking Dependencies");
-      await step_checkDependencies();
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 2: Configure Globals
-    if (currentState.currentStep <= 2) {
-      printWizardStep(currentState, "Configuring Global Settings");
-      // Ensure config and global exist before passing
-      if (!currentState.config) currentState.config = {};
-      if (!currentState.config.global)
-        currentState.config.global = {} as GlobalConfig;
-      const updatedGlobalConfig = await step_configureGlobals(
-        currentState.config.global
-      );
-      currentState.config.global = updatedGlobalConfig; // No cast needed if step returns GlobalConfig
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 3: Select Workers
-    if (currentState.currentStep <= 3) {
-      printWizardStep(currentState, "Selecting Workers to Enable");
-      await step_selectWorkers(currentState); // Modifies state directly
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 4: Setup D1 Database (Conditional)
-    if (currentState.currentStep <= 4) {
-      printWizardStep(currentState, "Setting up D1 Database (if required)");
-      await step_setupD1(currentState); // Modifies state directly
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 5: Save Configuration File
-    if (currentState.currentStep <= 5) {
-      printWizardStep(currentState, "Saving Configuration");
-      if (!currentState.config)
-        throw new Error("Cannot save undefined config.");
-
-      const finalConfigCheck = ConfigSchema.safeParse(currentState.config);
-      if (!finalConfigCheck.success) {
-        print_error("Final configuration validation failed before saving:");
-        console.error(
-          dim(JSON.stringify(finalConfigCheck.error.flatten(), null, 2))
-        );
-        throw new Error("Could not save invalid final configuration.");
-      }
-
-      // Cast to Config from configUtils for saveConfig
-      const configToSave =
-        finalConfigCheck.data as unknown as Config;
-      await saveConfig(configToSave);
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 6: Configure Secrets (Guidance/Check)
-    if (currentState.currentStep <= 6) {
-      printWizardStep(currentState, "Configuring Secrets (Guidance)");
-      await step_configureSecrets(currentState);
-      currentState.currentStep++;
-      await saveWizardState(currentState);
-    }
-
-    // Step 7: Initial Deployment (Optional)
-    if (currentState.currentStep <= 7) {
-      printWizardStep(currentState, "Initial Deployment (Optional)");
-      await step_initialDeploy(currentState);
-      currentState.currentStep++;
-      // No need to save state before cleanup
-    }
-
-    // Cleanup on success
-    await cleanupWizardState();
+    const { waitUntilExit, unmount } = render(
+      React.createElement(WizardView, {
+        initialState: currentState,
+        onComplete: async (finalState) => {
+          await saveWizardState(finalState);
+          // Assuming saving config should happen here
+          const finalConfig = finalState.config;
+          if (finalConfig) {
+             const { saveConfig } = await import("./configUtils.js");
+             await saveConfig(finalConfig as any);
+          }
+          await cleanupWizardState();
+          unmount();
+        }
+      })
+    );
+    
+    await waitUntilExit();
+    
     console.log(ansis.green("\n🎉 Setup Wizard Completed Successfully! 🎉"));
     console.log(
       ansis.blue(
