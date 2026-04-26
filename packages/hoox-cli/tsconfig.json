@@ -25,11 +25,11 @@
      "noEmit": true, // Don't output JS files if only type checking
 
      /* Node Types */
-    "types": ["node"],
+    "types": ["node", "bun-types"],
     "lib": ["es2020"]
 
     // Add "baseUrl" and "paths" if needed for aliases within scripts
   },
-  "include": ["./**/*.ts"], // Include all TS files in the scripts directory
-  "exclude": ["node_modules", "dist"]
+  "include": ["./**/*.ts", "./**/*.tsx"], // Include all TS files in the scripts directory
+  "exclude": ["node_modules", "dist", "test"]
 }
