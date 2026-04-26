@@ -1,0 +1,44 @@
+name: Sync to GitHub Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'AGENTS.md'
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync documentation to wiki
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Clone the wiki repository
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
+          
+          # Copy documentation to wiki folder
+          # rsync will merge the docs directory contents into the wiki root
+          rsync -av --exclude='.*' docs/ wiki/
+          cp README.md wiki/Home.md || true
+          cp AGENTS.md wiki/AGENTS.md || true
+          
+          # Commit and push changes
+          cd wiki
+          git add .
+          # Only commit and push if there are changes
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: sync wiki from main repository [skip ci]"
+            git push origin HEAD
+          else
+            echo "No changes to sync."
+          fi
