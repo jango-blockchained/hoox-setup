@@ -10,21 +10,21 @@
 | Git                | ≥2.40   | `apt install git`                       |
 | Cloudflare® Account | -       | [Sign up](https://dash.cloudflare.com/) |
 
-## Step 1: Clone Repository
+## Step 1: Bootstrap Repository
+
+We recommend utilizing the `@hoox/cli` directly to bootstrap your environment seamlessly without dealing with git submodules manually:
 
 ```bash
-# Clone with submodules (recommended)
-git clone --recurse-submodules https://github.com/jango-blockchained/hoox-setup.git
-cd hoox-setup
-
-# Or if already cloned without submodules:
-git submodule update --init --recursive
+# Downloads the repo and properly initializes all submodules
+bunx @hoox/cli clone my-hoox-app
+cd my-hoox-app
 ```
 
-## Step 2: Install Dependencies
+## Step 2: Install Dependencies & Configs
 
 ```bash
 bun install
+hoox config setup
 ```
 
 ## Step 3: Configure Cloudflare®
