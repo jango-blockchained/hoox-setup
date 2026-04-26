@@ -588,7 +588,7 @@ Launch the integrated Terminal UI for local process management:
 ```bash
 ./hoox-tui
 # or
-hoox dev
+bun run dev
 ```
 
 This runs all 8 workers simultaneously on your local machine with hot-reloading.
@@ -906,7 +906,7 @@ hoox workers dev hoox
 bunx wrangler dev --port 8787
 
 # Dashboard (Next.js)
-cd workers/dashboard && hoox dev
+cd workers/dashboard && bun run dev
 ```
 
 ### 10.3 Deploy Commands
