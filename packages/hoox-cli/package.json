@@ -4,6 +4,10 @@
   "description": "Hoox Worker Management CLI - Manage Cloudflare Workers for crypto trading",
   "type": "module",
   "main": "./bin/hoox.ts",
+  "types": "./bin/hoox.ts",
+  "exports": {
+    ".": "./bin/hoox.ts"
+  },
   "bin": {
     "hoox": "./bin/hoox.ts"
   },
