@@ -2,7 +2,7 @@ import { test, expect } from "bun:test";
 import { runCommandSync } from "../src/utils.js";
 
 test("CLI should exit cleanly on success", () => {
-  const result = runCommandSync("bun run ./bin/hoox.ts config", import.meta.dir + "/..");
+  const result = runCommandSync("bun run ./bin/hoox.ts config info", import.meta.dir + "/..");
   expect(result.success).toBe(true);
 });
 
