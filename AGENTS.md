@@ -547,14 +547,14 @@ All secrets stored in Cloudflare Secret Store:
 wrangler secret:list
 
 # Put a secret
-wrangler secret put WEBHOOK_API_KEY --worker hoox
+wrangler secret put WEBHOOK_API_KEY_BINDING --worker hoox
 ```
 
 **Required Secrets by Worker:**
 
 | Worker | Secrets |
 |--------|----------|
-| hoox | WEBHOOK_API_KEY_BINDING |
+| hoox | WEBHOOK_API_KEY_BINDING, INTERNAL_KEY_BINDING |
 | trade-worker | API_SERVICE_KEY, BINANCE_API_KEY, BINANCE_API_SECRET, MEXC_API_KEY, MEXC_API_SECRET, BYBIT_API_KEY, BYBIT_API_SECRET |
 | agent-worker | AGENT_INTERNAL_KEY |
 | telegram-worker | TELEGRAM_BOT_TOKEN |
@@ -634,7 +634,7 @@ bun run scripts/manage.ts secrets guide
 bun run scripts/manage.ts check-setup
 
 # Update CF secrets
-bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY hoox
+bun run scripts/manage.ts secrets update-cf WEBHOOK_API_KEY_BINDING hoox
 ```
 
 ### 6.3 Full Push (submodules + main repo)
