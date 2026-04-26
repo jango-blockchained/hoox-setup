@@ -69,3 +69,5 @@ config.toml
 # Configs
 workers.jsonc
 pages.jsonc
+
+.worktrees/
