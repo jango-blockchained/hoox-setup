@@ -534,7 +534,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
       console.log(
         "5. Once secrets exist in the store, run the setup command to create/update bindings in wrangler.toml:"
       );
-      console.log(dim("   bun run manage.ts workers setup"));
+      console.log(dim("   hoox workers setup"));
       console.log("-----------------------------------------------------");
     });
 
