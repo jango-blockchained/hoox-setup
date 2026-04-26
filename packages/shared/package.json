@@ -11,6 +11,23 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jango-blockchained/hoox-setup.git"
+  },
+  "keywords": [
+    "hoox",
+    "cloudflare",
+    "workers",
+    "shared",
+    "utilities"
+  ],
+  "author": "Hoox Team",
+  "license": "MIT",
   "dependencies": {
     "hono": "^4.4.12"
   },
