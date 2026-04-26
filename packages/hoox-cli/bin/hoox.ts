@@ -121,8 +121,13 @@ async function main() {
       });
     });
 
-  program
+  // --- Config Management Commands ---
+  const configCommand = program
     .command("config")
+    .description("Manage configuration files");
+
+  configCommand
+    .command("info")
     .description("Shows information about the current configuration format.")
     .action(async () => {
       try {
@@ -168,6 +173,14 @@ async function main() {
         const errMsg = error instanceof Error ? error.message : String(error);
         print_error(`Error checking configuration: ${errMsg}`);
       }
+    });
+
+  configCommand
+    .command("setup")
+    .description("Copies example configuration files to their active names.")
+    .action(async () => {
+      const { setupConfigVariables } = await import("../src/configCommands.js");
+      await setupConfigVariables();
     });
 
   // --- Worker Management Commands ---
