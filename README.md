@@ -51,8 +51,9 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 git clone --recurse-submodules https://github.com/jango-blockchained/hoox-setup.git
 cd hoox-setup
 
-# 2. Install ultra-fast Bun dependencies (requires [Bun](https://bun.sh))
+# 2. Install ultra-fast Bun dependencies and build (requires [Bun](https://bun.sh))
 bun install
+bun run build
 
 # 3. Initialize the platform (Interactive CLI Wizard)
 bun run hoox init
