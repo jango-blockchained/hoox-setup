@@ -89,7 +89,7 @@ secrets = ["HA_TOKEN", "HA_SECURE_URL"]
 
 ```bash
 # For local development
-WEBHOOK_API_KEY=your-generated-key
+WEBHOOK_API_KEY_BINDING=your-generated-key
 INTERNAL_KEY=internal-shared-key
 TELEGRAM_BOT_TOKEN=your-bot-token
 ```
@@ -98,7 +98,7 @@ TELEGRAM_BOT_TOKEN=your-bot-token
 
 ```bash
 # For wrangler dev
-WEBHOOK_API_KEY=dev-key
+WEBHOOK_API_KEY_BINDING=dev-key
 ```
 
 ## Worker Secrets
@@ -107,13 +107,13 @@ Each worker can define required secrets in `config.toml`. These are prompted for
 
 ```toml
 [workers.hoox]
-secrets = ["WEBHOOK_API_KEY", "INTERNAL_KEY"]
+secrets = ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
 ```
 
 Available secret types:
 
-- `WEBHOOK_API_KEY` - External API key for webhook validation
-- `INTERNAL_KEY` - Internal service authentication
+- `WEBHOOK_API_KEY_BINDING` - External API key for webhook validation
+- `INTERNAL_KEY_BINDING` - Internal service authentication
 - Exchange keys (MEXC_API_KEY, etc.)
 - Telegram tokens
 - Home Assistant tokens
