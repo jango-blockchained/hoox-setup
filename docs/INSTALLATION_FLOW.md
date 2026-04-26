@@ -316,6 +316,24 @@ Options:
 - **Check Worker Status**: Use `hoox workers status` to see if any workers are misconfigured
 - **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs 
 
+## Quick Start
+
+```bash
+# Bootstrap via hoox CLI
+bunx @hoox/cli clone hoox-setup
+cd hoox-setup
+
+# Install dependencies and setup configs
+bun install
+hoox config setup
+
+# Run setup wizard
+hoox init
+
+# Deploy
+hoox workers deploy
+```
+
 ---
 
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
