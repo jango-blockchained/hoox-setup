@@ -2,9 +2,10 @@ import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import path from "node:path";
 
 const originalCwd = process.cwd;
+const projectRoot = path.resolve(__dirname, "../../../");
 
 beforeAll(() => {
-  process.cwd = () => path.resolve(originalCwd(), "../../");
+  process.cwd = () => projectRoot;
 });
 
 afterAll(() => {
