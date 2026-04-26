@@ -1,3 +1,3 @@
-export * from "./types.ts";
-export * from "./json-response.ts";
-export * from "./exchange-client.ts";
+export * from "./types.js";
+export * from "./json-response.js";
+export * from "./exchange-client.js";
