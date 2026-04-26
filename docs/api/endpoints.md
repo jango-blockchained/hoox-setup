@@ -125,9 +125,9 @@ The `agent-worker` runs primarily via Cloudflare® Cron Triggers (`*/5 * * * *`)
 | `/agent/risk-override` | POST   | Manually enforce or release risk locks (e.g., global kill switch) | JSON with `action` and `reason` | JSON confirmation                    |
 | `/agent/status`        | GET    | Retrieve real-time health of the agent and active trailing stops  | N/A                             | JSON with `status` and active states |
 
-### dashboard-worker
+### dashboard
 
-The `dashboard-worker` is a frontend interface that interacts with the `d1-worker` and `CONFIG_KV`. It does not expose public APIs meant for internal service consumption, but rather serves the React application.
+The `dashboard` is a frontend interface that interacts with the `d1-worker` and `CONFIG_KV`. It does not expose public APIs meant for internal service consumption, but rather serves the React application.
 
 ### d1-worker
 

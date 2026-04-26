@@ -16,7 +16,7 @@ Each worker relies on environment variables for local development. These are sto
    ```bash
    cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
    ```
-2. Fill in the required variables (e.g., `WEBHOOK_API_KEY`).
+2. Fill in the required variables (e.g., `WEBHOOK_API_KEY_BINDING`).
 
 ## Running the Dev Server
 
@@ -49,16 +49,21 @@ When running locally, Cloudflare® Workers can communicate with each other using
 | telegram-worker | 8790 |
 | home-assistant | 8791 |
 | web3-wallet | 8792 |
-| dashboard-worker (Pages) | 8783 |
+| dashboard (Pages) | 8783 |
 
-### Cloudflare Pages (dashboard-worker)
+### Cloudflare Pages (dashboard)
 
-The dashboard-worker uses Cloudflare Pages with Next.js. To run locally:
+The dashboard uses Cloudflare Pages with Next.js. To run locally:
 
-```bash
-bun run scripts/manage.ts workers dev dashboard-worker
-# Or directly:
-cd workers/dashboard-worker && bun run dev
+```
+bun run scripts/manage.ts workers dev dashboard
+```
+
+Or directly:
+
+```
+cd pages/dashboard && bun run dev
+```
 ```
 
 This runs the Next.js dev server, which can be accessed at `http://localhost:3000`.
