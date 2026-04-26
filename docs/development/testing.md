@@ -22,7 +22,7 @@ bun test:watch
 ### Using Management Script
 
 ```bash
-bun run scripts/manage.ts workers test hoox
+hoox workers test hoox
 ```
 
 ## Mocking Bindings

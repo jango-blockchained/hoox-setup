@@ -38,7 +38,6 @@ import {
 
 // Import config utils
 import { loadConfig, saveConfig } from "../src/configUtils.js";
-import { infoConfigFormat, setupConfigVariables } from "../src/configCommands.js";
 
 // Import key utils
 import {
@@ -94,6 +93,15 @@ async function main() {
     .description("Run the interactive first-time setup wizard.")
     .action(runWizard); // Use imported function
 
+  // --- Clone Command ---
+  program
+    .command("clone [destination]")
+    .description("Clone the main hoox-setup repository")
+    .action(async (destination) => {
+      const { cloneMainRepo } = await import("../src/cloneCommand.js");
+      await cloneMainRepo(destination);
+    });
+
   // --- Install Bun Command ---
   program
     .command("install-bun")
@@ -113,6 +121,7 @@ async function main() {
       });
     });
 
+  // --- Config Management Commands ---
   const configCommand = program
     .command("config")
     .description("Manage configuration files");
@@ -120,12 +129,59 @@ async function main() {
   configCommand
     .command("info")
     .description("Shows information about the current configuration format.")
-    .action(infoConfigFormat);
+    .action(async () => {
+      try {
+        const fs = await import("node:fs");
+        const path = await import("node:path");
+
+        const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
+        const configTomlPath = path.resolve(process.cwd(), "config.toml");
+
+        if ((await Bun.file(configJsoncPath).exists())) {
+          console.log(green("Using: config.jsonc (JSONC format)"));
+        } else if ((await Bun.file(configTomlPath).exists())) {
+          console.log(green("Using: config.toml (TOML format)"));
+        } else {
+          console.log(
+            yellow("No configuration file found. Run 'init' to create one.")
+          );
+        }
+
+        // Show information about both example files
+        const exampleJsoncPath = path.resolve(
+          process.cwd(),
+          "config.jsonc.example"
+        );
+        const exampleTomlPath = path.resolve(
+          process.cwd(),
+          "config.toml.example"
+        );
+
+        console.log("\nExample files available:");
+        if ((await Bun.file(exampleJsoncPath).exists())) {
+          console.log(green("- config.jsonc.example (JSONC format)"));
+        } else {
+          console.log(red("- config.jsonc.example not found"));
+        }
+
+        if ((await Bun.file(exampleTomlPath).exists())) {
+          console.log(green("- config.toml.example (TOML format)"));
+        } else {
+          console.log(red("- config.toml.example not found"));
+        }
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        print_error(`Error checking configuration: ${errMsg}`);
+      }
+    });
 
   configCommand
     .command("setup")
     .description("Copies example configuration files to their active names.")
-    .action(setupConfigVariables);
+    .action(async () => {
+      const { setupConfigVariables } = await import("../src/configCommands.js");
+      await setupConfigVariables();
+    });
 
   // --- Worker Management Commands ---
   const workersCommand = program
@@ -491,7 +547,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
       console.log(
         "5. Once secrets exist in the store, run the setup command to create/update bindings in wrangler.toml:"
       );
-      console.log(dim("   bun run manage.ts workers setup"));
+      console.log(dim("   hoox workers setup"));
       console.log("-----------------------------------------------------");
     });
 
