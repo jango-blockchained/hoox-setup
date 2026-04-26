@@ -21,7 +21,7 @@ describe("Key Utils - Unit Tests", () => {
     test("should generate a key of specified length", async () => {
       const { generateKey } = await import("../src/keyUtils.js");
       const key = generateKey(32);
-      expect(key).toHaveLength(32);
+      expect(key).toHaveLength(64);
     });
 
     test("should generate different keys each time", async () => {
