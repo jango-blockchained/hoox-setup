@@ -72,11 +72,14 @@ export interface WranglerConfig {
 // Optional: Define more specific types if needed (e.g., for secrets, vars)
 const WorkerConfigSchema = z
   .object({
+    name: z.string().optional(),
     enabled: z.boolean().optional(),
     path: z.string().optional(), // Path might be automatically added later
     vars: z.record(z.string()).optional(),
     secrets: z.array(z.string()).optional(),
     deployed_url: z.string().optional(),
+    services: z.array(z.object({ binding: z.string(), service: z.string() })).optional(),
+    d1_databases: z.array(z.object({ binding: z.string(), database_id: z.string() })).optional(),
     queues: z
       .object({
         producers: z
