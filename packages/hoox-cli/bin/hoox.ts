@@ -72,6 +72,9 @@ import { runHousekeeping } from "../src/housekeeping.js";
 // Import WAF
 import { setupWAF } from "../src/wafCommands.js";
 
+// Import Installers
+import { downloadBun } from "../src/installers.js";
+
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
 // const CONFIG_PATH = path.resolve(process.cwd(), "config.toml"); // Maybe not needed here?
@@ -86,6 +89,12 @@ async function main() {
     .command("init")
     .description("Run the interactive first-time setup wizard.")
     .action(runWizard); // Use imported function
+
+  // --- Install Bun Command ---
+  program
+    .command("install-bun")
+    .description("Automatically download and install the Bun runtime.")
+    .action(downloadBun);
 
   program
     .command("check-setup")
