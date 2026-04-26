@@ -17,7 +17,7 @@ import {
   print_warning,
   getCloudflareToken,
 } from "./utils.js";
-import { deployWorkers } from "./workerCommands.js";
+import { cloneWorkerRepositories, deployWorkers } from "./workerCommands.js";
 import { getLocalKeysFile, getKey } from "./keyUtils.js";
 
 const WORKERS_DIR = path.resolve(process.cwd(), "workers");
@@ -117,6 +117,17 @@ export async function step_configureGlobals(
 
   print_success("Global settings configured.");
   return updatedGlobals as GlobalConfig;
+}
+
+export async function step_cloneRepositories(): Promise<void> {
+  console.log(ansis.dim("Checking worker repositories..."));
+  try {
+    await cloneWorkerRepositories();
+    print_success("Worker repositories are ready.");
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    print_warning(`Could not clone repositories automatically: ${errorMsg}`);
+  }
 }
 
 // --- Step: Select Workers ---

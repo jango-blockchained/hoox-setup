@@ -8,6 +8,7 @@
     "pages/*"
   ],
   "scripts": {
+    "test:integration": "vitest run --config vitest.config.ts",
     "tests": "bun run ./scripts/run-tests.ts",
     "tests:watch": "bun run ./scripts/run-tests.ts --watch",
     "tests:coverage": "bun run ./scripts/run-tests.ts --coverage",
@@ -46,10 +47,11 @@
     "docker:down": "docker-compose down"
   },
   "devDependencies": {
-    "@hoox/cli": "workspace:*",
     "@cloudflare/ai": "^1.2.2",
+    "@cloudflare/vitest-pool-workers": "^0.15.0",
     "@cloudflare/workers-types": "^4.20250430.0",
     "@hono/zod-validator": "^0.2.2",
+    "@hoox/cli": "workspace:*",
     "@types/blessed": "^0.1.25",
     "@types/commander": "^2.12.5",
     "@types/node": "^20.17.31",
@@ -61,9 +63,10 @@
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.0.0",
     "shadcn": "^4.4.0",
-    "tsx": "^4.19.3"
+    "tsx": "^4.19.3",
+    "vitest": "^4.1.5"
   },
-"dependencies": {
+  "dependencies": {
     "blessed": "^0.1.81",
     "ethers": "^6.13.7",
     "hono": "^4.4.12",
