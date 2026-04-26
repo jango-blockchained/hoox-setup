@@ -1063,23 +1063,19 @@ CLOUDFLARE_ACCOUNT_ID=your_id
 ### 13.3 Quick Start
 
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/jango-blockchained/hoox-setup.git
+# Bootstrap via hoox CLI
+bunx @hoox/cli clone hoox-setup
 cd hoox-setup
 
-# Install dependencies
+# Install dependencies and setup configs
 bun install
+hoox config setup
 
 # Run setup wizard
 hoox init
 
 # Deploy
 hoox workers deploy
-
-# Test webhook
-curl -X POST https://hoox.<prefix>.workers.dev \
-  -H "Content-Type: application/json" \
-  -d '{"apiKey":"YOUR_KEY","exchange":"mexc","action":"LONG","symbol":"BTC_USDT","quantity":0.01}'
 ```
 
 ---
