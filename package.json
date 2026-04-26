@@ -1,6 +1,6 @@
 {
-  "name": "crypto-trading-system",
-  "version": "1.0.0",
+  "name": "hoox",
+  "version": "0.1.0",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -50,6 +50,7 @@
     "@cloudflare/ai": "^1.2.2",
     "@cloudflare/workers-types": "^4.20250430.0",
     "@hono/zod-validator": "^0.2.2",
+    "@types/blessed": "^0.1.25",
     "@types/commander": "^2.12.5",
     "@types/node": "^20.17.31",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
@@ -58,17 +59,14 @@
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "hono": "^4.4.12",
-    "postgres": "^3.4.4",
     "prettier": "^3.0.0",
     "shadcn": "^4.4.0",
-    "tsx": "^4.19.3",
-    "zod": "^3.23.8"
+    "tsx": "^4.19.3"
   },
-  "dependencies": {
-    "@types/blessed": "^0.1.25",
+"dependencies": {
     "blessed": "^0.1.81",
     "ethers": "^6.13.7",
+    "hono": "^4.4.12",
     "zod": "^3.24.3"
   }
 }
