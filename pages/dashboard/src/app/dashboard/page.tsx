@@ -45,7 +45,7 @@ function SystemResources() {
         </div>
       </div>
       <div className="flex items-center gap-3 p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 backdrop-blur shadow-lg hover:bg-neutral-900/50 transition-colors">
-        <div className="p-2 bg-neutral-900 text-orange-500 rounded-lg border border-neutral-800 shadow-inner">
+        <div className="p-2 bg-neutral-900 text-primary rounded-lg border border-neutral-800 shadow-inner">
           <ShieldCheck className="h-4 w-4" />
         </div>
         <div>
@@ -61,7 +61,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 pb-8 relative min-h-screen bg-black">
       {/* Ambient background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Grid pattern overlay */}
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             className="flex flex-col gap-6 lg:col-span-2"
           >
             <div className="relative rounded-xl group">
-              <div className="absolute -inset-px bg-gradient-to-b from-orange-500/20 to-transparent rounded-xl opacity-50 pointer-events-none" />
+              <div className="absolute -inset-px bg-gradient-to-b from-primary/20 to-transparent rounded-xl opacity-50 pointer-events-none" />
               <div className="relative border border-neutral-800/80 rounded-xl bg-neutral-950/80 backdrop-blur shadow-xl">
                 <AiHealthCard />
               </div>
