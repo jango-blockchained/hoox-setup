@@ -318,16 +318,50 @@ Options:
 
 ## Quick Start
 
+### Option A: Install via CLI (Recommended)
+
 1. **Install the CLI globally:**
+
    ```bash
    # Recommended
    bun add -g @jango-blockchained/hoox-cli
 
    # Alternatives
    npm install -g @jango-blockchained/hoox-cli
-   yarn global add @jango-blockchained/hoox-cli
-   pnpm add -g @jango-blockchained/hoox-cli
    ```
+
+2. **Bootstrap your environment:**
+
+   ```bash
+   hoox clone hoox-setup
+   cd hoox-setup
+   bun install
+   hoox config setup
+   hoox init
+   ```
+
+### Option B: Install from Source
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-setup
+   cd hoox-setup
+   bun install
+   ```
+
+2. **Setup:**
+
+   ```bash
+   hoox config setup
+   hoox init
+   ```
+
+### Deploy
+
+```bash
+hoox workers deploy
+```
 
 2. **Bootstrap your environment:**
    ```bash
