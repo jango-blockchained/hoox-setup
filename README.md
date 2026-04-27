@@ -46,23 +46,33 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 
 ## 🚀 Quick Start (Deploy in 5 Minutes)
 
-```bash
-# 1. Bootstrap your environment instantly via npx/bunx
-bunx @hoox/cli clone hoox-trading
-cd hoox-trading
+1. **Install the CLI globally:**
+   ```bash
+   # Recommended
+   bun add -g @jango-blockchained/hoox-cli
 
-# 2. Install ultra-fast Bun dependencies and build (requires [Bun](https://bun.sh))
-bun install
+   # Alternatives
+   npm install -g @jango-blockchained/hoox-cli
+   yarn global add @jango-blockchained/hoox-cli
+   pnpm add -g @jango-blockchained/hoox-cli
+   ```
 
-# 3. Setup configurations
-hoox config setup
+2. **Bootstrap your environment:**
+   ```bash
+   hoox clone hoox-trading
+   cd hoox-trading
+   
+   # (Fallback: bunx @jango-blockchained/hoox-cli clone hoox-trading)
 
-# 4. Initialize the platform (Interactive CLI Wizard)
-hoox init
+   bun install
+   hoox config setup
+   hoox init
+   ```
 
-# 5. Deploy your entire trading empire to the Cloudflare® Edge!
-hoox workers deploy
-```
+3. **Deploy your entire trading empire to the Cloudflare® Edge!**
+   ```bash
+   hoox workers deploy
+   ```
 
 > **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all 8 workers simultaneously on your local machine!
 >
