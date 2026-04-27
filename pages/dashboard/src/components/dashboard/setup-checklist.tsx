@@ -373,7 +373,7 @@ export function SetupChecklist() {
                           <div className="flex items-center gap-3 overflow-x-auto w-full pl-2">
                             <Terminal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                             <code className="text-[11px] font-[family-name:var(--font-geist-mono)] whitespace-nowrap text-gray-300">
-                              <span className="text-blue-400">bun run</span> scripts/manage.ts secrets update-cf <span className="text-green-400">{req.secret}</span> <span className="text-yellow-400">{req.worker}</span> <span className="text-orange-400">&quot;{req.example}&quot;</span>
+                              <span className="text-blue-400">bun run</span> scripts/manage.ts secrets update-cf <span className="text-green-400">{req.secret}</span> <span className="text-yellow-400">{req.worker}</span> <span className="text-neutral-400">&quot;{req.example}&quot;</span>
                             </code>
                           </div>
                           <Button 
