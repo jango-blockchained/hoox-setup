@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeAll, afterAll, afterEach } from "bun:test";
+import { describe, expect, test, beforeAll, afterAll, afterEach, vi } from "bun:test";
 import path from "node:path";
 
 const originalCwd = process.cwd;
@@ -12,7 +12,7 @@ afterAll(() => {
   process.cwd = originalCwd;
 });
 
-import { loadConfig, parseJsonc } from "../src/configUtils.js";
+import { loadConfig, parseJsonc, stringifyToml, parseConfig, getWorkerNames, loadPagesConfig, saveConfig, savePagesConfig } from "../src/configUtils.js";
 import toml from "toml";
 import type { Config } from "../src/types.js";
 
@@ -144,8 +144,6 @@ describe("JSONC Parsing", () => {
 });
 
 describe("stringifyToml", () => {
-  const { stringifyToml } = require("../src/configUtils.js");
-
   test("should serialize null values", () => {
     const result = stringifyToml({ key: null });
     expect(result).toContain('key = null');
@@ -203,7 +201,7 @@ describe("stringifyToml", () => {
 });
 
 describe("parseConfig", () => {
-  const { parseConfig } = require("../src/configUtils.js");
+  
 
   test("should be alias of loadConfig", async () => {
     try {
@@ -216,7 +214,7 @@ describe("parseConfig", () => {
 });
 
 describe("getWorkerNames", () => {
-  const { getWorkerNames } = require("../src/configUtils.js");
+  
 
   test("should return array of worker names", async () => {
     try {
@@ -232,7 +230,7 @@ describe("getWorkerNames", () => {
 });
 
 describe("loadPagesConfig", () => {
-  const { loadPagesConfig } = require("../src/configUtils.js");
+  
   const originalCwd2 = process.cwd;
 
   afterEach(() => {
@@ -259,7 +257,7 @@ describe("loadPagesConfig", () => {
 });
 
 describe("saveConfig", () => {
-  const { saveConfig, loadConfig } = require("../src/configUtils.js");
+  
 
   test("should save and reload config", async () => {
     try {
@@ -272,7 +270,7 @@ describe("saveConfig", () => {
 });
 
 describe("savePagesConfig", () => {
-  const { savePagesConfig } = require("../src/configUtils.js");
+  
 
   test("should save pages config", async () => {
     const testConfig = {
@@ -306,7 +304,7 @@ describe("loadConfig error handling", () => {
 
   test("should throw when example file is missing", async () => {
     process.cwd = () => path.resolve(projectRoot, "test-missing-example");
-    const { loadConfig } = require("../src/configUtils.js");
+    
     try {
       await loadConfig();
       throw new Error("Should have thrown");

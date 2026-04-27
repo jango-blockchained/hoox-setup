@@ -1,28 +1,7 @@
-import { describe, expect, test, beforeEach, vi, Mock } from "bun:test";
+import { describe, expect, test, beforeEach, vi, Mock, afterEach } from "bun:test";
 import * as workerCommands from "../src/workerCommands.js";
 import * as utils from "../src/utils.js";
 import * as configUtils from "../src/configUtils.js";
-
-vi.mock("../src/utils.js", () => ({
-  runCommandAsync: vi.fn(),
-  runInteractiveCommand: vi.fn(),
-  getCloudflareToken: vi.fn(),
-  print_success: vi.fn(),
-  print_error: vi.fn(),
-  print_warning: vi.fn(),
-  red: (s: string) => s,
-  green: (s: string) => s,
-  yellow: (s: string) => s,
-  blue: (s: string) => s,
-  cyan: (s: string) => s,
-  dim: (s: string) => s,
-  rl: { question: vi.fn() },
-}));
-
-vi.mock("../src/configUtils.js", () => ({
-  saveConfig: vi.fn(),
-  stringifyToml: vi.fn(),
-}));
 
 describe("workerCommands", () => {
   beforeEach(() => {
@@ -31,6 +10,21 @@ describe("workerCommands", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    
+    vi.spyOn(utils, "runCommandAsync").mockResolvedValue({ success: true, stdout: "", stderr: "", exitCode: 0 });
+    vi.spyOn(utils, "runInteractiveCommand").mockResolvedValue(0);
+    vi.spyOn(utils, "getCloudflareToken").mockResolvedValue("mock-token");
+    vi.spyOn(utils, "print_success").mockImplementation(() => {});
+    vi.spyOn(utils, "print_error").mockImplementation(() => {});
+    vi.spyOn(utils, "print_warning").mockImplementation(() => {});
+    vi.spyOn(utils.rl, "question").mockResolvedValue("mock-answer");
+
+    vi.spyOn(configUtils, "saveConfig").mockResolvedValue();
+    // stringifyToml does not need to be mocked, we can just let it run
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("Export Validation", () => {
