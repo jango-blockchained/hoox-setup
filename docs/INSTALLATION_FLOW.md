@@ -318,21 +318,33 @@ Options:
 
 ## Quick Start
 
-```bash
-# Bootstrap via hoox CLI
-bunx @hoox/cli clone hoox-setup
-cd hoox-setup
+1. **Install the CLI globally:**
+   ```bash
+   # Recommended
+   bun add -g @jango-blockchained/hoox-cli
 
-# Install dependencies and setup configs
-bun install
-hoox config setup
+   # Alternatives
+   npm install -g @jango-blockchained/hoox-cli
+   yarn global add @jango-blockchained/hoox-cli
+   pnpm add -g @jango-blockchained/hoox-cli
+   ```
 
-# Run setup wizard
-hoox init
+2. **Bootstrap your environment:**
+   ```bash
+   hoox clone hoox-setup
+   cd hoox-setup
+   
+   # (Fallback: bunx @jango-blockchained/hoox-cli clone hoox-setup)
 
-# Deploy
-hoox workers deploy
-```
+   bun install
+   hoox config setup
+   hoox init
+   ```
+
+3. **Deploy:**
+   ```bash
+   hoox workers deploy
+   ```
 
 ---
 
