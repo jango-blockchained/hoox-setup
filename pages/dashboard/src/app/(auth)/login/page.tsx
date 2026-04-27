@@ -47,7 +47,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden p-4">
       {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Grid pattern overlay */}
@@ -61,7 +61,7 @@ export default function LoginPage() {
         className="w-full max-w-md relative z-10"
       >
         <Card className="border-neutral-800 bg-neutral-950/80 backdrop-blur-xl shadow-2xl overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
           
           <CardHeader className="space-y-3 pb-6 text-center">
             <motion.div 
@@ -70,7 +70,7 @@ export default function LoginPage() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="mx-auto w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center shadow-inner mb-2"
             >
-              <Terminal className="h-6 w-6 text-orange-500" />
+              <Terminal className="h-6 w-6 text-primary" />
             </motion.div>
             <CardTitle className="text-3xl font-bold tracking-tight bg-gradient-to-br from-white to-neutral-400 bg-clip-text text-transparent">
               Hoox Gateway
@@ -104,7 +104,7 @@ export default function LoginPage() {
                     placeholder="admin"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-neutral-900/50 border-neutral-800 focus-visible:border-orange-500/50 focus-visible:ring-orange-500/20 text-neutral-100 placeholder:text-neutral-600 transition-all"
+                    className="bg-neutral-900/50 border-border focus-visible:border-primary/50 focus-visible:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
                     required
                   />
                 </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-neutral-900/50 border-neutral-800 focus-visible:border-orange-500/50 focus-visible:ring-orange-500/20 text-neutral-100 placeholder:text-neutral-600 transition-all"
+                    className="bg-neutral-900/50 border-border focus-visible:border-primary/50 focus-visible:ring-primary/20 text-foreground placeholder:text-muted-foreground transition-all"
                     required
                   />
                 </div>
@@ -130,7 +130,7 @@ export default function LoginPage() {
               <div className="pt-2">
                 <Button
                   type="submit"
-                  className="w-full bg-orange-600 hover:bg-orange-500 text-white shadow-[0_0_20px_rgba(234,88,12,0.15)] transition-all flex items-center justify-center gap-2 h-11"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all flex items-center justify-center gap-2 h-11"
                   disabled={loading}
                 >
                   {loading ? (
@@ -162,7 +162,7 @@ export default function LoginPage() {
               <span>End-to-End</span>
             </div>
             <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-mono bg-neutral-900/50 px-2 py-1 rounded border border-neutral-800/50">
-              <Key className="h-3 w-3 text-orange-500/70" />
+              <Key className="h-3 w-3 text-primary/70" />
               <span>Edge Auth</span>
             </div>
           </div>
