@@ -72,3 +72,10 @@ pages.jsonc
 
 .worktrees/
 *.tgz
+
+# Test artifacts & dev vars
+test-exit.js
+test-exit2.js
+test_output.txt
+.dev.vars
+*/.dev.vars
