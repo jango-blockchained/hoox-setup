@@ -1,6 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { runHousekeeping, generateHousekeepingReport, type HousekeepingResult } from '../src/housekeeping.js';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { runHousekeeping, generateHousekeepingReport, type HousekeepingResult, type HousekeepingIssue } from '../src/housekeeping.js';
 import type { Config } from '../src/types.js';
+
+vi.mock('bun', () => ({
+  default: {
+    file: vi.fn((filePath: string) => ({
+      exists: vi.fn().mockResolvedValue(true),
+      text: vi.fn().mockResolvedValue('{}'),
+    })),
+  },
+}));
 
 vi.mock('../src/utils.js', () => ({
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,
@@ -12,6 +21,13 @@ vi.mock('../src/utils.js', () => ({
   print_success: vi.fn(),
   print_error: vi.fn(),
   print_warning: vi.fn(),
+}));
+
+vi.mock('node:fs', () => ({
+  default: {
+    existsSync: vi.fn((path: string) => !path.includes('nonexistent')),
+  },
+  existsSync: vi.fn((path: string) => !path.includes('nonexistent')),
 }));
 
 const mockConfig: Config = {
@@ -63,13 +79,6 @@ describe('housekeeping', () => {
     });
 
     it('should handle non-existent worker directories', async () => {
-      vi.mock('node:fs', () => ({
-        default: {
-          existsSync: (path: string) => !path.includes('workers/hoox'),
-        },
-        existsSync: (path: string) => !path.includes('workers/hoox'),
-      }));
-
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
       await runHousekeeping(mockConfig, true);
@@ -117,5 +126,131 @@ describe('HousekeepingResult', () => {
     expect(result.checkedWorkers).toBe(3);
     expect(result.issues).toEqual([]);
     expect(result.summary.errors).toBe(0);
+  });
+});
+
+describe('runHousekeeping - error cases', () => {
+  let consoleSpy: any;
+
+  beforeEach(() => {
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it('should report error when worker path not defined', async () => {
+    const config: Config = {
+      global: {
+        cloudflare_api_token: 'test-token',
+        cloudflare_account_id: 'test-account',
+        cloudflare_secret_store_id: 'test-store',
+        subdomain_prefix: 'test',
+      },
+      workers: {
+        'test-worker': {
+          enabled: true,
+          path: undefined as any,
+        },
+      },
+    };
+
+    await runHousekeeping(config, false);
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
+  it('should report error when worker directory not found', async () => {
+    const config: Config = {
+      global: {
+        cloudflare_api_token: 'test-token',
+        cloudflare_account_id: 'test-account',
+        cloudflare_secret_store_id: 'test-store',
+        subdomain_prefix: 'test',
+      },
+      workers: {
+        'test-worker': {
+          enabled: true,
+          path: 'nonexistent/path',
+        },
+      },
+    };
+
+    await runHousekeeping(config, false);
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
+  it('should report warning when wrangler missing name', async () => {
+    const config: Config = {
+      global: {
+        cloudflare_api_token: 'test-token',
+        cloudflare_account_id: 'test-account',
+        cloudflare_secret_store_id: 'test-store',
+        subdomain_prefix: 'test',
+      },
+      workers: {
+        'test-worker': {
+          enabled: true,
+          path: 'workers/test-worker',
+        },
+      },
+    };
+
+    await runHousekeeping(config, false);
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
+  it('should report warning when wrangler missing compatibility_date', async () => {
+    const config: Config = {
+      global: {
+        cloudflare_api_token: 'test-token',
+        cloudflare_account_id: 'test-account',
+        cloudflare_secret_store_id: 'test-store',
+        subdomain_prefix: 'test',
+      },
+      workers: {
+        'test-worker': {
+          enabled: true,
+          path: 'workers/test-worker',
+        },
+      },
+    };
+
+    await runHousekeeping(config, false);
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+});
+
+describe('HousekeepingIssue', () => {
+  it('should have correct structure for error', () => {
+    const issue: HousekeepingIssue = {
+      worker: 'test-worker',
+      type: 'error',
+      message: 'Test error message',
+    };
+
+    expect(issue.worker).toBe('test-worker');
+    expect(issue.type).toBe('error');
+    expect(issue.message).toBe('Test error message');
+  });
+
+  it('should have correct structure for warning', () => {
+    const issue: HousekeepingIssue = {
+      worker: 'test-worker',
+      type: 'warning',
+      message: 'Test warning message',
+    };
+
+    expect(issue.type).toBe('warning');
+  });
+
+  it('should have correct structure for info', () => {
+    const issue: HousekeepingIssue = {
+      worker: 'test-worker',
+      type: 'info',
+      message: 'Test info message',
+    };
+
+    expect(issue.type).toBe('info');
   });
 });
