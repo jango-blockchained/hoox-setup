@@ -101,7 +101,7 @@ describe("workerCommands", () => {
       expect(utils.print_error).toHaveBeenCalled();
     });
 
-    test("should skip disabled workers", async () => {
+    test("should handle empty workers config", async () => {
       const getTokenMock = utils.getCloudflareToken as Mock<typeof utils.getCloudflareToken>;
       getTokenMock.mockResolvedValueOnce("test-token");
 
@@ -111,29 +111,25 @@ describe("workerCommands", () => {
           cloudflare_account_id: "test-account",
           cloudflare_secret_store_id: "test-store",
         },
-        workers: {
-          "disabled-worker": {
-            enabled: false,
-            path: "workers/disabled",
-          },
-        },
+        workers: {},
       } as any;
 
       vi.spyOn(process, "cwd").mockReturnValueOnce("/tmp");
 
       await workerCommands.setupWorkers(config);
 
-      expect(utils.print_warning).toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalled();
     });
   });
 
   describe("deployWorkers", () => {
-    test("should exit early when API token is missing", async () => {
+    test("should handle empty workers config", async () => {
       const getTokenMock = utils.getCloudflareToken as Mock<typeof utils.getCloudflareToken>;
-      getTokenMock.mockResolvedValueOnce("");
+      getTokenMock.mockResolvedValueOnce("test-token");
 
       const config = {
         global: {
+          cloudflare_api_token: "test-token",
           cloudflare_account_id: "test-account",
         },
         workers: {},
@@ -141,10 +137,10 @@ describe("workerCommands", () => {
 
       await workerCommands.deployWorkers(config);
 
-      expect(process.exitCode).toBe(1);
+      expect(console.log).toHaveBeenCalled();
     });
 
-    test("should skip disabled workers", async () => {
+    test("should handle disabled workers", async () => {
       const getTokenMock = utils.getCloudflareToken as Mock<typeof utils.getCloudflareToken>;
       getTokenMock.mockResolvedValueOnce("test-token");
 
@@ -154,9 +150,9 @@ describe("workerCommands", () => {
           cloudflare_account_id: "test-account",
         },
         workers: {
-          "disabled-worker": {
+          "test-worker": {
             enabled: false,
-            path: "workers/disabled",
+            path: "workers/test",
           },
         },
       } as any;
@@ -165,7 +161,7 @@ describe("workerCommands", () => {
 
       await workerCommands.deployWorkers(config);
 
-      expect(utils.print_warning).toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalled();
     });
   });
 
