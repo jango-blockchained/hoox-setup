@@ -71,3 +71,4 @@ workers.jsonc
 pages.jsonc
 
 .worktrees/
+*.tgz
