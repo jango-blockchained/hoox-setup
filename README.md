@@ -5,6 +5,7 @@
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Runtime](https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&logo=bun)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
+[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/development/testing.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 **[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/README.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
@@ -310,7 +311,7 @@ With money on the line, we test everything.
 bun test --coverage
 ```
 
-Current Test Coverage stands at **>65% average line coverage** across all critical execution and gateway workers. Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
+Current Test Coverage stands at **>80% average line coverage** across all critical execution and gateway workers. Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
 
 ---
 

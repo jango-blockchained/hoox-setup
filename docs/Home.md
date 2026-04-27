@@ -24,13 +24,13 @@ Each worker has its own README in the worker directory:
 
 - [hoox Gateway](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/hoox) - Main gateway worker (65% line coverage)
 - [trade-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/trade-worker) - Trading engine (80% line coverage)
-- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications (45% line coverage)
-- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations (62% line coverage)
-- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (27% line coverage)
+- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications (94% line coverage)
+- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations (94% line coverage)
+- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (68% line coverage)
 - [dashboard](https://github.com/jango-blockchained/hoox-setup/tree/main/pages/dashboard) - UI & Settings Manager
 - [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions (83% line coverage)
-- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation (43% line coverage)
-- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (79% line coverage)
+- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation (76% line coverage)
+- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (97% line coverage)
 
 ### API Reference
 
