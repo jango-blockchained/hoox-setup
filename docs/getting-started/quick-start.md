@@ -10,6 +10,8 @@
 
 ## Step 1: Clone & Install
 
+### Option A: Install via CLI (Recommended)
+
 ```bash
 # 1. Install the CLI globally
 bun add -g @jango-blockchained/hoox-cli
@@ -18,9 +20,18 @@ bun add -g @jango-blockchained/hoox-cli
 hoox clone hoox-setup
 cd hoox-setup
 
-# (Fallback: bunx @jango-blockchained/hoox-cli clone hoox-setup)
-
 # 3. Install dependencies
+bun install
+```
+
+### Option B: Install from Source
+
+```bash
+# 1. Clone the repository
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-setup
+cd hoox-setup
+
+# 2. Install dependencies
 bun install
 ```
 
