@@ -11,9 +11,16 @@
 ## Step 1: Clone & Install
 
 ```bash
-# Bootstrap the complete repository via hoox CLI
-bunx @hoox/cli clone hoox-setup
+# 1. Install the CLI globally
+bun add -g @jango-blockchained/hoox-cli
+
+# 2. Bootstrap the complete repository
+hoox clone hoox-setup
 cd hoox-setup
+
+# (Fallback: bunx @jango-blockchained/hoox-cli clone hoox-setup)
+
+# 3. Install dependencies
 bun install
 ```
 

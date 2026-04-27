@@ -12,12 +12,23 @@
 
 ## Step 1: Bootstrap Repository
 
-We recommend utilizing the `@hoox/cli` directly to bootstrap your environment seamlessly without dealing with git submodules manually:
+We recommend installing the `@jango-blockchained/hoox-cli` globally to bootstrap your environment seamlessly without dealing with git submodules manually:
 
 ```bash
-# Downloads the repo and properly initializes all submodules
-bunx @hoox/cli clone my-hoox-app
+# 1. Install the CLI globally
+# Recommended
+bun add -g @jango-blockchained/hoox-cli
+
+# Alternatives
+npm install -g @jango-blockchained/hoox-cli
+yarn global add @jango-blockchained/hoox-cli
+pnpm add -g @jango-blockchained/hoox-cli
+
+# 2. Download the repo and properly initialize all submodules
+hoox clone my-hoox-app
 cd my-hoox-app
+
+# (Fallback: bunx @jango-blockchained/hoox-cli clone my-hoox-app)
 ```
 
 ## Step 2: Install Dependencies & Configs
