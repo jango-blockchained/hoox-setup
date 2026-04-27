@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { runHousekeeping, generateHousekeepingReport, type HousekeepingResult, type HousekeepingIssue } from '../src/housekeeping.js';
 import type { Config } from '../src/types.js';
+import * as utils from '../src/utils.js';
 
 vi.mock('bun', () => ({
   default: {
@@ -9,18 +10,6 @@ vi.mock('bun', () => ({
       text: vi.fn().mockResolvedValue('{}'),
     })),
   },
-}));
-
-vi.mock('../src/utils.js', () => ({
-  red: (s: string) => `\x1b[31m${s}\x1b[0m`,
-  green: (s: string) => `\x1b[32m${s}\x1b[0m`,
-  yellow: (s: string) => `\x1b[33m${s}\x1b[0m`,
-  blue: (s: string) => `\x1b[34m${s}\x1b[0m`,
-  cyan: (s: string) => `\x1b[36m${s}\x1b[0m`,
-  dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
-  print_success: vi.fn(),
-  print_error: vi.fn(),
-  print_warning: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -59,6 +48,17 @@ const mockConfig: Config = {
 };
 
 describe('housekeeping', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(utils, "print_success").mockImplementation(() => {});
+    vi.spyOn(utils, "print_error").mockImplementation(() => {});
+    vi.spyOn(utils, "print_warning").mockImplementation(() => {});
+  });
+  
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  
   describe('runHousekeeping', () => {
     it('should check enabled workers', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
