@@ -30,8 +30,16 @@ import {
 
 import { cloneWorkerRepositories } from "./workerCommands.js";
 
+import { useValidation, useAutoSave, useVerboseLogging } from "./wizard/hooks/index.js";
+
 const STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
 const TOTAL_WIZARD_STEPS = 7;
+
+export interface WizardOptions {
+  verbose?: boolean;
+  dryRun?: boolean;
+  force?: boolean;
+}
 
 // --- Wizard State Management ---
 
@@ -102,7 +110,15 @@ export async function cleanupWizardState(): Promise<void> {
 
 // --- Main Wizard Function ---
 
-export async function runWizard(): Promise<void> {
+export async function runWizard(options: WizardOptions = {}): Promise<void> {
+  const { verbose = false, dryRun = false, force = false } = options;
+
+  if (dryRun) {
+    console.log(ansis.blue("🔍 Running in dry-run mode - no changes will be made"));
+  }
+  if (verbose) {
+    console.log(ansis.blue("📝 Verbose logging enabled"));
+  }
   console.log(ansis.blue("\n--- Hoox Worker Setup Wizard ---"));
 
   let state: WizardState | null = await loadWizardState();

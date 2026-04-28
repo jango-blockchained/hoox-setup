@@ -25,6 +25,10 @@ export const print_warning = (text: string): void => {
   console.warn(yellow(`⚠️ ${text}`));
 };
 
+export const print_info = (text: string): void => {
+  console.log(blue(`ℹ️ ${text}`));
+};
+
 // --- Readline Interface --- (Export for shared use)
 export const rl = readline.createInterface({
   input: process.stdin,
