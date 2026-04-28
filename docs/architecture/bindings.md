@@ -46,7 +46,7 @@ This document provides a comprehensive reference for all bindings, environment v
 | `WEB3_WALLET_API`        | telegram-worker                  | web3-wallet-worker    | Access to wallet functionality          |
 | `TRADE_SERVICE`          | hoox                             | trade-worker          | Access to trading functionality         |
 | `TELEGRAM_SERVICE`       | hoox                             | telegram-worker       | Access to Telegram notification service |
-| `HOME_ASSISTANT_SERVICE` | hoox                             | home-assistant-worker | Access to Home Assistant service        |
+
 | `TELEGRAM_SERVICE`       | trade-worker, web3-wallet-worker | telegram-worker       | Access to Telegram notification service |
 | `D1_SERVICE`             | trade-worker                     | d1-worker             | Access to D1 database service           |
 | `WEB3_WALLET_WORKER`     | trade-worker                     | web3-wallet-worker    | Access to wallet functionality          |

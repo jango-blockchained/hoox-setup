@@ -29,7 +29,7 @@ Each worker has its own README in the worker directory:
 - [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (68% line coverage)
 - [dashboard](https://github.com/jango-blockchained/hoox-setup/tree/main/pages/dashboard) - UI & Settings Manager
 - [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions (83% line coverage)
-- [home-assistant-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/home-assistant-worker) - Home automation (76% line coverage)
+
 - [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (97% line coverage)
 
 ### API Reference

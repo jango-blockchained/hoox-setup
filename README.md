@@ -220,8 +220,8 @@ Sends instant trade confirmations and AI-generated market summaries straight to 
 Handles all heavy SQL operations, aggregating trade histories and system logs to keep the execution workers incredibly lightweight.
 ### 🌐 web3-wallet-worker (The On-Chain Bridge)
 Ready for DeFi execution. Securely manages mnemonic phrases to execute swaps on decentralized exchanges.
-### 🏠 home-assistant-worker & 📧 email-worker
-Ancillary plugins allowing you to trigger trades via smart home events or raw email parsing.
+### 📧 email-worker
+Ancillary plugin allowing you to trigger trades via raw email parsing.
 
 ---
 

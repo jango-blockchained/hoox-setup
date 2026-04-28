@@ -13,7 +13,7 @@ graph TD
     %% hoox connections
     WH -->|Process Trade| TR[trade-worker]
     WH -->|Send Notification| TG[telegram-worker]
-    WH -->|Home Automation| HA[home-assistant-worker]
+
 
     %% telegram-worker connections
     TG -->|Crypto Operations| W3[web3-wallet-worker]
@@ -28,7 +28,7 @@ graph TD
     %% Service flow examples
     TG -.->|User Interaction| Client
     TR -.->|Signal Response| TG
-    HA -.->|Device Control| SmartHome[Smart Home Devices]
+
 ```
 
 ## Endpoint Catalogs by Worker
@@ -50,10 +50,7 @@ Request Example:
     "chatId": "123456789",
     "message": "Hello from webhook"
   },
-  "ha": {
-    "action": "light.turn_on",
-    "entity_id": "light.living_room"
-  }
+
 }
 ```
 
@@ -70,11 +67,7 @@ Response Example:
       "success": true,
       "message": "Message sent successfully"
     },
-    {
-      "type": "ha",
-      "success": true,
-      "message": "Home Assistant action executed"
-    }
+
   ]
 }
 ```
@@ -102,13 +95,7 @@ Response Example:
 | `/report`      | GET    | Get R2 reports                             | Query params for report selection                           | Report data              |
 | `/test-ai`     | GET    | Testing endpoint (development only)        | N/A                                                         | JSON with AI response    |
 
-### home-assistant-worker
 
-| Endpoint   | Method | Description                                 | Request Format                                           | Response Format               |
-| ---------- | ------ | ------------------------------------------- | -------------------------------------------------------- | ----------------------------- |
-| `/` (root) | GET    | Health check                                | N/A                                                      | Text response                 |
-| `/process` | POST   | Process Home Assistant service calls        | JSON with `requestId`, `internalAuthKey`, and HA payload | JSON with service call result |
-| `/notify`  | POST   | Send Telegram notifications from HA context | JSON with notification details                           | JSON with notification result |
 
 ### web3-wallet-worker
 
@@ -191,11 +178,7 @@ const routeConfig = {
     path: "/process",
     requiresAuth: true,
   },
-  "/v1/home": {
-    worker: "home-assistant-worker",
-    path: "/process",
-    requiresAuth: true,
-  },
+
 };
 
 // Router function that uses the config
