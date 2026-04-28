@@ -38,7 +38,7 @@
     "hono": "^4.12.14",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.11.0",
-    "next": "15.0.3",
+    "next": "^16.2.4",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "react": "^19.2.5",
