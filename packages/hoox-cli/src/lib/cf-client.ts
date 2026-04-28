@@ -92,7 +92,7 @@ export class CloudflareClient {
     return response.json() as Promise<T>;
   }
 
-  private checkSuccess(result: { success: boolean; errors?: Array<{ message: string }> }): void {
+  private checkSuccess(result: any): void {
     if (!result.success && result.errors) {
       throw new Error(result.errors.map((e) => e.message).join(", "));
     }

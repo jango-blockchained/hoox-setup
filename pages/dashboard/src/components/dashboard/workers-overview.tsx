@@ -89,14 +89,7 @@ const initialWorkers: Worker[] = [
     services: ["Browser Rendering", "Service Binding"],
     metrics: { requests: 0, latency: 0, cpu: 0 },
   },
-  {
-    name: "home-assistant",
-    displayName: "Home Assistant",
-    description: "Local Control",
-    icon: Home,
-    status: "disabled",
-    services: ["KV"],
-  },
+
   {
     name: "email-worker",
     displayName: "Email",

@@ -1352,11 +1352,6 @@ export async function cloneWorkerRepositories(
       description: "Worker for receiving webhook calls",
     },
     {
-      name: "home-assistant-worker",
-      repo: "https://github.com/jango-blockchained/home-assistant-worker.git",
-      description: "Worker for Home Assistant integration",
-    },
-    {
       name: "email-worker",
       repo: "https://github.com/jango-blockchained/email-worker.git",
       description:

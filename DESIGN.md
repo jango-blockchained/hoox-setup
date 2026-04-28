@@ -83,7 +83,7 @@ Hoox is a 100% free, open-source, Zero Latency, Edge-executed trading system. It
 | **d1-worker** | `workers/d1-worker/` | D1 database ops | - |
 | **web3-wallet-worker** | `workers/web3-wallet-worker/` | DeFi/on-chain | - |
 | **email-worker** | `workers/email-worker/` | Email signal scanner | `*/5 * * * *` |
-| **home-assistant-worker** | `workers/home-assistant-worker/` | Home automation | - |
+
 
 ## 3. Data Models (D1 & R2)
 

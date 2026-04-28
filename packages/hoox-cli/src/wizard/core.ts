@@ -1,4 +1,4 @@
-import { print_warning } from "../../utils.js";
+import { print_warning } from "../utils.js";
 
 export interface WizardContext {
   step: number;

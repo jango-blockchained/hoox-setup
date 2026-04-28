@@ -10,9 +10,6 @@
 [submodule "workers/d1-worker"]
 	path = workers/d1-worker
 	url = https://github.com/jango-blockchained/d1-worker.git
-[submodule "workers/home-assistant-worker"]
-	path = workers/home-assistant-worker
-	url = https://github.com/jango-blockchained/home-assistant-worker.git
 [submodule "workers/agent-worker"]
 	path = workers/agent-worker
 	url = https://github.com/jango-blockchained/agent-worker.git

@@ -9,3 +9,4 @@ export * as workers from "./workers/repair.js";
 export { tailLogs } from "./workers/logs.js";
 export { workerMetrics } from "./workers/metrics.js";
 export { listWorkerVersions, rollbackWorker } from "./workers/rollback.js";
+export { runTui } from "./tui.js";

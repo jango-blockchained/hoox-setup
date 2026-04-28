@@ -94,6 +94,7 @@ import {
   workerMetrics,
   listWorkerVersions,
   rollbackWorker,
+  runTui,
 } from "../src/commands/index.js";
 
 // --- Constants ---
@@ -836,6 +837,14 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
     .description("Download latest logs for a worker from R2")
     .action(async (workerName) => {
       await downloadLogs(workerName);
+    });
+
+  // --- TUI Command ---
+  program
+    .command("tui")
+    .description("Launch the interactive terminal UI")
+    .action(async () => {
+      await runTui();
     });
 
   // Parse arguments
