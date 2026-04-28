@@ -23,11 +23,10 @@
     "allowJs": true,
     "checkJs": false,
     "isolatedModules": true,
-
     "emitDeclarationOnly": false,
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*", "workers/**/src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "**/node_modules/*", "**/*.test.ts", "**/*.spec.ts", "**/*.test.js", "**/*.spec.js", "test", "dist"]
-} 
+}

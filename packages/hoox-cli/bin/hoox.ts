@@ -78,6 +78,24 @@ import { downloadBun } from "../src/installers.js";
 // Import log commands
 import { downloadLogs } from "../src/logCommands.js";
 
+// Import new commands
+import {
+  setupValidate,
+  setupRepair,
+  setupExport,
+  cfD1,
+  cfR2,
+  cfKV,
+  cfSecrets,
+  cfQueues,
+  cfZones,
+  workers,
+  tailLogs,
+  workerMetrics,
+  listWorkerVersions,
+  rollbackWorker,
+} from "../src/commands/index.js";
+
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
 // const CONFIG_PATH = path.resolve(process.cwd(), "config.toml"); // Maybe not needed here?
@@ -91,7 +109,17 @@ async function main() {
   program
     .command("init")
     .description("Run the interactive first-time setup wizard.")
-    .action(runWizard); // Use imported function
+    .option("-v, --verbose", "Show detailed progress")
+    .option("-d, --dry-run", "Preview without executing")
+    .option("-f, --force", "Skip prompts and use defaults")
+    .action(async (options) => {
+      const { runWizard } = await import("../src/wizard.js");
+      await runWizard({
+        verbose: options.verbose,
+        dryRun: options.dryRun,
+        force: options.force,
+      });
+    });
 
   // --- Clone Command ---
   program
@@ -183,6 +211,217 @@ async function main() {
       await setupConfigVariables();
     });
 
+  // --- Setup Commands ---
+  const setupCommand = program
+    .command("setup")
+    .description("Setup validation, repair, and export commands");
+
+  setupCommand
+    .command("validate")
+    .description("Run pre-flight validation checks")
+    .option("-v, --verbose", "Show detailed output")
+    .option("-f, --fix", "Attempt to fix issues automatically")
+    .action(async (options) => {
+      await setupValidate(options.verbose || false, options.fix || false);
+    });
+
+  setupCommand
+    .command("repair")
+    .description("Repair common setup issues")
+    .action(async () => {
+      await setupRepair();
+    });
+
+  setupCommand
+    .command("export")
+    .description("Export configuration for backup")
+    .action(async () => {
+      await setupExport();
+    });
+
+  // --- Cloudflare Commands ---
+  const cfCommand = program
+    .command("cf")
+    .description("Manage Cloudflare resources");
+
+  const cfD1Command = cfCommand
+    .command("d1")
+    .description("D1 database operations");
+
+  cfD1Command
+    .command("list")
+    .description("List all D1 databases")
+    .action(async () => {
+      await cfD1.listD1Databases();
+    });
+
+  cfD1Command
+    .command("create <name>")
+    .description("Create a new D1 database")
+    .action(async (name) => {
+      await cfD1.createD1Database(name);
+    });
+
+  cfD1Command
+    .command("delete <name>")
+    .description("Delete a D1 database")
+    .action(async (name) => {
+      await cfD1.deleteD1Database(name);
+    });
+
+  const cfR2Command = cfCommand
+    .command("r2")
+    .description("R2 bucket operations");
+
+  cfR2Command
+    .command("list")
+    .description("List all R2 buckets")
+    .action(async () => {
+      await cfR2.listR2Buckets();
+    });
+
+  cfR2Command
+    .command("create <name>")
+    .description("Create a new R2 bucket")
+    .action(async (name) => {
+      await cfR2.createR2Bucket(name);
+    });
+
+  cfR2Command
+    .command("delete <name>")
+    .description("Delete an R2 bucket")
+    .action(async (name) => {
+      await cfR2.deleteR2Bucket(name);
+    });
+
+  const cfKVCommand = cfCommand
+    .command("kv")
+    .description("KV namespace operations");
+
+  cfKVCommand
+    .command("list")
+    .description("List all KV namespaces")
+    .action(async () => {
+      await cfKV.listKVNamespaces();
+    });
+
+  cfKVCommand
+    .command("create <title>")
+    .description("Create a new KV namespace")
+    .action(async (title) => {
+      await cfKV.createKVNamespace(title);
+    });
+
+  cfKVCommand
+    .command("delete <namespace-id>")
+    .description("Delete a KV namespace")
+    .action(async (nsId) => {
+      await cfKV.deleteKVNamespace(nsId);
+    });
+
+  cfKVCommand
+    .command("get <namespace-id> <key>")
+    .description("Get a value from KV")
+    .action(async (nsId, key) => {
+      await cfKV.getKVValue(nsId, key);
+    });
+
+  cfKVCommand
+    .command("set <namespace-id> <key> <value>")
+    .description("Set a value in KV")
+    .action(async (nsId, key, value) => {
+      await cfKV.setKVValue(nsId, key, value);
+    });
+
+  cfKVCommand
+    .command("delete <namespace-id> <key>")
+    .description("Delete a key from KV")
+    .action(async (nsId, key) => {
+      await cfKV.deleteKVKey(nsId, key);
+    });
+
+  const cfSecretsCommand = cfCommand
+    .command("secrets")
+    .description("Secret Store operations");
+
+  cfSecretsCommand
+    .command("list")
+    .description("List all secrets in store")
+    .action(async () => {
+      await cfSecrets.listSecrets();
+    });
+
+  cfSecretsCommand
+    .command("get <name>")
+    .description("Get secret metadata")
+    .action(async (name) => {
+      await cfSecrets.getSecretMetadata(name);
+    });
+
+  cfSecretsCommand
+    .command("set <name> <value>")
+    .description("Set a secret value")
+    .action(async (name, value) => {
+      await cfSecrets.setSecret(name, value);
+    });
+
+  cfSecretsCommand
+    .command("delete <name>")
+    .description("Delete a secret")
+    .action(async (name) => {
+      await cfSecrets.deleteSecret(name);
+    });
+
+  const cfQueuesCommand = cfCommand
+    .command("queues")
+    .description("Queue operations");
+
+  cfQueuesCommand
+    .command("list")
+    .description("List all queues")
+    .action(async () => {
+      await cfQueues.listQueues();
+    });
+
+  cfQueuesCommand
+    .command("create <name>")
+    .description("Create a new queue")
+    .action(async (name) => {
+      await cfQueues.createQueue(name);
+    });
+
+  cfQueuesCommand
+    .command("delete <name>")
+    .description("Delete a queue")
+    .action(async (name) => {
+      await cfQueues.deleteQueue(name);
+    });
+
+  const cfZonesCommand = cfCommand
+    .command("zones")
+    .description("DNS zone operations");
+
+  cfZonesCommand
+    .command("list")
+    .description("List all zones")
+    .action(async () => {
+      await cfZones.listZones();
+    });
+
+  cfZonesCommand
+    .command("dns <zone>")
+    .description("List DNS records for a zone")
+    .action(async (zone) => {
+      await cfZones.listDNSRecords(zone);
+    });
+
+  cfZonesCommand
+    .command("add <zone> <type> <name> <content>")
+    .description("Add a DNS record")
+    .action(async (zone, type, name, content) => {
+      await cfZones.addDNSRecord(zone, type, name, content);
+    });
+
   // --- Worker Management Commands ---
   const workersCommand = program
     .command("workers")
@@ -262,6 +501,44 @@ async function main() {
     .action(async () => {
       const config = await loadConfig();
       await updateInternalUrls(config);
+    });
+
+  workersCommand
+    .command("repair [workerName]")
+    .description("Repair worker configuration")
+    .action(async (workerName) => {
+      await workers.repairWorker(workerName);
+    });
+
+  workersCommand
+    .command("logs")
+    .description("Tail worker logs")
+    .option("-w, --worker <name>", "Worker name to filter")
+    .option("-l, --level <level>", "Log level (info, warn, error)")
+    .option("-f, --follow", "Follow logs in real-time")
+    .action(async (options) => {
+      await tailLogs(options.worker, { level: options.level, follow: options.follow });
+    });
+
+  workersCommand
+    .command("metrics <workerName>")
+    .description("Get worker analytics")
+    .action(async (workerName) => {
+      await workerMetrics(workerName);
+    });
+
+  workersCommand
+    .command("versions <workerName>")
+    .description("List worker versions")
+    .action(async (workerName) => {
+      await listWorkerVersions(workerName);
+    });
+
+  workersCommand
+    .command("rollback <workerName> [version]")
+    .description("Rollback worker to a previous version")
+    .action(async (workerName, version) => {
+      await rollbackWorker(workerName, version);
     });
 
   // --- Housekeeping Command ---

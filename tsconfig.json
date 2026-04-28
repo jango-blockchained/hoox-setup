@@ -24,7 +24,6 @@
     "allowJs": true,
     "checkJs": false,
     "isolatedModules": true,
-
     "emitDeclarationOnly": false,
     "noEmit": true,
     "allowImportingTsExtensions": true
