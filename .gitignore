@@ -72,3 +72,7 @@ pages.jsonc
 
 .worktrees/
 *.tgz
+
+# Superpowers
+.superpowers/
+docs/superpowers/
