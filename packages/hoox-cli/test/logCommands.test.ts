@@ -1,6 +1,17 @@
-import { describe, expect, test, beforeEach, vi, Mock, afterEach } from "bun:test";
+import { describe, expect, test, beforeEach, vi, Mock } from "bun:test";
 import { downloadLogs } from "../src/logCommands.js";
 import * as utils from "../src/utils.js";
+
+// Mock utils functions
+vi.mock("../src/utils.js", () => {
+  return {
+    runCommandAsync: vi.fn(),
+    runInteractiveCommand: vi.fn(),
+    print_success: vi.fn(),
+    print_error: vi.fn(),
+    print_warning: vi.fn(),
+  };
+});
 
 describe("logCommands", () => {
   beforeEach(() => {
@@ -9,16 +20,6 @@ describe("logCommands", () => {
     
     // Mock console.log to avoid noise in test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    vi.spyOn(utils, 'runCommandAsync').mockResolvedValue({ success: true, stdout: "", stderr: "", exitCode: 0 });
-    vi.spyOn(utils, 'runInteractiveCommand').mockResolvedValue(0);
-    vi.spyOn(utils, 'print_success').mockImplementation(() => {});
-    vi.spyOn(utils, 'print_error').mockImplementation(() => {});
-    vi.spyOn(utils, 'print_warning').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   test("should handle successful log download", async () => {

@@ -730,7 +730,7 @@ export async function deployWorkers(config: Config): Promise<void> {
 
 // --- Pages Deployment Logic ---
 export async function deployPages(config: Config): Promise<void> {
-  console.log(blue("Starting pages deployment..."));
+  console.log(blue("Starting dashboard deployment to Cloudflare Pages..."));
 
   const apiToken = await getCloudflareToken(config);
   if (!apiToken) {
@@ -738,109 +738,70 @@ export async function deployPages(config: Config): Promise<void> {
     return;
   }
 
-  const pagesDir = path.resolve(process.cwd(), "pages");
-  if (!fs.existsSync(pagesDir)) {
-    print_error("Pages directory not found at " + pagesDir);
+  const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
+  const packageJsonPath = path.join(dashboardPath, "package.json");
+  
+  // Check if dashboard exists
+  if (!(await Bun.file(packageJsonPath).exists())) {
+    print_error("Dashboard not found at pages/dashboard. Please ensure the directory exists.");
     process.exitCode = 1;
     return;
   }
 
-  const directories = fs.readdirSync(pagesDir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
-
-  let anyErrors = false;
-
-  for (const dirName of directories) {
-    const projectPath = path.join(pagesDir, dirName);
-    const packageJsonPath = path.join(projectPath, "package.json");
-    
-    if (!(await Bun.file(packageJsonPath).exists())) {
-      console.log(dim(`Skipping ${dirName} - no package.json found.`));
-      continue;
-    }
-
-    console.log(blue(`\n--- Deploying pages project: ${yellow(dirName)} ---`));
-    console.log(blue(`Building ${dirName}...`));
-    
-    // Run build
-    const buildResult = await runInteractiveCommand(
-      "bun",
-      ["run", "build"],
-      projectPath,
-      { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
-    );
-    
-    if (buildResult !== 0) {
-      print_error(`Build failed for ${dirName} with code: ${buildResult}`);
-      anyErrors = true;
-      continue;
-    }
-
-    const pkg = JSON.parse(await Bun.file(packageJsonPath).text());
-    let outDir = "";
-
-    // Run next-on-pages if required
-    if (pkg.devDependencies && pkg.devDependencies["@cloudflare/next-on-pages"]) {
-      console.log(blue("Building for Cloudflare Pages (next-on-pages)..."));
-      const nopResult = await runInteractiveCommand(
-        "bunx",
-        ["@cloudflare/next-on-pages"],
-        projectPath,
-        { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
-      );
-      
-      if (nopResult !== 0) {
-        print_error(`Next-on-pages build failed for ${dirName} with code: ${nopResult}`);
-        anyErrors = true;
-        continue;
-      }
-      outDir = ".vercel/output/static";
-    } else {
-        // Fallback checks for other frameworks
-        if (fs.existsSync(path.join(projectPath, "out"))) {
-            outDir = "out";
-        } else if (fs.existsSync(path.join(projectPath, "dist"))) {
-            outDir = "dist";
-        } else if (fs.existsSync(path.join(projectPath, ".next"))) {
-            print_error(`${dirName} has .next but no out/ directory. Ensure it has an export step if not using next-on-pages.`);
-            anyErrors = true;
-            continue;
-        } else {
-            print_error(`Could not determine output directory for ${dirName}.`);
-            anyErrors = true;
-            continue;
-        }
-    }
-
-    const projectName = `hoox-${dirName}`;
-
-    console.log(blue(`Deploying ${projectName} to Cloudflare Pages...`));
-    
-    // Deploy to Cloudflare Pages
-    const deployResult = await runInteractiveCommand(
-      "bunx",
-      ["wrangler", "pages", "deploy", outDir, "--project-name", projectName, "--commit-dirty"],
-      projectPath,
-      { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
-    );
-    
-    if (deployResult !== 0) {
-      print_error(`Deployment failed for ${dirName} with code: ${deployResult}`);
-      anyErrors = true;
-      continue;
-    }
-
-    console.log(green(`${dirName} deployed successfully!`));
-    console.log(`URL: ${cyan(`https://${projectName}.pages.dev`)}`);
+  console.log(blue("Building dashboard..."));
+  
+  // Run build
+  const buildResult = await runInteractiveCommand(
+    "bun",
+    ["run", "build"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+  
+  if (buildResult !== 0) {
+    print_error(`Build failed with code: ${buildResult}`);
+    process.exitCode = 1;
+    return;
   }
 
-  if (anyErrors) {
-      print_error("Pages deployment completed with errors.");
-      process.exitCode = 1;
-  } else {
-      print_success("All pages projects deployed successfully.");
+  console.log(blue("Building for Cloudflare Pages..."));
+  
+  // Run next-on-pages
+  const nopResult = await runInteractiveCommand(
+    "bunx",
+    ["@cloudflare/next-on-pages"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+  
+  if (nopResult !== 0) {
+    print_error(`Next-on-pages build failed with code: ${nopResult}`);
+    process.exitCode = 1;
+    return;
   }
+
+  // Get project name from config
+  const projectName = `hoox-dashboard`;
+
+  console.log(blue("Deploying to Cloudflare Pages..."));
+  
+  // Deploy to Cloudflare Pages
+  const deployResult = await runInteractiveCommand(
+    "bunx",
+    ["wrangler", "pages", "deploy", ".vercel/output/static", "--project-name", projectName, "--commit-dirty"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+  
+  if (deployResult !== 0) {
+    print_error(`Deployment failed with code: ${deployResult}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(green(`Dashboard deployed successfully!`));
+  console.log(`URL: ${cyan(`https://${projectName}.pages.dev`)}`);
+  print_success("Deployment completed.");
 }
 
 // --- Local Development Logic --- (Moved from manage.ts)

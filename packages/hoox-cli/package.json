@@ -12,8 +12,8 @@
     "hoox": "./bin/hoox.ts"
   },
   "scripts": {
-    "test": "bun test --isolate",
-    "test:coverage": "bun test --coverage --isolate",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
     "lint": "eslint . --ext .ts",
     "typecheck": "tsc --noEmit"
   },
