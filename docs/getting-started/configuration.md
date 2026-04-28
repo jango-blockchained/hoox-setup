@@ -73,14 +73,7 @@ path = "workers/d1-worker"
 description = "D1 database operations"
 secrets = []
 
-# --------------------------------------------
-# home-assistant-worker
-# --------------------------------------------
-[workers.home-assistant]
-enabled = false
-path = "workers/home-assistant-worker"
-description = "Home Assistant integration"
-secrets = ["HA_TOKEN", "HA_SECURE_URL"]
+
 ```
 
 ## Environment Variables
@@ -116,7 +109,7 @@ Available secret types:
 - `INTERNAL_KEY_BINDING` - Internal service authentication
 - Exchange keys (MEXC_API_KEY, etc.)
 - Telegram tokens
-- Home Assistant tokens
+
 
 ## KV Configuration
 

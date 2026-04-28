@@ -24,7 +24,7 @@ const DEPLOYED_WORKERS = [
   { name: "d1-worker", role: "Database Layer", url: "https://d1-worker.cryptolinx.workers.dev", status: "active" },
   { name: "email-worker", role: "IMAP Scanner", url: "https://email-worker.cryptolinx.workers.dev", status: "active" },
   { name: "web3-wallet-worker", role: "On-Chain DEX", url: "https://web3-wallet-worker.cryptolinx.workers.dev", status: "active" },
-  { name: "home-assistant", role: "Local Control", url: "-", status: "disabled" },
+
 ]
 
 const DEPLOYED_PAGES = [

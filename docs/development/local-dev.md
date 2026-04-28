@@ -47,7 +47,7 @@ When running locally, Cloudflare® Workers can communicate with each other using
 | trade-worker | 8788 |
 | d1-worker | 8789 |
 | telegram-worker | 8790 |
-| home-assistant | 8791 |
+
 | web3-wallet | 8792 |
 | dashboard (Pages) | 8783 |
 
