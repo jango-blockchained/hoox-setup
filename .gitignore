@@ -76,3 +76,6 @@ pages.jsonc
 # Superpowers
 .superpowers/
 docs/superpowers/
+
+# npm config
+.npmrc
