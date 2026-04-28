@@ -125,7 +125,7 @@ export function validateConfig(config: unknown): ValidationResult {
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-export async function validateWorkers(workers: Record<string, unknown>): Promise<ValidationResult> {
+export async function validateWorkers(workers: Record<string, any>): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 

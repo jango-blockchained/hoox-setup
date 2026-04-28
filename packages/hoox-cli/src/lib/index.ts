@@ -22,5 +22,4 @@ export {
   validateResources,
   fixDependencies,
   repairResources,
-  type ValidationResult,
 } from "./validation.js";

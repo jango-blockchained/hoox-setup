@@ -1,12 +1,22 @@
 export const theme = {
   colors: {
-    primary: "#f97316", // orange-500
-    primaryHover: "#ea580c", // orange-600
-    background: "#0a0a0a", // neutral-950
-    cardBorder: "#262626", // neutral-800
-    text: "#f5f5f5", // neutral-100
-    muted: "#a3a3a3", // neutral-400
+    background: "#09090b", // zinc-950
+    foreground: "#fafafa", // zinc-50
+    card: "#09090b",
+    cardForeground: "#fafafa",
+    border: "#27272a", // zinc-800
+    primary: "#fafafa",
+    primaryForeground: "#18181b", // zinc-900
+    secondary: "#27272a",
+    secondaryForeground: "#fafafa",
+    muted: "#27272a",
+    mutedForeground: "#a1a1aa", // zinc-400
+    accent: "#27272a",
+    accentForeground: "#fafafa",
+    destructive: "#ef4444", // red-500
+    destructiveForeground: "#fafafa",
     success: "#10b981", // emerald-500
-    error: "#f87171" // red-400
+    warning: "#eab308", // yellow-500
+    info: "#3b82f6" // blue-500
   }
 };

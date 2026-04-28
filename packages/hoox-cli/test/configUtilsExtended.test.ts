@@ -103,10 +103,10 @@ describe("Config Utils - Extended Tests", () => {
 
     test("should handle hyphens in worker names", () => {
       const subdomainPrefix = "test";
-      const workerName = "home-assistant";
+      const workerName = "my-custom-worker";
 
       const url = `https://${workerName}.${subdomainPrefix}.workers.dev`;
-      expect(url).toBe("https://home-assistant.test.workers.dev");
+      expect(url).toBe("https://my-custom-worker.test.workers.dev");
     });
 
     test("should handle custom domains", () => {

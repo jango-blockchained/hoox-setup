@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Text, Newline } from 'ink';
-import TextInput from 'ink-text-input';
-import SelectInput from 'ink-select-input';
+import { Box, Text } from 'ink';
 import { WizardState, GlobalConfig, Config, WorkerConfig } from '../types.js';
+import { Card } from '../components/ui/Card.js';
+import { Input } from '../components/ui/Input.js';
+import { Select } from '../components/ui/Select.js';
+import { Alert } from '../components/ui/Alert.js';
+import { Badge } from '../components/ui/Badge.js';
+import { theme } from '../components/theme.js';
 
 interface WizardViewProps {
   initialState: WizardState;
@@ -65,80 +69,95 @@ export const WizardView: React.FC<WizardViewProps> = ({ initialState, onComplete
 
   const currentStep = STEPS[stepIndex];
 
-  if (currentStep === 'Dependencies') {
-    return (
-      <Box flexDirection="column">
-        <Text color="blue">Checking Dependencies...</Text>
-        <Text color="green">✓ bun found</Text>
-        <Text color="green">✓ wrangler found</Text>
-        <Box marginTop={1}>
-          {/* @ts-ignore */}
-          <SelectInput 
-            items={[{ label: 'Continue', value: 'continue' }]} 
-            onSelect={() => setStepIndex(stepIndex + 1)} 
-          />
-        </Box>
-      </Box>
-    );
-  }
-
-  if (currentStep === 'Globals') {
-    const currentField = globalFields[activeGlobalField];
-    return (
-      <Box flexDirection="column">
-        <Text color="blue">Configure Globals:</Text>
-        {globalFields.map((field, idx) => (
-          <Box key={field}>
-            <Text color={idx === activeGlobalField ? 'green' : 'dim'}>
-              {field}: 
-            </Text>
-            {/* @ts-ignore */}
-            {idx === activeGlobalField ? (
-              <TextInput
-                value={globalConfig[field] || ''}
-                onChange={handleGlobalChange}
-                onSubmit={handleGlobalSubmit}
-              />
-            ) : (
-              <Text> {globalConfig[field] || '***'}</Text>
-            )}
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  if (currentStep === 'Workers') {
-    return (
-      <Box flexDirection="column">
-        <Text color="blue">Select Workers to enable (Basic Setup):</Text>
-        <SelectInput 
-          items={[
-            { label: 'Skip for now (Accept defaults)', value: 'skip' }
-          ]} 
-          onSelect={handleWorkerSelect} 
-        />
-      </Box>
-    );
-  }
-
-  if (currentStep === 'D1Setup') {
-    return (
-      <Box flexDirection="column">
-        <Text color="blue">D1 Database Setup</Text>
-        <SelectInput 
-          items={[
-            { label: 'Skip D1 Setup', value: 'skip' }
-          ]} 
-          onSelect={() => setStepIndex(stepIndex + 1)} 
-        />
-      </Box>
-    );
-  }
-
   return (
-    <Box flexDirection="column">
-      <Text color="green">Wizard Complete!</Text>
+    <Box flexDirection="column" padding={1} width={80}>
+      <Card title="Hoox CLI Setup Wizard" description={`Step ${stepIndex + 1} of ${STEPS.length}: ${currentStep}`}>
+        <Box flexDirection="column" marginTop={1}>
+          {currentStep === 'Dependencies' && (
+            <Box flexDirection="column">
+              <Alert title="Checking System Dependencies" variant="default">
+                We are checking if bun and wrangler are installed.
+              </Alert>
+              <Box marginY={1} flexDirection="column">
+                <Box><Badge variant="success">OK</Badge><Text> bun found</Text></Box>
+                <Box><Badge variant="success">OK</Badge><Text> wrangler found</Text></Box>
+              </Box>
+              <Select 
+                items={[{ label: 'Continue to Global Configuration', value: 'continue' }]} 
+                onSelect={() => setStepIndex(stepIndex + 1)} 
+              />
+            </Box>
+          )}
+
+          {currentStep === 'Globals' && (
+            <Box flexDirection="column">
+              <Alert title="Global Configuration" variant="default">
+                Please enter your Cloudflare credentials and global settings.
+              </Alert>
+              <Box marginY={1} flexDirection="column" gap={1}>
+                {globalFields.map((field, idx) => (
+                  <Box key={field} flexDirection="column">
+                    {idx === activeGlobalField ? (
+                      <Input
+                        label={field}
+                        value={globalConfig[field] || ''}
+                        onChange={handleGlobalChange}
+                        onSubmit={handleGlobalSubmit}
+                        placeholder={`Enter ${field}...`}
+                      />
+                    ) : (
+                      <Box flexDirection="row">
+                        <Text color={theme.colors.mutedForeground} dimColor>{field}: </Text>
+                        <Text color={theme.colors.foreground}>{idx < activeGlobalField ? (globalConfig[field] || '***') : '---'}</Text>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {currentStep === 'Workers' && (
+            <Box flexDirection="column">
+              <Alert title="Worker Selection" variant="default">
+                Select which workers you want to deploy and enable.
+              </Alert>
+              <Box marginY={1}>
+                <Select 
+                  items={[
+                    { label: 'Accept defaults & Continue', value: 'skip' }
+                  ]} 
+                  onSelect={handleWorkerSelect} 
+                />
+              </Box>
+            </Box>
+          )}
+
+          {currentStep === 'D1Setup' && (
+            <Box flexDirection="column">
+              <Alert title="Database Setup" variant="default">
+                Setting up Cloudflare D1 databases.
+              </Alert>
+              <Box marginY={1}>
+                <Select 
+                  items={[
+                    { label: 'Skip D1 Setup for now', value: 'skip' }
+                  ]} 
+                  onSelect={() => setStepIndex(stepIndex + 1)} 
+                />
+              </Box>
+            </Box>
+          )}
+
+          {currentStep === 'Done' && (
+            <Box flexDirection="column">
+              <Alert title="Configuration Complete" variant="success">
+                Your hoox-cli configuration has been saved successfully!
+              </Alert>
+            </Box>
+          )}
+        </Box>
+      </Card>
     </Box>
   );
 };

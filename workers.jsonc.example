@@ -43,13 +43,6 @@
       "secrets": ["WEBHOOK_API_KEY_BINDING"]
     },
 
-    "home-assistant": {
-      "enabled": false,
-      "path": "workers/home-assistant-worker",
-      "vars": {},
-      "secrets": ["HA_TOKEN", "HA_SECURE_URL"]
-    },
-
     "agent-worker": {
       "enabled": true,
       "path": "workers/agent-worker",

@@ -15,7 +15,7 @@ const WORKER_PREFIX_MAP: Record<string, string> = {
   "d1-worker": "database:",
   "email-worker": "email:",
   "web3-wallet-worker": "wallet:",
-  "home-assistant-worker": "home:",
+
 };
 
 const SECTION_PREFIX_MAP: Record<string, string> = {
@@ -59,7 +59,7 @@ function findWorkerByPrefix(kvKey: string): string | null {
     "cron:": "agent-worker",
     "behavior:": "agent-worker",
     "wallet:": "web3-wallet-worker",
-    "home:": "home-assistant-worker",
+
   };
   
   for (const [prefix, worker] of Object.entries(prefixToWorker)) {

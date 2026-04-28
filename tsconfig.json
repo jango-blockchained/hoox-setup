@@ -3,8 +3,8 @@
     "target": "es2020",
     "module": "esnext",
     "lib": ["es2020", "WebWorker", "DOM"],
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
+
     "types": ["bun-types", "@types/node"],
     "esModuleInterop": true,
     "strict": true,
