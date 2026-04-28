@@ -4,6 +4,7 @@
     "module": "esnext",
     "lib": ["es2020", "WebWorker", "DOM"],
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": false,
@@ -22,9 +23,10 @@
     "allowJs": true,
     "checkJs": false,
     "isolatedModules": true,
-    "allowImportingTsExtensions": true,
+
     "emitDeclarationOnly": false,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*", "workers/**/src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "**/node_modules/*", "**/*.test.ts", "**/*.spec.ts", "**/*.test.js", "**/*.spec.js", "test", "dist"]
