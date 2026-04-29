@@ -37,7 +37,9 @@ pages/dashboard/.vercel/
 .opencode/*
 .agents/
 .agents/*
-
+.ai/
+.ai/*
+.opencode.json
 .install-wizard-state.json
 
 # Editor/IDE specific
