@@ -18,12 +18,13 @@ The `hoox` CLI is the central management tool for the Hoox Trading System. This 
 - `hoox workers test`: Runs the Vitest integration suite across workers.
 
 ### Configurations & Secrets
-- `hoox secrets update-cf <secret> <worker>`: Updates a Cloudflare Secret Store value and syncs it locally.
-- `hoox secrets check <worker> [secret]`: Verifies secret bindings.
+- `hoox secrets update-cf <secretName> <workerName> [value]`: Updates a Cloudflare Secret Store value and syncs it locally.
+- `hoox secrets check <workerName> [secretName]`: Verifies secret bindings.
 - `hoox keys generate/get/list`: Manages local `.keys/*.env` cryptographic keys.
 
 ### Utility & Logs
 - `hoox logs download <workerName>`: Async download of worker logs from the R2 bucket, with automatic fallback to `wrangler tail`.
+- `hoox workers logs`: Tail worker logs in real-time.
 - `hoox housekeeping`: Runs a manual trigger of the system health checks.
 - `hoox waf`: Configures Cloudflare WAF rules (IP allowlists, rate limiting).
 - `hoox r2`: Provisions required R2 buckets.

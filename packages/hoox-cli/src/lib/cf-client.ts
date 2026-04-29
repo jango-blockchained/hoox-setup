@@ -94,7 +94,7 @@ export class CloudflareClient {
 
   private checkSuccess(result: any): void {
     if (!result.success && result.errors) {
-      throw new Error(result.errors.map((e) => e.message).join(", "));
+      throw new Error(result.errors.map((e: any) => e.message).join(", "));
     }
   }
 

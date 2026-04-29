@@ -155,3 +155,33 @@ export async function getWorkerNames(): Promise<string[]> {
   const config = await loadConfig();
   return config.workers ? Object.keys(config.workers) : [];
 }
+
+export function stringifyToml(obj: any): string {
+  let toml = "";
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === "string") {
+      toml += `${key} = "${value.replace(/"/g, '\\"')}"\n`;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      toml += `${key} = ${value}\n`;
+    } else if (Array.isArray(value)) {
+      if (value.length > 0 && typeof value[0] === "object") {
+        for (const item of value) {
+          toml += `[[${key}]]\n`;
+          for (const [k, v] of Object.entries(item)) {
+            if (typeof v === "string") toml += `${k} = "${v.replace(/"/g, '\\"')}"\n`;
+            else toml += `${k} = ${v}\n`;
+          }
+        }
+      } else {
+        toml += `${key} = [${value.map(v => typeof v === "string" ? `"${v}"` : v).join(", ")}]\n`;
+      }
+    } else if (typeof value === "object" && value !== null) {
+      toml += `\n[${key}]\n`;
+      for (const [k, v] of Object.entries(value)) {
+        if (typeof v === "string") toml += `${k} = "${v.replace(/"/g, '\\"')}"\n`;
+        else toml += `${k} = ${v}\n`;
+      }
+    }
+  }
+  return toml;
+}

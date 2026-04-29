@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "test:integration": "vitest run --config vitest.config.ts",
-    "tests": "bun run ./scripts/run-tests.ts",
-    "tests:watch": "bun run ./scripts/run-tests.ts --watch",
-    "tests:coverage": "bun run ./scripts/run-tests.ts --coverage",
+    "tests": "bun run ./packages/hoox-cli/src/run-tests.ts",
+    "tests:watch": "bun run ./packages/hoox-cli/src/run-tests.ts --watch",
+    "tests:coverage": "bun run ./packages/hoox-cli/src/run-tests.ts --coverage",
     "tui": "./hoox-tui",
     "dev": "./hoox-tui",
     "manage": "hoox",

@@ -78,7 +78,7 @@ Hoox is a 100% free, open-source, Zero Latency, Edge-executed trading system. It
 | **hoox** | `workers/hoox/` | Gateway/firewall for webhooks | - |
 | **trade-worker** | `workers/trade-worker/` | Multi-exchange execution | - |
 | **agent-worker** | `workers/agent-worker/` | AI risk manager | `*/5 * * * *` |
-| **dashboard** | `workers/dashboard/` | React dashboard | - |
+| **dashboard** | `pages/dashboard/` | React dashboard | - |
 | **telegram-worker** | `workers/telegram-worker/` | Notifications | - |
 | **d1-worker** | `workers/d1-worker/` | D1 database ops | - |
 | **web3-wallet-worker** | `workers/web3-wallet-worker/` | DeFi/on-chain | - |
