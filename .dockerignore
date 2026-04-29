@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.wrangler
+dist
+build
+.env.local
+.env.*.local
+*.log

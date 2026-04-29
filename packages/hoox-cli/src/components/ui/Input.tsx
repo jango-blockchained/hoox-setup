@@ -1,6 +1,4 @@
 import React from 'react';
-import { Box, Text } from 'ink';
-import TextInput from 'ink-text-input';
 import { theme } from '../theme.js';
 
 interface InputProps {
@@ -13,16 +11,20 @@ interface InputProps {
 
 export function Input({ value, onChange, onSubmit, placeholder, label }: InputProps) {
   return (
-    <Box flexDirection="column">
-      {label && <Box marginBottom={1}><Text bold color={theme.colors.foreground}>{label}</Text></Box>}
-      <Box borderStyle="round" borderColor={theme.colors.border} paddingX={1}>
-        <TextInput 
-          value={value} 
-          onChange={onChange} 
-          onSubmit={onSubmit} 
-          placeholder={placeholder} 
+    <box style={{ flexDirection: 'column' }}>
+      {label && (
+        <box style={{ marginBottom: 1 }}>
+          <text style={{ bold: true, fg: theme.colors.foreground }}>{label}</text>
+        </box>
+      )}
+      <box style={{ borderStyle: 'rounded', borderColor: theme.colors.border, paddingLeft: 1, paddingRight: 1 }}>
+        <input
+          value={value}
+          onChange={onChange}
+          onSubmit={onSubmit}
+          placeholder={placeholder}
         />
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

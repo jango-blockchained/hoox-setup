@@ -1,48 +1,68 @@
 import readline from "node:readline/promises";
-import util from "node:util";
-import type { Config, CommandResult } from "./types.js"; // Import necessary types
+import ansis from "ansis";
+import type { Config, CommandResult } from "./types.js";
 
-// --- Color Constants ---
-export const NC = "\x1b[0m"; // No Color
-export const red = (text: string): string => `\x1b[31m${text}${NC}`;
-export const green = (text: string): string => `\x1b[32m${text}${NC}`;
-export const yellow = (text: string): string => `\x1b[33m${text}${NC}`;
-export const blue = (text: string): string => `\x1b[34m${text}${NC}`;
-export const cyan = (text: string): string => `\x1b[36m${text}${NC}`;
-export const dim = (text: string): string => `\x1b[2m${text}${NC}`;
+// --- Branded Color Helpers (using ansis) ---
+export const red = (text: string): string => ansis.red(text);
+export const green = (text: string): string => ansis.green(text);
+export const yellow = (text: string): string => ansis.yellow(text);
+export const blue = (text: string): string => ansis.blue(text);
+export const cyan = (text: string): string => ansis.cyan(text);
+export const dim = (text: string): string => ansis.dim(text);
 
-// --- Console Output Helpers ---
-export const print_success = (text: string): void => {
-  console.log(green(`✅ ${text}`));
+// --- Unified Log Namespace ---
+export const log = {
+  success: (text: string): void => {
+    console.log(ansis.green(`✓ ${text}`));
+  },
+  error: (text: string): void => {
+    console.error(ansis.red(`✖ ${text}`));
+  },
+  warn: (text: string): void => {
+    console.warn(ansis.yellow(`⚠ ${text}`));
+  },
+  info: (text: string): void => {
+    console.log(ansis.blue(`ℹ ${text}`));
+  },
+  step: (text: string): void => {
+    console.log(ansis.cyan(`◆ ${text}`));
+  },
+  dim: (text: string): void => {
+    console.log(ansis.dim(text));
+  },
 };
 
-// Add error/warning helpers?
+// --- Console Output Helpers (kept for backward compat) ---
+export const print_success = (text: string): void => {
+  log.success(text);
+};
+
 export const print_error = (text: string): void => {
-  console.error(red(`❌ ${text}`));
+  log.error(text);
 };
 
 export const print_warning = (text: string): void => {
-  console.warn(yellow(`⚠️ ${text}`));
+  log.warn(text);
 };
 
 export const print_info = (text: string): void => {
-  console.log(blue(`ℹ️ ${text}`));
+  log.info(text);
 };
 
-// --- Readline Interface --- (Export for shared use)
+// --- Readline Interface ---
 export const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-// --- Command Execution Helpers --- (Stubs/Basic Implementations)
+// --- Command Execution Helpers ---
 
 /**
  * Checks if a command exists in the system PATH.
  */
 export async function checkCommandExists(command: string): Promise<boolean> {
   try {
-    const checkCmd = process.platform === "win32" ? ["where", command] : ["command", "-v", command];
+    const checkCmd = process.platform === "win32" ? ["where", command] : ["which", command];
     const proc = Bun.spawn(checkCmd);
     const exitCode = await proc.exited;
     return exitCode === 0;
@@ -53,25 +73,22 @@ export async function checkCommandExists(command: string): Promise<boolean> {
 
 /**
  * Runs a command synchronously and captures output.
- * NOTE: Uses execSync, which blocks. Suitable for short commands.
- * Consider async alternatives for long-running tasks.
  */
 export function runCommandSync(
   command: string,
   cwd: string,
   env?: Record<string, string | undefined>
 ): CommandResult {
-  console.log(dim(`Executing in ${cwd}: ${command}`));
+  log.dim(`Executing in ${cwd}: ${command}`);
   try {
     const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
-    // Use array form to avoid shell injection. Split simple commands safely.
     const args = ["sh", "-c", command];
     const output = Bun.spawnSync(args, { cwd, env: mergedEnv });
     const stdout = output.stdout?.toString() || "";
     const stderr = output.stderr?.toString() || "";
     
     if (output.success) {
-      console.log(dim(stdout));
+      log.dim(stdout);
       return { success: true, stdout, stderr, exitCode: 0 };
     } else {
       print_error(`Command failed: ${command}`);
@@ -103,14 +120,16 @@ export function runCommandSync(
   }
 }
 
-// Promisified spawn for async execution with streaming potential
+/**
+ * Runs a command asynchronously with streaming potential.
+ */
 export async function runCommandAsync(
   command: string,
   args: string[],
   cwd: string,
   env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
-  console.log(dim(`Executing async in ${cwd}: ${command} ${args.join(" ")}`));
+  log.dim(`Executing async in ${cwd}: ${command} ${args.join(" ")}`);
   const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
   try {
@@ -131,7 +150,7 @@ export async function runCommandAsync(
         `Command failed: ${command} ${args.join(" ")} (exit code: ${exitCode})`
       );
       if (stderr) console.error(dim(`Stderr: ${stderr}`));
-      if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`));
+      if (stdout && !stderr) log.dim(`Stdout: ${stdout}`);
     }
     return { success, stdout, stderr, exitCode: exitCode ?? 1 };
   } catch (err: unknown) {
@@ -152,9 +171,7 @@ export async function runCommandWithStdin(
   cwd: string,
   env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
-  console.log(
-    dim(`Executing with stdin in ${cwd}: ${command} ${args.join(" ")}`)
-  );
+  log.dim(`Executing with stdin in ${cwd}: ${command} ${args.join(" ")}`);
   const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
   try {
@@ -179,7 +196,7 @@ export async function runCommandWithStdin(
         `Command with stdin failed: ${command} ${args.join(" ")} (exit code: ${exitCode})`
       );
       if (stderr) console.error(dim(`Stderr: ${stderr}`));
-      if (stdout && !stderr) console.log(dim(`Stdout: ${stdout}`));
+      if (stdout && !stderr) log.dim(`Stdout: ${stdout}`);
     }
     return { success, stdout, stderr, exitCode: exitCode ?? 1 };
   } catch (err: unknown) {
@@ -193,8 +210,7 @@ export async function runCommandWithStdin(
 }
 
 /**
- * Runs an interactive command (like `wrangler dev` or `bun test --watch`).
- * Inherits stdio to allow user interaction.
+ * Runs an interactive command. Inherits stdio to allow user interaction.
  */
 export async function runInteractiveCommand(
   command: string,
@@ -202,7 +218,7 @@ export async function runInteractiveCommand(
   cwd: string,
   env?: Record<string, string | undefined>
 ): Promise<number | null> {
-  console.log(dim(`Executing interactive in ${cwd}: ${command} ${args.join(" ")}`));
+  log.dim(`Executing interactive in ${cwd}: ${command} ${args.join(" ")}`);
   const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
 
   try {
@@ -214,9 +230,9 @@ export async function runInteractiveCommand(
 
     const exitCode = await proc.exited;
     if (exitCode === 0) {
-      console.log(green(`Interactive command finished successfully.`));
+      log.success(`Interactive command finished successfully.`);
     } else {
-      console.log(yellow(`Interactive command finished with code: ${exitCode}.`));
+      log.warn(`Interactive command finished with code: ${exitCode}.`);
     }
     return exitCode;
   } catch (err: unknown) {
@@ -229,7 +245,7 @@ export async function runInteractiveCommand(
   }
 }
 
-// --- User Interaction Helpers --- (Stubs)
+// --- User Interaction Helpers ---
 
 /**
  * Prompts the user for a secret value (masked input).
@@ -275,11 +291,10 @@ export async function promptForSecret(secretName: string): Promise<string> {
   });
 }
 
-// --- Cloudflare Helpers --- (Stubs)
+// --- Cloudflare Helpers ---
 
 /**
- * Retrieves the Cloudflare API token, checking env vars or prompting if necessary.
- * Needs access to the Config object.
+ * Retrieves the Cloudflare API token from config, env, or prompts.
  */
 export async function getCloudflareToken(
   config: Config
@@ -288,7 +303,7 @@ export async function getCloudflareToken(
     return config.global.cloudflare_api_token;
   }
   if (Bun.env.CLOUDFLARE_API_TOKEN) {
-    console.log(dim("Using CLOUDFLARE_API_TOKEN from environment."));
+    log.dim("Using CLOUDFLARE_API_TOKEN from environment.");
     return Bun.env.CLOUDFLARE_API_TOKEN;
   }
 
@@ -302,8 +317,5 @@ export async function getCloudflareToken(
     print_error("Cloudflare API Token is required to proceed.");
     return null;
   }
-  // Optionally offer to save this back to config in the future.
   return token.trim();
 }
-
-// Add other utility functions as needed during refactoring...
