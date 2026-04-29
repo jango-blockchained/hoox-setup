@@ -99,12 +99,13 @@ import {
 
 // --- Constants ---
 // Keep essential constants needed for commander setup if any?
-// const CONFIG_PATH = path.resolve(process.cwd(), "config.toml"); // Maybe not needed here?
+// const CONFIG_PATH = path.resolve(process.cwd(), "workers.jsonc"); // Maybe not needed here?
 
 // --- Script Execution using Commander ---
 async function main() {
   const program = new Command();
-  program.version("1.0.0").description("Hoox Worker Management CLI");
+  const cliPkg = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../package.json'), 'utf-8'));
+  program.version(cliPkg.version).description("Hoox Worker Management CLI");
 
   // --- Init Wizard Command ---
   program
@@ -163,40 +164,28 @@ async function main() {
         const fs = await import("node:fs");
         const path = await import("node:path");
 
-        const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
-        const configTomlPath = path.resolve(process.cwd(), "config.toml");
+        const workersJsoncPath = path.resolve(process.cwd(), "workers.jsonc");
+        const workersExamplePath = path.resolve(process.cwd(), "workers.jsonc.example");
+        const pagesJsoncPath = path.resolve(process.cwd(), "pages.jsonc");
 
-        if ((await Bun.file(configJsoncPath).exists())) {
-          console.log(green("Using: config.jsonc (JSONC format)"));
-        } else if ((await Bun.file(configTomlPath).exists())) {
-          console.log(green("Using: config.toml (TOML format)"));
+        if ((await Bun.file(workersJsoncPath).exists())) {
+          console.log(green("Using: workers.jsonc (JSONC format)"));
         } else {
           console.log(
-            yellow("No configuration file found. Run 'init' to create one.")
+            yellow("No workers.jsonc found. Run 'init' to create one.")
           );
         }
 
-        // Show information about both example files
-        const exampleJsoncPath = path.resolve(
-          process.cwd(),
-          "config.jsonc.example"
-        );
-        const exampleTomlPath = path.resolve(
-          process.cwd(),
-          "config.toml.example"
-        );
-
-        console.log("\nExample files available:");
-        if ((await Bun.file(exampleJsoncPath).exists())) {
-          console.log(green("- config.jsonc.example (JSONC format)"));
-        } else {
-          console.log(red("- config.jsonc.example not found"));
+        if ((await Bun.file(pagesJsoncPath).exists())) {
+          console.log(green("Using: pages.jsonc (JSONC format)"));
         }
 
-        if ((await Bun.file(exampleTomlPath).exists())) {
-          console.log(green("- config.toml.example (TOML format)"));
+        // Show information about example files
+        console.log("\nExample files available:");
+        if ((await Bun.file(workersExamplePath).exists())) {
+          console.log(green("- workers.jsonc.example (JSONC format)"));
         } else {
-          console.log(red("- config.toml.example not found"));
+          console.log(red("- workers.jsonc.example not found"));
         }
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
@@ -452,7 +441,7 @@ async function main() {
   workersCommand
     .command("deploy")
     .description(
-      "Deploys enabled workers based on config.toml and outputs their URLs."
+      "Deploys enabled workers based on workers.jsonc and outputs their URLs."
     )
     .action(async () => {
       const config = await loadConfig();
@@ -497,7 +486,7 @@ async function main() {
   workersCommand
     .command("update-internal-urls")
     .description(
-      "Updates *_URL variables in wrangler.toml files based on deployed URLs stored in config.toml."
+      "Updates *_URL variables in wrangler configs based on deployed URLs stored in workers.jsonc."
     )
     .action(async () => {
       const config = await loadConfig();
@@ -667,7 +656,7 @@ async function main() {
   secretsCommand
     .command("check <workerName> [secretName]")
     .description(
-      "Check Secret Store binding status in a worker's wrangler.toml against config.toml."
+      "Check Secret Store binding status in a worker's wrangler config against workers.jsonc."
     )
     .action(async (workerName, secretName) => {
       const config = await loadConfig();
@@ -754,8 +743,7 @@ async function main() {
         // Also save to local .dev.vars for worker
         console.log(dim(`Saving ${secretName} to local environment files...`));
         try {
-          const fs = require('node:fs');
-          const path = require('node:path');
+          // fs and path already imported at top of file
           
 const updateEnvFile = (filePath: string, key: string, val: string) => {
              let lines = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8').split('\n') : [];
@@ -790,7 +778,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
     )
     .action(() => {
       // Find the config path reliably
-      const configPath = path.resolve(process.cwd(), "config.toml");
+      const configPath = path.resolve(process.cwd(), "workers.jsonc");
       console.log(
         blue("\n--- Managing Secrets with Cloudflare Secret Store ---")
       );
@@ -820,7 +808,7 @@ const updateEnvFile = (filePath: string, key: string, val: string) => {
         )
       );
       console.log(
-        yellow("   Note: Secret names MUST match those listed in config.toml.")
+        yellow("   Note: Secret names MUST match those listed in workers.jsonc.")
       );
       console.log(
         "5. Once secrets exist in the store, run the setup command to create/update bindings in wrangler.toml:"

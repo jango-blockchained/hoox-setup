@@ -7,7 +7,7 @@
 Before deploying to production, ensure you have:
 1. Valid Cloudflare® Account & API Token.
 2. Production secrets generated and uploaded to Cloudflare® Secret Store.
-3. A fully configured `config.toml`.
+3. A fully configured `workers.jsonc`.
 
 ## Deployment Commands
 

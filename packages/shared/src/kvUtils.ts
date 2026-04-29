@@ -1,5 +1,6 @@
 /**
  * Utility functions for KV operations
+ * Shared across workers that need KV timestamp logging
  */
 import type { KVNamespace } from "@cloudflare/workers-types";
 
@@ -60,15 +61,8 @@ export function headersToObject(
  * KV middleware function for logging timestamps
  */
 export const kvTimestampMiddleware = () => {
-  return async (c: any, next: any): Promise<void> => {
+  return async (c: { env: unknown }, next: () => Promise<void>): Promise<void> => {
     await logKvTimestamp(c.env as unknown as EnvWithKV);
     await next();
   };
-};
-
-// Default export for backwards compatibility
-export default {
-  logKvTimestamp,
-  headersToObject,
-  kvTimestampMiddleware,
 };
