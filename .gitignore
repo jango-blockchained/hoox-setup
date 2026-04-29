@@ -63,6 +63,8 @@ Thumbs.db
 
 config.toml
 TASKPLAN.md
+E2E_TEST_PLAN.md
+test_output.txt
 
 # Badge directory (can be generated)
 .badge/
@@ -71,8 +73,7 @@ TASKPLAN.md
 workers/*
 !workers/*/
 
-
-config.toml
+skills-lock.json
 
 # Configs
 workers.jsonc
