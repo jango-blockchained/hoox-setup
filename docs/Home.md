@@ -20,17 +20,16 @@
 
 ### Workers
 
-Each worker has its own README in the worker directory:
+Each worker has its own documentation file:
 
-- [hoox Gateway](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/hoox) - Main gateway worker (65% line coverage)
-- [trade-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/trade-worker) - Trading engine (80% line coverage)
-- [telegram-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/telegram-worker) - Telegram bot & notifications (94% line coverage)
-- [d1-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/d1-worker) - Database operations (94% line coverage)
-- [agent-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/agent-worker) - Autonomous AI & Risk Manager (68% line coverage)
-- [dashboard](https://github.com/jango-blockchained/hoox-setup/tree/main/pages/dashboard) - UI & Settings Manager
-- [web3-wallet-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/web3-wallet-worker) - Web3 interactions (83% line coverage)
-
-- [email-worker](https://github.com/jango-blockchained/hoox-setup/tree/main/workers/email-worker) - Email processing (97% line coverage)
+- [hoox Gateway](workers/hoox.md) - Main gateway worker (65% line coverage)
+- [trade-worker](workers/trade-worker.md) - Trading engine (80% line coverage)
+- [telegram-worker](workers/telegram-worker.md) - Telegram bot & notifications (94% line coverage)
+- [d1-worker](workers/d1-worker.md) - Database operations (94% line coverage)
+- [agent-worker](workers/agent-worker.md) - Autonomous AI & Risk Manager (68% line coverage)
+- [dashboard](workers/dashboard.md) - UI & Settings Manager
+- [web3-wallet-worker](workers/web3-wallet-worker.md) - Web3 interactions (83% line coverage)
+- [email-worker](workers/email-worker.md) - Email processing (97% line coverage)
 
 ### API Reference
 

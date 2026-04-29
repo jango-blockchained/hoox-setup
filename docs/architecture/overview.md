@@ -17,7 +17,6 @@ graph TB
         TV["📊 TradingView"]
         TG["💬 Telegram"]
         USER["👤 User"]
-        HA["🏠 Home Assistant"]
     end
 
     subgraph "hoox (Gateway)"
