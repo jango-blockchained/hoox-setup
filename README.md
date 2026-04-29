@@ -8,7 +8,7 @@
 [![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/development/testing.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/README.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
+**[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
 </div>
 
