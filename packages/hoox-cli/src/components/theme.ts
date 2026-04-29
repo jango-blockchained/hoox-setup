@@ -17,6 +17,32 @@ export const theme = {
     destructiveForeground: "#fafafa",
     success: "#10b981", // emerald-500
     warning: "#eab308", // yellow-500
-    info: "#3b82f6" // blue-500
-  }
+    info: "#3b82f6", // blue-500
+  },
+  icons: {
+    success: "✓",
+    error: "✖",
+    warning: "⚠",
+    info: "ℹ",
+    bullet: "●",
+    hollowBullet: "○",
+    arrow: "→",
+    arrowRight: "❯",
+    dash: "─",
+    dot: "·",
+    star: "★",
+    zap: "⚡",
+    shield: "🛡",
+    gear: "⚙",
+    rocket: "🚀",
+    check: "✔",
+    cross: "✘",
+  },
+  spacing: {
+    xs: 1,
+    sm: 2,
+    md: 4,
+    lg: 6,
+    xl: 8,
+  },
 };

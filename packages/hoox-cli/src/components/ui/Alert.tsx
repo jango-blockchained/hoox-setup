@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box, Text } from 'ink';
 import { theme } from '../theme.js';
 
 interface AlertProps {
@@ -24,11 +23,11 @@ export function Alert({ title, children, variant = 'default' }: AlertProps) {
   }
 
   return (
-    <Box borderStyle="round" borderColor={borderColor} paddingX={1} flexDirection="column">
-      <Text color={titleColor} bold>{title}</Text>
-<Box marginTop={1} flexDirection="column">
-  {children}
-</Box>
-    </Box>
+    <box style={{ borderStyle: 'rounded', borderColor, paddingLeft: 1, paddingRight: 1, flexDirection: 'column' }}>
+      <text style={{ bold: true, fg: titleColor }}>{title}</text>
+      <box style={{ marginTop: 1, flexDirection: 'column' }}>
+        {children}
+      </box>
+    </box>
   );
 }

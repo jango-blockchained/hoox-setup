@@ -146,15 +146,15 @@ export function WorkersOverview() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0"
+              className="size-7 p-0"
               onClick={handleRefresh}
             >
-              <RefreshCw className={`h-3.5 w-3.5 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`size-3.5 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-secondary/30 p-3">
@@ -178,14 +178,14 @@ export function WorkersOverview() {
                 className="flex w-full items-center justify-between rounded-lg bg-secondary/30 p-2.5 transition-colors hover:bg-secondary/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                  <div className={`flex size-8 items-center justify-center rounded-lg transition-colors ${
                     worker.status === "active" 
                       ? "bg-success/10" 
                       : worker.status === "idle"
                       ? "bg-warning/10"
                       : "bg-secondary"
                   }`}>
-                    <worker.icon className={`h-4 w-4 ${
+                    <worker.icon className={`size-4 ${
                       worker.status === "active"
                         ? "text-success"
                         : worker.status === "idle"
@@ -209,7 +209,7 @@ export function WorkersOverview() {
                     </span>
                   )}
                   <motion.div
-                    className={`h-2 w-2 rounded-full ${
+                    className={`size-2 rounded-full ${
                       worker.status === "active"
                         ? "bg-success"
                         : worker.status === "idle"
@@ -220,7 +220,7 @@ export function WorkersOverview() {
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <ChevronRight 
-                    className={`h-4 w-4 text-muted-foreground transition-transform ${
+                    className={`size-4 text-muted-foreground transition-transform ${
                       expandedWorker === worker.name ? "rotate-90" : ""
                     }`} 
                   />
@@ -235,7 +235,7 @@ export function WorkersOverview() {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="mt-1 ml-11 rounded-lg bg-secondary/20 p-3 space-y-3">
+                    <div className="mt-1 ml-11 rounded-lg bg-secondary/20 p-3 flex flex-col gap-3">
                       <div>
                         <div className="flex justify-between text-[10px] mb-1">
                           <span className="text-muted-foreground">CPU Usage</span>
