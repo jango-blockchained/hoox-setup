@@ -1,8 +1,10 @@
 node_modules/
 .wrangler/
 dist/
-.env
-*/*.env
+.env*
+dev.vars*
+*/*.env*
+*/*/dev.vars*
 .DS_Store
 
 # Ignore node_modules in all subdirectories
@@ -31,6 +33,10 @@ pages/dashboard/.vercel/
 
 .cursor/
 .cursor/*
+.opencode/
+.opencode/*
+.agents/
+.agents/*
 
 .install-wizard-state.json
 
@@ -62,7 +68,7 @@ TASKPLAN.md
 # Ignore all files in the workers directory except for submodules
 workers/*
 !workers/*/
-!workers/email-worker/
+
 
 config.toml
 
