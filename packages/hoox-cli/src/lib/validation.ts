@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CloudflareClient, createValidationResult, type ValidationResult } from "./cf-client.js";
-import { loadConfig, type Config } from "../configUtils.js";
+import { loadConfig } from "../configUtils.js";
+import type { Config } from "../types.js";
 
 const DependencySchema = z.object({
   name: z.string(),

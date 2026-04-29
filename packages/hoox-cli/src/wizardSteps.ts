@@ -370,7 +370,7 @@ export async function step_saveConfig(state: WizardState): Promise<void> {
 
   // Cast to the Config type expected by configUtils
   await saveConfig(
-    configToSave as unknown as import("./configUtils.js").Config
+    configToSave
   );
 }
 
