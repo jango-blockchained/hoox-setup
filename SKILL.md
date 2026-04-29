@@ -112,7 +112,7 @@ bun test:watch               # Watch mode
 
 ### 7. Configuration
 
-- Global: `config.toml` or `workers.jsonc`
+- Global: `workers.jsonc`
 - Worker: `workers/*/wrangler.jsonc`
 - Secrets: `wrangler secret put <name> --worker <worker>`
 - Pages: `pages.jsonc`

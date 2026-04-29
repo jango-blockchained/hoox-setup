@@ -2,78 +2,63 @@
 
 > How to configure Hoox workers
 
-## config.toml
+## workers.jsonc
 
-The central configuration file is `config.toml`. Here's a complete example:
+The central configuration file is `workers.jsonc`. Here's a complete example:
 
-```toml
-# ============================================
-# GLOBAL SETTINGS
-# ============================================
-[global]
-# Required: Cloudflare® API Token
-cloudflare_api_token = "cfut_..."
+```jsonc
+{
+  // ============================================
+  // GLOBAL SETTINGS
+  // ============================================
+  "global": {
+    // Required: Cloudflare® API Token
+    "cloudflare_api_token": "cfut_...",
 
-# Required: Your Cloudflare® Account ID
-cloudflare_account_id = "abc123..."
+    // Required: Your Cloudflare® Account ID
+    "cloudflare_account_id": "abc123...",
 
-# Optional: Subdomain prefix (used for worker names)
-subdomain_prefix = "cryptolinx"
+    // Required: Cloudflare® Secret Store ID
+    "cloudflare_secret_store_id": "your-secret-store-id",
 
-# Optional: Path to .env file for additional env vars
-# dotenv_path = ".env"
-
-# ============================================
-# WORKER CONFIGURATIONS
-# ============================================
-
-# --------------------------------------------
-# hoox - Gateway Worker
-# --------------------------------------------
-[workers.hoox]
-enabled = true
-path = "workers/hoox"
-description = "Central webhook processing"
-secrets = ["WEBHOOK_API_KEY", "INTERNAL_KEY"]
-# vars = { }
-
-# --------------------------------------------
-# trade-worker - Trading Engine
-# --------------------------------------------
-[workers.trade-worker]
-enabled = true
-path = "workers/trade-worker"
-description = "Multi-exchange trading"
-secrets = [
-  "INTERNAL_KEY",
-  "MEXC_API_KEY",
-  "MEXC_API_SECRET"
-]
-vars = { DEFAULT_LEVERAGE = "20" }
-# deployed_url = "https://trade-worker.your-subdomain.workers.dev"
-
-# --------------------------------------------
-# telegram-worker - Notifications
-# --------------------------------------------
-[workers.telegram-worker]
-enabled = true
-path = "workers/telegram-worker"
-description = "Telegram bot & notifications"
-secrets = [
-  "TELEGRAM_BOT_TOKEN",
-  "TELEGRAM_CHAT_ID_DEFAULT"
-]
-
-# --------------------------------------------
-# d1-worker - Database
-# --------------------------------------------
-[workers.d1-worker]
-enabled = false
-path = "workers/d1-worker"
-description = "D1 database operations"
-secrets = []
-
-
+    // Optional: Subdomain prefix (used for worker names)
+    "subdomain_prefix": "cryptolinx"
+  },
+  // ============================================
+  // WORKER CONFIGURATIONS
+  // ============================================
+  "workers": {
+    // hoox - Gateway Worker
+    "hoox": {
+      "enabled": true,
+      "path": "workers/hoox",
+      "description": "Central webhook processing",
+      "secrets": ["WEBHOOK_API_KEY", "INTERNAL_KEY"]
+    },
+    // trade-worker - Trading Engine
+    "trade-worker": {
+      "enabled": true,
+      "path": "workers/trade-worker",
+      "description": "Multi-exchange trading",
+      "secrets": ["INTERNAL_KEY", "MEXC_API_KEY", "MEXC_API_SECRET"],
+      "vars": { "DEFAULT_LEVERAGE": "20" }
+    },
+    // telegram-worker - Notifications
+    "telegram-worker": {
+      "enabled": true,
+      "path": "workers/telegram-worker",
+      "description": "Telegram bot & notifications",
+      "secrets": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID_DEFAULT"]
+    },
+    // d1-worker - Database
+    "d1-worker": {
+      "enabled": false,
+      "path": "workers/d1-worker",
+      "description": "D1 database operations",
+      "secrets": []
+    }
+  }
+}
 ```
 
 ## Environment Variables
@@ -96,11 +81,16 @@ WEBHOOK_API_KEY_BINDING=dev-key
 
 ## Worker Secrets
 
-Each worker can define required secrets in `config.toml`. These are prompted for during setup.
+Each worker can define required secrets in `workers.jsonc`. These are prompted for during setup.
 
-```toml
-[workers.hoox]
-secrets = ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
+```jsonc
+{
+  "workers": {
+    "hoox": {
+      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
+    }
+  }
+}
 ```
 
 Available secret types:

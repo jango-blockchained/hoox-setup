@@ -93,24 +93,7 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 hoox workers deploy
 ```
 
-2. **Bootstrap your environment:**
-   ```bash
-   hoox clone hoox-trading
-   cd hoox-trading
-   
-   # (Fallback: bunx @jango-blockchained/hoox-cli clone hoox-trading)
-
-   bun install
-   hoox config setup
-   hoox init
-   ```
-
-3. **Deploy your entire trading empire to the Cloudflare® Edge!**
-   ```bash
-   hoox workers deploy
-   ```
-
-> **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all 8 workers simultaneously on your local machine!
+> **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all workers simultaneously on your local machine!
 >
 ---
 

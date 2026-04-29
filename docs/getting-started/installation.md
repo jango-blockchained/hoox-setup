@@ -58,25 +58,30 @@ This wizard will:
 
 1. Check dependencies (bun, wrangler)
 2. Prompt for Cloudflare® credentials
-3. Enable workers in config.toml
+3. Enable workers in workers.jsonc
 4. Create required secrets
 5. Deploy workers
 
 ### Option B: Manual Configuration
 
-Create `config.toml`:
+Create `workers.jsonc`:
 
-```toml
-[global]
-cloudflare_api_token = "cfut_..."
-cloudflare_account_id = "your-account-id"
-subdomain_prefix = "your-prefix"
-
-[workers.hoox]
-enabled = true
-path = "workers/hoox"
-secrets = ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
-```
+```jsonc
+{
+  "global": {
+    "cloudflare_api_token": "cfut_...",
+    "cloudflare_account_id": "your-account-id",
+    "cloudflare_secret_store_id": "your-secret-store-id",
+    "subdomain_prefix": "your-prefix"
+  },
+  "workers": {
+    "hoox": {
+      "enabled": true,
+      "path": "workers/hoox",
+      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
+    }
+  }
+}
 
 ## Step 4: Create Secrets
 

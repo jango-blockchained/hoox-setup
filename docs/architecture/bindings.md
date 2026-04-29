@@ -25,7 +25,6 @@ This document provides a comprehensive reference for all bindings, environment v
 | `TELEGRAM_SECRET_TOKEN`   | Secret | telegram-worker                     | Webhook verification token for Telegram                        |
 | `WEBHOOK_API_KEY_BINDING` | Secret | hoox                                | API key for webhook endpoints                                  |
 | `ADMIN_API_KEY_BINDING`   | Secret | hoox                                | Admin API authentication key                                   |
-| `HA_TOKEN_BINDING`        | Secret | hoox                                | Home Assistant authentication token                            |
 | `WALLET_PK_SECRET`        | Secret | web3-wallet-worker                  | Private key for Web3 wallet operations                         |
 | `WALLET_MNEMONIC_SECRET`  | Secret | web3-wallet-worker                  | Mnemonic phrase for wallet generation                          |
 | `MEXC_KEY_BINDING`        | Secret | trade-worker                        | MEXC exchange API key                                          |
@@ -115,7 +114,6 @@ For local development with `wrangler dev`, the following service URLs are used:
 | Telegram Worker       | http://localhost:8790 | hoox, trade-worker, web3-wallet-worker |
 | Web3 Wallet Worker    | http://localhost:8792 | trade-worker                           |
 | Trade Worker          | http://localhost:8788 | hoox                                   |
-| Home Assistant Worker | http://localhost:8791 | hoox                                   |
 
 ## Configuration
 

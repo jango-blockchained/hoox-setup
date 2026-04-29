@@ -2,51 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";
 
-export function stringifyToml(obj: any): string {
-  function serialize(value: any, prefix = ""): string {
-    let result = "";
 
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        result += prefix + serialize(item) + "\n";
-      }
-      return result;
-    }
-
-    if (typeof value === "object") {
-      let hasNested = false;
-      for (const [key, val] of Object.entries(value)) {
-        if (typeof val === "object" && val !== null && !Array.isArray(val)) {
-          hasNested = true;
-          result += prefix + "[" + key + "]\n";
-          result += serialize(val, prefix + "  ");
-        }
-      }
-      if (!hasNested) {
-        for (const [key, val] of Object.entries(value)) {
-          if (Array.isArray(val)) {
-            result += prefix + key + " = [";
-            result += val.map(v => typeof v === "string" ? `"${v}"` : String(v)).join(", ");
-            result += "]\n";
-          } else {
-            result += prefix + key + " = " + (typeof val === "string" ? `"${val}"` : String(val)) + "\n";
-          }
-        }
-      }
-      return result;
-    }
-
-    return typeof value === "string" ? `"${value}"` : String(value);
-  }
-
-  return serialize(obj);
-}
-
-export { Config, GlobalConfig, PagesConfig };
 
 const getWorkersJsoncPath = () => path.resolve(process.cwd(), "workers.jsonc");
 const getPagesJsoncPath = () => path.resolve(process.cwd(), "pages.jsonc");

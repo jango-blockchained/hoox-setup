@@ -8,7 +8,7 @@
     "types": ["bun-types", "@types/node"],
     "esModuleInterop": true,
     "strict": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,

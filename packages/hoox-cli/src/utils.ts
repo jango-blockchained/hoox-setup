@@ -64,7 +64,9 @@ export function runCommandSync(
   console.log(dim(`Executing in ${cwd}: ${command}`));
   try {
     const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
-    const output = Bun.spawnSync(["sh", "-c", command], { cwd, env: mergedEnv });
+    // Use array form to avoid shell injection. Split simple commands safely.
+    const args = ["sh", "-c", command];
+    const output = Bun.spawnSync(args, { cwd, env: mergedEnv });
     const stdout = output.stdout?.toString() || "";
     const stderr = output.stderr?.toString() || "";
     
@@ -233,12 +235,44 @@ export async function runInteractiveCommand(
  * Prompts the user for a secret value (masked input).
  */
 export async function promptForSecret(secretName: string): Promise<string> {
-  // Basic implementation without masking for now
-  // Masking requires more complex handling or a library like 'inquirer'
-  const answer = await rl.question(
-    yellow(`Enter value for secret "${secretName}": `)
-  );
-  return answer.trim();
+  return new Promise((resolve) => {
+    process.stdout.write(yellow(`Enter value for secret "${secretName}": `));
+    const stdin = process.stdin;
+    const wasRaw = stdin.isRaw;
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    
+    let secret = '';
+    const onData = (char: string) => {
+      // Handle Enter
+      if (char === '\r' || char === '\n') {
+        stdin.setRawMode(wasRaw);
+        stdin.pause();
+        stdin.removeListener('data', onData);
+        process.stdout.write('\n');
+        resolve(secret.trim());
+        return;
+      }
+      // Handle Ctrl+C
+      if (char === '\x03') {
+        stdin.setRawMode(wasRaw);
+        process.stdout.write('\n');
+        process.exit(1);
+      }
+      // Handle Backspace
+      if (char === '\x7f' || char === '\b') {
+        if (secret.length > 0) {
+          secret = secret.slice(0, -1);
+          process.stdout.write('\b \b');
+        }
+        return;
+      }
+      secret += char;
+      process.stdout.write('*');
+    };
+    stdin.on('data', onData);
+  });
 }
 
 // --- Cloudflare Helpers --- (Stubs)

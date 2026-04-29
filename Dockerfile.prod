@@ -23,21 +23,16 @@ RUN mkdir -p dist && \
     bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun
 
 # Final Runtime
-FROM alpine:3.19
-
-RUN apk add --no-cache curl
+FROM oven/bun:1.3-alpine
 
 WORKDIR /app
 
 # Copy built artifacts
 COPY --from=builder /app/dist ./dist
 
-# Simple static file server to host the workers
-# In a real Kubernetes/Docker Swarm setup, you'd use a service mesh, 
-# but for simple self-hosting, we use Bun to serve all.
-
+# Copy server entry point and package config
 COPY --from=builder /app/node_modules ./node_modules
-COPY package.json ./
+COPY package.json server.js ./
 
 # We assume external bindings for KV/AI/D1 via environment variables
 # This is the HYBRID approach: we handle the worker logic, 
