@@ -26,9 +26,9 @@ export function Alert({ title, children, variant = 'default' }: AlertProps) {
   return (
     <Box borderStyle="round" borderColor={borderColor} paddingX={1} flexDirection="column">
       <Text color={titleColor} bold>{title}</Text>
-      <Box marginTop={1}>
-        <Text color={theme.colors.mutedForeground}>{children}</Text>
-      </Box>
+<Box marginTop={1} flexDirection="column">
+  {children}
+</Box>
     </Box>
   );
 }

@@ -121,6 +121,29 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
   }
   console.log(ansis.blue("\n--- Hoox Worker Setup Wizard ---"));
 
+  // Check if we are inside the hoox-setup repo
+  const isHooxRepo = await Bun.file(path.resolve(process.cwd(), "workers.jsonc.example")).exists() || 
+                     await Bun.file(path.resolve(process.cwd(), "package.json")).text().then(text => JSON.parse(text).name === "hoox-setup").catch(() => false);
+  
+  if (!isHooxRepo) {
+    print_warning("You don't seem to be in the hoox-setup repository.");
+    if (!force && process.stdin.isTTY) {
+      const { cloneMainRepo } = await import("./cloneCommand.js");
+      const answer = await rl.question("Would you like to clone it now? (y/N): ");
+      if (answer.toLowerCase() === "y" || answer.toLowerCase() === "yes") {
+        await cloneMainRepo("hoox-setup");
+        console.log(ansis.yellow("Changing working directory to hoox-setup..."));
+        process.chdir("hoox-setup");
+      } else {
+        print_error("Init requires the hoox-setup repository. Aborting.");
+        process.exit(1);
+      }
+    } else {
+      print_error("Init requires the hoox-setup repository. Please clone it first.");
+      process.exit(1);
+    }
+  }
+
   let state: WizardState | null = await loadWizardState();
   const totalSteps = TOTAL_WIZARD_STEPS;
 
