@@ -1,0 +1,49 @@
+{
+  "display_name": "Telegram Worker",
+  "description": "Telegram bot notifications and alerts",
+  "sections": {
+    "bot": {
+      "title": "Bot Settings",
+      "description": "Telegram bot configuration",
+      "icon": "send",
+      "priority": 10,
+      "fields": {
+        "enabled": true,
+        "default_chat_id": "",
+        "notify_on_execution": true,
+        "notify_on_error": true,
+        "notify_on_startup": false
+      },
+      "descriptions": {
+        "enabled": "Enable or disable all outgoing Telegram notifications globally.",
+        "default_chat_id": "Default chat ID where trade execution alerts and daily summaries are sent.",
+        "notify_on_execution": "Send a message immediately upon a successful trade execution.",
+        "notify_on_error": "Send a critical alert when a worker encounters an error.",
+        "notify_on_startup": "Send a health check message when the system is initialized."
+      }
+    },
+    "ai": {
+      "title": "AI Summaries",
+      "description": "AI-powered summary settings",
+      "icon": "sparkles",
+      "priority": 20,
+      "fields": {
+        "ai_summaries_enabled": true,
+        "summary_style": "concise",
+        "include_pnl": true
+      },
+      "options": {
+        "summary_style": [
+          "concise",
+          "detailed",
+          "technical"
+        ]
+      },
+      "descriptions": {
+        "ai_summaries_enabled": "Enable AI to periodically summarize your portfolio and recent trades.",
+        "summary_style": "The tone and depth of the AI summary.",
+        "include_pnl": "Include sensitive Profit and Loss (PnL) statistics in the Telegram summary."
+      }
+    }
+  }
+}

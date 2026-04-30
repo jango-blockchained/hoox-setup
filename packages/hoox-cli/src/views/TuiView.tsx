@@ -154,7 +154,7 @@ export const TuiView: React.FC<TuiViewProps> = ({ initialWorkers }) => {
     <box style={{ flexDirection: 'column', width: termWidth, height: termHeight }}>
       {/* Header */}
       <box style={{ paddingLeft: 1, paddingRight: 1, marginBottom: 1 }}>
-        <text style={{ bold: true, fg: theme.colors.warning }}>⚡ HOOX</text>
+        <text style={{ bold: true, fg: theme.colors.warning } as any}>⚡ HOOX</text>
         <text style={{ fg: theme.colors.mutedForeground }}>  │  </text>
         <text style={{ fg: theme.colors.mutedForeground }}>{workerIds.length} workers</text>
         <text style={{ fg: theme.colors.mutedForeground }}>  │  </text>
@@ -234,7 +234,7 @@ export const TuiView: React.FC<TuiViewProps> = ({ initialWorkers }) => {
             )}
 
             <box style={{ marginTop: 2, flexDirection: 'column' }}>
-              <text style={{ bold: true, fg: theme.colors.foreground }}>Shortcuts</text>
+              <text style={{ bold: true, fg: theme.colors.foreground } as any}>Shortcuts</text>
               <text style={{ fg: theme.colors.mutedForeground }}>s  Start</text>
               <text style={{ fg: theme.colors.mutedForeground }}>x  Stop</text>
               <text style={{ fg: theme.colors.mutedForeground }}>r  Restart</text>

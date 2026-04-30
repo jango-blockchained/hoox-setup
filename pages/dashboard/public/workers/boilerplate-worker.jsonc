@@ -1,0 +1,15 @@
+{
+  "display_name": "Boilerplate Worker",
+  "description": "Template for new workers",
+  "sections": {
+    "settings": {
+      "title": "Settings",
+      "description": "Basic worker settings",
+      "icon": "settings",
+      "priority": 10,
+      "fields": {
+        "enabled": true
+      }
+    }
+  }
+}

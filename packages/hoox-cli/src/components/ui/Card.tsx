@@ -5,7 +5,7 @@ interface CardProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
-  width?: number | string;
+  width?: number | `${number}%` | 'auto';
   flexDirection?: 'row' | 'column';
   padding?: number;
 }
@@ -23,7 +23,7 @@ export function Card({ title, description, children, width, flexDirection = 'col
     >
       {(title || description) && (
         <box style={{ flexDirection: 'column', marginBottom: 1 }}>
-          {title && <text style={{ bold: true, fg: theme.colors.foreground }}>{title}</text>}
+          {title && <text style={{ bold: true, fg: theme.colors.foreground } as any}>{title}</text>}
           {description && <text style={{ fg: theme.colors.mutedForeground }}>{description}</text>}
         </box>
       )}
