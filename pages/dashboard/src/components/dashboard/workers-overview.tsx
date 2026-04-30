@@ -113,9 +113,9 @@ export function WorkersOverview() {
           return {
             ...worker,
             metrics: {
-              requests: worker.metrics.requests + Math.floor(Math.random() * 5),
-              latency: Math.max(1, worker.metrics.latency + (Math.random() - 0.5) * 4),
-              cpu: Math.min(100, Math.max(5, worker.metrics.cpu + (Math.random() - 0.5) * 10)),
+              requests: (worker.metrics.requests || 0) + Math.floor(Math.random() * 5),
+              latency: Math.max(1, (worker.metrics.latency || 0) + (Math.random() - 0.5) * 4),
+              cpu: Math.min(100, Math.max(5, (worker.metrics.cpu || 0) + (Math.random() - 0.5) * 10)),
             },
           }
         })
@@ -173,10 +173,10 @@ export function WorkersOverview() {
         <div className="flex flex-col gap-1.5">
           {workers.map((worker) => (
             <div key={worker.name}>
-              <button
-                onClick={() => setExpandedWorker(expandedWorker === worker.name ? null : worker.name)}
-                className="flex w-full items-center justify-between rounded-lg bg-secondary/30 p-2.5 transition-colors hover:bg-secondary/50"
-              >
+               <button
+                 onClick={() => setExpandedWorker(expandedWorker === worker.name ? null : worker.name)}
+                 className="flex w-full items-center justify-between rounded-lg bg-secondary/30 p-2.5 transition-all duration-300 hover:bg-secondary/50 hover:shadow-[0_0_15px_rgba(var(--primary),0.1)] hover:scale-[1.01]"
+               >
                 <div className="flex items-center gap-3">
                   <div className={`flex size-8 items-center justify-center rounded-lg transition-colors ${
                     worker.status === "active" 
@@ -203,22 +203,35 @@ export function WorkersOverview() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {worker.metrics && worker.status === "active" && (
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {worker.metrics.latency.toFixed(0)}ms
-                    </span>
-                  )}
+                   {worker.metrics && worker.status === "active" && (
+                        <motion.span 
+                          className="font-mono text-[10px] text-muted-foreground"
+                          animate={{ opacity: [1, 0.6, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          {((worker.metrics?.latency) ?? 0).toFixed(0)}ms
+                        </motion.span>
+                   )}
                   <motion.div
-                    className={`size-2 rounded-full ${
-                      worker.status === "active"
-                        ? "bg-success"
-                        : worker.status === "idle"
-                        ? "bg-warning"
-                        : "bg-muted-foreground/50"
-                    }`}
-                    animate={worker.status === "active" ? { scale: [1, 1.2, 1] } : {}}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
+                     className={`size-2 rounded-full ${
+                       worker.status === "active"
+                         ? "bg-success shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                         : worker.status === "idle"
+                         ? "bg-warning shadow-[0_0_8px_rgba(234,179,8,0.6)]"
+                         : "bg-muted-foreground/50"
+                     }`}
+                     animate={
+                       worker.status === "active" 
+                         ? { 
+                             scale: [1, 1.3, 1],
+                             opacity: [1, 0.7, 1]
+                           } 
+                         : worker.status === "idle"
+                         ? { scale: [1, 1.2, 1] }
+                         : {}
+                     }
+                     transition={{ duration: worker.status === "active" ? 1.5 : 2, repeat: Infinity }}
+                   />
                   <ChevronRight 
                     className={`size-4 text-muted-foreground transition-transform ${
                       expandedWorker === worker.name ? "rotate-90" : ""
@@ -239,15 +252,15 @@ export function WorkersOverview() {
                       <div>
                         <div className="flex justify-between text-[10px] mb-1">
                           <span className="text-muted-foreground">CPU Usage</span>
-                          <span className="text-foreground">{worker.metrics.cpu.toFixed(0)}%</span>
+                          <span className="text-foreground">{((worker.metrics?.cpu) || 0).toFixed(0)}%</span>
                         </div>
-                        <Progress value={worker.metrics.cpu} className="h-1.5" />
+                        <Progress value={worker.metrics?.cpu || 0} className="h-1.5" />
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-[10px]">
                         <div>
                           <div className="flex justify-between items-end mb-1">
                              <span className="text-muted-foreground">Requests</span>
-                             <p className="font-medium text-foreground">{worker.metrics.requests.toLocaleString()}</p>
+                             <p className="font-medium text-foreground">{(worker.metrics?.requests || 0).toLocaleString()}</p>
                           </div>
                           <div className="h-4 w-full flex items-end gap-[1px]">
                             {Array.from({ length: 20 }).map((_, i) => (
@@ -263,7 +276,7 @@ export function WorkersOverview() {
                         <div>
                           <div className="flex justify-between items-end mb-1">
                              <span className="text-muted-foreground">Latency</span>
-                             <p className="font-medium text-foreground">{worker.metrics.latency.toFixed(1)}ms</p>
+                             <p className="font-medium text-foreground">{(worker.metrics?.latency || 0).toFixed(1)}ms</p>
                           </div>
                           <div className="h-4 w-full flex items-end gap-[1px]">
                             {Array.from({ length: 20 }).map((_, i) => (

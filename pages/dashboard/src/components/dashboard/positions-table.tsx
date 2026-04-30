@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/dashboard/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,10 +43,10 @@ interface Position {
   symbol: string;
   side: string;
   size: number;
-  entryPrice?: number;
-  currentPrice?: number;
-  pnl?: number;
-  pnlPercent?: number;
+  entryPrice: number;
+  currentPrice: number;
+  pnl: number;
+  pnlPercent: number;
   leverage: number;
   status: string;
   openedAt: number;
@@ -53,6 +54,24 @@ interface Position {
 }
 
 const initialPositions: Position[] = [];
+
+function getPositionSafe(pos: Partial<Position>): Position {
+  return {
+    id: pos.id ?? 0,
+    exchange: pos.exchange ?? "",
+    symbol: pos.symbol ?? "",
+    side: pos.side ?? "LONG",
+    size: pos.size ?? 0,
+    entryPrice: pos.entryPrice ?? 0,
+    currentPrice: pos.currentPrice ?? 0,
+    pnl: pos.pnl ?? 0,
+    pnlPercent: pos.pnlPercent ?? 0,
+    leverage: pos.leverage ?? 1,
+    status: pos.status ?? "open",
+    openedAt: pos.openedAt ?? Date.now(),
+    updatedAt: pos.updatedAt ?? Date.now(),
+  };
+}
 
 function formatTimeAgo(timestamp: number) {
   const seconds = Math.floor((Date.now() - timestamp) / 1000)
@@ -65,19 +84,19 @@ function formatTimeAgo(timestamp: number) {
 
 export function PositionsTable() {
   const [positions, setPositions] = useState(initialPositions)
-  const [closingPosition, setClosingPosition] = useState<string | null>(null)
+  const [closingPosition, setClosingPosition] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [exchangeFilter, setExchangeFilter] = useState("all")
   const [sideFilter, setSideFilter] = useState("all")
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Simulate live price updates
-useEffect(() => {
+  useEffect(() => {
     async function fetchPositions() {
       try {
         const data = await api.getPositions();
         if (data.success && data.positions) {
-          setPositions(data.positions);
+          setPositions(data.positions as Position[]);
         }
       } catch (error) {
         console.error("Failed to fetch positions:", error);
@@ -90,7 +109,7 @@ useEffect(() => {
   }, []);
 
   const handleClosePosition = async (position: Position) => {
-    setClosingPosition(String(position.id));
+    setClosingPosition(position.id ?? null);
     try {
       const result = await api.closePosition(
         position.exchange,
@@ -123,7 +142,7 @@ useEffect(() => {
       try {
         const data = await api.getPositions();
         if (data.success && data.positions) {
-          setPositions(data.positions);
+          setPositions(data.positions as Position[]);
         }
       } catch (error) {
         console.error("Failed to fetch positions:", error);
@@ -326,7 +345,7 @@ useEffect(() => {
                             variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-destructive opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
-                            disabled={closingPosition === position.id}
+                             disabled={closingPosition === position.id}
                           >
                             {closingPosition === position.id ? (
                               <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -361,18 +380,19 @@ useEffect(() => {
                     </TableCell>
                   </motion.tr>
                 ))}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-          
-          {filteredPositions.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-muted-foreground">No positions found</p>
-              <p className="text-xs text-muted-foreground mt-1">Try adjusting your filters</p>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
+          </AnimatePresence>
+          </TableBody>
+        </Table>
+      </div>
+      
+      {filteredPositions.length === 0 && (
+        <EmptyState
+          icon="positions"
+          title="No positions found"
+          description="Try adjusting your filters or open a new position"
+        />
+      )}
+    </CardContent>
+  </Card>
+)
 }

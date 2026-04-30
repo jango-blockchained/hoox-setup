@@ -1,6 +1,7 @@
 import readline from "node:readline/promises";
 import nodePath from "node:path";
 import ansis from "ansis";
+import { log as clackLog } from "@clack/prompts";
 import type { Config, CommandResult } from "./types.js";
 
 // --- Branded Color Helpers (using ansis) ---
@@ -14,19 +15,19 @@ export const dim = (text: string): string => ansis.dim(text);
 // --- Unified Log Namespace ---
 export const log = {
   success: (text: string): void => {
-    console.log(ansis.green(`✓ ${text}`));
+    clackLog.success(text);
   },
   error: (text: string): void => {
-    console.error(ansis.red(`✖ ${text}`));
+    clackLog.error(text);
   },
   warn: (text: string): void => {
-    console.warn(ansis.yellow(`⚠ ${text}`));
+    clackLog.warn(text);
   },
   info: (text: string): void => {
-    console.log(ansis.blue(`ℹ ${text}`));
+    clackLog.info(text);
   },
   step: (text: string): void => {
-    console.log(ansis.cyan(`◆ ${text}`));
+    clackLog.step(text);
   },
   dim: (text: string): void => {
     console.log(ansis.dim(text));

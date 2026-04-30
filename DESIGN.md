@@ -190,3 +190,99 @@ This ruleset governs the aesthetic, layout, and UX patterns for the Hoox Dashboa
 - **Package Management**: Use `bun` for all package management, testing (`bun test`), and script execution (`bun run`).
 - **Strict Typing**: The system enforces strict typing for all configuration files via the `WranglerConfig` and `Config` interfaces. Avoid using `as any`.
 - **Durable Objects & Queues**: Leverage Durable Objects for idempotency and queues for failover and heavy processing tasks.
+
+## 6. Next.js Build Process & Turbopack on Cloudflare Edge
+
+### 6.1 Monorepo Structure Issues
+
+When using Next.js 16+ in a monorepo with Turbopack, several known issues can occur:
+
+**Problem**: Turbopack infers wrong project root
+```
+Error: Next.js inferred your workspace root, but it may not be correct.
+We couldn't find the Next.js package (next/package.json) from the project directory: /path/to/project/src/app
+```
+
+**Root Causes**:
+1. **Nested `node_modules`**: A duplicate `next` installation in `src/app/node_modules` causes type conflicts
+2. **Duplicate config files**: `next.config.ts` in both root and `src/` directory
+3. **Turbopack root detection**: Turbopack looks for lock files to determine project root
+
+**Solutions**:
+```typescript
+// next.config.ts - Always use absolute path for turbopack.root in monorepos
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  turbopack: {
+    // Point to workspace root where lock file (bun.lockb) exists
+    root: '/absolute/path/to/monorepo/root',
+  },
+};
+
+export default nextConfig;
+```
+
+### 6.2 Edge Runtime & Framer Motion
+
+**Problem**: `createMotionComponent() from the server but is on the client`
+
+**Solution**: Add `'use client'` directive to all pages using framer-motion:
+```tsx
+'use client';
+
+import { motion } from 'framer-motion';
+// ... rest of component
+```
+
+**Note**: Pages with `'use client'` cannot export `metadata`. Move metadata to separate `metadata.ts` file.
+
+### 6.3 Middleware to Proxy Migration (Next.js 16)
+
+Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts`:
+
+```typescript
+// proxy.ts - Rename from middleware.ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}
+
+// Export as 'proxy' instead of 'middleware'
+export function proxy(request: NextRequest) {
+  // ... proxy logic
+}
+```
+
+### 6.4 TypeScript Configuration
+
+**Common errors**:
+1. `RouteHandlerConfig` type mismatches - ensure route handlers accept `context: { params: Promise<{}> }`
+2. Nested `node_modules` causing duplicate type definitions - remove any `node_modules` inside `src/`
+3. Use `as unknown as Type` for complex type assertions when needed
+
+### 6.5 Build Commands
+
+```bash
+# Always use bun in this project
+bun run build    # Uses next build with Turbopack
+bun run dev      # Development with Turbopack
+
+# Type checking
+bunx tsc --noEmit
+
+# Clear caches if build issues persist
+rm -rf .next && rm -rf .next/cache
+```
+
+### 6.6 Cloudflare Pages Deployment
+
+Dashboard deploys to Cloudflare Pages with edge runtime:
+- Runtime: `export const runtime = "edge"`
+- Dynamic rendering: `export const dynamic = "force-dynamic"`
+- Use `wrangler pages deploy` or `bun run deploy`

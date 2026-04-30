@@ -70,7 +70,7 @@ export function AiHealthCard() {
   }
 
   return (
-    <Card className="bg-card border-border overflow-hidden">
+    <Card className="bg-card border-border overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.01]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <div className="relative">

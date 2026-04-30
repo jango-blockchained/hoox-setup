@@ -48,53 +48,63 @@ export function parseDashboardJSONC(
   content: string,
   workerName: string
 ): WorkerConfigManifest {
-  // Strip comments to safely parse JSONC
-  const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
-  const parsed = JSON.parse(cleanContent);
+  try {
+    // Strip comments to safely parse JSONC
+    const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
+    const parsed = JSON.parse(cleanContent);
 
-  const displayName = parsed.display_name || parsed.displayName || workerName;
-  const description = parsed.description || "";
-  const sections: DashboardSection[] = [];
+    const displayName = parsed.display_name || parsed.displayName || workerName;
+    const description = parsed.description || "";
+    const sections: DashboardSection[] = [];
 
-  if (parsed.sections) {
-    for (const [sectionId, sectionData] of Object.entries<any>(parsed.sections)) {
-      const fields: SettingField[] = [];
-      const sectionFields = sectionData.fields || {};
-      const sectionOptions = sectionData.options || {};
-      const sectionDescriptions = sectionData.descriptions || {};
+    if (parsed.sections) {
+      for (const [sectionId, sectionData] of Object.entries<any>(parsed.sections)) {
+        const fields: SettingField[] = [];
+        const sectionFields = sectionData.fields || {};
+        const sectionOptions = sectionData.options || {};
+        const sectionDescriptions = sectionData.descriptions || {};
 
-      for (const [key, value] of Object.entries(sectionFields)) {
-        const field = createField(sectionId, key, value as string | number | boolean);
-        
-        if (sectionOptions[key]) {
-          field.type = "select";
-          field.options = sectionOptions[key].map((opt: string) => ({ value: opt, label: opt }));
+        for (const [key, value] of Object.entries(sectionFields)) {
+          const field = createField(sectionId, key, value as string | number | boolean);
+          
+          if (sectionOptions[key]) {
+            field.type = "select";
+            field.options = sectionOptions[key].map((opt: string) => ({ value: opt, label: opt }));
+          }
+          
+          if (sectionDescriptions[key]) {
+            field.description = String(sectionDescriptions[key]);
+          }
+          
+          fields.push(field);
         }
-        
-        if (sectionDescriptions[key]) {
-          field.description = String(sectionDescriptions[key]);
-        }
-        
-        fields.push(field);
+
+        sections.push({
+          id: sectionId,
+          title: sectionData.title || sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          description: sectionData.description || `Configure ${sectionId} settings`,
+          icon: sectionData.icon,
+          priority: sectionData.priority !== undefined ? sectionData.priority : sections.length * 10,
+          fields,
+        });
       }
-
-      sections.push({
-        id: sectionId,
-        title: sectionData.title || sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        description: sectionData.description || `Configure ${sectionId} settings`,
-        icon: sectionData.icon,
-        priority: sectionData.priority !== undefined ? sectionData.priority : sections.length * 10,
-        fields,
-      });
     }
-  }
 
-  return {
-    worker: workerName,
-    displayName,
-    description,
-    sections: sections.sort((a, b) => a.priority - b.priority),
-  };
+    return {
+      worker: workerName,
+      displayName,
+      description,
+      sections: sections.sort((a, b) => a.priority - b.priority),
+    };
+  } catch (error) {
+    console.error(`Failed to parse dashboard.jsonc for ${workerName}:`, error);
+    return {
+      worker: workerName,
+      displayName: workerName,
+      description: "Failed to load configuration",
+      sections: [],
+    };
+  }
 }
 
 const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
@@ -128,18 +138,32 @@ const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
     if (!res.ok) return { worker: "email-worker", displayName: "Email Worker", sections: [] };
     return parseDashboardJSONC(await res.text(), "email-worker");
   },
+  async "web3-wallet-worker"() {
+    const res = await fetch("/workers/web3-wallet-worker.jsonc");
+    if (!res.ok) return { worker: "web3-wallet-worker", displayName: "Web3 Wallet", sections: [] };
+    return parseDashboardJSONC(await res.text(), "web3-wallet-worker");
+  },
 };
 
 export async function loadWorkerConfig(
   workerName: string
 ): Promise<WorkerConfigManifest | null> {
   const loader = BUILTIN_CONFIGS[workerName];
-  if (!loader) return null;
+  if (!loader) {
+    console.warn(`No config loader found for worker: ${workerName}`);
+    return null;
+  }
 
   try {
     return await loader();
-  } catch {
-    return null;
+  } catch (error) {
+    console.error(`Failed to load config for worker ${workerName}:`, error);
+    return {
+      worker: workerName,
+      displayName: workerName,
+      description: "Configuration unavailable",
+      sections: [],
+    };
   }
 }
 
@@ -177,7 +201,7 @@ export async function getRuntimeOverrides(
   try {
     const res = await fetch(`/api/settings`);
     if (res.ok) {
-      const data = await res.json();
+      const data = await res.json() as { settings?: Record<string, string | number | boolean> };
       return data.settings || {};
     }
   } catch {

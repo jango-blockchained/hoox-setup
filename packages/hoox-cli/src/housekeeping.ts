@@ -2,16 +2,13 @@ import path from "node:path";
 import fs from "node:fs";
 import toml from "toml";
 import type { Config, WorkerConfig, WranglerConfig } from "./types.js";
+import { intro, outro, log as clackLog, spinner, note } from "@clack/prompts";
 import {
   red,
   green,
   yellow,
-  blue,
   cyan,
   dim,
-  print_success,
-  print_error,
-  print_warning,
 } from "./utils.js";
 
 export interface HousekeepingIssue {
@@ -36,7 +33,7 @@ export async function runHousekeeping(
   config: Config,
   verbose: boolean = false
 ): Promise<void> {
-  console.log(blue("\n=== Housekeeping Check ===\n"));
+  intro("Housekeeping Check");
 
   const result: HousekeepingResult = {
     timestamp: new Date().toISOString(),
@@ -49,13 +46,14 @@ export async function runHousekeeping(
   for (const [workerName, workerConfig] of Object.entries(config.workers)) {
     if (!workerConfig.enabled) {
       if (verbose) {
-        console.log(dim(`Skipping disabled worker: ${workerName}`));
+        clackLog.info(`Skipping disabled worker: ${workerName}`);
       }
       continue;
     }
 
     result.checkedWorkers++;
-    console.log(blue(`Checking worker: ${yellow(workerName)}...`));
+    const s = spinner();
+    s.start(`Checking worker: ${workerName}`);
 
     const definedPath = workerConfig.path;
     if (!definedPath) {
@@ -65,6 +63,7 @@ export async function runHousekeeping(
         message: `Worker path not defined in config for: ${workerName}`,
       });
       result.summary.errors++;
+      s.stop(`Checked worker: ${workerName}`);
       continue;
     }
 
@@ -77,6 +76,7 @@ export async function runHousekeeping(
         message: `Worker directory not found: ${workerDir}`,
       });
       result.summary.errors++;
+      s.stop(`Checked worker: ${workerName}`);
       continue;
     }
 
@@ -93,6 +93,7 @@ export async function runHousekeeping(
         message: "No wrangler.jsonc or wrangler.toml found",
       });
       result.summary.errors++;
+      s.stop(`Checked worker: ${workerName}`);
       continue;
     }
 
@@ -117,6 +118,7 @@ export async function runHousekeeping(
         message: `Failed to parse wrangler config: ${(e as Error).message}`,
       });
       result.summary.errors++;
+      s.stop(`Checked worker: ${workerName}`);
       continue;
     }
 
@@ -366,18 +368,15 @@ export async function runHousekeeping(
       }
     }
 
-    console.log(dim(`  Checked: ${workerName}`));
+    s.stop(`Checked worker: ${workerName}`);
   }
 
   // Print summary
-  console.log(blue("\n=== Housekeeping Summary ===\n"));
-  console.log(`Workers checked: ${result.checkedWorkers}/${result.totalWorkers}`);
-  console.log(
-    `${red("Errors:")} ${result.summary.errors} ${yellow("Warnings:")} ${result.summary.warnings} ${cyan("Info:")} ${result.summary.info}`
-  );
+  clackLog.step("Housekeeping Summary");
+  const summaryText = `Workers checked: ${result.checkedWorkers}/${result.totalWorkers}\n${red("Errors:")} ${result.summary.errors} ${yellow("Warnings:")} ${result.summary.warnings} ${cyan("Info:")} ${result.summary.info}`;
 
   if (result.issues.length > 0) {
-    console.log(blue("\n=== Issues Found ===\n"));
+    let issueText = "";
 
     // Group by worker
     const byWorker = new Map<string, HousekeepingIssue[]>();
@@ -388,7 +387,7 @@ export async function runHousekeeping(
     }
 
     for (const [worker, issues] of byWorker) {
-      console.log(yellow(`\n${worker}:`));
+      issueText += `${yellow(`\n${worker}:`)}\n`;
       for (const issue of issues) {
         const prefix =
           issue.type === "error"
@@ -396,14 +395,17 @@ export async function runHousekeeping(
             : issue.type === "warning"
             ? yellow("⚠")
             : cyan("ℹ");
-        console.log(`  ${prefix} ${issue.message}`);
+        issueText += `  ${prefix} ${issue.message}\n`;
       }
     }
+    
+    note(`${summaryText}\n${issueText}`, "Issues Found");
+    outro("Housekeeping check finished with issues.");
   } else {
-    print_success("No issues found! All workers are properly configured.");
+    note(summaryText, "All Clear");
+    clackLog.success("No issues found! All workers are properly configured.");
+    outro("Housekeeping check complete.");
   }
-
-  console.log(blue("\n===========================\n"));
 }
 
 export async function generateHousekeepingReport(
