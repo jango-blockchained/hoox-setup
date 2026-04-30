@@ -45,7 +45,7 @@ hoox workers deploy     # deploy all workers to Cloudflare
 ## Dashboard (pages/dashboard)
 
 - Next.js 16 with Turbopack: `next.config.ts` (no hardcoded turbopack.root needed)
-- Next.js 16 uses `proxy.ts` (replaces deprecated `middleware.ts`)
+- Next.js 16 uses `middleware.ts` (Edge runtime) for OpenNext Cloudflare compatibility
 - Framer Motion components require `'use client'` directive at file top
 - Pages with `'use client'` cannot export `metadata` — use separate `metadata.ts`
 - Uses `@opennextjs/cloudflare` adapter (replaces deprecated `@cloudflare/next-on-pages`)

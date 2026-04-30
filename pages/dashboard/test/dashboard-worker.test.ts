@@ -5,9 +5,9 @@ mock.module("server-only", () => {
 });
 
 describe("Dashboard Worker - Module Imports", () => {
-  test("proxy module loads", async () => {
-    const mod = await import("../src/proxy");
-    expect(mod).toHaveProperty("proxy");
+  test("middleware module loads", async () => {
+    const mod = await import("../src/middleware");
+    expect(mod).toHaveProperty("middleware");
   });
 
   test("login route defines POST handler", async () => {

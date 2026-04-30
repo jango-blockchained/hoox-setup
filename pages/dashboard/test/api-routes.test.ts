@@ -294,7 +294,7 @@ describe("Settings API Route", () => {
 describe("Middleware", () => {
   beforeEach(async () => {
     process.env = { ...originalEnv };
-    proxyModule = await import("../src/proxy");
+    proxyModule = await import("../src/middleware");
   });
 
   afterEach(() => {
@@ -303,14 +303,14 @@ describe("Middleware", () => {
 
   test("allows access to /login path", () => {
     const request = new Request("http://localhost/login");
-    const response = proxyModule.proxy({ nextUrl: { pathname: "/login" }, cookies: { get: () => null } } as any);
+    const response = proxyModule.middleware({ nextUrl: { pathname: "/login" }, cookies: { get: () => null } } as any);
 
     expect(response).toBeDefined();
   });
 
   test("allows access to /api/auth paths", () => {
     const request = new Request("http://localhost/api/auth/login");
-    const response = proxyModule.proxy({ nextUrl: { pathname: "/api/auth/login" }, cookies: { get: () => null } } as any);
+    const response = proxyModule.middleware({ nextUrl: { pathname: "/api/auth/login" }, cookies: { get: () => null } } as any);
 
     expect(response).toBeDefined();
   });
@@ -324,7 +324,7 @@ describe("Middleware", () => {
       url: "http://localhost/dashboard",
     } as any;
 
-    const response = proxyModule.proxy(request);
+    const response = proxyModule.middleware(request);
     const location = response.headers.get("location");
 
     expect(location).toBeTruthy();
@@ -334,7 +334,7 @@ describe("Middleware", () => {
   test("returns 401 for API paths without session", () => {
     process.env.DASHBOARD_USER = "admin";
 
-    const response = proxyModule.proxy({
+    const response = proxyModule.middleware({
       nextUrl: { pathname: "/api/settings" },
       cookies: { get: () => null },
     } as any);
@@ -345,7 +345,7 @@ describe("Middleware", () => {
   test("allows access with valid session", () => {
     process.env.DASHBOARD_USER = "admin";
 
-    const response = proxyModule.proxy({
+    const response = proxyModule.middleware({
       nextUrl: { pathname: "/dashboard" },
       cookies: { get: () => ({ value: "admin" }) },
     } as any);
@@ -356,7 +356,7 @@ describe("Middleware", () => {
   test("allows access when AUTH_TYPE is none", () => {
     process.env.AUTH_TYPE = "none";
 
-    const response = proxyModule.proxy({
+    const response = proxyModule.middleware({
       nextUrl: { pathname: "/dashboard" },
       cookies: { get: () => null },
     } as any);
@@ -366,7 +366,7 @@ describe("Middleware", () => {
 
   test("handles errors gracefully", () => {
     // Force an error by removing DASHBOARD_USER after error check starts
-    const response = proxyModule.proxy({
+    const response = proxyModule.middleware({
       nextUrl: { pathname: "/dashboard" },
       cookies: { get: () => { throw new Error("Cookie error"); } },
     } as any);
