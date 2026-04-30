@@ -1,6 +1,6 @@
 #!/bin/bash
 # Migration script for D1 tracking schema
-# Run with: npm run migrate:tracking
+# Run with: bun run migrate:tracking
 #
 # Note: Uses d1-worker API to execute migrations
 
