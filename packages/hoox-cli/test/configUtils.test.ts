@@ -126,4 +126,23 @@ describe("JSONC Parsing", () => {
     const result = parseJsonc(jsonc) as { key: string };
     expect(result.key).toBe("value");
   });
+
+  test("should preserve comment-like tokens inside strings", () => {
+    const jsonc = `{"key": "https://example.com/a//b", "note": "/* keep */"}`;
+    const result = parseJsonc(jsonc) as { key: string; note: string };
+    expect(result).toEqual({
+      key: "https://example.com/a//b",
+      note: "/* keep */",
+    });
+  });
+
+  test("should parse trailing commas in nested structures", () => {
+    const jsonc = `{
+  "key": "value",
+  "arr": ["a", "b",],
+  "obj": {"nested": true,},
+}`;
+    const result = parseJsonc(jsonc) as { key: string; arr: string[]; obj: { nested: boolean } };
+    expect(result).toEqual({ key: "value", arr: ["a", "b"], obj: { nested: true } });
+  });
 });
