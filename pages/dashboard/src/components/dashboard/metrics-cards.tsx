@@ -177,9 +177,9 @@ export function MetricsCards() {
           key={metric.title}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.1 }}
         >
-          <Card className="group relative overflow-hidden bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02]">
+          <Card className="group relative overflow-hidden border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]">
              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between">

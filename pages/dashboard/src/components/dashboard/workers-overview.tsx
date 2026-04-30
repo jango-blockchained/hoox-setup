@@ -133,7 +133,7 @@ export function WorkersOverview() {
   const totalRequests = workers.reduce((acc, w) => acc + (w.metrics?.requests || 0), 0)
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">

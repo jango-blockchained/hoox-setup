@@ -62,7 +62,7 @@ export function PnlChart() {
   const minPnl = Math.min(...data.map((d) => d.pnl))
 
   return (
-    <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.01]">
+    <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center gap-3">
           <CardTitle className="text-sm font-medium">Performance</CardTitle>

@@ -117,7 +117,7 @@ export function RecentActivity() {
   }, [isLive])
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
         <button
