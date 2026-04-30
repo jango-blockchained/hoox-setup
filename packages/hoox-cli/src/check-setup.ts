@@ -4,26 +4,12 @@ import { Config, ConfigSchema } from "./types.js";
 import { redactForLogs } from "./configUtils.js";
 import { intro, outro, spinner, log as clackLog, note } from "@clack/prompts";
 import { red, green, yellow, dim } from "./utils.js";
+import { parseJsonc } from "./jsoncUtils.js";
 
 // Constants for files
 const WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc");
 const EXAMPLE_WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc.example");
 const WIZARD_STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
-
-/**
- * Parse JSONC (JSON with comments) content.
- * Strips comments and parses the resulting JSON.
- */
-function parseJsonc(content: string): Config {
-  // Strip comments before parsing
-  let jsonContent = content
-    .replace(/^[ \t]*\/\/[^\n]*/gm, "") // Remove single-line comments
-    .replace(/\/\*[\s\S]*?\*\//g, ""); // Remove multi-line comments
-
-  jsonContent = jsonContent.replace(/,(\s*[}\]])/g, "$1");
-
-  return JSON.parse(jsonContent) as Config;
-}
 
 async function main() {
   intro("Setup Validation Tool");

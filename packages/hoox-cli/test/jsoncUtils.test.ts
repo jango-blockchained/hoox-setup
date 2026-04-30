@@ -21,6 +21,23 @@ describe("JSONC Utilities", () => {
       expect(result).toEqual({ name: "test", value: 123 });
     });
 
+
+
+    test("should preserve // and /* */ inside string values", () => {
+      const input = '{"url": "https://example.com/a//b", "pattern": "/* keep me */"}';
+      const result = parseJsonc(input) as { url: string; pattern: string };
+      expect(result).toEqual({
+        url: "https://example.com/a//b",
+        pattern: "/* keep me */",
+      });
+    });
+
+    test("should parse trailing commas in nested objects and arrays", () => {
+      const input = `{"outer": {"inner": [1, 2,],},}`;
+      const result = parseJsonc(input) as { outer: { inner: number[] } };
+      expect(result).toEqual({ outer: { inner: [1, 2] } });
+    });
+
     test("should throw on invalid JSON", () => {
       expect(() => parseJsonc('{"name":}')).toThrow();
     });
