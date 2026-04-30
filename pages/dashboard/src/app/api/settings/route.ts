@@ -4,8 +4,8 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-type Settings = Record<string, string | number | boolean>;
-type AllSettings = Record<string, Settings>;
+  type Settings = Record<string, string | number | boolean | undefined>;
+  type AllSettings = Record<string, Record<string, string | number | boolean | undefined>>;
 
 const WORKER_PREFIX_MAP: Record<string, string> = {
   hoox: "global:",
@@ -37,7 +37,9 @@ const SECTION_PREFIX_MAP: Record<string, string> = {
 
 function getKVKey(worker: string, key: string): string {
   if (key.includes(":")) {
-    const [section, field] = key.split(":");
+    const parts = key.split(":");
+    const section = parts[0] || "";
+    const field = parts[1] || "";
     const sectionPrefix = SECTION_PREFIX_MAP[section] || "";
     return `${sectionPrefix}${field}`;
   }
@@ -76,7 +78,7 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
   return kvKey;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest, _context: { params: Promise<{}> }) {
   try {
     const env = getRequestContext().env as unknown as { CONFIG_KV?: KVNamespace };
     
@@ -121,19 +123,19 @@ export async function GET() {
 
       if (res.ok) {
         const data = (await res.json()) as { settings?: AllSettings };
-        const settings = data.settings || {};
-        const normalized: AllSettings = {};
-
+        const settings = (data.settings || {}) as unknown as Record<string, string | number | boolean>;
+        const normalized: Record<string, any> = {};
+        
         for (const [key, value] of Object.entries(settings)) {
           const worker = findWorkerByPrefix(key);
           if (worker) {
             const cleanKey = stripWorkerPrefix(key, worker);
             if (!normalized[worker]) normalized[worker] = {};
-            normalized[worker][cleanKey] = value;
+            (normalized[worker] as Record<string, string | number | boolean>)[cleanKey] = value as string | number | boolean;
           }
         }
-
-        return NextResponse.json({ settings: normalized });
+        
+        return NextResponse.json({ settings: normalized } as any);
       }
     }
   } catch (e) {
@@ -143,9 +145,9 @@ export async function GET() {
   return NextResponse.json({ settings: {} });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, _context: { params: Promise<{}> }) {
   try {
-    const body = (await request.json()) as { worker?: string; key?: string; value?: string | number | boolean };
+    const body = await request.json() as { worker?: string; key?: string; value?: string | number | boolean };
     const { worker, key, value } = body;
 
     if (!worker || !key) {

@@ -2,19 +2,17 @@ import path from "node:path";
 import fs from "node:fs";
 import * as toml from "toml";
 import type { Config, WorkerConfig, WranglerConfig } from "./types.js";
+import { intro, outro, spinner, log as clackLog, note, confirm, text as clackText } from "@clack/prompts";
 import {
   red,
   green,
   yellow,
-  blue,
   cyan,
   dim,
-  print_success,
-  print_error,
-  print_warning,
   runInteractiveCommand,
   getCloudflareToken,
   runCommandAsync,
+  rl
 } from "./utils.js";
 import { saveConfig, stringifyToml } from "./configUtils.js";
 
@@ -65,7 +63,7 @@ async function setupD1Database(
 // --- Worker Setup Logic --- (Moved from manage.ts)
 // Refactor this heavily for Secret Store binding in the future
 export async function setupWorkers(config: Config): Promise<void> {
-  console.log(blue("Starting worker setup..."));
+  intro("Worker Setup");
 
   const cloudflareEnv = {
     CLOUDFLARE_API_TOKEN: config.global.cloudflare_api_token,
@@ -75,35 +73,37 @@ export async function setupWorkers(config: Config): Promise<void> {
   const storeId = config.global.cloudflare_secret_store_id;
 
   if (!storeId) {
-    print_error(
-      "Missing 'cloudflare_secret_store_id' in [global] config. Cannot bind secrets."
-    );
-    print_warning("Run 'hoox secrets guide' for help.");
+    clackLog.error("Missing 'cloudflare_secret_store_id' in [global] config. Cannot bind secrets.");
+    clackLog.warn("Run 'hoox secrets guide' for help.");
     // Optionally throw an error or return early
     return;
   }
 
   for (const [workerName, workerConfig] of Object.entries(config.workers)) {
     if (!workerConfig.enabled) {
-      console.log(dim(`Skipping disabled worker: ${workerName}`));
+      clackLog.info(`Skipping disabled worker: ${workerName}`);
       continue;
     }
 
-    console.log(`\n--- Configuring worker: ${yellow(workerName)} ---`);
+    clackLog.step(`Configuring worker: ${workerName}`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
     if (!(fs.existsSync(workerDir))) {
-      print_warning(`Directory not found for worker ${workerName} at ${workerDir}.`);
-      const answer = await rl.question(yellow(`Do you want to attempt cloning it as a submodule now? (y/N): `));
-      if (answer.trim().toLowerCase() === "y") {
-        console.log(dim(`Attempting to initialize submodule at ${workerDir}...`));
+      clackLog.warn(`Directory not found for worker ${workerName} at ${workerDir}.`);
+      const shouldClone = await confirm({
+        message: `Do you want to attempt cloning it as a submodule now?`,
+      });
+      if (shouldClone) {
+        const s = spinner();
+        s.start(`Attempting to initialize submodule at ${workerDir}...`);
         await runCommandAsync("git", ["submodule", "update", "--init", "--recursive", workerConfig.path || ""], process.cwd());
+        s.stop("Submodule initialization attempt finished.");
       }
       if (!fs.existsSync(workerDir)) {
-        print_warning(`Directory still not found. Skipping ${workerName}.`);
+        clackLog.warn(`Directory still not found. Skipping ${workerName}.`);
         continue;
       }
-      print_success(`Successfully prepared directory for ${workerName}.`);
+      clackLog.success(`Successfully prepared directory for ${workerName}.`);
     }
 
     // Check for wrangler.jsonc first, then wrangler.toml if jsonc doesn't exist
@@ -115,16 +115,14 @@ export async function setupWorkers(config: Config): Promise<void> {
     const useToml = !useJsonc && (await Bun.file(wranglerTomlPath).exists());
 
     if (!useJsonc && !useToml) {
-      print_warning(
-        `Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`
-      );
+      clackLog.warn(`Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`);
       continue;
     }
 
     // Process wrangler.jsonc
     if (useJsonc) {
       try {
-        console.log(dim(`Using wrangler.jsonc for ${workerName}`));
+        clackLog.info(`Using wrangler.jsonc for ${workerName}`);
         const wranglerJsoncContent = fs.readFileSync(
           wranglerJsoncPath,
           "utf-8"
@@ -567,7 +565,7 @@ export async function setupWorkers(config: Config): Promise<void> {
 
 // --- Deployment Logic --- (Moved from manage.ts)
 export async function deployWorkers(config: Config): Promise<void> {
-  console.log(blue("Starting worker deployment..."));
+  intro("Worker Deployment");
 
   const apiToken = await getCloudflareToken(config);
   if (!apiToken) {
@@ -730,7 +728,7 @@ export async function deployWorkers(config: Config): Promise<void> {
 
 // --- Pages Deployment Logic ---
 export async function deployPages(config: Config): Promise<void> {
-  console.log(blue("Starting dashboard deployment to Cloudflare Pages..."));
+  intro("Dashboard Deployment");
 
   const apiToken = await getCloudflareToken(config);
   if (!apiToken) {

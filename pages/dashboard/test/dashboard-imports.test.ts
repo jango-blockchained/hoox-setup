@@ -5,8 +5,8 @@ mock.module("server-only", () => {
 });
 
 describe("dashboard-worker imports", () => {
-  test("middleware module exists", async () => {
-    const mod = await import("../src/middleware");
+  test("proxy module exists", async () => {
+    const mod = await import("../src/proxy");
     expect(mod).toBeDefined();
   });
 

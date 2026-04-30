@@ -80,12 +80,14 @@ class ApiClient {
 
   // Dashboard Stats
   async getStats(): Promise<{ success: boolean; stats: DashboardStats; recentActivity: unknown[] }> {
-    return this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/stats`);
+    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/stats`);
+    return data as { success: boolean; stats: DashboardStats; recentActivity: unknown[] };
   }
 
   // Positions
   async getPositions(): Promise<{ success: boolean; positions: Position[] }> {
-    return this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/positions`);
+    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/positions`);
+    return data as { success: boolean; positions: Position[] };
   }
 
   async closePosition(
@@ -102,22 +104,28 @@ class ApiClient {
         action: side === "LONG" ? "CLOSE_LONG" : "CLOSE_SHORT",
         quantity: size,
       }),
-    });
+    }) as Promise<{ success: boolean; error?: string }>;
   }
 
   // Logs
   async getLogs(limit = 50): Promise<{ success: boolean; logs: SystemLog[] }> {
-    return this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`);
+    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`);
+    const result = data as any;
+    return { success: result?.success || false, logs: result?.logs || [] };
   }
 
   // Agent Status
   async getAgentStatus(): Promise<{ success: boolean; status: string; config: unknown }> {
-    return this.fetchWithAuth(`${getApiUrl("agentService")}/agent/status`);
+    const data = await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/status`);
+    const result = data as any;
+    return { success: result?.success || false, status: result?.status || "", config: result?.config };
   }
 
   // Agent Health
   async getAgentHealth(): Promise<{ success: boolean; providers: unknown[] }> {
-    return this.fetchWithAuth(`${getApiUrl("agentService")}/agent/health`);
+    const data = await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/health`);
+    const result = data as any;
+    return { success: result?.success || false, providers: result?.providers || [] };
   }
 
   // Worker Health Check
@@ -173,11 +181,12 @@ class ApiClient {
   }
 
   async getSecretsStatus(): Promise<{ success: boolean; secrets: { name: string; synced: boolean }[]; error?: string }> {
-    return this.fetchWithAuth('/api/secrets');
+    const data = await this.fetchWithAuth('/api/secrets');
+    return data as { success: boolean; secrets: { name: string; synced: boolean }[]; error?: string };
   }
 
   async syncSecretToPages(secretName: string, secretValue: string): Promise<{ success: boolean; message?: string; error?: string }> {
-    return this.fetchWithAuth('/api/secrets', {
+    const data = await this.fetchWithAuth('/api/secrets', {
       method: 'POST',
       body: JSON.stringify({
         action: 'sync-to-pages',
@@ -185,6 +194,7 @@ class ApiClient {
         secretValue,
       }),
     });
+    return data as { success: boolean; message?: string; error?: string };
   }
 }
 

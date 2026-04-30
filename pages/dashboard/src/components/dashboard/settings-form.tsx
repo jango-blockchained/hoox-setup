@@ -20,7 +20,7 @@ import { Field, FieldLabel, FieldDescription, FieldGroup } from "@/components/ui
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { Zap, Shield, AlertTriangle, Brain, Bell, Save, KeyRound, Database, Mail, Layers, Clock, Activity, Search, Archive, Router, Send, Sparkles, Percent } from "lucide-react";
-import type { WorkerConfigManifest } from "@/lib/settings/types";
+import type { WorkerConfigManifest } from "@/lib/settings/loader";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -73,7 +73,7 @@ const DEFAULT_WORKERS: ConnectedWorker[] = [
   { name: "agent-worker", displayName: "Agent Worker", enabled: true },
   { name: "telegram-worker", displayName: "Telegram Worker", enabled: true },
   { name: "email-worker", displayName: "Email Worker", enabled: true },
-  { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: false },
+  { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: true },
 
 ];
 
@@ -297,10 +297,10 @@ export function SettingsForm() {
             ))}
           </TabsList>
 
-          {configs.map((config) => (
-            <TabsContent key={config.worker} value={config.worker} className="space-y-6">
-              {config.sections.map((section) => {
-                const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
+      {configs.map((config) => (
+        <TabsContent key={config.worker} value={config.worker} className="space-y-6">
+          {config.sections.map((section: any) => {
+            const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
                 return (
                   <Card key={`${config.worker}-${section.id}`} className="bg-card border-border">
                     <CardHeader className="pb-4">
@@ -321,9 +321,9 @@ export function SettingsForm() {
                     </CardHeader>
                     <CardContent>
                       <FieldGroup>
-                        {section.fields.map((field) => (
-                          <div key={field.key}>{renderField(config.worker, field)}</div>
-                        ))}
+                  {section.fields.map((field: any) => (
+                    <div key={field.key}>{renderField(config.worker, field)}</div>
+                  ))}
                       </FieldGroup>
                     </CardContent>
                   </Card>

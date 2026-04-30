@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/dashboard/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -230,9 +231,11 @@ export function LogsViewer() {
               </div>
             ))}
             {filteredLogs.length === 0 && (
-              <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                No logs found matching your filters.
-              </div>
+              <EmptyState
+                icon="logs"
+                title="No logs found"
+                description="Try adjusting your filters or date range"
+              />
             )}
           </div>
         </ScrollArea>

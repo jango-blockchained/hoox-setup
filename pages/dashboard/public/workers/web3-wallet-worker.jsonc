@@ -1,0 +1,63 @@
+{
+  "display_name": "Web3 Wallet",
+  "description": "On-chain DEX trading and wallet management",
+  "sections": {
+    "wallet": {
+      "title": "Wallet Settings",
+      "description": "Configure Web3 wallet connections",
+      "icon": "wallet",
+      "priority": 10,
+      "fields": {
+        "enabled": false,
+        "default_chain": "ethereum",
+        "private_key_binding": "WEB3_PRIVATE_KEY"
+      },
+      "options": {
+        "default_chain": [
+          "ethereum",
+          "bsc",
+          "polygon",
+          "arbitrum",
+          "optimism"
+        ]
+      },
+      "descriptions": {
+        "enabled": "Enable or disable Web3 wallet operations.",
+        "default_chain": "Default blockchain network for DEX trades.",
+        "private_key_binding": "Cloudflare secret binding for the wallet private key."
+      }
+    },
+    "dex": {
+      "title": "DEX Configuration",
+      "description": "Decentralized exchange settings",
+      "icon": "sparkles",
+      "priority": 20,
+      "fields": {
+        "slippage_tolerance": 0.5,
+        "gas_multiplier": 1.2,
+        "max_approval_amount": 1000000
+      },
+      "descriptions": {
+        "slippage_tolerance": "Maximum slippage percentage for DEX trades (0.5 = 0.5%).",
+        "gas_multiplier": "Multiplier for gas price to ensure fast execution.",
+        "max_approval_amount": "Maximum token approval amount in wei."
+      }
+    },
+    "security": {
+      "title": "Security",
+      "description": "Web3 security settings",
+      "icon": "shield",
+      "priority": 30,
+      "fields": {
+        "max_transaction_value_usd": 10000,
+        "require_confirmation": true,
+        "whitelisted_contracts_only": true
+      },
+      "descriptions": {
+        "max_transaction_value_usd": "Maximum single transaction value in USD.",
+        "require_confirmation": "Require manual confirmation for transactions above threshold.",
+        "whitelisted_contracts_only": "Only interact with pre-approved smart contracts."
+      }
+    }
+  }
+}

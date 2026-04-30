@@ -59,17 +59,48 @@ const initialMetrics: MetricData[] = [
 ];
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const [displayValue, setDisplayValue] = useState(value)
+  
+  useEffect(() => {
+    const startValue = displayValue
+    const endValue = value
+    const duration = 500
+    const startTime = Date.now()
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3) // easeOutCubic
+      const current = startValue + (endValue - startValue) * eased
+      
+      setDisplayValue(current)
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+    
+    requestAnimationFrame(animate)
+  }, [value])
+
   const display = (() => {
-    if (Math.abs(value) >= 1000) {
-      return value.toLocaleString(undefined, { maximumFractionDigits: 0 }) + suffix
+    if (Math.abs(displayValue) >= 1000) {
+      return displayValue.toLocaleString(undefined, { maximumFractionDigits: 0 }) + suffix
     }
-    if (Math.abs(value) < 10) {
-      return value.toFixed(1) + suffix
+    if (Math.abs(displayValue) < 10) {
+      return displayValue.toFixed(1) + suffix
     }
-    return Math.round(value).toLocaleString() + suffix
+    return Math.round(displayValue).toLocaleString() + suffix
   })()
 
-  return <span>{display}</span>
+  return <motion.span 
+    key={value}
+    initial={{ scale: 1 }}
+    animate={{ scale: [1, 1.05, 1] }}
+    transition={{ duration: 0.3 }}
+  >
+    {display}
+  </motion.span>
 }
 
 function SparkLine({ data, positive }: { data: number[]; positive: boolean }) {
@@ -148,8 +179,8 @@ export function MetricsCards() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className="group relative overflow-hidden bg-card border-border transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          <Card className="group relative overflow-hidden bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02]">
+             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">

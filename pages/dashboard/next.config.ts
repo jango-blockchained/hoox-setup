@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   turbopack: {
-    root: __dirname,
+    root: '/home/jango/Git/hoox-setup',
   },
 };
 

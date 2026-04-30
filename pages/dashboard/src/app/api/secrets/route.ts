@@ -91,7 +91,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json() as { action?: string };
     const { action } = body;
 
     // We no longer sync to pages secrets for trading keys, the CLI manage.ts directly updates the Secret Store.
