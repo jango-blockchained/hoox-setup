@@ -7,8 +7,12 @@ import {
   red,
   green,
   yellow,
+  blue,
   cyan,
   dim,
+  print_error,
+  print_success,
+  print_warning,
   runInteractiveCommand,
   getCloudflareToken,
   runCommandAsync,
@@ -764,10 +768,10 @@ export async function deployPages(config: Config): Promise<void> {
 
   console.log(blue("Building for Cloudflare Pages..."));
   
-  // Run next-on-pages
+  // Run next-on-pages with --skip-build since we already built
   const nopResult = await runInteractiveCommand(
     "bunx",
-    ["@cloudflare/next-on-pages"],
+    ["@cloudflare/next-on-pages", "--skip-build"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );

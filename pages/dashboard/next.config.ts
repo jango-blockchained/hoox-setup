@@ -4,9 +4,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {
-    root: '/home/jango/Git/hoox-setup',
-  },
+  // No turbopack root - let it infer automatically
+  // This works for direct builds
 };
 
 export default nextConfig;

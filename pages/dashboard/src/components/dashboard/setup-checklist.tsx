@@ -135,7 +135,7 @@ export function SetupChecklist() {
   return (
     <div className="flex flex-col gap-6 mt-6">
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5">
           <CardHeader className="pb-3 border-b border-border/50">
             <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <Zap className="h-5 w-5 text-yellow-500" /> Quick Start Guide

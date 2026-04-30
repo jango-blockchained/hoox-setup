@@ -1,5 +1,8 @@
 'use client';
 
+export const dynamic = "force-dynamic"
+export const runtime = "edge"
+
 import { PositionsTable } from "@/components/dashboard/positions-table"
 import { CandlestickChart } from "@/components/dashboard/candlestick-chart"
 import { TrendingUp } from "lucide-react"

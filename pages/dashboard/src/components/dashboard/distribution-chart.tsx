@@ -47,7 +47,7 @@ export function DistributionChart({
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className={cn("flex flex-col", className)}>
+    <Card className={cn("flex flex-col border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5", className)}>
       <CardHeader className="items-center pb-0">
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

@@ -44,11 +44,11 @@ const chartConfig = {
 
 export function CandlestickChart({
   data,
-  title,
+  title = "Price Chart",
   description,
   className,
 }: CandlestickChartProps) {
-  // Transform data for recharts (using Bar chart to simulate candlesticks)
+  // Transform data for recharts (using Bar chart to simulate candlestics)
   const chartData = data.map((candle) => ({
     ...candle,
     date: new Date(candle.time).toLocaleDateString(),
@@ -59,7 +59,15 @@ export function CandlestickChart({
   }));
 
   return (
-    <ChartContainer config={chartConfig} className={cn("min-h-[350px]", className)}>
+    <Card className={cn("border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5", className)}>
+      {title && (
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+      )}
+      <CardContent>
+        <ChartContainer config={chartConfig} className="min-h-[350px]">
       <BarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
@@ -114,5 +122,7 @@ export function CandlestickChart({
         <ReferenceLine y={0} stroke="hsl(var(--border))" />
       </BarChart>
     </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
