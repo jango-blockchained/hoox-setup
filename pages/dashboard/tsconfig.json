@@ -8,6 +8,7 @@
     ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "types": [],
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,

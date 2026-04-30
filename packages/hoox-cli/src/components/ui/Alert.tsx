@@ -24,7 +24,7 @@ export function Alert({ title, children, variant = 'default' }: AlertProps) {
 
   return (
     <box style={{ borderStyle: 'rounded', borderColor, paddingLeft: 1, paddingRight: 1, flexDirection: 'column' }}>
-      <text style={{ bold: true, fg: titleColor }}>{title}</text>
+      <text style={{ bold: true, fg: titleColor } as any}>{title}</text>
       <box style={{ marginTop: 1, flexDirection: 'column' }}>
         {children}
       </box>

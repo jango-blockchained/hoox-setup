@@ -1,0 +1,36 @@
+{
+  "display_name": "D1 Worker",
+  "description": "Database and data layer",
+  "sections": {
+    "database": {
+      "title": "Database",
+      "description": "Database housekeeping configuration",
+      "icon": "database",
+      "priority": 10,
+      "fields": {
+        "auto_vacuum": true,
+        "cache_size_mb": 128
+      },
+      "descriptions": {
+        "auto_vacuum": "D1 handles vacuuming automatically. This setting is informational for housekeeping tracking.",
+        "cache_size_mb": "D1 internal cache size. This setting is informational."
+      }
+    },
+    "retention": {
+      "title": "Data Retention",
+      "description": "Log and trade retention policies (implemented by agent-worker)",
+      "icon": "archive",
+      "priority": 20,
+      "fields": {
+        "logs_retention_days": 30,
+        "trades_retention_days": 90,
+        "balances_snapshot_enabled": true
+      },
+      "descriptions": {
+        "logs_retention_days": "Number of days to keep system logs before automatic deletion by agent-worker.",
+        "trades_retention_days": "Number of days to keep historical trades in the active partition.",
+        "balances_snapshot_enabled": "Take daily snapshots of exchange balances for historical performance tracking."
+      }
+    }
+  }
+}

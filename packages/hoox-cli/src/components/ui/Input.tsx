@@ -14,14 +14,14 @@ export function Input({ value, onChange, onSubmit, placeholder, label }: InputPr
     <box style={{ flexDirection: 'column' }}>
       {label && (
         <box style={{ marginBottom: 1 }}>
-          <text style={{ bold: true, fg: theme.colors.foreground }}>{label}</text>
+          <text style={{ bold: true, fg: theme.colors.foreground } as any}>{label}</text>
         </box>
       )}
       <box style={{ borderStyle: 'rounded', borderColor: theme.colors.border, paddingLeft: 1, paddingRight: 1 }}>
         <input
           value={value}
           onChange={onChange}
-          onSubmit={onSubmit}
+          onSubmit={onSubmit as any}
           placeholder={placeholder}
         />
       </box>

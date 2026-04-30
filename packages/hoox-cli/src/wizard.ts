@@ -1,6 +1,4 @@
 import React from "react";
-import { render } from "ink";
-import { WizardView } from "./views/WizardView.js";
 import fs from "fs";
 import path from "path";
 import ansis from "ansis";

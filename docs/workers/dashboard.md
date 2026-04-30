@@ -102,7 +102,7 @@ bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .v
 
 ## Modular Settings System
 
-Each worker can define its settings via `dashboard.toml` in the `public/workers/` directory.
+Each worker can define its settings via `dashboard.jsonc` in the `public/workers/` directory.
 
 Settings are stored in CONFIG_KV with key pattern `dashboard:{worker}:{key}`.
 
