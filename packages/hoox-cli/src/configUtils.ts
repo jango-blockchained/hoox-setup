@@ -2,6 +2,46 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";
 
+const KNOWN_SECRET_FIELDS = new Set([
+  "cloudflare_api_token",
+  "api_token",
+  "token",
+  "secret",
+  "api_key",
+  "private_key",
+  "password",
+]);
+
+const SECRET_KEY_PATTERNS = [/_SECRET/i, /_TOKEN/i, /_KEY/i];
+
+function shouldRedactKey(key: string): boolean {
+  const normalizedKey = key.toLowerCase();
+  if (KNOWN_SECRET_FIELDS.has(normalizedKey)) {
+    return true;
+  }
+
+  return SECRET_KEY_PATTERNS.some((pattern) => pattern.test(key));
+}
+
+export function redactForLogs<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactForLogs(item)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    const redactedEntries = Object.entries(value as Record<string, unknown>).map(([key, val]) => {
+      if (shouldRedactKey(key)) {
+        return [key, "[REDACTED]"];
+      }
+      return [key, redactForLogs(val)];
+    });
+
+    return Object.fromEntries(redactedEntries) as T;
+  }
+
+  return value;
+}
+
 
 
 const getWorkersJsoncPath = () => path.resolve(process.cwd(), "workers.jsonc");
@@ -46,6 +86,7 @@ export async function loadConfig(): Promise<Config> {
       userConfigObj = parseJsonc(userConfigContent) as Partial<Config>;
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to parse ${getWorkersJsoncPath()} payload:`, redactForLogs({ workers: userConfigContent }));
       throw new Error(`Failed to parse ${getWorkersJsoncPath()}: ${errorMsg}`);
     }
   }
@@ -63,6 +104,7 @@ export async function loadConfig(): Promise<Config> {
     exampleConfigObj = parsedExample as Config;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`Failed to parse ${getWorkersExamplePath()} payload:`, redactForLogs({ workersExample: exampleConfigContent }));
     throw new Error(`Failed to parse ${getWorkersExamplePath()}: ${errorMsg}`);
   }
 
@@ -131,6 +173,7 @@ export async function loadPagesConfig(): Promise<{ global: GlobalConfig; pages: 
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.warn(`Failed to parse pages.jsonc: ${errorMsg}. Returning empty config.`);
+    console.warn(`Failed pages.jsonc payload:`, redactForLogs({ pages: await pagesFile.text().catch(() => "") }));
     return { global: {} as GlobalConfig, pages: {} };
   }
 }
