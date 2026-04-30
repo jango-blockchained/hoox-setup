@@ -26,6 +26,7 @@ cf-worker/
 # Ignore pages build output
 pages/dashboard/.next/
 pages/dashboard/.vercel/
+pages/dashboard/.open-next/
 
 # Ignore keys
 .keys/

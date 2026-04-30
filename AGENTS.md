@@ -27,6 +27,7 @@ bun run lint            # ESLint check
 bun run typecheck       # TypeScript check (tsc --noEmit)
 bun run build           # TypeScript build check
 ./hoox-tui              # launch TUI for local dev (all workers)
+hoox pages deploy       # deploy dashboard to Cloudflare Pages
 hoox workers deploy     # deploy all workers to Cloudflare
 ```
 
@@ -43,11 +44,13 @@ hoox workers deploy     # deploy all workers to Cloudflare
 
 ## Dashboard (pages/dashboard)
 
-- Next.js 16 with Turbopack: `next.config.ts` hardcodes `turbopack.root` to absolute monorepo path
-- Next.js 16 uses `proxy.ts` not `middleware.ts`
+- Next.js 16 with Turbopack: `next.config.ts` (no hardcoded turbopack.root needed)
+- Next.js 16 uses `proxy.ts` (replaces deprecated `middleware.ts`)
 - Framer Motion components require `'use client'` directive at file top
 - Pages with `'use client'` cannot export `metadata` — use separate `metadata.ts`
-- Deploys to Cloudflare Pages via `wrangler pages deploy`
+- Uses `@opennextjs/cloudflare` adapter (replaces deprecated `@cloudflare/next-on-pages`)
+- Build: `bunx opennextjs-cloudflare build` → deploys from `.open-next/` directory
+- Runtime: `export const runtime = "edge"` with `getCloudflareContext()` from `@opennextjs/cloudflare`
 
 ## Edge/Cloudflare Constraints
 

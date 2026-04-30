@@ -34,9 +34,9 @@ let mockGetRequestContext = () => {
 };
 
 // Setup mocks
-mock.module("@cloudflare/next-on-pages", () => {
+mock.module("@opennextjs/cloudflare", () => {
   return {
-    getRequestContext: mockGetRequestContext,
+    getCloudflareContext: mockGetRequestContext,
   };
 });
 

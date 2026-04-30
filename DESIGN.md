@@ -209,18 +209,18 @@ We couldn't find the Next.js package (next/package.json) from the project direct
 3. **Turbopack root detection**: Turbopack looks for lock files to determine project root
 
 **Solutions**:
+
+Next.js 16 automatically infers the correct project root in most cases. If needed:
+
 ```typescript
-// next.config.ts - Always use absolute path for turbopack.root in monorepos
+// next.config.ts - Only specify turbopack.root if auto-detection fails
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {
-    // Point to workspace root where lock file (bun.lockb) exists
-    root: '/absolute/path/to/monorepo/root',
-  },
+  // No turbopack.root needed in Next.js 16 - it auto-infers correctly
 };
 
 export default nextConfig;
@@ -240,12 +240,12 @@ import { motion } from 'framer-motion';
 
 **Note**: Pages with `'use client'` cannot export `metadata`. Move metadata to separate `metadata.ts` file.
 
-### 6.3 Middleware to Proxy Migration (Next.js 16)
+### 6.3 Proxy (Next.js 16)
 
-Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts`:
+Next.js 16 uses `proxy.ts` (replaces deprecated `middleware.ts`):
 
 ```typescript
-// proxy.ts - Rename from middleware.ts
+// proxy.ts - Next.js 16 proxy file
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -253,7 +253,7 @@ export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
 
-// Export as 'proxy' instead of 'middleware'
+// Export as 'proxy' (not 'middleware')
 export function proxy(request: NextRequest) {
   // ... proxy logic
 }
@@ -282,7 +282,23 @@ rm -rf .next && rm -rf .next/cache
 
 ### 6.6 Cloudflare Pages Deployment
 
-Dashboard deploys to Cloudflare Pages with edge runtime:
+Dashboard deploys to Cloudflare Pages using OpenNext Cloudflare adapter (replaces deprecated next-on-pages):
+
+**Build & Deploy:**
+```bash
+# Build with OpenNext (outputs to .open-next/)
+bunx opennextjs-cloudflare build
+
+# Deploy to Cloudflare Pages
+bunx wrangler pages deploy .open-next --project-name hoox-dashboard --commit-dirty
+```
+
+**Configuration:**
+- `opennext.config.ts` - OpenNext configuration
+- `wrangler.jsonc` - Points to `.open-next/worker.js` and `.open-next/assets`
 - Runtime: `export const runtime = "edge"`
+- Access bindings via `getCloudflareContext()` from `@opennextjs/cloudflare`
+
+**Edge Runtime Notes:**
 - Dynamic rendering: `export const dynamic = "force-dynamic"`
-- Use `wrangler pages deploy` or `bun run deploy`
+- KV bindings available via `getCloudflareContext().env.CONFIG_KV`

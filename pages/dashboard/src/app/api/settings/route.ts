@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -80,7 +80,7 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
 
 export async function GET(request: NextRequest, _context: { params: Promise<{}> }) {
   try {
-    const env = getRequestContext().env as unknown as { CONFIG_KV?: KVNamespace };
+    const env = getCloudflareContext().env as unknown as { CONFIG_KV?: KVNamespace };
     
     if (env?.CONFIG_KV) {
       const settings: Record<string, any> = {};
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest, _context: { params: Promise<{}>
     }
 
     const kvKey = getKVKey(worker, key);
-    const env = getRequestContext().env as unknown as { CONFIG_KV?: KVNamespace };
+    const env = getCloudflareContext().env as unknown as { CONFIG_KV?: KVNamespace };
 
     if (env?.CONFIG_KV) {
       await env.CONFIG_KV.put(kvKey, JSON.stringify(value));
