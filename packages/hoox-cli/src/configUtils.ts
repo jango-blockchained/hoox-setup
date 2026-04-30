@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Config, GlobalConfig, PagesConfig } from "./types.js";
+import { parseJsonc } from "./jsoncUtils.js";
 
 const KNOWN_SECRET_FIELDS = new Set([
   "cloudflare_api_token",
@@ -42,24 +43,12 @@ export function redactForLogs<T>(value: T): T {
   return value;
 }
 
-
-
 const getWorkersJsoncPath = () => path.resolve(process.cwd(), "workers.jsonc");
 const getPagesJsoncPath = () => path.resolve(process.cwd(), "pages.jsonc");
 const getWorkersExamplePath = () => path.resolve(process.cwd(), "workers.jsonc.example");
 const getPagesExamplePath = () => path.resolve(process.cwd(), "pages.jsonc.example");
 
-export function parseJsonc(content: string): unknown {
-  // Remove single-line comments (only at start of line with optional whitespace)
-  let jsonContent = content
-    .replace(/^[ \t]*\/\/[^\n]*/gm, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "");
-
-  // Fix trailing commas before } or ]
-  jsonContent = jsonContent.replace(/,(\s*[}\]])/g, "$1");
-
-  return JSON.parse(jsonContent);
-}
+export { parseJsonc };
 
 export async function loadConfig(): Promise<Config> {
   console.log(`Using JSONC configuration format`);

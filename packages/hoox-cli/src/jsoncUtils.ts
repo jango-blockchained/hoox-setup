@@ -1,27 +1,25 @@
+import { parse, printParseErrorCode } from "jsonc-parser";
+
 /**
  * JSONC (JSON with Comments) utility functions
  */
 
 export function parseJsonc(content: string): unknown {
-  // Remove single-line comments
-  let jsonContent = content.replace(/\/\/.*$/gm, "");
+  const errors = [] as { error: number; offset: number; length: number }[];
+  const parsed = parse(content, errors, { allowTrailingComma: true });
 
-  // Remove multi-line comments
-  jsonContent = jsonContent.replace(/\/\*[\s\S]*?\*\//g, "");
+  if (errors.length > 0) {
+    const first = errors[0];
+    throw new Error(`Invalid JSONC: ${printParseErrorCode(first.error)} at offset ${first.offset}`);
+  }
 
-  // Remove trailing commas before } or ]
-  jsonContent = jsonContent.replace(/,(\s*[}\]])/g, "$1");
-
-  return JSON.parse(jsonContent);
+  return parsed;
 }
 
 export function stringifyJsonc(obj: unknown, indent: number = 2): string {
   return JSON.stringify(obj, null, indent);
 }
 
-/**
- * Extracts comments from JSONC content for preservation
- */
 export function extractComments(content: string): {
   header?: string;
   inline: string[];
@@ -41,9 +39,6 @@ export function extractComments(content: string): {
   return { header, inline };
 }
 
-/**
- * Checks if a string is valid JSONC (parseable)
- */
 export function isValidJsonc(content: string): boolean {
   try {
     parseJsonc(content);
