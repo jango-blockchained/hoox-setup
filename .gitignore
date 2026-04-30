@@ -30,7 +30,8 @@ pages/dashboard/.vercel/
 # Ignore keys
 .keys/
 */.keys/
-
+.tmp/
+.tmp/*
 .cursor/
 .cursor/*
 .opencode/
