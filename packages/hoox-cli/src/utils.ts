@@ -1,4 +1,5 @@
 import readline from "node:readline/promises";
+import nodePath from "node:path";
 import ansis from "ansis";
 import type { Config, CommandResult } from "./types.js";
 
@@ -58,6 +59,21 @@ export const rl = readline.createInterface({
 // --- Command Execution Helpers ---
 
 /**
+ * Builds a merged environment for subprocess execution.
+ * Ensures the directory containing the current Bun executable is on PATH
+ * so that spawned subprocesses can find `bun` and `bunx`.
+ */
+function buildEnv(extra?: Record<string, string | undefined>): Record<string, string> {
+  const base = { ...Bun.env, ...extra } as Record<string, string>;
+  const bunDir = nodePath.dirname(process.execPath);
+  const currentPath = base.PATH || base.Path || "";
+  if (!currentPath.split(":").includes(bunDir)) {
+    base.PATH = `${bunDir}:${currentPath}`;
+  }
+  return base;
+}
+
+/**
  * Checks if a command exists in the system PATH.
  */
 export async function checkCommandExists(command: string): Promise<boolean> {
@@ -81,7 +97,7 @@ export function runCommandSync(
 ): CommandResult {
   log.dim(`Executing in ${cwd}: ${command}`);
   try {
-    const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
+    const mergedEnv = buildEnv(env);
     const args = ["sh", "-c", command];
     const output = Bun.spawnSync(args, { cwd, env: mergedEnv });
     const stdout = output.stdout?.toString() || "";
@@ -130,7 +146,7 @@ export async function runCommandAsync(
   env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
   log.dim(`Executing async in ${cwd}: ${command} ${args.join(" ")}`);
-  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
+  const mergedEnv = buildEnv(env);
 
   try {
     const proc = Bun.spawn([command, ...args], {
@@ -172,7 +188,7 @@ export async function runCommandWithStdin(
   env?: Record<string, string | undefined>
 ): Promise<CommandResult> {
   log.dim(`Executing with stdin in ${cwd}: ${command} ${args.join(" ")}`);
-  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
+  const mergedEnv = buildEnv(env);
 
   try {
     const proc = Bun.spawn([command, ...args], {
@@ -219,7 +235,7 @@ export async function runInteractiveCommand(
   env?: Record<string, string | undefined>
 ): Promise<number | null> {
   log.dim(`Executing interactive in ${cwd}: ${command} ${args.join(" ")}`);
-  const mergedEnv = { ...Bun.env, ...env } as Record<string, string>;
+  const mergedEnv = buildEnv(env);
 
   try {
     const proc = Bun.spawn([command, ...args], {
