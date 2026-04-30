@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs";
 import * as clack from "@clack/prompts";
 import { loadConfig } from "../configUtils.js";
-import { runCommandSync, log, dim, blue, cyan, yellow } from "../utils.js";
+import { runCommandSyncArgs, log, dim, blue, cyan, yellow } from "../utils.js";
 
 /**
  * Updates a secret in the Cloudflare Secret Store and saves it locally.
@@ -36,20 +36,37 @@ export async function updateCfSecret(
   s.start(`Setting secret ${secretName} in store ${storeId}...`);
 
   try {
-    const createResult = runCommandSync(
-      `bunx wrangler secrets-store secret create ${storeId} --name ${secretName} --scopes workers --value "${value.replace(/"/g, '\\"')}" --remote`,
-      process.cwd()
-    );
+    const createResult = runCommandSyncArgs({
+      cmd: "bunx",
+      args: [
+        "wrangler",
+        "secrets-store",
+        "secret",
+        "create",
+        storeId,
+        "--name",
+        secretName,
+        "--scopes",
+        "workers",
+        "--value",
+        value,
+        "--remote",
+      ],
+      cwd: process.cwd(),
+    });
     if (createResult.success) {
       s.stop(`Secret ${secretName} set in store ${storeId}`);
     } else {
-      throw new Error(createResult.stderr || "Failed to create secret");
+      throw new Error(
+        `Failed to create secret (exit code: ${createResult.exitCode})${createResult.stderr ? `\n${createResult.stderr}` : ""}`
+      );
     }
   } catch (createErr) {
-    const listOutputResult = runCommandSync(
-      `bunx wrangler secrets-store secret list ${storeId} --remote`,
-      process.cwd()
-    );
+    const listOutputResult = runCommandSyncArgs({
+      cmd: "bunx",
+      args: ["wrangler", "secrets-store", "secret", "list", storeId, "--remote"],
+      cwd: process.cwd(),
+    });
     const listOutput = listOutputResult.stdout;
 
     clack.log.warn("Secret might already exist. Attempting to find ID and update...");
@@ -81,14 +98,29 @@ export async function updateCfSecret(
     }
 
     if (secretId) {
-      const updateResult = runCommandSync(
-        `bunx wrangler secrets-store secret update ${storeId} --secret-id ${secretId} --value "${value.replace(/"/g, '\\"')}" --remote`,
-        process.cwd()
-      );
+      const updateResult = runCommandSyncArgs({
+        cmd: "bunx",
+        args: [
+          "wrangler",
+          "secrets-store",
+          "secret",
+          "update",
+          storeId,
+          "--secret-id",
+          secretId,
+          "--value",
+          value,
+          "--remote",
+        ],
+        cwd: process.cwd(),
+      });
       if (updateResult.success) {
         s.stop(`Updated secret ${secretName} (ID: ${secretId})`);
       } else {
-        s.stop(`Failed to update secret ID: ${secretId}`, 1);
+        s.stop(
+          `Failed to update secret ID: ${secretId} (exit code: ${updateResult.exitCode})${updateResult.stderr ? `\n${updateResult.stderr}` : ""}`,
+          1
+        );
         return;
       }
     } else {
