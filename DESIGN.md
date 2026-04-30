@@ -240,12 +240,12 @@ import { motion } from 'framer-motion';
 
 **Note**: Pages with `'use client'` cannot export `metadata`. Move metadata to separate `metadata.ts` file.
 
-### 6.3 Proxy (Next.js 16)
+### 6.3 Middleware (Next.js 16 + OpenNext)
 
-Next.js 16 uses `proxy.ts` (replaces deprecated `middleware.ts`):
+Next.js 16 with OpenNext Cloudflare requires `middleware.ts` (not `proxy.ts`):
 
 ```typescript
-// proxy.ts - Next.js 16 proxy file
+// middleware.ts - Next.js 16 middleware for OpenNext Cloudflare
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -253,9 +253,9 @@ export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
 
-// Export as 'proxy' (not 'middleware')
-export function proxy(request: NextRequest) {
-  // ... proxy logic
+// Export as 'middleware' for OpenNext Cloudflare compatibility
+export function middleware(request: NextRequest) {
+  // ... middleware logic
 }
 ```
 
