@@ -155,8 +155,8 @@ export function MetricsCards() {
                 <span className="text-xs font-medium text-muted-foreground">
                   {metric.title}
                 </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/50 transition-colors group-hover:bg-primary/10">
-                  <metric.icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                <div className="flex size-8 items-center justify-center rounded-lg bg-secondary/50 transition-colors group-hover:bg-primary/10">
+                  <metric.icon className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
                 </div>
               </div>
               <div className="mt-3">
@@ -175,9 +175,9 @@ export function MetricsCards() {
                         }`}
                       >
                         {metric.trendUp ? (
-                          <ArrowUp className="h-3 w-3" />
+                          <ArrowUp className="size-3" />
                         ) : (
-                          <ArrowDown className="h-3 w-3" />
+                          <ArrowDown className="size-3" />
                         )}
                         {metric.trend}
                       </span>

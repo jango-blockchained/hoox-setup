@@ -23,7 +23,7 @@ import { motion } from "framer-motion"
 
 export function DashboardHeader() {
   const [isOnline, setIsOnline] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [latency, setLatency] = useState(12)
 
   useEffect(() => {
@@ -57,10 +57,10 @@ export function DashboardHeader() {
             <MobileNav />
             <Link href="/dashboard" className="flex items-center gap-2 group">
               <motion.div 
-                className="flex h-8 w-8 items-center justify-center rounded-md bg-primary transition-transform group-hover:scale-105"
+                className="flex size-8 items-center justify-center rounded-md bg-primary transition-transform group-hover:scale-105"
                 whileHover={{ rotate: 5 }}
               >
-                <Zap className="h-5 w-5 text-primary-foreground" />
+                <Zap className="size-5 text-primary-foreground" />
               </motion.div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">Hoox</span>
@@ -79,13 +79,13 @@ export function DashboardHeader() {
                           animate={{ scale: [1, 1.2, 1] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
-                          <Wifi className="h-3 w-3 text-success" />
+                          <Wifi className="size-3 text-success" />
                         </motion.div>
                         <span className="text-xs text-muted-foreground">Online</span>
                       </>
                     ) : (
                       <>
-                        <WifiOff className="h-3 w-3 text-destructive" />
+                        <WifiOff className="size-3 text-destructive" />
                         <span className="text-xs text-destructive">Offline</span>
                       </>
                     )}
@@ -99,7 +99,7 @@ export function DashboardHeader() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="secondary" className="gap-1.5 font-mono text-[10px]">
-                    <Activity className="h-3 w-3 text-success" />
+                    <Activity className="size-3 text-success" />
                     {latency}ms
                   </Badge>
                 </TooltipTrigger>
@@ -111,14 +111,14 @@ export function DashboardHeader() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
+                    <Clock className="size-3" />
                     <span className="font-mono">
-                      {currentTime.toLocaleTimeString("en-US", { 
+                      {currentTime ? currentTime.toLocaleTimeString("en-US", { 
                         hour: "2-digit", 
                         minute: "2-digit",
                         second: "2-digit",
                         hour12: false 
-                      })}
+                      }) : "--:--:--"}
                     </span>
                   </div>
                 </TooltipTrigger>
@@ -132,7 +132,7 @@ export function DashboardHeader() {
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="hidden gap-2 text-muted-foreground md:flex" asChild>
               <a href="https://github.com/jango-blockchained/hoox-setup" target="_blank" rel="noopener noreferrer">
-                <Code2 className="h-4 w-4" />
+                <Code2 className="size-4" />
                 <span>Source</span>
               </a>
             </Button>
@@ -140,7 +140,7 @@ export function DashboardHeader() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="size-4" />
                   <span className="hidden sm:inline">Visit</span>
                 </Button>
               </DropdownMenuTrigger>

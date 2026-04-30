@@ -1,34 +1,35 @@
 import React from 'react';
-import { Box, Text } from 'ink';
 import { theme } from '../theme.js';
 
 interface CardProps {
   title?: string;
   description?: string;
   children: React.ReactNode;
-  width?: string | number;
+  width?: number | `${number}%` | 'auto';
   flexDirection?: 'row' | 'column';
   padding?: number;
 }
 
 export function Card({ title, description, children, width, flexDirection = 'column', padding = 1 }: CardProps) {
   return (
-    <Box 
-      borderStyle="round" 
-      borderColor={theme.colors.border} 
-      padding={padding} 
-      flexDirection="column"
-      width={width}
+    <box
+      style={{
+        borderStyle: 'rounded',
+        borderColor: theme.colors.border,
+        padding,
+        flexDirection: 'column',
+        width,
+      }}
     >
       {(title || description) && (
-        <Box flexDirection="column" marginBottom={1}>
-          {title && <Text bold color={theme.colors.foreground}>{title}</Text>}
-          {description && <Text color={theme.colors.mutedForeground}>{description}</Text>}
-        </Box>
+        <box style={{ flexDirection: 'column', marginBottom: 1 }}>
+          {title && <text style={{ bold: true, fg: theme.colors.foreground } as any}>{title}</text>}
+          {description && <text style={{ fg: theme.colors.mutedForeground }}>{description}</text>}
+        </box>
       )}
-      <Box flexDirection={flexDirection}>
+      <box style={{ flexDirection }}>
         {children}
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

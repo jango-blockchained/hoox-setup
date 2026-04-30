@@ -5,7 +5,7 @@
     "lib": ["es2020", "WebWorker", "DOM"],
     "moduleResolution": "bundler",
 
-    "types": ["bun-types", "@types/node"],
+    "types": ["bun-types", "node"],
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": true,

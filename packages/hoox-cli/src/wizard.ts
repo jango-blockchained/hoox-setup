@@ -1,9 +1,8 @@
 import React from "react";
-import { render } from "ink";
-import { WizardView } from "./views/WizardView.js";
 import fs from "fs";
 import path from "path";
 import ansis from "ansis";
+import * as clack from "@clack/prompts";
 
 import {
   type Config,
@@ -13,7 +12,7 @@ import {
   WizardStateSchema,
 } from "./types.js";
 
-import { rl, dim, print_success, print_error, print_warning } from "./utils.js";
+import { rl, dim, print_success, print_error, print_warning, checkCommandExists } from "./utils.js";
 
 import { saveConfig, loadConfig } from "./configUtils.js";
 
@@ -113,191 +112,166 @@ export async function cleanupWizardState(): Promise<void> {
 export async function runWizard(options: WizardOptions = {}): Promise<void> {
   const { verbose = false, dryRun = false, force = false } = options;
 
+  clack.intro(ansis.bgCyan.black(" Hoox Worker Setup Wizard "));
+
   if (dryRun) {
-    console.log(ansis.blue("🔍 Running in dry-run mode - no changes will be made"));
+    clack.note("Running in dry-run mode - no changes will be made.", "DRY RUN");
   }
-  if (verbose) {
-    console.log(ansis.blue("📝 Verbose logging enabled"));
-  }
-  console.log(ansis.blue("\n--- Hoox Worker Setup Wizard ---"));
 
-  // Check if we are inside the hoox-setup repo
-  const isHooxRepo = await Bun.file(path.resolve(process.cwd(), "workers.jsonc.example")).exists() || 
-                     await Bun.file(path.resolve(process.cwd(), "package.json")).text().then(text => JSON.parse(text).name === "hoox-setup").catch(() => false);
+  // Step 1: Check Dependencies
+  const depSpinner = clack.spinner();
+  depSpinner.start("Checking for required tools (bun, wrangler)...");
   
-  if (!isHooxRepo) {
-    print_warning("You don't seem to be in the hoox-setup repository.");
-    if (!force && process.stdin.isTTY) {
-      const { cloneMainRepo } = await import("./cloneCommand.js");
-      const answer = await rl.question("Would you like to clone it now? (y/N): ");
-      if (answer.toLowerCase() === "y" || answer.toLowerCase() === "yes") {
-        await cloneMainRepo("hoox-setup");
-        console.log(ansis.yellow("Changing working directory to hoox-setup..."));
-        process.chdir("hoox-setup");
-      } else {
-        print_error("Init requires the hoox-setup repository. Aborting.");
-        process.exit(1);
-      }
-    } else {
-      print_error("Init requires the hoox-setup repository. Please clone it first.");
-      process.exit(1);
-    }
-  }
+  const bunExists = await checkCommandExists("bun");
+  const wranglerExists = await checkCommandExists("wrangler");
 
-  let state: WizardState | null = await loadWizardState();
-  const totalSteps = TOTAL_WIZARD_STEPS;
-
-  // Check which config format to use
-  let configFormat: "jsonc" | "toml" = "toml"; // Default to TOML
-  const configJsoncPath = path.resolve(process.cwd(), "config.jsonc");
-  const configTomlPath = path.resolve(process.cwd(), "workers.jsonc");
-
-  // If config.jsonc exists, use JSONC format, otherwise use TOML
-  if ((await Bun.file(configJsoncPath).exists())) {
-    configFormat = "jsonc";
-    console.log(ansis.blue("Using JSONC configuration format (config.jsonc)"));
-  } else if ((await Bun.file(configTomlPath).exists())) {
-    configFormat = "toml";
-    console.log(ansis.blue("Using TOML configuration format (workers.jsonc)"));
-  } else {
-    // Neither exists, check for example files to determine format
-    const exampleJsoncPath = path.resolve(
-      process.cwd(),
-      "config.jsonc.example"
-    );
-    if ((await Bun.file(exampleJsoncPath).exists())) {
-      configFormat = "jsonc";
-      console.log(
-        ansis.blue(
-          "No config file found. Will create config.jsonc based on example"
-        )
-      );
-    } else {
-      console.log(
-        ansis.blue(
-          "No config file found. Will create workers.jsonc based on example"
-        )
-      );
-    }
-  }
-
-  // Initialize state if null or invalid
-  if (!state) {
-    // Attempt to load base config from workers.jsonc or example
-    let initialConfig: Partial<Config> = {};
-    try {
-      initialConfig = await loadConfig(); // Load config might return defaults or throw
-      print_success(
-        `Loaded initial configuration for wizard state from ${configFormat === "jsonc" ? "config.jsonc" : "workers.jsonc"}.`
-      );
-    } catch (configError: unknown) {
-      const errorMsg =
-        configError instanceof Error
-          ? configError.message
-          : String(configError);
-      print_error(`Failed to load initial config: ${errorMsg}`);
-      print_warning(
-        "Proceeding with minimal default state. Configuration might be incomplete."
-      );
-      // Initialize with minimal structure if load fails
-      initialConfig = {
-        global: {
-          cloudflare_api_token: "",
-          cloudflare_account_id: "",
-          cloudflare_secret_store_id: "",
-          subdomain_prefix: "",
-        } as GlobalConfig, // Cast needed for partial init
-        workers: {},
-      };
-    }
-
-    state = {
-      currentStep: 1,
-      totalSteps: totalSteps,
-      config: initialConfig, // Use loaded/default config
-      configFormat: configFormat, // Store the format being used
-    };
-    await saveWizardState(state); // Save initial state
-    console.log(ansis.yellow("Starting new setup process."));
-  } else {
-    console.log(
-      ansis.green(
-        `Resuming setup from step ${state.currentStep} of ${state.totalSteps}.`
-      )
-    );
-    // Refresh total steps in loaded state
-    if (state.totalSteps !== totalSteps) {
-      state.totalSteps = totalSteps;
-      // Config is already loaded, no need to reload unless desired
-      await saveWizardState(state);
-    }
-
-    // Store the config format if not already set
-    if (!state.configFormat) {
-      state.configFormat = configFormat;
-      await saveWizardState(state);
-    } else {
-      // Use the format stored in state
-      configFormat = state.configFormat;
-      console.log(
-        ansis.blue(
-          `Using ${configFormat.toUpperCase()} configuration format from previous state`
-        )
-      );
-    }
-  }
-
-  // State should be valid here due to load/init logic
-  const currentState = state as WizardState; // Non-null assertion or keep checks
-
-  if (!process.stdin.isTTY) {
-    print_error("The interactive setup wizard requires a TTY terminal. Please run this command in a fully interactive terminal environment.");
+  if (!bunExists || !wranglerExists) {
+    depSpinner.stop("Dependency check failed.", 1);
+    if (!bunExists) clack.log.error("bun is not installed or not found in PATH.");
+    if (!wranglerExists) clack.log.error("wrangler is not installed or not found in PATH.");
     process.exit(1);
   }
+  depSpinner.stop("Dependencies verified!");
 
-  // Ensure worker repositories are present before we try to select/configure them
-  await step_cloneRepositories();
-
+  // Step 2: Clone Repositories
+  const cloneSpinner = clack.spinner();
+  cloneSpinner.start("Cloning worker repositories...");
   try {
-    const { waitUntilExit, unmount } = render(
-      React.createElement(WizardView, {
-        initialState: currentState,
-        onComplete: async (finalState) => {
-          await saveWizardState(finalState);
-          // Assuming saving config should happen here
-          const finalConfig = finalState.config;
-          if (finalConfig) {
-             const { saveConfig } = await import("./configUtils.js");
-             await saveConfig(finalConfig as any);
-          }
-          await cleanupWizardState();
-          unmount();
-        }
-      })
-    );
-    
-    await waitUntilExit();
-    
-    console.log(ansis.green("\n🎉 Setup Wizard Completed Successfully! 🎉"));
-    console.log(
-      ansis.blue(
-        "You can now manage your workers using other 'hoox' commands."
-      )
-    );
-  } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    print_error(
-      `\n❌ Wizard Error on step ${currentState?.currentStep ?? "unknown"}: ${errorMsg}`
-    );
-    console.error(error); // Log full error
-    print_warning(
-      "Setup was interrupted. Run 'hoox init' again to resume."
-    );
-    process.exitCode = 1; // Indicate failure
-  } finally {
-    // Close readline interface
-    if (rl) {
-      rl.close();
-    }
+    await cloneWorkerRepositories();
+    cloneSpinner.stop("Worker repositories cloned!");
+  } catch (error: any) {
+    cloneSpinner.stop("Cloning failed.", 1);
+    clack.log.warn(`Could not clone repositories automatically: ${error.message}`);
   }
+
+  // Step 3: Load State
+  let state = await loadWizardState();
+  if (!state) {
+    let initialConfig: Partial<Config> = {};
+    try {
+      initialConfig = await loadConfig();
+    } catch (e) {}
+    state = {
+      currentStep: 1,
+      totalSteps: 5,
+      config: initialConfig,
+    };
+  }
+
+  // Step 4: Configure Globals
+  clack.log.step("Configure Global Settings");
+  
+  const globals: Partial<GlobalConfig> = state.config?.global || {};
+  
+  const cloudflare_api_token = await clack.text({
+    message: "Cloudflare API Token",
+    initialValue: globals.cloudflare_api_token,
+    placeholder: "Paste your token here",
+    validate(value) {
+      if (!value) return "Required";
+      return;
+    }
+  });
+  if (clack.isCancel(cloudflare_api_token)) {
+    clack.outro("Setup cancelled.");
+    process.exit(0);
+  }
+
+  const cloudflare_account_id = await clack.text({
+    message: "Cloudflare Account ID",
+    initialValue: globals.cloudflare_account_id,
+    validate(value) {
+      if (!value) return "Required";
+      return;
+    }
+  });
+  if (clack.isCancel(cloudflare_account_id)) {
+    clack.outro("Setup cancelled.");
+    process.exit(0);
+  }
+
+  const cloudflare_secret_store_id = await clack.text({
+    message: "Cloudflare Secret Store ID",
+    initialValue: globals.cloudflare_secret_store_id,
+    validate(value) {
+      if (!value) return "Required";
+      return;
+    }
+  });
+  if (clack.isCancel(cloudflare_secret_store_id)) {
+    clack.outro("Setup cancelled.");
+    process.exit(0);
+  }
+
+  const subdomain_prefix = await clack.text({
+    message: "Subdomain Prefix",
+    initialValue: globals.subdomain_prefix,
+    validate(value) {
+      if (!value) return "Required";
+      return;
+    }
+  });
+  if (clack.isCancel(subdomain_prefix)) {
+    clack.outro("Setup cancelled.");
+    process.exit(0);
+  }
+
+  state.config = {
+    ...state.config,
+    global: {
+      cloudflare_api_token,
+      cloudflare_account_id,
+      cloudflare_secret_store_id,
+      subdomain_prefix,
+    } as GlobalConfig
+  };
+
+  await saveWizardState(state);
+
+  // Step 5: Select Workers
+  clack.log.step("Select Workers");
+  
+  const WORKERS_DIR = path.resolve(process.cwd(), "workers");
+  let workerDirs: string[] = [];
+  try {
+    const dirents = await fs.promises.readdir(WORKERS_DIR, { withFileTypes: true });
+    workerDirs = dirents
+      .filter(dirent => dirent.isDirectory() && !dirent.name.startsWith("."))
+      .map(dirent => dirent.name);
+  } catch (e) {}
+
+  if (workerDirs.length > 0) {
+    const selectedWorkers = await clack.multiselect({
+      message: "Enable workers:",
+      options: workerDirs.map(name => ({
+        value: name,
+        label: name,
+        hint: state.config.workers?.[name]?.enabled ? "enabled" : "disabled"
+      })),
+      required: false
+    });
+    if (clack.isCancel(selectedWorkers)) {
+      clack.outro("Setup cancelled.");
+      process.exit(0);
+    }
+
+    state.config.workers = state.config.workers || {};
+    for (const name of workerDirs) {
+      state.config.workers[name] = {
+        ...(state.config.workers[name] || {}),
+        enabled: (selectedWorkers as string[]).includes(name),
+        path: path.join("workers", name)
+      };
+    }
+    await saveWizardState(state);
+  }
+
+  // Step 6: Save Config
+  const saveSpinner = clack.spinner();
+  saveSpinner.start("Saving configuration...");
+  await saveConfig(state.config as Config);
+  saveSpinner.stop("Configuration saved!");
+
+  clack.outro(ansis.green("Setup complete! 🎉"));
+  await cleanupWizardState();
 }

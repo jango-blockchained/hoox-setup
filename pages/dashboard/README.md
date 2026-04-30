@@ -126,31 +126,35 @@ dashboard/
 │   ├── lib/
 │   │   ├── settings/                # Modular settings system
 │   │   │   ├── types.ts            # Type definitions
-│   │   │   └── loader.ts           # TOML config loader
+│   │   │   └── loader.ts           # JSONC config loader
 │   │   └── api.ts                  # API client
-│   └── public/workers/              # Worker dashboard configs (*.toml)
-├── public/workers/*.toml             # Each worker's dashboard config
+│   └── public/workers/              # Worker dashboard configs (*.jsonc)
+├── public/workers/*.jsonc             # Each worker's dashboard config
 ├── wrangler.toml
 └── README.md
 ```
 
 ## ⚙️ Modular Settings System
 
-Each worker can define its settings via `dashboard.toml` in the `public/workers/` directory:
+Each worker can define its settings via `dashboard.jsonc` in the `public/workers/` directory:
 
-```toml
-display_name = "Trade Worker"
-description = "Multi-exchange trade execution"
-
-[sections.execution]
-title = "Execution"
-description = "Trade execution settings"
-icon = "zap"
-priority = 10
-
-[sections.execution.fields]
-default_leverage = 10
-max_position_usd = 1000
+```jsonc
+{
+  "display_name": "Trade Worker",
+  "description": "Multi-exchange trade execution",
+  "sections": {
+    "execution": {
+      "title": "Execution",
+      "description": "Trade execution settings",
+      "icon": "zap",
+      "priority": 10,
+      "fields": {
+        "default_leverage": 10,
+        "max_position_usd": 1000
+      }
+    }
+  }
+}
 ```
 
 Settings are stored in CONFIG_KV with key pattern `dashboard:{worker}:{key}`.
