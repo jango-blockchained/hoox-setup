@@ -138,6 +138,52 @@ export function runCommandSync(
 }
 
 /**
+ * Runs a command synchronously using explicit process args (no shell).
+ */
+export function runCommandSyncArgs(options: {
+  cmd: string;
+  args?: string[];
+  cwd: string;
+  env?: Record<string, string | undefined>;
+}): CommandResult {
+  const { cmd, args = [], cwd, env } = options;
+  log.dim(`Executing in ${cwd}: ${cmd} ${args.join(" ")}`.trim());
+
+  try {
+    const mergedEnv = buildEnv(env);
+    const output = Bun.spawnSync([cmd, ...args], {
+      cwd,
+      env: mergedEnv,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const stdout = output.stdout?.toString() || "";
+    const stderr = output.stderr?.toString() || "";
+    const exitCode = output.exitCode ?? 1;
+    const success = exitCode === 0;
+
+    if (!success) {
+      print_error(`Command failed (exit code: ${exitCode})`);
+      if (stderr) {
+        console.error(dim(`Stderr: ${stderr}`));
+      }
+    }
+
+    return { success, stdout, stderr, exitCode };
+  } catch (error: unknown) {
+    const execError = error as Error;
+    print_error("Failed to start command");
+    print_error(execError.message);
+    return {
+      success: false,
+      stdout: "",
+      stderr: execError.message,
+      exitCode: 1,
+    };
+  }
+}
+
+/**
  * Runs a command asynchronously with streaming potential.
  */
 export async function runCommandAsync(
