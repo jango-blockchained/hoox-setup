@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useKeyboard, useOnResize, useTerminalDimensions } from '@opentui/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useKeyboard, useTerminalDimensions } from '@opentui/react';
 import { WorkerService, WorkerConfig } from '../lib/workers.js';
 import { Card } from '../components/ui/Card.js';
 import { Badge } from '../components/ui/Badge.js';
@@ -31,7 +31,7 @@ export const TuiView: React.FC<TuiViewProps> = ({ initialWorkers }) => {
   const [showHelp, setShowHelp] = useState(false);
 
   // Responsive dimensions
-  const [termWidth, termHeight] = useTerminalDimensions();
+  const { width: termWidth, height: termHeight } = useTerminalDimensions();
 
   const workerService = useMemo(() => {
     return new WorkerService(
