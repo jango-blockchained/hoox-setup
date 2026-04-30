@@ -93,12 +93,12 @@ bun run dev
 
 ```bash
 cd pages/dashboard
-bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .vercel/output/static --project-name hoox-dashboard --commit-dirty
+bunx opennextjs-cloudflare build && bunx wrangler pages deploy .open-next --project-name hoox-dashboard --commit-dirty
 ```
 
-Or using the manage script:
+Or using the hoox CLI:
 ```bash
-hoox workers deploy dashboard
+hoox pages deploy
 ```
 
 ## 📁 File Structure

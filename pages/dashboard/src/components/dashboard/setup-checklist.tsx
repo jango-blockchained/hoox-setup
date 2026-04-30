@@ -186,7 +186,7 @@ export function SetupChecklist() {
               <AccordionItem value="item-4">
                 <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-secondary/20 px-3 rounded-md transition-colors">4. Deploy Dashboard</AccordionTrigger>
                 <AccordionContent className="text-xs text-muted-foreground pt-4 px-3 leading-relaxed">
-                  The dashboard requires Next.js to be built and deployed via Cloudflare Pages. Run <code className="font-mono bg-secondary px-1.5 py-0.5 rounded text-[10px]">cd pages/dashboard && bun run build && bunx @cloudflare/next-on-pages && bunx wrangler pages deploy .vercel/output/static --project-name hoox-dashboard</code> to deploy changes.
+                  The dashboard requires Next.js to be built and deployed via Cloudflare Pages. Run <code className="font-mono bg-secondary px-1.5 py-0.5 rounded text-[10px]">cd pages/dashboard && bunx opennextjs-cloudflare build && bunx wrangler pages deploy .open-next --project-name hoox-dashboard</code> to deploy changes.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-5">

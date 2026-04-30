@@ -768,16 +768,16 @@ export async function deployPages(config: Config): Promise<void> {
 
   console.log(blue("Building for Cloudflare Pages..."));
   
-  // Run next-on-pages with --skip-build since we already built
-  const nopResult = await runInteractiveCommand(
+  // Use OpenNext Cloudflare adapter (replaces deprecated next-on-pages)
+  const buildResult = await runInteractiveCommand(
     "bunx",
-    ["@cloudflare/next-on-pages", "--skip-build"],
+    ["opennextjs-cloudflare", "build"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
   
-  if (nopResult !== 0) {
-    print_error(`Next-on-pages build failed with code: ${nopResult}`);
+  if (buildResult !== 0) {
+    print_error(`OpenNext build failed with code: ${buildResult}`);
     process.exitCode = 1;
     return;
   }
@@ -787,10 +787,10 @@ export async function deployPages(config: Config): Promise<void> {
 
   console.log(blue("Deploying to Cloudflare Pages..."));
   
-  // Deploy to Cloudflare Pages
+  // Deploy to Cloudflare Pages using wrangler (OpenNext output is in .open-next)
   const deployResult = await runInteractiveCommand(
     "bunx",
-    ["wrangler", "pages", "deploy", ".vercel/output/static", "--project-name", projectName, "--commit-dirty"],
+    ["wrangler", "pages", "deploy", ".open-next", "--project-name", projectName, "--commit-dirty"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
