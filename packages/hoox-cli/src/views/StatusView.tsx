@@ -1,36 +1,77 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Text, useApp } from 'ink';
-import { Spinner } from '../components/ui/Spinner.js';
-import { Badge } from '../components/ui/Badge.js';
+import { useKeyboard } from '@opentui/react';
 import { loadConfig } from '../configUtils.js';
+import { Card } from '../components/ui/Card.js';
+import { Badge } from '../components/ui/Badge.js';
+import { Spinner } from '../components/ui/Spinner.js';
+import { theme } from '../components/theme.js';
+
+interface WorkerInfo {
+  name: string;
+  enabled: boolean;
+  path: string;
+  deployed_url?: string;
+}
 
 export function StatusView() {
-  const { exit } = useApp();
   const [loading, setLoading] = useState(true);
-  const [workers, setWorkers] = useState<string[]>([]);
+  const [workers, setWorkers] = useState<WorkerInfo[]>([]);
+
+  useKeyboard((key) => {
+    if (key.name === 'q' || key.name === 'escape') {
+      process.exit(0);
+    }
+  });
 
   useEffect(() => {
     loadConfig().then(config => {
-      setWorkers(Object.keys(config.workers));
+      const workerList = Object.entries(config.workers || {}).map(([name, wc]: [string, any]) => ({
+        name,
+        enabled: wc.enabled ?? false,
+        path: wc.path ?? `workers/${name}`,
+        deployed_url: wc.deployed_url,
+      }));
+      setWorkers(workerList);
       setLoading(false);
-      // Give it a moment to render the final frame, then exit
-      setTimeout(() => exit(), 50);
     });
-  }, [exit]);
+  }, []);
 
-  if (loading) return <Spinner label="Loading worker configuration..." />;
+  if (loading) {
+    return (
+      <box style={{ padding: 1 }}>
+        <Spinner label="Loading worker configuration..." />
+      </box>
+    );
+  }
+
+  const enabledCount = workers.filter(w => w.enabled).length;
 
   return (
-    <Box flexDirection="column" gap={1} padding={1}>
-      <Text bold>Hoox Worker Status</Text>
-      <Box flexDirection="column">
-        {workers.map(w => (
-          <Box key={w} gap={2}>
-            <Box width={20}><Text>{w}</Text></Box>
-            <Badge variant="success">ONLINE</Badge>
-          </Box>
-        ))}
-      </Box>
-    </Box>
+    <box style={{ flexDirection: 'column', padding: 1 }}>
+      <Card title={`Hoox Worker Status (${enabledCount}/${workers.length} enabled)`}>
+        <box style={{ flexDirection: 'column', marginTop: 1, gap: 1 }}>
+          {workers.map(w => (
+            <box key={w.name} style={{ flexDirection: 'row', gap: 1 }}>
+              <box style={{ width: 24 }}>
+                <text style={{ fg: w.enabled ? theme.colors.foreground : theme.colors.mutedForeground }}>
+                  {w.enabled ? theme.icons.bullet : theme.icons.hollowBullet} {w.name}
+                </text>
+              </box>
+              <box style={{ width: 12 }}>
+                <Badge variant={w.enabled ? 'success' : 'secondary'}>
+                  {w.enabled ? 'ENABLED' : 'DISABLED'}
+                </Badge>
+              </box>
+              {w.deployed_url && (
+                <text style={{ fg: theme.colors.mutedForeground }}>{w.deployed_url}</text>
+              )}
+            </box>
+          ))}
+        </box>
+      </Card>
+      <box style={{ marginTop: 1 }}>
+        <text style={{ fg: theme.colors.mutedForeground }}>Press 'q' or 'ESC' to exit.</text>
+      </box>
+    </box>
   );
 }

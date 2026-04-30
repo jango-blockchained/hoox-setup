@@ -44,101 +44,50 @@ function createField(
   return field;
 }
 
-export function parseDashboardTOML(
+export function parseDashboardJSONC(
   content: string,
   workerName: string
 ): WorkerConfigManifest {
-  const lines = content.split("\n");
-  let displayName = workerName;
-  let description = "";
-  const sections: DashboardSection[] = [];
-  let currentSection = "";
-  let currentFields: Record<string, SettingField> = {};
-  let currentOptions: Record<string, string[]> = {};
-  let currentDescriptions: Record<string, string> = {};
-  let currentSectionMeta: Record<string, any> = {};
-  let currentBlock = "meta";
+  // Strip comments to safely parse JSONC
+  const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
+  const parsed = JSON.parse(cleanContent);
 
-  const pushCurrentSection = () => {
-    if (currentSection && Object.keys(currentFields).length > 0) {
+  const displayName = parsed.display_name || parsed.displayName || workerName;
+  const description = parsed.description || "";
+  const sections: DashboardSection[] = [];
+
+  if (parsed.sections) {
+    for (const [sectionId, sectionData] of Object.entries<any>(parsed.sections)) {
+      const fields: SettingField[] = [];
+      const sectionFields = sectionData.fields || {};
+      const sectionOptions = sectionData.options || {};
+      const sectionDescriptions = sectionData.descriptions || {};
+
+      for (const [key, value] of Object.entries(sectionFields)) {
+        const field = createField(sectionId, key, value as string | number | boolean);
+        
+        if (sectionOptions[key]) {
+          field.type = "select";
+          field.options = sectionOptions[key].map((opt: string) => ({ value: opt, label: opt }));
+        }
+        
+        if (sectionDescriptions[key]) {
+          field.description = String(sectionDescriptions[key]);
+        }
+        
+        fields.push(field);
+      }
+
       sections.push({
-        id: currentSection,
-        title: currentSectionMeta.title || currentSection.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        description: currentSectionMeta.description || `Configure ${currentSection} settings`,
-        icon: currentSectionMeta.icon,
-        priority: currentSectionMeta.priority !== undefined ? currentSectionMeta.priority : sections.length * 10,
-        fields: Object.values(currentFields).map(f => {
-          const rawKey = f.key.split(":")[1];
-          if (currentOptions[rawKey]) {
-            f.type = "select";
-            f.options = currentOptions[rawKey].map(opt => ({ value: opt, label: opt }));
-          }
-          if (currentDescriptions[rawKey]) {
-            f.description = currentDescriptions[rawKey];
-          }
-          return f;
-        }),
+        id: sectionId,
+        title: sectionData.title || sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        description: sectionData.description || `Configure ${sectionId} settings`,
+        icon: sectionData.icon,
+        priority: sectionData.priority !== undefined ? sectionData.priority : sections.length * 10,
+        fields,
       });
     }
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-
-    if (line.startsWith("display_name")) {
-      displayName = line.split("=")[1]?.trim().replace(/^"|"$/g, "") || workerName;
-      continue;
-    }
-
-    if (line.startsWith("description") && !currentSection) {
-      description = line.split("=")[1]?.trim().replace(/^"|"$/g, "") || "";
-      continue;
-    }
-
-    const sectionMatch = line.match(/^\[sections\.(\w+)\]$/);
-    if (sectionMatch) {
-      pushCurrentSection();
-      currentSection = sectionMatch[1];
-      currentFields = {};
-      currentOptions = {};
-      currentDescriptions = {};
-      currentSectionMeta = {};
-      currentBlock = "meta";
-      continue;
-    }
-
-    const blockMatch = line.match(/^\[sections\.(\w+)\.(fields|options|descriptions)\]$/);
-    if (blockMatch) {
-      currentBlock = blockMatch[2];
-      continue;
-    }
-
-    const fieldMatch = line.match(/^"([^"]+)"\s*=\s*(.+)$/) || line.match(/^([a-zA-Z0-9_:]+)\s*=\s*(.+)$/);
-    if (fieldMatch && currentSection) {
-      const key = fieldMatch[1];
-      let rawVal = fieldMatch[2].trim();
-      let value: string | number | boolean = rawVal.replace(/^"|"$/g, "");
-
-      if (value === "true") value = true;
-      else if (value === "false") value = false;
-      else if (!isNaN(Number(value))) value = Number(value);
-
-      if (currentBlock === "meta") {
-         currentSectionMeta[key] = value;
-      } else if (currentBlock === "fields") {
-         currentFields[key] = createField(currentSection, key, value);
-      } else if (currentBlock === "options") {
-         // handle array values like ["a", "b"]
-         const opts = rawVal.replace(/^\[|\]$/g, "").split(",").map(o => o.trim().replace(/^"|'|"$|'$/g, ""));
-         currentOptions[key] = opts.filter(o => o.length > 0);
-      } else if (currentBlock === "descriptions") {
-         currentDescriptions[key] = String(value);
-      }
-    }
   }
-
-  pushCurrentSection();
 
   return {
     worker: workerName,
@@ -150,34 +99,34 @@ export function parseDashboardTOML(
 
 const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
   async hoox() {
-    const res = await fetch("/workers/hoox.toml");
+    const res = await fetch("/workers/hoox.jsonc");
     if (!res.ok) return { worker: "hoox", displayName: "Gateway", sections: [] };
-    return parseDashboardTOML(await res.text(), "hoox");
+    return parseDashboardJSONC(await res.text(), "hoox");
   },
   async "trade-worker"() {
-    const res = await fetch("/workers/trade-worker.toml");
+    const res = await fetch("/workers/trade-worker.jsonc");
     if (!res.ok) return { worker: "trade-worker", displayName: "Trade Worker", sections: [] };
-    return parseDashboardTOML(await res.text(), "trade-worker");
+    return parseDashboardJSONC(await res.text(), "trade-worker");
   },
   async "agent-worker"() {
-    const res = await fetch("/workers/agent-worker.toml");
+    const res = await fetch("/workers/agent-worker.jsonc");
     if (!res.ok) return { worker: "agent-worker", displayName: "Agent Worker", sections: [] };
-    return parseDashboardTOML(await res.text(), "agent-worker");
+    return parseDashboardJSONC(await res.text(), "agent-worker");
   },
   async "telegram-worker"() {
-    const res = await fetch("/workers/telegram-worker.toml");
+    const res = await fetch("/workers/telegram-worker.jsonc");
     if (!res.ok) return { worker: "telegram-worker", displayName: "Telegram Worker", sections: [] };
-    return parseDashboardTOML(await res.text(), "telegram-worker");
+    return parseDashboardJSONC(await res.text(), "telegram-worker");
   },
   async "d1-worker"() {
-    const res = await fetch("/workers/d1-worker.toml");
+    const res = await fetch("/workers/d1-worker.jsonc");
     if (!res.ok) return { worker: "d1-worker", displayName: "D1 Worker", sections: [] };
-    return parseDashboardTOML(await res.text(), "d1-worker");
+    return parseDashboardJSONC(await res.text(), "d1-worker");
   },
   async "email-worker"() {
-    const res = await fetch("/workers/email-worker.toml");
+    const res = await fetch("/workers/email-worker.jsonc");
     if (!res.ok) return { worker: "email-worker", displayName: "Email Worker", sections: [] };
-    return parseDashboardTOML(await res.text(), "email-worker");
+    return parseDashboardJSONC(await res.text(), "email-worker");
   },
 };
 

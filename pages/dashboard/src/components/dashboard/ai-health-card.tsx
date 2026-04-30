@@ -61,11 +61,11 @@ export function AiHealthCard() {
   const getIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle2 className="h-4 w-4 text-success" />
+        return <CheckCircle2 className="size-4 text-success" />
       case "warning":
-        return <AlertCircle className="h-4 w-4 text-warning" />
+        return <AlertCircle className="size-4 text-warning" />
       default:
-        return <Sparkles className="h-4 w-4 text-primary" />
+        return <Sparkles className="size-4 text-primary" />
     }
   }
 
@@ -74,9 +74,9 @@ export function AiHealthCard() {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <div className="relative">
-            <Brain className="h-4 w-4 text-primary" />
+            <Brain className="size-4 text-primary" />
             <motion.div
-              className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-success"
+              className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-success"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -85,21 +85,21 @@ export function AiHealthCard() {
         </CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="gap-1 text-xs">
-            <Shield className="h-3 w-3" />
+            <Shield className="size-3" />
             Active
           </Badge>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 w-8 p-0"
+            className="size-8 p-0"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         {/* Risk Gauge */}
         <div className="rounded-lg bg-secondary/30 p-4">
           <div className="flex items-center justify-between mb-2">
@@ -118,7 +118,7 @@ export function AiHealthCard() {
         </div>
 
         {/* Insights Feed */}
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <AnimatePresence mode="popLayout">
             {displayedInsights.map((insight, index) => (
               <motion.div

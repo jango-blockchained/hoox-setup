@@ -1,6 +1,4 @@
 import React from 'react';
-import { Box, Text } from 'ink';
-import SelectInput from 'ink-select-input';
 import { theme } from '../theme.js';
 
 interface Item {
@@ -16,24 +14,23 @@ interface SelectProps {
 
 export function Select({ items, onSelect, label }: SelectProps) {
   return (
-    <Box flexDirection="column">
-      {label && <Box marginBottom={1}><Text bold color={theme.colors.foreground}>{label}</Text></Box>}
-      <Box borderStyle="round" borderColor={theme.colors.border} paddingX={1} paddingY={0}>
-        <SelectInput 
-          items={items} 
-          onSelect={onSelect}
-          indicatorComponent={({ isSelected }) => (
-            <Text color={isSelected ? theme.colors.primary : theme.colors.foreground}>
-              {isSelected ? '❯ ' : '  '}
-            </Text>
-          )}
-          itemComponent={({ isSelected, label }) => (
-            <Text color={isSelected ? theme.colors.primary : theme.colors.foreground}>
-              {label}
-            </Text>
-          )}
+    <box style={{ flexDirection: 'column' }}>
+      {label && (
+        <box style={{ marginBottom: 1 }}>
+          <text style={{ bold: true, fg: theme.colors.foreground } as any}>{label}</text>
+        </box>
+      )}
+      <box style={{ borderStyle: 'rounded', borderColor: theme.colors.border, paddingLeft: 1, paddingRight: 1 }}>
+        <select
+          options={items.map(item => ({ name: item.label, value: item.value, description: '' }))}
+          onChange={(index: number, option: any) => {
+            if (option) {
+              const item = items.find(i => i.value === option.value);
+              if (item) onSelect(item);
+            }
+          }}
         />
-      </Box>
-    </Box>
+      </box>
+    </box>
   );
 }

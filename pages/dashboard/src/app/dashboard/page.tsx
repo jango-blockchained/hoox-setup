@@ -19,7 +19,7 @@ function SystemResources() {
     >
       <div className="flex items-center gap-3 p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 backdrop-blur shadow-lg hover:bg-neutral-900/50 transition-colors">
         <div className="p-2 bg-neutral-900 text-blue-500 rounded-lg border border-neutral-800 shadow-inner">
-          <Globe className="h-4 w-4" />
+          <Globe className="size-4" />
         </div>
         <div>
           <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Edge Locations</p>
@@ -28,7 +28,7 @@ function SystemResources() {
       </div>
       <div className="flex items-center gap-3 p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 backdrop-blur shadow-lg hover:bg-neutral-900/50 transition-colors">
         <div className="p-2 bg-neutral-900 text-emerald-500 rounded-lg border border-neutral-800 shadow-inner">
-          <Zap className="h-4 w-4" />
+          <Zap className="size-4" />
         </div>
         <div>
           <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Avg Latency</p>
@@ -37,7 +37,7 @@ function SystemResources() {
       </div>
       <div className="flex items-center gap-3 p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 backdrop-blur shadow-lg hover:bg-neutral-900/50 transition-colors">
         <div className="p-2 bg-neutral-900 text-purple-500 rounded-lg border border-neutral-800 shadow-inner">
-          <Activity className="h-4 w-4" />
+          <Activity className="size-4" />
         </div>
         <div>
           <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">24h Requests</p>
@@ -46,7 +46,7 @@ function SystemResources() {
       </div>
       <div className="flex items-center gap-3 p-3 rounded-xl border border-neutral-800 bg-neutral-950/80 backdrop-blur shadow-lg hover:bg-neutral-900/50 transition-colors">
         <div className="p-2 bg-neutral-900 text-primary rounded-lg border border-neutral-800 shadow-inner">
-          <ShieldCheck className="h-4 w-4" />
+          <ShieldCheck className="size-4" />
         </div>
         <div>
           <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Security</p>
@@ -83,7 +83,7 @@ export default function DashboardPage() {
         <QuickActions />
       </motion.div>
 
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 flex flex-col gap-6">
         <SystemResources />
         
         <motion.div 
