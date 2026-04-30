@@ -3,6 +3,8 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
+import { redactForLogs } from "../src/configUtils.js";
+import { ConfigSchema } from "../src/types.js";
 
 const testDir = path.join(os.tmpdir(), `hoox-check-setup-test-${Date.now()}-${Math.random().toString(36).substring(7)}`);
 
@@ -246,5 +248,30 @@ describe("Check Setup - Integration Tests", () => {
     }
 
     process.cwd = originalCwd;
+  });
+});
+
+describe("Check Setup redaction in failure diagnostics", () => {
+  test("redacts secret values from schema diagnostics", () => {
+    const invalidConfig = {
+      global: {
+        cloudflare_api_token: "secret-token-value",
+      },
+      workers: {
+        hoox: {
+          enabled: true,
+          path: "workers/hoox",
+          vars: { OPENAI_API_KEY: "sk-secret" },
+        },
+      },
+    };
+
+    const parsed = ConfigSchema.safeParse(invalidConfig);
+    expect(parsed.success).toBe(false);
+
+    const diagnostic = JSON.stringify(redactForLogs(parsed.error.flatten()));
+    expect(diagnostic).not.toContain("secret-token-value");
+    expect(diagnostic).not.toContain("sk-secret");
+    expect(diagnostic).toContain("global");
   });
 });
