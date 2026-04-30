@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Config, ConfigSchema } from "./types.js";
+import { redactForLogs } from "./configUtils.js";
 import { intro, outro, spinner, log as clackLog, note } from "@clack/prompts";
 import { red, green, yellow, dim } from "./utils.js";
 import { parseJsonc } from "./jsoncUtils.js";
@@ -60,6 +61,9 @@ async function main() {
     clackLog.success(`workers.jsonc successfully parsed`);
   } catch (error) {
     clackLog.error(`Error reading or parsing workers.jsonc: ${error instanceof Error ? error.message : String(error)}`);
+    if (configStr) {
+      console.error(dim(JSON.stringify(redactForLogs({ workersJsonc: configStr }), null, 2)));
+    }
     process.exitCode = 1;
     return;
   }
@@ -68,7 +72,7 @@ async function main() {
     const result = ConfigSchema.safeParse(config);
     if (!result.success) {
       clackLog.error("workers.jsonc has invalid structure:");
-      console.error(dim(JSON.stringify(result.error.flatten(), null, 2)));
+      console.error(dim(JSON.stringify(redactForLogs(result.error.flatten()), null, 2)));
       process.exitCode = 1;
     } else {
       clackLog.success(`workers.jsonc matches schema`);

@@ -8,6 +8,7 @@ import {
   dim,
   print_success,
   print_error,
+  print_warning,
 } from "./utils.js";
 
 export function getKeysDir(): string {
@@ -37,6 +38,7 @@ async function ensureKeysDirectoryExists(): Promise<void> {
   if (!(await Bun.file(dir).exists())) {
     try {
       fs.mkdirSync(dir, { recursive: true });
+      applySecurePermissions(dir, 0o700, "directory");
       console.log(dim(`Created directory: ${dir}`));
     } catch (error: unknown) {
       print_error(
@@ -44,6 +46,26 @@ async function ensureKeysDirectoryExists(): Promise<void> {
       );
       throw error; // Rethrow if directory creation fails
     }
+  }
+}
+
+function applySecurePermissions(
+  targetPath: string,
+  mode: number,
+  targetType: "directory" | "file"
+): void {
+  if (process.platform === "win32") {
+    return;
+  }
+
+  try {
+    fs.chmodSync(targetPath, mode);
+  } catch (error: unknown) {
+    print_warning(
+      `Could not set secure permissions on ${targetType} ${targetPath}. ` +
+        `Please run "chmod ${mode.toString(8)} ${targetPath}" manually to restrict access. ` +
+        `Reason: ${(error as Error).message}`
+    );
   }
 }
 
@@ -166,6 +188,7 @@ export async function setKey(
 
   try {
     await Bun.write(filePath, newLines.join("\n") + "\n"); // Ensure trailing newline
+    applySecurePermissions(filePath, 0o600, "file");
     print_success(`Key "${keyName}" saved to ${path.basename(filePath)}.`);
   } catch (error: unknown) {
     print_error(
