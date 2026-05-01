@@ -96,7 +96,7 @@ export function openUrl(url: string): void {
     return;
   }
 
-  const command =
+  const command: [string, string[]] =
     process.platform === "darwin"
       ? ["open", [url]]
       : process.platform === "win32"
@@ -105,10 +105,13 @@ export function openUrl(url: string): void {
 
   void (async () => {
     try {
-      const proc = Bun.spawn([command[0], ...(command[1] as string[])], {
-        stdio: ["ignore", "ignore", "ignore"],
-        shell: false,
-      });
+      const proc = Bun.spawn(
+        [command[0], ...command[1]],
+        {
+          stdio: ["ignore", "ignore", "ignore"],
+          shell: false,
+        } as any
+      );
       const exitCode = await proc.exited;
       if (exitCode !== 0) {
         log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
