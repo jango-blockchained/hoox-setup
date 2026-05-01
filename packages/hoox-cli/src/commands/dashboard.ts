@@ -1,4 +1,3 @@
-import { exec } from "node:child_process";
 import * as clack from "@clack/prompts";
 import ansis from "ansis";
 import { log, runCommandSync } from "../utils.js";
@@ -82,17 +81,42 @@ export async function startDashboardDev(): Promise<void> {
 /**
  * Opens a URL in the default browser.
  */
-function openUrl(url: string): void {
-  const platform = process.platform;
-  const cmd = platform === "darwin" ? "open"
-    : platform === "win32" ? "start"
-    : "xdg-open";
+export function openUrl(url: string): void {
+  let parsedUrl: URL;
 
-  exec(`${cmd} ${url}`, (err) => {
-    if (err) {
-      log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
-    } else {
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
+    return;
+  }
+
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
+    return;
+  }
+
+  const command = process.platform === "darwin"
+    ? ["open", [url]]
+    : process.platform === "win32"
+    ? ["cmd", ["/c", "start", "", url]]
+    : ["xdg-open", [url]];
+
+  void (async () => {
+    try {
+      const proc = Bun.spawn([command[0], ...(command[1] as string[])], {
+        stdio: ["ignore", "ignore", "ignore"],
+        shell: false,
+      });
+      const exitCode = await proc.exited;
+      if (exitCode !== 0) {
+        log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
+        return;
+      }
+
       log.success(`Opened ${url} in your browser.`);
+    } catch {
+      log.warn(`Could not open browser. Visit: ${ansis.cyan(url)}`);
     }
-  });
+  })();
 }
