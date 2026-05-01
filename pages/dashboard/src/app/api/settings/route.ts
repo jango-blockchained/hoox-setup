@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -117,8 +118,13 @@ export async function GET(request: NextRequest, _context: { params: Promise<{}> 
       return NextResponse.json({ settings: normalized });
     } else {
       // Fallback to D1 worker if KV binding isn't available
-      const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
-        headers: { "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "" },
+      const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
+      if (configErrors.length > 0) {
+        return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+      }
+
+      const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {
+        headers: { "X-Internal-Auth-Key": getConfig().internalAuth.d1 || "" },
       });
 
       if (res.ok) {
@@ -162,11 +168,16 @@ export async function POST(request: NextRequest, _context: { params: Promise<{}>
       return NextResponse.json({ success: true, worker, key, value, kvKey });
     } else {
       // Fallback to D1 worker
-      const res = await fetch(`${process.env.D1_WORKER_URL}/api/settings`, {
+      const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
+      if (configErrors.length > 0) {
+        return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+      }
+
+      const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Internal-Auth-Key": process.env.D1_INTERNAL_KEY || "",
+          "X-Internal-Auth-Key": getConfig().internalAuth.d1 || "",
         },
         body: JSON.stringify({ worker, key: kvKey, value }),
       });

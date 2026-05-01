@@ -81,6 +81,26 @@ To add new settings, update `config.schema.json`:
 }
 ```
 
+
+## 🔐 Canonical Environment Variables
+
+Use only these canonical keys for service URLs and internal auth in the dashboard APIs:
+
+| Variable | Purpose |
+|---|---|
+| `D1_SERVICE_URL` | Base URL for `d1-worker` service calls |
+| `TRADE_SERVICE_URL` | Base URL for `trade-worker` service calls |
+| `AGENT_SERVICE_URL` | Base URL for `agent-worker` service calls |
+| `TELEGRAM_SERVICE_URL` | Base URL for `telegram-worker` service calls |
+| `D1_INTERNAL_KEY` | Internal auth key for d1 service calls |
+| `AGENT_INTERNAL_KEY` | Internal auth key for agent service calls |
+| `TELEGRAM_INTERNAL_KEY` | Internal auth key for telegram service calls |
+| `API_SERVICE_KEY` | Shared internal API key |
+| `DASHBOARD_USER` | Basic auth username |
+| `DASHBOARD_PASS` | Basic auth password |
+
+Non-canonical alternates (for example `agentService_URL` or `D1_WORKER_URL`) are not supported.
+
 ## 🚀 Local Development
 
 ```bash
