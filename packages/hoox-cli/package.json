@@ -1,7 +1,7 @@
 {
   "name": "@hoox/cli",
   "version": "0.1.0",
-  "description": "Hoox Worker Management CLI - Manage Cloudflare Workers for crypto trading",
+  "description": "Official Hoox CLI for deploying and operating Cloudflare workers, pages, and secrets.",
   "type": "module",
   "main": "./bin/hoox.ts",
   "types": "./bin/hoox.ts",
@@ -15,7 +15,8 @@
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "eslint . --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run lint && bun run typecheck && bun run test"
   },
   "dependencies": {
     "@clack/prompts": "^0.8.2",
@@ -55,5 +56,14 @@
   "engines": {
     "node": ">=18",
     "bun": ">=1.0"
-  }
+  },
+  "homepage": "https://github.com/jango-blockchained/hoox-setup/tree/main/packages/hoox-cli",
+  "bugs": {
+    "url": "https://github.com/jango-blockchained/hoox-setup/issues"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ]
 }

@@ -15,6 +15,33 @@ const KNOWN_SECRET_FIELDS = new Set([
 
 const SECRET_KEY_PATTERNS = [/_SECRET/i, /_TOKEN/i, /_KEY/i];
 
+const REQUIRED_WORKERS = [
+  "d1-worker",
+  "telegram-worker",
+  "trade-worker",
+  "hoox",
+  "email-worker",
+];
+
+function resolveRepoRoot(): string {
+  const candidates = [process.cwd(), import.meta.dir, path.resolve(import.meta.dir, "../../..")];
+
+  for (const start of candidates) {
+    let current = path.resolve(start);
+    for (let i = 0; i < 6; i++) {
+      if (fs.existsSync(path.join(current, "workers.jsonc.example"))) {
+        return current;
+      }
+      const parent = path.dirname(current);
+      if (parent === current) break;
+      current = parent;
+    }
+  }
+
+  return process.cwd();
+}
+
+
 function shouldRedactKey(key: string): boolean {
   const normalizedKey = key.toLowerCase();
   if (KNOWN_SECRET_FIELDS.has(normalizedKey)) {
@@ -45,12 +72,12 @@ export function redactForLogs<T>(value: T): T {
   return value;
 }
 
-const getWorkersJsoncPath = () => path.resolve(process.cwd(), "workers.jsonc");
-const getPagesJsoncPath = () => path.resolve(process.cwd(), "pages.jsonc");
+const getWorkersJsoncPath = () => path.resolve(resolveRepoRoot(), "workers.jsonc");
+const getPagesJsoncPath = () => path.resolve(resolveRepoRoot(), "pages.jsonc");
 const getWorkersExamplePath = () =>
-  path.resolve(process.cwd(), "workers.jsonc.example");
+  path.resolve(resolveRepoRoot(), "workers.jsonc.example");
 const getPagesExamplePath = () =>
-  path.resolve(process.cwd(), "pages.jsonc.example");
+  path.resolve(resolveRepoRoot(), "pages.jsonc.example");
 
 export { parseJsonc };
 
@@ -154,6 +181,15 @@ export async function loadConfig(): Promise<Config> {
   }
 
   if (missingKeys) {
+    throw new Error(
+      `Missing required global configuration keys in ${getWorkersJsoncPath()}. Please check the errors above.`
+    );
+  }
+
+  const missingWorkers = REQUIRED_WORKERS.filter(
+    (name) => !(name in mergedConfig.workers)
+  );
+  if (missingWorkers.length > 0) {
     throw new Error(
       `Missing required global configuration keys in ${getWorkersJsoncPath()}. Please check the errors above.`
     );

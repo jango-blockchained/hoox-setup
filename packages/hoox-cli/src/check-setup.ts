@@ -69,7 +69,7 @@ async function main() {
   let config: Config | null = null;
   try {
     configStr = await fs.readFile(WORKERS_JSONC, "utf8");
-    config = parseJsonc(configStr);
+    config = parseJsonc(configStr) as Config;
     clackLog.success(`workers.jsonc successfully parsed`);
   } catch (error) {
     clackLog.error(
