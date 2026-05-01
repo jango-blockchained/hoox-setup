@@ -21,10 +21,9 @@ describe("JSONC Utilities", () => {
       expect(result).toEqual({ name: "test", value: 123 });
     });
 
-
-
     test("should preserve // and /* */ inside string values", () => {
-      const input = '{"url": "https://example.com/a//b", "pattern": "/* keep me */"}';
+      const input =
+        '{"url": "https://example.com/a//b", "pattern": "/* keep me */"}';
       const result = parseJsonc(input) as { url: string; pattern: string };
       expect(result).toEqual({
         url: "https://example.com/a//b",

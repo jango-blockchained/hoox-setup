@@ -96,11 +96,12 @@ export function openUrl(url: string): void {
     return;
   }
 
-  const command = process.platform === "darwin"
-    ? ["open", [url]]
-    : process.platform === "win32"
-    ? ["cmd", ["/c", "start", "", url]]
-    : ["xdg-open", [url]];
+  const command =
+    process.platform === "darwin"
+      ? ["open", [url]]
+      : process.platform === "win32"
+        ? ["cmd", ["/c", "start", "", url]]
+        : ["xdg-open", [url]];
 
   void (async () => {
     try {

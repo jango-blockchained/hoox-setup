@@ -322,9 +322,19 @@ Spin up all 8 workers locally with hot-reloading enabled. Changes to your code a
 ```bash
 # Build and start the dev environment
 bun run docker:dev
+
+# Optional: validate compose file before boot
+docker compose config
 ```
 
 This launches all workers on the following ports:
+
+To stop local dev cleanly:
+
+```bash
+bun run docker:down
+```
+
 
 | Service | Port |
 |---------|------|

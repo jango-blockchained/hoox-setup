@@ -2,15 +2,13 @@ import path from "node:path";
 import fs from "node:fs";
 import toml from "toml";
 import type { Config, WranglerConfig } from "./types.js";
-import type { HousekeepingCheck, HousekeepingPayload, WorkerConfigManifestLite } from "@hoox/shared";
+import type {
+  HousekeepingCheck,
+  HousekeepingPayload,
+  WorkerConfigManifestLite,
+} from "@hoox/shared";
 import { intro, outro, log as clackLog, spinner, note } from "@clack/prompts";
-import {
-  red,
-  green,
-  yellow,
-  cyan,
-  dim,
-} from "./utils.js";
+import { red, green, yellow, cyan, dim } from "./utils.js";
 
 export type HousekeepingIssue = HousekeepingCheck;
 export type HousekeepingResult = HousekeepingPayload;
@@ -55,7 +53,7 @@ export async function runHousekeeping(
 
     const workerDir = path.resolve(process.cwd(), definedPath);
 
-    if (!(fs.existsSync(workerDir))) {
+    if (!fs.existsSync(workerDir)) {
       result.issues.push({
         worker: workerName,
         type: "error",
@@ -69,8 +67,8 @@ export async function runHousekeeping(
     // Check for wrangler config file
     const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    const hasJsonc = (await Bun.file(wranglerJsoncPath).exists());
-    const hasToml = (await Bun.file(wranglerTomlPath).exists());
+    const hasJsonc = await Bun.file(wranglerJsoncPath).exists();
+    const hasToml = await Bun.file(wranglerTomlPath).exists();
 
     if (!hasJsonc && !hasToml) {
       result.issues.push({
@@ -87,14 +85,14 @@ export async function runHousekeeping(
     let wranglerConfig: WorkerConfigManifestLite = {};
     try {
       if (hasJsonc) {
-        const content = (await Bun.file(wranglerJsoncPath).text());
+        const content = await Bun.file(wranglerJsoncPath).text();
         const jsonContent = content
           .replace(/\/\/.*$/gm, "")
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/,(\s*[}\]])/g, "$1");
         wranglerConfig = JSON.parse(jsonContent) as WorkerConfigManifestLite;
       } else if (hasToml) {
-        const content = (await Bun.file(wranglerTomlPath).text());
+        const content = await Bun.file(wranglerTomlPath).text();
         wranglerConfig = toml.parse(content) as WorkerConfigManifestLite;
       }
     } catch (e) {
@@ -146,7 +144,8 @@ export async function runHousekeeping(
         result.issues.push({
           worker: workerName,
           type: "info",
-          message: "Pages project should have 'nodejs_compat' in compatibility_flags for Next.js",
+          message:
+            "Pages project should have 'nodejs_compat' in compatibility_flags for Next.js",
         });
         result.summary.info++;
       }
@@ -173,9 +172,7 @@ export async function runHousekeeping(
       const foundInJsonc = secretStoreBindings.some(
         (s) => s.secret_name === secretName
       );
-      const foundInToml = tomlSecrets.some(
-        (s) => s.secret_name === secretName
-      );
+      const foundInToml = tomlSecrets.some((s) => s.secret_name === secretName);
       if (!foundInJsonc && !foundInToml) {
         result.issues.push({
           worker: workerName,
@@ -206,7 +203,7 @@ export async function runHousekeeping(
 
     // Check if worker has source files
     const srcDir = path.join(workerDir, "src");
-    if (!(fs.existsSync(srcDir))) {
+    if (!fs.existsSync(srcDir)) {
       result.issues.push({
         worker: workerName,
         type: "warning",
@@ -264,16 +261,18 @@ export async function runHousekeeping(
     // For queue consumers, check if handler is exported
     if (consumers.length > 0) {
       const srcIndexPath = path.join(workerDir, "src", "index.ts");
-      if ((await Bun.file(srcIndexPath).exists())) {
-        const srcContent = (await Bun.file(srcIndexPath).text());
-        const hasQueueExport = srcContent.includes("async queue(") ||
+      if (await Bun.file(srcIndexPath).exists()) {
+        const srcContent = await Bun.file(srcIndexPath).text();
+        const hasQueueExport =
+          srcContent.includes("async queue(") ||
           srcContent.includes("export const queue") ||
           srcContent.includes("queue:");
         if (!hasQueueExport) {
           result.issues.push({
             worker: workerName,
             type: "warning",
-            message: "Queue consumer configured but no queue handler found in index.ts",
+            message:
+              "Queue consumer configured but no queue handler found in index.ts",
           });
           result.summary.warnings++;
         }
@@ -287,11 +286,12 @@ export async function runHousekeeping(
     // Validate DO classes are exported if bindings exist
     if (doBindings.length > 0) {
       const srcIndexPath = path.join(workerDir, "src", "index.ts");
-      if ((await Bun.file(srcIndexPath).exists())) {
-        const srcContent = (await Bun.file(srcIndexPath).text());
+      if (await Bun.file(srcIndexPath).exists()) {
+        const srcContent = await Bun.file(srcIndexPath).text();
         for (const doBinding of doBindings) {
           const className = doBinding.class_name;
-          const hasExport = srcContent.includes(`export class ${className}`) ||
+          const hasExport =
+            srcContent.includes(`export class ${className}`) ||
             srcContent.includes(`export { ${className} }`);
           if (!hasExport) {
             result.issues.push({
@@ -379,12 +379,12 @@ export async function runHousekeeping(
           issue.type === "error"
             ? red("✗")
             : issue.type === "warning"
-            ? yellow("⚠")
-            : cyan("ℹ");
+              ? yellow("⚠")
+              : cyan("ℹ");
         issueText += `  ${prefix} ${issue.message}\n`;
       }
     }
-    
+
     note(`${summaryText}\n${issueText}`, "Issues Found");
     outro("Housekeeping check finished with issues.");
   } else {
@@ -421,7 +421,7 @@ export async function generateHousekeepingReport(
     }
 
     const workerDir = path.resolve(process.cwd(), definedPath);
-    if (!(fs.existsSync(workerDir))) {
+    if (!fs.existsSync(workerDir)) {
       result.issues.push({
         worker: workerName,
         type: "error",

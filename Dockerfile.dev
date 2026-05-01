@@ -2,21 +2,19 @@
 # Uses Bun for ultra-fast development with hot-reloading via wrangler dev
 FROM oven/bun:1.3.12
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files for dependency install
 COPY package.json bun.lock ./
 
 # Install dependencies
-RUN bun install 
-##s--frozen-lockfile
+RUN bun install --frozen-lockfile
 
 # Copy the rest of the application
 COPY . .
 
-# Expose the default worker port
-EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794
+# Expose common worker/dashboard dev ports
+EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796
 
-# Default command: keep container running (specific worker will be run via docker-compose command override)
+# Default command: keep container running (service command is overridden in docker-compose)
 CMD ["tail", "-f", "/dev/null"]

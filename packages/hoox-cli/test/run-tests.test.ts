@@ -5,7 +5,10 @@ import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
 
-const testDir = path.join(os.tmpdir(), `hoox-run-tests-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+const testDir = path.join(
+  os.tmpdir(),
+  `hoox-run-tests-${Date.now()}-${Math.random().toString(36).substring(7)}`
+);
 
 describe("Run Tests - Unit Tests", () => {
   beforeEach(async () => {
@@ -21,7 +24,7 @@ describe("Run Tests - Unit Tests", () => {
       const args = ["--watch", "--coverage"];
       const hasWatch = args.includes("--watch");
       const hasCoverage = args.includes("--coverage");
-      
+
       expect(hasWatch).toBe(true);
       expect(hasCoverage).toBe(true);
     });
@@ -41,28 +44,41 @@ describe("Run Tests - Unit Tests", () => {
     test("should find test directory when it exists", async () => {
       const testSubDir = path.join(testDir, "test_exist_" + Date.now());
       await fsp.mkdir(testSubDir, { recursive: true });
-      
-      const exists = await fsp.access(testSubDir).then(() => true).catch(() => false);
+
+      const exists = await fsp
+        .access(testSubDir)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
     test("should handle missing test directory", async () => {
       const testSubDir = path.join(testDir, "test_missing_" + Date.now());
-      const exists = await fsp.access(testSubDir).then(() => true).catch(() => false);
+      const exists = await fsp
+        .access(testSubDir)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(false);
     });
 
     test("should list worker directories", async () => {
       const workersDir = path.join(testDir, "workers_" + Date.now());
-      await fsp.mkdir(path.join(workersDir, "worker1", "test"), { recursive: true });
-      await fsp.mkdir(path.join(workersDir, "worker2", "test"), { recursive: true });
+      await fsp.mkdir(path.join(workersDir, "worker1", "test"), {
+        recursive: true,
+      });
+      await fsp.mkdir(path.join(workersDir, "worker2", "test"), {
+        recursive: true,
+      });
       await fsp.mkdir(path.join(workersDir, "worker3"), { recursive: true });
 
       const entries = await fsp.readdir(workersDir);
       const workersWithTests = [];
       for (const e of entries) {
         const stat = await fsp.stat(path.join(workersDir, e));
-        const hasTest = await fsp.access(path.join(workersDir, e, "test")).then(() => true).catch(() => false);
+        const hasTest = await fsp
+          .access(path.join(workersDir, e, "test"))
+          .then(() => true)
+          .catch(() => false);
         if (stat.isDirectory() && hasTest) {
           workersWithTests.push(e);
         }
@@ -120,21 +136,21 @@ describe("Run Tests - Unit Tests", () => {
     test("should add coverage flag", () => {
       const baseArgs = ["bun", "test"];
       const args = [...baseArgs, "--coverage"];
-      
+
       expect(args).toContain("--coverage");
     });
 
     test("should add watch flag", () => {
       const baseArgs = ["bun", "test"];
       const args = [...baseArgs, "--watch"];
-      
+
       expect(args).toContain("--watch");
     });
 
     test("should combine multiple flags", () => {
       const baseArgs = ["bun", "test"];
       const args = [...baseArgs, "--watch", "--coverage"];
-      
+
       expect(args).toContain("--watch");
       expect(args).toContain("--coverage");
     });
@@ -156,16 +172,18 @@ describe("Run Tests - Unit Tests", () => {
     test("should handle SKIP_FAILING_TESTS mode", () => {
       const exitCode = 1;
       const skipFailing = true;
-      
-      const shouldContinue = exitCode === 0 || (skipFailing && exitCode !== null);
+
+      const shouldContinue =
+        exitCode === 0 || (skipFailing && exitCode !== null);
       expect(shouldContinue).toBe(true);
     });
 
     test("should fail without skip mode", () => {
       const exitCode = 1;
       const skipFailing = false;
-      
-      const shouldContinue = exitCode === 0 || (skipFailing && exitCode !== null);
+
+      const shouldContinue =
+        exitCode === 0 || (skipFailing && exitCode !== null);
       expect(shouldContinue).toBe(false);
     });
   });
@@ -180,7 +198,7 @@ describe("Run Tests - Unit Tests", () => {
     test("should parse coverage percentage", () => {
       const output = "Coverage: 85.5%";
       const match = output.match(/Coverage:\s*(\d+\.?\d*)%/);
-      
+
       expect(match).toBeTruthy();
       expect(match?.[1]).toBe("85.5");
     });
@@ -188,7 +206,10 @@ describe("Run Tests - Unit Tests", () => {
 });
 
 describe("Run Tests - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-run-tests-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-run-tests-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -200,9 +221,15 @@ describe("Run Tests - Integration Tests", () => {
 
   test("should discover all workers with tests", async () => {
     const workersDir = path.join(integrationDir, "workers");
-    await fsp.mkdir(path.join(workersDir, "worker1", "test"), { recursive: true });
-    await fsp.mkdir(path.join(workersDir, "worker2", "test"), { recursive: true });
-    await fsp.mkdir(path.join(workersDir, "worker3", "test"), { recursive: true });
+    await fsp.mkdir(path.join(workersDir, "worker1", "test"), {
+      recursive: true,
+    });
+    await fsp.mkdir(path.join(workersDir, "worker2", "test"), {
+      recursive: true,
+    });
+    await fsp.mkdir(path.join(workersDir, "worker3", "test"), {
+      recursive: true,
+    });
     await fsp.mkdir(path.join(workersDir, "worker4"), { recursive: true });
 
     const entries = await fsp.readdir(workersDir);
@@ -211,10 +238,13 @@ describe("Run Tests - Integration Tests", () => {
     for (const entry of entries) {
       const workerPath = path.join(workersDir, entry);
       const stat = await fsp.stat(workerPath);
-      
+
       if (stat.isDirectory()) {
         const testPath = path.join(workerPath, "test");
-        const hasTest = await fsp.access(testPath).then(() => true).catch(() => false);
+        const hasTest = await fsp
+          .access(testPath)
+          .then(() => true)
+          .catch(() => false);
         if (hasTest) {
           workers.push(entry);
         }
@@ -231,10 +261,10 @@ describe("Run Tests - Integration Tests", () => {
       { worker: "worker3", exitCode: 1 },
     ];
 
-    const allPassed = results.every(r => r.exitCode === 0);
-    const anyFailed = results.some(r => r.exitCode !== 0);
+    const allPassed = results.every((r) => r.exitCode === 0);
+    const anyFailed = results.some((r) => r.exitCode !== 0);
     const totalWorkers = results.length;
-    const passedWorkers = results.filter(r => r.exitCode === 0).length;
+    const passedWorkers = results.filter((r) => r.exitCode === 0).length;
 
     expect(allPassed).toBe(false);
     expect(anyFailed).toBe(true);

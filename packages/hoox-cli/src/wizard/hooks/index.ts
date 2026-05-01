@@ -5,7 +5,9 @@ export function useValidation(
   stepName: string,
   validators: Array<() => Promise<{ valid: boolean; error: string }>>
 ) {
-  return async (ctx: WizardContext): Promise<{ valid: boolean; errors: string[] }> => {
+  return async (
+    ctx: WizardContext
+  ): Promise<{ valid: boolean; errors: string[] }> => {
     const errors: string[] = [];
 
     for (const validator of validators) {
@@ -15,7 +17,9 @@ export function useValidation(
           errors.push(result.error);
         }
       } catch (e) {
-        errors.push(`${stepName}: ${e instanceof Error ? e.message : String(e)}`);
+        errors.push(
+          `${stepName}: ${e instanceof Error ? e.message : String(e)}`
+        );
       }
     }
 
@@ -32,7 +36,9 @@ export function useAutoSave(savePath: string) {
         print_info(`Auto-saved state to ${savePath}`);
       }
     } catch (e) {
-      print_warning(`Failed to auto-save: ${e instanceof Error ? e.message : String(e)}`);
+      print_warning(
+        `Failed to auto-save: ${e instanceof Error ? e.message : String(e)}`
+      );
     }
   };
 }
@@ -45,7 +51,10 @@ export function useVerboseLogging() {
   };
 }
 
-export function createValidationError(step: string, message: string): { valid: boolean; error: string } {
+export function createValidationError(
+  step: string,
+  message: string
+): { valid: boolean; error: string } {
   return { valid: false, error: `${step}: ${message}` };
 }
 

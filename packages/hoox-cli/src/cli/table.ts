@@ -19,7 +19,12 @@ interface TableOptions {
  * Renders a formatted table to stdout for non-TUI contexts.
  * Uses box-drawing characters for a premium look.
  */
-export function printTable({ columns, rows, title, border = true }: TableOptions): void {
+export function printTable({
+  columns,
+  rows,
+  title,
+  border = true,
+}: TableOptions): void {
   const d = ansis.dim;
   const b = ansis.bold;
 
@@ -39,7 +44,11 @@ export function printTable({ columns, rows, title, border = true }: TableOptions
     return d(left + widths.map((w) => "─".repeat(w)).join(mid) + right);
   };
 
-  const padCell = (text: string, width: number, align: "left" | "right" | "center" = "left") => {
+  const padCell = (
+    text: string,
+    width: number,
+    align: "left" | "right" | "center" = "left"
+  ) => {
     const clean = text.replace(/\x1b\[[0-9;]*m/g, ""); // Strip ANSI for width calc
     const pad = Math.max(0, width - clean.length);
     if (align === "right") return " ".repeat(pad) + text;
@@ -89,14 +98,19 @@ export function printTable({ columns, rows, title, border = true }: TableOptions
 export function printKeyValue(pairs: Array<[string, string, string?]>): void {
   const d = ansis.dim;
   const maxKey = Math.max(...pairs.map(([k]) => k.length));
-  
+
   for (const [key, value, color] of pairs) {
     const padding = " ".repeat(maxKey - key.length + 2);
-    const colorFn = color === "green" ? ansis.green
-      : color === "red" ? ansis.red
-      : color === "yellow" ? ansis.yellow
-      : color === "cyan" ? ansis.cyan
-      : (v: string) => v;
+    const colorFn =
+      color === "green"
+        ? ansis.green
+        : color === "red"
+          ? ansis.red
+          : color === "yellow"
+            ? ansis.yellow
+            : color === "cyan"
+              ? ansis.cyan
+              : (v: string) => v;
     console.log(`  ${d(key)}${padding}${colorFn(value)}`);
   }
 }

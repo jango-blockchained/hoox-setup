@@ -16,7 +16,9 @@ export async function workerMetrics(workerName: string): Promise<void> {
 
   print_info(`\nMetrics for ${yellow(workerName)}:`);
   console.log(`  Requests: ${cyan(analytics.requests.total.toString())}`);
-  console.log(`  Data Transfer: ${cyan(analytics.dataTransfer.downloaded.toString())} downloaded / ${cyan(analytics.dataTransfer.uploaded.toString())} uploaded`);
+  console.log(
+    `  Data Transfer: ${cyan(analytics.dataTransfer.downloaded.toString())} downloaded / ${cyan(analytics.dataTransfer.uploaded.toString())} uploaded`
+  );
   console.log(`  Avg Response: ${cyan(analytics.responseTime.toString())}ms`);
   console.log(`  Error Rate: ${cyan(analytics.errors.toString())}%`);
 }

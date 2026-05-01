@@ -4,7 +4,10 @@ import fsp from "node:fs/promises";
 import path from "path";
 import os from "node:os";
 
-const testDir = path.join(os.tmpdir(), `hoox-wizard-test-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+const testDir = path.join(
+  os.tmpdir(),
+  `hoox-wizard-test-${Date.now()}-${Math.random().toString(36).substring(7)}`
+);
 
 describe("Wizard - State Management Tests", () => {
   beforeEach(async () => {
@@ -56,7 +59,7 @@ describe("Wizard - State Management Tests", () => {
       };
 
       await fsp.writeFile(stateFile, JSON.stringify(state, null, 2));
-      
+
       const exists = fs.existsSync(stateFile);
       expect(exists).toBe(true);
 
@@ -78,10 +81,10 @@ describe("Wizard - State Management Tests", () => {
       };
 
       await fsp.writeFile(stateFile, JSON.stringify(state, null, 2));
-      
+
       const content = await fsp.readFile(stateFile, "utf8");
       const loadedState = JSON.parse(content);
-      
+
       expect(loadedState.currentStep).toBe(3);
       expect(loadedState.selectedWorkers).toContain("hoox");
     });
@@ -108,9 +111,9 @@ describe("Wizard - State Management Tests", () => {
     test("should delete state file", async () => {
       const stateFile = path.join(testDir, ".install-wizard-state.json");
       await fsp.writeFile(stateFile, "{}");
-      
+
       expect(fs.existsSync(stateFile)).toBe(true);
-      
+
       await fsp.unlink(stateFile);
       expect(fs.existsSync(stateFile)).toBe(false);
     });
@@ -126,7 +129,7 @@ describe("Wizard - State Management Tests", () => {
       const step = 5;
       const minStep = 1;
       const maxStep = 7;
-      
+
       expect(step >= minStep).toBe(true);
       expect(step <= maxStep).toBe(true);
     });
@@ -134,10 +137,10 @@ describe("Wizard - State Management Tests", () => {
     test("should track step progress", () => {
       let currentStep = 1;
       const totalSteps = 7;
-      
+
       currentStep++;
       currentStep++;
-      
+
       const progress = (currentStep / totalSteps) * 100;
       expect(progress).toBeCloseTo(42.85, 1);
     });
@@ -147,7 +150,7 @@ describe("Wizard - State Management Tests", () => {
     test("should detect workers directory exists", () => {
       const workersDir = path.join(testDir, "workers");
       fs.mkdirSync(workersDir, { recursive: true });
-      
+
       expect(fs.existsSync(workersDir)).toBe(true);
     });
 
@@ -191,9 +194,15 @@ describe("Wizard - State Management Tests", () => {
 
     test("should validate selected workers", () => {
       const selectedWorkers = ["hoox", "trade-worker", "d1-worker"];
-      const validWorkers = ["hoox", "trade-worker", "d1-worker", "telegram-worker", "agent-worker"];
-      
-      const allValid = selectedWorkers.every(w => validWorkers.includes(w));
+      const validWorkers = [
+        "hoox",
+        "trade-worker",
+        "d1-worker",
+        "telegram-worker",
+        "agent-worker",
+      ];
+
+      const allValid = selectedWorkers.every((w) => validWorkers.includes(w));
       expect(allValid).toBe(true);
     });
 
@@ -211,11 +220,12 @@ describe("Wizard - State Management Tests", () => {
         subdomain_prefix: "prefix",
       };
 
-      const isValid = 
-        !!(config.cloudflare_api_token && 
+      const isValid = !!(
+        config.cloudflare_api_token &&
         config.cloudflare_account_id &&
         config.cloudflare_secret_store_id &&
-        config.subdomain_prefix);
+        config.subdomain_prefix
+      );
 
       expect(isValid).toBe(true);
     });
@@ -223,7 +233,10 @@ describe("Wizard - State Management Tests", () => {
 });
 
 describe("Wizard - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-wizard-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-wizard-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -241,9 +254,14 @@ describe("Wizard - Integration Tests", () => {
     fs.mkdirSync(workersDir);
     fs.mkdirSync(path.join(workersDir, "hoox"));
 
-    const hasWorkers = fs.readdirSync(workersDir).filter(
-      f => !f.startsWith(".") && fs.statSync(path.join(workersDir, f)).isDirectory()
-    ).length > 0;
+    const hasWorkers =
+      fs
+        .readdirSync(workersDir)
+        .filter(
+          (f) =>
+            !f.startsWith(".") &&
+            fs.statSync(path.join(workersDir, f)).isDirectory()
+        ).length > 0;
 
     expect(hasWorkers).toBe(true);
 
@@ -286,7 +304,7 @@ describe("Wizard - Integration Tests", () => {
 
     await fsp.writeFile(stateFile, JSON.stringify(existingState));
     const exists = fs.existsSync(stateFile);
-    
+
     expect(exists).toBe(true);
 
     process.cwd = originalCwd;

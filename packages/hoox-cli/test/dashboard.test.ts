@@ -22,7 +22,7 @@ describe("dashboard openUrl", () => {
 
     expect(spawnSpy).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(
-      `Could not open browser. Visit: ${ansis.cyan("https://example.com; touch /tmp/pwned")}`,
+      `Could not open browser. Visit: ${ansis.cyan("https://example.com; touch /tmp/pwned")}`
     );
   });
 
@@ -38,16 +38,23 @@ describe("dashboard openUrl", () => {
 
   test("uses safe argument arrays on windows", async () => {
     Object.defineProperty(process, "platform", { value: "win32" });
-    const spawnSpy = vi.spyOn(Bun, "spawn").mockReturnValue({ exited: Promise.resolve(0) } as never);
+    const spawnSpy = vi
+      .spyOn(Bun, "spawn")
+      .mockReturnValue({ exited: Promise.resolve(0) } as never);
     const successSpy = vi.spyOn(log, "success").mockImplementation(() => {});
 
     openUrl("https://example.com");
     await Promise.resolve();
 
-    expect(spawnSpy).toHaveBeenCalledWith(["cmd", "/c", "start", "", "https://example.com"], {
-      stdio: ["ignore", "ignore", "ignore"],
-      shell: false,
-    });
-    expect(successSpy).toHaveBeenCalledWith("Opened https://example.com in your browser.");
+    expect(spawnSpy).toHaveBeenCalledWith(
+      ["cmd", "/c", "start", "", "https://example.com"],
+      {
+        stdio: ["ignore", "ignore", "ignore"],
+        shell: false,
+      }
+    );
+    expect(successSpy).toHaveBeenCalledWith(
+      "Opened https://example.com in your browser."
+    );
   });
 });

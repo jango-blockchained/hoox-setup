@@ -6,7 +6,10 @@ import os from "node:os";
 import { redactForLogs } from "../src/configUtils.js";
 import { ConfigSchema } from "../src/types.js";
 
-const testDir = path.join(os.tmpdir(), `hoox-check-setup-test-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+const testDir = path.join(
+  os.tmpdir(),
+  `hoox-check-setup-test-${Date.now()}-${Math.random().toString(36).substring(7)}`
+);
 
 describe("Check Setup - Unit Tests", () => {
   beforeEach(async () => {
@@ -21,30 +24,45 @@ describe("Check Setup - Unit Tests", () => {
     test("should detect workers.jsonc exists", async () => {
       const testFile = path.join(testDir, "workers.jsonc");
       await fsp.writeFile(testFile, '{"global": {}}');
-      
-      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
+
+      const exists = await fsp
+        .access(testFile)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
     test("should detect workers.jsonc.example exists", async () => {
       const testFile = path.join(testDir, "workers.jsonc.example");
       await fsp.writeFile(testFile, '{"global": {}}');
-      
-      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
+
+      const exists = await fsp
+        .access(testFile)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
     });
 
     test("should report missing required files", async () => {
-      const testFile = path.join(testDir, "workers_missing_" + Date.now() + ".jsonc");
-      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
+      const testFile = path.join(
+        testDir,
+        "workers_missing_" + Date.now() + ".jsonc"
+      );
+      const exists = await fsp
+        .access(testFile)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(false);
     });
 
     test("should report optional files as not required", async () => {
       const testFile = path.join(testDir, ".install-wizard-state.json");
       const required = false;
-      const exists = await fsp.access(testFile).then(() => true).catch(() => false);
-      
+      const exists = await fsp
+        .access(testFile)
+        .then(() => true)
+        .catch(() => false);
+
       if (!exists && !required) {
         expect(true).toBe(true);
       }
@@ -89,13 +107,13 @@ describe("Check Setup - Unit Tests", () => {
   }
 }`;
       await fsp.writeFile(testFile, content);
-      
+
       const fileContent = await fsp.readFile(testFile, "utf8");
-      let jsonContent = fileContent
+      const jsonContent = fileContent
         .replace(/^[ \t]*\/\/[^\n]*/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/,(\s*[}\]])/g, "$1");
-      
+
       const parsed = JSON.parse(jsonContent);
       expect(parsed.global.cloudflare_api_token).toBe("test-token");
     });
@@ -127,7 +145,7 @@ describe("Check Setup - Unit Tests", () => {
         workers: {},
       };
 
-      const hasAllRequired = 
+      const hasAllRequired =
         "cloudflare_api_token" in invalidConfig.global &&
         "cloudflare_account_id" in invalidConfig.global &&
         "cloudflare_secret_store_id" in invalidConfig.global &&
@@ -177,7 +195,10 @@ describe("Check Setup - Unit Tests", () => {
 });
 
 describe("Check Setup - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-check-integration-${Date.now()}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-check-integration-${Date.now()}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -219,8 +240,12 @@ describe("Check Setup - Integration Tests", () => {
       exampleContent
     );
 
-    expect(fs.existsSync(path.join(integrationDir, "workers.jsonc"))).toBe(true);
-    expect(fs.existsSync(path.join(integrationDir, "workers.jsonc.example"))).toBe(true);
+    expect(fs.existsSync(path.join(integrationDir, "workers.jsonc"))).toBe(
+      true
+    );
+    expect(
+      fs.existsSync(path.join(integrationDir, "workers.jsonc.example"))
+    ).toBe(true);
 
     process.cwd = originalCwd;
   });

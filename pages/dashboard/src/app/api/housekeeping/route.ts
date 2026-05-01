@@ -8,16 +8,22 @@ export async function POST() {
   try {
     const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.agent]);
     if (configErrors.length > 0) {
-      return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+      return NextResponse.json(
+        { error: "Configuration error", missing: configErrors },
+        { status: 500 }
+      );
     }
 
-    const res = await fetch(`${getConfig().api.agentService}/agent/housekeeping`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-Auth-Key": getConfig().internalAuth.agent || "",
-      },
-    });
+    const res = await fetch(
+      `${getConfig().api.agentService}/agent/housekeeping`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Auth-Key": getConfig().internalAuth.agent || "",
+        },
+      }
+    );
 
     if (!res.ok) {
       return NextResponse.json(

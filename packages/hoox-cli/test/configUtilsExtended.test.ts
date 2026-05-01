@@ -146,7 +146,7 @@ describe("Config Utils - Extended Tests", () => {
       };
 
       const allSecrets = new Set(
-        Object.values(workers).flatMap(w => w.secrets || [])
+        Object.values(workers).flatMap((w) => w.secrets || [])
       );
 
       expect(allSecrets.size).toBe(3);
@@ -158,8 +158,8 @@ describe("Config Utils - Extended Tests", () => {
         worker2: { secrets: [] },
       };
 
-      const hasSecrets = Object.values(workers).some(w => 
-        w.secrets && w.secrets.length > 0
+      const hasSecrets = Object.values(workers).some(
+        (w) => w.secrets && w.secrets.length > 0
       );
 
       expect(hasSecrets).toBe(false);
@@ -185,7 +185,7 @@ describe("Config Utils - Extended Tests", () => {
       ];
 
       expect(services).toHaveLength(3);
-      expect(services.map(s => s.binding)).toContain("TRADE_SERVICE");
+      expect(services.map((s) => s.binding)).toContain("TRADE_SERVICE");
     });
   });
 
@@ -207,7 +207,10 @@ describe("Config Utils - Extended Tests", () => {
 });
 
 describe("Config Utils - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-config-integration-${Date.now()}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-config-integration-${Date.now()}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -244,7 +247,7 @@ describe("Config Utils - Integration Tests", () => {
     const prefix = "myapp";
     const workers = ["hoox", "trade-worker", "d1-worker", "telegram-worker"];
 
-    const urls = workers.map(w => `https://${w}.${prefix}.workers.dev`);
+    const urls = workers.map((w) => `https://${w}.${prefix}.workers.dev`);
 
     expect(urls).toHaveLength(4);
     expect(urls[0]).toBe("https://hoox.myapp.workers.dev");

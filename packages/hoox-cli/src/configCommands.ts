@@ -1,6 +1,13 @@
 import { resolve } from "node:path";
 import { promises as fs } from "node:fs";
-import { rl, print_success, print_error, cyan, green, yellow } from "./utils.js";
+import {
+  rl,
+  print_success,
+  print_error,
+  cyan,
+  green,
+  yellow,
+} from "./utils.js";
 import { Glob } from "bun";
 
 export async function setupConfigVariables() {
@@ -13,7 +20,12 @@ export async function setupConfigVariables() {
 
   for await (const file of glob.scan({ cwd, dot: true })) {
     // Ignore node_modules, .git, .wrangler, and .worktrees
-    if (file.includes("node_modules") || file.includes(".git") || file.includes(".wrangler") || file.includes(".worktrees")) {
+    if (
+      file.includes("node_modules") ||
+      file.includes(".git") ||
+      file.includes(".wrangler") ||
+      file.includes(".worktrees")
+    ) {
       continue;
     }
 
@@ -21,7 +33,10 @@ export async function setupConfigVariables() {
     const targetPath = examplePath.replace(/\.example$/, "");
 
     try {
-      const exists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (exists) {
         console.log(yellow(`\nFile already exists: ${targetPath}`));
@@ -44,5 +59,7 @@ export async function setupConfigVariables() {
     }
   }
 
-  console.log(cyan(`\nSetup complete! Copied: ${copiedCount}, Skipped: ${skippedCount}\n`));
+  console.log(
+    cyan(`\nSetup complete! Copied: ${copiedCount}, Skipped: ${skippedCount}\n`)
+  );
 }

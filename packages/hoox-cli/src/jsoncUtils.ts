@@ -10,7 +10,9 @@ export function parseJsonc(content: string): unknown {
 
   if (errors.length > 0) {
     const first = errors[0];
-    throw new Error(`Invalid JSONC: ${printParseErrorCode(first.error)} at offset ${first.offset}`);
+    throw new Error(
+      `Invalid JSONC: ${printParseErrorCode(first.error)} at offset ${first.offset}`
+    );
   }
 
   return parsed;

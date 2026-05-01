@@ -12,7 +12,9 @@ const requiredWorkerDirs = [
   "workers/email-worker",
 ];
 
-const missing = requiredWorkerDirs.filter((workerDir) => !fs.existsSync(path.resolve(process.cwd(), workerDir)));
+const missing = requiredWorkerDirs.filter(
+  (workerDir) => !fs.existsSync(path.resolve(process.cwd(), workerDir))
+);
 
 if (missing.length > 0) {
   console.error("❌ Worker submodule content is missing.");

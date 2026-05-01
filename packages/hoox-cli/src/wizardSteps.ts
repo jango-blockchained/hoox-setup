@@ -369,9 +369,7 @@ export async function step_saveConfig(state: WizardState): Promise<void> {
   );
 
   // Cast to the Config type expected by configUtils
-  await saveConfig(
-    configToSave
-  );
+  await saveConfig(configToSave);
 }
 
 export async function step_configureSecrets(state: WizardState): Promise<void> {
@@ -526,9 +524,7 @@ export async function step_initialDeploy(state: WizardState): Promise<void> {
     console.log(ansis.dim("Skipping initial deployment."));
     console.log(
       ansis.blue(
-        "You can deploy later using " +
-          ansis.dim("'hoox workers deploy'") +
-          "."
+        "You can deploy later using " + ansis.dim("'hoox workers deploy'") + "."
       )
     );
   }

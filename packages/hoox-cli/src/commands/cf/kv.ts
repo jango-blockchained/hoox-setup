@@ -1,6 +1,12 @@
 import { CloudflareClient } from "../../lib/cf-client.js";
 import { loadConfig } from "../../configUtils.js";
-import { print_success, print_error, print_info, cyan, yellow } from "../../utils.js";
+import {
+  print_success,
+  print_error,
+  print_info,
+  cyan,
+  yellow,
+} from "../../utils.js";
 
 async function getClient(): Promise<CloudflareClient> {
   const config = await loadConfig();
@@ -47,7 +53,11 @@ export async function getKVValue(nsId: string, key: string): Promise<void> {
   console.log(`${key} = ${value}`);
 }
 
-export async function setKVValue(nsId: string, key: string, value: string): Promise<void> {
+export async function setKVValue(
+  nsId: string,
+  key: string,
+  value: string
+): Promise<void> {
   const client = await getClient();
   await client.setKVValue(nsId, key, value);
   print_success(`Set ${key} = ${value} in namespace ${nsId}`);

@@ -8,8 +8,14 @@ import { parseJsonc } from "./jsoncUtils.js";
 
 // Constants for files
 const WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc");
-const EXAMPLE_WORKERS_JSONC = path.resolve(process.cwd(), "workers.jsonc.example");
-const WIZARD_STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
+const EXAMPLE_WORKERS_JSONC = path.resolve(
+  process.cwd(),
+  "workers.jsonc.example"
+);
+const WIZARD_STATE_FILE = path.resolve(
+  process.cwd(),
+  ".install-wizard-state.json"
+);
 
 async function main() {
   intro("Setup Validation Tool");
@@ -19,7 +25,11 @@ async function main() {
   // Check if essential files exist
   const fileChecks = [
     { path: WORKERS_JSONC, name: "workers.jsonc", required: true },
-    { path: EXAMPLE_WORKERS_JSONC, name: "workers.jsonc.example", required: true },
+    {
+      path: EXAMPLE_WORKERS_JSONC,
+      name: "workers.jsonc.example",
+      required: true,
+    },
     {
       path: WIZARD_STATE_FILE,
       name: ".install-wizard-state.json",
@@ -39,7 +49,9 @@ async function main() {
         clackLog.error(`${file.name} is missing`);
         allFilesExist = false;
       } else {
-        clackLog.warn(`Optional file ${file.name} is missing (this is normal if setup is complete)`);
+        clackLog.warn(
+          `Optional file ${file.name} is missing (this is normal if setup is complete)`
+        );
       }
     }
   }
@@ -60,9 +72,13 @@ async function main() {
     config = parseJsonc(configStr);
     clackLog.success(`workers.jsonc successfully parsed`);
   } catch (error) {
-    clackLog.error(`Error reading or parsing workers.jsonc: ${error instanceof Error ? error.message : String(error)}`);
+    clackLog.error(
+      `Error reading or parsing workers.jsonc: ${error instanceof Error ? error.message : String(error)}`
+    );
     if (configStr) {
-      console.error(dim(JSON.stringify(redactForLogs({ workersJsonc: configStr }), null, 2)));
+      console.error(
+        dim(JSON.stringify(redactForLogs({ workersJsonc: configStr }), null, 2))
+      );
     }
     process.exitCode = 1;
     return;
@@ -72,7 +88,9 @@ async function main() {
     const result = ConfigSchema.safeParse(config);
     if (!result.success) {
       clackLog.error("workers.jsonc has invalid structure:");
-      console.error(dim(JSON.stringify(redactForLogs(result.error.flatten()), null, 2)));
+      console.error(
+        dim(JSON.stringify(redactForLogs(result.error.flatten()), null, 2))
+      );
       process.exitCode = 1;
     } else {
       clackLog.success(`workers.jsonc matches schema`);
@@ -88,15 +106,15 @@ async function main() {
     let allGlobalKeysPresent = true;
 
     if (!config.global) {
-       clackLog.error("Missing 'global' section in workers.jsonc");
-       allGlobalKeysPresent = false;
+      clackLog.error("Missing 'global' section in workers.jsonc");
+      allGlobalKeysPresent = false;
     } else {
-       for (const key of globalRequiredKeys) {
-         if (!(config.global as any)[key]) {
-           clackLog.error(`Missing required global key: ${key}`);
-           allGlobalKeysPresent = false;
-         }
-       }
+      for (const key of globalRequiredKeys) {
+        if (!(config.global as any)[key]) {
+          clackLog.error(`Missing required global key: ${key}`);
+          allGlobalKeysPresent = false;
+        }
+      }
     }
 
     if (allGlobalKeysPresent) {
@@ -109,7 +127,7 @@ async function main() {
       for (const [workerName, workerConfig] of Object.entries(config.workers)) {
         if (workerConfig.enabled) {
           activeWorkers++;
-          
+
           const workerPath = path.resolve(
             process.cwd(),
             workerConfig.path || `workers/${workerName}`
@@ -118,7 +136,9 @@ async function main() {
             await fs.access(workerPath);
             clackLog.success(`Worker: ${workerName} directory exists`);
           } catch {
-            clackLog.error(`Worker: ${workerName} directory missing at ${workerPath}`);
+            clackLog.error(
+              `Worker: ${workerName} directory missing at ${workerPath}`
+            );
           }
         }
       }
@@ -137,7 +157,9 @@ async function main() {
       if (state.currentStep === state.totalSteps) {
         clackLog.success(`Wizard completed successfully`);
       } else {
-        clackLog.warn(`Wizard incomplete. Stopped at step ${state.currentStep} of ${state.totalSteps}`);
+        clackLog.warn(
+          `Wizard incomplete. Stopped at step ${state.currentStep} of ${state.totalSteps}`
+        );
       }
     } else {
       clackLog.error(`Invalid wizard state structure`);
@@ -146,7 +168,9 @@ async function main() {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       clackLog.info("No wizard state file found (setup might be manual)");
     } else {
-      clackLog.error(`Error reading wizard state: ${error instanceof Error ? error.message : String(error)}`);
+      clackLog.error(
+        `Error reading wizard state: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -157,7 +181,9 @@ async function main() {
 
   for (const env of requiredEnvs) {
     if (!process.env[env]) {
-      clackLog.warn(`Missing ${env} in environment (Might be configured in workers.jsonc instead)`);
+      clackLog.warn(
+        `Missing ${env} in environment (Might be configured in workers.jsonc instead)`
+      );
       envsOk = false;
     }
   }
@@ -171,6 +197,8 @@ async function main() {
 
 // Execute the check if run directly
 main().catch((error) => {
-  clackLog.error(`An unexpected error occurred during setup validation: ${error.message}`);
+  clackLog.error(
+    `An unexpected error occurred during setup validation: ${error.message}`
+  );
   process.exitCode = 1;
 });
