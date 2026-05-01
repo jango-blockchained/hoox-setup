@@ -12,6 +12,15 @@ export interface WorkerConfigManifest {
   description?: string;
   sections: DashboardSection[];
 }
+interface ParsedSection {
+  title?: string;
+  description?: string;
+  icon?: string;
+  priority?: number;
+  fields?: Record<string, string | number | boolean>;
+  options?: Record<string, string[]>;
+  descriptions?: Record<string, string>;
+}
 
 function parseFieldValue(value: string | number | boolean): SettingField["type"] {
   if (typeof value === "boolean") return "boolean";
@@ -51,14 +60,19 @@ export function parseDashboardJSONC(
   try {
     // Strip comments to safely parse JSONC
     const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
-    const parsed = JSON.parse(cleanContent);
+    const parsed = JSON.parse(cleanContent) as {
+      display_name?: string;
+      displayName?: string;
+      description?: string;
+      sections?: Record<string, ParsedSection>;
+    };
 
     const displayName = parsed.display_name || parsed.displayName || workerName;
     const description = parsed.description || "";
     const sections: DashboardSection[] = [];
 
     if (parsed.sections) {
-      for (const [sectionId, sectionData] of Object.entries<any>(parsed.sections)) {
+      for (const [sectionId, sectionData] of Object.entries(parsed.sections)) {
         const fields: SettingField[] = [];
         const sectionFields = sectionData.fields || {};
         const sectionOptions = sectionData.options || {};

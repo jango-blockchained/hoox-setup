@@ -402,3 +402,51 @@ describe("Settings Helper Functions", () => {
     });
   });
 });
+
+
+describe("Secrets API Route", () => {
+  let secretsRoute: any;
+
+  beforeEach(async () => {
+    process.env = { ...originalEnv };
+    secretsRoute = await import("../src/app/api/secrets/route");
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  test("GET returns safe config error when required Cloudflare env is missing", async () => {
+    delete process.env.CLOUDFLARE_API_TOKEN;
+    delete process.env.CLOUDFLARE_ACCOUNT_ID;
+    delete process.env.CLOUDFLARE_SECRET_STORE_ID;
+
+    const response = await secretsRoute.GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe("Cloudflare Secret Store is not configured");
+    expect(JSON.stringify(body)).not.toContain("CLOUDFLARE_ACCOUNT_ID");
+    expect(JSON.stringify(body)).not.toContain("debc6545e63bea36be059cbc82d80ec8");
+  });
+
+  test("login config error response does not include debug details", async () => {
+    delete process.env.DASHBOARD_USER;
+    delete process.env.DASHBOARD_PASS;
+    const localLoginRoute = await import("../src/app/api/auth/login/route");
+
+    const request = new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "pass" }),
+    });
+
+    const response = await localLoginRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.error).toBe("Auth not configured");
+    expect(body.debug).toBeUndefined();
+  });
+});

@@ -46,6 +46,16 @@ export async function GET() {
     const apiToken = await getCloudflareApiToken();
     const storeId = await getCloudflareSecretStoreId();
 
+    if (!apiToken || !accountId || !storeId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cloudflare Secret Store is not configured",
+        },
+        { status: 500 }
+      );
+    }
+
     let fetchedSecrets: { name: string }[] = [];
 
     if (apiToken && accountId && storeId) {
