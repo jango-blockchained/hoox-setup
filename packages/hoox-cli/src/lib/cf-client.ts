@@ -73,7 +73,10 @@ export class CloudflareClient {
     this.accountId = config.accountId;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const response = await fetch(url, {
       ...options,
@@ -336,18 +339,29 @@ export class CloudflareClient {
     return result.result;
   }
 
-  async listZones(): Promise<Array<{ id: string; name: string; status: string }>> {
-    const result = await this.request<{ result: Array<{ id: string; name: string; status: string }> }>(
-      `/zones`
-    );
+  async listZones(): Promise<
+    Array<{ id: string; name: string; status: string }>
+  > {
+    const result = await this.request<{
+      result: Array<{ id: string; name: string; status: string }>;
+    }>(`/zones`);
     this.checkSuccess(result);
     return result.result;
   }
 
-  async listDNSRecords(zoneId: string): Promise<Array<{ id: string; type: string; name: string; content: string }>> {
-    const result = await this.request<{ result: Array<{ id: string; type: string; name: string; content: string }> }>(
-      `/zones/${zoneId}/dns_records`
-    );
+  async listDNSRecords(
+    zoneId: string
+  ): Promise<
+    Array<{ id: string; type: string; name: string; content: string }>
+  > {
+    const result = await this.request<{
+      result: Array<{
+        id: string;
+        type: string;
+        name: string;
+        content: string;
+      }>;
+    }>(`/zones/${zoneId}/dns_records`);
     this.checkSuccess(result);
     return result.result;
   }
@@ -376,7 +390,9 @@ export class CloudflareClient {
   }
 }
 
-export async function createCFClient(config: CFConfig): Promise<CloudflareClient> {
+export async function createCFClient(
+  config: CFConfig
+): Promise<CloudflareClient> {
   return new CloudflareClient(config);
 }
 

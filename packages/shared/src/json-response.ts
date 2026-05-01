@@ -14,6 +14,9 @@ export function createSuccessResponse(result?: unknown): Response {
   return createJsonResponse({ success: true, result }, 200);
 }
 
-export function createErrorResponse(error: string, status: number = 500): Response {
+export function createErrorResponse(
+  error: string,
+  status: number = 500
+): Response {
   return createJsonResponse({ success: false, error }, status);
 }

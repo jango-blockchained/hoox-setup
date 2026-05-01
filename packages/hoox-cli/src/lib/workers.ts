@@ -8,21 +8,33 @@ export interface WorkerConfig {
   name: string;
   port: number;
   extraArgs: string;
-  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error';
+  status: "stopped" | "starting" | "running" | "stopping" | "error";
 }
 
 export class WorkerService {
   public workers: Record<string, WorkerConfig>;
-  private setWorkers: (updater: (prev: Record<string, WorkerConfig>) => Record<string, WorkerConfig>) => void;
-  private setLogs: (updater: (prev: Record<string, string[]>) => Record<string, string[]>) => void;
+  private setWorkers: (
+    updater: (
+      prev: Record<string, WorkerConfig>
+    ) => Record<string, WorkerConfig>
+  ) => void;
+  private setLogs: (
+    updater: (prev: Record<string, string[]>) => Record<string, string[]>
+  ) => void;
   private setStatusMessage: (msg: string) => void;
   private workerProcesses: Record<string, ChildProcess> = {};
   private logBuffers: Record<string, string[]> = {};
 
   constructor(
     initialWorkers: Record<string, WorkerConfig>,
-    setWorkers: (updater: (prev: Record<string, WorkerConfig>) => Record<string, WorkerConfig>) => void,
-    setLogs: (updater: (prev: Record<string, string[]>) => Record<string, string[]>) => void,
+    setWorkers: (
+      updater: (
+        prev: Record<string, WorkerConfig>
+      ) => Record<string, WorkerConfig>
+    ) => void,
+    setLogs: (
+      updater: (prev: Record<string, string[]>) => Record<string, string[]>
+    ) => void,
     setStatusMessage: (msg: string) => void
   ) {
     this.workers = { ...initialWorkers };
@@ -47,12 +59,19 @@ export class WorkerService {
 
     try {
       const worker = this.getWorkerConfig(workerId);
-      if (!worker) throw new Error(`Worker configuration not found for ${workerId}`);
+      if (!worker)
+        throw new Error(`Worker configuration not found for ${workerId}`);
 
       let dirName = `${workerId}-worker`;
       if (workerId === "webhook") dirName = "hoox";
-      
-      const workingDir = path.resolve(process.cwd(), "..", "..", "workers", dirName);
+
+      const workingDir = path.resolve(
+        process.cwd(),
+        "..",
+        "..",
+        "workers",
+        dirName
+      );
 
       const childProcess = spawn(
         process.execPath,
@@ -93,11 +112,15 @@ export class WorkerService {
 
       this.workers[workerId].status = "running";
       this.updateWorkerStatus(workerId, "running");
-      this.setStatusMessage(`${workerId} worker started on port ${worker.port}`);
+      this.setStatusMessage(
+        `${workerId} worker started on port ${worker.port}`
+      );
     } catch (error: any) {
       if (this.workers[workerId]) this.workers[workerId].status = "error";
       this.updateWorkerStatus(workerId, "error");
-      this.setStatusMessage(`Error starting ${workerId} worker: ${error.message}`);
+      this.setStatusMessage(
+        `Error starting ${workerId} worker: ${error.message}`
+      );
       this.addToLogs(workerId, `Error: ${error.message}`);
     }
   }
@@ -129,7 +152,9 @@ export class WorkerService {
         clearTimeout(killTimeout);
         if (this.workers[workerId]) this.workers[workerId].status = "error";
         this.updateWorkerStatus(workerId, "error");
-        this.setStatusMessage(`Error stopping ${workerId} worker: ${error.message}`);
+        this.setStatusMessage(
+          `Error stopping ${workerId} worker: ${error.message}`
+        );
         reject(error);
       };
 
@@ -190,10 +215,12 @@ export class WorkerService {
 
   async checkAllStatus() {
     try {
-      const { stdout } = await execPromise("ps aux | grep 'bun run dev --' | grep -v grep");
+      const { stdout } = await execPromise(
+        "ps aux | grep 'bun run dev --' | grep -v grep"
+      );
       const psLines = stdout.split("\n");
       const runningPortMap: Record<number, number> = {};
-      
+
       psLines.forEach((line) => {
         const match = line.match(/\s+(\d+)\s+.*bun run dev -- --port (\d+)/);
         if (match) runningPortMap[parseInt(match[2])] = parseInt(match[1]);
@@ -226,7 +253,7 @@ export class WorkerService {
     }
   }
 
-  private updateWorkerStatus(workerId: string, status: WorkerConfig['status']) {
+  private updateWorkerStatus(workerId: string, status: WorkerConfig["status"]) {
     this.setWorkers((prev) => ({
       ...prev,
       [workerId]: { ...prev[workerId], status },
@@ -236,7 +263,7 @@ export class WorkerService {
   private addToLogs(workerId: string, data: string) {
     const lines = data.split("\n").filter(Boolean);
     if (!this.logBuffers[workerId]) this.logBuffers[workerId] = [];
-    
+
     this.logBuffers[workerId].push(...lines);
     if (this.logBuffers[workerId].length > 500) {
       this.logBuffers[workerId] = this.logBuffers[workerId].slice(-500);

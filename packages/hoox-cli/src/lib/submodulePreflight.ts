@@ -3,7 +3,9 @@ import path from "node:path";
 import type { Config } from "../types.js";
 import { print_error } from "../utils.js";
 
-export function getMissingWorkerDirectories(config: Config): Array<{ workerName: string; workerPath: string }> {
+export function getMissingWorkerDirectories(
+  config: Config
+): Array<{ workerName: string; workerPath: string }> {
   const missing: Array<{ workerName: string; workerPath: string }> = [];
 
   for (const [workerName, workerConfig] of Object.entries(config.workers)) {
@@ -18,11 +20,16 @@ export function getMissingWorkerDirectories(config: Config): Array<{ workerName:
   return missing;
 }
 
-export function assertWorkerSubmodulesPresent(config: Config, commandName: string): void {
+export function assertWorkerSubmodulesPresent(
+  config: Config,
+  commandName: string
+): void {
   const missing = getMissingWorkerDirectories(config);
   if (missing.length === 0) return;
 
-  const missingList = missing.map(({ workerName, workerPath }) => `- ${workerName}: ${workerPath}`).join("\n");
+  const missingList = missing
+    .map(({ workerName, workerPath }) => `- ${workerName}: ${workerPath}`)
+    .join("\n");
 
   print_error(
     [

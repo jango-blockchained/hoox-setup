@@ -4,7 +4,7 @@
 const DIST_DIR = "./dist";
 
 const routes = {
-  "hoox": "./dist/hoox/index.js",
+  hoox: "./dist/hoox/index.js",
   "trade-worker": "./dist/trade-worker/index.js",
   "telegram-worker": "./dist/telegram-worker/index.js",
   "d1-worker": "./dist/d1-worker/index.js",
@@ -21,7 +21,8 @@ const SECURITY_HEADERS = {
   "X-XSS-Protection": "1; mode=block",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-  "Permissions-Policy": "accelerometer=(), camera=(), geolocation=(), microphone=()",
+  "Permissions-Policy":
+    "accelerometer=(), camera=(), geolocation=(), microphone=()",
   "Content-Security-Policy": "default-src 'self'",
 };
 
@@ -54,8 +55,12 @@ async function start() {
   // Validate that an API key is configured for the self-hosted server
   const serverApiKey = process.env.HOOX_SERVER_API_KEY;
   if (!serverApiKey) {
-    console.warn("⚠️  WARNING: HOOX_SERVER_API_KEY not set. The server has no authentication!");
-    console.warn("   Set HOOX_SERVER_API_KEY environment variable for production use.");
+    console.warn(
+      "⚠️  WARNING: HOOX_SERVER_API_KEY not set. The server has no authentication!"
+    );
+    console.warn(
+      "   Set HOOX_SERVER_API_KEY environment variable for production use."
+    );
   }
 
   for (const [name, path] of Object.entries(routes)) {
@@ -83,7 +88,8 @@ async function start() {
 
       // API key validation for all other routes (if configured)
       if (serverApiKey) {
-        const providedKey = req.headers.get("X-API-Key") || url.searchParams.get("apiKey");
+        const providedKey =
+          req.headers.get("X-API-Key") || url.searchParams.get("apiKey");
         if (providedKey !== serverApiKey) {
           return addSecurityHeaders(
             new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -99,18 +105,24 @@ async function start() {
       // Simple routing based on path
       // In a real workerd setup, this would be handled by service bindings
       if (url.pathname.startsWith("/telegram")) {
-        response = modules["telegram-worker"]?.fetch(req) || new Response("Worker not loaded", { status: 500 });
+        response =
+          modules["telegram-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
       } else if (url.pathname.startsWith("/api/dashboard")) {
-        response = modules["d1-worker"]?.fetch(req) || new Response("Worker not loaded", { status: 500 });
+        response =
+          modules["d1-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
       } else {
         // Default to hoox gateway
-        response = modules["hoox"]?.fetch(req) || new Response("Gateway not loaded", { status: 500 });
+        response =
+          modules["hoox"]?.fetch(req) ||
+          new Response("Gateway not loaded", { status: 500 });
       }
 
       // Await if promise, then add security headers
       const resolvedResponse = await response;
       return addSecurityHeaders(resolvedResponse);
-    }
+    },
   });
 
   console.log(`🚀 Hoox running on http://localhost:${port}`);

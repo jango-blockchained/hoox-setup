@@ -9,7 +9,9 @@ export interface WizardContext {
 
 export interface WizardStep {
   name: string;
-  validate: (ctx: WizardContext) => Promise<{ valid: boolean; errors: string[] }>;
+  validate: (
+    ctx: WizardContext
+  ) => Promise<{ valid: boolean; errors: string[] }>;
   execute: (ctx: WizardContext) => Promise<void>;
   rollback?: (ctx: WizardContext) => Promise<void>;
 }

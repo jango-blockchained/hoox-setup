@@ -68,7 +68,9 @@ export abstract class BaseExchangeClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const headers = this.buildHeaders(method, path, params);
-    const body = params ? new URLSearchParams(params as Record<string, string>).toString() : undefined;
+    const body = params
+      ? new URLSearchParams(params as Record<string, string>).toString()
+      : undefined;
 
     const response = await fetch(url, {
       method,
@@ -98,7 +100,13 @@ export abstract class BaseExchangeClient {
     price?: number,
     orderType = "MARKET"
   ): Promise<OrderResponse> {
-    return this.executeTrade({ symbol, side: "long", orderType, quantity, price });
+    return this.executeTrade({
+      symbol,
+      side: "long",
+      orderType,
+      quantity,
+      price,
+    });
   }
 
   public async openShort(
@@ -107,14 +115,36 @@ export abstract class BaseExchangeClient {
     price?: number,
     orderType = "MARKET"
   ): Promise<OrderResponse> {
-    return this.executeTrade({ symbol, side: "short", orderType, quantity, price });
+    return this.executeTrade({
+      symbol,
+      side: "short",
+      orderType,
+      quantity,
+      price,
+    });
   }
 
-  public async closeLong(symbol: string, quantity: number): Promise<OrderResponse> {
-    return this.executeTrade({ symbol, side: "long", quantity, reduceOnly: true });
+  public async closeLong(
+    symbol: string,
+    quantity: number
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "long",
+      quantity,
+      reduceOnly: true,
+    });
   }
 
-  public async closeShort(symbol: string, quantity: number): Promise<OrderResponse> {
-    return this.executeTrade({ symbol, side: "short", quantity, reduceOnly: true });
+  public async closeShort(
+    symbol: string,
+    quantity: number
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "short",
+      quantity,
+      reduceOnly: true,
+    });
   }
 }

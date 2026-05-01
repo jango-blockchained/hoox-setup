@@ -27,7 +27,9 @@ export async function updateCfSecret(
   value?: string
 ): Promise<void> {
   if (!SECRET_NAME_REGEX.test(secretName)) {
-    log.error(`Invalid secret name: ${secretName}. Use only A-Z, 0-9, underscore, or dash.`);
+    log.error(
+      `Invalid secret name: ${secretName}. Use only A-Z, 0-9, underscore, or dash.`
+    );
     return;
   }
 
@@ -75,18 +77,31 @@ export async function updateCfSecret(
       );
     }
   } catch (createErr) {
-    const listOutputResult = runWranglerSecretStoreCommand(["secret", "list", storeId, "--remote"]);
+    const listOutputResult = runWranglerSecretStoreCommand([
+      "secret",
+      "list",
+      storeId,
+      "--remote",
+    ]);
     const listOutput = listOutputResult.stdout;
 
-    clack.log.warn("Secret might already exist. Attempting to find ID and update...");
+    clack.log.warn(
+      "Secret might already exist. Attempting to find ID and update..."
+    );
 
     let secretId: string | null = null;
     const match =
       listOutput.match(
-        new RegExp(`"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${escapeRegExp(secretName)}"`, "i")
+        new RegExp(
+          `"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${escapeRegExp(secretName)}"`,
+          "i"
+        )
       ) ||
       listOutput.match(
-        new RegExp(`${escapeRegExp(secretName)}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`, "i")
+        new RegExp(
+          `${escapeRegExp(secretName)}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`,
+          "i"
+        )
       );
 
     if (!match && listOutput.includes(secretName)) {
@@ -135,7 +150,7 @@ export async function updateCfSecret(
   // Save to local .dev.vars
   try {
     const updateEnvFile = (filePath: string, key: string, val: string) => {
-      let lines = fs.existsSync(filePath)
+      const lines = fs.existsSync(filePath)
         ? fs.readFileSync(filePath, "utf-8").split("\n")
         : [];
       const idx = lines.findIndex((line: string) => line.startsWith(key + "="));
@@ -148,14 +163,21 @@ export async function updateCfSecret(
       fs.writeFileSync(filePath, lines.join("\n").trim() + "\n");
     };
 
-    const workerDevVars = path.join(process.cwd(), "workers", workerName, ".dev.vars");
+    const workerDevVars = path.join(
+      process.cwd(),
+      "workers",
+      workerName,
+      ".dev.vars"
+    );
     if (fs.existsSync(path.dirname(workerDevVars))) {
       updateEnvFile(workerDevVars, secretName, value);
     }
 
     log.success(`Saved ${secretName} to local environment files`);
   } catch (localErr) {
-    log.warn(`Could not save to local environment files: ${(localErr as Error).message}`);
+    log.warn(
+      `Could not save to local environment files: ${(localErr as Error).message}`
+    );
   }
 }
 
@@ -165,16 +187,34 @@ export async function updateCfSecret(
 export function showSecretsGuide(): void {
   const configPath = path.resolve(process.cwd(), "workers.jsonc");
   console.log(blue("\n--- Managing Secrets with Cloudflare Secret Store ---"));
-  console.log("This project uses Cloudflare's Secret Store for managing sensitive values.");
-  console.log("Secrets are NOT uploaded by this script anymore. You must create them in Cloudflare.");
+  console.log(
+    "This project uses Cloudflare's Secret Store for managing sensitive values."
+  );
+  console.log(
+    "Secrets are NOT uploaded by this script anymore. You must create them in Cloudflare."
+  );
   console.log(yellow("\nAction Required:"));
-  console.log(`1. Identify required secret names in ${cyan(configPath)} under ${cyan("[workers.<worker-name>].secrets")}.`);
-  console.log("2. Ensure you have a Cloudflare Secret Store. List stores using:");
+  console.log(
+    `1. Identify required secret names in ${cyan(configPath)} under ${cyan("[workers.<worker-name>].secrets")}.`
+  );
+  console.log(
+    "2. Ensure you have a Cloudflare Secret Store. List stores using:"
+  );
   console.log(dim("   bunx wrangler secrets-store store list"));
-  console.log(`3. Get your Store ID and add it to ${cyan(configPath)} under ${cyan("[global].cloudflare_secret_store_id")}.`);
-  console.log("4. Create each required secret using the Cloudflare Dashboard or Wrangler:");
-  console.log(dim("   bunx wrangler secrets-store secret create <STORE_ID> --name YOUR_SECRET_NAME --scopes workers"));
-  console.log(yellow("   Note: Secret names MUST match those listed in workers.jsonc."));
+  console.log(
+    `3. Get your Store ID and add it to ${cyan(configPath)} under ${cyan("[global].cloudflare_secret_store_id")}.`
+  );
+  console.log(
+    "4. Create each required secret using the Cloudflare Dashboard or Wrangler:"
+  );
+  console.log(
+    dim(
+      "   bunx wrangler secrets-store secret create <STORE_ID> --name YOUR_SECRET_NAME --scopes workers"
+    )
+  );
+  console.log(
+    yellow("   Note: Secret names MUST match those listed in workers.jsonc.")
+  );
   console.log("5. Once secrets exist in the store, run the setup command:");
   console.log(dim("   hoox workers setup"));
   console.log("-----------------------------------------------------");

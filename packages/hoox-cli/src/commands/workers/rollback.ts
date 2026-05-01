@@ -1,6 +1,12 @@
 import { CloudflareClient } from "../../lib/cf-client.js";
 import { loadConfig } from "../../configUtils.js";
-import { print_success, print_error, print_info, yellow, rl } from "../../utils.js";
+import {
+  print_success,
+  print_error,
+  print_info,
+  yellow,
+  rl,
+} from "../../utils.js";
 
 async function getClient(): Promise<CloudflareClient> {
   const config = await loadConfig();
@@ -20,7 +26,10 @@ export async function listWorkerVersions(workerName: string): Promise<void> {
   });
 }
 
-export async function rollbackWorker(workerName: string, version?: string): Promise<void> {
+export async function rollbackWorker(
+  workerName: string,
+  version?: string
+): Promise<void> {
   const client = await getClient();
   const versions = await client.getWorkerVersions(workerName);
 

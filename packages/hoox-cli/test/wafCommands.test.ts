@@ -17,10 +17,10 @@ describe("WAF Commands - Unit Tests", () => {
 
   describe("TradingView IP Allowlist", () => {
     const TRADINGVIEW_ALLOWED_IPS = [
-      '52.89.214.238',
-      '34.212.75.30',
-      '54.218.53.128',
-      '52.32.178.7',
+      "52.89.214.238",
+      "34.212.75.30",
+      "54.218.53.128",
+      "52.32.178.7",
     ];
 
     test("should have 4 TradingView IPs", () => {
@@ -29,19 +29,19 @@ describe("WAF Commands - Unit Tests", () => {
 
     test("should validate IP format", () => {
       const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-      TRADINGVIEW_ALLOWED_IPS.forEach(ip => {
+      TRADINGVIEW_ALLOWED_IPS.forEach((ip) => {
         expect(ipRegex.test(ip)).toBe(true);
       });
     });
 
     test("should check if IP is in allowlist", () => {
-      const testIp = '52.89.214.238';
+      const testIp = "52.89.214.238";
       const isAllowed = TRADINGVIEW_ALLOWED_IPS.includes(testIp);
       expect(isAllowed).toBe(true);
     });
 
     test("should reject IP not in allowlist", () => {
-      const testIp = '192.168.1.1';
+      const testIp = "192.168.1.1";
       const isAllowed = TRADINGVIEW_ALLOWED_IPS.includes(testIp);
       expect(isAllowed).toBe(false);
     });
@@ -50,18 +50,18 @@ describe("WAF Commands - Unit Tests", () => {
   describe("WAF Rule Expression Builder", () => {
     test("should build correct IP expression", () => {
       const workerHostname = "hoox.example.com";
-      const allowedIps = ['52.89.214.238', '34.212.75.30'];
-      
-      const expression = `http.host eq "${workerHostname}" and not (ip.src in {${allowedIps.join(' ')}})`;
-      
+      const allowedIps = ["52.89.214.238", "34.212.75.30"];
+
+      const expression = `http.host eq "${workerHostname}" and not (ip.src in {${allowedIps.join(" ")}})`;
+
       expect(expression).toContain(workerHostname);
       expect(expression).toContain("ip.src in");
     });
 
     test("should handle multiple IPs in expression", () => {
-      const ips = ['10.0.0.1', '10.0.0.2', '10.0.0.3'];
-      const expression = `ip.src in {${ips.join(' ')}}`;
-      
+      const ips = ["10.0.0.1", "10.0.0.2", "10.0.0.3"];
+      const expression = `ip.src in {${ips.join(" ")}}`;
+
       expect(expression).toContain("10.0.0.1");
       expect(expression).toContain("10.0.0.2");
       expect(expression).toContain("10.0.0.3");
@@ -85,7 +85,7 @@ describe("WAF Commands - Unit Tests", () => {
 
     test("should validate rule action types", () => {
       const validActions = ["block", "allow", "challenge", "log"];
-      
+
       expect(validActions).toContain("block");
       expect(validActions).toContain("allow");
       expect(validActions).toContain("challenge");
@@ -96,21 +96,23 @@ describe("WAF Commands - Unit Tests", () => {
     test("should build correct rulesets URL", () => {
       const zoneId = "zone-123";
       const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets`;
-      
-      expect(url).toBe("https://api.cloudflare.com/client/v4/zones/zone-123/rulesets");
+
+      expect(url).toBe(
+        "https://api.cloudflare.com/client/v4/zones/zone-123/rulesets"
+      );
     });
 
     test("should include correct API version", () => {
       const zoneId = "test-zone";
       const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets`;
-      
+
       expect(url).toContain("/client/v4/");
     });
 
     test("should handle different zone IDs", () => {
       const zoneIds = ["abc123", "xyz789", "test-zone-id"];
-      
-      zoneIds.forEach(zoneId => {
+
+      zoneIds.forEach((zoneId) => {
         const url = `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets`;
         expect(url).toMatch(/zones\/.+/);
       });
@@ -118,14 +120,18 @@ describe("WAF Commands - Unit Tests", () => {
   });
 
   describe("R2 Bucket Operations", () => {
-    const BUCKETS_TO_CREATE = ["trade-reports", "user-uploads", "hoox-system-logs"];
+    const BUCKETS_TO_CREATE = [
+      "trade-reports",
+      "user-uploads",
+      "hoox-system-logs",
+    ];
 
     test("should have 3 default buckets", () => {
       expect(BUCKETS_TO_CREATE).toHaveLength(3);
     });
 
     test("should validate bucket naming", () => {
-      BUCKETS_TO_CREATE.forEach(bucket => {
+      BUCKETS_TO_CREATE.forEach((bucket) => {
         expect(bucket.length).toBeGreaterThan(0);
         expect(bucket).toMatch(/^[a-z0-9-]+$/);
       });
@@ -134,7 +140,7 @@ describe("WAF Commands - Unit Tests", () => {
     test("should handle bucket name format", () => {
       const bucketName = "trade-reports";
       const slug = bucketName.replace(/_/g, "-").toLowerCase();
-      
+
       expect(slug).toBe("trade-reports");
     });
   });
@@ -167,7 +173,10 @@ describe("WAF Commands - Unit Tests", () => {
 });
 
 describe("WAF Commands - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-waf-integration-${Date.now()}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-waf-integration-${Date.now()}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -180,10 +189,10 @@ describe("WAF Commands - Integration Tests", () => {
   test("full WAF config construction", () => {
     const zoneId = "test-zone-123";
     const hostname = "hoox.example.com";
-    const allowedIps = ['52.89.214.238', '34.212.75.30'];
+    const allowedIps = ["52.89.214.238", "34.212.75.30"];
 
     const apiUrl = `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets`;
-    const ipExpression = `http.host eq "${hostname}" and not (ip.src in {${allowedIps.join(' ')}})`;
+    const ipExpression = `http.host eq "${hostname}" and not (ip.src in {${allowedIps.join(" ")}})`;
     const rule = {
       action: "block",
       expression: ipExpression,
@@ -203,7 +212,7 @@ describe("WAF Commands - Integration Tests", () => {
       },
     };
 
-    const hasRequiredFields = 
+    const hasRequiredFields =
       config.global.cloudflare_api_token !== undefined &&
       config.global.cloudflare_api_token !== "";
 

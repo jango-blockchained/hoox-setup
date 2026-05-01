@@ -52,9 +52,25 @@ export interface WranglerConfig {
   compatibility_date?: string;
   vars?: Record<string, string>;
   services?: { binding: string; service: string }[];
-  d1_databases?: { binding: string; database_name?: string; database_id?: string }[];
-  secrets_store?: { bindings?: { name: string; secret_name: string; store_id?: string; binding?: string }[] };
-  secrets_store_secrets?: { name: string; secret_name: string; store_id?: string; binding?: string }[]; // TOML equivalent
+  d1_databases?: {
+    binding: string;
+    database_name?: string;
+    database_id?: string;
+  }[];
+  secrets_store?: {
+    bindings?: {
+      name: string;
+      secret_name: string;
+      store_id?: string;
+      binding?: string;
+    }[];
+  };
+  secrets_store_secrets?: {
+    name: string;
+    secret_name: string;
+    store_id?: string;
+    binding?: string;
+  }[]; // TOML equivalent
   queues?: {
     producers?: { binding: string; queue: string }[];
     consumers?: { queue: string }[];
@@ -78,8 +94,12 @@ const WorkerConfigSchema = z
     vars: z.record(z.string()).optional(),
     secrets: z.array(z.string()).optional(),
     deployed_url: z.string().optional(),
-    services: z.array(z.object({ binding: z.string(), service: z.string() })).optional(),
-    d1_databases: z.array(z.object({ binding: z.string(), database_id: z.string() })).optional(),
+    services: z
+      .array(z.object({ binding: z.string(), service: z.string() }))
+      .optional(),
+    d1_databases: z
+      .array(z.object({ binding: z.string(), database_id: z.string() }))
+      .optional(),
     queues: z
       .object({
         producers: z

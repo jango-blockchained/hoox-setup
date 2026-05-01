@@ -1,6 +1,12 @@
 import { CloudflareClient } from "../../lib/cf-client.js";
 import { loadConfig } from "../../configUtils.js";
-import { print_success, print_error, print_info, cyan, yellow } from "../../utils.js";
+import {
+  print_success,
+  print_error,
+  print_info,
+  cyan,
+  yellow,
+} from "../../utils.js";
 
 async function getClient(): Promise<CloudflareClient> {
   const config = await loadConfig();
@@ -61,6 +67,11 @@ export async function addDNSRecord(
     return;
   }
 
-  const result = await client.addDNSRecord(zone.id, { type, name, content, ...(priority ? { priority } : {}) });
+  const result = await client.addDNSRecord(zone.id, {
+    type,
+    name,
+    content,
+    ...(priority ? { priority } : {}),
+  });
   print_success(`Added DNS record: ${type} ${name} -> ${content}`);
 }

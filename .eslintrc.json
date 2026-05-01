@@ -7,32 +7,41 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended" // Integrates Prettier, must be last
+    "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
-    "project": "./tsconfig.json" // Optional: Enables rules requiring type information
+    "project": null
   },
-  "plugins": ["@typescript-eslint", "prettier"],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
   "rules": {
-    "prettier/prettier": "warn", // Show Prettier issues as warnings
+    "prettier/prettier": "warn",
     "@typescript-eslint/no-unused-vars": [
       "warn",
-      { "argsIgnorePattern": "^_" }
-    ], // Warn about unused vars, allow underscores
-    "@typescript-eslint/explicit-module-boundary-types": "off", // Optional: Allow implicit return types
-    "@typescript-eslint/no-var-requires": "off", // Disable require check for now
-    "no-console": "off" // Allow console logs (common in scripts/workers)
-    // Add other project-specific rules here
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "no-console": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/ban-types": "warn",
+    "no-empty": "warn",
+    "no-control-regex": "warn"
   },
   "ignorePatterns": [
     "node_modules/",
     "dist/",
     "*.bak",
     ".wrangler/",
-    "*.md" // Don't lint markdown files
+    "*.md"
   ],
   "overrides": [
     {
@@ -47,7 +56,10 @@
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/consistent-type-assertions": [
           "error",
-          { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }
+          {
+            "assertionStyle": "as",
+            "objectLiteralTypeAssertions": "never"
+          }
         ],
         "no-restricted-syntax": [
           "error",
@@ -68,11 +80,16 @@
       }
     },
     {
-      "files": ["*.js"],
+      "files": [
+        "*.js"
+      ],
       "parserOptions": {
-        "project": null // Don't use project settings for JS files
+        "project": null
       },
-      "parser": "espree" // Use default JS parser
+      "parser": "espree"
     }
-  ]
+  ],
+  "globals": {
+    "Bun": "readonly"
+  }
 }

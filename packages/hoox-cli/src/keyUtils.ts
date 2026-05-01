@@ -85,7 +85,7 @@ export async function readKeys(
 
   const keys: Record<string, string> = {};
   try {
-    const content = (await Bun.file(filePath).text());
+    const content = await Bun.file(filePath).text();
     content.split("\n").forEach((line) => {
       const trimmedLine = line.trim();
       if (trimmedLine && !trimmedLine.startsWith("#")) {
@@ -145,8 +145,8 @@ export async function setKey(
   await ensureKeysDirectoryExists(); // Ensure directory exists before writing
 
   let content = "";
-  if ((await Bun.file(filePath).exists())) {
-    content = (await Bun.file(filePath).text());
+  if (await Bun.file(filePath).exists()) {
+    content = await Bun.file(filePath).text();
   }
 
   const lines = content.split("\n");

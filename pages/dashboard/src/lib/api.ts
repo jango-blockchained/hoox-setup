@@ -56,7 +56,10 @@ class ApiClient {
     this.internalKey = key;
   }
 
-  private async fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async fetchWithAuth<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...options.headers,
@@ -80,7 +83,9 @@ class ApiClient {
   }
 
   private asObject(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+    return typeof value === "object" && value !== null
+      ? (value as Record<string, unknown>)
+      : {};
   }
 
   // Dashboard Stats
@@ -202,7 +207,7 @@ class ApiClient {
   }
   async getHousekeeping(): Promise<{
     timestamp?: string;
-    checks?: any[];
+    checks?: unknown[];
     error?: string;
   }> {
     try {
@@ -215,9 +220,12 @@ class ApiClient {
       if (!response.ok) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      const data = await response.json() as unknown;
+      const data = (await response.json()) as unknown;
       const payload = this.asObject(data);
-      if (typeof payload.timestamp === "string" && Array.isArray(payload.issues)) {
+      if (
+        typeof payload.timestamp === "string" &&
+        Array.isArray(payload.issues)
+      ) {
         return payload as HousekeepingPayload;
       }
       return { error: "Invalid housekeeping payload" };

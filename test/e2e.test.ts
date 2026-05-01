@@ -2,26 +2,40 @@ import { describe, expect, test, beforeEach } from "bun:test";
 
 /**
  * E2E Test Suite for Hoox Gateway and Trading Engine
- * 
+ *
  * This test suite simulates a full TradingView webhook → Gateway → Trade Worker flow
  * and includes dashboard configuration tests.
  */
 
 describe("Hoox E2E Flow", () => {
   const mockEnv = {
-    TRADE_SERVICE: { 
-      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response(JSON.stringify({ success: true, requestId: "test-123" }), { status: 200 })) 
+    TRADE_SERVICE: {
+      fetch: (_req: Request, _init?: RequestInit) =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({ success: true, requestId: "test-123" }),
+            { status: 200 }
+          )
+        ),
     },
-    TELEGRAM_SERVICE: { 
-      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response("OK")) 
+    TELEGRAM_SERVICE: {
+      fetch: (_req: Request, _init?: RequestInit) =>
+        Promise.resolve(new Response("OK")),
     },
-    D1_SERVICE: { 
-      fetch: (_req: Request, _init?: RequestInit) => Promise.resolve(new Response("OK")) 
+    D1_SERVICE: {
+      fetch: (_req: Request, _init?: RequestInit) =>
+        Promise.resolve(new Response("OK")),
     },
     API_KEY: "test-api-key",
     INTERNAL_KEY: "test-internal-key",
-    SESSIONS_KV: { get: () => Promise.resolve(null), put: () => Promise.resolve() },
-    CONFIG_KV: { get: () => Promise.resolve(JSON.stringify({ maxDrawdown: -5 })), put: () => Promise.resolve() },
+    SESSIONS_KV: {
+      get: () => Promise.resolve(null),
+      put: () => Promise.resolve(),
+    },
+    CONFIG_KV: {
+      get: () => Promise.resolve(JSON.stringify({ maxDrawdown: -5 })),
+      put: () => Promise.resolve(),
+    },
   };
 
   test("should process valid LONG signal and forward to trade-worker", async () => {
@@ -30,17 +44,20 @@ describe("Hoox E2E Flow", () => {
       action: "LONG",
       symbol: "BTC_USDT",
       quantity: 0.01,
-      leverage: 10
+      leverage: 10,
     };
 
     expect(signal.action).toBe("LONG");
     expect(signal.exchange).toBe("mexc");
-    
-    const mockResponse = await mockEnv.TRADE_SERVICE.fetch(new Request("http://test"), {
-      method: "POST",
-      body: JSON.stringify(signal)
-    });
-    
+
+    const mockResponse = await mockEnv.TRADE_SERVICE.fetch(
+      new Request("http://test"),
+      {
+        method: "POST",
+        body: JSON.stringify(signal),
+      }
+    );
+
     expect(mockResponse.status).toBe(200);
     const data = (await mockResponse.json()) as { success: boolean };
     expect(data.success).toBe(true);
@@ -57,7 +74,7 @@ describe("Hoox E2E Flow", () => {
       exchange: "binance",
       action: "CLOSE_LONG",
       symbol: "ETH_USDT",
-      quantity: 0.5
+      quantity: 0.5,
     };
 
     expect(closeSignal.action).toBe("CLOSE_LONG");
@@ -77,10 +94,12 @@ describe("Risk Management Flow", () => {
       symbol: "BTC_USDT",
       side: "LONG",
       entryPrice: 50000,
-      currentPrice: 52000
+      currentPrice: 52000,
     };
-    
-    const profit = ((position.currentPrice - position.entryPrice) / position.entryPrice) * 100;
+
+    const profit =
+      ((position.currentPrice - position.entryPrice) / position.entryPrice) *
+      100;
     expect(profit).toBeGreaterThan(0);
   });
 });
@@ -90,11 +109,15 @@ describe("Dashboard Configuration Schema", () => {
     const tests = [
       { key: "global:kill_switch", value: "true", expected: true },
       { key: "global:kill_switch", value: "false", expected: false },
-      { key: "webhook:tradingview:ip_check_enabled", value: "true", expected: true },
+      {
+        key: "webhook:tradingview:ip_check_enabled",
+        value: "true",
+        expected: true,
+      },
     ];
-    
+
     for (const tc of tests) {
-      const parsed = tc.value === 'true';
+      const parsed = tc.value === "true";
       expect(parsed).toBe(tc.expected);
     }
   });
@@ -105,7 +128,7 @@ describe("Dashboard Configuration Schema", () => {
       { key: "agent:timeout_ms", value: "30000", expected: 30000 },
       { key: "agent:retry_count", value: "3", expected: 3 },
     ];
-    
+
     for (const tc of tests) {
       const parsed = Number(tc.value);
       expect(parsed).toBe(tc.expected);
@@ -147,11 +170,11 @@ describe("Agent Worker Provider Configuration", () => {
   test("should map model to provider", async () => {
     const modelMap = {
       "workers-ai": "@cf/meta/llama-3.1-8b-instruct",
-      "openai": "gpt-4o-mini-2024-07-18",
-      "anthropic": "claude-3-haiku-20240307",
-      "google": "gemini-1.5-flash-002"
+      openai: "gpt-4o-mini-2024-07-18",
+      anthropic: "claude-3-haiku-20240307",
+      google: "gemini-1.5-flash-002",
     };
-    
+
     expect(modelMap["workers-ai"]).toBe("@cf/meta/llama-3.1-8b-instruct");
     expect(modelMap["openai"]).toBe("gpt-4o-mini-2024-07-18");
   });
@@ -162,9 +185,9 @@ describe("Worker Service Binding Detection", () => {
     const services = {
       D1_SERVICE: { fetch: () => {} },
       TRADE_SERVICE: { fetch: () => {} },
-      TELEGRAM_SERVICE: { fetch: () => {} }
+      TELEGRAM_SERVICE: { fetch: () => {} },
     };
-    
+
     expect(services.D1_SERVICE).toBeDefined();
     expect(services.TRADE_SERVICE).toBeDefined();
     expect(services.TELEGRAM_SERVICE).toBeDefined();
@@ -172,9 +195,9 @@ describe("Worker Service Binding Detection", () => {
 
   test("should identify missing services", async () => {
     const services: Record<string, any> = {
-      D1_SERVICE: { fetch: () => {} }
+      D1_SERVICE: { fetch: () => {} },
     };
-    
+
     expect(services.TRADE_SERVICE).toBeUndefined();
     expect(services.TELEGRAM_SERVICE).toBeUndefined();
   });

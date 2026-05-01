@@ -29,7 +29,10 @@ const INTERNAL_KEY_SECRETS = [
 ];
 
 async function getCloudflareAccountId(): Promise<string | null> {
-  return getEnvVar(ENV_KEYS.cloudflare.accountId) || "debc6545e63bea36be059cbc82d80ec8";
+  return (
+    getEnvVar(ENV_KEYS.cloudflare.accountId) ||
+    "debc6545e63bea36be059cbc82d80ec8"
+  );
 }
 
 async function getCloudflareApiToken(): Promise<string | null> {
@@ -37,7 +40,10 @@ async function getCloudflareApiToken(): Promise<string | null> {
 }
 
 async function getCloudflareSecretStoreId(): Promise<string | null> {
-  return getEnvVar(ENV_KEYS.cloudflare.secretStoreId) || "48433bc559a943f09d9d6c622e188fd5";
+  return (
+    getEnvVar(ENV_KEYS.cloudflare.secretStoreId) ||
+    "48433bc559a943f09d9d6c622e188fd5"
+  );
 }
 
 export async function GET() {
@@ -80,7 +86,9 @@ export async function GET() {
       }
     } else {
       // Fallback to process.env if CF tokens are not set
-      fetchedSecrets = ALL_SECRETS.filter(name => !!getEnvVar(name)).map(name => ({ name }));
+      fetchedSecrets = ALL_SECRETS.filter((name) => !!getEnvVar(name)).map(
+        (name) => ({ name })
+      );
     }
 
     const availableNames = new Set(fetchedSecrets.map((s) => s.name));

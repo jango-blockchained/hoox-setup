@@ -30,17 +30,26 @@ export async function provisionR2Buckets(): Promise<void> {
   for (const bucket of selected as string[]) {
     s.start(`Checking bucket: ${bucket}...`);
 
-    const checkRes = runCommandSync(`bunx wrangler r2 bucket list`, process.cwd());
+    const checkRes = runCommandSync(
+      `bunx wrangler r2 bucket list`,
+      process.cwd()
+    );
 
     if (checkRes.success && checkRes.stdout.includes(bucket)) {
       s.stop(`Bucket ${bucket} already exists.`);
     } else {
       s.start(`Creating bucket: ${bucket}...`);
-      const createRes = runCommandSync(`bunx wrangler r2 bucket create ${bucket}`, process.cwd());
+      const createRes = runCommandSync(
+        `bunx wrangler r2 bucket create ${bucket}`,
+        process.cwd()
+      );
       if (createRes.success) {
         s.stop(`Created R2 bucket: ${bucket}`);
       } else {
-        if (createRes.stderr.includes("already exists") || createRes.stdout.includes("already exists")) {
+        if (
+          createRes.stderr.includes("already exists") ||
+          createRes.stdout.includes("already exists")
+        ) {
           s.stop(`Bucket ${bucket} already exists.`);
         } else {
           s.stop(`Failed to create bucket ${bucket}`, 1);
