@@ -20,7 +20,10 @@ export async function POST() {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `Agent responded with ${res.status}` }, { status: res.status });
+      return NextResponse.json(
+        { error: `Agent responded with ${res.status}` },
+        { status: res.status }
+      );
     }
 
     const data = await res.json();

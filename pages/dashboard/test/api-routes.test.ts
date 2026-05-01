@@ -175,10 +175,10 @@ describe("Settings API Route", () => {
     mockGetRequestContext = () => ({ env: {} });
 
     const originalFetch = global.fetch;
-    global.fetch = mock(() => 
+    global.fetch = mock(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ settings: { "hoox": { "test": "value" } } }),
+        json: () => Promise.resolve({ settings: { hoox: { test: "value" } } }),
       } as any)
     );
 
@@ -195,7 +195,9 @@ describe("Settings API Route", () => {
   });
 
   test("GET returns empty settings on error", async () => {
-    mockGetRequestContext = () => { throw new Error("KV error"); };
+    mockGetRequestContext = () => {
+      throw new Error("KV error");
+    };
 
     const response = await settingsRoute.GET();
     const body = await response.json();
@@ -208,7 +210,11 @@ describe("Settings API Route", () => {
     const request = new Request("http://localhost/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ worker: "hoox", key: "testKey", value: "testValue" }),
+      body: JSON.stringify({
+        worker: "hoox",
+        key: "testKey",
+        value: "testValue",
+      }),
     });
 
     const response = await settingsRoute.POST(request as any);
@@ -223,7 +229,11 @@ describe("Settings API Route", () => {
     const request = new Request("http://localhost/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ worker: "hoox", key: "webhook:url", value: "http://test" }),
+      body: JSON.stringify({
+        worker: "hoox",
+        key: "webhook:url",
+        value: "http://test",
+      }),
     });
 
     const response = await settingsRoute.POST(request as any);
@@ -251,7 +261,7 @@ describe("Settings API Route", () => {
     mockGetRequestContext = () => ({ env: {} });
 
     const originalFetch = global.fetch;
-    global.fetch = mock(() => 
+    global.fetch = mock(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ success: true }),
@@ -303,14 +313,20 @@ describe("Middleware", () => {
 
   test("allows access to /login path", () => {
     const request = new Request("http://localhost/login");
-    const response = proxyModule.middleware({ nextUrl: { pathname: "/login" }, cookies: { get: () => null } } as any);
+    const response = proxyModule.middleware({
+      nextUrl: { pathname: "/login" },
+      cookies: { get: () => null },
+    } as any);
 
     expect(response).toBeDefined();
   });
 
   test("allows access to /api/auth paths", () => {
     const request = new Request("http://localhost/api/auth/login");
-    const response = proxyModule.middleware({ nextUrl: { pathname: "/api/auth/login" }, cookies: { get: () => null } } as any);
+    const response = proxyModule.middleware({
+      nextUrl: { pathname: "/api/auth/login" },
+      cookies: { get: () => null },
+    } as any);
 
     expect(response).toBeDefined();
   });
@@ -368,7 +384,11 @@ describe("Middleware", () => {
     // Force an error by removing DASHBOARD_USER after error check starts
     const response = proxyModule.middleware({
       nextUrl: { pathname: "/dashboard" },
-      cookies: { get: () => { throw new Error("Cookie error"); } },
+      cookies: {
+        get: () => {
+          throw new Error("Cookie error");
+        },
+      },
     } as any);
 
     expect(response).toBeDefined();
@@ -388,18 +408,24 @@ describe("Settings Helper Functions", () => {
       body: JSON.stringify({ worker: "hoox", key: "test", value: "val" }),
     });
 
-    return settingsRoute.POST(request as any).then((response: any) => response.json()).then((body: any) => {
-      expect(body.kvKey).toBe("global:test");
-    });
+    return settingsRoute
+      .POST(request as any)
+      .then((response: any) => response.json())
+      .then((body: any) => {
+        expect(body.kvKey).toBe("global:test");
+      });
   });
 
   test("findWorkerByPrefix identifies worker", () => {
     // Test via GET which uses findWorkerByPrefix
     mockKV["trade:test"] = JSON.stringify("value");
 
-    return settingsRoute.GET().then((response: any) => response.json()).then((body: any) => {
-      expect(body.settings["trade-worker"]).toBeDefined();
-    });
+    return settingsRoute
+      .GET()
+      .then((response: any) => response.json())
+      .then((body: any) => {
+        expect(body.settings["trade-worker"]).toBeDefined();
+      });
   });
 });
 

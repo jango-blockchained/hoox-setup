@@ -1,4 +1,10 @@
-export type FieldType = "boolean" | "number" | "text" | "select" | "json" | "textarea";
+export type FieldType =
+  | "boolean"
+  | "number"
+  | "text"
+  | "select"
+  | "json"
+  | "textarea";
 
 export interface SettingOption {
   value: string;

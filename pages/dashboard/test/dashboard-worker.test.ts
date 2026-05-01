@@ -24,7 +24,7 @@ describe("Dashboard Worker - Module Imports", () => {
   test("login route validates credentials", async () => {
     process.env.DASHBOARD_USER = "admin";
     process.env.DASHBOARD_PASS = "test";
-    
+
     const { POST } = await import("../src/app/api/auth/login/route");
     expect(POST.name).toBe("POST");
   });
