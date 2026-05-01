@@ -227,7 +227,9 @@ function buildCommands(): Record<string, CommandDef> {
           handler: async () => {
             const { loadConfig } = await import("../configUtils.js");
             const { setupWorkers } = await import("../workerCommands.js");
+            const { assertWorkerSubmodulesPresent } = await import("../lib/submodulePreflight.js");
             const config = await loadConfig();
+            assertWorkerSubmodulesPresent(config, "setup");
             await setupWorkers(config);
           },
         },
@@ -236,7 +238,9 @@ function buildCommands(): Record<string, CommandDef> {
           handler: async () => {
             const { loadConfig } = await import("../configUtils.js");
             const { deployWorkers } = await import("../workerCommands.js");
+            const { assertWorkerSubmodulesPresent } = await import("../lib/submodulePreflight.js");
             const config = await loadConfig();
+            assertWorkerSubmodulesPresent(config, "deploy");
             await deployWorkers(config);
           },
         },
@@ -251,7 +255,9 @@ function buildCommands(): Record<string, CommandDef> {
             }
             const { loadConfig } = await import("../configUtils.js");
             const { startDevServer } = await import("../workerCommands.js");
+            const { assertWorkerSubmodulesPresent } = await import("../lib/submodulePreflight.js");
             const config = await loadConfig();
+            assertWorkerSubmodulesPresent(config, "dev");
             await startDevServer(config, workerName);
           },
         },
@@ -278,7 +284,9 @@ function buildCommands(): Record<string, CommandDef> {
             const { loadConfig } = await import("../configUtils.js");
             const { runTests } = await import("../workerCommands.js");
             const { print_error } = await import("../utils.js");
+            const { assertWorkerSubmodulesPresent } = await import("../lib/submodulePreflight.js");
             const config = await loadConfig();
+            assertWorkerSubmodulesPresent(config, "test");
             const workerName = positionals[0];
             if (args.watch && !workerName) {
               print_error("Watch mode can only be used when specifying a single worker.");
@@ -292,7 +300,9 @@ function buildCommands(): Record<string, CommandDef> {
           handler: async () => {
             const { loadConfig } = await import("../configUtils.js");
             const { updateInternalUrls } = await import("../workerCommands.js");
+            const { assertWorkerSubmodulesPresent } = await import("../lib/submodulePreflight.js");
             const config = await loadConfig();
+            assertWorkerSubmodulesPresent(config, "update-internal-urls");
             await updateInternalUrls(config);
           },
         },
