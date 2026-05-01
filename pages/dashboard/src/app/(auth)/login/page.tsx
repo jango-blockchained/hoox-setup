@@ -23,8 +23,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // For demo purposes, accept any credentials if env vars are set
-      // In production, validate against configured credentials
+      // Credentials are validated server-side against configured auth settings
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

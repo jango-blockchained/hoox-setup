@@ -13,9 +13,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{}> 
     const validPassword = process.env.DASHBOARD_PASS;
 
     if (!validUsername || !validPassword) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: "Auth not configured",
-        debug: { hasUser: !!validUsername, hasPass: !!validPassword }
       }, { status: 401 });
     }
 
