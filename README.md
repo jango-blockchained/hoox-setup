@@ -16,6 +16,14 @@
 
 ---
 
+## 🔁 Required clone mode
+
+This repository uses Git submodules for worker repositories. You must clone it recursively:
+
+```bash
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
+```
+
 ## 🌟 Why Hoox?
 
 Hoox provides a modern approach to algorithmic trading infrastructure deployment.
