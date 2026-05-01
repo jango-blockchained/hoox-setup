@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -9,15 +10,13 @@ export async function POST(request: NextRequest, context: { params: Promise<{}> 
     const username = body?.username;
     const password = body?.password;
 
-    const validUsername = process.env.DASHBOARD_USER;
-    const validPassword = process.env.DASHBOARD_PASS;
-
-    if (!validUsername || !validPassword) {
-      return NextResponse.json({ 
-        error: "Auth not configured",
-        debug: { hasUser: !!validUsername, hasPass: !!validPassword }
-      }, { status: 401 });
+    const configErrors = validateRequiredEnv([ENV_KEYS.auth.username, ENV_KEYS.auth.password]);
+    if (configErrors.length > 0) {
+      return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
     }
+
+    const validUsername = getConfig().auth.username;
+    const validPassword = getConfig().auth.password;
 
     if (username !== validUsername || password !== validPassword) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });

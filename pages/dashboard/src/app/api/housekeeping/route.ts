@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
+import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 export async function POST() {
   try {
-    const agentUrl = process.env.AGENT_SERVICE_URL || process.env.agentService_URL || 'https://agent-worker.cryptolinx.workers.dev';
-    const internalKey = process.env.AGENT_INTERNAL_KEY || process.env.D1_INTERNAL_KEY || '';
-    
-    const res = await fetch(`${agentUrl}/agent/housekeeping`, {
+    const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.agent]);
+    if (configErrors.length > 0) {
+      return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+    }
+
+    const res = await fetch(`${getConfig().api.agentService}/agent/housekeeping`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Internal-Auth-Key": internalKey,
+        "X-Internal-Auth-Key": getConfig().internalAuth.agent || "",
       },
     });
 

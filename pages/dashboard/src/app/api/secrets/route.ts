@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ENV_KEYS, getEnvVar } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -28,15 +29,15 @@ const INTERNAL_KEY_SECRETS = [
 ];
 
 async function getCloudflareAccountId(): Promise<string | null> {
-  return process.env.CLOUDFLARE_ACCOUNT_ID || "debc6545e63bea36be059cbc82d80ec8";
+  return getEnvVar(ENV_KEYS.cloudflare.accountId) || "debc6545e63bea36be059cbc82d80ec8";
 }
 
 async function getCloudflareApiToken(): Promise<string | null> {
-  return process.env.CLOUDFLARE_API_TOKEN || null;
+  return getEnvVar(ENV_KEYS.cloudflare.apiToken) || null;
 }
 
 async function getCloudflareSecretStoreId(): Promise<string | null> {
-  return process.env.CLOUDFLARE_SECRET_STORE_ID || "48433bc559a943f09d9d6c622e188fd5";
+  return getEnvVar(ENV_KEYS.cloudflare.secretStoreId) || "48433bc559a943f09d9d6c622e188fd5";
 }
 
 export async function GET() {
@@ -66,14 +67,14 @@ export async function GET() {
       }
     } else {
       // Fallback to process.env if CF tokens are not set
-      fetchedSecrets = ALL_SECRETS.filter(name => !!process.env[name]).map(name => ({ name }));
+      fetchedSecrets = ALL_SECRETS.filter(name => !!getEnvVar(name)).map(name => ({ name }));
     }
 
     const availableNames = new Set(fetchedSecrets.map(s => s.name));
 
     const syncedSecrets = ALL_SECRETS.map(name => ({
       name,
-      synced: availableNames.has(name) || !!process.env[name],
+      synced: availableNames.has(name) || !!getEnvVar(name),
     }));
 
     return NextResponse.json({
@@ -81,7 +82,7 @@ export async function GET() {
       secrets: syncedSecrets,
       internalKeys: INTERNAL_KEY_SECRETS.map(name => ({
         name,
-        synced: availableNames.has(name) || !!process.env[name],
+        synced: availableNames.has(name) || !!getEnvVar(name),
       })),
     });
   } catch (err) {

@@ -4,7 +4,7 @@
 declare namespace Cloudflare {
 	interface Env {
 		CONFIG_KV: KVNamespace;
-		D1_WORKER_URL: "https://d1-worker.cryptolinx.workers.dev";
+		D1_SERVICE_URL: "https://d1-worker.cryptolinx.workers.dev";
 		AGENT_SERVICE_URL: "https://agent-worker.cryptolinx.workers.dev";
 		TRADE_SERVICE_URL: "https://trade-worker.cryptolinx.workers.dev";
 		TELEGRAM_SERVICE_URL: "https://telegram-worker.cryptolinx.workers.dev";
