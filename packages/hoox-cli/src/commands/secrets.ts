@@ -4,6 +4,20 @@ import * as clack from "@clack/prompts";
 import { loadConfig } from "../configUtils.js";
 import { runCommandSyncArgs, log, dim, blue, cyan, yellow } from "../utils.js";
 
+const SECRET_NAME_REGEX = /^[A-Z0-9_-]+$/;
+
+function runWranglerSecretStoreCommand(args: string[]) {
+  return runCommandSyncArgs({
+    cmd: "bunx",
+    args: ["wrangler", "secrets-store", ...args],
+    cwd: process.cwd(),
+  });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Updates a secret in the Cloudflare Secret Store and saves it locally.
  */
@@ -12,6 +26,11 @@ export async function updateCfSecret(
   workerName: string,
   value?: string
 ): Promise<void> {
+  if (!SECRET_NAME_REGEX.test(secretName)) {
+    log.error(`Invalid secret name: ${secretName}. Use only A-Z, 0-9, underscore, or dash.`);
+    return;
+  }
+
   const config = await loadConfig();
 
   const storeId = config.global.cloudflare_secret_store_id;
@@ -36,24 +55,18 @@ export async function updateCfSecret(
   s.start(`Setting secret ${secretName} in store ${storeId}...`);
 
   try {
-    const createResult = runCommandSyncArgs({
-      cmd: "bunx",
-      args: [
-        "wrangler",
-        "secrets-store",
-        "secret",
-        "create",
-        storeId,
-        "--name",
-        secretName,
-        "--scopes",
-        "workers",
-        "--value",
-        value,
-        "--remote",
-      ],
-      cwd: process.cwd(),
-    });
+    const createResult = runWranglerSecretStoreCommand([
+      "secret",
+      "create",
+      storeId,
+      "--name",
+      secretName,
+      "--scopes",
+      "workers",
+      "--value",
+      value,
+      "--remote",
+    ]);
     if (createResult.success) {
       s.stop(`Secret ${secretName} set in store ${storeId}`);
     } else {
@@ -62,11 +75,7 @@ export async function updateCfSecret(
       );
     }
   } catch (createErr) {
-    const listOutputResult = runCommandSyncArgs({
-      cmd: "bunx",
-      args: ["wrangler", "secrets-store", "secret", "list", storeId, "--remote"],
-      cwd: process.cwd(),
-    });
+    const listOutputResult = runWranglerSecretStoreCommand(["secret", "list", storeId, "--remote"]);
     const listOutput = listOutputResult.stdout;
 
     clack.log.warn("Secret might already exist. Attempting to find ID and update...");
@@ -74,10 +83,10 @@ export async function updateCfSecret(
     let secretId: string | null = null;
     const match =
       listOutput.match(
-        new RegExp(`"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${secretName}"`, "i")
+        new RegExp(`"id"\\s*:\\s*"([^"]+)",\\s*"name"\\s*:\\s*"${escapeRegExp(secretName)}"`, "i")
       ) ||
       listOutput.match(
-        new RegExp(`${secretName}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`, "i")
+        new RegExp(`${escapeRegExp(secretName)}.*?([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})`, "i")
       );
 
     if (!match && listOutput.includes(secretName)) {
@@ -98,22 +107,16 @@ export async function updateCfSecret(
     }
 
     if (secretId) {
-      const updateResult = runCommandSyncArgs({
-        cmd: "bunx",
-        args: [
-          "wrangler",
-          "secrets-store",
-          "secret",
-          "update",
-          storeId,
-          "--secret-id",
-          secretId,
-          "--value",
-          value,
-          "--remote",
-        ],
-        cwd: process.cwd(),
-      });
+      const updateResult = runWranglerSecretStoreCommand([
+        "secret",
+        "update",
+        storeId,
+        "--secret-id",
+        secretId,
+        "--value",
+        value,
+        "--remote",
+      ]);
       if (updateResult.success) {
         s.stop(`Updated secret ${secretName} (ID: ${secretId})`);
       } else {
