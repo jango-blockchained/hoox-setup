@@ -12,7 +12,14 @@ import {
   WizardStateSchema,
 } from "./types.js";
 
-import { rl, dim, print_success, print_error, print_warning, checkCommandExists } from "./utils.js";
+import {
+  rl,
+  dim,
+  print_success,
+  print_error,
+  print_warning,
+  checkCommandExists,
+} from "./utils.js";
 
 import { saveConfig, loadConfig } from "./configUtils.js";
 
@@ -29,7 +36,11 @@ import {
 
 import { cloneWorkerRepositories } from "./workerCommands.js";
 
-import { useValidation, useAutoSave, useVerboseLogging } from "./wizard/hooks/index.js";
+import {
+  useValidation,
+  useAutoSave,
+  useVerboseLogging,
+} from "./wizard/hooks/index.js";
 
 const STATE_FILE = path.resolve(process.cwd(), ".install-wizard-state.json");
 const TOTAL_WIZARD_STEPS = 7;
@@ -43,9 +54,9 @@ export interface WizardOptions {
 // --- Wizard State Management ---
 
 export async function loadWizardState(): Promise<WizardState | null> {
-  if ((await Bun.file(STATE_FILE).exists())) {
+  if (await Bun.file(STATE_FILE).exists()) {
     try {
-      const content = (await Bun.file(STATE_FILE).text());
+      const content = await Bun.file(STATE_FILE).text();
       const jsonData = JSON.parse(content);
       const result = WizardStateSchema.safeParse(jsonData);
 
@@ -95,7 +106,7 @@ export async function saveWizardState(state: WizardState): Promise<void> {
 }
 
 export async function cleanupWizardState(): Promise<void> {
-  if ((await Bun.file(STATE_FILE).exists())) {
+  if (await Bun.file(STATE_FILE).exists()) {
     try {
       await fs.promises.unlink(STATE_FILE);
       console.log(dim("Setup state file cleaned up."));
@@ -121,14 +132,16 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
   // Step 1: Check Dependencies
   const depSpinner = clack.spinner();
   depSpinner.start("Checking for required tools (bun, wrangler)...");
-  
+
   const bunExists = await checkCommandExists("bun");
   const wranglerExists = await checkCommandExists("wrangler");
 
   if (!bunExists || !wranglerExists) {
     depSpinner.stop("Dependency check failed.", 1);
-    if (!bunExists) clack.log.error("bun is not installed or not found in PATH.");
-    if (!wranglerExists) clack.log.error("wrangler is not installed or not found in PATH.");
+    if (!bunExists)
+      clack.log.error("bun is not installed or not found in PATH.");
+    if (!wranglerExists)
+      clack.log.error("wrangler is not installed or not found in PATH.");
     process.exit(1);
   }
   depSpinner.stop("Dependencies verified!");
@@ -141,7 +154,9 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
     cloneSpinner.stop("Worker repositories cloned!");
   } catch (error: any) {
     cloneSpinner.stop("Cloning failed.", 1);
-    clack.log.warn(`Could not clone repositories automatically: ${error.message}`);
+    clack.log.warn(
+      `Could not clone repositories automatically: ${error.message}`
+    );
   }
 
   // Step 3: Load State
@@ -160,9 +175,9 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
 
   // Step 4: Configure Globals
   clack.log.step("Configure Global Settings");
-  
+
   const globals: Partial<GlobalConfig> = state.config?.global || {};
-  
+
   const cloudflare_api_token = await clack.text({
     message: "Cloudflare API Token",
     initialValue: globals.cloudflare_api_token,
@@ -170,7 +185,7 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
     validate(value) {
       if (!value) return "Required";
       return;
-    }
+    },
   });
   if (clack.isCancel(cloudflare_api_token)) {
     clack.outro("Setup cancelled.");
@@ -183,7 +198,7 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
     validate(value) {
       if (!value) return "Required";
       return;
-    }
+    },
   });
   if (clack.isCancel(cloudflare_account_id)) {
     clack.outro("Setup cancelled.");
@@ -196,7 +211,7 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
     validate(value) {
       if (!value) return "Required";
       return;
-    }
+    },
   });
   if (clack.isCancel(cloudflare_secret_store_id)) {
     clack.outro("Setup cancelled.");
@@ -209,7 +224,7 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
     validate(value) {
       if (!value) return "Required";
       return;
-    }
+    },
   });
   if (clack.isCancel(subdomain_prefix)) {
     clack.outro("Setup cancelled.");
@@ -223,32 +238,34 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
       cloudflare_account_id,
       cloudflare_secret_store_id,
       subdomain_prefix,
-    } as GlobalConfig
+    } as GlobalConfig,
   };
 
   await saveWizardState(state);
 
   // Step 5: Select Workers
   clack.log.step("Select Workers");
-  
+
   const WORKERS_DIR = path.resolve(process.cwd(), "workers");
   let workerDirs: string[] = [];
   try {
-    const dirents = await fs.promises.readdir(WORKERS_DIR, { withFileTypes: true });
+    const dirents = await fs.promises.readdir(WORKERS_DIR, {
+      withFileTypes: true,
+    });
     workerDirs = dirents
-      .filter(dirent => dirent.isDirectory() && !dirent.name.startsWith("."))
-      .map(dirent => dirent.name);
+      .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith("."))
+      .map((dirent) => dirent.name);
   } catch (e) {}
 
   if (workerDirs.length > 0) {
     const selectedWorkers = await clack.multiselect({
       message: "Enable workers:",
-      options: workerDirs.map(name => ({
+      options: workerDirs.map((name) => ({
         value: name,
         label: name,
-        hint: state.config.workers?.[name]?.enabled ? "enabled" : "disabled"
+        hint: state.config.workers?.[name]?.enabled ? "enabled" : "disabled",
       })),
-      required: false
+      required: false,
     });
     if (clack.isCancel(selectedWorkers)) {
       clack.outro("Setup cancelled.");
@@ -260,7 +277,7 @@ export async function runWizard(options: WizardOptions = {}): Promise<void> {
       state.config.workers[name] = {
         ...(state.config.workers[name] || {}),
         enabled: (selectedWorkers as string[]).includes(name),
-        path: path.join("workers", name)
+        path: path.join("workers", name),
       };
     }
     await saveWizardState(state);

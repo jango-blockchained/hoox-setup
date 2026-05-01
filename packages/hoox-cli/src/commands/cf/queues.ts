@@ -21,7 +21,9 @@ export async function listQueues(): Promise<void> {
 
   console.log("Queues:");
   queues.forEach((q) => {
-    console.log(`  ${yellow(q.queue_name)}${q.dead_letter_queue ? " (DLQ)" : ""}`);
+    console.log(
+      `  ${yellow(q.queue_name)}${q.dead_letter_queue ? " (DLQ)" : ""}`
+    );
   });
 }
 

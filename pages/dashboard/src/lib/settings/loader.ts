@@ -279,7 +279,7 @@ export async function loadMergedSettings(
   const defaults = flattenSettings(configs);
   const overrides = (await getRuntimeOverrides(
     workerNames
-  )) as unknown as Record<string, Record<string, any>>;
+  )) as unknown as Record<string, Record<string, unknown>>;
 
   const merged: MergedSettings = {};
 

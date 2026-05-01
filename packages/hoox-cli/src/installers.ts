@@ -36,13 +36,19 @@ function parseChecksum(checksumFileContents: string): string {
   return checksumMatch[0].toLowerCase();
 }
 
-async function verifyInstallerSha256(installerPath: string): Promise<VerificationResult> {
+async function verifyInstallerSha256(
+  installerPath: string
+): Promise<VerificationResult> {
   try {
-    const expectedChecksumContents = await fetchText(BUN_INSTALLER_CHECKSUM_URL);
+    const expectedChecksumContents = await fetchText(
+      BUN_INSTALLER_CHECKSUM_URL
+    );
     const expectedChecksum = parseChecksum(expectedChecksumContents);
 
     const installerContents = await readFile(installerPath);
-    const actualChecksum = createHash("sha256").update(installerContents).digest("hex");
+    const actualChecksum = createHash("sha256")
+      .update(installerContents)
+      .digest("hex");
 
     if (actualChecksum !== expectedChecksum) {
       return {

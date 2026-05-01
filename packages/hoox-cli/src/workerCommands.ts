@@ -2,7 +2,15 @@ import path from "node:path";
 import fs from "node:fs";
 import * as toml from "toml";
 import type { Config, WorkerConfig, WranglerConfig } from "./types.js";
-import { intro, outro, spinner, log as clackLog, note, confirm, text as clackText } from "@clack/prompts";
+import {
+  intro,
+  outro,
+  spinner,
+  log as clackLog,
+  note,
+  confirm,
+  text as clackText,
+} from "@clack/prompts";
 import {
   red,
   green,
@@ -16,7 +24,7 @@ import {
   runInteractiveCommand,
   getCloudflareToken,
   runCommandAsync,
-  rl
+  rl,
 } from "./utils.js";
 import { saveConfig, stringifyToml } from "./configUtils.js";
 
@@ -36,7 +44,7 @@ async function setupD1Database(
   );
 
   const migrationsDir = path.join(workerDir, "migrations");
-  if ((fs.existsSync(migrationsDir))) {
+  if (fs.existsSync(migrationsDir)) {
     console.log(
       dim(`Applying D1 migrations for ${dbName} from ${migrationsDir}...`)
     );
@@ -77,7 +85,9 @@ export async function setupWorkers(config: Config): Promise<void> {
   const storeId = config.global.cloudflare_secret_store_id;
 
   if (!storeId) {
-    clackLog.error("Missing 'cloudflare_secret_store_id' in [global] config. Cannot bind secrets.");
+    clackLog.error(
+      "Missing 'cloudflare_secret_store_id' in [global] config. Cannot bind secrets."
+    );
     clackLog.warn("Run 'hoox secrets guide' for help.");
     // Optionally throw an error or return early
     return;
@@ -92,15 +102,27 @@ export async function setupWorkers(config: Config): Promise<void> {
     clackLog.step(`Configuring worker: ${workerName}`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!(fs.existsSync(workerDir))) {
-      clackLog.warn(`Directory not found for worker ${workerName} at ${workerDir}.`);
+    if (!fs.existsSync(workerDir)) {
+      clackLog.warn(
+        `Directory not found for worker ${workerName} at ${workerDir}.`
+      );
       const shouldClone = await confirm({
         message: `Do you want to attempt cloning it as a submodule now?`,
       });
       if (shouldClone) {
         const s = spinner();
         s.start(`Attempting to initialize submodule at ${workerDir}...`);
-        await runCommandAsync("git", ["submodule", "update", "--init", "--recursive", workerConfig.path || ""], process.cwd());
+        await runCommandAsync(
+          "git",
+          [
+            "submodule",
+            "update",
+            "--init",
+            "--recursive",
+            workerConfig.path || "",
+          ],
+          process.cwd()
+        );
         s.stop("Submodule initialization attempt finished.");
       }
       if (!fs.existsSync(workerDir)) {
@@ -115,11 +137,13 @@ export async function setupWorkers(config: Config): Promise<void> {
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
     // Determine which configuration file to use
-    const useJsonc = (await Bun.file(wranglerJsoncPath).exists());
+    const useJsonc = await Bun.file(wranglerJsoncPath).exists();
     const useToml = !useJsonc && (await Bun.file(wranglerTomlPath).exists());
 
     if (!useJsonc && !useToml) {
-      clackLog.warn(`Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`);
+      clackLog.warn(
+        `Neither wrangler.jsonc nor wrangler.toml found for ${workerName} at ${workerDir}. Skipping configuration.`
+      );
       continue;
     }
 
@@ -191,7 +215,11 @@ export async function setupWorkers(config: Config): Promise<void> {
         for (const [key, value] of Object.entries(configVars)) {
           let finalValue = value;
           if (!finalValue || finalValue.trim() === "") {
-            finalValue = await rl.question(yellow(`Missing value for var '${key}' in ${workerName}. Enter value: `));
+            finalValue = await rl.question(
+              yellow(
+                `Missing value for var '${key}' in ${workerName}. Enter value: `
+              )
+            );
           }
           if (String(currentVars[key]) !== String(finalValue)) {
             if (!parsedJsonc.vars) parsedJsonc.vars = {};
@@ -215,19 +243,23 @@ export async function setupWorkers(config: Config): Promise<void> {
             jsoncUpdated = true;
           }
 
-          const newServiceBindings = requiredServices.map(svc => ({
+          const newServiceBindings = requiredServices.map((svc) => ({
             binding: svc.binding,
-            service: svc.service
+            service: svc.service,
           }));
 
-          const existingServicesJson = JSON.stringify(parsedJsonc.services || []);
+          const existingServicesJson = JSON.stringify(
+            parsedJsonc.services || []
+          );
           const newServicesJson = JSON.stringify(newServiceBindings);
 
           if (existingServicesJson !== newServicesJson) {
             parsedJsonc.services = newServiceBindings;
             jsoncUpdated = true;
             console.log(dim(`Updated service bindings.`));
-            requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
+            requiredServices.forEach((s) =>
+              console.log(dim(`  - ${s.binding} -> ${s.service}`))
+            );
           } else {
             console.log(dim(`Service bindings are already up-to-date.`));
           }
@@ -284,7 +316,10 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         // Smart Placement for trade-worker
         if (workerName === "trade-worker") {
-          if (!parsedJsonc.placement || parsedJsonc.placement.mode !== "smart") {
+          if (
+            !parsedJsonc.placement ||
+            parsedJsonc.placement.mode !== "smart"
+          ) {
             parsedJsonc.placement = { mode: "smart" };
             jsoncUpdated = true;
             console.log(dim(`Enabled Smart Placement for ${workerName}`));
@@ -355,7 +390,7 @@ export async function setupWorkers(config: Config): Promise<void> {
       let parsedToml = {} as WranglerConfig;
       try {
         console.log(dim(`Using wrangler.toml for ${workerName}`));
-        const wranglerTomlContent = (await Bun.file(wranglerTomlPath).text());
+        const wranglerTomlContent = await Bun.file(wranglerTomlPath).text();
         try {
           parsedToml = toml.parse(wranglerTomlContent) as WranglerConfig;
         } catch (parseError: unknown) {
@@ -402,7 +437,11 @@ export async function setupWorkers(config: Config): Promise<void> {
         for (const [key, value] of Object.entries(configVars)) {
           let finalValue = value;
           if (!finalValue || finalValue.trim() === "") {
-            finalValue = await rl.question(yellow(`Missing value for var '${key}' in ${workerName}. Enter value: `));
+            finalValue = await rl.question(
+              yellow(
+                `Missing value for var '${key}' in ${workerName}. Enter value: `
+              )
+            );
           }
           if (String(currentVars[key]) !== String(finalValue)) {
             if (!parsedToml.vars) parsedToml.vars = {};
@@ -427,19 +466,23 @@ export async function setupWorkers(config: Config): Promise<void> {
         if (requiredServices.length > 0) {
           console.log(dim(`Configuring service bindings...`));
 
-          const newServiceBindings = requiredServices.map(svc => ({
+          const newServiceBindings = requiredServices.map((svc) => ({
             binding: svc.binding,
-            service: svc.service
+            service: svc.service,
           }));
 
-          const existingServicesJson = JSON.stringify(parsedToml.services || []);
+          const existingServicesJson = JSON.stringify(
+            parsedToml.services || []
+          );
           const newServicesJson = JSON.stringify(newServiceBindings);
 
           if (existingServicesJson !== newServicesJson) {
             parsedToml.services = newServiceBindings;
             tomlUpdated = true;
             console.log(dim(`Updated service bindings.`));
-            requiredServices.forEach(s => console.log(dim(`  - ${s.binding} -> ${s.service}`)));
+            requiredServices.forEach((s) =>
+              console.log(dim(`  - ${s.binding} -> ${s.service}`))
+            );
           } else {
             console.log(dim(`Service bindings are already up-to-date.`));
           }
@@ -492,7 +535,10 @@ export async function setupWorkers(config: Config): Promise<void> {
 
         // Smart Placement for trade-worker
         if (workerName === "trade-worker") {
-          if (!parsedToml.placement || (parsedToml.placement as any).mode !== "smart") {
+          if (
+            !parsedToml.placement ||
+            (parsedToml.placement as any).mode !== "smart"
+          ) {
             parsedToml.placement = { mode: "smart" };
             tomlUpdated = true;
             console.log(dim(`Enabled Smart Placement for ${workerName}`));
@@ -552,7 +598,9 @@ export async function setupWorkers(config: Config): Promise<void> {
       );
       console.log(dim(`Ensure they exist in Store ID: ${storeId}`));
     } else {
-      console.log(dim(`No secrets defined for ${workerName} in workers.jsonc.`));
+      console.log(
+        dim(`No secrets defined for ${workerName} in workers.jsonc.`)
+      );
     }
 
     console.log(`--- Finished configuring worker: ${yellow(workerName)} ---`);
@@ -593,7 +641,7 @@ export async function deployWorkers(config: Config): Promise<void> {
     console.log(`\n--- Deploying worker: ${yellow(workerName)} ---`);
     const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
 
-    if (!(fs.existsSync(workerDir))) {
+    if (!fs.existsSync(workerDir)) {
       print_warning(
         `Directory not found for worker ${workerName} at ${workerDir}. Skipping deployment.`
       );
@@ -602,8 +650,8 @@ export async function deployWorkers(config: Config): Promise<void> {
 
     const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-    const useJsonc = (await Bun.file(wranglerJsoncPath).exists());
-    const useToml = (await Bun.file(wranglerTomlPath).exists());
+    const useJsonc = await Bun.file(wranglerJsoncPath).exists();
+    const useToml = await Bun.file(wranglerTomlPath).exists();
 
     if (!useJsonc && !useToml) {
       print_warning(
@@ -616,13 +664,15 @@ export async function deployWorkers(config: Config): Promise<void> {
 
     // Check if this is a Pages project
     const isPages = await isPagesProject(workerDir);
-    const deployCommand = isPages ? "wrangler pages project deploy" : "wrangler deploy";
+    const deployCommand = isPages
+      ? "wrangler pages project deploy"
+      : "wrangler deploy";
 
     // Verify account_id in wrangler config (toml or jsonc)
     try {
       let accountIdInConfig: string | undefined;
       if (useJsonc) {
-        const jsoncContent = (await Bun.file(wranglerJsoncPath).text());
+        const jsoncContent = await Bun.file(wranglerJsoncPath).text();
         const jsonContent = jsoncContent
           .replace(/\/\/.*$/gm, "")
           .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -630,7 +680,7 @@ export async function deployWorkers(config: Config): Promise<void> {
         const parsedJsonc = JSON.parse(jsonContent);
         accountIdInConfig = parsedJsonc.account_id;
       } else if (useToml) {
-        const content = (await Bun.file(wranglerTomlPath).text());
+        const content = await Bun.file(wranglerTomlPath).text();
         const parsedToml = toml.parse(content) as WranglerConfig;
         accountIdInConfig = parsedToml.account_id;
       }
@@ -678,7 +728,8 @@ export async function deployWorkers(config: Config): Promise<void> {
         console.log(`   URL: ${blue(url)}`);
         // Update config object
         if (config.workers[workerName]?.deployed_url !== url) {
-          if (!config.workers[workerName]) config.workers[workerName] = {} as WorkerConfig;
+          if (!config.workers[workerName])
+            config.workers[workerName] = {} as WorkerConfig;
           (config.workers[workerName] as WorkerConfig).deployed_url = url;
           configNeedsSaving = true;
           console.log(dim(`   (URL updated in config object)`));
@@ -742,16 +793,18 @@ export async function deployPages(config: Config): Promise<void> {
 
   const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
   const packageJsonPath = path.join(dashboardPath, "package.json");
-  
+
   // Check if dashboard exists
   if (!(await Bun.file(packageJsonPath).exists())) {
-    print_error("Dashboard not found at pages/dashboard. Please ensure the directory exists.");
+    print_error(
+      "Dashboard not found at pages/dashboard. Please ensure the directory exists."
+    );
     process.exitCode = 1;
     return;
   }
 
   console.log(blue("Building dashboard..."));
-  
+
   // Run build
   const buildResult = await runInteractiveCommand(
     "bun",
@@ -759,7 +812,7 @@ export async function deployPages(config: Config): Promise<void> {
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
-  
+
   if (buildResult !== 0) {
     print_error(`Build failed with code: ${buildResult}`);
     process.exitCode = 1;
@@ -767,17 +820,17 @@ export async function deployPages(config: Config): Promise<void> {
   }
 
   console.log(blue("Building for Cloudflare Pages..."));
-  
+
   // Use OpenNext Cloudflare adapter (replaces deprecated next-on-pages)
-  const buildResult = await runInteractiveCommand(
+  const opennextBuildResult = await runInteractiveCommand(
     "bunx",
     ["opennextjs-cloudflare", "build"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
-  
-  if (buildResult !== 0) {
-    print_error(`OpenNext build failed with code: ${buildResult}`);
+
+  if (opennextBuildResult !== 0) {
+    print_error(`OpenNext build failed with code: ${opennextBuildResult}`);
     process.exitCode = 1;
     return;
   }
@@ -786,15 +839,23 @@ export async function deployPages(config: Config): Promise<void> {
   const projectName = `hoox-dashboard`;
 
   console.log(blue("Deploying to Cloudflare Pages..."));
-  
+
   // Deploy to Cloudflare Pages using wrangler (OpenNext output is in .open-next)
   const deployResult = await runInteractiveCommand(
     "bunx",
-    ["wrangler", "pages", "deploy", ".open-next", "--project-name", projectName, "--commit-dirty"],
+    [
+      "wrangler",
+      "pages",
+      "deploy",
+      ".open-next",
+      "--project-name",
+      projectName,
+      "--commit-dirty",
+    ],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
-  
+
   if (deployResult !== 0) {
     print_error(`Deployment failed with code: ${deployResult}`);
     process.exitCode = 1;
@@ -834,7 +895,7 @@ export async function startDevServer(
   }
 
   const workerDir = path.resolve(process.cwd(), workerConfig.path || "");
-  if (!(fs.existsSync(workerDir))) {
+  if (!fs.existsSync(workerDir)) {
     print_error(
       `Directory not found for worker ${workerNameToStart} at ${workerDir}.`
     );
@@ -877,12 +938,7 @@ export async function startDevServer(
     } else {
       devCommand = ["wrangler", "dev"];
     }
-    await runInteractiveCommand(
-      "bunx",
-      devCommand,
-      workerDir,
-      cloudflareEnv
-    );
+    await runInteractiveCommand("bunx", devCommand, workerDir, cloudflareEnv);
     // This part is reached only when the interactive command exits (e.g., Ctrl+C)
     console.log(blue(`Dev server for ${workerNameToStart} stopped.`));
   } catch (error) {
@@ -964,7 +1020,7 @@ export async function runTests(
     const testDir = path.join(workerDir, "test"); // Standard test dir
     const packageJsonPath = path.join(workerDir, "package.json");
 
-    if (!(fs.existsSync(workerDir))) {
+    if (!fs.existsSync(workerDir)) {
       print_error(
         `Directory not found for worker ${name} at ${workerDir}. Skipping tests.`
       );
@@ -974,9 +1030,9 @@ export async function runTests(
 
     // Check for a test script in package.json or a test directory
     let testCommandArgs: string[] = [];
-    if ((await Bun.file(packageJsonPath).exists())) {
+    if (await Bun.file(packageJsonPath).exists()) {
       try {
-        const pkg = JSON.parse((await Bun.file(packageJsonPath).text()));
+        const pkg = JSON.parse(await Bun.file(packageJsonPath).text());
         if (pkg.scripts?.test) {
           // Use the defined test script via bun run test
           testCommandArgs = ["run", "test"];
@@ -1001,7 +1057,7 @@ export async function runTests(
 
     // Fallback to direct bun test if no script or no package.json
     if (testCommandArgs.length === 0) {
-      if (!(fs.existsSync(testDir))) {
+      if (!fs.existsSync(testDir)) {
         console.log(
           yellow(
             `No test directory found at ${testDir} and no test script in package.json. Skipping tests for ${name}.`
@@ -1126,7 +1182,10 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     console.log(
       dim(`\nChecking worker for URL vars: ${yellow(targetWorkerName)}...`)
     );
-    const workerDir = path.resolve(process.cwd(), targetWorkerConfig.path || "");
+    const workerDir = path.resolve(
+      process.cwd(),
+      targetWorkerConfig.path || ""
+    );
     const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
     if (!(await Bun.file(wranglerTomlPath).exists())) {
@@ -1141,17 +1200,17 @@ export async function updateInternalUrls(config: Config): Promise<void> {
     let isJsonc = false;
     let wranglerConfig: unknown;
 
-    if ((await Bun.file(path.join(workerDir, "wrangler.jsonc")).exists())) {
+    if (await Bun.file(path.join(workerDir, "wrangler.jsonc")).exists()) {
       wranglerConfigPath = path.join(workerDir, "wrangler.jsonc");
-      wranglerConfigContent = (await Bun.file(wranglerConfigPath).text());
+      wranglerConfigContent = await Bun.file(wranglerConfigPath).text();
       const jsonContent = wranglerConfigContent
         .replace(/\/\/.*$/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "");
       wranglerConfig = JSON.parse(jsonContent) as Record<string, unknown>;
       isJsonc = true;
-    } else if ((await Bun.file(path.join(workerDir, "wrangler.toml")).exists())) {
+    } else if (await Bun.file(path.join(workerDir, "wrangler.toml")).exists()) {
       wranglerConfigPath = path.join(workerDir, "wrangler.toml");
-      wranglerConfigContent = (await Bun.file(wranglerConfigPath).text());
+      wranglerConfigContent = await Bun.file(wranglerConfigPath).text();
       wranglerConfig = toml.parse(wranglerConfigContent);
     }
 
@@ -1175,7 +1234,9 @@ export async function updateInternalUrls(config: Config): Promise<void> {
       const varName = `${sourceWorkerName.replace(/-/g, "_").toUpperCase()}_URL`;
 
       if (varName in (wranglerConfig as Record<string, string>)) {
-        const currentVarValue = String((wranglerConfig as Record<string, string>)[varName]);
+        const currentVarValue = String(
+          (wranglerConfig as Record<string, string>)[varName]
+        );
         if (currentVarValue !== sourceWorkerUrl) {
           console.log(
             `  Updating ${green(varName)} in ${targetWorkerName}'s wrangler.toml:`
@@ -1243,9 +1304,9 @@ async function isPagesProject(workerDir: string): Promise<boolean> {
   const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
 
-  if ((await Bun.file(wranglerJsoncPath).exists())) {
+  if (await Bun.file(wranglerJsoncPath).exists()) {
     try {
-      const content = (await Bun.file(wranglerJsoncPath).text());
+      const content = await Bun.file(wranglerJsoncPath).text();
       const cleanContent = content
         .replace(/\/\/.*$/gm, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -1257,9 +1318,9 @@ async function isPagesProject(workerDir: string): Promise<boolean> {
     }
   }
 
-  if ((await Bun.file(wranglerTomlPath).exists())) {
+  if (await Bun.file(wranglerTomlPath).exists()) {
     try {
-      const content = (await Bun.file(wranglerTomlPath).text());
+      const content = await Bun.file(wranglerTomlPath).text();
       const config = toml.parse(content) as Record<string, unknown>;
       return !!config.pages_build_output_dir;
     } catch {
@@ -1304,7 +1365,7 @@ export async function cloneWorkerRepositories(
   const workersDir = path.resolve(process.cwd(), "workers");
 
   // Create workers directory if it doesn't exist
-  if (!(fs.existsSync(workersDir))) {
+  if (!fs.existsSync(workersDir)) {
     console.log(yellow("Workers directory does not exist. Creating it..."));
     fs.mkdirSync(workersDir, { recursive: true });
   }
@@ -1412,7 +1473,7 @@ export async function cloneWorkerRepositories(
     const targetDir = path.join(workersDir, worker.name);
 
     // Skip if directory already exists
-    if ((fs.existsSync(targetDir))) {
+    if (fs.existsSync(targetDir)) {
       console.log(
         yellow(`Worker directory ${worker.name} already exists. Skipping.`)
       );
@@ -1423,13 +1484,21 @@ export async function cloneWorkerRepositories(
       if (direct) {
         // Clone directly
         console.log(dim(`Cloning ${worker.name} directly...`));
-        const res = await runCommandAsync("git", ["clone", worker.repo, targetDir], process.cwd());
+        const res = await runCommandAsync(
+          "git",
+          ["clone", worker.repo, targetDir],
+          process.cwd()
+        );
         if (!res.success) throw new Error(res.stderr);
         print_success(`Successfully cloned ${worker.name}`);
       } else {
         // Clone as submodule
         console.log(dim(`Adding ${worker.name} as git submodule...`));
-        const res = await runCommandAsync("git", ["submodule", "add", worker.repo, targetDir], process.cwd());
+        const res = await runCommandAsync(
+          "git",
+          ["submodule", "add", worker.repo, targetDir],
+          process.cwd()
+        );
         if (!res.success) throw new Error(res.stderr);
         print_success(`Successfully cloned ${worker.name}`);
       }
@@ -1443,7 +1512,11 @@ export async function cloneWorkerRepositories(
     try {
       // Initialize and update submodules
       console.log(dim("Initializing and updating git submodules..."));
-      const res = await runCommandAsync("git", ["submodule", "update", "--init", "--recursive"], process.cwd());
+      const res = await runCommandAsync(
+        "git",
+        ["submodule", "update", "--init", "--recursive"],
+        process.cwd()
+      );
       if (!res.success) throw new Error(res.stderr);
       print_success("Git submodules initialized and updated successfully");
     } catch (err) {
@@ -1491,7 +1564,7 @@ export async function checkSecretBindings(
 
   let parsedToml = {} as WranglerConfig;
   try {
-    const content = (await Bun.file(wranglerTomlPath).text());
+    const content = await Bun.file(wranglerTomlPath).text();
     parsedToml = toml.parse(content) as WranglerConfig;
   } catch (parseError: unknown) {
     print_error(
@@ -1600,7 +1673,9 @@ export async function checkSecretBindings(
   } else if (secretNameFilter && Object.keys(foundBindings).length === 0) {
     print_warning(`Secret "${secretNameFilter}" not found in bindings.`);
   } else {
-    print_success("Secret Store bindings appear consistent with workers.jsonc.");
+    print_success(
+      "Secret Store bindings appear consistent with workers.jsonc."
+    );
   }
   console.log(
     dim(

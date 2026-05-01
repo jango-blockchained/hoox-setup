@@ -54,7 +54,10 @@ export async function quickStatus(): Promise<void> {
       status: enabled ? ansis.green("●  enabled") : ansis.dim("○  disabled"),
       secrets: hasSecrets > 0 ? `${hasSecrets}` : d("0"),
       services: hasServices > 0 ? `${hasServices}` : d("0"),
-      url: deployedUrl.length > 35 ? deployedUrl.slice(0, 32) + "..." : deployedUrl,
+      url:
+        deployedUrl.length > 35
+          ? deployedUrl.slice(0, 32) + "..."
+          : deployedUrl,
     };
   });
 
@@ -77,9 +80,21 @@ export async function quickStatus(): Promise<void> {
   const hasStore = !!config.global?.cloudflare_secret_store_id;
 
   printKeyValue([
-    ["Workers", `${enabled}/${total} enabled`, enabled > 0 ? "green" : "yellow"],
-    ["CF Auth", hasToken ? "Configured" : "Missing", hasToken ? "green" : "red"],
-    ["Secret Store", hasStore ? "Configured" : "Missing", hasStore ? "green" : "red"],
+    [
+      "Workers",
+      `${enabled}/${total} enabled`,
+      enabled > 0 ? "green" : "yellow",
+    ],
+    [
+      "CF Auth",
+      hasToken ? "Configured" : "Missing",
+      hasToken ? "green" : "red",
+    ],
+    [
+      "Secret Store",
+      hasStore ? "Configured" : "Missing",
+      hasStore ? "green" : "red",
+    ],
   ]);
   console.log("");
 }

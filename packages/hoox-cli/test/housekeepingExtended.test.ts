@@ -4,7 +4,10 @@ import os from "node:os";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 
-const testDir = path.join(os.tmpdir(), `hoox-housekeeping-extended-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+const testDir = path.join(
+  os.tmpdir(),
+  `hoox-housekeeping-extended-${Date.now()}-${Math.random().toString(36).substring(7)}`
+);
 
 describe("Housekeeping - Extended Tests", () => {
   beforeEach(async () => {
@@ -36,7 +39,9 @@ describe("Housekeeping - Extended Tests", () => {
 
       const entries = await fsp.readdir(workersDir);
       const workerDirs = entries.filter(
-        e => !e.startsWith(".") && fs.statSync(path.join(workersDir, e)).isDirectory()
+        (e) =>
+          !e.startsWith(".") &&
+          fs.statSync(path.join(workersDir, e)).isDirectory()
       );
 
       expect(workerDirs).toHaveLength(2);
@@ -47,7 +52,7 @@ describe("Housekeeping - Extended Tests", () => {
     test("should validate wrangler.jsonc exists", async () => {
       const workerDir = path.join(testDir, "workers", "hoox");
       fs.mkdirSync(workerDir, { recursive: true });
-      
+
       const wranglerPath = path.join(workerDir, "wrangler.jsonc");
       await fsp.writeFile(wranglerPath, '{"name": "hoox"}');
 
@@ -67,10 +72,12 @@ describe("Housekeeping - Extended Tests", () => {
         "name": "test-worker",
         "compatibility_date": "2024-01-01"
       }`;
-      
+
       await fsp.writeFile(wranglerPath, content);
       const fileContent = await fsp.readFile(wranglerPath, "utf8");
-      const cleaned = fileContent.replace(/\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1");
+      const cleaned = fileContent
+        .replace(/\/\/.*$/gm, "")
+        .replace(/,(\s*[}\]])/g, "$1");
       const parsed = JSON.parse(cleaned);
 
       expect(parsed.name).toBe("test-worker");
@@ -85,8 +92,8 @@ describe("Housekeeping - Extended Tests", () => {
 
     test("should detect invalid account ID", () => {
       const invalidIds = ["short", "has-special-chars!", ""];
-      
-      invalidIds.forEach(id => {
+
+      invalidIds.forEach((id) => {
         const isValid = id.length >= 32 && /^[a-z0-9]+$/.test(id);
         expect(isValid).toBe(false);
       });
@@ -113,8 +120,8 @@ describe("Housekeeping - Extended Tests", () => {
       const requiredSecrets = ["KEY1", "KEY2", "KEY3"];
       const boundSecrets = ["KEY1", "KEY2"];
 
-      const missing = requiredSecrets.filter(s => !boundSecrets.includes(s));
-      
+      const missing = requiredSecrets.filter((s) => !boundSecrets.includes(s));
+
       expect(missing).toHaveLength(1);
       expect(missing).toContain("KEY3");
     });
@@ -132,8 +139,8 @@ describe("Housekeeping - Extended Tests", () => {
       const required = ["TRADE_SERVICE", "TELEGRAM_SERVICE"];
       const available: string[] = ["TRADE_SERVICE"];
 
-      const missing = required.filter(s => !available.includes(s));
-      
+      const missing = required.filter((s) => !available.includes(s));
+
       expect(missing).toContain("TELEGRAM_SERVICE");
     });
   });
@@ -149,7 +156,7 @@ describe("Housekeeping - Extended Tests", () => {
 
     test("should detect missing D1 binding", () => {
       const config = { bindings: {} };
-      
+
       expect(config.bindings.DB).toBeUndefined();
     });
   });
@@ -164,7 +171,13 @@ describe("Housekeeping - Extended Tests", () => {
     });
 
     test("should detect missing source file", () => {
-      const srcPath = path.join(testDir, "workers", "hoox", "src", "missing.ts");
+      const srcPath = path.join(
+        testDir,
+        "workers",
+        "hoox",
+        "src",
+        "missing.ts"
+      );
       expect(fs.existsSync(srcPath)).toBe(false);
     });
   });
@@ -190,7 +203,7 @@ describe("Housekeeping - Extended Tests", () => {
         "d1-worker": { enabled: false },
       };
 
-      const enabled = Object.values(workers).filter(w => w.enabled);
+      const enabled = Object.values(workers).filter((w) => w.enabled);
       const total = Object.keys(workers).length;
 
       expect(enabled).toHaveLength(2);
@@ -204,9 +217,9 @@ describe("Housekeeping - Extended Tests", () => {
         { severity: "info", message: "Update available" },
       ];
 
-      const errors = issues.filter(i => i.severity === "error");
-      const warnings = issues.filter(i => i.severity === "warning");
-      const info = issues.filter(i => i.severity === "info");
+      const errors = issues.filter((i) => i.severity === "error");
+      const warnings = issues.filter((i) => i.severity === "warning");
+      const info = issues.filter((i) => i.severity === "info");
 
       expect(errors).toHaveLength(1);
       expect(warnings).toHaveLength(1);
@@ -216,7 +229,10 @@ describe("Housekeeping - Extended Tests", () => {
 });
 
 describe("Housekeeping - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-housekeeping-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-housekeeping-integration-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -229,7 +245,9 @@ describe("Housekeeping - Integration Tests", () => {
   test("complete worker validation flow", async () => {
     const workersDir = path.join(integrationDir, "workers");
     fs.mkdirSync(path.join(workersDir, "hoox", "src"), { recursive: true });
-    fs.mkdirSync(path.join(workersDir, "trade-worker", "src"), { recursive: true });
+    fs.mkdirSync(path.join(workersDir, "trade-worker", "src"), {
+      recursive: true,
+    });
     await fsp.writeFile(
       path.join(workersDir, "hoox", "wrangler.jsonc"),
       '{"name": "hoox", "compatibility_date": "2024-01-01"}'
@@ -253,11 +271,13 @@ describe("Housekeeping - Integration Tests", () => {
     for (const entry of entries) {
       const workerPath = path.join(workersDir, entry);
       const stat = await fsp.stat(workerPath);
-      
+
       if (stat.isDirectory()) {
         const srcExists = fs.existsSync(path.join(workerPath, "src"));
-        const wranglerExists = fs.existsSync(path.join(workerPath, "wrangler.jsonc"));
-        
+        const wranglerExists = fs.existsSync(
+          path.join(workerPath, "wrangler.jsonc")
+        );
+
         if (srcExists && wranglerExists) {
           validWorkers.push(entry);
         }

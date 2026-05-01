@@ -11,7 +11,7 @@ describe("Utils - Color Functions", () => {
     test("red should wrap text with red codes", () => {
       const red = (text: string): string => `\x1b[31m${text}\x1b[0m`;
       const result = red("error");
-      
+
       expect(result).toContain("error");
       expect(result).toContain("\x1b[31m");
       expect(result).toContain("\x1b[0m");
@@ -20,7 +20,7 @@ describe("Utils - Color Functions", () => {
     test("green should wrap text with green codes", () => {
       const green = (text: string): string => `\x1b[32m${text}\x1b[0m`;
       const result = green("success");
-      
+
       expect(result).toContain("success");
       expect(result).toContain("\x1b[32m");
     });
@@ -28,7 +28,7 @@ describe("Utils - Color Functions", () => {
     test("yellow should wrap text with yellow codes", () => {
       const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;
       const result = yellow("warning");
-      
+
       expect(result).toContain("warning");
       expect(result).toContain("\x1b[33m");
     });
@@ -36,7 +36,7 @@ describe("Utils - Color Functions", () => {
     test("blue should wrap text with blue codes", () => {
       const blue = (text: string): string => `\x1b[34m${text}\x1b[0m`;
       const result = blue("info");
-      
+
       expect(result).toContain("info");
       expect(result).toContain("\x1b[34m");
     });
@@ -44,7 +44,7 @@ describe("Utils - Color Functions", () => {
     test("cyan should wrap text with cyan codes", () => {
       const cyan = (text: string): string => `\x1b[36m${text}\x1b[0m`;
       const result = cyan("info");
-      
+
       expect(result).toContain("info");
       expect(result).toContain("\x1b[36m");
     });
@@ -52,7 +52,7 @@ describe("Utils - Color Functions", () => {
     test("dim should wrap text with dim codes", () => {
       const dim = (text: string): string => `\x1b[2m${text}\x1b[0m`;
       const result = dim("dimmed");
-      
+
       expect(result).toContain("dimmed");
       expect(result).toContain("\x1b[2m");
     });
@@ -67,21 +67,25 @@ describe("Utils - Color Functions", () => {
       };
 
       print_success("Operation completed");
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("✅"));
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Operation completed"));
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Operation completed")
+      );
       consoleSpy.mockRestore();
     });
 
     test("print_error should output error message", () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       const red = (text: string): string => `\x1b[31m${text}\x1b[0m`;
       const print_error = (text: string): void => {
         console.error(red(`❌ ${text}`));
       };
 
       print_error("Operation failed");
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("❌"));
       consoleSpy.mockRestore();
     });
@@ -94,7 +98,7 @@ describe("Utils - Color Functions", () => {
       };
 
       print_warning("Warning message");
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("⚠️"));
       consoleSpy.mockRestore();
     });
@@ -144,10 +148,10 @@ describe("Utils - Command Execution", () => {
     test("should build shell command on unix", () => {
       const command = "bun run test";
       const platform = "linux";
-      
+
       const shell = platform === "win32" ? "cmd" : "sh";
       const args = platform === "win32" ? ["/c", command] : ["-c", command];
-      
+
       expect(shell).toBe("sh");
       expect(args[0]).toBe("-c");
     });
@@ -155,10 +159,10 @@ describe("Utils - Command Execution", () => {
     test("should build shell command on windows", () => {
       const command = "bun run test";
       const platform = "win32";
-      
+
       const shell = platform === "win32" ? "cmd" : "sh";
       const args = platform === "win32" ? ["/c", command] : ["-c", command];
-      
+
       expect(shell).toBe("cmd");
       expect(args[0]).toBe("/c");
     });
@@ -166,9 +170,9 @@ describe("Utils - Command Execution", () => {
     test("should merge environment variables", () => {
       const baseEnv = { NODE_ENV: "test" };
       const overrideEnv = { DEBUG: "true" };
-      
+
       const merged = { ...baseEnv, ...overrideEnv };
-      
+
       expect(merged.NODE_ENV).toBe("test");
       expect(merged.DEBUG).toBe("true");
     });
@@ -178,7 +182,7 @@ describe("Utils - Command Execution", () => {
     test("should check command existence", async () => {
       const command = "bun";
       const checkCmd = ["command", "-v", command];
-      
+
       expect(checkCmd).toContain("command");
       expect(checkCmd).toContain("-v");
       expect(checkCmd).toContain("bun");
@@ -202,9 +206,9 @@ describe("Utils - Input Handling", () => {
 
     test("should handle question input", async () => {
       const mockQuestion = vi.fn((query: string) => Promise.resolve("y"));
-      
+
       const response = await mockQuestion("Continue?");
-      
+
       expect(mockQuestion).toHaveBeenCalledWith("Continue?");
       expect(response).toBe("y");
     });
@@ -212,7 +216,10 @@ describe("Utils - Input Handling", () => {
 });
 
 describe("Utils - Integration Tests", () => {
-  const integrationDir = path.join(os.tmpdir(), `hoox-utils-integration-${Date.now()}`);
+  const integrationDir = path.join(
+    os.tmpdir(),
+    `hoox-utils-integration-${Date.now()}`
+  );
 
   beforeEach(async () => {
     await fsp.mkdir(integrationDir, { recursive: true });
@@ -224,16 +231,16 @@ describe("Utils - Integration Tests", () => {
 
   test("should execute command and capture output", async () => {
     const { $ } = await import("bun");
-    
+
     const result = await $`echo "test output"`.text();
-    
+
     expect(result).toBe("test output\n");
   });
 
   test("should handle command timeout", async () => {
     const timeout = 5000;
     const startTime = Date.now();
-    
+
     const elapsed = Date.now() - startTime;
     expect(elapsed).toBeLessThan(timeout);
   });
@@ -242,9 +249,9 @@ describe("Utils - Integration Tests", () => {
     const env1 = { KEY1: "value1" };
     const env2 = { KEY2: "value2" };
     const env3 = { KEY1: "overridden" };
-    
+
     const merged = { ...env1, ...env2, ...env3 };
-    
+
     expect(merged.KEY1).toBe("overridden");
     expect(merged.KEY2).toBe("value2");
   });

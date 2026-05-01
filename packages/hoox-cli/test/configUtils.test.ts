@@ -176,8 +176,8 @@ describe("Redaction utilities", () => {
     expect(redacted.workers.hoox.secrets.DB_SECRET).toBe("[REDACTED]");
   });
 });
-<<<<<<< HEAD
 
+describe("JSONC parsing edge cases", () => {
   test("should preserve comment-like tokens inside strings", () => {
     const jsonc = `{"key": "https://example.com/a//b", "note": "/* keep */"}`;
     const result = parseJsonc(jsonc) as { key: string; note: string };
@@ -193,38 +193,11 @@ describe("Redaction utilities", () => {
   "arr": ["a", "b",],
   "obj": {"nested": true,},
 }`;
-    const result = parseJsonc(jsonc) as { key: string; arr: string[]; obj: { nested: boolean } };
-    expect(result).toEqual({ key: "value", arr: ["a", "b"], obj: { nested: true } });
-=======
-});
-
-describe("Redaction utilities", () => {
-  test("redacts token/secret/key fields while preserving structure", () => {
-    const payload = {
-      global: {
-        cloudflare_api_token: "cf-token",
-        cloudflare_account_id: "account-id",
-      },
-      workers: {
-        hoox: {
-          vars: {
-            OPENAI_API_KEY: "sk-abc",
-            PUBLIC_URL: "https://example.com",
-          },
-          secrets: {
-            DB_SECRET: "super-secret",
-          },
-        },
-      },
+    const result = parseJsonc(jsonc) as {
+      key: string;
+      arr: string[];
+      obj: { nested: boolean };
     };
-
-    const redacted = redactForLogs(payload);
-
-    expect(redacted.global.cloudflare_api_token).toBe("[REDACTED]");
-    expect(redacted.global.cloudflare_account_id).toBe("account-id");
-    expect(redacted.workers.hoox.vars.OPENAI_API_KEY).toBe("[REDACTED]");
-    expect(redacted.workers.hoox.vars.PUBLIC_URL).toBe("https://example.com");
-    expect(redacted.workers.hoox.secrets.DB_SECRET).toBe("[REDACTED]");
->>>>>>> origin/main
+    expect(result).toEqual({ key: "value", arr: ["a", "b"], obj: { nested: true } });
   });
 });

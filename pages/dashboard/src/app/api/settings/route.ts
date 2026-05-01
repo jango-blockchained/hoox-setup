@@ -136,7 +136,10 @@ export async function GET(
       // Fallback to D1 worker if KV binding isn't available
       const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
       if (configErrors.length > 0) {
-        return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+        return NextResponse.json(
+          { error: "Configuration error", missing: configErrors },
+          { status: 500 }
+        );
       }
 
       const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {
@@ -203,7 +206,10 @@ export async function POST(
       // Fallback to D1 worker
       const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
       if (configErrors.length > 0) {
-        return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+        return NextResponse.json(
+          { error: "Configuration error", missing: configErrors },
+          { status: 500 }
+        );
       }
 
       const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {

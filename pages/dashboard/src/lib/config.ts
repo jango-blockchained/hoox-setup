@@ -42,10 +42,17 @@ export function getEnvVar(key: string): string | undefined {
 export function getConfig() {
   return {
     api: {
-      d1Service: getEnvVar(ENV_KEYS.services.d1) || DEFAULT_SERVICE_URLS.D1_SERVICE_URL,
-      tradeService: getEnvVar(ENV_KEYS.services.trade) || DEFAULT_SERVICE_URLS.TRADE_SERVICE_URL,
-      agentService: getEnvVar(ENV_KEYS.services.agent) || DEFAULT_SERVICE_URLS.AGENT_SERVICE_URL,
-      telegramService: getEnvVar(ENV_KEYS.services.telegram) || DEFAULT_SERVICE_URLS.TELEGRAM_SERVICE_URL,
+      d1Service:
+        getEnvVar(ENV_KEYS.services.d1) || DEFAULT_SERVICE_URLS.D1_SERVICE_URL,
+      tradeService:
+        getEnvVar(ENV_KEYS.services.trade) ||
+        DEFAULT_SERVICE_URLS.TRADE_SERVICE_URL,
+      agentService:
+        getEnvVar(ENV_KEYS.services.agent) ||
+        DEFAULT_SERVICE_URLS.AGENT_SERVICE_URL,
+      telegramService:
+        getEnvVar(ENV_KEYS.services.telegram) ||
+        DEFAULT_SERVICE_URLS.TELEGRAM_SERVICE_URL,
     },
     internalAuth: {
       d1: getEnvVar(ENV_KEYS.internalAuth.d1),
@@ -58,7 +65,8 @@ export function getConfig() {
       username: getEnvVar(ENV_KEYS.auth.username),
       password: getEnvVar(ENV_KEYS.auth.password),
       cfAccessTeamName: getEnvVar(ENV_KEYS.auth.cfAccessTeamName),
-      sessionSecret: getEnvVar(ENV_KEYS.auth.sessionSecret) || "change-me-in-production",
+      sessionSecret:
+        getEnvVar(ENV_KEYS.auth.sessionSecret) || "change-me-in-production",
     },
   } as const;
 }
@@ -73,5 +81,8 @@ export type ConfigError = {
 export function validateRequiredEnv(keys: readonly string[]): ConfigError[] {
   return keys
     .filter((key) => !getEnvVar(key))
-    .map((key) => ({ key, message: `Missing required environment variable: ${key}` }));
+    .map((key) => ({
+      key,
+      message: `Missing required environment variable: ${key}`,
+    }));
 }

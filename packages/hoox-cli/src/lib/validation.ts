@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { CloudflareClient, createValidationResult, type ValidationResult } from "./cf-client.js";
+import {
+  CloudflareClient,
+  createValidationResult,
+  type ValidationResult,
+} from "./cf-client.js";
 import { loadConfig } from "../configUtils.js";
 import type { Config } from "../types.js";
 
@@ -22,7 +26,9 @@ export const WorkerConfigSchema = z.object({
   enabled: z.boolean().default(true),
   path: z.string(),
   vars: z.record(z.string()).optional(),
-  services: z.array(z.object({ binding: z.string(), service: z.string() })).optional(),
+  services: z
+    .array(z.object({ binding: z.string(), service: z.string() }))
+    .optional(),
   secrets: z.array(z.string()).optional(),
   deployed_url: z.string().optional(),
 });
@@ -40,7 +46,10 @@ const KNOWN_DEPS = [
   { name: "wrangler", required: true, command: "wrangler --version" },
 ];
 
-async function checkDependency(dep: { name: string; command: string }): Promise<boolean> {
+async function checkDependency(dep: {
+  name: string;
+  command: string;
+}): Promise<boolean> {
   try {
     const proc = Bun.spawn({
       cmd: dep.command.split(" "),
@@ -68,7 +77,10 @@ export async function validateDependencies(): Promise<ValidationResult> {
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-export async function validateAuth(apiToken: string, accountId: string): Promise<ValidationResult> {
+export async function validateAuth(
+  apiToken: string,
+  accountId: string
+): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -88,7 +100,9 @@ export async function validateAuth(apiToken: string, accountId: string): Promise
     await client.listZones();
     return createValidationResult(true, [], ["Auth validated successfully"]);
   } catch (e) {
-    errors.push(`Auth validation failed: ${e instanceof Error ? e.message : String(e)}`);
+    errors.push(
+      `Auth validation failed: ${e instanceof Error ? e.message : String(e)}`
+    );
     return createValidationResult(false, errors, warnings);
   }
 }
@@ -99,7 +113,9 @@ export function validateConfig(config: unknown): ValidationResult {
 
   const result = ConfigValidationSchema.safeParse(config);
   if (!result.success) {
-    errors.push(...result.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`));
+    errors.push(
+      ...result.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`)
+    );
     return createValidationResult(false, errors, warnings);
   }
 
@@ -126,7 +142,9 @@ export function validateConfig(config: unknown): ValidationResult {
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-export async function validateWorkers(workers: Record<string, any>): Promise<ValidationResult> {
+export async function validateWorkers(
+  workers: Record<string, any>
+): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -142,7 +160,9 @@ export async function validateWorkers(workers: Record<string, any>): Promise<Val
     try {
       const exists = await Bun.file(workerPath).exists();
       if (!exists) {
-        errors.push(`Worker '${name}': directory '${workerPath}' does not exist`);
+        errors.push(
+          `Worker '${name}': directory '${workerPath}' does not exist`
+        );
       }
     } catch {
       errors.push(`Worker '${name}': failed to check path`);
@@ -152,7 +172,9 @@ export async function validateWorkers(workers: Record<string, any>): Promise<Val
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-export async function validateResources(config: Config): Promise<ValidationResult> {
+export async function validateResources(
+  config: Config
+): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -171,13 +193,17 @@ export async function validateResources(config: Config): Promise<ValidationResul
     }
 
     if (config.global.cloudflare_secret_store_id) {
-      warnings.push(`Secret Store '${config.global.cloudflare_secret_store_id}' exists (verified by presence)`);
+      warnings.push(
+        `Secret Store '${config.global.cloudflare_secret_store_id}' exists (verified by presence)`
+      );
     }
 
     const kvNamespaces = await client.listKVNamespaces();
     warnings.push(`Found ${kvNamespaces.length} KV namespace(s)`);
   } catch (e) {
-    errors.push(`Resource validation failed: ${e instanceof Error ? e.message : String(e)}`);
+    errors.push(
+      `Resource validation failed: ${e instanceof Error ? e.message : String(e)}`
+    );
   }
 
   return createValidationResult(errors.length === 0, errors, warnings);
@@ -209,7 +235,9 @@ export async function fixDependencies(): Promise<ValidationResult> {
   return createValidationResult(errors.length === 0, errors, warnings);
 }
 
-export async function repairResources(config: Config): Promise<ValidationResult> {
+export async function repairResources(
+  config: Config
+): Promise<ValidationResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -219,7 +247,9 @@ export async function repairResources(config: Config): Promise<ValidationResult>
       accountId: config.global.cloudflare_account_id,
     });
 
-    warnings.push("Resource repair is a manual process - please run 'hoox workers setup' to repair worker resources");
+    warnings.push(
+      "Resource repair is a manual process - please run 'hoox workers setup' to repair worker resources"
+    );
   } catch (e) {
     errors.push(`Repair failed: ${e instanceof Error ? e.message : String(e)}`);
   }

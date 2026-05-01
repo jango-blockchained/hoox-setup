@@ -61,7 +61,10 @@ export function headersToObject(
  * KV middleware function for logging timestamps
  */
 export const kvTimestampMiddleware = () => {
-  return async (c: { env: unknown }, next: () => Promise<void>): Promise<void> => {
+  return async (
+    c: { env: unknown },
+    next: () => Promise<void>
+  ): Promise<void> => {
     await logKvTimestamp(c.env as unknown as EnvWithKV);
     await next();
   };

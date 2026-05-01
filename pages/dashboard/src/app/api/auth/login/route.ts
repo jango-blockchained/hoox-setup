@@ -16,9 +16,15 @@ export async function POST(
     const username = body?.username;
     const password = body?.password;
 
-    const configErrors = validateRequiredEnv([ENV_KEYS.auth.username, ENV_KEYS.auth.password]);
+    const configErrors = validateRequiredEnv([
+      ENV_KEYS.auth.username,
+      ENV_KEYS.auth.password,
+    ]);
     if (configErrors.length > 0) {
-      return NextResponse.json({ error: "Configuration error", missing: configErrors }, { status: 500 });
+      return NextResponse.json(
+        { error: "Configuration error", missing: configErrors },
+        { status: 500 }
+      );
     }
 
     const validUsername = getConfig().auth.username;

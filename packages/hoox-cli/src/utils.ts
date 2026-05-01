@@ -64,7 +64,9 @@ export const rl = readline.createInterface({
  * Ensures the directory containing the current Bun executable is on PATH
  * so that spawned subprocesses can find `bun` and `bunx`.
  */
-function buildEnv(extra?: Record<string, string | undefined>): Record<string, string> {
+function buildEnv(
+  extra?: Record<string, string | undefined>
+): Record<string, string> {
   const base = { ...Bun.env, ...extra } as Record<string, string>;
   const bunDir = nodePath.dirname(process.execPath);
   const currentPath = base.PATH || base.Path || "";
@@ -79,7 +81,8 @@ function buildEnv(extra?: Record<string, string | undefined>): Record<string, st
  */
 export async function checkCommandExists(command: string): Promise<boolean> {
   try {
-    const checkCmd = process.platform === "win32" ? ["where", command] : ["which", command];
+    const checkCmd =
+      process.platform === "win32" ? ["where", command] : ["which", command];
     const proc = Bun.spawn(checkCmd);
     const exitCode = await proc.exited;
     return exitCode === 0;
@@ -103,7 +106,7 @@ export function runCommandSync(
     const output = Bun.spawnSync(args, { cwd, env: mergedEnv });
     const stdout = output.stdout?.toString() || "";
     const stderr = output.stderr?.toString() || "";
-    
+
     if (output.success) {
       log.dim(stdout);
       return { success: true, stdout, stderr, exitCode: 0 };
@@ -320,37 +323,37 @@ export async function promptForSecret(secretName: string): Promise<string> {
     const wasRaw = stdin.isRaw;
     stdin.setRawMode(true);
     stdin.resume();
-    stdin.setEncoding('utf8');
-    
-    let secret = '';
+    stdin.setEncoding("utf8");
+
+    let secret = "";
     const onData = (char: string) => {
       // Handle Enter
-      if (char === '\r' || char === '\n') {
+      if (char === "\r" || char === "\n") {
         stdin.setRawMode(wasRaw);
         stdin.pause();
-        stdin.removeListener('data', onData);
-        process.stdout.write('\n');
+        stdin.removeListener("data", onData);
+        process.stdout.write("\n");
         resolve(secret.trim());
         return;
       }
       // Handle Ctrl+C
-      if (char === '\x03') {
+      if (char === "\x03") {
         stdin.setRawMode(wasRaw);
-        process.stdout.write('\n');
+        process.stdout.write("\n");
         process.exit(1);
       }
       // Handle Backspace
-      if (char === '\x7f' || char === '\b') {
+      if (char === "\x7f" || char === "\b") {
         if (secret.length > 0) {
           secret = secret.slice(0, -1);
-          process.stdout.write('\b \b');
+          process.stdout.write("\b \b");
         }
         return;
       }
       secret += char;
-      process.stdout.write('*');
+      process.stdout.write("*");
     };
-    stdin.on('data', onData);
+    stdin.on("data", onData);
   });
 }
 

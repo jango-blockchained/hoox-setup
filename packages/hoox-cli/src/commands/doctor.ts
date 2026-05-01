@@ -35,15 +35,21 @@ export async function runDoctor(): Promise<void> {
   const wranglerExists = await checkCommandExists("wrangler");
   if (wranglerExists) {
     const proc = Bun.spawnSync(["bunx", "wrangler", "--version"]);
-    const version = proc.stdout?.toString().trim().split("\n").pop() || "unknown";
+    const version =
+      proc.stdout?.toString().trim().split("\n").pop() || "unknown";
     results.push({ name: "Wrangler", pass: true, detail: version });
     s.stop(`Wrangler: ${version}`);
   } else {
     // Try bunx
     const proc = Bun.spawnSync(["bunx", "wrangler", "--version"]);
     if (proc.exitCode === 0) {
-      const version = proc.stdout?.toString().trim().split("\n").pop() || "unknown";
-      results.push({ name: "Wrangler", pass: true, detail: `${version} (via bunx)` });
+      const version =
+        proc.stdout?.toString().trim().split("\n").pop() || "unknown";
+      results.push({
+        name: "Wrangler",
+        pass: true,
+        detail: `${version} (via bunx)`,
+      });
       s.stop(`Wrangler: ${version} (via bunx)`);
     } else {
       results.push({ name: "Wrangler", pass: false, detail: "Not installed" });
@@ -78,21 +84,35 @@ export async function runDoctor(): Promise<void> {
         .replace(/,\s*([}\]])/g, "$1");
       const config = JSON.parse(stripped);
       const workerCount = Object.keys(config.workers || {}).length;
-      const enabledCount = Object.values(config.workers || {}).filter((w: any) => w.enabled).length;
-      results.push({ name: "Config", pass: true, detail: `${enabledCount}/${workerCount} workers enabled` });
+      const enabledCount = Object.values(config.workers || {}).filter(
+        (w: any) => w.enabled
+      ).length;
+      results.push({
+        name: "Config",
+        pass: true,
+        detail: `${enabledCount}/${workerCount} workers enabled`,
+      });
       s.stop(`Config: ${enabledCount}/${workerCount} workers enabled`);
 
       // 5. Check API token
       s.start("Checking Cloudflare auth...");
       const token = config.global?.cloudflare_api_token;
       if (token && token.length > 10) {
-        results.push({ name: "CF Auth", pass: true, detail: `Token: ${token.slice(0, 6)}...` });
+        results.push({
+          name: "CF Auth",
+          pass: true,
+          detail: `Token: ${token.slice(0, 6)}...`,
+        });
         s.stop(`CF Auth: Token configured`);
       } else if (process.env.CLOUDFLARE_API_TOKEN) {
         results.push({ name: "CF Auth", pass: true, detail: "Using env var" });
         s.stop("CF Auth: Using CLOUDFLARE_API_TOKEN env var");
       } else {
-        results.push({ name: "CF Auth", pass: false, detail: "No API token found" });
+        results.push({
+          name: "CF Auth",
+          pass: false,
+          detail: "No API token found",
+        });
         s.stop("CF Auth: No API token found", 1);
       }
 
@@ -100,19 +120,34 @@ export async function runDoctor(): Promise<void> {
       s.start("Checking Secret Store...");
       const storeId = config.global?.cloudflare_secret_store_id;
       if (storeId) {
-        results.push({ name: "Secret Store", pass: true, detail: `ID: ${storeId.slice(0, 8)}...` });
+        results.push({
+          name: "Secret Store",
+          pass: true,
+          detail: `ID: ${storeId.slice(0, 8)}...`,
+        });
         s.stop(`Secret Store: Configured`);
       } else {
-        results.push({ name: "Secret Store", pass: false, detail: "Not configured" });
+        results.push({
+          name: "Secret Store",
+          pass: false,
+          detail: "Not configured",
+        });
         s.stop("Secret Store: Not configured", 1);
       }
-
     } catch (e) {
-      results.push({ name: "Config", pass: false, detail: `Parse error: ${(e as Error).message}` });
+      results.push({
+        name: "Config",
+        pass: false,
+        detail: `Parse error: ${(e as Error).message}`,
+      });
       s.stop("Config: Parse error", 1);
     }
   } else {
-    results.push({ name: "Config", pass: false, detail: "workers.jsonc not found" });
+    results.push({
+      name: "Config",
+      pass: false,
+      detail: "workers.jsonc not found",
+    });
     s.stop("Config: workers.jsonc not found", 1);
   }
 
@@ -123,10 +158,18 @@ export async function runDoctor(): Promise<void> {
     const { readdir } = await import("node:fs/promises");
     const dirs = await readdir("workers", { withFileTypes: true });
     const workerDirs = dirs.filter((d) => d.isDirectory()).map((d) => d.name);
-    results.push({ name: "Worker Dirs", pass: workerDirs.length > 0, detail: `${workerDirs.length} found` });
+    results.push({
+      name: "Worker Dirs",
+      pass: workerDirs.length > 0,
+      detail: `${workerDirs.length} found`,
+    });
     s.stop(`Worker Dirs: ${workerDirs.length} found`);
   } catch {
-    results.push({ name: "Worker Dirs", pass: false, detail: "workers/ directory not found" });
+    results.push({
+      name: "Worker Dirs",
+      pass: false,
+      detail: "workers/ directory not found",
+    });
     s.stop("Worker Dirs: Not found", 1);
   }
 
@@ -138,7 +181,10 @@ export async function runDoctor(): Promise<void> {
 
   clack.note(
     results
-      .map((r) => `${r.pass ? ansis.green("✓") : ansis.red("✖")} ${r.name}: ${r.detail}`)
+      .map(
+        (r) =>
+          `${r.pass ? ansis.green("✓") : ansis.red("✖")} ${r.name}: ${r.detail}`
+      )
       .join("\n"),
     "Diagnostic Summary"
   );
@@ -146,6 +192,10 @@ export async function runDoctor(): Promise<void> {
   if (allGood) {
     clack.outro(ansis.green("All checks passed. System is healthy. 🚀"));
   } else {
-    clack.outro(ansis.yellow(`${passed}/${total} checks passed. Run ${ansis.cyan("hoox setup validate --fix")} to repair.`));
+    clack.outro(
+      ansis.yellow(
+        `${passed}/${total} checks passed. Run ${ansis.cyan("hoox setup validate --fix")} to repair.`
+      )
+    );
   }
 }

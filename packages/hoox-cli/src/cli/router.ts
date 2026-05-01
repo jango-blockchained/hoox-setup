@@ -3,7 +3,15 @@ import ansis from "ansis";
 
 export interface CommandDef {
   description: string;
-  options?: Record<string, { type: "string" | "boolean"; short?: string; description?: string; default?: string | boolean }>;
+  options?: Record<
+    string,
+    {
+      type: "string" | "boolean";
+      short?: string;
+      description?: string;
+      default?: string | boolean;
+    }
+  >;
   args?: string[];
   handler: (args: Record<string, any>, positionals: string[]) => Promise<void>;
   subcommands?: Record<string, CommandDef>;
@@ -21,11 +29,11 @@ export interface RouterConfig {
  */
 const COMMAND_GROUPS: Record<string, string[]> = {
   "Getting Started": ["init", "clone", "install-bun", "check-setup"],
-  "Workers": ["workers", "pages", "tui"],
-  "Cloudflare": ["cf", "waf", "r2"],
-  "Configuration": ["config", "setup", "keys", "secrets"],
-  "Observability": ["logs", "housekeeping", "doctor", "status"],
-  "Dashboard": ["dashboard"],
+  Workers: ["workers", "pages", "tui"],
+  Cloudflare: ["cf", "waf", "r2"],
+  Configuration: ["config", "setup", "keys", "secrets"],
+  Observability: ["logs", "housekeeping", "doctor", "status"],
+  Dashboard: ["dashboard"],
 };
 
 /**
@@ -41,8 +49,17 @@ function printBanner(config: RouterConfig): void {
 
   console.log("");
   console.log(d("  ╭─────────────────────────────────────────────────╮"));
-  console.log(d("  │") + b(y("  ⚡ HOOX")) + d("  ─  Edge-Executed Trading System    ") + d("│"));
-  console.log(d("  │") + d(`     v${config.version}  ·  Zero Latency  ·  Bun-Native  `) + d("│"));
+  console.log(
+    d("  │") +
+      b(y("  ⚡ HOOX")) +
+      d("  ─  Edge-Executed Trading System    ") +
+      d("│")
+  );
+  console.log(
+    d("  │") +
+      d(`     v${config.version}  ·  Zero Latency  ·  Bun-Native  `) +
+      d("│")
+  );
   console.log(d("  ╰─────────────────────────────────────────────────╯"));
   console.log("");
   console.log(b("  USAGE"));
@@ -63,8 +80,19 @@ function printBanner(config: RouterConfig): void {
   }
 
   console.log(d("  ╭─────────────────────────────────────────────────╮"));
-  console.log(d("  │") + d("  Run ") + c("hoox <command> --help") + d(" for detailed usage   ") + d("│"));
-  console.log(d("  │") + d("  ") + d("🛡 Secured by Zero Trust Architecture") + d("        │"));
+  console.log(
+    d("  │") +
+      d("  Run ") +
+      c("hoox <command> --help") +
+      d(" for detailed usage   ") +
+      d("│")
+  );
+  console.log(
+    d("  │") +
+      d("  ") +
+      d("🛡 Secured by Zero Trust Architecture") +
+      d("        │")
+  );
   console.log(d("  ╰─────────────────────────────────────────────────╯"));
   console.log("");
 }
@@ -164,10 +192,17 @@ export async function runRouter(config: RouterConfig): Promise<void> {
   }
 
   // Parse options
-  const optionsDef: Record<string, { type: "string" | "boolean"; short?: string; default?: string | boolean }> = {};
+  const optionsDef: Record<
+    string,
+    { type: "string" | "boolean"; short?: string; default?: string | boolean }
+  > = {};
   if (activeCmd.options) {
     for (const [key, opt] of Object.entries(activeCmd.options)) {
-      optionsDef[key] = { type: opt.type, short: opt.short, default: opt.default };
+      optionsDef[key] = {
+        type: opt.type,
+        short: opt.short,
+        default: opt.default,
+      };
     }
   }
 
