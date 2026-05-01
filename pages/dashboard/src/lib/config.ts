@@ -1,3 +1,11 @@
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
 export const config = {
   // API endpoints - can be overridden via env
   api: {
@@ -16,7 +24,7 @@ export const config = {
     // CF Access team name (only if AUTH_TYPE=cf-access)
     cfAccessTeamName: process.env.CF_ACCESS_TEAM_NAME,
     // Session secret for cookie signing
-    sessionSecret: process.env.SESSION_SECRET || "change-me-in-production",
+    sessionSecret: requireEnv("SESSION_SECRET"),
   },
 } as const;
 
