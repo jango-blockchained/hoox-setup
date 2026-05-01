@@ -1353,7 +1353,6 @@ export function printAvailableWorkers(cfg: Config): void {
  * Checks the status of Secret Store bindings in a worker's wrangler.toml.
  */
 import { readdir } from "node:fs/promises";
-import { rl } from "./utils.js";
 
 /**
  * Checks if the workers directory is empty and provides an interactive prompt to clone worker repositories.
