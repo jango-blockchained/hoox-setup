@@ -28,7 +28,7 @@ const INTERNAL_KEY_SECRETS = [
 ];
 
 async function getCloudflareAccountId(): Promise<string | null> {
-  return process.env.CLOUDFLARE_ACCOUNT_ID || "debc6545e63bea36be059cbc82d80ec8";
+  return process.env.CLOUDFLARE_ACCOUNT_ID || null;
 }
 
 async function getCloudflareApiToken(): Promise<string | null> {
@@ -36,7 +36,7 @@ async function getCloudflareApiToken(): Promise<string | null> {
 }
 
 async function getCloudflareSecretStoreId(): Promise<string | null> {
-  return process.env.CLOUDFLARE_SECRET_STORE_ID || "48433bc559a943f09d9d6c622e188fd5";
+  return process.env.CLOUDFLARE_SECRET_STORE_ID || null;
 }
 
 export async function GET() {
@@ -44,6 +44,16 @@ export async function GET() {
     const accountId = await getCloudflareAccountId();
     const apiToken = await getCloudflareApiToken();
     const storeId = await getCloudflareSecretStoreId();
+
+    if (!apiToken || !accountId || !storeId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cloudflare Secret Store is not configured",
+        },
+        { status: 500 }
+      );
+    }
 
     let fetchedSecrets: { name: string }[] = [];
 
@@ -64,9 +74,6 @@ export async function GET() {
       if (data.success && data.result) {
         fetchedSecrets = data.result;
       }
-    } else {
-      // Fallback to process.env if CF tokens are not set
-      fetchedSecrets = ALL_SECRETS.filter(name => !!process.env[name]).map(name => ({ name }));
     }
 
     const availableNames = new Set(fetchedSecrets.map(s => s.name));
