@@ -9,6 +9,37 @@ const TRADINGVIEW_ALLOWED_IPS = [
   '52.32.178.7',
 ];
 
+interface CloudflareRuleset {
+  id: string;
+  phase: string;
+  rules?: Array<{ description?: string } & Record<string, unknown>>;
+}
+
+interface CloudflareRulesetListResponse {
+  result: CloudflareRuleset[];
+}
+interface CloudflareRulesetResponse {
+  result: CloudflareRuleset;
+}
+
+function asRulesetList(value: unknown): CloudflareRulesetListResponse {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "result" in value &&
+    Array.isArray((value as { result?: unknown }).result)
+  ) {
+    return { result: (value as { result: CloudflareRuleset[] }).result };
+  }
+  return { result: [] };
+}
+function asRuleset(value: unknown): CloudflareRulesetResponse {
+  if (typeof value === "object" && value !== null && "result" in value) {
+    return { result: (value as { result: CloudflareRuleset }).result };
+  }
+  return { result: { id: "", phase: "", rules: [] } };
+}
+
 export async function setupWAF(config: Config): Promise<void> {
   console.log(blue("\n--- Setting up Cloudflare WAF Rules ---"));
 
@@ -43,8 +74,8 @@ export async function setupWAF(config: Config): Promise<void> {
       throw new Error(`Failed to fetch rulesets: ${await getRulesetsResponse.text()}`);
     }
 
-    const rulesetsData = await getRulesetsResponse.json() as any;
-    const customRuleset = rulesetsData.result.find((r: any) => r.phase === "http_request_firewall_custom");
+    const rulesetsData = asRulesetList(await getRulesetsResponse.json());
+    const customRuleset = rulesetsData.result.find((r) => r.phase === "http_request_firewall_custom");
 
     let rulesetId = customRuleset?.id;
 
@@ -94,11 +125,11 @@ export async function setupWAF(config: Config): Promise<void> {
       const getRulesetResponse = await fetch(`${WAF_RULESET_URL}/${rulesetId}`, {
          headers: { "Authorization": `Bearer ${apiToken}` }
       });
-      const rulesetDetails = await getRulesetResponse.json() as any;
+      const rulesetDetails = asRuleset(await getRulesetResponse.json());
       const existingRules = rulesetDetails.result.rules || [];
 
       // Check if rule already exists
-      const existingRuleIndex = existingRules.findIndex((r: any) => r.description === "Hoox - TradingView IP Allowlist");
+      const existingRuleIndex = existingRules.findIndex((r) => r.description === "Hoox - TradingView IP Allowlist");
       
       if (existingRuleIndex >= 0) {
         existingRules[existingRuleIndex] = ipAllowlistRule; // Update
@@ -124,7 +155,7 @@ export async function setupWAF(config: Config): Promise<void> {
     }
 
     // 2. Setup Rate Limiting (phase: http_ratelimit)
-    const rateLimitRuleset = rulesetsData.result.find((r: any) => r.phase === "http_ratelimit");
+    const rateLimitRuleset = rulesetsData.result.find((r) => r.phase === "http_ratelimit");
     let rlRulesetId = rateLimitRuleset?.id;
 
     const rateLimitRule = {
@@ -165,10 +196,10 @@ export async function setupWAF(config: Config): Promise<void> {
        const getRlRulesetResponse = await fetch(`${WAF_RULESET_URL}/${rlRulesetId}`, {
          headers: { "Authorization": `Bearer ${apiToken}` }
        });
-       const rlRulesetDetails = await getRlRulesetResponse.json() as any;
+       const rlRulesetDetails = asRuleset(await getRlRulesetResponse.json());
        const existingRlRules = rlRulesetDetails.result.rules || [];
        
-       const existingRlRuleIndex = existingRlRules.findIndex((r: any) => r.description === "Hoox - Webhook Rate Limit (10/min)");
+       const existingRlRuleIndex = existingRlRules.findIndex((r) => r.description === "Hoox - Webhook Rate Limit (10/min)");
        if (existingRlRuleIndex >= 0) {
          existingRlRules[existingRlRuleIndex] = rateLimitRule;
        } else {
@@ -195,7 +226,8 @@ export async function setupWAF(config: Config): Promise<void> {
     console.log(green("\nWAF Configuration Complete."));
     console.log(yellow("Note: WAF rules are active on the specified hostname. Ensure your worker is routed via a Custom Domain."));
 
-  } catch (error: any) {
-    print_error(`Failed to configure WAF: ${error.message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    print_error(`Failed to configure WAF: ${message}`);
   }
 }
