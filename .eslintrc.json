@@ -36,6 +36,38 @@
   ],
   "overrides": [
     {
+      "files": [
+        "packages/hoox-cli/src/housekeeping.ts",
+        "packages/hoox-cli/src/wafCommands.ts",
+        "pages/dashboard/src/lib/settings/loader.ts",
+        "pages/dashboard/src/lib/api.ts",
+        "pages/dashboard/src/components/dashboard/settings-form.tsx"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/consistent-type-assertions": [
+          "error",
+          { "assertionStyle": "as", "objectLiteralTypeAssertions": "never" }
+        ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "TSAsExpression > TSAnyKeyword",
+            "message": "Avoid `as any` in critical modules. Use runtime narrowing or concrete interfaces."
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "pages/dashboard/src/components/dashboard/setup-checklist.tsx",
+        "pages/dashboard/src/app/api/settings/route.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
       "files": ["*.js"],
       "parserOptions": {
         "project": null // Don't use project settings for JS files

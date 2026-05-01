@@ -1,7 +1,8 @@
 import path from "node:path";
 import fs from "node:fs";
 import toml from "toml";
-import type { Config, WorkerConfig, WranglerConfig } from "./types.js";
+import type { Config, WranglerConfig } from "./types.js";
+import type { HousekeepingCheck, HousekeepingPayload, WorkerConfigManifestLite } from "@hoox/shared";
 import { intro, outro, log as clackLog, spinner, note } from "@clack/prompts";
 import {
   red,
@@ -11,23 +12,8 @@ import {
   dim,
 } from "./utils.js";
 
-export interface HousekeepingIssue {
-  worker: string;
-  type: "error" | "warning" | "info";
-  message: string;
-}
-
-export interface HousekeepingResult {
-  timestamp: string;
-  totalWorkers: number;
-  checkedWorkers: number;
-  issues: HousekeepingIssue[];
-  summary: {
-    errors: number;
-    warnings: number;
-    info: number;
-  };
-}
+export type HousekeepingIssue = HousekeepingCheck;
+export type HousekeepingResult = HousekeepingPayload;
 
 export async function runHousekeeping(
   config: Config,
@@ -98,7 +84,7 @@ export async function runHousekeeping(
     }
 
     // Read and parse wrangler config
-    let wranglerConfig = {} as WranglerConfig;
+    let wranglerConfig: WorkerConfigManifestLite = {};
     try {
       if (hasJsonc) {
         const content = (await Bun.file(wranglerJsoncPath).text());
@@ -106,10 +92,10 @@ export async function runHousekeeping(
           .replace(/\/\/.*$/gm, "")
           .replace(/\/\*[\s\S]*?\*\//g, "")
           .replace(/,(\s*[}\]])/g, "$1");
-        wranglerConfig = JSON.parse(jsonContent);
+        wranglerConfig = JSON.parse(jsonContent) as WorkerConfigManifestLite;
       } else if (hasToml) {
         const content = (await Bun.file(wranglerTomlPath).text());
-        wranglerConfig = toml.parse(content) as WranglerConfig;
+        wranglerConfig = toml.parse(content) as WorkerConfigManifestLite;
       }
     } catch (e) {
       result.issues.push({
@@ -155,7 +141,7 @@ export async function runHousekeeping(
       }
 
       // Check for node compatibility (needed for Next.js)
-      const compatFlags = wranglerConfig.compatibility_flags as string[] | undefined;
+      const compatFlags = wranglerConfig.compatibility_flags;
       if (!compatFlags?.includes("nodejs_compat")) {
         result.issues.push({
           worker: workerName,
@@ -185,10 +171,10 @@ export async function runHousekeeping(
 
     for (const secretName of requiredSecrets) {
       const foundInJsonc = secretStoreBindings.some(
-        (s: any) => s.secret_name === secretName
+        (s) => s.secret_name === secretName
       );
       const foundInToml = tomlSecrets.some(
-        (s: any) => s.secret_name === secretName
+        (s) => s.secret_name === secretName
       );
       if (!foundInJsonc && !foundInToml) {
         result.issues.push({
@@ -206,7 +192,7 @@ export async function runHousekeeping(
 
     for (const svc of requiredServices) {
       const found = configServices.some(
-        (s: any) => s.binding === svc.binding && s.service === svc.service
+        (s) => s.binding === svc.binding && s.service === svc.service
       );
       if (!found) {
         result.issues.push({
@@ -245,7 +231,7 @@ export async function runHousekeeping(
     const configD1 = wranglerConfig.d1_databases || [];
 
     for (const db of requiredDbs) {
-      const found = configD1.some((d: any) => d.binding === db.binding);
+      const found = configD1.some((d) => d.binding === db.binding);
       if (!found) {
         result.issues.push({
           worker: workerName,
@@ -264,7 +250,7 @@ export async function runHousekeeping(
     // Check if required queues are defined in config
     const requiredQueues = workerConfig.queues?.producers || [];
     for (const q of requiredQueues) {
-      const found = producers.some((p: any) => p.binding === q.binding);
+      const found = producers.some((p) => p.binding === q.binding);
       if (!found) {
         result.issues.push({
           worker: workerName,
@@ -328,7 +314,7 @@ export async function runHousekeeping(
         result.summary.warnings++;
       } else {
         // Check migration tags are unique
-        const tags = migrations.map((m: any) => m.tag);
+        const tags = migrations.map((m) => m.tag);
         const uniqueTags = new Set(tags);
         if (tags.length !== uniqueTags.size) {
           result.issues.push({
@@ -354,7 +340,7 @@ export async function runHousekeeping(
         // Check if this worker's wrangler has service binding
         const thisServices = wranglerConfig.services || [];
         const hasServiceBinding = thisServices.some(
-          (s: any) => s.service === workerName
+          (s) => s.service === workerName
         );
 
         if (!hasServiceBinding && verbose) {
