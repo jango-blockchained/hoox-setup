@@ -4,9 +4,15 @@ import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-export async function POST(request: NextRequest, context: { params: Promise<{}> }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{}> }
+) {
   try {
-    const body = await request.json() as { username?: string; password?: string };
+    const body = (await request.json()) as {
+      username?: string;
+      password?: string;
+    };
     const username = body?.username;
     const password = body?.password;
 
@@ -19,7 +25,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{}> 
     const validPassword = getConfig().auth.password;
 
     if (username !== validUsername || password !== validPassword) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
     const response = NextResponse.json({ success: true });
@@ -32,11 +41,17 @@ export async function POST(request: NextRequest, context: { params: Promise<{}> 
 
     return response;
   } catch (err) {
-    return NextResponse.json({ error: "Invalid request", details: String(err) }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request", details: String(err) },
+      { status: 400 }
+    );
   }
 }
 
-export async function DELETE(request: NextRequest, _context: { params: Promise<{}> }) {
+export async function DELETE(
+  request: NextRequest,
+  _context: { params: Promise<{}> }
+) {
   const response = NextResponse.json({ success: true });
   response.cookies.delete("session");
   return response;

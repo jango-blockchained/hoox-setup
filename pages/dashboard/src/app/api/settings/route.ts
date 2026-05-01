@@ -5,8 +5,11 @@ import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-  type Settings = Record<string, string | number | boolean | undefined>;
-  type AllSettings = Record<string, Record<string, string | number | boolean | undefined>>;
+type Settings = Record<string, string | number | boolean | undefined>;
+type AllSettings = Record<
+  string,
+  Record<string, string | number | boolean | undefined>
+>;
 
 const WORKER_PREFIX_MAP: Record<string, string> = {
   hoox: "global:",
@@ -16,7 +19,6 @@ const WORKER_PREFIX_MAP: Record<string, string> = {
   "d1-worker": "database:",
   "email-worker": "email:",
   "web3-wallet-worker": "wallet:",
-
 };
 
 const SECTION_PREFIX_MAP: Record<string, string> = {
@@ -62,9 +64,8 @@ function findWorkerByPrefix(kvKey: string): string | null {
     "cron:": "agent-worker",
     "behavior:": "agent-worker",
     "wallet:": "web3-wallet-worker",
-
   };
-  
+
   for (const [prefix, worker] of Object.entries(prefixToWorker)) {
     if (kvKey.startsWith(prefix)) return worker;
   }
@@ -79,17 +80,32 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
   return kvKey;
 }
 
-export async function GET(request: NextRequest, _context: { params: Promise<{}> }) {
+export async function GET(
+  request: NextRequest,
+  _context: { params: Promise<{}> }
+) {
   try {
-    const env = getCloudflareContext().env as unknown as { CONFIG_KV?: KVNamespace };
-    
+    const env = getCloudflareContext().env as unknown as {
+      CONFIG_KV?: KVNamespace;
+    };
+
     if (env?.CONFIG_KV) {
       const settings: Record<string, any> = {};
       const prefixes = [
-        "global:", "webhook:", "trade:", "agent:", "bot:",
-        "email:", "database:", "retention:", "routing:", "behavior:", "cron:", "ai:"
+        "global:",
+        "webhook:",
+        "trade:",
+        "agent:",
+        "bot:",
+        "email:",
+        "database:",
+        "retention:",
+        "routing:",
+        "behavior:",
+        "cron:",
+        "ai:",
       ];
-      
+
       for (const prefix of prefixes) {
         const list = await env.CONFIG_KV.list({ prefix });
         for (const kv of list.keys) {
@@ -129,18 +145,23 @@ export async function GET(request: NextRequest, _context: { params: Promise<{}> 
 
       if (res.ok) {
         const data = (await res.json()) as { settings?: AllSettings };
-        const settings = (data.settings || {}) as unknown as Record<string, string | number | boolean>;
+        const settings = (data.settings || {}) as unknown as Record<
+          string,
+          string | number | boolean
+        >;
         const normalized: Record<string, any> = {};
-        
+
         for (const [key, value] of Object.entries(settings)) {
           const worker = findWorkerByPrefix(key);
           if (worker) {
             const cleanKey = stripWorkerPrefix(key, worker);
             if (!normalized[worker]) normalized[worker] = {};
-            (normalized[worker] as Record<string, string | number | boolean>)[cleanKey] = value as string | number | boolean;
+            (normalized[worker] as Record<string, string | number | boolean>)[
+              cleanKey
+            ] = value as string | number | boolean;
           }
         }
-        
+
         return NextResponse.json({ settings: normalized } as any);
       }
     }
@@ -151,17 +172,29 @@ export async function GET(request: NextRequest, _context: { params: Promise<{}> 
   return NextResponse.json({ settings: {} });
 }
 
-export async function POST(request: NextRequest, _context: { params: Promise<{}> }) {
+export async function POST(
+  request: NextRequest,
+  _context: { params: Promise<{}> }
+) {
   try {
-    const body = await request.json() as { worker?: string; key?: string; value?: string | number | boolean };
+    const body = (await request.json()) as {
+      worker?: string;
+      key?: string;
+      value?: string | number | boolean;
+    };
     const { worker, key, value } = body;
 
     if (!worker || !key) {
-      return NextResponse.json({ error: "Missing worker or key" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing worker or key" },
+        { status: 400 }
+      );
     }
 
     const kvKey = getKVKey(worker, key);
-    const env = getCloudflareContext().env as unknown as { CONFIG_KV?: KVNamespace };
+    const env = getCloudflareContext().env as unknown as {
+      CONFIG_KV?: KVNamespace;
+    };
 
     if (env?.CONFIG_KV) {
       await env.CONFIG_KV.put(kvKey, JSON.stringify(value));

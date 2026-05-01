@@ -71,7 +71,10 @@ export async function GET() {
         }
       );
 
-      const data = await response.json() as { success: boolean; result?: { name: string }[] };
+      const data = (await response.json()) as {
+        success: boolean;
+        result?: { name: string }[];
+      };
       if (data.success && data.result) {
         fetchedSecrets = data.result;
       }
@@ -80,9 +83,9 @@ export async function GET() {
       fetchedSecrets = ALL_SECRETS.filter(name => !!getEnvVar(name)).map(name => ({ name }));
     }
 
-    const availableNames = new Set(fetchedSecrets.map(s => s.name));
+    const availableNames = new Set(fetchedSecrets.map((s) => s.name));
 
-    const syncedSecrets = ALL_SECRETS.map(name => ({
+    const syncedSecrets = ALL_SECRETS.map((name) => ({
       name,
       synced: availableNames.has(name) || !!getEnvVar(name),
     }));
@@ -90,32 +93,42 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       secrets: syncedSecrets,
-      internalKeys: INTERNAL_KEY_SECRETS.map(name => ({
+      internalKeys: INTERNAL_KEY_SECRETS.map((name) => ({
         name,
         synced: availableNames.has(name) || !!getEnvVar(name),
       })),
     });
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: String(err) },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { action?: string };
+    const body = (await request.json()) as { action?: string };
     const { action } = body;
 
     // We no longer sync to pages secrets for trading keys, the CLI manage.ts directly updates the Secret Store.
     if (action === "sync-to-pages" || action === "sync-all-internal-keys") {
       return NextResponse.json({
         success: true,
-        message: "Secrets should be updated via the CLI (bun run scripts/manage.ts secrets update-cf) or Cloudflare Dashboard. The UI check relies on the Cloudflare Secret Store API.",
+        message:
+          "Secrets should be updated via the CLI (bun run scripts/manage.ts secrets update-cf) or Cloudflare Dashboard. The UI check relies on the Cloudflare Secret Store API.",
         command: `bun run scripts/manage.ts secrets update-cf <secretName> <workerName>`,
       });
     }
 
-    return NextResponse.json({ success: false, error: "Unknown action" }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "Unknown action" },
+      { status: 400 }
+    );
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: String(err) },
+      { status: 500 }
+    );
   }
 }

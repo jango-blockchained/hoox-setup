@@ -2,14 +2,14 @@ function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
   const envUrl = process.env[envKey];
   if (envUrl) return envUrl;
-  
+
   const defaultUrls: Record<string, string> = {
     d1Service: "https://d1-worker.cryptolinx.workers.dev",
     tradeService: "https://trade-worker.cryptolinx.workers.dev",
     agentService: "https://agent-worker.cryptolinx.workers.dev",
     telegramService: "https://telegram-worker.cryptolinx.workers.dev",
   };
-  
+
   return defaultUrls[key] || "";
 }
 
@@ -63,7 +63,8 @@ class ApiClient {
     };
 
     if (this.internalKey) {
-      (headers as Record<string, string>)["X-Internal-Auth-Key"] = this.internalKey;
+      (headers as Record<string, string>)["X-Internal-Auth-Key"] =
+        this.internalKey;
     }
 
     const response = await fetch(endpoint, {
@@ -83,14 +84,26 @@ class ApiClient {
   }
 
   // Dashboard Stats
-  async getStats(): Promise<{ success: boolean; stats: DashboardStats; recentActivity: unknown[] }> {
-    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/stats`);
-    return data as { success: boolean; stats: DashboardStats; recentActivity: unknown[] };
+  async getStats(): Promise<{
+    success: boolean;
+    stats: DashboardStats;
+    recentActivity: unknown[];
+  }> {
+    const data = await this.fetchWithAuth(
+      `${getApiUrl("d1Service")}/api/dashboard/stats`
+    );
+    return data as {
+      success: boolean;
+      stats: DashboardStats;
+      recentActivity: unknown[];
+    };
   }
 
   // Positions
   async getPositions(): Promise<{ success: boolean; positions: Position[] }> {
-    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/positions`);
+    const data = await this.fetchWithAuth(
+      `${getApiUrl("d1Service")}/api/dashboard/positions`
+    );
     return data as { success: boolean; positions: Position[] };
   }
 
@@ -113,27 +126,47 @@ class ApiClient {
 
   // Logs
   async getLogs(limit = 50): Promise<{ success: boolean; logs: SystemLog[] }> {
-    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`);
+    const data = await this.fetchWithAuth(
+      `${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`
+    );
     const result = this.asObject(data);
     return { success: result?.success || false, logs: result?.logs || [] };
   }
 
   // Agent Status
-  async getAgentStatus(): Promise<{ success: boolean; status: string; config: unknown }> {
-    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("agentService")}/agent/status`);
+  async getAgentStatus(): Promise<{
+    success: boolean;
+    status: string;
+    config: unknown;
+  }> {
+    const data = await this.fetchWithAuth(
+      `${getApiUrl("agentService")}/agent/status`
+    );
     const result = this.asObject(data);
-    return { success: result?.success || false, status: result?.status || "", config: result?.config };
+    return {
+      success: result?.success || false,
+      status: result?.status || "",
+      config: result?.config,
+    };
   }
 
   // Agent Health
   async getAgentHealth(): Promise<{ success: boolean; providers: unknown[] }> {
-    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("agentService")}/agent/health`);
+    const data = await this.fetchWithAuth(
+      `${getApiUrl("agentService")}/agent/health`
+    );
     const result = this.asObject(data);
-    return { success: result?.success || false, providers: result?.providers || [] };
+    return {
+      success: result?.success || false,
+      providers: result?.providers || [],
+    };
   }
 
   // Worker Health Check
-  async checkWorkerHealth(workerName: string, url: string): Promise<WorkerStatus> {
+  async checkWorkerHealth(
+    workerName: string,
+    url: string
+  ): Promise<WorkerStatus> {
     const start = Date.now();
     try {
       const response = await fetch(`${url}/health`, { method: "GET" });
@@ -167,16 +200,20 @@ class ApiClient {
       workers.map((w) => this.checkWorkerHealth(w.name, w.url))
     );
   }
-  async getHousekeeping(): Promise<HousekeepingPayload | { error: string }> {
+  async getHousekeeping(): Promise<{
+    timestamp?: string;
+    checks?: any[];
+    error?: string;
+  }> {
     try {
-      const response = await fetch('/api/housekeeping', {
-        method: 'POST',
+      const response = await fetch("/api/housekeeping", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
       if (!response.ok) {
-         throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
       const data = await response.json() as unknown;
       const payload = this.asObject(data);
@@ -189,16 +226,27 @@ class ApiClient {
     }
   }
 
-  async getSecretsStatus(): Promise<{ success: boolean; secrets: { name: string; synced: boolean }[]; error?: string }> {
-    const data = await this.fetchWithAuth('/api/secrets');
-    return data as { success: boolean; secrets: { name: string; synced: boolean }[]; error?: string };
+  async getSecretsStatus(): Promise<{
+    success: boolean;
+    secrets: { name: string; synced: boolean }[];
+    error?: string;
+  }> {
+    const data = await this.fetchWithAuth("/api/secrets");
+    return data as {
+      success: boolean;
+      secrets: { name: string; synced: boolean }[];
+      error?: string;
+    };
   }
 
-  async syncSecretToPages(secretName: string, secretValue: string): Promise<{ success: boolean; message?: string; error?: string }> {
-    const data = await this.fetchWithAuth('/api/secrets', {
-      method: 'POST',
+  async syncSecretToPages(
+    secretName: string,
+    secretValue: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> {
+    const data = await this.fetchWithAuth("/api/secrets", {
+      method: "POST",
       body: JSON.stringify({
-        action: 'sync-to-pages',
+        action: "sync-to-pages",
         secretName,
         secretValue,
       }),

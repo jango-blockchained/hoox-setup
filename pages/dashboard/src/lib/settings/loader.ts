@@ -22,7 +22,9 @@ interface ParsedSection {
   descriptions?: Record<string, string>;
 }
 
-function parseFieldValue(value: string | number | boolean): SettingField["type"] {
+function parseFieldValue(
+  value: string | number | boolean
+): SettingField["type"] {
   if (typeof value === "boolean") return "boolean";
   if (typeof value === "number") return "number";
   if (value === "true" || value === "false") return "boolean";
@@ -79,26 +81,41 @@ export function parseDashboardJSONC(
         const sectionDescriptions = sectionData.descriptions || {};
 
         for (const [key, value] of Object.entries(sectionFields)) {
-          const field = createField(sectionId, key, value as string | number | boolean);
-          
+          const field = createField(
+            sectionId,
+            key,
+            value as string | number | boolean
+          );
+
           if (sectionOptions[key]) {
             field.type = "select";
-            field.options = sectionOptions[key].map((opt: string) => ({ value: opt, label: opt }));
+            field.options = sectionOptions[key].map((opt: string) => ({
+              value: opt,
+              label: opt,
+            }));
           }
-          
+
           if (sectionDescriptions[key]) {
             field.description = String(sectionDescriptions[key]);
           }
-          
+
           fields.push(field);
         }
 
         sections.push({
           id: sectionId,
-          title: sectionData.title || sectionId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-          description: sectionData.description || `Configure ${sectionId} settings`,
+          title:
+            sectionData.title ||
+            sectionId
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase()),
+          description:
+            sectionData.description || `Configure ${sectionId} settings`,
           icon: sectionData.icon,
-          priority: sectionData.priority !== undefined ? sectionData.priority : sections.length * 10,
+          priority:
+            sectionData.priority !== undefined
+              ? sectionData.priority
+              : sections.length * 10,
           fields,
         });
       }
@@ -124,37 +141,64 @@ export function parseDashboardJSONC(
 const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
   async hoox() {
     const res = await fetch("/workers/hoox.jsonc");
-    if (!res.ok) return { worker: "hoox", displayName: "Gateway", sections: [] };
+    if (!res.ok)
+      return { worker: "hoox", displayName: "Gateway", sections: [] };
     return parseDashboardJSONC(await res.text(), "hoox");
   },
   async "trade-worker"() {
     const res = await fetch("/workers/trade-worker.jsonc");
-    if (!res.ok) return { worker: "trade-worker", displayName: "Trade Worker", sections: [] };
+    if (!res.ok)
+      return {
+        worker: "trade-worker",
+        displayName: "Trade Worker",
+        sections: [],
+      };
     return parseDashboardJSONC(await res.text(), "trade-worker");
   },
   async "agent-worker"() {
     const res = await fetch("/workers/agent-worker.jsonc");
-    if (!res.ok) return { worker: "agent-worker", displayName: "Agent Worker", sections: [] };
+    if (!res.ok)
+      return {
+        worker: "agent-worker",
+        displayName: "Agent Worker",
+        sections: [],
+      };
     return parseDashboardJSONC(await res.text(), "agent-worker");
   },
   async "telegram-worker"() {
     const res = await fetch("/workers/telegram-worker.jsonc");
-    if (!res.ok) return { worker: "telegram-worker", displayName: "Telegram Worker", sections: [] };
+    if (!res.ok)
+      return {
+        worker: "telegram-worker",
+        displayName: "Telegram Worker",
+        sections: [],
+      };
     return parseDashboardJSONC(await res.text(), "telegram-worker");
   },
   async "d1-worker"() {
     const res = await fetch("/workers/d1-worker.jsonc");
-    if (!res.ok) return { worker: "d1-worker", displayName: "D1 Worker", sections: [] };
+    if (!res.ok)
+      return { worker: "d1-worker", displayName: "D1 Worker", sections: [] };
     return parseDashboardJSONC(await res.text(), "d1-worker");
   },
   async "email-worker"() {
     const res = await fetch("/workers/email-worker.jsonc");
-    if (!res.ok) return { worker: "email-worker", displayName: "Email Worker", sections: [] };
+    if (!res.ok)
+      return {
+        worker: "email-worker",
+        displayName: "Email Worker",
+        sections: [],
+      };
     return parseDashboardJSONC(await res.text(), "email-worker");
   },
   async "web3-wallet-worker"() {
     const res = await fetch("/workers/web3-wallet-worker.jsonc");
-    if (!res.ok) return { worker: "web3-wallet-worker", displayName: "Web3 Wallet", sections: [] };
+    if (!res.ok)
+      return {
+        worker: "web3-wallet-worker",
+        displayName: "Web3 Wallet",
+        sections: [],
+      };
     return parseDashboardJSONC(await res.text(), "web3-wallet-worker");
   },
 };
@@ -188,7 +232,9 @@ export async function loadAllConfigs(
     workerNames.map((name) => loadWorkerConfig(name))
   );
 
-  return configs.filter((c): c is WorkerConfigManifest => c !== null && c.sections.length > 0);
+  return configs.filter(
+    (c): c is WorkerConfigManifest => c !== null && c.sections.length > 0
+  );
 }
 
 export function flattenSettings(
@@ -215,7 +261,9 @@ export async function getRuntimeOverrides(
   try {
     const res = await fetch(`/api/settings`);
     if (res.ok) {
-      const data = await res.json() as { settings?: Record<string, string | number | boolean> };
+      const data = (await res.json()) as {
+        settings?: Record<string, string | number | boolean>;
+      };
       return data.settings || {};
     }
   } catch {
@@ -229,7 +277,9 @@ export async function loadMergedSettings(
 ): Promise<MergedSettings> {
   const configs = await loadAllConfigs(workerNames);
   const defaults = flattenSettings(configs);
-  const overrides = (await getRuntimeOverrides(workerNames)) as unknown as Record<string, Record<string, any>>;
+  const overrides = (await getRuntimeOverrides(
+    workerNames
+  )) as unknown as Record<string, Record<string, any>>;
 
   const merged: MergedSettings = {};
 
