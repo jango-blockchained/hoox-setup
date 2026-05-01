@@ -56,7 +56,7 @@ class ApiClient {
     this.internalKey = key;
   }
 
-  private async fetchWithAuth(endpoint: string, options: RequestInit = {}) {
+  private async fetchWithAuth<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...options.headers,
@@ -75,7 +75,11 @@ class ApiClient {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    return (await response.json()) as T;
+  }
+
+  private asObject(value: unknown): Record<string, unknown> {
+    return typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
   }
 
   // Dashboard Stats
@@ -109,22 +113,22 @@ class ApiClient {
 
   // Logs
   async getLogs(limit = 50): Promise<{ success: boolean; logs: SystemLog[] }> {
-    const data = await this.fetchWithAuth(`${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`);
-    const result = data as any;
+    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("d1Service")}/api/dashboard/logs?limit=${limit}`);
+    const result = this.asObject(data);
     return { success: result?.success || false, logs: result?.logs || [] };
   }
 
   // Agent Status
   async getAgentStatus(): Promise<{ success: boolean; status: string; config: unknown }> {
-    const data = await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/status`);
-    const result = data as any;
+    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("agentService")}/agent/status`);
+    const result = this.asObject(data);
     return { success: result?.success || false, status: result?.status || "", config: result?.config };
   }
 
   // Agent Health
   async getAgentHealth(): Promise<{ success: boolean; providers: unknown[] }> {
-    const data = await this.fetchWithAuth(`${getApiUrl("agentService")}/agent/health`);
-    const result = data as any;
+    const data = await this.fetchWithAuth<unknown>(`${getApiUrl("agentService")}/agent/health`);
+    const result = this.asObject(data);
     return { success: result?.success || false, providers: result?.providers || [] };
   }
 
@@ -163,7 +167,7 @@ class ApiClient {
       workers.map((w) => this.checkWorkerHealth(w.name, w.url))
     );
   }
-  async getHousekeeping(): Promise<{ timestamp?: string; checks?: any[]; error?: string }> {
+  async getHousekeeping(): Promise<HousekeepingPayload | { error: string }> {
     try {
       const response = await fetch('/api/housekeeping', {
         method: 'POST',
@@ -174,9 +178,14 @@ class ApiClient {
       if (!response.ok) {
          throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      return await response.json();
-    } catch (e: any) {
-      return { error: e.message };
+      const data = await response.json() as unknown;
+      const payload = this.asObject(data);
+      if (typeof payload.timestamp === "string" && Array.isArray(payload.issues)) {
+        return payload as HousekeepingPayload;
+      }
+      return { error: "Invalid housekeeping payload" };
+    } catch (e: unknown) {
+      return { error: e instanceof Error ? e.message : "Unknown error" };
     }
   }
 
@@ -199,3 +208,4 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+import type { HousekeepingPayload } from "@hoox/shared";

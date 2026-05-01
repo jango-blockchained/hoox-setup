@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Zap, Shield, AlertTriangle, Brain, Bell, Save, KeyRound, Database, Mail, Layers, Clock, Activity, Search, Archive, Router, Send, Sparkles, Percent } from "lucide-react";
 import type { WorkerConfigManifest } from "@/lib/settings/loader";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
+import type { DashboardSection, SettingField } from "@/lib/settings/types";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   router: Router,
@@ -41,24 +42,6 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   percent: Percent,
 };
 
-interface SettingField {
-  key: string;
-  label: string;
-  description?: string;
-  type: "boolean" | "number" | "text" | "select" | "json" | "textarea";
-  default: string | number | boolean;
-  options?: { value: string; label: string }[];
-  placeholder?: string;
-}
-
-interface SettingSection {
-  id: string;
-  title: string;
-  description: string;
-  icon?: string;
-  priority: number;
-  fields: SettingField[];
-}
 
 interface ConnectedWorker {
   name: string;
@@ -299,7 +282,7 @@ export function SettingsForm() {
 
       {configs.map((config) => (
         <TabsContent key={config.worker} value={config.worker} className="space-y-6">
-          {config.sections.map((section: any) => {
+          {config.sections.map((section: DashboardSection) => {
             const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
                 return (
                   <Card key={`${config.worker}-${section.id}`} className="bg-card border-border">
@@ -321,7 +304,7 @@ export function SettingsForm() {
                     </CardHeader>
                     <CardContent>
                       <FieldGroup>
-                  {section.fields.map((field: any) => (
+                  {section.fields.map((field: SettingField) => (
                     <div key={field.key}>{renderField(config.worker, field)}</div>
                   ))}
                       </FieldGroup>
