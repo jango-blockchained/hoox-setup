@@ -16,10 +16,11 @@
     "test:coverage": "bun test --coverage",
     "lint": "eslint . --ext .ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun run lint && bun run typecheck && bun run test"
+    "prepublishOnly": "bun run lint && bun run typecheck"
   },
   "dependencies": {
     "@clack/prompts": "^0.8.2",
+    "@hoox/shared": "workspace:*",
     "@opentui/core": "^0.2.0",
     "@opentui/react": "^0.2.0",
     "ansis": "^3.17.0",

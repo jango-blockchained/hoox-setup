@@ -1,10 +1,18 @@
-import { describe, test, expect, beforeEach, vi, mock } from "bun:test";
+import { describe, test, expect, vi, mock } from "bun:test";
 import {
   runHousekeeping,
   generateHousekeepingReport,
   type HousekeepingResult,
 } from "../src/housekeeping.js";
 import type { Config } from "../src/types.js";
+
+mock.module("@clack/prompts", () => ({
+  intro: vi.fn(),
+  outro: vi.fn(),
+  log: { step: vi.fn(), info: vi.fn(), success: vi.fn(), message: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  spinner: () => ({ start: vi.fn(), stop: vi.fn() }),
+  note: vi.fn(),
+}));
 
 mock.module("../src/utils.js", () => ({
   red: (s: string) => `\x1b[31m${s}\x1b[0m`,

@@ -1,11 +1,15 @@
 import path from "node:path";
 import fs from "node:fs";
 import toml from "toml";
-import type { Config, WranglerConfig } from "./types.js";
+import type { Config } from "./types.js";
 import type {
   HousekeepingCheck,
   HousekeepingPayload,
   WorkerConfigManifestLite,
+  WorkerSecretsStoreBinding,
+  WorkerServiceBinding,
+  WorkerD1Binding,
+  WorkerQueueConfig,
 } from "@hoox/shared";
 import { intro, outro, log as clackLog, spinner, note } from "@clack/prompts";
 import { red, green, yellow, cyan, dim } from "./utils.js";
@@ -170,9 +174,9 @@ export async function runHousekeeping(
 
     for (const secretName of requiredSecrets) {
       const foundInJsonc = secretStoreBindings.some(
-        (s) => s.secret_name === secretName
+        (s: WorkerSecretsStoreBinding) => s.secret_name === secretName
       );
-      const foundInToml = tomlSecrets.some((s) => s.secret_name === secretName);
+      const foundInToml = tomlSecrets.some((s: WorkerSecretsStoreBinding) => s.secret_name === secretName);
       if (!foundInJsonc && !foundInToml) {
         result.issues.push({
           worker: workerName,
@@ -189,7 +193,7 @@ export async function runHousekeeping(
 
     for (const svc of requiredServices) {
       const found = configServices.some(
-        (s) => s.binding === svc.binding && s.service === svc.service
+        (s: WorkerServiceBinding) => s.binding === svc.binding && s.service === svc.service
       );
       if (!found) {
         result.issues.push({
@@ -228,7 +232,7 @@ export async function runHousekeeping(
     const configD1 = wranglerConfig.d1_databases || [];
 
     for (const db of requiredDbs) {
-      const found = configD1.some((d) => d.binding === db.binding);
+      const found = configD1.some((d: WorkerD1Binding) => d.binding === db.binding);
       if (!found) {
         result.issues.push({
           worker: workerName,
@@ -247,7 +251,7 @@ export async function runHousekeeping(
     // Check if required queues are defined in config
     const requiredQueues = workerConfig.queues?.producers || [];
     for (const q of requiredQueues) {
-      const found = producers.some((p) => p.binding === q.binding);
+      const found = producers.some((p: { binding: string; queue: string }) => p.binding === q.binding);
       if (!found) {
         result.issues.push({
           worker: workerName,
@@ -314,7 +318,7 @@ export async function runHousekeeping(
         result.summary.warnings++;
       } else {
         // Check migration tags are unique
-        const tags = migrations.map((m) => m.tag);
+        const tags = migrations.map((m: { tag: string; new_sqlite_classes?: string[] }) => m.tag);
         const uniqueTags = new Set(tags);
         if (tags.length !== uniqueTags.size) {
           result.issues.push({
@@ -340,7 +344,7 @@ export async function runHousekeeping(
         // Check if this worker's wrangler has service binding
         const thisServices = wranglerConfig.services || [];
         const hasServiceBinding = thisServices.some(
-          (s) => s.service === workerName
+          (s: WorkerServiceBinding) => s.service === workerName
         );
 
         if (!hasServiceBinding && verbose) {

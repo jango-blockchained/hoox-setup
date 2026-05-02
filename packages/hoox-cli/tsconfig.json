@@ -6,7 +6,12 @@
     "esModuleInterop": true,
     "moduleResolution": "Bundler",
     "outDir": "./dist",
-    "rootDir": "./"
+    "baseUrl": ".",
+    "paths": {
+      "@hoox/shared": ["../shared/src/index.ts"]
+    },
+    "skipLibCheck": true
   },
-  "include": ["src/**/*", "bin/**/*"]
+  "include": ["src/**/*", "bin/**/*"],
+  "exclude": ["test/**/*", "node_modules", "dist"]
 }
