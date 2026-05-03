@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "opennext:build": "bunx opennextjs-cloudflare build",
-    "opennext:deploy": "bunx wrangler pages deploy .open-next --project-name hoox-dashboard --commit-dirty",
+    "opennext:deploy": "bunx wrangler deploy",
     "deploy": "bun run opennext:build && bun run opennext:deploy",
     "test": "bun test",
     "test:e2e": "bun run test/e2e.test.ts",

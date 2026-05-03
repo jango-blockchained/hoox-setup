@@ -1,8 +1,13 @@
 {
   "name": "hoox-dashboard",
-  "pages_build_output_dir": ".open-next",
+  "main": ".open-next/worker.js",
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
   "compatibility_date": "2026-04-17",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "kv_namespaces": [
     {
       "binding": "CONFIG_KV",
