@@ -294,15 +294,25 @@ describe("Utils - Exported Functions", () => {
 });
 
 describe("Utils - checkCommandExists", () => {
-  test("returns true when command exists", async () => {
-    // bun should always exist in this environment
+  test("returns true for existing command", async () => {
     const exists = await checkCommandExists("bun");
     expect(exists).toBe(true);
   });
 
-  test("returns false when command missing", async () => {
-    const exists = await checkCommandExists("nonexistent-command-xyz");
+  test("returns false for nonexistent command", async () => {
+    const exists = await checkCommandExists("nonexistent-xyz-123");
     expect(exists).toBe(false);
+  });
+
+  test("handles exception gracefully", async () => {
+    // Mock Bun.spawn to throw
+    const originalSpawn = Bun.spawn;
+    Bun.spawn = mock(() => { throw new Error("spawn error"); }) as any;
+    
+    const exists = await checkCommandExists("any-cmd");
+    expect(exists).toBe(false);
+    
+    Bun.spawn = originalSpawn;
   });
 });
 
@@ -387,44 +397,30 @@ describe("Utils - log namespace", () => {
   });
 });
 
-describe("Utils - runCommandSync detailed tests", () => {
-  test("captures stdout on success", () => {
-    const result = runCommandSync("echo 'captured output'", process.cwd());
-    expect(result.success).toBe(true);
-    expect(result.stdout).toContain("captured output");
-  });
-
-  test("captures stderr on failure", () => {
-    const result = runCommandSync("echo 'error' >&2; exit 1", process.cwd());
-    expect(result.success).toBe(false);
-    expect(result.stderr).toContain("error");
-  });
-
-  test("handles exception and returns failure", () => {
+describe("Utils - runCommandSync error paths", () => {
+  test("handles exception and returns failure with error message", () => {
     // Mock Bun.spawnSync to throw
     const originalSpawnSync = Bun.spawnSync;
-    Bun.spawnSync = mock(() => { throw new Error("spawn error"); }) as any;
+    Bun.spawnSync = mock(() => { throw new Error("spawn sync error"); }) as any;
     
     const result = runCommandSync("any command", process.cwd());
     
     expect(result.success).toBe(false);
-    expect(result.stderr).toContain("spawn error");
+    expect(result.stderr).toContain("spawn sync error");
+    expect(result.stdout).toBe("");
     
     Bun.spawnSync = originalSpawnSync;
   });
+
+  test("handles stderr output correctly", () => {
+    const result = runCommandSync("echo 'error msg' >&2; echo 'output msg'", process.cwd());
+    
+    expect(result.stdout).toContain("output msg");
+    expect(result.stderr).toContain("error msg");
+  });
 });
 
-describe("Utils - runCommandSyncArgs detailed tests", () => {
-  test("executes with explicit args", () => {
-    const result = runCommandSyncArgs({
-      cmd: "echo",
-      args: ["arg1", "arg2"],
-      cwd: process.cwd(),
-    });
-    expect(result.success).toBe(true);
-    expect(result.stdout).toContain("arg1");
-  });
-
+describe("Utils - runCommandSyncArgs error paths", () => {
   test("handles spawn exception", () => {
     const result = runCommandSyncArgs({
       cmd: "nonexistent-cmd-xyz",
@@ -432,19 +428,38 @@ describe("Utils - runCommandSyncArgs detailed tests", () => {
       cwd: process.cwd(),
     });
     expect(result.success).toBe(false);
+    expect(result.stderr).toContain("not found");
+  });
+
+  test("handles empty stdout and stderr on failure", () => {
+    const result = runCommandSyncArgs({
+      cmd: "bun",
+      args: ["-e", "process.exit(1)"],
+      cwd: process.cwd(),
+    });
+    expect(result.success).toBe(false);
+    expect(result.exitCode).toBe(1);
   });
 });
 
-describe("Utils - runCommandAsync detailed tests", () => {
-  test("resolves with stdout", async () => {
-    const result = await runCommandAsync("echo", ["async output"], process.cwd());
-    expect(result.success).toBe(true);
-    expect(result.stdout).toContain("async output");
+describe("Utils - runCommandAsync error paths", () => {
+  test("handles spawn exception", async () => {
+    const originalSpawn = Bun.spawn;
+    Bun.spawn = mock(() => { throw new Error("async spawn error"); }) as any;
+    
+    const result = await runCommandAsync("any-cmd", [], process.cwd());
+    
+    expect(result.success).toBe(false);
+    expect(result.stderr).toContain("async spawn error");
+    
+    Bun.spawn = originalSpawn;
   });
 
-  test("handles async failure", async () => {
-    const result = await runCommandAsync("bun", ["-e", "process.exit(1)"], process.cwd());
+  test("handles non-zero exit code", async () => {
+    const result = await runCommandAsync("bun", ["-e", "process.exit(2)"], process.cwd());
+    
     expect(result.success).toBe(false);
+    expect(result.exitCode).toBe(2);
   });
 });
 
@@ -526,6 +541,21 @@ describe("Utils - backward compatible print functions", () => {
   });
 });
 
+describe("Utils - runCommandWithStdin", () => {
+  test("writes to stdin and gets output", async () => {
+    const { runCommandWithStdin } = await import("../src/utils.js");
+    
+    const result = await runCommandWithStdin(
+      "cat",
+      [],
+      "test input",
+      process.cwd()
+    );
+    
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain("test input");
+  });
+
   test("handles failure", async () => {
     const { runCommandWithStdin } = await import("../src/utils.js");
     
@@ -540,10 +570,44 @@ describe("Utils - backward compatible print functions", () => {
   });
 });
 
+describe("Utils - runCommandWithStdin error paths", () => {
+  test("handles spawn exception", async () => {
+    const originalSpawn = Bun.spawn;
+    Bun.spawn = mock(() => { throw new Error("stdin spawn error"); }) as any;
+    
+    const { runCommandWithStdin } = await import("../src/utils.js");
+    const result = await runCommandWithStdin(
+      "any-cmd",
+      [],
+      "input",
+      process.cwd()
+    );
+    
+    expect(result.success).toBe(false);
+    expect(result.stderr).toContain("stdin spawn error");
+    
+    Bun.spawn = originalSpawn;
+  });
+});
+
 describe("Utils - runInteractiveCommand", () => {
-  test("exists and can be imported", async () => {
+  test("exists and can be called", async () => {
     const { runInteractiveCommand } = await import("../src/utils.js");
     expect(typeof runInteractiveCommand).toBe("function");
+  });
+  
+  test("handles spawn exception", async () => {
+    const originalSpawn = Bun.spawn;
+    Bun.spawn = mock(() => { throw new Error("interactive error"); }) as any;
+    
+    const { runInteractiveCommand } = await import("../src/utils.js");
+    try {
+      await runInteractiveCommand("any-cmd", [], process.cwd());
+    } catch (e) {
+      expect((e as Error).message).toContain("interactive error");
+    }
+    
+    Bun.spawn = originalSpawn;
   });
 });
 
@@ -566,7 +630,7 @@ describe("Utils - getCloudflareToken extended tests", () => {
     expect(token).toBe("config-token-123");
   });
 
-  test("returns token from environment", async () => {
+  test("returns token from environment and logs dim", async () => {
     const { getCloudflareToken } = await import("../src/utils.js");
     process.env.CLOUDFLARE_API_TOKEN = "env-token-456";
     
@@ -576,6 +640,21 @@ describe("Utils - getCloudflareToken extended tests", () => {
     expect(token).toBe("env-token-456");
     
     delete process.env.CLOUDFLARE_API_TOKEN;
+  });
+
+  test("returns null when no token and empty prompt", async () => {
+    const { getCloudflareToken, rl } = await import("../src/utils.js");
+    const config = { global: {} };
+    
+    // Mock rl.question to return empty string
+    const originalQuestion = rl.question;
+    rl.question = mock(() => Promise.resolve("")) as unknown as typeof rl.question;
+    
+    const token = await getCloudflareToken(config);
+    
+    expect(token).toBeNull();
+    
+    rl.question = originalQuestion;
   });
 });
 

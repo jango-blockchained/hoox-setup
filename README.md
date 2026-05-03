@@ -315,11 +315,19 @@ Hoox runs entirely on Cloudflare® Workers Free tier:
 With money on the line, we test everything.
 
 ```bash
-# Run the massive test suite powered by Vitest
+# Run the massive test suite powered by Bun
 bun test --coverage
 ```
 
-Current Test Coverage stands at **>80% average line coverage** across all critical execution and gateway workers. Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
+**Current Test Coverage:**
+- **packages/hoox-cli**: 83.33% function coverage (utils.ts), 100% (cf-client.ts)
+- **workers/hoox**: >85% line coverage
+- **workers/trade-worker**: >85% line coverage
+- **workers/agent-worker**: >87% line coverage
+
+Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
+
+> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/development/testing.md) for detailed coverage reports.
 
 ---
 

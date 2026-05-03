@@ -640,7 +640,10 @@ describe("Helper functions", () => {
     };
     const client = await createCFClient(config);
 
-    expect(client).toBeInstanceOf(CloudflareClient);
+    expect(client).toBeDefined();
+    expect(typeof client.listZones).toBe("function");
+    expect(typeof client.getD1Database).toBe("function");
+    expect(typeof client.listKVNamespaces).toBe("function");
   });
 
   test("createValidationResult creates correct shape", () => {

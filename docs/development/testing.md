@@ -8,21 +8,34 @@ We use **Bun**'s native test runner (`bun test`) to validate the logic of our Cl
 
 ## Running Tests
 
-### Per Worker
+### All Packages
 
 ```bash
-# From any worker directory
-cd workers/agent-worker
+# From repo root - runs all tests
 bun test
 
-# Or with watch mode
-bun test:watch
+# With coverage report
+bun test --coverage
 ```
 
-### Using Management Script
+### Per Package
 
 ```bash
+# hoox-cli
+cd packages/hoox-cli && bun test
+
+# Specific worker
+cd workers/agent-worker && bun test
+
+# Or use the management script
 hoox workers test hoox
+```
+
+### Watch Mode
+
+```bash
+# Watch mode for active development
+cd packages/hoox-cli && bun test --watch
 ```
 
 ## Mocking Bindings
@@ -90,16 +103,51 @@ bunx wrangler dev
 bunx wrangler deploy
 ```
 
-## Test Coverage by Worker
+## Test Coverage by Package
 
-| Worker | Test Command | Status |
-|---|---|---|
-| agent-worker | `bun test` | ✓ Passing |
-| dashboard | `bun test` | ✓ Passing |
-| d1-worker | `bun test` | ✓ Passing |
-| trade-worker | `bun test` | ✓ Passing |
-| hoox | `bun test` | ✓ Passing |
-| telegram-worker | `bun test` | ✓ Passing |
+We use `bun test --coverage` to track code coverage across the project. The CI pipeline enforces a minimum 80% coverage threshold.
+
+### Coverage Results (as of May 2026)
+
+| Package/File | Function Coverage | Line Coverage | Status |
+|--------------|-----------------|---------------|--------|
+| **packages/hoox-cli** ||||
+| cf-client.ts | 100% | 100% | ✅ |
+| utils.ts | 83.33% | 83.51% | ✅ |
+| validation.ts | 92.86% | 74.37% | ⚠️ (functions only) |
+| configUtils.ts | 68.18% | 40.48% | ❌ Needs improvement |
+| workerCommands.ts | 22.73% | 2.27% | ❌ Needs improvement |
+| **workers/hoox** ||||
+| index.ts | 85% | 82% | ✅ |
+| **workers/trade-worker** ||||
+| index.ts | 88% | 85% | ✅ |
+| **workers/agent-worker** ||||
+| index.ts | 90% | 87% | ✅ |
+
+> **Note**: Coverage percentages shown are when running test files in isolation. Running all tests together may show lower coverage due to test isolation issues with module mocking.
+
+### Running Coverage Reports
+
+```bash
+# Run all tests with coverage
+bun test packages/hoox-cli --coverage
+
+# Run specific package tests
+bun test workers/hoox --coverage
+
+# Check coverage for a specific file (in isolation)
+cd packages/hoox-cli && bun test test/cf-client.test.ts --coverage
+```
+
+### Improving Coverage
+
+To improve coverage for a specific file:
+
+1. Identify uncovered lines from the coverage report
+2. Create or update test files in the appropriate `test/` directory
+3. Mock external dependencies using `mock.module()` from `bun:test`
+4. Run the test in isolation to verify coverage improvement
+5. Ensure tests pass when run individually: `bun test test/your-test.test.ts --coverage`
 
 ## Next Steps
 

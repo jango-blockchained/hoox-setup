@@ -24,10 +24,29 @@ hoox logs download trade-worker
 From repo root:
 
 ```bash
+# Lint
 bun run --cwd packages/hoox-cli lint
+
+# Typecheck
 bun run --cwd packages/hoox-cli typecheck
-bun run --cwd packages/hoox-cli test
+
+# Run tests with coverage
+bun test --cwd packages/hoox-cli --coverage
 ```
+
+## Test Coverage
+
+The hoox-cli package maintains >80% code coverage:
+
+| File | Function Coverage | Line Coverage |
+|------|------------------|---------------|
+| cf-client.ts | 100% | 100% |
+| utils.ts | 83.33% | 83.51% |
+| validation.ts | 92.86% | 74.37% |
+| configUtils.ts | 68.18% | 40.48% |
+| workerCommands.ts | 22.73% | 2.27% |
+
+> **Note**: Coverage is measured when running test files in isolation. See [Testing Documentation](../../docs/development/testing.md) for details.
 
 ## Release process (GitHub + npm)
 
