@@ -15,7 +15,7 @@ Monorepo using Bun workspaces: `packages/*`, `workers/*`, `pages/*`.
 | `workers/telegram-worker` | Notifications |
 | `workers/web3-wallet-worker` | DeFi/on-chain execution |
 | `workers/email-worker` | Email signal parsing |
-| `pages/dashboard` | Next.js 16 dashboard (Cloudflare Pages) |
+| `pages/dashboard` | Next.js 16 dashboard (Cloudflare Workers + OpenNext) |
 
 ## Commands
 
@@ -27,7 +27,7 @@ bun run lint            # ESLint check
 bun run typecheck       # TypeScript check (tsc --noEmit)
 bun run build           # TypeScript build check
 ./hoox-tui              # launch TUI for local dev (all workers)
-hoox pages deploy       # deploy dashboard to Cloudflare Pages
+bun run deploy          # deploy dashboard to Cloudflare Workers (from pages/dashboard)
 hoox workers deploy     # deploy all workers to Cloudflare
 ```
 
@@ -49,8 +49,11 @@ hoox workers deploy     # deploy all workers to Cloudflare
 - Framer Motion components require `'use client'` directive at file top
 - Pages with `'use client'` cannot export `metadata` — use separate `metadata.ts`
 - Uses `@opennextjs/cloudflare` adapter (replaces deprecated `@cloudflare/next-on-pages`)
-- Build: `bunx opennextjs-cloudflare build` → deploys from `.open-next/` directory
-- Runtime: `export const runtime = "edge"` with `getCloudflareContext()` from `@opennextjs/cloudflare`
+- Build: `bunx opennextjs-cloudflare build` → creates `.open-next/worker.js`
+- Deploy: `bunx wrangler deploy` (Cloudflare Workers, NOT Pages)
+- Configuration: `wrangler.jsonc` with `main: ".open-next/worker.js"` and `assets.directory: ".open-next/assets"`
+- Runtime: Node.js runtime via OpenNext adapter (full Next.js feature support)
+- Static assets served via `ASSETS` binding from `.open-next/assets/`
 
 ## Edge/Cloudflare Constraints
 

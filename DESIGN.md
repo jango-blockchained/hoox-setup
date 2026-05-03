@@ -280,25 +280,40 @@ bunx tsc --noEmit
 rm -rf .next && rm -rf .next/cache
 ```
 
-### 6.6 Cloudflare Pages Deployment
+### 6.6 Cloudflare Workers Deployment (OpenNext)
 
-Dashboard deploys to Cloudflare Pages using OpenNext Cloudflare adapter (replaces deprecated next-on-pages):
+Dashboard deploys to **Cloudflare Workers** (not Pages) using OpenNext Cloudflare adapter:
 
 **Build & Deploy:**
 ```bash
 # Build with OpenNext (outputs to .open-next/)
 bunx opennextjs-cloudflare build
 
-# Deploy to Cloudflare Pages
-bunx wrangler pages deploy .open-next --project-name hoox-dashboard --commit-dirty
+# Deploy to Cloudflare Workers (NOT Pages!)
+bunx wrangler deploy
 ```
 
-**Configuration:**
-- `opennext.config.ts` - OpenNext configuration
-- `wrangler.jsonc` - Points to `.open-next/worker.js` and `.open-next/assets`
-- Runtime: `export const runtime = "edge"`
-- Access bindings via `getCloudflareContext()` from `@opennextjs/cloudflare`
+**Configuration (`wrangler.jsonc`):**
+```jsonc
+{
+  "name": "hoox-dashboard",
+  "main": ".open-next/worker.js",
+  "account_id": "your_account_id",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  }
+}
+```
 
-**Edge Runtime Notes:**
-- Dynamic rendering: `export const dynamic = "force-dynamic"`
-- KV bindings available via `getCloudflareContext().env.CONFIG_KV`
+**Key Points:**
+- **Workers, NOT Pages**: OpenNext with Cloudflare deploys to Workers for full Next.js feature support
+- **Node.js Runtime**: Via OpenNext adapter (supports all Next.js features)
+- **Static Assets**: Served via `ASSETS` binding from `.open-next/assets/`
+- **Environment Variables**: Set via `wrangler secret` or `.dev.vars`
+
+**Why Workers over Pages?**
+- Full Node.js runtime support (not just Edge)
+- Better Next.js feature compatibility (App Router, SSR, ISR, API routes)
+- More flexible binding support (KV, D1, Durable Objects)

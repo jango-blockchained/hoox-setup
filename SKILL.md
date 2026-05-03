@@ -39,7 +39,7 @@ hoox workers status
 **Key paths:**
 - Workers: `workers/*/src/index.ts`
 - Config: `workers/*/wrangler.jsonc`
-- Dashboard: `pages/dashboard/` (Cloudflare Pages, NOT a Worker)
+- Dashboard: `pages/dashboard/` (Cloudflare Workers + OpenNext, NOT Pages)
 
 ### 2. Deployment
 
@@ -115,7 +115,7 @@ bun test:watch               # Watch mode
 - Global: `workers.jsonc`
 - Worker: `workers/*/wrangler.jsonc`
 - Secrets: `wrangler secret put <name> --worker <worker>`
-- Pages: `pages.jsonc`
+- Pages: `pages/dashboard/wrangler.jsonc` (Cloudflare Workers, NOT Pages)
 
 ## Quick Reference
 

@@ -2,7 +2,7 @@
 
 # Architecture
 
-**Concept**: Hoox is a Cloudflare Edge Worker platform where `hoox` gateway routes external requests to internal workers via Service Bindings.
+**Concept**: Hoox is a Cloudflare Edge Worker platform where `hoox` gateway routes external requests to internal workers via Service Bindings. Dashboard uses Next.js 16 + OpenNext deployed to Cloudflare Workers.
 
 ## Key Points
 - **Gateway pattern**: `hoox` validates API keys, then forwards to `trade-worker`, `telegram-worker`, etc.

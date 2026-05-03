@@ -110,7 +110,7 @@ hoox workers deploy
 The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing Bun Workspaces, the core management commands are isolated in `packages/hoox-cli` and exposed directly to your terminal.
 
 - **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox workers deploy` or `hoox init`.
-- **Strict Configuration**: Configuration is distinctly split between `workers.jsonc` (backend worker settings) and `pages.jsonc` (dashboard settings), ensuring type-safe and validated deployments.
+- **Strict Configuration**: Configuration is distinctly split between `workers.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
 - **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets (`hoox r2`) and updating WAF rules (`hoox waf`) through the Cloudflare API directly.
 
 ---
@@ -221,7 +221,7 @@ Runs silently on a 5-minute Cron schedule. It observes open positions, moves tra
 - `GET /agent/usage` - Usage statistics
 - `GET /agent/prompts` - List prompt templates
 ### 📊 dashboard (The Command Center)
-A secure, edge-rendered React dashboard. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.
+A secure, Cloudflare Workers-powered React dashboard using Next.js 16 + OpenNext. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.
 ### 💬 telegram-worker (The Communicator)
 Sends instant trade confirmations and AI-generated market summaries straight to your phone.
 ### 🗄️ d1-worker (The Memory)
@@ -262,7 +262,7 @@ Security is a foundational aspect of the Hoox system.
 3. **Execution-Level**: Idempotency keys prevent duplicates, kill switches halt trading
 4. **Response-Level**: All responses include security headers
 - **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
-- **Zero Trust Dashboard:** Your UI is secured behind Cloudflare® Access, requiring rigorous authentication before you can even view the login page.
+- **Zero Trust Dashboard:** Your UI is secured with authentication and deployed to Cloudflare Workers using the OpenNext adapter for full Next.js feature support.
 - **Hardware-Level Secret Injection:** API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.
 - **Idempotent Execution:** Durable Objects prevent duplicate trades on network retries—no lost ETH from double-spending.
 - **Rate Limiting:** Built-in throttling prevents accidental trade spamming.

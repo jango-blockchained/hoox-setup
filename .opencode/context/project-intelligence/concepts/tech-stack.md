@@ -2,7 +2,7 @@
 
 # Tech Stack
 
-**Concept**: Bun monorepo with Cloudflare Workers, D1, and Next.js 16 dashboard.
+**Concept**: Bun monorepo with Cloudflare Workers, D1, and Next.js 16 dashboard (Cloudflare Workers + OpenNext).
 
 ## Key Points
 - **Runtime**: Bun (never npm/yarn), strict TypeScript, Edge-compatible (no Node built-ins)
@@ -21,5 +21,5 @@
 
 ## 📂 Codebase References
 **Monorepo**: `package.json` (workspaces: packages/*, workers/*, pages/*)
-**Dashboard**: `pages/dashboard/next.config.ts`
+**Dashboard**: `pages/dashboard/next.config.ts` (Cloudflare Workers + OpenNext, NOT Pages)
 **CLI**: `packages/hoox-cli/`
