@@ -1,0 +1,114 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export const dynamic = "force-dynamic";
+export const runtime = "edge";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json() as {
+      messages?: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+      stream?: boolean;
+    };
+
+    const { messages, model, temperature = 0.7, maxTokens = 500, stream = true } = body;
+
+    if (!messages || messages.length === 0) {
+      return NextResponse.json(
+        { error: "Messages are required" },
+        { status: 400 }
+      );
+    }
+
+    const env = getCloudflareContext().env as unknown as {
+      AI?: any;
+      CONFIG_KV?: KVNamespace;
+    };
+
+    let selectedModel = model;
+    if (!selectedModel && env.CONFIG_KV) {
+      const configData = await env.CONFIG_KV.get("agent:config");
+      if (configData) {
+        const config = JSON.parse(configData);
+        selectedModel = config.modelMap?.[config.defaultProvider] || "@cf/meta/llama-3.1-8b-instruct";
+      }
+    }
+
+    if (!selectedModel) {
+      selectedModel = "@cf/meta/llama-3.1-8b-instruct";
+    }
+
+    if (stream && env.AI) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            const result = await env.AI.run(selectedModel as any, {
+              messages,
+              temperature,
+              max_tokens: maxTokens,
+              stream: true,
+            } as any);
+
+            if (result && typeof result === 'object' && 'response' in result) {
+              const aiStream = (result as any).response;
+              if (aiStream && typeof aiStream.getReader === 'function') {
+                const reader = aiStream.getReader();
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  const chunk = new TextDecoder().decode(value);
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                  );
+                }
+              }
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          } catch (e) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`)
+            );
+            controller.close();
+          }
+        },
+      });
+
+      return new NextResponse(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
+    if (env.AI) {
+      const result = await env.AI.run(selectedModel as any, {
+        messages,
+        temperature,
+        max_tokens: maxTokens,
+      } as any);
+
+      return NextResponse.json({
+        success: true,
+        response: result.response || String(result),
+        model: selectedModel,
+      });
+    }
+
+    return NextResponse.json(
+      { error: "AI binding not available" },
+      { status: 500 }
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { error: String(e) },
+      { status: 500 }
+    );
+  }
+}
