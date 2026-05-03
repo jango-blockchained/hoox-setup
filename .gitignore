@@ -35,10 +35,9 @@ pages/dashboard/.open-next/
 .tmp/*
 .cursor/
 .cursor/*
-.opencode/
-!.opencode/context/
-!.opencode/context/*
-.opencode/*
+.opencode/**
+!.opencode/context
+!.opencode/context/**
 .agents/
 .agents/*
 .ai/
