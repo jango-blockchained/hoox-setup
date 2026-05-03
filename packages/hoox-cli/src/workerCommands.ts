@@ -662,11 +662,10 @@ export async function deployWorkers(config: Config): Promise<void> {
 
     const wranglerConfigArg = useJsonc ? ["-c", "wrangler.jsonc"] : [];
 
-    // Check if this is a Pages project
-    const isPages = await isPagesProject(workerDir);
-    const deployCommand = isPages
-      ? "wrangler pages project deploy"
-      : "wrangler deploy";
+  // Check if this is the dashboard project
+  const isDashboard = await isDashboardProject(workerDir);
+  // Always use Workers deployment (not Pages)
+  const deployCommand = "wrangler deploy";
 
     // Verify account_id in wrangler config (toml or jsonc)
     try {
@@ -700,9 +699,8 @@ export async function deployWorkers(config: Config): Promise<void> {
     }
 
     // const result = runCommandSync("wrangler deploy", workerDir, cloudflareEnv); // Original Sync
-    const deployArgs = isPages
-      ? ["wrangler", "pages", "project", "deploy", workerDir]
-      : ["wrangler", "deploy", ...wranglerConfigArg];
+    // Always use Workers deployment (not Pages)
+    const deployArgs = ["wrangler", "deploy"];
     const result = await runCommandAsync(
       "bunx",
       deployArgs,
@@ -781,15 +779,79 @@ export async function deployWorkers(config: Config): Promise<void> {
   process.exitCode = anyErrors ? 1 : 0;
 }
 
-// --- Pages Deployment Logic ---
-export async function deployPages(config: Config): Promise<void> {
-  intro("Dashboard Deployment");
+// --- Dashboard Deployment Logic (Cloudflare Workers + OpenNext) ---
+export async function deployDashboard(config: Config): Promise<void> {
+  intro("Dashboard Deployment (Cloudflare Workers + OpenNext)");
 
   const apiToken = await getCloudflareToken(config);
   if (!apiToken) {
     process.exitCode = 1;
     return;
   }
+
+  const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
+  const packageJsonPath = path.join(dashboardPath, "package.json");
+
+  // Check if dashboard exists
+  if (!(await Bun.file(packageJsonPath).exists())) {
+    print_error(
+      "Dashboard not found at pages/dashboard. Please ensure the directory exists."
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(blue("Building dashboard..."));
+
+  // Run build
+  const buildResult = await runInteractiveCommand(
+    "bun",
+    ["run", "build"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+
+  if (buildResult !== 0) {
+    print_error(`Build failed with code: ${buildResult}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(blue("Building for Cloudflare Workers (OpenNext)..."));
+
+  // Use OpenNext Cloudflare adapter
+  const opennextBuildResult = await runInteractiveCommand(
+    "bunx",
+    ["opennextjs-cloudflare", "build"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+
+  if (opennextBuildResult !== 0) {
+    print_error(`OpenNext build failed with code: ${opennextBuildResult}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(blue("Deploying to Cloudflare Workers..."));
+
+  // Deploy to Cloudflare Workers (NOT Pages!)
+  const deployResult = await runInteractiveCommand(
+    "bunx",
+    ["wrangler", "deploy"],
+    dashboardPath,
+    { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
+  );
+
+  if (deployResult !== 0) {
+    print_error(`Deployment failed with code: ${deployResult}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(green("Dashboard deployed successfully to Cloudflare Workers!"));
+  console.log(green("Check your Cloudflare dashboard for the deployment URL"));
+}
 
   const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
   const packageJsonPath = path.join(dashboardPath, "package.json");
@@ -838,20 +900,12 @@ export async function deployPages(config: Config): Promise<void> {
   // Get project name from config
   const projectName = `hoox-dashboard`;
 
-  console.log(blue("Deploying to Cloudflare Pages..."));
+  console.log(blue("Deploying to Cloudflare Workers (OpenNext)..."));
 
-  // Deploy to Cloudflare Pages using wrangler (OpenNext output is in .open-next)
+  // Deploy to Cloudflare Workers (NOT Pages!)
   const deployResult = await runInteractiveCommand(
     "bunx",
-    [
-      "wrangler",
-      "pages",
-      "deploy",
-      ".open-next",
-      "--project-name",
-      projectName,
-      "--commit-dirty",
-    ],
+    ["wrangler", "deploy"],
     dashboardPath,
     { CLOUDFLARE_API_TOKEN: apiToken } as unknown as NodeJS.ProcessEnv
   );
@@ -903,11 +957,11 @@ export async function startDevServer(
     return;
   }
 
-  // Check if this is a Pages project
-  const isPages = await isPagesProject(workerDir);
+  // Check if this is the dashboard project
+  const isDashboard = await isDashboardProject(workerDir);
 
   const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-  if (!isPages && !(await Bun.file(wranglerTomlPath).exists())) {
+  if (!isDashboard && !(await Bun.file(wranglerTomlPath).exists())) {
     print_warning(
       `wrangler.toml not found for worker ${workerNameToStart} at ${wranglerTomlPath}.`
     );
@@ -931,9 +985,9 @@ export async function startDevServer(
   // Use runInteractiveCommand for wrangler dev or Pages dev
   try {
     let devCommand: string[];
-    if (isPages) {
-      // Pages: Run Next.js dev server
-      console.log(dim("Detected Pages project. Running Next.js dev server..."));
+    if (isDashboard) {
+      // Dashboard: Run Next.js dev server
+      console.log(dim("Detected Dashboard project. Running Next.js dev server..."));
       devCommand = ["run", "dev"];
     } else {
       devCommand = ["wrangler", "dev"];
@@ -1299,23 +1353,12 @@ export async function updateInternalUrls(config: Config): Promise<void> {
   console.log("----------------------------------");
 }
 
-// --- Pages Project Detection Helper ---
-async function isPagesProject(workerDir: string): Promise<boolean> {
-  const wranglerJsoncPath = path.join(workerDir, "wrangler.jsonc");
-  const wranglerTomlPath = path.join(workerDir, "wrangler.toml");
-
-  if (await Bun.file(wranglerJsoncPath).exists()) {
-    try {
-      const content = await Bun.file(wranglerJsoncPath).text();
-      const cleanContent = content
-        .replace(/\/\/.*$/gm, "")
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/,(\s*[}\]])/g, "$1");
-      const config = JSON.parse(cleanContent);
-      return !!config.pages_build_output_dir;
-    } catch {
-      return false;
-    }
+// --- Dashboard Project Detection Helper ---
+// Note: Dashboard now uses Cloudflare Workers + OpenNext (not Pages)
+async function isDashboardProject(workerDir: string): Promise<boolean> {
+  // Check if this is the dashboard directory
+  return workerDir.includes("pages/dashboard");
+}
   }
 
   if (await Bun.file(wranglerTomlPath).exists()) {

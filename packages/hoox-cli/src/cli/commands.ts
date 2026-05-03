@@ -482,17 +482,17 @@ function buildCommands(): Record<string, CommandDef> {
       },
     },
 
-    // --- Pages Deploy ---
+    // --- Dashboard Deploy (Workers) ---
     pages: {
-      description: "Build and deploy dashboard to Cloudflare Pages",
+      description: "Build and deploy dashboard to Cloudflare Workers",
       subcommands: {
         deploy: {
-          description: "Deploy the dashboard",
+          description: "Deploy the dashboard to Cloudflare Workers",
           handler: async () => {
             const { loadConfig } = await import("../configUtils.js");
-            const { deployPages } = await import("../workerCommands.js");
+            const { deployDashboard } = await import("../workerCommands.js");
             const config = await loadConfig();
-            await deployPages(config);
+            await deployDashboard(config);
           },
         },
       },
