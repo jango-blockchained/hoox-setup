@@ -106,10 +106,38 @@ export function WorkersOverview() {
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null)
 
   useEffect(() => {
+    const fetchAgentData = async () => {
+      try {
+        const res = await fetch("/api/agent/status")
+        const data = await res.json()
+        if (data.success && data.status) {
+          setWorkers(prev => prev.map(w => {
+            if (w.name === "agent-worker") {
+              return {
+                ...w,
+                status: data.status.killSwitch ? "idle" as const : "active" as const,
+                metrics: {
+                  ...w.metrics,
+                  requests: (w.metrics?.requests || 0) + Math.floor(Math.random() * 5),
+                }
+              }
+            }
+            return w
+          }))
+        }
+      } catch (e) {
+        console.error("Failed to fetch agent data", e)
+      }
+    }
+
+    fetchAgentData()
+
     const interval = setInterval(() => {
+      fetchAgentData()
+
       setWorkers((prev) =>
         prev.map((worker) => {
-          if (worker.status !== "active" || !worker.metrics) return worker
+          if (worker.name === "agent-worker" || worker.status !== "active" || !worker.metrics) return worker
           return {
             ...worker,
             metrics: {
@@ -121,6 +149,7 @@ export function WorkersOverview() {
         })
       )
     }, 3000)
+
     return () => clearInterval(interval)
   }, [])
 
