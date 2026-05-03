@@ -19,6 +19,3 @@
 [submodule "workers/email-worker"]
 	path = workers/email-worker
 	url = https://github.com/jango-blockchained/email-worker.git
-[submodule "workers/boilerplate-worker"]
-	path = workers/boilerplate-worker
-	url = https://github.com/jango-blockchained/boilerplate-worker.git
