@@ -1,6 +1,6 @@
 # Agent Worker - Hoox Autonomous AI & Risk Manager
 
-**Last Updated:** April 2026
+**Last Updated:** May 2026 (Post-Enhancement)
 
 The `agent-worker` serves as the proactive intelligence layer of the Hoox trading ecosystem. Rather than waiting for webhooks, it runs continuously on a cron schedule to monitor portfolio health, enforce risk limits, and optimize position exits.
 
@@ -8,13 +8,13 @@ The `agent-worker` serves as the proactive intelligence layer of the Hoox tradin
 
 | Feature                        | Description                                                                                                                                   |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| ⏱️ **Cron-Driven Observation** | Automatically runs every 5 minutes (`*/5 * * * *`) to fetch live market data from Binance, Bybit, and MEXC.                                   |
+| ⏱️ **Cron-Driven Observation** | Automatically runs every 5 minutes (`*/5 * * *`) to fetch live market data from Binance, Bybit, and MEXC.                                   |
 | 🛡️ **Global Kill Switch**      | Calculates total account PnL and instantly locks out the `hoox` gateway from new entries if the `max_daily_drawdown_percent` is breached.     |
 | 🎯 **Dynamic Trailing Stops**  | Stores watermark prices in `CONFIG_KV` and automatically triggers `CLOSE` payloads if the market reverses.                                    |
 | 💸 **Scale-Out Take Profits**  | Detects when a position reaches a specific profit target and automatically sends partial close commands to secure gains.                      |
-| 🤖 **AI System Summarization** | Periodically fetches `system_logs` from the `d1-worker`, analyzes them via LLaMA 3 8B, and sends natural language health reports to Telegram. |
-| 🌐 **Multi-Provider AI**       | Seamlessly switches between Workers AI, OpenAI, Anthropic, and Google AI with automatic fallbacks.                                            |
-| 🧠 **Advanced Models**         | Supports vision, embeddings, reasoning, and code generation models.                                                                           |
+| 🤖 **AI System Summarization** | Periodically fetches `system_logs` from the `d1-worker`, analyzes them via LLAMA 3 8B, and sends natural language health reports to Telegram. |
+| 🌐 **Multi-Provider AI**       | Seamlessly switches between Workers AI, OpenAI, Anthropic, Google AI, and Azure OpenAI with automatic fallbacks.                                            |
+| 🧠 **Advanced Models**         | Supports vision, embeddings, reasoning (extended thinking), and code generation models.                                                                           |
 
 ## Architecture & Flow
 
@@ -53,11 +53,13 @@ Update agent configuration at runtime.
 ```json
 {
 	"defaultProvider": "openai",
-	"fallbackChain": ["openai", "workers-ai", "anthropic"],
+	"fallbackChain": ["openai", "workers-ai", "anthropic", "google", "azure"],
 	"modelMap": {
-		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
-		"openai": "gpt-4o-mini-2024-07-18",
-		"anthropic": "claude-3-haiku-20240307"
+ 		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
+ 		"openai": "gpt-4o-mini-2024-07-18",
+ 		"anthropic": "claude-3-haiku-20240307",
+ 		"google": "gemini-1.5-flash-002",
+ 		"azure": "gpt-4o-mini"
 	},
 	"timeoutMs": 30000,
 	"retryCount": 3
@@ -88,8 +90,8 @@ Returns health status of all configured AI providers.
 {
 	"success": true,
 	"providers": {
-		"workers-ai": { "healthy": true, "latency": 150 },
-		"openai": { "healthy": true, "latency": 200 }
+ 		"workers-ai": { "healthy": true, "latency": 150 },
+ 		"openai": { "healthy": true, "latency": 200 }
 	}
 }
 ```
@@ -98,14 +100,89 @@ Returns health status of all configured AI providers.
 
 #### `POST /agent/chat`
 
-Send a chat request with automatic provider fallback.
+Send a chat request with automatic provider fallback and **SSE streaming support**.
+
+**Request:**
+```json
+{
+	"messages": [{"role": "user", "content": "Analyze BTC market sentiment"}],
+	"systemPrompt": "You are a professional crypto trading analyst.",
+	"temperature": 0.7,
+	"maxTokens": 500,
+	"stream": true
+}
+```
+
+**Streaming Response (SSE):**
+```
+data: {"content": "Based on current market conditions..."}
+data: {"content": " technical indicators suggest..."}
+data: [DONE]
+```
+
+#### `POST /agent/vision` (NEW!)
+
+Analyze images with AI vision models. Supports both URL and base64 input.
 
 ```json
 {
-	"prompt": "Analyze BTC market sentiment",
-	"systemPrompt": "You are a professional crypto trading analyst.",
-	"temperature": 0.7,
-	"maxTokens": 500
+	"imageUrl": "https://example.com/chart.png",
+	"prompt": "Analyze this price chart and identify key support/resistance levels",
+	"model": "@cf/meta/llama-3.2-11b-vision-instruct"
+}
+```
+
+Or with base64:
+```json
+{
+	"imageBase64": "iVBORw0KGgoAAAANSUhEUgAA...",
+	"prompt": "What pattern do you see in this chart?"
+}
+```
+
+#### `POST /agent/reasoning` (NEW!)
+
+Extended thinking queries with reasoning models like OpenAI o1.
+
+```json
+{
+	"prompt": "Design a risk management strategy for a $100k portfolio",
+	"model": "o1-preview",
+	"reasoningEffort": "medium"
+}
+```
+
+**Response:**
+```json
+{
+	"reasoning": "Let me think through this step by step...",
+	"answer": "Here's a comprehensive risk management strategy...",
+	"model": "o1-preview"
+}
+```
+
+#### `GET /agent/usage` (NEW!)
+
+Get AI API usage statistics across all providers.
+
+```json
+{
+	"success": true,
+	"usage": {
+		"workers-ai": { "requests": 150, "tokens": 45000 },
+		"openai": { "requests": 75, "tokens": 22000 }
+	}
+}
+```
+
+#### `GET /agent/prompts` (NEW!)
+
+List available prompt templates.
+
+```json
+{
+	"success": true,
+	"prompts": ["trading-analyst", "risk-assessor", "market-scanner"]
 }
 ```
 
@@ -149,6 +226,8 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 | `agent:openai_key`                           | -           | OpenAI API key                          |
 | `agent:anthropic_key`                        | -           | Anthropic API key                       |
 | `agent:google_key`                           | -           | Google AI API key                       |
+| `agent:azure_api_key`                        | -           | Azure OpenAI API key                    |
+| `agent:azure_endpoint`                        | -           | Azure OpenAI endpoint URL               |
 | `trade:max_daily_drawdown_percent`           | `-5`        | Account PnL % that triggers Kill Switch |
 | `trade:kill_switch`                          | `false`     | When `true`, halts all new trades       |
 | `trade:watermark:{exchange}:{symbol}:{side}` | N/A         | High/low watermark                      |
@@ -158,12 +237,13 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 ```json
 {
 	"defaultProvider": "workers-ai",
-	"fallbackChain": ["workers-ai", "openai"],
+	"fallbackChain": ["workers-ai", "openai", "anthropic", "google", "azure"],
 	"modelMap": {
-		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
-		"openai": "gpt-4o-mini-2024-07-18",
-		"anthropic": "claude-3-haiku-20240307",
-		"google": "gemini-1.5-flash-002"
+ 		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
+ 		"openai": "gpt-4o-mini-2024-07-18",
+ 		"anthropic": "claude-3-haiku-20240307",
+ 		"google": "gemini-1.5-flash-002",
+ 		"azure": "gpt-4o-mini"
 	},
 	"timeoutMs": 30000,
 	"retryCount": 3,
@@ -175,6 +255,8 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 
 ### Supported Models
 
+#### Workers AI Models
+
 | Task          | Workers AI Model                               |
 | ------------- | ---------------------------------------------- |
 | Chat          | `@cf/meta/llama-3.1-8b-instruct`               |
@@ -184,11 +266,24 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 | Embeddings    | `@cf/baai/bge-base-en-v1.5`                    |
 | Summarization | `@cf/facebook/bart-large-cnn`                  |
 
-| Provider  | Models                           |
-| --------- | -------------------------------- |
-| OpenAI    | GPT-4o, GPT-4o-mini, GPT-4 Turbo |
-| Anthropic | Claude 3 Haiku, Sonnet, Opus     |
-| Google    | Gemini 1.5 Flash, Gemini 1.5 Pro |
+#### External Providers
+
+| Provider   | Models                                    |
+| ---------- | ------------------------------------------ |
+| OpenAI     | GPT-4o, GPT-4o-mini, GPT-4 Turbo, o1    |
+| Anthropic  | Claude 3 Haiku, Sonnet, Opus              |
+| Google     | Gemini 1.5 Flash, Gemini 1.5 Pro         |
+| Azure       | GPT-4o, GPT-4o-mini (custom deployment)  |
+
+### AI Gateway Features
+
+The AI Gateway provides:
+
+- **Fallback Chain**: Automatically tries providers in order on failure
+- **Health Checks**: Providers self-report health status every 5 minutes
+- **Retry Logic**: Exponential backoff with configurable max retries
+- **Timeout Protection**: Configurable per-request timeout (default 30s)
+- **Usage Tracking**: Automatic token and request counting per provider
 
 ## Internal Service Bindings
 
@@ -199,6 +294,40 @@ The `agent-worker` requires the following bindings to operate:
 - `TELEGRAM_SERVICE`: To broadcast AI summaries and emergency alerts.
 - `CONFIG_KV`: For dynamic configuration and state.
 - `AI`: Workers AI binding for inference.
+
+## Testing
+
+The agent-worker includes comprehensive tests (**171 tests across 33 files**):
+
+```bash
+# Run all tests
+bun test
+
+# Run specific test file
+bun test tests/ai/providers/openai.test.ts
+
+# Run with coverage
+bun test --coverage
+```
+
+**Test Coverage:** >80% across all modules
+
+### Test Structure
+
+```
+tests/
+├── ai/
+│   ├── providers/       # Tests for each AI provider
+│   ├── gateway.test.ts  # AI Gateway fallback tests
+│   ├── streaming.test.ts # SSE streaming tests
+│   └── prompts.test.ts  # Prompt template tests
+├── handlers/           # Tests for all endpoints
+├── middleware/          # Tests for auth, validation, logging
+├── market/             # Tests for exchange clients
+├── risk/               # Tests for risk manager/executor
+├── routine/            # Tests for housekeeping
+└── integration/        # End-to-end integration tests
+```
 
 ---
 

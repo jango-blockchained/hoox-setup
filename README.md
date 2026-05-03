@@ -201,8 +201,25 @@ The execution module. Routes and executes orders across MEXC, Binance, and Bybit
 - **Dynamic Routing**: Uses an `ExchangeRouter` with `CONFIG_KV` to instantly redirect symbols to different exchanges without code deployment.
 - **Smart Placement**: Automatically executes on the Cloudflare edge node closest to the exchange's API servers.
 - **R2 Log Offloading**: Verbose request and response logs are saved to R2 (`hoox-system-logs`), preserving D1 write limits for critical financial data.
-### 🧠 agent-worker (The Risk Manager)
+### 🧠 agent-worker (The AI Risk Manager & Multi-Provider AI Gateway)
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
+
+**Enhanced with Multi-Provider AI (Tasks 18-30):**
+- **5 AI Providers**: Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI
+- **Automatic Fallback Chain**: Seamless switching between providers on failure
+- **Health Checks**: Providers self-report health status for intelligent routing
+- **SSE Streaming**: Real-time streaming responses for chat and reasoning
+- **Vision Analysis**: Image analysis with URL or base64 input
+- **Reasoning Models**: Extended thinking support (OpenAI o1, etc.)
+- **Prompt Templates**: Pre-built templates (trading-analyst, risk-assessor, market-scanner)
+- **Usage Tracking**: Monitor API usage across all providers
+
+**New Endpoints:**
+- `POST /agent/chat` - AI chat with streaming support
+- `POST /agent/vision` - Image analysis
+- `POST /agent/reasoning` - Extended thinking queries
+- `GET /agent/usage` - Usage statistics
+- `GET /agent/prompts` - List prompt templates
 ### 📊 dashboard (The Command Center)
 A secure, edge-rendered React dashboard. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.
 ### 💬 telegram-worker (The Communicator)
