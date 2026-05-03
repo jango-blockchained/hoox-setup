@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -49,18 +49,40 @@ const chartConfig = {
 
 export function PnlChart() {
   const [period, setPeriod] = useState("1M")
-  const [data, setData] = useState(() => generateData("1M"))
+  const [data, setData] = useState<ReturnType<typeof generateData>>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setData(generateData(period))
+    setMounted(true)
+  }, [period])
 
   const handlePeriodChange = (newPeriod: string) => {
     setPeriod(newPeriod)
-    setData(generateData(newPeriod))
   }
 
   const totalPnl = data[data.length - 1]?.pnl || 0
   const isPositive = totalPnl >= 0
-  const maxPnl = Math.max(...data.map((d) => d.pnl))
-  const minPnl = Math.min(...data.map((d) => d.pnl))
-
+  const maxPnl = data.length > 0 ? Math.max(...data.map((d) => d.pnl)) : 0
+  const minPnl = data.length > 0 ? Math.min(...data.map((d) => d.pnl)) : 0
+  
+  if (!mounted) {
+    return (
+      <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="flex items-center gap-3">
+            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[220px] w-full flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">Loading chart...</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+ 
   return (
     <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
