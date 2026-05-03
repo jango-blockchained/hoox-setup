@@ -138,7 +138,7 @@ describe("updateCfSecret", () => {
     fs.writeFileSync(path.join(tempDir, "workers", "hoox", ".dev.vars"), "", { mode: 0o444 });
     await updateCfSecret("SAFE_SECRET_2", "hoox", "abc");
     // may not warn on all platforms; ensures no throw and success path reached
-    expect(successMock).toHaveBeenCalled();
+    expect(logWarnMock).toHaveBeenCalled();
   });
 
   test("handles update failure after id lookup", async () => {

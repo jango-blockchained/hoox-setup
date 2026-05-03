@@ -36,6 +36,8 @@ pages/dashboard/.open-next/
 .cursor/
 .cursor/*
 .opencode/
+!.opencode/context/
+!.opencode/context/*
 .opencode/*
 .agents/
 .agents/*

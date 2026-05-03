@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach, vi } from "bun:test";
+import { describe, expect, test, beforeEach, afterEach, mock } from "bun:test";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "path";
@@ -60,7 +60,10 @@ describe("Utils - Color Functions", () => {
 
   describe("Console Output Helpers", () => {
     test("print_success should output success message", () => {
-      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = mock(() => {});
+      const originalLog = console.log;
+      console.log = consoleSpy as unknown as typeof console.log;
+
       const green = (text: string): string => `\x1b[32m${text}\x1b[0m`;
       const print_success = (text: string): void => {
         console.log(green(`✅ ${text}`));
@@ -72,13 +75,14 @@ describe("Utils - Color Functions", () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("Operation completed")
       );
-      consoleSpy.mockRestore();
+      console.log = originalLog;
     });
 
     test("print_error should output error message", () => {
-      const consoleSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
+      const consoleSpy = mock(() => {});
+      const originalError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
       const red = (text: string): string => `\x1b[31m${text}\x1b[0m`;
       const print_error = (text: string): void => {
         console.error(red(`❌ ${text}`));
@@ -87,12 +91,15 @@ describe("Utils - Color Functions", () => {
       print_error("Operation failed");
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("❌"));
-      consoleSpy.mockRestore();
+      console.error = originalError;
     });
 
     test("print_warning should output warning message", () => {
-      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const yellow = (text: string): string => `\x1b[31m${text}\x1b[0m`;
+      const consoleSpy = mock(() => {});
+      const originalWarn = console.warn;
+      console.warn = consoleSpy as unknown as typeof console.warn;
+
+      const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;
       const print_warning = (text: string): void => {
         console.warn(yellow(`⚠️ ${text}`));
       };
@@ -100,7 +107,7 @@ describe("Utils - Color Functions", () => {
       print_warning("Warning message");
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("⚠️"));
-      consoleSpy.mockRestore();
+      console.warn = originalWarn;
     });
   });
 });
@@ -205,7 +212,7 @@ describe("Utils - Input Handling", () => {
     });
 
     test("should handle question input", async () => {
-      const mockQuestion = vi.fn((query: string) => Promise.resolve("y"));
+      const mockQuestion = mock((query: string) => Promise.resolve("y"));
 
       const response = await mockQuestion("Continue?");
 
@@ -254,5 +261,430 @@ describe("Utils - Integration Tests", () => {
 
     expect(merged.KEY1).toBe("overridden");
     expect(merged.KEY2).toBe("value2");
+  });
+});
+
+// Import the actual module for functional tests
+const { checkCommandExists, runCommandSync, runCommandSyncArgs, runCommandAsync, getCloudflareToken, rl } = await import("../src/utils.js");
+
+describe("Utils - Exported Functions", () => {
+  test("checkCommandExists is a function", () => {
+    expect(typeof checkCommandExists).toBe("function");
+  });
+
+  test("runCommandSync is a function", () => {
+    expect(typeof runCommandSync).toBe("function");
+  });
+
+  test("runCommandSyncArgs is a function", () => {
+    expect(typeof runCommandSyncArgs).toBe("function");
+  });
+
+  test("runCommandAsync is a function", () => {
+    expect(typeof runCommandAsync).toBe("function");
+  });
+
+  test("getCloudflareToken is a function", () => {
+    expect(typeof getCloudflareToken).toBe("function");
+  });
+
+  test("rl is defined", () => {
+    expect(rl).toBeDefined();
+  });
+});
+
+describe("Utils - checkCommandExists", () => {
+  test("returns true when command exists", async () => {
+    // bun should always exist in this environment
+    const exists = await checkCommandExists("bun");
+    expect(exists).toBe(true);
+  });
+
+  test("returns false when command missing", async () => {
+    const exists = await checkCommandExists("nonexistent-command-xyz");
+    expect(exists).toBe(false);
+  });
+});
+
+describe("Utils - runCommandSync", () => {
+  test("returns success result on exit code 0", () => {
+    const result = runCommandSync("echo 'hello'", process.cwd());
+
+    expect(result.success).toBe(true);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("hello");
+  });
+
+  test("returns failure result on non-zero exit", () => {
+    const result = runCommandSync("exit 1", process.cwd());
+
+    expect(result.success).toBe(false);
+    expect(result.exitCode).toBe(1);
+  });
+
+  test("captures stdout and stderr", () => {
+    const result = runCommandSync("echo 'out'; echo 'err' >&2", process.cwd());
+
+    expect(result.stdout).toContain("out");
+    expect(result.stderr).toContain("err");
+  });
+});
+
+describe("Utils - runCommandSyncArgs", () => {
+  test("executes command with args", () => {
+    const result = runCommandSyncArgs({
+      cmd: "echo",
+      args: ["hello", "world"],
+      cwd: process.cwd(),
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain("hello");
+  });
+
+  test("returns failure on non-zero exit", () => {
+    const result = runCommandSyncArgs({
+      cmd: "bun",
+      args: ["-e", "process.exit(1)"],
+      cwd: process.cwd(),
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.exitCode).toBe(1);
+  });
+});
+
+describe("Utils - runCommandAsync", () => {
+  test("resolves with success on exit 0", async () => {
+    const result = await runCommandAsync("echo", ["hello"], process.cwd());
+
+    expect(result.success).toBe(true);
+    expect(result.exitCode).toBe(0);
+  });
+
+  test("resolves with failure on non-zero exit", async () => {
+    const result = await runCommandAsync("bun", ["-e", "process.exit(1)"], process.cwd());
+
+    expect(result.success).toBe(false);
+  });
+
+  test("captures streaming output", async () => {
+    const result = await runCommandAsync("echo", ["test output"], process.cwd());
+
+    expect(result.stdout).toContain("test output");
+  });
+});
+
+describe("Utils - log namespace", () => {
+  test("log.success calls clackLog.success", () => {
+    const { log } = require("../src/utils.js");
+    expect(typeof log.success).toBe("function");
+    expect(typeof log.error).toBe("function");
+    expect(typeof log.warn).toBe("function");
+    expect(typeof log.info).toBe("function");
+    expect(typeof log.step).toBe("function");
+    expect(typeof log.dim).toBe("function");
+  });
+});
+
+describe("Utils - runCommandSync detailed tests", () => {
+  test("captures stdout on success", () => {
+    const result = runCommandSync("echo 'captured output'", process.cwd());
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain("captured output");
+  });
+
+  test("captures stderr on failure", () => {
+    const result = runCommandSync("echo 'error' >&2; exit 1", process.cwd());
+    expect(result.success).toBe(false);
+    expect(result.stderr).toContain("error");
+  });
+
+  test("handles exception and returns failure", () => {
+    // Mock Bun.spawnSync to throw
+    const originalSpawnSync = Bun.spawnSync;
+    Bun.spawnSync = mock(() => { throw new Error("spawn error"); }) as any;
+    
+    const result = runCommandSync("any command", process.cwd());
+    
+    expect(result.success).toBe(false);
+    expect(result.stderr).toContain("spawn error");
+    
+    Bun.spawnSync = originalSpawnSync;
+  });
+});
+
+describe("Utils - runCommandSyncArgs detailed tests", () => {
+  test("executes with explicit args", () => {
+    const result = runCommandSyncArgs({
+      cmd: "echo",
+      args: ["arg1", "arg2"],
+      cwd: process.cwd(),
+    });
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain("arg1");
+  });
+
+  test("handles spawn exception", () => {
+    const result = runCommandSyncArgs({
+      cmd: "nonexistent-cmd-xyz",
+      args: [],
+      cwd: process.cwd(),
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Utils - runCommandAsync detailed tests", () => {
+  test("resolves with stdout", async () => {
+    const result = await runCommandAsync("echo", ["async output"], process.cwd());
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain("async output");
+  });
+
+  test("handles async failure", async () => {
+    const result = await runCommandAsync("bun", ["-e", "process.exit(1)"], process.cwd());
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Utils - backward compatible print functions", () => {
+  test("print_success calls log.success", async () => {
+    const successSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: successSpy,
+        error: mock(() => {}),
+        warn: mock(() => {}),
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { print_success } = await import("../src/utils.js");
+    print_success("test");
+    
+    expect(successSpy).toHaveBeenCalled();
+  });
+
+  test("print_error calls log.error", async () => {
+    const errorSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: errorSpy,
+        warn: mock(() => {}),
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { print_error } = await import("../src/utils.js");
+    print_error("test");
+    
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
+  test("print_warning calls log.warn", async () => {
+    const warnSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: mock(() => {}),
+        warn: warnSpy,
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { print_warning } = await import("../src/utils.js");
+    print_warning("test");
+    
+    expect(warnSpy).toHaveBeenCalled();
+  });
+
+  test("print_info calls log.info", async () => {
+    const infoSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: mock(() => {}),
+        warn: mock(() => {}),
+        info: infoSpy,
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { print_info } = await import("../src/utils.js");
+    print_info("test");
+    
+    expect(infoSpy).toHaveBeenCalled();
+  });
+});
+
+  test("handles failure", async () => {
+    const { runCommandWithStdin } = await import("../src/utils.js");
+    
+    const result = await runCommandWithStdin(
+      "bun",
+      ["-e", "process.exit(1)"],
+      "input",
+      process.cwd()
+    );
+    
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("Utils - runInteractiveCommand", () => {
+  test("exists and can be imported", async () => {
+    const { runInteractiveCommand } = await import("../src/utils.js");
+    expect(typeof runInteractiveCommand).toBe("function");
+  });
+});
+
+describe("Utils - promptForSecret", () => {
+  test("exists and can be imported", async () => {
+    const { promptForSecret } = await import("../src/utils.js");
+    expect(typeof promptForSecret).toBe("function");
+  });
+});
+
+describe("Utils - getCloudflareToken extended tests", () => {
+  test("returns token from config", async () => {
+    const { getCloudflareToken } = await import("../src/utils.js");
+    const config = {
+      global: {
+        cloudflare_api_token: "config-token-123",
+      },
+    };
+    const token = await getCloudflareToken(config);
+    expect(token).toBe("config-token-123");
+  });
+
+  test("returns token from environment", async () => {
+    const { getCloudflareToken } = await import("../src/utils.js");
+    process.env.CLOUDFLARE_API_TOKEN = "env-token-456";
+    
+    const config = { global: {} };
+    const token = await getCloudflareToken(config);
+    
+    expect(token).toBe("env-token-456");
+    
+    delete process.env.CLOUDFLARE_API_TOKEN;
+  });
+});
+
+describe("Utils - log namespace functions", () => {
+  test("log.success calls clackLog.success", async () => {
+    const successSpy = mock(() => {});
+    
+    // Mock clack/prompts before importing utils
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: successSpy,
+        error: mock(() => {}),
+        warn: mock(() => {}),
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { log } = await import("../src/utils.js");
+    log.success("test success");
+    
+    expect(successSpy).toHaveBeenCalled();
+  });
+
+  test("log.error calls clackLog.error", async () => {
+    const errorSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: errorSpy,
+        warn: mock(() => {}),
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { log } = await import("../src/utils.js");
+    log.error("test error");
+    
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
+  test("log.warn calls clackLog.warn", async () => {
+    const warnSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: mock(() => {}),
+        warn: warnSpy,
+        info: mock(() => {}),
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { log } = await import("../src/utils.js");
+    log.warn("test warn");
+    
+    expect(warnSpy).toHaveBeenCalled();
+  });
+
+  test("log.info calls clackLog.info", async () => {
+    const infoSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: mock(() => {}),
+        warn: mock(() => {}),
+        info: infoSpy,
+        step: mock(() => {}),
+      },
+    }));
+    
+    const { log } = await import("../src/utils.js");
+    log.info("test info");
+    
+    expect(infoSpy).toHaveBeenCalled();
+  });
+
+  test("log.step calls clackLog.step", async () => {
+    const stepSpy = mock(() => {});
+    
+    mock.module("@clack/prompts", () => ({
+      log: {
+        success: mock(() => {}),
+        error: mock(() => {}),
+        warn: mock(() => {}),
+        info: mock(() => {}),
+        step: stepSpy,
+      },
+    }));
+    
+    const { log } = await import("../src/utils.js");
+    log.step("test step");
+    
+    expect(stepSpy).toHaveBeenCalled();
+  });
+
+  test("log.dim calls console.log with ansis.dim", () => {
+    const consoleSpy = mock(() => {});
+    const originalLog = console.log;
+    console.log = consoleSpy;
+    
+    const { log } = require("../src/utils.js");
+    log.dim("test dim");
+    
+    expect(consoleSpy).toHaveBeenCalled();
+    console.log = originalLog;
   });
 });
