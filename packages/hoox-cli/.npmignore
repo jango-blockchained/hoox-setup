@@ -1,0 +1,14 @@
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+dist/
+node_modules/
+.git/
+.github/
+docs/
+*.md
+!README.md
+tsconfig.json
+bunfig.toml
+.eslintrc.json

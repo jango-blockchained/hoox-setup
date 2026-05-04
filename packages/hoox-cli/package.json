@@ -3,20 +3,21 @@
   "version": "0.1.0",
   "description": "Official Hoox CLI for deploying and operating Cloudflare workers, pages, and secrets.",
   "type": "module",
-  "main": "./bin/hoox.ts",
-  "types": "./bin/hoox.ts",
+  "main": "./bin/hoox.js",
+  "types": "./src/index.ts",
   "exports": {
-    ".": "./bin/hoox.ts"
+    ".": "./bin/hoox.js"
   },
   "bin": {
-    "hoox": "./bin/hoox.ts"
+    "hoox": "./bin/hoox.js"
   },
   "scripts": {
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "lint": "eslint . --ext .ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun run lint && bun run typecheck"
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "prepublishOnly": "bun run build && bun run lint && bun run typecheck"
   },
   "dependencies": {
     "@clack/prompts": "^0.8.2",
