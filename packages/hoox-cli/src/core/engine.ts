@@ -1,18 +1,20 @@
-import type { Engine, CommandContext, AppState } from "./types.js";
-import { CLIError } from "./errors.js";
+import type { Engine, CommandContext, AppState, Observer } from "./types.js";
 
 export class AppEngine implements Engine {
-  private observer: import("./types.js").Observer;
+  private observer: Observer;
   private adapters: CommandContext["adapters"];
   private unsubs: (() => void)[] = [];
 
-  constructor(observer: import("./types.js").Observer, adapters: CommandContext["adapters"]) {
+  constructor(observer: Observer, adapters: CommandContext["adapters"]) {
     this.observer = observer;
     this.adapters = adapters;
   }
 
   async initialize(): Promise<void> {
-    await this.adapters.cloudflare.testConnection();
+    const connected = await this.adapters.cloudflare.testConnection();
+    if (!connected) {
+      throw new Error("Failed to connect to Cloudflare");
+    }
   }
 
   startListening(): void {
@@ -27,11 +29,7 @@ export class AppEngine implements Engine {
       }
     });
 
-    const interval = setInterval(() => {
-      this.observer.updateSystemMetrics();
-    }, 30000);
-
-    this.unsubs = [unsub1, unsub2, () => clearInterval(interval)];
+    this.unsubs = [unsub1, unsub2];
   }
 
   stopListening(): void {
@@ -39,14 +37,14 @@ export class AppEngine implements Engine {
     this.unsubs = [];
   }
 
-  private async handleCommand(cmd: string, args: Record<string, unknown>): Promise<void> {
+  private async handleCommand(cmd: string, _args: Record<string, unknown>): Promise<void> {
     this.observer.setState({ currentCommand: cmd, commandStatus: "running" });
 
     try {
       if (cmd.startsWith("trade:")) {
-        await this.handleTradeCommand(cmd, args);
+        await this.handleTradeCommand(cmd);
       } else if (cmd.startsWith("workers:")) {
-        await this.handleWorkersCommand(cmd, args);
+        await this.handleWorkersCommand(cmd);
       }
 
       this.observer.setState({ commandStatus: "success" });
@@ -56,13 +54,13 @@ export class AppEngine implements Engine {
     }
   }
 
-  private async handleTradeCommand(cmd: string, args: Record<string, unknown>): Promise<void> {
+  private async handleTradeCommand(cmd: string): Promise<void> {
     if (cmd === "trade:deploy") {
       await this.adapters.cloudflare.deployWorker("trade-worker");
     }
   }
 
-  private async handleWorkersCommand(cmd: string, args: Record<string, unknown>): Promise<void> {
+  private async handleWorkersCommand(_cmd: string): Promise<void> {
     // Placeholder for workers command handling
   }
 

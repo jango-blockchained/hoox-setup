@@ -6,13 +6,19 @@ import { AppEngine } from "./core/engine.js";
 import { CloudflareAdapter } from "./adapters/cloudflare.js";
 import { BunAdapter } from "./adapters/bun.js";
 import { WorkersAdapter } from "./adapters/workers.js";
-import type { CommandContext } from "./core/types.js";
+import type { CommandContext, Command } from "./core/types.js";
 
-function printBanner(): void {
+interface CommandGroup {
+  title: string;
+  commands: Array<{ name: string; description: string }>;
+}
+
+function printBanner(commands: Record<string, Command>): void {
   const d = ansis.dim;
   const b = ansis.bold;
   const y = ansis.yellow;
   const c = ansis.cyan;
+  const g = ansis.green;
 
   console.log("");
   console.log(d("  ╭─────────────────────────────────────────────────╮"));
@@ -21,6 +27,49 @@ function printBanner(): void {
   console.log("");
   console.log(b("  USAGE"));
   console.log(d("  $ ") + "hoox" + d(" <command> [options]"));
+  console.log("");
+  
+  // Group commands by category
+  const groups: Record<string, CommandGroup> = {};
+  
+  for (const [name, cmd] of Object.entries(commands)) {
+    const [category] = name.split(":");
+    if (!groups[category]) {
+      groups[category] = {
+        title: category.charAt(0).toUpperCase() + category.slice(1),
+        commands: [],
+      };
+    }
+    groups[category].commands.push({
+      name,
+      description: cmd.description || "",
+    });
+  }
+
+  console.log(b("  COMMANDS"));
+  
+  const categoryOrder = ["init", "clone", "check-setup", "config", "workers", "trade", "dashboard", "cf", "logs", "housekeeping", "waf", "r2-provision", "doctor", "setup", "status", "secrets", "tui"];
+  
+  for (const cat of categoryOrder) {
+    if (!groups[cat]) continue;
+    const group = groups[cat];
+    console.log("");
+    console.log(b(`  ${group.title}`));
+    for (const cmd of group.commands.sort((a, b) => a.name.localeCompare(b.name))) {
+      console.log(d(`    ${c(cmd.name.padEnd(25))} ${cmd.description}`));
+    }
+    delete groups[cat];
+  }
+  
+  // Print any remaining uncategorized commands
+  for (const [, group] of Object.entries(groups)) {
+    console.log("");
+    console.log(b(`  ${group.title}`));
+    for (const cmd of group.commands.sort((a, b) => a.name.localeCompare(b.name))) {
+      console.log(d(`    ${c(cmd.name.padEnd(25))} ${cmd.description}`));
+    }
+  }
+  
   console.log("");
   console.log(d("  Run ") + c("hoox <command> --help") + d(" for detailed usage"));
   console.log("");
@@ -46,8 +95,10 @@ function parseArgs(argv: string[]): Record<string, unknown> {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
+  const commands = await loadCommands();
+
   if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
-    printBanner();
+    printBanner(commands);
     process.exit(0);
   }
   if (args[0] === "--version" || args[0] === "-V") {
@@ -66,7 +117,6 @@ async function main(): Promise<void> {
 
   await engine.initialize();
 
-  const commands = await loadCommands();
   const registry = new CommandRegistry();
   for (const [name, cmd] of Object.entries(commands)) {
     registry.register(name, cmd);

@@ -4,8 +4,10 @@ export class WorkersAdapter {
     method: string,
     data?: unknown
   ): Promise<unknown> {
-    const proc = Bun.spawn(["wrangler", "wrangler", "call", worker, method], {
-      stdin: data ? JSON.stringify(data) : undefined,
+    const stdinData = data ? JSON.stringify(data) : undefined;
+    
+    const proc = Bun.spawn(["wrangler", "dispatch", worker, method], {
+      stdin: stdinData ? Buffer.from(stdinData) : undefined,
       stdout: "pipe",
       stderr: "pipe",
     });

@@ -29,18 +29,16 @@ export class TradeDeployCommand implements Command {
     const spinner = p.spinner();
     spinner.start("Deploying trade-worker...");
 
-    await new Promise<void>((resolve) => {
-      const unsub = ctx.observer.subscribe((state) => {
-        if (state.commandStatus === "success") {
-          spinner.stop("Trade-worker deployed successfully!");
-          unsub();
-          resolve();
-        } else if (state.commandStatus === "error") {
-          spinner.stop("Deployment failed.", 1);
-          unsub();
-          resolve();
-        }
-      });
-    });
+    try {
+      await ctx.adapters.cloudflare.deployWorker("trade-worker");
+      spinner.stop("Trade-worker deployed successfully!");
+      ctx.observer.setState({ commandStatus: "success" });
+    } catch (error) {
+      spinner.stop("Deployment failed.", 1);
+      ctx.observer.setState({ commandStatus: "error" });
+      throw error;
+    }
   }
 }
+
+export default TradeDeployCommand;
