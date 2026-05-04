@@ -18,7 +18,6 @@ function printBanner(commands: Record<string, Command>): void {
   const b = ansis.bold;
   const y = ansis.yellow;
   const c = ansis.cyan;
-  const g = ansis.green;
 
   console.log("");
   console.log(d("  ╭─────────────────────────────────────────────────╮"));
@@ -48,7 +47,7 @@ function printBanner(commands: Record<string, Command>): void {
 
   console.log(b("  COMMANDS"));
   
-  const categoryOrder = ["init", "clone", "check-setup", "config", "workers", "trade", "dashboard", "cf", "logs", "housekeeping", "waf", "r2-provision", "doctor", "setup", "status", "secrets", "tui"];
+  const categoryOrder = ["init", "clone", "checkSetup", "config", "workers", "trade", "dashboard", "cf", "logs", "housekeeping", "waf", "r2Provision"];
   
   for (const cat of categoryOrder) {
     if (!groups[cat]) continue;
