@@ -1,0 +1,69 @@
+{
+  "global": {
+    "cloudflare_api_token": "<USE_WRANGLER_SECRET_PUT>",
+    "cloudflare_account_id": "debc6545e63bea36be059cbc82d80ec8",
+    "cloudflare_secret_store_id": "48433bc559a943f09d9d6c622e188fd5",
+    "subdomain_prefix": "cryptolinx"
+  },
+
+  "workers": {
+    "d1-worker": {
+      "enabled": true,
+      "path": "workers/d1-worker",
+      "vars": {
+        "database_name": "my-database"
+      }
+    },
+
+    "telegram-worker": {
+      "enabled": true,
+      "path": "workers/telegram-worker",
+      "vars": {},
+      "secrets": ["TELEGRAM_BOT_TOKEN"]
+    },
+
+    "trade-worker": {
+      "enabled": true,
+      "path": "workers/trade-worker",
+      "vars": {},
+      "secrets": ["API_SERVICE_KEY", "BINANCE_API_KEY", "BINANCE_API_SECRET", "MEXC_API_KEY", "MEXC_API_SECRET", "BYBIT_API_KEY", "BYBIT_API_SECRET"]
+    },
+
+    "web3-wallet-worker": {
+      "enabled": true,
+      "path": "workers/web3-wallet-worker",
+      "vars": {},
+      "secrets": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"]
+    },
+
+    "hoox": {
+      "enabled": true,
+      "path": "workers/hoox",
+      "vars": {},
+      "secrets": ["WEBHOOK_API_KEY_BINDING"]
+    },
+
+    "agent-worker": {
+      "enabled": true,
+      "path": "workers/agent-worker",
+      "vars": {},
+      "secrets": ["AGENT_INTERNAL_KEY"]
+    },
+
+    "email-worker": {
+      "enabled": true,
+      "path": "workers/email-worker",
+      "vars": {
+        "USE_IMAP": "false"
+      },
+      "secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
+    },
+
+    "analytics-worker": {
+      "enabled": true,
+      "path": "workers/analytics-worker",
+      "vars": {},
+      "secrets": ["CLOUDFLARE_API_TOKEN"]
+    }
+  }
+}
