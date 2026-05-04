@@ -1,5 +1,5 @@
 {
-  "name": "@hoox/cli",
+  "name": "hoox-cli-tools",
   "version": "0.1.0",
   "description": "Official Hoox CLI for deploying and operating Cloudflare workers, pages, and secrets.",
   "type": "module",
