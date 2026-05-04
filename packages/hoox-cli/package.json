@@ -24,7 +24,7 @@
     "@hoox/shared": "workspace:*",
     "@opentui/core": "^0.2.0",
     "@opentui/react": "^0.2.0",
-    "ansis": "^3.17.0",
+    "ansis": "^4.2.0",
     "react": "^19.2.5",
     "toml": "^3.0.0",
     "zod": "^4.4.3",
