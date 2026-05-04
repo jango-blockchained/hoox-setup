@@ -7,9 +7,23 @@ export class ConfigKeysCommand implements Command {
   name = "config:keys";
   description = "Generate/manage local .keys/*.env files";
   options = [
-    { flag: "generate", short: "g", type: "boolean" as const, description: "Generate new key file" },
-    { flag: "list", short: "l", type: "boolean" as const, description: "List all key files" },
-    { flag: "key-name", type: "string" as const, description: "Key file name (without .env)" },
+    {
+      flag: "generate",
+      short: "g",
+      type: "boolean" as const,
+      description: "Generate new key file",
+    },
+    {
+      flag: "list",
+      short: "l",
+      type: "boolean" as const,
+      description: "List all key files",
+    },
+    {
+      flag: "key-name",
+      type: "string" as const,
+      description: "Key file name (without .env)",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -53,25 +67,29 @@ export class ConfigKeysCommand implements Command {
       p.outro("Keys operation completed!");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Keys command failed: ${error instanceof Error ? error.message : String(error)}`,
-            "KEYS_FAILED",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Keys command failed: ${error instanceof Error ? error.message : String(error)}`,
+              "KEYS_FAILED",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }
   }
 
-  private async generateKey(ctx: CommandContext, spinner: ReturnType<typeof p.spinner>): Promise<void> {
+  private async generateKey(
+    ctx: CommandContext,
+    spinner: ReturnType<typeof p.spinner>
+  ): Promise<void> {
     let keyName = ctx.args?.keyName as string | undefined;
 
     if (!keyName) {
       const input = await p.text({
         message: "Enter key file name (without .env):",
-        validate: (v) => !v ? "Key name is required" : undefined,
+        validate: (v) => (!v ? "Key name is required" : undefined),
       });
       if (p.isCancel(input)) {
         p.cancel("Operation cancelled.");
@@ -100,14 +118,19 @@ SECRET_KEY=${secretKey}
 
       spinner.stop(`Key file generated: ${keyName}.env`);
       p.log.success(`Keys written to ${keyFilePath}`);
-      p.log.warn("Keep these files secure and never commit them to version control!");
+      p.log.warn(
+        "Keep these files secure and never commit them to version control!"
+      );
     } catch (error) {
       spinner.stop(`Failed to generate key file ${keyName}.env`, 1);
       throw error;
     }
   }
 
-  private async listKeys(ctx: CommandContext, spinner: ReturnType<typeof p.spinner>): Promise<void> {
+  private async listKeys(
+    ctx: CommandContext,
+    spinner: ReturnType<typeof p.spinner>
+  ): Promise<void> {
     spinner.start("Listing key files...");
 
     try {
@@ -116,7 +139,7 @@ SECRET_KEY=${secretKey}
 
       // In a real implementation, this would use ctx.adapters.bun.readDir() or similar
       // For now, we'll simulate the operation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       spinner.stop("Key files listed!");
       p.log.info("No key files found (placeholder - implement with adapter)");

@@ -11,7 +11,10 @@ describe("AppEngine", () => {
   beforeEach(() => {
     observer = new AppObserver();
     mockAdapters = {
-      cloudflare: { deployWorker: async () => {}, testConnection: async () => true } as any,
+      cloudflare: {
+        deployWorker: async () => {},
+        testConnection: async () => true,
+      } as any,
       bun: { readFile: async () => "", writeFile: async () => {} } as any,
       workers: { callServiceBinding: async () => ({}) } as any,
     };
@@ -35,9 +38,9 @@ describe("AppEngine", () => {
 
     // Emit command start event
     observer.emit("command:start", { cmd: "test:command", args: {} });
-    
+
     await new Promise((r) => setTimeout(r, 10));
-    
+
     engine.stopListening();
   });
 });

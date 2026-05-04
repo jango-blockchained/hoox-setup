@@ -6,7 +6,9 @@ import os from "os";
 
 describe("BunAdapter", () => {
   let adapter: BunAdapter;
-  const testDir: string = fs.mkdtempSync(path.join(os.tmpdir(), "bun-adapter-"));
+  const testDir: string = fs.mkdtempSync(
+    path.join(os.tmpdir(), "bun-adapter-")
+  );
 
   beforeEach(() => {
     adapter = new BunAdapter();
@@ -19,7 +21,7 @@ describe("BunAdapter", () => {
   it("should read file using Bun.file", async () => {
     const testFile = path.join(testDir, "test.txt");
     await Bun.write(testFile, "Hello Bun!");
-    
+
     const content = await adapter.readFile(testFile);
     expect(content).toBe("Hello Bun!");
   });
@@ -27,7 +29,7 @@ describe("BunAdapter", () => {
   it("should write file using Bun.write", async () => {
     const testFile = path.join(testDir, "output.txt");
     await adapter.writeFile(testFile, "Test content");
-    
+
     const content = await Bun.file(testFile).text();
     expect(content).toBe("Test content");
   });

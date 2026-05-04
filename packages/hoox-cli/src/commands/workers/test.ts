@@ -6,9 +6,24 @@ export class WorkersTestCommand implements Command {
   name = "workers:test";
   description = "Run Vitest integration suite";
   options = [
-    { flag: "worker", short: "w", type: "string" as const, description: "Test specific worker" },
-    { flag: "coverage", short: "c", type: "boolean" as const, description: "Run with coverage" },
-    { flag: "watch", short: "W", type: "boolean" as const, description: "Watch mode" },
+    {
+      flag: "worker",
+      short: "w",
+      type: "string" as const,
+      description: "Test specific worker",
+    },
+    {
+      flag: "coverage",
+      short: "c",
+      type: "boolean" as const,
+      description: "Run with coverage",
+    },
+    {
+      flag: "watch",
+      short: "W",
+      type: "boolean" as const,
+      description: "Watch mode",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -23,8 +38,8 @@ export class WorkersTestCommand implements Command {
 
     try {
       const specificWorker = ctx.args?.worker as string | undefined;
-      const coverage = ctx.args?.coverage as boolean || false;
-      const watch = ctx.args?.watch as boolean || false;
+      const coverage = (ctx.args?.coverage as boolean) || false;
+      const watch = (ctx.args?.watch as boolean) || false;
 
       p.intro("Worker Tests (Vitest)");
 
@@ -67,13 +82,14 @@ export class WorkersTestCommand implements Command {
 
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Test failed: ${error instanceof Error ? error.message : String(error)}`,
-            "TEST_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Test failed: ${error instanceof Error ? error.message : String(error)}`,
+              "TEST_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

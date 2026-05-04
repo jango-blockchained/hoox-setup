@@ -1,5 +1,10 @@
 import { describe, it, expect } from "bun:test";
-import type { CommandContext, Command, AppState, WorkerHealth } from "./types.js";
+import type {
+  CommandContext,
+  Command,
+  AppState,
+  WorkerHealth,
+} from "./types.js";
 
 describe("Core Types", () => {
   it("should define Command interface with required fields", () => {

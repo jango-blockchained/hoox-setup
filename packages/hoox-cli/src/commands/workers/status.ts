@@ -43,13 +43,14 @@ export class WorkersStatusCommand implements Command {
       p.outro("TUI dashboard closed.");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Status failed: ${error instanceof Error ? error.message : String(error)}`,
-            "STATUS_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Status failed: ${error instanceof Error ? error.message : String(error)}`,
+              "STATUS_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

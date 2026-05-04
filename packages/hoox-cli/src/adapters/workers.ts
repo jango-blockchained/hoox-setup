@@ -5,7 +5,7 @@ export class WorkersAdapter {
     data?: unknown
   ): Promise<unknown> {
     const stdinData = data ? JSON.stringify(data) : undefined;
-    
+
     const proc = Bun.spawn(["wrangler", "dispatch", worker, method], {
       stdin: stdinData ? Buffer.from(stdinData) : undefined,
       stdout: "pipe",

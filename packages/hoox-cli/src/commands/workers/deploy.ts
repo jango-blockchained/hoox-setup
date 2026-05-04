@@ -6,8 +6,18 @@ export class WorkersDeployCommand implements Command {
   name = "workers:deploy";
   description = "Deploy workers to Cloudflare";
   options = [
-    { flag: "force", short: "f", type: "boolean" as const, description: "Force redeploy all workers" },
-    { flag: "worker", short: "w", type: "string" as const, description: "Deploy specific worker" },
+    {
+      flag: "force",
+      short: "f",
+      type: "boolean" as const,
+      description: "Force redeploy all workers",
+    },
+    {
+      flag: "worker",
+      short: "w",
+      type: "string" as const,
+      description: "Deploy specific worker",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -18,7 +28,7 @@ export class WorkersDeployCommand implements Command {
 
     try {
       const specificWorker = ctx.args?.worker as string | undefined;
-      const force = ctx.args?.force as boolean || false;
+      const force = (ctx.args?.force as boolean) || false;
 
       p.intro("Deploy Workers");
 
@@ -38,7 +48,9 @@ export class WorkersDeployCommand implements Command {
       spinner.start("Deploying workers...");
 
       // Simulated deployment process
-      const workersToDeploy = specificWorker ? [specificWorker] : ["hoox", "trade-worker", "agent-worker"];
+      const workersToDeploy = specificWorker
+        ? [specificWorker]
+        : ["hoox", "trade-worker", "agent-worker"];
       let deployedCount = 0;
 
       for (const workerName of workersToDeploy) {
@@ -60,13 +72,14 @@ export class WorkersDeployCommand implements Command {
 
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
-            "DEPLOY_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
+              "DEPLOY_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

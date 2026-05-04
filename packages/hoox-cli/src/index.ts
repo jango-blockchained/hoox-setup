@@ -21,16 +21,21 @@ function printBanner(commands: Record<string, Command>): void {
 
   console.log("");
   console.log(d("  ╭─────────────────────────────────────────────────╮"));
-  console.log(d("  │") + b(y("  ⚡ HOOX")) + d("  ─  Edge-Executed Trading System    ") + d("│"));
+  console.log(
+    d("  │") +
+      b(y("  ⚡ HOOX")) +
+      d("  ─  Edge-Executed Trading System    ") +
+      d("│")
+  );
   console.log(d("  ╰─────────────────────────────────────────────────╯"));
   console.log("");
   console.log(b("  USAGE"));
   console.log(d("  $ ") + "hoox" + d(" <command> [options]"));
   console.log("");
-  
+
   // Group commands by category
   const groups: Record<string, CommandGroup> = {};
-  
+
   for (const [name, cmd] of Object.entries(commands)) {
     const [category] = name.split(":");
     if (!groups[category]) {
@@ -46,31 +51,50 @@ function printBanner(commands: Record<string, Command>): void {
   }
 
   console.log(b("  COMMANDS"));
-  
-  const categoryOrder = ["init", "clone", "checkSetup", "config", "workers", "trade", "dashboard", "cf", "logs", "housekeeping", "waf", "r2Provision"];
-  
+
+  const categoryOrder = [
+    "init",
+    "clone",
+    "checkSetup",
+    "config",
+    "workers",
+    "trade",
+    "dashboard",
+    "cf",
+    "logs",
+    "housekeeping",
+    "waf",
+    "r2Provision",
+  ];
+
   for (const cat of categoryOrder) {
     if (!groups[cat]) continue;
     const group = groups[cat];
     console.log("");
     console.log(b(`  ${group.title}`));
-    for (const cmd of group.commands.sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const cmd of group.commands.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )) {
       console.log(d(`    ${c(cmd.name.padEnd(25))} ${cmd.description}`));
     }
     delete groups[cat];
   }
-  
+
   // Print any remaining uncategorized commands
   for (const [, group] of Object.entries(groups)) {
     console.log("");
     console.log(b(`  ${group.title}`));
-    for (const cmd of group.commands.sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const cmd of group.commands.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )) {
       console.log(d(`    ${c(cmd.name.padEnd(25))} ${cmd.description}`));
     }
   }
-  
+
   console.log("");
-  console.log(d("  Run ") + c("hoox <command> --help") + d(" for detailed usage"));
+  console.log(
+    d("  Run ") + c("hoox <command> --help") + d(" for detailed usage")
+  );
   console.log("");
 }
 

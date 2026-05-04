@@ -35,7 +35,7 @@ describe("WorkersDeployCommand", () => {
 
   it("should have force option", () => {
     expect(command.options).toBeDefined();
-    const forceOption = command.options?.find(o => o.flag === "force");
+    const forceOption = command.options?.find((o) => o.flag === "force");
     expect(forceOption).toBeDefined();
     expect(forceOption?.type).toBe("boolean");
   });

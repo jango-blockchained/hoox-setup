@@ -30,10 +30,10 @@ describe("AppObserver", () => {
     });
 
     observer.setState({ commandStatus: "running" });
-    
+
     // Give event loop a tick
     await new Promise((r) => setTimeout(r, 0));
-    
+
     expect(notifiedState).not.toBeNull();
     expect(notifiedState!.commandStatus).toBe("running");
     unsub();
@@ -56,7 +56,7 @@ describe("AppObserver", () => {
     const before = observer.getState();
     observer.updateSystemMetrics();
     const after = observer.getState();
-    
+
     expect(after.system.memoryUsage).toBeDefined();
     expect(after.system.memoryUsage.heapUsed).toBeDefined();
   });
@@ -64,7 +64,7 @@ describe("AppObserver", () => {
   it("should return cloned state to prevent mutation", () => {
     const state1 = observer.getState();
     const state2 = observer.getState();
-    
+
     expect(state1).not.toBe(state2); // Different references
     expect(state1).toEqual(state2); // Same content
   });

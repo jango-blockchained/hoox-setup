@@ -38,7 +38,7 @@ describe("WorkersSetupCommand", () => {
 
   it("should have worker option", () => {
     expect(command.options).toBeDefined();
-    const workerOption = command.options?.find(o => o.flag === "worker");
+    const workerOption = command.options?.find((o) => o.flag === "worker");
     expect(workerOption).toBeDefined();
     expect(workerOption?.type).toBe("string");
   });

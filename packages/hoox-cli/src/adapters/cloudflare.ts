@@ -1,11 +1,15 @@
-import type { WorkerHealth, CloudflareAdapter as ICloudflareAdapter } from "../core/types.js";
+import type {
+  WorkerHealth,
+  CloudflareAdapter as ICloudflareAdapter,
+} from "../core/types.js";
 
 export class CloudflareAdapter implements ICloudflareAdapter {
-  // Worker deployment methods
-  async deployWorker(workerName: string): Promise<void> {
-    const workerPath = `workers/${workerName}`;
-
-    const proc = Bun.spawn(["wrangler", "deploy", "--config", `${workerPath}/wrangler.jsonc`], {
+  /**
+   * Helper to run a wrangler command and return stdout text.
+   * Throws on non-zero exit codes.
+   */
+  private async runWrangler(args: string[], errorMessage: string): Promise<string> {
+    const proc = Bun.spawn(["wrangler", ...args], {
       stderr: "pipe",
       stdout: "pipe",
     });
@@ -15,8 +19,19 @@ export class CloudflareAdapter implements ICloudflareAdapter {
     const stdout = await new Response(proc.stdout).text();
 
     if (exitCode !== 0) {
-      throw new Error(`Deploy failed: ${stderr || stdout}`);
+      throw new Error(`${errorMessage}: ${stderr || stdout}`);
     }
+
+    return stdout;
+  }
+
+  // Worker deployment methods
+  async deployWorker(workerName: string): Promise<void> {
+    const workerPath = `workers/${workerName}`;
+    await this.runWrangler(
+      ["deploy", "--config", `${workerPath}/wrangler.jsonc`],
+      "Deploy failed"
+    );
   }
 
   async testConnection(): Promise<boolean> {
@@ -33,7 +48,7 @@ export class CloudflareAdapter implements ICloudflareAdapter {
     // Simple health check - verify worker exists by checking wrangler config
     const configPath = `workers/${workerName}/wrangler.jsonc`;
     const exists = await Bun.file(configPath).exists();
-    
+
     return {
       name: workerName,
       status: exists ? "healthy" : "down",
@@ -41,203 +56,132 @@ export class CloudflareAdapter implements ICloudflareAdapter {
   }
 
   // D1 Database methods (using wrangler CLI)
-  async listD1Databases(): Promise<Array<{ uuid: string; name: string; title: string }>> {
-    const proc = Bun.spawn(["wrangler", "d1", "list", "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error("Failed to list D1 databases");
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+  async listD1Databases(): Promise<
+    Array<{ uuid: string; name: string; title: string }>
+  > {
+    const stdout = await this.runWrangler(["d1", "list", "--json"], "Failed to list D1 databases");
     return JSON.parse(stdout || "[]");
   }
 
-  async createD1Database(name: string): Promise<{ uuid: string; name: string; title: string }> {
-    const proc = Bun.spawn(["wrangler", "d1", "create", name, "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to create D1 database: ${name}`);
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+  async createD1Database(
+    name: string
+  ): Promise<{ uuid: string; name: string; title: string }> {
+    const stdout = await this.runWrangler(["d1", "create", name, "--json"], `Failed to create D1 database: ${name}`);
     return JSON.parse(stdout);
   }
 
   async deleteD1Database(uuid: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "d1", "delete", uuid, "--yes"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to delete D1 database: ${uuid}`);
-    }
+    await this.runWrangler(["d1", "delete", uuid, "--yes"], `Failed to delete D1 database: ${uuid}`);
   }
 
   // KV Namespace methods
   async listKVNamespaces(): Promise<Array<{ id: string; title: string }>> {
-    const proc = Bun.spawn(["wrangler", "kv", "namespace", "list", "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error("Failed to list KV namespaces");
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+    const stdout = await this.runWrangler(["kv", "namespace", "list", "--json"], "Failed to list KV namespaces");
     return JSON.parse(stdout || "[]");
   }
 
-  async createKVNamespace(title: string): Promise<{ id: string; title: string }> {
-    const proc = Bun.spawn(["wrangler", "kv", "namespace", "create", title, "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to create KV namespace: ${title}`);
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+  async createKVNamespace(
+    title: string
+  ): Promise<{ id: string; title: string }> {
+    const stdout = await this.runWrangler(["kv", "namespace", "create", title, "--json"], `Failed to create KV namespace: ${title}`);
     return JSON.parse(stdout);
   }
 
   async deleteKVNamespace(id: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "kv", "namespace", "delete", id, "--yes"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to delete KV namespace: ${id}`);
-    }
+    await this.runWrangler(["kv", "namespace", "delete", id, "--yes"], `Failed to delete KV namespace: ${id}`);
   }
 
   // R2 Bucket methods
   async listR2Buckets(): Promise<Array<{ name: string }>> {
-    const proc = Bun.spawn(["wrangler", "r2", "bucket", "list", "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error("Failed to list R2 buckets");
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+    const stdout = await this.runWrangler(["r2", "bucket", "list", "--json"], "Failed to list R2 buckets");
     return JSON.parse(stdout || "[]");
   }
 
   async createR2Bucket(name: string): Promise<{ name: string }> {
-    const proc = Bun.spawn(["wrangler", "r2", "bucket", "create", name, "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to create R2 bucket: ${name}`);
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+    const stdout = await this.runWrangler(["r2", "bucket", "create", name, "--json"], `Failed to create R2 bucket: ${name}`);
     return JSON.parse(stdout);
   }
 
   async deleteR2Bucket(name: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "r2", "bucket", "delete", name, "--yes"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to delete R2 bucket: ${name}`);
-    }
+    await this.runWrangler(["r2", "bucket", "delete", name, "--yes"], `Failed to delete R2 bucket: ${name}`);
   }
 
   // Queues methods
   async listQueues(): Promise<Array<{ queue_name: string }>> {
-    const proc = Bun.spawn(["wrangler", "queues", "list", "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error("Failed to list queues");
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+    const stdout = await this.runWrangler(["queues", "list", "--json"], "Failed to list queues");
     return JSON.parse(stdout || "[]");
   }
 
   async createQueue(name: string): Promise<{ queue_name: string }> {
-    const proc = Bun.spawn(["wrangler", "queues", "create", name, "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to create queue: ${name}`);
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+    const stdout = await this.runWrangler(["queues", "create", name, "--json"], `Failed to create queue: ${name}`);
     return JSON.parse(stdout);
   }
 
   async deleteQueue(name: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "queues", "delete", name, "--yes"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to delete queue: ${name}`);
-    }
+    await this.runWrangler(["queues", "delete", name, "--yes"], `Failed to delete queue: ${name}`);
   }
 
   // Secrets methods
-  async listSecrets(workerName: string): Promise<Array<{ name: string; created: string; version: number; expires_on?: string }>> {
-    const proc = Bun.spawn(["wrangler", "secret", "list", "--config", `workers/${workerName}/wrangler.jsonc`, "--json"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to list secrets for: ${workerName}`);
-    }
-
-    const stdout = await new Response(proc.stdout).text();
+  async listSecrets(
+    workerName: string
+  ): Promise<
+    Array<{
+      name: string;
+      created: string;
+      version: number;
+      expires_on?: string;
+    }>
+  > {
+    const stdout = await this.runWrangler(
+      ["secret", "list", "--config", `workers/${workerName}/wrangler.jsonc`, "--json"],
+      `Failed to list secrets for: ${workerName}`
+    );
     return JSON.parse(stdout || "[]");
   }
 
-  async getSecret(_storeId: string, _name: string): Promise<{ name: string; created: string; version: number; expires_on?: string }> {
+  async getSecret(
+    _storeId: string,
+    _name: string
+  ): Promise<{
+    name: string;
+    created: string;
+    version: number;
+    expires_on?: string;
+  }> {
     // Wrangler doesn't support getting individual secret values (security)
-    throw new Error("Getting individual secret values is not supported by Wrangler CLI");
+    throw new Error(
+      "Getting individual secret values is not supported by Wrangler CLI"
+    );
   }
 
-  async setSecret(workerName: string, name: string, value: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "secret", "put", name, value, "--config", `workers/${workerName}/wrangler.jsonc`], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
+  async setSecret(
+    workerName: string,
+    name: string,
+    value: string
+  ): Promise<void> {
+    // Pass secret via stdin to avoid exposing it in process listings (ps, top, shell history)
+    const proc = Bun.spawn(
+      [
+        "wrangler",
+        "secret",
+        "put",
+        name,
+        "--config",
+        `workers/${workerName}/wrangler.jsonc`,
+      ],
+      {
+        stdin: "pipe",
+        stderr: "pipe",
+        stdout: "pipe",
+      }
+    );
+
+    const writer = proc.stdin.getWriter();
+    try {
+      await writer.write(new TextEncoder().encode(value + "\n"));
+    } finally {
+      await writer.close();
+    }
 
     const exitCode = await proc.exited;
     if (exitCode !== 0) {
@@ -246,36 +190,44 @@ export class CloudflareAdapter implements ICloudflareAdapter {
   }
 
   async deleteSecret(workerName: string, name: string): Promise<void> {
-    const proc = Bun.spawn(["wrangler", "secret", "delete", name, "--config", `workers/${workerName}/wrangler.jsonc`, "--yes"], {
-      stderr: "pipe",
-      stdout: "pipe",
-    });
-
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      throw new Error(`Failed to delete secret: ${name}`);
-    }
+    await this.runWrangler(
+      ["secret", "delete", name, "--config", `workers/${workerName}/wrangler.jsonc`, "--yes"],
+      `Failed to delete secret: ${name}`
+    );
   }
 
   // Zones methods (using Cloudflare API directly)
-  async listZones(): Promise<Array<{ id: string; name: string; status: string }>> {
+  async listZones(): Promise<
+    Array<{ id: string; name: string; status: string }>
+  > {
     // This would require Cloudflare API token - for now return empty
     // In production, use: curl -X GET "https://api.cloudflare.com/client/v4/zones"
     return [];
   }
 
-  async listDNSRecords(_zoneId: string): Promise<Array<{ id: string; type: string; name: string; content: string }>> {
+  async listDNSRecords(
+    _zoneId: string
+  ): Promise<
+    Array<{ id: string; type: string; name: string; content: string }>
+  > {
     // This would require Cloudflare API token
     return [];
   }
 
-  async addDNSRecord(_zoneId: string, _record: { type: string; name: string; content: string; priority?: number }): Promise<{ id: string }> {
+  async addDNSRecord(
+    _zoneId: string,
+    _record: { type: string; name: string; content: string; priority?: number }
+  ): Promise<{ id: string }> {
     // This would require Cloudflare API token
-    throw new Error("DNS record management requires Cloudflare API integration");
+    throw new Error(
+      "DNS record management requires Cloudflare API integration"
+    );
   }
 
   async deleteDNSRecord(_zoneId: string, _recordId: string): Promise<void> {
     // This would require Cloudflare API token
-    throw new Error("DNS record management requires Cloudflare API integration");
+    throw new Error(
+      "DNS record management requires Cloudflare API integration"
+    );
   }
 }

@@ -5,14 +5,16 @@ mock.module("../../adapters/cloudflare.js", () => {
   return {
     CloudflareAdapter: mock(() => ({
       listZones: mock(() =>
-        Promise.resolve([{ id: "zone1", name: "example.com", status: "active" }])
+        Promise.resolve([
+          { id: "zone1", name: "example.com", status: "active" },
+        ])
       ),
       listDNSRecords: mock(() =>
-        Promise.resolve([{ id: "rec1", type: "A", name: "test", content: "1.2.3.4" }])
+        Promise.resolve([
+          { id: "rec1", type: "A", name: "test", content: "1.2.3.4" },
+        ])
       ),
-      addDNSRecord: mock(() =>
-        Promise.resolve({ id: "new-rec" })
-      ),
+      addDNSRecord: mock(() => Promise.resolve({ id: "new-rec" })),
     })),
   };
 });
@@ -40,7 +42,11 @@ mock.module("@clack/prompts", () => {
 });
 
 describe("CfZonesCommand", () => {
-  let CfZonesCommand: new () => { name: string; description: string; execute: Function };
+  let CfZonesCommand: new () => {
+    name: string;
+    description: string;
+    execute: Function;
+  };
   let mockObserver: Observer;
   let mockContext: CommandContext;
 

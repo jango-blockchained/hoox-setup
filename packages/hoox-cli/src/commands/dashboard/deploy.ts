@@ -27,39 +27,37 @@ export class DashboardDeployCommand implements Command {
 
     try {
       // Build the dashboard using opennextjs-cloudflare
-      const buildProc = Bun.spawn(
-        ["bunx", "opennextjs-cloudflare", "build"],
-        {
-          cwd: `${ctx.cwd}/pages/dashboard`,
-          stdout: "pipe",
-          stderr: "pipe",
-        }
-      );
+      const buildProc = Bun.spawn(["bunx", "opennextjs-cloudflare", "build"], {
+        cwd: `${ctx.cwd}/pages/dashboard`,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
 
       const buildExitCode = await buildProc.exited;
 
       if (buildExitCode !== 0) {
         const buildStderr = await new Response(buildProc.stderr).text();
-        throw new Error(buildStderr || `Build failed with exit code ${buildExitCode}`);
+        throw new Error(
+          buildStderr || `Build failed with exit code ${buildExitCode}`
+        );
       }
 
       spinner.message("Deploying dashboard to Cloudflare Workers...");
 
       // Deploy using wrangler
-      const deployProc = Bun.spawn(
-        ["bunx", "wrangler", "deploy"],
-        {
-          cwd: `${ctx.cwd}/pages/dashboard`,
-          stdout: "pipe",
-          stderr: "pipe",
-        }
-      );
+      const deployProc = Bun.spawn(["bunx", "wrangler", "deploy"], {
+        cwd: `${ctx.cwd}/pages/dashboard`,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
 
       const deployExitCode = await deployProc.exited;
 
       if (deployExitCode !== 0) {
         const deployStderr = await new Response(deployProc.stderr).text();
-        throw new Error(deployStderr || `Deploy failed with exit code ${deployExitCode}`);
+        throw new Error(
+          deployStderr || `Deploy failed with exit code ${deployExitCode}`
+        );
       }
 
       spinner.stop("Dashboard deployed successfully! 🚀");

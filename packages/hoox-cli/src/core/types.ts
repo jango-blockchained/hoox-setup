@@ -70,37 +70,65 @@ export interface CloudflareAdapter {
   deployWorker(workerName: string): Promise<void>;
   testConnection(): Promise<boolean>;
   getWorkerHealth(workerName: string): Promise<WorkerHealth>;
-  
+
   // D1 Database methods
-  listD1Databases(): Promise<Array<{ uuid: string; name: string; title: string }>>;
-  createD1Database(name: string): Promise<{ uuid: string; name: string; title: string }>;
+  listD1Databases(): Promise<
+    Array<{ uuid: string; name: string; title: string }>
+  >;
+  createD1Database(
+    name: string
+  ): Promise<{ uuid: string; name: string; title: string }>;
   deleteD1Database(uuid: string): Promise<void>;
-  
+
   // KV Namespace methods
   listKVNamespaces(): Promise<Array<{ id: string; title: string }>>;
   createKVNamespace(title: string): Promise<{ id: string; title: string }>;
   deleteKVNamespace(id: string): Promise<void>;
-  
+
   // R2 Bucket methods
   listR2Buckets(): Promise<Array<{ name: string }>>;
   createR2Bucket(name: string): Promise<{ name: string }>;
   deleteR2Bucket(name: string): Promise<void>;
-  
+
   // Queues methods
   listQueues(): Promise<Array<{ queue_name: string }>>;
   createQueue(name: string): Promise<{ queue_name: string }>;
   deleteQueue(name: string): Promise<void>;
-  
+
   // Secrets methods
-  listSecrets(workerName: string): Promise<Array<{ name: string; created: string; version: number; expires_on?: string }>>;
-  getSecret(workerName: string, name: string): Promise<{ name: string; created: string; version: number; expires_on?: string }>;
+  listSecrets(
+    workerName: string
+  ): Promise<
+    Array<{
+      name: string;
+      created: string;
+      version: number;
+      expires_on?: string;
+    }>
+  >;
+  getSecret(
+    workerName: string,
+    name: string
+  ): Promise<{
+    name: string;
+    created: string;
+    version: number;
+    expires_on?: string;
+  }>;
   setSecret(workerName: string, name: string, value: string): Promise<void>;
   deleteSecret(workerName: string, name: string): Promise<void>;
-  
+
   // Zones methods
   listZones(): Promise<Array<{ id: string; name: string; status: string }>>;
-  listDNSRecords(zoneId: string): Promise<Array<{ id: string; type: string; name: string; content: string }>>;
-  addDNSRecord(zoneId: string, record: { type: string; name: string; content: string; priority?: number }): Promise<{ id: string }>;
+  listDNSRecords(
+    zoneId: string
+  ): Promise<
+    Array<{ id: string; type: string; name: string; content: string }>
+  >;
+  addDNSRecord(
+    zoneId: string,
+    record: { type: string; name: string; content: string; priority?: number }
+  ): Promise<{ id: string }>;
   deleteDNSRecord(zoneId: string, recordId: string): Promise<void>;
 }
 
@@ -113,7 +141,11 @@ export interface BunAdapter {
 }
 
 export interface WorkersAdapter {
-  callServiceBinding(worker: string, method: string, data?: unknown): Promise<unknown>;
+  callServiceBinding(
+    worker: string,
+    method: string,
+    data?: unknown
+  ): Promise<unknown>;
 }
 
 export class CLIError extends Error {

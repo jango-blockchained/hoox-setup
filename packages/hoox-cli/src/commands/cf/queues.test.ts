@@ -4,12 +4,8 @@ import type { CommandContext, Observer } from "../../core/types.js";
 mock.module("../../adapters/cloudflare.js", () => {
   return {
     CloudflareAdapter: mock(() => ({
-      listQueues: mock(() =>
-        Promise.resolve([{ queue_name: "my-queue" }])
-      ),
-      createQueue: mock(() =>
-        Promise.resolve({ queue_name: "new-queue" })
-      ),
+      listQueues: mock(() => Promise.resolve([{ queue_name: "my-queue" }])),
+      createQueue: mock(() => Promise.resolve({ queue_name: "new-queue" })),
       deleteQueue: mock(() => Promise.resolve()),
     })),
   };
@@ -38,7 +34,11 @@ mock.module("@clack/prompts", () => {
 });
 
 describe("CfQueuesCommand", () => {
-  let CfQueuesCommand: new () => { name: string; description: string; execute: Function };
+  let CfQueuesCommand: new () => {
+    name: string;
+    description: string;
+    execute: Function;
+  };
   let mockObserver: Observer;
   let mockContext: CommandContext;
 

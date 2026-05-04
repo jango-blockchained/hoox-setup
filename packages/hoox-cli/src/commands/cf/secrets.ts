@@ -61,7 +61,9 @@ export default class CfSecretsCommand implements Command {
     spinner.start("Fetching secrets...");
 
     try {
-      const secrets = await ctx.adapters.cloudflare.listSecrets(config.secretStoreId);
+      const secrets = await ctx.adapters.cloudflare.listSecrets(
+        config.secretStoreId
+      );
 
       spinner.stop("Secrets retrieved!");
 
@@ -98,7 +100,10 @@ export default class CfSecretsCommand implements Command {
     spinner.start("Fetching secret metadata...");
 
     try {
-      const secret = await ctx.adapters.cloudflare.getSecret(config.secretStoreId, name);
+      const secret = await ctx.adapters.cloudflare.getSecret(
+        config.secretStoreId,
+        name
+      );
 
       spinner.stop("Secret metadata retrieved!");
 
@@ -153,7 +158,11 @@ export default class CfSecretsCommand implements Command {
     spinner.start("Setting secret...");
 
     try {
-      await ctx.adapters.cloudflare.setSecret(config.secretStoreId, name, value);
+      await ctx.adapters.cloudflare.setSecret(
+        config.secretStoreId,
+        name,
+        value
+      );
       spinner.stop(`Secret "${name}" set successfully!`);
     } catch (error) {
       spinner.stop("Failed to set secret.", 1);
@@ -197,7 +206,9 @@ export default class CfSecretsCommand implements Command {
     }
   }
 
-  private async getConfig(ctx: CommandContext): Promise<{ secretStoreId: string } | null> {
+  private async getConfig(
+    ctx: CommandContext
+  ): Promise<{ secretStoreId: string } | null> {
     // This is a simplified version - in reality, we'd get this from ctx or config
     const secretStoreId = "test-store-id"; // Placeholder
     if (!secretStoreId) {

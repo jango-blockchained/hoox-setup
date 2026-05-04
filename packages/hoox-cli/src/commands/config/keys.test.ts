@@ -38,21 +38,21 @@ describe("ConfigKeysCommand", () => {
 
   it("should have generate option", () => {
     expect(command.options).toBeDefined();
-    const generateOption = command.options?.find(o => o.flag === "generate");
+    const generateOption = command.options?.find((o) => o.flag === "generate");
     expect(generateOption).toBeDefined();
     expect(generateOption?.type).toBe("boolean");
   });
 
   it("should have list option", () => {
     expect(command.options).toBeDefined();
-    const listOption = command.options?.find(o => o.flag === "list");
+    const listOption = command.options?.find((o) => o.flag === "list");
     expect(listOption).toBeDefined();
     expect(listOption?.type).toBe("boolean");
   });
 
   it("should have key-name option", () => {
     expect(command.options).toBeDefined();
-    const keyNameOption = command.options?.find(o => o.flag === "key-name");
+    const keyNameOption = command.options?.find((o) => o.flag === "key-name");
     expect(keyNameOption).toBeDefined();
     expect(keyNameOption?.type).toBe("string");
   });

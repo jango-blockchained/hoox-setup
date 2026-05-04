@@ -1,5 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { CLIError, WorkerDeployError, ConfigValidationError } from "./errors.js";
+import {
+  CLIError,
+  WorkerDeployError,
+  ConfigValidationError,
+} from "./errors.js";
 
 describe("Error Classes", () => {
   it("should create CLIError with code and recoverable flag", () => {
@@ -18,7 +22,9 @@ describe("Error Classes", () => {
   it("should create WorkerDeployError with cause", () => {
     const cause = new Error("Connection failed");
     const err = new WorkerDeployError("trade-worker", cause);
-    expect(err.message).toBe("Failed to deploy trade-worker: Connection failed");
+    expect(err.message).toBe(
+      "Failed to deploy trade-worker: Connection failed"
+    );
     expect(err.code).toBe("DEPLOY_FAILED");
     expect(err.cause).toBe(cause);
   });

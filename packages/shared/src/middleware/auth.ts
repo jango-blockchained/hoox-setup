@@ -5,6 +5,22 @@
 
 import type { Env } from '../types';
 
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ * Manually performs byte-wise XOR comparison to avoid early returns.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const encoder = new TextEncoder();
+  const aBuf = encoder.encode(a);
+  const bBuf = encoder.encode(b);
+  let result = 0;
+  for (let i = 0; i < aBuf.length; i++) {
+    result |= aBuf[i] ^ bBuf[i];
+  }
+  return result === 0;
+}
+
 export async function requireAuth(
   request: Request,
   env: Env,
@@ -18,7 +34,8 @@ export async function requireAuth(
   }
 
   const authHeader = request.headers.get('Authorization');
-  if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+  const expectedHeader = `Bearer ${apiKey}`;
+  if (!authHeader || !timingSafeEqual(authHeader, expectedHeader)) {
     return new Response(
       JSON.stringify({ error: 'Unauthorized' }),
       { status: 401, headers: { 'Content-Type': 'application/json' } },

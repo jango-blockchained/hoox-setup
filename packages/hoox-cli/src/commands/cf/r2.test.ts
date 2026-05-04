@@ -4,12 +4,8 @@ import type { CommandContext, Observer } from "../../core/types.js";
 mock.module("../../adapters/cloudflare.js", () => {
   return {
     CloudflareAdapter: mock(() => ({
-      listR2Buckets: mock(() =>
-        Promise.resolve([{ name: "my-bucket" }])
-      ),
-      createR2Bucket: mock(() =>
-        Promise.resolve({ name: "new-bucket" })
-      ),
+      listR2Buckets: mock(() => Promise.resolve([{ name: "my-bucket" }])),
+      createR2Bucket: mock(() => Promise.resolve({ name: "new-bucket" })),
       deleteR2Bucket: mock(() => Promise.resolve()),
     })),
   };
@@ -38,7 +34,11 @@ mock.module("@clack/prompts", () => {
 });
 
 describe("CfR2Command", () => {
-  let CfR2Command: new () => { name: string; description: string; execute: Function };
+  let CfR2Command: new () => {
+    name: string;
+    description: string;
+    execute: Function;
+  };
   let mockObserver: Observer;
   let mockContext: CommandContext;
 

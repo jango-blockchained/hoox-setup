@@ -6,8 +6,18 @@ export class WorkersCloneCommand implements Command {
   name = "workers:clone";
   description = "Clone worker repos as submodules";
   options = [
-    { flag: "directory", short: "d", type: "string" as const, description: "Target directory for cloning" },
-    { flag: "worker", short: "w", type: "string" as const, description: "Specific worker to clone" },
+    {
+      flag: "directory",
+      short: "d",
+      type: "string" as const,
+      description: "Target directory for cloning",
+    },
+    {
+      flag: "worker",
+      short: "w",
+      type: "string" as const,
+      description: "Specific worker to clone",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -28,10 +38,10 @@ export class WorkersCloneCommand implements Command {
       let workersToClone = availableWorkers;
 
       if (specificWorker) {
-        const worker = availableWorkers.find(w => w.name === specificWorker);
+        const worker = availableWorkers.find((w) => w.name === specificWorker);
         if (!worker) {
           throw new CLIError(
-            `Worker '${specificWorker}' not found. Available: ${availableWorkers.map(w => w.name).join(", ")}`,
+            `Worker '${specificWorker}' not found. Available: ${availableWorkers.map((w) => w.name).join(", ")}`,
             "WORKER_NOT_FOUND",
             true
           );
@@ -40,7 +50,9 @@ export class WorkersCloneCommand implements Command {
       }
 
       const spinner = p.spinner();
-      spinner.start(`Cloning ${workersToClone.length} worker(s) to ${targetDir}...`);
+      spinner.start(
+        `Cloning ${workersToClone.length} worker(s) to ${targetDir}...`
+      );
 
       let clonedCount = 0;
       for (const worker of workersToClone) {
@@ -62,13 +74,14 @@ export class WorkersCloneCommand implements Command {
 
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Clone failed: ${error instanceof Error ? error.message : String(error)}`,
-            "CLONE_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Clone failed: ${error instanceof Error ? error.message : String(error)}`,
+              "CLONE_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

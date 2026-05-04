@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { theme } from '../theme.js';
+import React, { useState, useEffect } from "react";
+import { theme } from "../theme.js";
 
 interface SpinnerProps {
   label?: string;
@@ -18,9 +18,11 @@ export function Spinner({ label }: SpinnerProps) {
   }, []);
 
   return (
-    <box style={{ flexDirection: 'row', gap: 1 }}>
+    <box style={{ flexDirection: "row", gap: 1 }}>
       <text style={{ fg: theme.colors.info }}>{FRAMES[frame]}</text>
-      {label && <text style={{ fg: theme.colors.mutedForeground }}>{label}</text>}
+      {label && (
+        <text style={{ fg: theme.colors.mutedForeground }}>{label}</text>
+      )}
     </box>
   );
 }

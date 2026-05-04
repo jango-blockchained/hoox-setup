@@ -6,9 +6,24 @@ export class ConfigSecretsCommand implements Command {
   name = "config:secrets";
   description = "Manage Cloudflare Secret Store values";
   options = [
-    { flag: "list", short: "l", type: "boolean" as const, description: "List all secrets" },
-    { flag: "set", short: "s", type: "boolean" as const, description: "Set a secret value" },
-    { flag: "delete", short: "d", type: "boolean" as const, description: "Delete a secret" },
+    {
+      flag: "list",
+      short: "l",
+      type: "boolean" as const,
+      description: "List all secrets",
+    },
+    {
+      flag: "set",
+      short: "s",
+      type: "boolean" as const,
+      description: "Set a secret value",
+    },
+    {
+      flag: "delete",
+      short: "d",
+      type: "boolean" as const,
+      description: "Delete a secret",
+    },
     { flag: "name", type: "string" as const, description: "Secret name" },
     { flag: "value", type: "string" as const, description: "Secret value" },
   ];
@@ -61,25 +76,29 @@ export class ConfigSecretsCommand implements Command {
       p.outro("Secret operation completed!");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Secrets command failed: ${error instanceof Error ? error.message : String(error)}`,
-            "SECRETS_FAILED",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Secrets command failed: ${error instanceof Error ? error.message : String(error)}`,
+              "SECRETS_FAILED",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }
   }
 
-  private async listSecrets(ctx: CommandContext, spinner: ReturnType<typeof p.spinner>): Promise<void> {
+  private async listSecrets(
+    ctx: CommandContext,
+    spinner: ReturnType<typeof p.spinner>
+  ): Promise<void> {
     spinner.start("Fetching secrets from Cloudflare Secret Store...");
 
     try {
       // Use cloudflare adapter to list secrets
       // This would call ctx.adapters.cloudflare.listSecrets() in real implementation
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate async operation
 
       spinner.stop("Secrets retrieved successfully!");
       p.log.info("No secrets found (placeholder - implement with adapter)");
@@ -89,13 +108,16 @@ export class ConfigSecretsCommand implements Command {
     }
   }
 
-  private async setSecret(ctx: CommandContext, spinner: ReturnType<typeof p.spinner>): Promise<void> {
+  private async setSecret(
+    ctx: CommandContext,
+    spinner: ReturnType<typeof p.spinner>
+  ): Promise<void> {
     let secretName = ctx.args?.name as string | undefined;
 
     if (!secretName) {
       const input = await p.text({
         message: "Enter secret name:",
-        validate: (v) => !v ? "Secret name is required" : undefined,
+        validate: (v) => (!v ? "Secret name is required" : undefined),
       });
       if (p.isCancel(input)) {
         p.cancel("Operation cancelled.");
@@ -107,9 +129,10 @@ export class ConfigSecretsCommand implements Command {
     let secretValue = ctx.args?.value as string | undefined;
 
     if (!secretValue) {
-      const input = await p.password?.({
-        message: `Enter value for ${secretName}:`,
-      }) || await p.text({ message: `Enter value for ${secretName}:` });
+      const input =
+        (await p.password?.({
+          message: `Enter value for ${secretName}:`,
+        })) || (await p.text({ message: `Enter value for ${secretName}:` }));
       if (p.isCancel(input)) {
         p.cancel("Operation cancelled.");
         return;
@@ -122,7 +145,7 @@ export class ConfigSecretsCommand implements Command {
     try {
       // Use cloudflare adapter to set secret
       // This would call ctx.adapters.cloudflare.setSecret() in real implementation
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate async operation
 
       spinner.stop(`Secret ${secretName} set successfully!`);
     } catch (error) {
@@ -131,13 +154,16 @@ export class ConfigSecretsCommand implements Command {
     }
   }
 
-  private async deleteSecret(ctx: CommandContext, spinner: ReturnType<typeof p.spinner>): Promise<void> {
+  private async deleteSecret(
+    ctx: CommandContext,
+    spinner: ReturnType<typeof p.spinner>
+  ): Promise<void> {
     let secretName = ctx.args?.name as string | undefined;
 
     if (!secretName) {
       const input = await p.text({
         message: "Enter secret name to delete:",
-        validate: (v) => !v ? "Secret name is required" : undefined,
+        validate: (v) => (!v ? "Secret name is required" : undefined),
       });
       if (p.isCancel(input)) {
         p.cancel("Operation cancelled.");
@@ -161,7 +187,7 @@ export class ConfigSecretsCommand implements Command {
     try {
       // Use cloudflare adapter to delete secret
       // This would call ctx.adapters.cloudflare.deleteSecret() in real implementation
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async operation
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate async operation
 
       spinner.stop(`Secret ${secretName} deleted successfully!`);
     } catch (error) {

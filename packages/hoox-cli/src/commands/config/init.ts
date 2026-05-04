@@ -6,9 +6,24 @@ export class ConfigInitCommand implements Command {
   name = "config:init";
   description = "Initialize Hoox configuration";
   options = [
-    { flag: "token", short: "t", type: "string" as const, description: "Cloudflare API Token" },
-    { flag: "account", short: "a", type: "string" as const, description: "Cloudflare Account ID" },
-    { flag: "force", short: "f", type: "boolean" as const, description: "Force re-initialization" },
+    {
+      flag: "token",
+      short: "t",
+      type: "string" as const,
+      description: "Cloudflare API Token",
+    },
+    {
+      flag: "account",
+      short: "a",
+      type: "string" as const,
+      description: "Cloudflare Account ID",
+    },
+    {
+      flag: "force",
+      short: "f",
+      type: "boolean" as const,
+      description: "Force re-initialization",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -31,7 +46,7 @@ export class ConfigInitCommand implements Command {
       if (!apiToken) {
         const input = await p.text({
           message: "Cloudflare API Token:",
-          validate: (v) => !v ? "API Token is required" : undefined,
+          validate: (v) => (!v ? "API Token is required" : undefined),
         });
         if (p.isCancel(input)) {
           p.cancel("Initialization cancelled.");
@@ -45,7 +60,7 @@ export class ConfigInitCommand implements Command {
       if (!accountId) {
         const input = await p.text({
           message: "Cloudflare Account ID:",
-          validate: (v) => !v ? "Account ID is required" : undefined,
+          validate: (v) => (!v ? "Account ID is required" : undefined),
         });
         if (p.isCancel(input)) {
           p.cancel("Initialization cancelled.");
@@ -62,7 +77,7 @@ export class ConfigInitCommand implements Command {
       // 3. Set up initial project structure
       // 4. Test connection to Cloudflare
 
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate async operation
 
       spinner.stop("Configuration initialized successfully!");
       p.log.success("Hoox has been configured successfully! 🎉");
@@ -70,13 +85,14 @@ export class ConfigInitCommand implements Command {
 
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
-            "INIT_FAILED",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
+              "INIT_FAILED",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

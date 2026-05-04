@@ -36,7 +36,7 @@ describe("WorkersCloneCommand", () => {
 
   it("should have directory option", () => {
     expect(command.options).toBeDefined();
-    const dirOption = command.options?.find(o => o.flag === "directory");
+    const dirOption = command.options?.find((o) => o.flag === "directory");
     expect(dirOption).toBeDefined();
     expect(dirOption?.type).toBe("string");
   });

@@ -8,9 +8,24 @@ export class WorkersLogsCommand implements Command {
   name = "workers:logs";
   description = "Tail worker logs in real-time";
   options = [
-    { flag: "worker", short: "w", type: "string" as const, description: "Specific worker to tail" },
-    { flag: "level", short: "l", type: "string" as const, description: "Log level filter" },
-    { flag: "follow", short: "f", type: "boolean" as const, description: "Follow log stream" },
+    {
+      flag: "worker",
+      short: "w",
+      type: "string" as const,
+      description: "Specific worker to tail",
+    },
+    {
+      flag: "level",
+      short: "l",
+      type: "string" as const,
+      description: "Log level filter",
+    },
+    {
+      flag: "follow",
+      short: "f",
+      type: "boolean" as const,
+      description: "Follow log stream",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -26,7 +41,7 @@ export class WorkersLogsCommand implements Command {
     try {
       const workerName = ctx.args?.worker as string | undefined;
       const level = ctx.args?.level as string | undefined;
-      const follow = ctx.args?.follow as boolean || false;
+      const follow = (ctx.args?.follow as boolean) || false;
 
       p.intro("Worker Logs (Wrangler Tail)");
 
@@ -75,13 +90,14 @@ export class WorkersLogsCommand implements Command {
       p.outro("Log streaming stopped.");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Logs failed: ${error instanceof Error ? error.message : String(error)}`,
-            "LOGS_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Logs failed: ${error instanceof Error ? error.message : String(error)}`,
+              "LOGS_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

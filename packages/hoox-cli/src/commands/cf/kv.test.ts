@@ -38,7 +38,11 @@ mock.module("@clack/prompts", () => {
 });
 
 describe("CfKvCommand", () => {
-  let CfKvCommand: new () => { name: string; description: string; execute: Function };
+  let CfKvCommand: new () => {
+    name: string;
+    description: string;
+    execute: Function;
+  };
   let mockObserver: Observer;
   let mockContext: CommandContext;
 

@@ -29,11 +29,9 @@ export function createRateLimiter(
   const prefix = config.keyPrefix ?? 'rate-limit';
 
   function getClientIp(request: Request): string {
-    return (
-      request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
-      request.headers.get('CF-Connecting-IP') ??
-      'unknown'
-    );
+    // Only trust CF-Connecting-IP (Cloudflare-verified).
+    // X-Forwarded-For is intentionally ignored to prevent IP spoofing attacks.
+    return request.headers.get('CF-Connecting-IP') ?? 'unknown';
   }
 
   function getWindowKey(ip: string): string {

@@ -33,7 +33,7 @@ describe("WorkersDevCommand", () => {
 
   it("should have worker option", () => {
     expect(command.options).toBeDefined();
-    const workerOption = command.options?.find(o => o.flag === "worker");
+    const workerOption = command.options?.find((o) => o.flag === "worker");
     expect(workerOption).toBeDefined();
     expect(workerOption?.type).toBe("string");
   });
@@ -52,7 +52,7 @@ describe("WorkersDevCommand", () => {
     const executePromise = command.execute(mockCtx);
 
     // Give it a moment to emit
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(mockCtx.observer.emit).toHaveBeenCalledWith(
       "command:start",

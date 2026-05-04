@@ -6,8 +6,19 @@ export class WorkersDevCommand implements Command {
   name = "workers:dev";
   description = "Start local Wrangler dev server";
   options = [
-    { flag: "worker", short: "w", type: "string" as const, description: "Specific worker to develop" },
-    { flag: "port", short: "p", type: "string" as const, description: "Port for dev server", default: "8787" },
+    {
+      flag: "worker",
+      short: "w",
+      type: "string" as const,
+      description: "Specific worker to develop",
+    },
+    {
+      flag: "port",
+      short: "p",
+      type: "string" as const,
+      description: "Port for dev server",
+      default: "8787",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {
@@ -20,8 +31,12 @@ export class WorkersDevCommand implements Command {
       const workerName = ctx.args?.worker as string | undefined;
 
       if (!workerName) {
-        p.log.info("No worker specified. Starting dev server for all workers is not supported.");
-        p.log.info("Use --worker to specify a worker: hoox workers:dev --worker trade-worker");
+        p.log.info(
+          "No worker specified. Starting dev server for all workers is not supported."
+        );
+        p.log.info(
+          "Use --worker to specify a worker: hoox workers:dev --worker trade-worker"
+        );
         return;
       }
 
@@ -58,13 +73,14 @@ export class WorkersDevCommand implements Command {
       p.outro("Dev server stopped.");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      const cliError = error instanceof CLIError
-        ? error
-        : new CLIError(
-            `Dev server failed: ${error instanceof Error ? error.message : String(error)}`,
-            "DEV_ERROR",
-            false
-          );
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `Dev server failed: ${error instanceof Error ? error.message : String(error)}`,
+              "DEV_ERROR",
+              false
+            );
       p.log.error(cliError.message);
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }

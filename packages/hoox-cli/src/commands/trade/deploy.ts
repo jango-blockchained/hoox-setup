@@ -5,7 +5,12 @@ export class TradeDeployCommand implements Command {
   name = "trade:deploy";
   description = "Deploy the trade-worker to Cloudflare";
   options = [
-    { flag: "force", short: "f", type: "boolean" as const, description: "Force redeploy" },
+    {
+      flag: "force",
+      short: "f",
+      type: "boolean" as const,
+      description: "Force redeploy",
+    },
   ];
 
   async execute(ctx: CommandContext): Promise<void> {

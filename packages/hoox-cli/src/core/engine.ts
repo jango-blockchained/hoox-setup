@@ -19,7 +19,10 @@ export class AppEngine implements Engine {
 
   startListening(): void {
     const unsub1 = this.observer.on("command:start", async (data) => {
-      const { cmd, args } = data as { cmd: string; args: Record<string, unknown> };
+      const { cmd, args } = data as {
+        cmd: string;
+        args: Record<string, unknown>;
+      };
       await this.handleCommand(cmd, args);
     });
 
@@ -37,7 +40,10 @@ export class AppEngine implements Engine {
     this.unsubs = [];
   }
 
-  private async handleCommand(cmd: string, _args: Record<string, unknown>): Promise<void> {
+  private async handleCommand(
+    cmd: string,
+    _args: Record<string, unknown>
+  ): Promise<void> {
     this.observer.setState({ currentCommand: cmd, commandStatus: "running" });
 
     try {

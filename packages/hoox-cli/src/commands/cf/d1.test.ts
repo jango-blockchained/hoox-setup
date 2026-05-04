@@ -7,9 +7,7 @@ mock.module("../../adapters/cloudflare.js", () => {
   return {
     CloudflareAdapter: mock(() => ({
       listD1Databases: mock(() =>
-        Promise.resolve([
-          { uuid: "db1", name: "test-db", title: "test-db" },
-        ])
+        Promise.resolve([{ uuid: "db1", name: "test-db", title: "test-db" }])
       ),
       createD1Database: mock(() =>
         Promise.resolve({ uuid: "new-db", name: "my-db", title: "my-db" })
@@ -41,7 +39,11 @@ mock.module("@clack/prompts", () => {
 });
 
 describe("CfD1Command", () => {
-  let CfD1Command: new () => { name: string; description: string; execute: Function };
+  let CfD1Command: new () => {
+    name: string;
+    description: string;
+    execute: Function;
+  };
   let mockObserver: Observer;
   let mockContext: CommandContext;
 

@@ -5,7 +5,7 @@ import type { Command } from "../core/types.js";
 describe("CommandRegistry", () => {
   it("should register and retrieve commands", () => {
     const registry = new CommandRegistry();
-    
+
     const mockCommand: Command = {
       name: "test:command",
       description: "Test",
@@ -26,8 +26,16 @@ describe("CommandRegistry", () => {
 
   it("should list all commands", () => {
     const registry = new CommandRegistry();
-    registry.register("cmd1", { name: "cmd1", description: "", execute: async () => {} } as Command);
-    registry.register("cmd2", { name: "cmd2", description: "", execute: async () => {} } as Command);
+    registry.register("cmd1", {
+      name: "cmd1",
+      description: "",
+      execute: async () => {},
+    } as Command);
+    registry.register("cmd2", {
+      name: "cmd2",
+      description: "",
+      execute: async () => {},
+    } as Command);
 
     const commands = registry.list();
     expect(commands.length).toBe(2);

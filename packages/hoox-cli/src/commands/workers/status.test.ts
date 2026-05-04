@@ -14,8 +14,8 @@ describe("WorkersStatusCommand", () => {
         getState: mock(() => ({
           workers: {
             "trade-worker": { name: "trade-worker", status: "healthy" },
-            "hoox": { name: "hoox", status: "healthy" },
-          }
+            hoox: { name: "hoox", status: "healthy" },
+          },
         })),
         setState: mock(() => {}),
         subscribe: mock(() => () => {}),
