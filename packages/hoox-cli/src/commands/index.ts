@@ -26,6 +26,3 @@ export { DashboardDeployCommand as dashboardDeploy } from "./dashboard/deploy.js
 
 // Trade commands
 export { default as tradeDeploy } from "./trade/deploy.js";
-
-// Utility commands (new Command interface)
-export { LogsDownloadCommand as logsDownload } from "./logs/download.js";
