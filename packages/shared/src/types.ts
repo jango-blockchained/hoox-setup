@@ -82,3 +82,50 @@ export interface SettingsPayload {
   key: string;
   value: string | number | boolean;
 }
+
+// --- Types needed by shared middleware and router ---
+
+export interface Env {
+  [key: string]: any;
+}
+
+export type Result<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string };
+
+// --- Trade and webhook types (consolidated) ---
+
+export type TradeAction = "LONG" | "SHORT" | "CLOSE_LONG" | "CLOSE_SHORT";
+
+export interface WebhookPayload {
+  exchange: string;
+  action: TradeAction;
+  symbol: string;
+  quantity: number;
+  price?: number;
+  orderType?: string;
+  leverage?: number;
+}
+
+export interface TradeSignal {
+  id?: number;
+  source: string;
+  symbol: string;
+  action: TradeAction;
+  price?: number;
+  quantity: number;
+  leverage?: number;
+  status?: "pending" | "executed" | "failed" | "skipped";
+  createdAt?: string;
+  executedAt?: string;
+  error?: string;
+}
+
+export interface QueryPayload {
+  query: string;
+  params?: unknown[];
+}
+
+export interface BatchPayload {
+  statements: QueryPayload[];
+}

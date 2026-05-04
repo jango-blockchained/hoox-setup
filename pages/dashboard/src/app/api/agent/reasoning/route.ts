@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createErrorResponse, Errors } from "@/shared/src/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -15,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { prompt, model = "o1-preview", reasoningEffort = "medium" } = body;
 
     if (!prompt) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
+      return Errors.badRequest("Prompt is required");
     }
 
     const env = getCloudflareContext().env as unknown as {
@@ -48,9 +46,6 @@ export async function POST(request: NextRequest) {
       note: "External providers require API keys in CONFIG_KV",
     });
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return Errors.internal(String(e));
   }
 }

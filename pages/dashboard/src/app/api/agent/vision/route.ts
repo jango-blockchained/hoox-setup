@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createErrorResponse, Errors } from "@/shared/src/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -16,10 +17,7 @@ export async function POST(request: NextRequest) {
     const { imageUrl, imageBase64, prompt = "Analyze this image", model } = body;
 
     if (!imageUrl && !imageBase64) {
-      return NextResponse.json(
-        { error: "imageUrl or imageBase64 is required" },
-        { status: 400 }
-      );
+      return Errors.badRequest("imageUrl or imageBase64 is required");
     }
 
     const env = getCloudflareContext().env as unknown as {
@@ -66,9 +64,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return Errors.internal(String(e));
   }
 }

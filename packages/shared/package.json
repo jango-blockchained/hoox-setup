@@ -7,7 +7,19 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./kvUtils": "./src/kvUtils.ts"
+    "./types": "./src/types.ts",
+    "./types/router": "./src/types/router.ts",
+    "./types/errors": "./src/types/errors.ts",
+    "./middleware": "./src/middleware/index.ts",
+    "./middleware/logger": "./src/middleware/logger.ts",
+    "./middleware/auth": "./src/middleware/auth.ts",
+    "./middleware/validate": "./src/middleware/validate.ts",
+    "./middleware/rate-limit": "./src/middleware/rate-limit.ts",
+    "./errors": "./src/errors.ts",
+    "./router": "./src/router.ts",
+    "./kvUtils": "./src/kvUtils.ts",
+    "./json-response": "./src/json-response.ts",
+    "./exchange-client": "./src/exchange-client.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createErrorResponse, Errors } from "@/shared/src/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -54,9 +55,6 @@ export async function POST(request: NextRequest) {
       note: "External providers require API keys in KV",
     });
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return Errors.internal(String(e));
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createErrorResponse, Errors } from "@/shared/src/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -17,10 +18,7 @@ export async function POST(request: NextRequest) {
     const { messages, model, temperature = 0.7, maxTokens = 500, stream = true } = body;
 
     if (!messages || messages.length === 0) {
-      return NextResponse.json(
-        { error: "Messages are required" },
-        { status: 400 }
-      );
+      return Errors.badRequest("Messages are required");
     }
 
     const env = getCloudflareContext().env as unknown as {
@@ -106,9 +104,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return Errors.internal(String(e));
   }
 }

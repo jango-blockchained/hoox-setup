@@ -8,6 +8,10 @@
       "DOM"
     ],
     "moduleResolution": "bundler",
+    "paths": {
+      "@hoox/shared/*": ["./packages/shared/src/*"],
+      "@hoox/shared": ["./packages/shared/src/index.ts"]
+    },
     "types": [
       "bun-types",
       "node"
@@ -32,7 +36,8 @@
     "isolatedModules": true,
     "emitDeclarationOnly": false,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "ignoreDeprecations": "5.0"
   },
   "include": [
     "src/**/*",

@@ -10,7 +10,7 @@ import type {
   WorkerServiceBinding,
   WorkerD1Binding,
   WorkerQueueConfig,
-} from "@hoox/shared";
+} from from '@hoox/shared";
 import { intro, outro, log as clackLog, spinner, note } from "@clack/prompts";
 import { red, green, yellow, cyan, dim } from "./utils.js";
 

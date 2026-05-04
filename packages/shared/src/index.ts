@@ -3,13 +3,13 @@ export type {
   ApiSuccessResponse,
   ApiErrorResponse,
   ApiResponse,
-  WorkerConfigManifestLite,
   WorkerServiceBinding,
   WorkerD1Binding,
   WorkerSecretsStoreBinding,
   WorkerQueueConfig,
   HousekeepingCheck,
   HousekeepingPayload,
+  HousekeepingSummary,
   SettingsPayload,
 } from "./types.js";
 export {
