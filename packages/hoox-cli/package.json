@@ -20,7 +20,7 @@
     "prepublishOnly": "bun run build && bun run lint && bun run typecheck"
   },
   "dependencies": {
-    "@clack/prompts": "^0.8.2",
+    "@clack/prompts": "^1.3.0",
     "@hoox/shared": "workspace:*",
     "@opentui/core": "^0.2.0",
     "@opentui/react": "^0.2.0",
