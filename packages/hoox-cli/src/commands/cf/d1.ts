@@ -1,55 +1,152 @@
-import { CloudflareClient } from "../../lib/cf-client.js";
-import { loadConfig } from "../../configUtils.js";
-import {
-  print_success,
-  print_error,
-  print_info,
-  cyan,
-  yellow,
-} from "../../utils.js";
+import * as p from "@clack/prompts";
+import type { Command, CommandContext } from "../../core/types.js";
+import { CLIError } from "../../core/errors.js";
 
-async function getClient(): Promise<CloudflareClient> {
-  const config = await loadConfig();
-  return new CloudflareClient({
-    apiToken: config.global.cloudflare_api_token,
-    accountId: config.global.cloudflare_account_id,
-  });
-}
+export default class CfD1Command implements Command {
+  name = "cf:d1";
+  description = "Manage Cloudflare D1 databases";
 
-export async function listD1Databases(): Promise<void> {
-  const client = await getClient();
-  const dbs = await client.listD1Databases();
+  async execute(ctx: CommandContext): Promise<void> {
+    p.intro("Cloudflare D1 Database Management");
 
-  if (dbs.length === 0) {
-    print_info("No D1 databases found.");
-    return;
+    ctx.observer.emit("command:start", { cmd: this.name });
+
+    try {
+      const action = await p.select({
+        message: "What would you like to do?",
+        options: [
+          { value: "list", label: "List D1 databases" },
+          { value: "create", label: "Create a new database" },
+          { value: "delete", label: "Delete a database" },
+        ],
+      });
+
+      if (p.isCancel(action)) {
+        p.cancel("Operation cancelled.");
+        return;
+      }
+
+      if (action === "list") {
+        await this.listDatabases(ctx);
+      } else if (action === "create") {
+        await this.createDatabase(ctx);
+      } else if (action === "delete") {
+        await this.deleteDatabase(ctx);
+      }
+
+      ctx.observer.setState({ commandStatus: "success" });
+      p.outro("D1 operation completed successfully!");
+    } catch (error) {
+      const cliError =
+        error instanceof CLIError
+          ? error
+          : new CLIError(
+              `D1 operation failed: ${error instanceof Error ? error.message : String(error)}`,
+              "D1_ERROR",
+              false
+            );
+      p.log.error(cliError.message);
+      ctx.observer.setState({ commandStatus: "error", lastError: cliError });
+    }
   }
 
-  console.log("D1 Databases:");
-  dbs.forEach((db) => {
-    console.log(`  ${yellow(db.name)} (${cyan(db.uuid)})`);
-  });
-}
+  private async listDatabases(ctx: CommandContext): Promise<void> {
+    const spinner = p.spinner();
+    spinner.start("Fetching D1 databases...");
 
-export async function createD1Database(name: string): Promise<void> {
-  const client = await getClient();
-  const db = await client.createD1Database(name);
-  print_success(`Created D1 database: ${db.title} (${db.uuid})`);
-}
+    try {
+      const databases = await ctx.adapters.cloudflare.listD1Databases();
 
-export async function deleteD1Database(name: string): Promise<void> {
-  const client = await getClient();
-  const dbs = await client.listD1Databases();
-  const db = dbs.find((d) => d.name === name);
-  if (!db) {
-    print_error(`Database '${name}' not found.`);
-    return;
+      spinner.stop("D1 databases retrieved!");
+
+      if (databases.length === 0) {
+        p.log.info("No D1 databases found.");
+        return;
+      }
+
+      p.log.step("D1 Databases:");
+      databases.forEach((db) => {
+        p.log.message(`${db.name} (${db.uuid})`);
+      });
+    } catch (error) {
+      spinner.stop("Failed to fetch D1 databases.", 1);
+      throw error;
+    }
   }
-  await client.deleteD1Database(db.uuid);
-  print_success(`Deleted D1 database: ${name}`);
-}
 
-export async function migrateD1Database(workerName: string): Promise<void> {
-  print_info(`Running D1 migrations for worker: ${workerName}...`);
-  print_info("Use 'hoox workers setup' to run migrations automatically.");
+  private async createDatabase(ctx: CommandContext): Promise<void> {
+    const name = await p.text({
+      message: "Enter database name:",
+      validate: (v) => (!v ? "Database name is required" : undefined),
+    });
+
+    if (p.isCancel(name)) {
+      p.cancel("Operation cancelled.");
+      return;
+    }
+
+    const confirmed = await p.confirm({
+      message: `Create database "${name}"?`,
+      initialValue: false,
+    });
+
+    if (p.isCancel(confirmed) || !confirmed) {
+      p.cancel("Operation cancelled.");
+      return;
+    }
+
+    const spinner = p.spinner();
+    spinner.start("Creating D1 database...");
+
+    try {
+      const db = await ctx.adapters.cloudflare.createD1Database(name);
+      spinner.stop(`Database "${db.name}" created successfully!`);
+    } catch (error) {
+      spinner.stop("Failed to create database.", 1);
+      throw error;
+    }
+  }
+
+  private async deleteDatabase(ctx: CommandContext): Promise<void> {
+    const databases = await ctx.adapters.cloudflare.listD1Databases();
+
+    if (databases.length === 0) {
+      p.log.info("No D1 databases found to delete.");
+      return;
+    }
+
+    const dbName = await p.select({
+      message: "Select database to delete:",
+      options: databases.map((db) => ({
+        value: db.uuid,
+        label: db.name,
+      })),
+    });
+
+    if (p.isCancel(dbName)) {
+      p.cancel("Operation cancelled.");
+      return;
+    }
+
+    const confirmed = await p.confirm({
+      message: `Are you sure you want to delete database "${dbName}"? This action cannot be undone.`,
+      initialValue: false,
+    });
+
+    if (p.isCancel(confirmed) || !confirmed) {
+      p.cancel("Operation cancelled.");
+      return;
+    }
+
+    const spinner = p.spinner();
+    spinner.start("Deleting D1 database...");
+
+    try {
+      await ctx.adapters.cloudflare.deleteD1Database(dbName);
+      spinner.stop("Database deleted successfully!");
+    } catch (error) {
+      spinner.stop("Failed to delete database.", 1);
+      throw error;
+    }
+  }
 }
