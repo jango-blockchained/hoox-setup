@@ -87,7 +87,8 @@ pages.jsonc
 
 # Superpowers
 .superpowers/
-docs/superpowers/
+# docs/superpowers/ - commented out to allow design specs
+# docs/superpowers/
 
 # npm config
 .npmrc
