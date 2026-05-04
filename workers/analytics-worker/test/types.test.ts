@@ -5,7 +5,7 @@ export function test_env_interface() {
   const env: Env = {
     ANALYTICS_ENGINE: {} as any,
     CLOUDFLARE_API_TOKEN: "test-token",
-    CF_ACCOUNT_ID: "test-account"
+    CLOUDFLARE_ACCOUNT_ID: "test-account"
   };
   return typeof env.ANALYTICS_ENGINE === "object";
 }

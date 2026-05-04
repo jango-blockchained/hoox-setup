@@ -15,7 +15,7 @@
     }
   ],
   "vars": {
-    "CF_ACCOUNT_ID": "debc6545e63bea36be059cbc82d80ec8"
+    "CLOUDFLARE_ACCOUNT_ID": "debc6545e63bea36be059cbc82d80ec8"
   },
   "services": []
 }

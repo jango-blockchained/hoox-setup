@@ -4,7 +4,7 @@ import type { AnalyticsEngineDataset } from "@cloudflare/workers-types";
 export interface Env {
   ANALYTICS_ENGINE: AnalyticsEngineDataset;
   CLOUDFLARE_API_TOKEN?: string;
-  CF_ACCOUNT_ID?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
 }
 
 export interface DataPoint {

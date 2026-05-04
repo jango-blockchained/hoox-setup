@@ -119,12 +119,12 @@ async function executeQuery(sql: string, env: Env): Promise<any> {
     throw new Error("CLOUDFLARE_API_TOKEN not configured");
   }
   
-  if (!env.CF_ACCOUNT_ID) {
-    throw new Error("CF_ACCOUNT_ID not configured");
+  if (!env.CLOUDFLARE_ACCOUNT_ID) {
+    throw new Error("CLOUDFLARE_ACCOUNT_ID not configured");
   }
 
   const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
+    `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`,
     {
       method: "POST",
       headers: {
