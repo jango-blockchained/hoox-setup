@@ -1,63 +1,90 @@
-import * as clack from "@clack/prompts";
-import { runCommandSync, log } from "../utils.js";
+import * as p from "@clack/prompts";
+import type { Command, CommandContext } from "../core/types.js";
+import { CLIError } from "../core/errors.js";
 
 const DEFAULT_BUCKETS = ["trade-reports", "user-uploads", "hoox-system-logs"];
 
-/**
- * Provision required R2 buckets with interactive feedback.
- */
-export async function provisionR2Buckets(): Promise<void> {
-  clack.intro("Provisioning R2 Buckets");
+export class R2ProvisionCommand implements Command {
+  name = "r2-provision";
+  description = "Provision required R2 buckets";
+  options = [
+    { flag: "bucket", short: "b", type: "string" as const, description: "Specific bucket to provision" },
+  ];
 
-  const selected = await clack.multiselect({
-    message: "Select R2 buckets to provision:",
-    options: DEFAULT_BUCKETS.map((name) => ({
-      value: name,
-      label: name,
-      hint: "R2 bucket",
-    })),
-    initialValues: DEFAULT_BUCKETS,
-    required: true,
-  });
+  async execute(ctx: CommandContext): Promise<void> {
+    ctx.observer.emit("command:start", {
+      cmd: this.name,
+      args: { bucket: ctx.args?.bucket },
+    });
 
-  if (clack.isCancel(selected)) {
-    clack.outro("Cancelled.");
-    return;
-  }
+    try {
+      p.intro("Provisioning R2 Buckets");
 
-  const s = clack.spinner();
+      const specificBucket = ctx.args?.bucket as string | undefined;
+      const bucketsToProvision = specificBucket ? [specificBucket] : DEFAULT_BUCKETS;
 
-  for (const bucket of selected as string[]) {
-    s.start(`Checking bucket: ${bucket}...`);
+      const s = p.spinner();
 
-    const checkRes = runCommandSync(
-      `bunx wrangler r2 bucket list`,
-      process.cwd()
-    );
+      for (const bucket of bucketsToProvision) {
+        s.start(`Checking bucket: ${bucket}...`);
 
-    if (checkRes.success && checkRes.stdout.includes(bucket)) {
-      s.stop(`Bucket ${bucket} already exists.`);
-    } else {
-      s.start(`Creating bucket: ${bucket}...`);
-      const createRes = runCommandSync(
-        `bunx wrangler r2 bucket create ${bucket}`,
-        process.cwd()
-      );
-      if (createRes.success) {
-        s.stop(`Created R2 bucket: ${bucket}`);
-      } else {
-        if (
-          createRes.stderr.includes("already exists") ||
-          createRes.stdout.includes("already exists")
-        ) {
+        // Use Bun.spawn instead of child_process (REQUIRED)
+        const checkProc = Bun.spawn(
+          ["bunx", "wrangler", "r2", "bucket", "list"],
+          {
+            cwd: ctx.cwd,
+            stdout: "pipe",
+            stderr: "pipe",
+          }
+        );
+
+        const checkOutput = await new Response(checkProc.stdout).text();
+        const checkExitCode = await checkProc.exited;
+
+        if (checkExitCode === 0 && checkOutput.includes(bucket)) {
           s.stop(`Bucket ${bucket} already exists.`);
         } else {
-          s.stop(`Failed to create bucket ${bucket}`, 1);
-          log.error(createRes.stderr || createRes.stdout);
+          s.start(`Creating bucket: ${bucket}...`);
+          
+          const createProc = Bun.spawn(
+            ["bunx", "wrangler", "r2", "bucket", "create", bucket],
+            {
+              cwd: ctx.cwd,
+              stdout: "pipe",
+              stderr: "pipe",
+            }
+          );
+
+          const createExitCode = await createProc.exited;
+          const createStderr = await new Response(createProc.stderr).text();
+
+          if (createExitCode === 0) {
+            s.stop(`Created R2 bucket: ${bucket}`);
+          } else if (createStderr.includes("already exists")) {
+            s.stop(`Bucket ${bucket} already exists.`);
+          } else {
+            s.stop(`Failed to create bucket ${bucket}`, 1);
+            throw new CLIError(
+              `Failed to create bucket ${bucket}: ${createStderr}`,
+              "R2_PROVISION_ERROR",
+              false
+            );
+          }
         }
       }
+
+      p.outro("R2 Provisioning Complete.");
+      ctx.observer.setState({ commandStatus: "success" });
+    } catch (error) {
+      const cliError = error instanceof CLIError
+        ? error
+        : new CLIError(
+            `R2 provision failed: ${error instanceof Error ? error.message : String(error)}`,
+            "R2_PROVISION_ERROR",
+            false
+          );
+      p.log.error(cliError.message);
+      ctx.observer.setState({ commandStatus: "error", lastError: cliError });
     }
   }
-
-  clack.outro("R2 Provisioning Complete.");
 }
