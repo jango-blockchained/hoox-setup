@@ -1,0 +1,21 @@
+{
+  "name": "analytics-worker",
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS_ENGINE",
+      "dataset": "hoox-analytics"
+    }
+  ],
+  "vars": {
+    "CF_ACCOUNT_ID": "debc6545e63bea36be059cbc82d80ec8"
+  },
+  "services": []
+}
