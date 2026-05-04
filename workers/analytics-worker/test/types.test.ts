@@ -4,7 +4,7 @@ import type { Env, DataPoint } from "../src/types";
 export function test_env_interface() {
   const env: Env = {
     ANALYTICS_ENGINE: {} as any,
-    CF_API_TOKEN: "test-token",
+    CLOUDFLARE_API_TOKEN: "test-token",
     CF_ACCOUNT_ID: "test-account"
   };
   return typeof env.ANALYTICS_ENGINE === "object";

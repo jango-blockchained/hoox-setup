@@ -7,7 +7,7 @@ const mockEnv = {
   ANALYTICS_ENGINE: {
     writeDataPoint: mock(() => {})
   },
-  CF_API_TOKEN: "test-token",
+  CLOUDFLARE_API_TOKEN: "test-token",
   CF_ACCOUNT_ID: "test-account"
 };
 

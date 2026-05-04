@@ -115,8 +115,8 @@ export async function getSignalOutcomes(
 
 // Helper: Execute SQL query via Cloudflare API
 async function executeQuery(sql: string, env: Env): Promise<any> {
-  if (!env.CF_API_TOKEN) {
-    throw new Error("CF_API_TOKEN not configured");
+  if (!env.CLOUDFLARE_API_TOKEN) {
+    throw new Error("CLOUDFLARE_API_TOKEN not configured");
   }
   
   if (!env.CF_ACCOUNT_ID) {
@@ -128,7 +128,7 @@ async function executeQuery(sql: string, env: Env): Promise<any> {
     {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+        "Authorization": `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
         "Content-Type": "application/x-www-form-urlencoded"
       },
       body: sql
