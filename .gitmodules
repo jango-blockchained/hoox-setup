@@ -19,3 +19,6 @@
 [submodule "workers/email-worker"]
 	path = workers/email-worker
 	url = https://github.com/jango-blockchained/email-worker.git
+[submodule "workers/analytics-worker"]
+	path = workers/analytics-worker
+	url = https://github.com/jango-blockchained/analytics-worker.git
