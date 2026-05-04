@@ -1,5 +1,7 @@
 import type { DataPoint, TradePayload, TradeResult, ApiCallData, WorkerPerfData, SignalData, NotificationData } from "./types";
 
+// crypto is available globally in Cloudflare Workers - no import needed
+
 export const buildDataPoint = {
   trade(payload: TradePayload, result: TradeResult, latencyMs: number): DataPoint {
     return {

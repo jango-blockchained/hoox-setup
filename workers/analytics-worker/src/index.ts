@@ -3,6 +3,11 @@ import type { Env, DataPoint, TradePayload, TradeResult, WorkerPerfData, ApiCall
 import { buildDataPoint } from "./helpers";
 import { buildQuery } from "./query-builder";
 
+// Declare global objects for Cloudflare Workers runtime
+declare const ANALYTICS_ENGINE: any;
+declare const fetch: any;
+// Request and Response are available globally in Cloudflare Workers
+
 // Service binding methods (called by other workers)
 export async function writeDataPoint(data: DataPoint, env: Env): Promise<void> {
   env.ANALYTICS_ENGINE.writeDataPoint({
@@ -76,7 +81,7 @@ export async function getTradesByExchange(
 }
 
 export async function getTradeSuccessRate(
-  timeRange?: string,
+  timeRange: string | undefined,
   env: Env
 ): Promise<any> {
   const sql = buildQuery.getTradeSuccessRate(timeRange);
@@ -85,7 +90,7 @@ export async function getTradeSuccessRate(
 
 export async function getWorkerPerformance(
   worker: string,
-  timeRange?: string,
+  timeRange: string | undefined,
   env: Env
 ): Promise<any> {
   const sql = buildQuery.getWorkerPerformance(worker, timeRange);
@@ -93,7 +98,7 @@ export async function getWorkerPerformance(
 }
 
 export async function getApiCallStats(
-  exchange?: string,
+  exchange: string | undefined,
   env: Env
 ): Promise<any> {
   const sql = buildQuery.getApiCallStats(exchange);
@@ -101,7 +106,7 @@ export async function getApiCallStats(
 }
 
 export async function getSignalOutcomes(
-  timeRange?: string,
+  timeRange: string | undefined,
   env: Env
 ): Promise<any> {
   const sql = buildQuery.getSignalOutcomes(timeRange);
