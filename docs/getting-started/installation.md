@@ -4,10 +4,10 @@
 
 ## Prerequisites
 
-| Tool               | Version | Installation                            |
-| ------------------ | ------- | --------------------------------------- | ----- |
-| Bun                | ≥1.2    | `curl -fsSL https://bun.sh              | bash` |
-| Git                | ≥2.40   | `apt install git`                       |
+| Tool                | Version | Installation                            |
+| ------------------- | ------- | --------------------------------------- | ----- |
+| Bun                 | ≥1.2    | `curl -fsSL https://bun.sh              | bash` |
+| Git                 | ≥2.40   | `apt install git`                       |
 | Cloudflare® Account | -       | [Sign up](https://dash.cloudflare.com/) |
 
 ## Step 1: Bootstrap Repository
@@ -66,7 +66,7 @@ This wizard will:
 
 Create `workers.jsonc`:
 
-```jsonc
+````jsonc
 {
   "global": {
     "cloudflare_api_token": "cfut_...",
@@ -91,7 +91,7 @@ hoox keys generate WEBHOOK_API_KEY_BINDING
 
 # Upload to Cloudflare®
 hoox secrets update-cf WEBHOOK_API_KEY_BINDING hoox
-```
+````
 
 ## Step 5: Deploy Workers
 
@@ -139,7 +139,6 @@ hoox workers setup
 - [Configuration](configuration.md)
 - [Architecture Overview](../architecture/overview.md)
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

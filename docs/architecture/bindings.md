@@ -38,17 +38,17 @@ This document provides a comprehensive reference for all bindings, environment v
 
 ## Service Bindings
 
-| Binding                  | Worker                           | Connected Service     | Description                             |
-| ------------------------ | -------------------------------- | --------------------- | --------------------------------------- |
-| `TRADE_SERVICE`          | telegram-worker                  | trade-worker          | Access to trading functionality         |
-| `WEBHOOK_RECEIVER_API`   | telegram-worker                  | hoox                  | Access to webhook handling              |
-| `WEB3_WALLET_API`        | telegram-worker                  | web3-wallet-worker    | Access to wallet functionality          |
-| `TRADE_SERVICE`          | hoox                             | trade-worker          | Access to trading functionality         |
-| `TELEGRAM_SERVICE`       | hoox                             | telegram-worker       | Access to Telegram notification service |
+| Binding                | Worker          | Connected Service  | Description                             |
+| ---------------------- | --------------- | ------------------ | --------------------------------------- |
+| `TRADE_SERVICE`        | telegram-worker | trade-worker       | Access to trading functionality         |
+| `WEBHOOK_RECEIVER_API` | telegram-worker | hoox               | Access to webhook handling              |
+| `WEB3_WALLET_API`      | telegram-worker | web3-wallet-worker | Access to wallet functionality          |
+| `TRADE_SERVICE`        | hoox            | trade-worker       | Access to trading functionality         |
+| `TELEGRAM_SERVICE`     | hoox            | telegram-worker    | Access to Telegram notification service |
 
-| `TELEGRAM_SERVICE`       | trade-worker, web3-wallet-worker | telegram-worker       | Access to Telegram notification service |
-| `D1_SERVICE`             | trade-worker                     | d1-worker             | Access to D1 database service           |
-| `WEB3_WALLET_WORKER`     | trade-worker                     | web3-wallet-worker    | Access to wallet functionality          |
+| `TELEGRAM_SERVICE` | trade-worker, web3-wallet-worker | telegram-worker | Access to Telegram notification service |
+| `D1_SERVICE` | trade-worker | d1-worker | Access to D1 database service |
+| `WEB3_WALLET_WORKER` | trade-worker | web3-wallet-worker | Access to wallet functionality |
 
 ## KV Namespace Bindings
 
@@ -57,19 +57,19 @@ This document provides a comprehensive reference for all bindings, environment v
 | `CONFIG_KV`   | telegram-worker, trade-worker | Store configuration data |
 | `SESSIONS_KV` | hoox                          | Store session data       |
 | `CONFIG_KV`   | hoox                          | Store configuration data |
-| `CONFIG_KV`   | dashboard (Pages)     | Store runtime settings   |
+| `CONFIG_KV`   | dashboard (Pages)             | Store runtime settings   |
 
 ## Queue Bindings
 
-| Binding        | Worker          | Queue Name         | Type      | Description                           |
-| -------------- | ---------------|------------------|----------| ------------------------------------ |
-| `TRADE_QUEUE` | hoox            | trade-execution | Producer | Sends trades for async processing      |
-| `TRADE_QUEUE` | trade-worker     | trade-execution | Consumer | Receives and processes queued trades  |
+| Binding       | Worker       | Queue Name      | Type     | Description                          |
+| ------------- | ------------ | --------------- | -------- | ------------------------------------ |
+| `TRADE_QUEUE` | hoox         | trade-execution | Producer | Sends trades for async processing    |
+| `TRADE_QUEUE` | trade-worker | trade-execution | Consumer | Receives and processes queued trades |
 
 ## Durable Object Bindings
 
-| Binding              | Worker | Class Name         | Description                        |
-| --------------------- | ------ | ----------------| ---------------------------------- |
+| Binding             | Worker | Class Name       | Description                       |
+| ------------------- | ------ | ---------------- | --------------------------------- |
 | `IDEMPOTENCY_STORE` | hoox   | IdempotencyStore | Prevents duplicate trade requests |
 
 ## R2 Bucket Bindings
@@ -88,8 +88,8 @@ This document provides a comprehensive reference for all bindings, environment v
 
 ## AI Bindings
 
-| Binding | Worker                              | Description                                  |
-| ------- | ----------------------------------- | -------------------------------------------- |
+| Binding | Worker                              | Description                                   |
+| ------- | ----------------------------------- | --------------------------------------------- |
 | `AI`    | telegram-worker, hoox, trade-worker | Access to Cloudflare® Workers AI capabilities |
 
 ## Vectorize Bindings
@@ -108,12 +108,12 @@ This document provides a comprehensive reference for all bindings, environment v
 
 For local development with `wrangler dev`, the following service URLs are used:
 
-| Service               | Local URL             | Used By                                |
-| --------------------- | --------------------- | -------------------------------------- |
-| D1 Worker             | http://localhost:8789 | trade-worker                           |
-| Telegram Worker       | http://localhost:8790 | hoox, trade-worker, web3-wallet-worker |
-| Web3 Wallet Worker    | http://localhost:8792 | trade-worker                           |
-| Trade Worker          | http://localhost:8788 | hoox                                   |
+| Service            | Local URL             | Used By                                |
+| ------------------ | --------------------- | -------------------------------------- |
+| D1 Worker          | http://localhost:8789 | trade-worker                           |
+| Telegram Worker    | http://localhost:8790 | hoox, trade-worker, web3-wallet-worker |
+| Web3 Wallet Worker | http://localhost:8792 | trade-worker                           |
+| Trade Worker       | http://localhost:8788 | hoox                                   |
 
 ## Configuration
 
@@ -131,7 +131,6 @@ wrangler secret put SECRET_NAME
 
 This will securely store the secret and make it available to the worker at runtime.
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

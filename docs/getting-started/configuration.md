@@ -22,7 +22,7 @@ The central configuration file is `workers.jsonc`. Here's a complete example:
     "cloudflare_secret_store_id": "your-secret-store-id",
 
     // Optional: Subdomain prefix (used for worker names)
-    "subdomain_prefix": "cryptolinx"
+    "subdomain_prefix": "cryptolinx",
   },
   // ============================================
   // WORKER CONFIGURATIONS
@@ -33,7 +33,7 @@ The central configuration file is `workers.jsonc`. Here's a complete example:
       "enabled": true,
       "path": "workers/hoox",
       "description": "Central webhook processing",
-      "secrets": ["WEBHOOK_API_KEY", "INTERNAL_KEY"]
+      "secrets": ["WEBHOOK_API_KEY", "INTERNAL_KEY"],
     },
     // trade-worker - Trading Engine
     "trade-worker": {
@@ -41,23 +41,23 @@ The central configuration file is `workers.jsonc`. Here's a complete example:
       "path": "workers/trade-worker",
       "description": "Multi-exchange trading",
       "secrets": ["INTERNAL_KEY", "MEXC_API_KEY", "MEXC_API_SECRET"],
-      "vars": { "DEFAULT_LEVERAGE": "20" }
+      "vars": { "DEFAULT_LEVERAGE": "20" },
     },
     // telegram-worker - Notifications
     "telegram-worker": {
       "enabled": true,
       "path": "workers/telegram-worker",
       "description": "Telegram bot & notifications",
-      "secrets": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID_DEFAULT"]
+      "secrets": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID_DEFAULT"],
     },
     // d1-worker - Database
     "d1-worker": {
       "enabled": false,
       "path": "workers/d1-worker",
       "description": "D1 database operations",
-      "secrets": []
-    }
-  }
+      "secrets": [],
+    },
+  },
 }
 ```
 
@@ -87,9 +87,9 @@ Each worker can define required secrets in `workers.jsonc`. These are prompted f
 {
   "workers": {
     "hoox": {
-      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
-    }
-  }
+      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
+    },
+  },
 }
 ```
 
@@ -99,7 +99,6 @@ Available secret types:
 - `INTERNAL_KEY_BINDING` - Internal service authentication
 - Exchange keys (MEXC_API_KEY, etc.)
 - Telegram tokens
-
 
 ## KV Configuration
 
@@ -116,7 +115,6 @@ Configure KV settings via the `/admin/ui` or directly in KV:
 - [Architecture Overview](../architecture/overview.md)
 - [Worker Details](../workers/hoox.md)
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

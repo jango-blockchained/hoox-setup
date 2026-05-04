@@ -168,7 +168,6 @@ Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bu
 - [Worker Communication](communication.md)
 - [Data Flow](data-flow.md)
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

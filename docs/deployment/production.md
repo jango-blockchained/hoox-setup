@@ -5,6 +5,7 @@
 ## Prerequisites
 
 Before deploying to production, ensure you have:
+
 1. Valid Cloudflare® Account & API Token.
 2. Production secrets generated and uploaded to Cloudflare® Secret Store.
 3. A fully configured `workers.jsonc`.
@@ -42,4 +43,4 @@ You can map these to custom domains via the Cloudflare® Dashboard under **Worke
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

@@ -4,18 +4,18 @@
 
 Monorepo using Bun workspaces: `packages/*`, `workers/*`, `pages/*`.
 
-| Workspace | Purpose |
-|-----------|---------|
-| `packages/hoox-cli` | CLI tool (`hoox` commands) |
-| `packages/shared` | Shared types and utilities |
-| `workers/hoox` | Gateway (webhook entrypoint) |
-| `workers/trade-worker` | Multi-exchange execution |
-| `workers/agent-worker` | AI risk manager (5min cron) |
-| `workers/d1-worker` | D1 database operations |
-| `workers/telegram-worker` | Notifications |
-| `workers/web3-wallet-worker` | DeFi/on-chain execution |
-| `workers/email-worker` | Email signal parsing |
-| `pages/dashboard` | Next.js 16 dashboard (Cloudflare Workers + OpenNext) |
+| Workspace                    | Purpose                                              |
+| ---------------------------- | ---------------------------------------------------- |
+| `packages/hoox-cli`          | CLI tool (`hoox` commands)                           |
+| `packages/shared`            | Shared types and utilities                           |
+| `workers/hoox`               | Gateway (webhook entrypoint)                         |
+| `workers/trade-worker`       | Multi-exchange execution                             |
+| `workers/agent-worker`       | AI risk manager (5min cron)                          |
+| `workers/d1-worker`          | D1 database operations                               |
+| `workers/telegram-worker`    | Notifications                                        |
+| `workers/web3-wallet-worker` | DeFi/on-chain execution                              |
+| `workers/email-worker`       | Email signal parsing                                 |
+| `pages/dashboard`            | Next.js 16 dashboard (Cloudflare Workers + OpenNext) |
 
 ## Commands
 
@@ -67,6 +67,7 @@ hoox workers deploy     # deploy all workers to Cloudflare
 ## Secret Management
 
 Secrets stored in `workers.jsonc` under each worker's `secrets` array. Deploy with:
+
 ```bash
 hoox secrets update-cf    # push secrets to Cloudflare
 ```

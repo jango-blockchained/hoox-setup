@@ -100,7 +100,6 @@ curl -X POST https://hoox.cryptolinx.workers.dev \
 - [Worker Details](../workers/hoox.md)
 - [API Reference](../api/endpoints.md)
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

@@ -5,16 +5,18 @@
 **Concept**: Cloudflare bindings connect workers to storage, queues, and each other.
 
 ## Binding Types
-| Type | Binding Prefix | Example |
-|------|---------------|---------|
-| Service Binding | `*_SERVICE` | `TRADE_SERVICE` |
-| KV Namespace | `*_KV` | `CONFIG_KV` |
-| Queue | `*_QUEUE` | `TRADE_QUEUE` |
-| Durable Object | `*_STORE` | `IDEMPOTENCY_STORE` |
-| R2 Bucket | `*_BUCKET` | `REPORTS_BUCKET` |
-| D1 Database | `*` (in wrangler) | `DB` |
+
+| Type            | Binding Prefix    | Example             |
+| --------------- | ----------------- | ------------------- |
+| Service Binding | `*_SERVICE`       | `TRADE_SERVICE`     |
+| KV Namespace    | `*_KV`            | `CONFIG_KV`         |
+| Queue           | `*_QUEUE`         | `TRADE_QUEUE`       |
+| Durable Object  | `*_STORE`         | `IDEMPOTENCY_STORE` |
+| R2 Bucket       | `*_BUCKET`        | `REPORTS_BUCKET`    |
+| D1 Database     | `*` (in wrangler) | `DB`                |
 
 ## Common Patterns
+
 ```jsonc
 // Service Binding - call another worker
 "services": [{ "binding": "TRADE_SERVICE", "service": "trade-worker" }]
@@ -27,12 +29,14 @@
 ```
 
 ## Feature Matrix
-| Feature | hoox | trade | telegram | agent | d1 |
-|---------|-------|--------|----------|-------|-----|
-| Service Binding | - | ✅ | ✅ | ✅ | - |
-| D1 Storage | - | ✅ | - | ✅ | - |
-| KV Storage | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+| Feature         | hoox | trade | telegram | agent | d1  |
+| --------------- | ---- | ----- | -------- | ----- | --- |
+| Service Binding | -    | ✅    | ✅       | ✅    | -   |
+| D1 Storage      | -    | ✅    | -        | ✅    | -   |
+| KV Storage      | ✅   | ✅    | ✅       | ✅    | ✅  |
 
 ## 📂 Codebase References
+
 **Central config**: `workers.jsonc` - `secrets` and `bindings` per worker
 **Example**: `workers/hoox/wrangler.jsonc:35-70`

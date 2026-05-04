@@ -5,11 +5,13 @@ The `hoox` CLI is the central management tool for the Hoox Trading System. This 
 ## User Commands
 
 ### Initialization & Setup
+
 - `hoox init`: Runs the interactive setup wizard.
 - `hoox check-setup`: Validates the environment, bindings, and configurations without modifying state.
 - `hoox clone [destination]`: Clones the core `hoox-setup` repository.
 
 ### Worker Management
+
 - `hoox workers clone`: Clones all or specific sub-worker repositories as submodules.
 - `hoox workers setup`: Binds secrets and provisions the local environment for enabled workers.
 - `hoox workers dev <workerName>`: Starts the local Wrangler development server for a specific worker.
@@ -18,11 +20,13 @@ The `hoox` CLI is the central management tool for the Hoox Trading System. This 
 - `hoox workers test`: Runs the Vitest integration suite across workers.
 
 ### Configurations & Secrets
+
 - `hoox secrets update-cf <secretName> <workerName> [value]`: Updates a Cloudflare Secret Store value and syncs it locally.
 - `hoox secrets check <workerName> [secretName]`: Verifies secret bindings.
 - `hoox keys generate/get/list`: Manages local `.keys/*.env` cryptographic keys.
 
 ### Utility & Logs
+
 - `hoox logs download <workerName>`: Async download of worker logs from the R2 bucket, with automatic fallback to `wrangler tail`.
 - `hoox workers logs`: Tail worker logs in real-time.
 - `hoox housekeeping`: Runs a manual trigger of the system health checks.

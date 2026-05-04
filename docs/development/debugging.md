@@ -7,6 +7,7 @@
 When running locally with `hoox workers dev <worker-name>`, standard `console.log` statements will output directly to your terminal.
 
 If you encounter issues with inter-worker communication, ensure that:
+
 1. Both workers are running.
 2. The ports align with what Wrangler expects.
 3. The `internalAuthKey` matches between `.dev.vars` files.
@@ -32,10 +33,13 @@ npx wrangler tail trade-worker
 ## Common Issues
 
 ### 1. `Worker error: 401 Unauthorized`
+
 Check that your `INTERNAL_KEY` matches across all workers.
 
 ### 2. `D1_ERROR: no such table`
+
 You haven't run the database migrations. Ensure your database is initialized:
+
 ```bash
 npx wrangler d1 execute DB --local --file=schema.sql
 ```
@@ -47,4 +51,4 @@ npx wrangler d1 execute DB --local --file=schema.sql
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

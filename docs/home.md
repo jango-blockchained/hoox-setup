@@ -57,19 +57,18 @@ Each worker has its own documentation file:
 
 ## 📊 Feature Matrix
 
-| Feature         | hoox | trade | telegram | agent | dash | d1  | web3 | pages |
-| --------------- | ---- | ----- | -------- | ----- | ---- | --- | ---- | ---- |
-| API Key Auth    | ✅   | ✅    | ✅       | -     | -    | -   | ✅   | -    |
-| IP Allow-list   | ✅   | -     | -        | -     | -    | -   | -    | -    |
-| Service Binding | -    | ✅    | ✅       | ✅    | -    | -   | -    | -    |
-| D1 Storage      | -    | ✅    | -        | ✅    | -    | ✅  | -    | -    |
-| R2 Storage      | -    | ✅    | ✅       | -     | -    | -   | ✅   | -    |
-| KV Storage      | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    | ✅   |
-| AI/Vectorize    | -    | -     | ✅       | ✅    | -    | -   | -    | -    |
-| Cron Triggers   | -    | -     | -        | ✅    | -    | -   | -    | -    |
-| Cloudflare Pages | -   | -     | -        | -     | ✅   | -   | -    | ✅   |
-
+| Feature          | hoox | trade | telegram | agent | dash | d1  | web3 | pages |
+| ---------------- | ---- | ----- | -------- | ----- | ---- | --- | ---- | ----- |
+| API Key Auth     | ✅   | ✅    | ✅       | -     | -    | -   | ✅   | -     |
+| IP Allow-list    | ✅   | -     | -        | -     | -    | -   | -    | -     |
+| Service Binding  | -    | ✅    | ✅       | ✅    | -    | -   | -    | -     |
+| D1 Storage       | -    | ✅    | -        | ✅    | -    | ✅  | -    | -     |
+| R2 Storage       | -    | ✅    | ✅       | -     | -    | -   | ✅   | -     |
+| KV Storage       | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    | ✅    |
+| AI/Vectorize     | -    | -     | ✅       | ✅    | -    | -   | -    | -     |
+| Cron Triggers    | -    | -     | -        | ✅    | -    | -   | -    | -     |
+| Cloudflare Pages | -    | -     | -        | -     | ✅   | -   | -    | ✅    |
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

@@ -23,13 +23,14 @@ To view the health and status of your trading database, you can visit the **Stor
 If you want custom alerts (e.g., failed trades), the `telegram-worker` can be used to send error logs directly to an admin channel in Telegram.
 
 Example usage inside a worker:
+
 ```typescript
 if (!response.ok) {
-  await env.TELEGRAM_SERVICE.fetch('https://telegram-worker/process', {
-    method: 'POST',
+  await env.TELEGRAM_SERVICE.fetch("https://telegram-worker/process", {
+    method: "POST",
     body: JSON.stringify({
-      message: `🚨 Critical Error in Trade Execution: ${response.statusText}`
-    })
+      message: `🚨 Critical Error in Trade Execution: ${response.statusText}`,
+    }),
   });
 }
 ```
@@ -40,4 +41,4 @@ if (!response.ok) {
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

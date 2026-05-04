@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
-      - 'README.md'
-      - 'AGENTS.md'
+      - "docs/**"
+      - "README.md"
+      - "AGENTS.md"
 
 jobs:
   sync-wiki:
@@ -22,16 +22,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Clone the wiki repository
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
-          
+
           # Copy documentation to wiki folder
           # rsync will merge the docs directory contents into the wiki root
           rsync -av --exclude='.*' docs/ wiki/
           cp README.md wiki/Home.md || true
           cp AGENTS.md wiki/AGENTS.md || true
-          
+
           # Commit and push changes
           cd wiki
           git add .

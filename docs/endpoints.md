@@ -9,22 +9,22 @@ This document catalogs all exposed endpoints from the various workers in the sys
 ```mermaid
 graph TD
     Client[Client] -->|External Request| WH[hoox]
-    
+
     %% hoox connections
     WH -->|Process Trade| TR[trade-worker]
     WH -->|Send Notification| TG[telegram-worker]
 
-    
+
     %% telegram-worker connections
     TG -->|Crypto Operations| W3[web3-wallet-worker]
-    
+
     %% trade-worker connections
     TR -->|Store Trade Data| D1[d1-worker]
-    
+
     %% agent-worker connections
     AG[agent-worker] -->|Execute Trade| TR
     AG -->|Send Notification| TG
-    
+
     %% Service flow examples
     TG -.->|User Interaction| Client
     TR -.->|Signal Response| TG
@@ -37,23 +37,24 @@ graph TD
 
 The hoox is the primary entry point for external requests.
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/` (root) | POST | Main webhook endpoint for processing requests | JSON with `apiKey` and service-specific payloads | JSON with `success`, `error`, and `actions` fields |
+| Endpoint   | Method | Description                                   | Request Format                                   | Response Format                                    |
+| ---------- | ------ | --------------------------------------------- | ------------------------------------------------ | -------------------------------------------------- |
+| `/` (root) | POST   | Main webhook endpoint for processing requests | JSON with `apiKey` and service-specific payloads | JSON with `success`, `error`, and `actions` fields |
 
 Request Example:
+
 ```json
 {
   "apiKey": "your-api-key",
   "telegram": {
     "chatId": "123456789",
     "message": "Hello from webhook"
-  },
-
+  }
 }
 ```
 
 Response Example:
+
 ```json
 {
   "success": true,
@@ -64,51 +65,48 @@ Response Example:
       "type": "telegram",
       "success": true,
       "message": "Message sent successfully"
-    },
-
+    }
   ]
 }
 ```
 
 ### telegram-worker
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/process` | POST | Legacy endpoint for sending notifications | JSON with `requestId`, `internalAuthKey`, and `payload` | JSON with `success` and `result` fields |
-| `/webhook` | POST | Handle incoming Telegram updates | Standard Telegram update format | 200 OK response |
-| `/test-vectorize` | GET | Testing endpoint (development only) | Query param `q` | JSON with search results |
-| `/test-ai` | GET | Testing endpoint (development only) | N/A | JSON with AI response |
-| `/test-r2-upload` | POST | Testing endpoint (development only) | File data | JSON response |
-| `/test-web3` | GET | Testing endpoint (development only) | Query params `chain` and `address` | JSON with wallet data |
+| Endpoint          | Method | Description                               | Request Format                                          | Response Format                         |
+| ----------------- | ------ | ----------------------------------------- | ------------------------------------------------------- | --------------------------------------- |
+| `/process`        | POST   | Legacy endpoint for sending notifications | JSON with `requestId`, `internalAuthKey`, and `payload` | JSON with `success` and `result` fields |
+| `/webhook`        | POST   | Handle incoming Telegram updates          | Standard Telegram update format                         | 200 OK response                         |
+| `/test-vectorize` | GET    | Testing endpoint (development only)       | Query param `q`                                         | JSON with search results                |
+| `/test-ai`        | GET    | Testing endpoint (development only)       | N/A                                                     | JSON with AI response                   |
+| `/test-r2-upload` | POST   | Testing endpoint (development only)       | File data                                               | JSON response                           |
+| `/test-web3`      | GET    | Testing endpoint (development only)       | Query params `chain` and `address`                      | JSON with wallet data                   |
 
 ### trade-worker
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/process` | POST | Process trade orders (internal) | JSON with `requestId`, `internalAuthKey`, and trade payload | JSON with trade result |
-| `/webhook` | POST | Alternative entry point for trade orders | JSON with trade details | JSON with trade result |
-| `/dex` | POST | Handle DEX (decentralized exchange) trades | JSON with DEX trade details | JSON with trade result |
-| `/api/signals` | GET | Retrieve trade signals | Query params for filtering | JSON with signal list |
-| `/api/signals` | POST | Create a new trade signal | JSON with signal details | JSON with created signal |
-| `/report` | GET | Get R2 reports | Query params for report selection | Report data |
-| `/test-ai` | GET | Testing endpoint (development only) | N/A | JSON with AI response |
-
-
+| Endpoint       | Method | Description                                | Request Format                                              | Response Format          |
+| -------------- | ------ | ------------------------------------------ | ----------------------------------------------------------- | ------------------------ |
+| `/process`     | POST   | Process trade orders (internal)            | JSON with `requestId`, `internalAuthKey`, and trade payload | JSON with trade result   |
+| `/webhook`     | POST   | Alternative entry point for trade orders   | JSON with trade details                                     | JSON with trade result   |
+| `/dex`         | POST   | Handle DEX (decentralized exchange) trades | JSON with DEX trade details                                 | JSON with trade result   |
+| `/api/signals` | GET    | Retrieve trade signals                     | Query params for filtering                                  | JSON with signal list    |
+| `/api/signals` | POST   | Create a new trade signal                  | JSON with signal details                                    | JSON with created signal |
+| `/report`      | GET    | Get R2 reports                             | Query params for report selection                           | Report data              |
+| `/test-ai`     | GET    | Testing endpoint (development only)        | N/A                                                         | JSON with AI response    |
 
 ### web3-wallet-worker
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/` (root) | GET | Initialize wallet and return address | N/A | JSON with wallet address |
+| Endpoint   | Method | Description                          | Request Format | Response Format          |
+| ---------- | ------ | ------------------------------------ | -------------- | ------------------------ |
+| `/` (root) | GET    | Initialize wallet and return address | N/A            | JSON with wallet address |
 
 ### agent-worker
 
 The `agent-worker` runs primarily via Cloudflare® Cron Triggers (`*/5 * * * *`) but exposes REST endpoints for manual intervention.
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/agent/risk-override` | POST | Manually enforce or release risk locks (e.g., global kill switch) | JSON with `action` and `reason` | JSON confirmation |
-| `/agent/status` | GET | Retrieve real-time health of the agent and active trailing stops | N/A | JSON with `status` and active states |
+| Endpoint               | Method | Description                                                       | Request Format                  | Response Format                      |
+| ---------------------- | ------ | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------ |
+| `/agent/risk-override` | POST   | Manually enforce or release risk locks (e.g., global kill switch) | JSON with `action` and `reason` | JSON confirmation                    |
+| `/agent/status`        | GET    | Retrieve real-time health of the agent and active trailing stops  | N/A                             | JSON with `status` and active states |
 
 ### dashboard
 
@@ -116,18 +114,18 @@ The `dashboard` is a frontend interface that interacts with the `d1-worker` and 
 
 ### d1-worker
 
-| Endpoint | Method | Description | Request Format | Response Format |
-|----------|--------|-------------|----------------|-----------------|
-| `/query` | POST | Execute SQL queries against D1 | JSON with query and params | JSON with query results |
-| `/batch` | POST | Execute multiple SQL statements | JSON with queries array | JSON with batch results |
-| `/api/dashboard/stats` | GET | Retrieve high-level dashboard metrics | N/A | JSON with `totalTrades`, `openPositions`, and recent activity |
-| `/api/dashboard/positions` | GET | Retrieve all `OPEN` positions | N/A | JSON array of active positions |
-| `/api/dashboard/logs` | GET | Retrieve recent system logs | N/A | JSON array of `system_logs` |
-| `/{tableName}` | GET | List records with filtering | Query params for filters | JSON with record list |
-| `/{tableName}/{id}` | GET | Get a specific record | N/A | JSON with record data |
-| `/{tableName}` | POST | Create a new record | JSON with fields | JSON with created record |
-| `/{tableName}/{id}` | PUT | Update an existing record | JSON with updated fields | JSON with update result |
-| `/{tableName}/{id}` | DELETE | Delete a record | N/A | JSON with deletion result |
+| Endpoint                   | Method | Description                           | Request Format             | Response Format                                               |
+| -------------------------- | ------ | ------------------------------------- | -------------------------- | ------------------------------------------------------------- |
+| `/query`                   | POST   | Execute SQL queries against D1        | JSON with query and params | JSON with query results                                       |
+| `/batch`                   | POST   | Execute multiple SQL statements       | JSON with queries array    | JSON with batch results                                       |
+| `/api/dashboard/stats`     | GET    | Retrieve high-level dashboard metrics | N/A                        | JSON with `totalTrades`, `openPositions`, and recent activity |
+| `/api/dashboard/positions` | GET    | Retrieve all `OPEN` positions         | N/A                        | JSON array of active positions                                |
+| `/api/dashboard/logs`      | GET    | Retrieve recent system logs           | N/A                        | JSON array of `system_logs`                                   |
+| `/{tableName}`             | GET    | List records with filtering           | Query params for filters   | JSON with record list                                         |
+| `/{tableName}/{id}`        | GET    | Get a specific record                 | N/A                        | JSON with record data                                         |
+| `/{tableName}`             | POST   | Create a new record                   | JSON with fields           | JSON with created record                                      |
+| `/{tableName}/{id}`        | PUT    | Update an existing record             | JSON with updated fields   | JSON with update result                                       |
+| `/{tableName}/{id}`        | DELETE | Delete a record                       | N/A                        | JSON with deletion result                                     |
 
 ## System Architecture Insights
 
@@ -169,32 +167,31 @@ const routeConfig = {
   "/v1/trades": {
     worker: "trade-worker",
     path: "/process",
-    requiresAuth: true
+    requiresAuth: true,
   },
   "/v1/notifications": {
     worker: "telegram-worker",
     path: "/process",
-    requiresAuth: true
+    requiresAuth: true,
   },
-
 };
 
 // Router function that uses the config
 async function routeRequest(request, env) {
   const url = new URL(request.url);
   const route = routeConfig[url.pathname];
-  
+
   if (!route) {
     return new Response("Not Found", { status: 404 });
   }
-  
+
   // Authentication, validation, etc.
-  
+
   // Forward to appropriate worker
   return env[route.worker].fetch(`http://${route.worker}${route.path}`, {
     method: request.method,
     headers: request.headers,
-    body: request.body
+    body: request.body,
   });
 }
 ```
@@ -209,8 +206,8 @@ async function routeRequest(request, env) {
 
 4. **Middleware Composition**: Build a library of reusable middleware functions that can be composed for different routes.
 
-By implementing these improvements, the system can evolve beyond hardcoded functions while maintaining security and providing better scalability and maintainability. 
+By implementing these improvements, the system can evolve beyond hardcoded functions while maintaining security and providing better scalability and maintainability.
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

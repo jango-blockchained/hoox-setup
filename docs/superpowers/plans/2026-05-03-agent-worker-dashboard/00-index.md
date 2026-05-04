@@ -33,6 +33,7 @@
 ## File Structure
 
 ### Pages
+
 - `src/app/dashboard/agent/metadata.ts`
 - `src/app/dashboard/agent/page.tsx`
 - `src/app/dashboard/agent/chat/page.tsx`
@@ -43,6 +44,7 @@
 - `src/app/dashboard/agent/usage/page.tsx`
 
 ### API Routes
+
 - `src/app/api/agent/config/route.ts`
 - `src/app/api/agent/health/route.ts`
 - `src/app/api/agent/status/route.ts`
@@ -56,6 +58,7 @@
 - `src/app/api/agent/risk-override/route.ts`
 
 ### Components
+
 - `src/components/agent/overview.tsx`
 - `src/components/agent/chat-interface.tsx`
 - `src/components/agent/vision-upload.tsx`
@@ -70,5 +73,6 @@
 - `src/components/agent/kill-switch.tsx`
 
 ### Updated Files
+
 - `src/components/dashboard/nav-main.tsx`
 - `src/components/dashboard/workers-overview.tsx`

@@ -54,9 +54,11 @@ describe("hoox Gateway", () => {
     const mockEnv = {
       TRADE_SERVICE: {
         fetch: async (url: any, options: any) => {
-          return new Response(JSON.stringify({ success: true }), { status: 200 });
-        }
-      }
+          return new Response(JSON.stringify({ success: true }), {
+            status: 200,
+          });
+        },
+      },
     } as unknown as Env;
 
     // Test logic here
@@ -109,20 +111,20 @@ We use `bun test --coverage` to track code coverage across the project. The CI p
 
 ### Coverage Results (as of May 2026)
 
-| Package/File | Function Coverage | Line Coverage | Status |
-|--------------|-----------------|---------------|--------|
-| **packages/hoox-cli** ||||
-| cf-client.ts | 100% | 100% | ✅ |
-| utils.ts | 83.33% | 83.51% | ✅ |
-| validation.ts | 92.86% | 74.37% | ⚠️ (functions only) |
-| configUtils.ts | 68.18% | 40.48% | ❌ Needs improvement |
-| workerCommands.ts | 22.73% | 2.27% | ❌ Needs improvement |
-| **workers/hoox** ||||
-| index.ts | 85% | 82% | ✅ |
-| **workers/trade-worker** ||||
-| index.ts | 88% | 85% | ✅ |
-| **workers/agent-worker** ||||
-| index.ts | 90% | 87% | ✅ |
+| Package/File             | Function Coverage | Line Coverage | Status               |
+| ------------------------ | ----------------- | ------------- | -------------------- |
+| **packages/hoox-cli**    |                   |               |                      |
+| cf-client.ts             | 100%              | 100%          | ✅                   |
+| utils.ts                 | 83.33%            | 83.51%        | ✅                   |
+| validation.ts            | 92.86%            | 74.37%        | ⚠️ (functions only)  |
+| configUtils.ts           | 68.18%            | 40.48%        | ❌ Needs improvement |
+| workerCommands.ts        | 22.73%            | 2.27%         | ❌ Needs improvement |
+| **workers/hoox**         |                   |               |                      |
+| index.ts                 | 85%               | 82%           | ✅                   |
+| **workers/trade-worker** |                   |               |                      |
+| index.ts                 | 88%               | 85%           | ✅                   |
+| **workers/agent-worker** |                   |               |                      |
+| index.ts                 | 90%               | 87%           | ✅                   |
 
 > **Note**: Coverage percentages shown are when running test files in isolation. Running all tests together may show lower coverage due to test isolation issues with module mocking.
 
@@ -156,4 +158,4 @@ To improve coverage for a specific file:
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

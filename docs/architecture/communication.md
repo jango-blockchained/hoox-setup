@@ -33,7 +33,7 @@ export default {
           symbol: "BTC_USDT",
           quantity: 0.01,
         }),
-      },
+      }
     );
 
     const result = await tradeResponse.json();

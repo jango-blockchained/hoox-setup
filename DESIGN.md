@@ -73,17 +73,16 @@ Hoox is a 100% free, open-source, Zero Latency, Edge-executed trading system. It
 
 ### 2.2 Workers List
 
-| Worker | Path | Purpose | Cron |
-|--------|------|---------|------|
-| **hoox** | `workers/hoox/` | Gateway/firewall for webhooks | - |
-| **trade-worker** | `workers/trade-worker/` | Multi-exchange execution | - |
-| **agent-worker** | `workers/agent-worker/` | AI risk manager | `*/5 * * * *` |
-| **dashboard** | `pages/dashboard/` | React dashboard | - |
-| **telegram-worker** | `workers/telegram-worker/` | Notifications | - |
-| **d1-worker** | `workers/d1-worker/` | D1 database ops | - |
-| **web3-wallet-worker** | `workers/web3-wallet-worker/` | DeFi/on-chain | - |
-| **email-worker** | `workers/email-worker/` | Email signal scanner | `*/5 * * * *` |
-
+| Worker                 | Path                          | Purpose                       | Cron          |
+| ---------------------- | ----------------------------- | ----------------------------- | ------------- |
+| **hoox**               | `workers/hoox/`               | Gateway/firewall for webhooks | -             |
+| **trade-worker**       | `workers/trade-worker/`       | Multi-exchange execution      | -             |
+| **agent-worker**       | `workers/agent-worker/`       | AI risk manager               | `*/5 * * * *` |
+| **dashboard**          | `pages/dashboard/`            | React dashboard               | -             |
+| **telegram-worker**    | `workers/telegram-worker/`    | Notifications                 | -             |
+| **d1-worker**          | `workers/d1-worker/`          | D1 database ops               | -             |
+| **web3-wallet-worker** | `workers/web3-wallet-worker/` | DeFi/on-chain                 | -             |
+| **email-worker**       | `workers/email-worker/`       | Email signal scanner          | `*/5 * * * *` |
 
 ## 3. Data Models (D1 & R2)
 
@@ -198,12 +197,14 @@ This ruleset governs the aesthetic, layout, and UX patterns for the Hoox Dashboa
 When using Next.js 16+ in a monorepo with Turbopack, several known issues can occur:
 
 **Problem**: Turbopack infers wrong project root
+
 ```
 Error: Next.js inferred your workspace root, but it may not be correct.
 We couldn't find the Next.js package (next/package.json) from the project directory: /path/to/project/src/app
 ```
 
 **Root Causes**:
+
 1. **Nested `node_modules`**: A duplicate `next` installation in `src/app/node_modules` causes type conflicts
 2. **Duplicate config files**: `next.config.ts` in both root and `src/` directory
 3. **Turbopack root detection**: Turbopack looks for lock files to determine project root
@@ -214,7 +215,7 @@ Next.js 16 automatically infers the correct project root in most cases. If neede
 
 ```typescript
 // next.config.ts - Only specify turbopack.root if auto-detection fails
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -231,10 +232,11 @@ export default nextConfig;
 **Problem**: `createMotionComponent() from the server but is on the client`
 
 **Solution**: Add `'use client'` directive to all pages using framer-motion:
-```tsx
-'use client';
 
-import { motion } from 'framer-motion';
+```tsx
+"use client";
+
+import { motion } from "framer-motion";
 // ... rest of component
 ```
 
@@ -250,8 +252,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
 
 // Export as 'middleware' for OpenNext Cloudflare compatibility
 export function middleware(request: NextRequest) {
@@ -262,6 +264,7 @@ export function middleware(request: NextRequest) {
 ### 6.4 TypeScript Configuration
 
 **Common errors**:
+
 1. `RouteHandlerConfig` type mismatches - ensure route handlers accept `context: { params: Promise<{}> }`
 2. Nested `node_modules` causing duplicate type definitions - remove any `node_modules` inside `src/`
 3. Use `as unknown as Type` for complex type assertions when needed
@@ -285,6 +288,7 @@ rm -rf .next && rm -rf .next/cache
 Dashboard deploys to **Cloudflare Workers** (not Pages) using OpenNext Cloudflare adapter:
 
 **Build & Deploy:**
+
 ```bash
 # Build with OpenNext (outputs to .open-next/)
 bunx opennextjs-cloudflare build
@@ -294,6 +298,7 @@ bunx wrangler deploy
 ```
 
 **Configuration (`wrangler.jsonc`):**
+
 ```jsonc
 {
   "name": "hoox-dashboard",
@@ -302,18 +307,20 @@ bunx wrangler deploy
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  }
+    "binding": "ASSETS",
+  },
 }
 ```
 
 **Key Points:**
+
 - **Workers, NOT Pages**: OpenNext with Cloudflare deploys to Workers for full Next.js feature support
 - **Node.js Runtime**: Via OpenNext adapter (supports all Next.js features)
 - **Static Assets**: Served via `ASSETS` binding from `.open-next/assets/`
 - **Environment Variables**: Set via `wrangler secret` or `.dev.vars`
 
 **Why Workers over Pages?**
+
 - Full Node.js runtime support (not just Edge)
 - Better Next.js feature compatibility (App Router, SSR, ISR, API routes)
 - More flexible binding support (KV, D1, Durable Objects)

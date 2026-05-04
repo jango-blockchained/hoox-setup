@@ -49,8 +49,7 @@ Request Example:
   "telegram": {
     "chatId": "123456789",
     "message": "Hello from webhook"
-  },
-
+  }
 }
 ```
 
@@ -66,8 +65,7 @@ Response Example:
       "type": "telegram",
       "success": true,
       "message": "Message sent successfully"
-    },
-
+    }
   ]
 }
 ```
@@ -95,8 +93,6 @@ Response Example:
 | `/report`      | GET    | Get R2 reports                             | Query params for report selection                           | Report data              |
 | `/test-ai`     | GET    | Testing endpoint (development only)        | N/A                                                         | JSON with AI response    |
 
-
-
 ### web3-wallet-worker
 
 | Endpoint   | Method | Description                          | Request Format | Response Format          |
@@ -111,17 +107,17 @@ The `agent-worker` runs primarily via Cloudflare® Cron Triggers (`*/5 * * * *`)
 | ---------------------- | ------ | ----------------------------------------------------------------- | ------------------------------- | ------------------------------------ |
 | `/agent/risk-override` | POST   | Manually enforce or release risk locks (e.g., global kill switch) | JSON with `action` and `reason` | JSON confirmation                    |
 | `/agent/status`        | GET    | Retrieve real-time health of the agent and active trailing stops  | N/A                             | JSON with `status` and active states |
-| `/agent/config`        | GET    | Get current AI provider configuration                           | N/A                             | JSON with provider settings            |
-| `/agent/config`        | POST   | Update AI provider configuration at runtime                      | JSON with config updates         | JSON confirmation                    |
-| `/agent/models`        | GET    | List all available AI models                                   | N/A                             | JSON with models by provider         |
-| `/agent/test-model`    | POST   | Test a specific AI model                                      | JSON with model and prompt       | JSON with test result                 |
-| `/agent/health`        | GET    | Check health status of all AI providers                        | N/A                             | JSON with health status              |
-| `/agent/chat`          | POST   | **NEW!** AI chat with streaming support                         | JSON with messages/prompt        | SSE stream or JSON response          |
-| `/agent/vision`        | POST   | **NEW!** Vision analysis (image URL or base64)                  | JSON with image and prompt       | JSON with analysis                  |
-| `/agent/reasoning`     | POST   | **NEW!** Extended thinking with reasoning models                 | JSON with prompt                | JSON with reasoning and answer      |
-| `/agent/usage`         | GET    | **NEW!** AI API usage statistics                               | N/A                             | JSON with usage by provider         |
-| `/agent/prompts`       | GET    | **NEW!** List available prompt templates                        | N/A                             | JSON with prompt names              |
-| `/agent/embedding`     | POST   | Generate text embeddings                                       | JSON with text                   | JSON with embedding vector          |
+| `/agent/config`        | GET    | Get current AI provider configuration                             | N/A                             | JSON with provider settings          |
+| `/agent/config`        | POST   | Update AI provider configuration at runtime                       | JSON with config updates        | JSON confirmation                    |
+| `/agent/models`        | GET    | List all available AI models                                      | N/A                             | JSON with models by provider         |
+| `/agent/test-model`    | POST   | Test a specific AI model                                          | JSON with model and prompt      | JSON with test result                |
+| `/agent/health`        | GET    | Check health status of all AI providers                           | N/A                             | JSON with health status              |
+| `/agent/chat`          | POST   | **NEW!** AI chat with streaming support                           | JSON with messages/prompt       | SSE stream or JSON response          |
+| `/agent/vision`        | POST   | **NEW!** Vision analysis (image URL or base64)                    | JSON with image and prompt      | JSON with analysis                   |
+| `/agent/reasoning`     | POST   | **NEW!** Extended thinking with reasoning models                  | JSON with prompt                | JSON with reasoning and answer       |
+| `/agent/usage`         | GET    | **NEW!** AI API usage statistics                                  | N/A                             | JSON with usage by provider          |
+| `/agent/prompts`       | GET    | **NEW!** List available prompt templates                          | N/A                             | JSON with prompt names               |
+| `/agent/embedding`     | POST   | Generate text embeddings                                          | JSON with text                  | JSON with embedding vector           |
 
 ### dashboard
 
@@ -189,7 +185,6 @@ const routeConfig = {
     path: "/process",
     requiresAuth: true,
   },
-
 };
 
 // Router function that uses the config
@@ -224,7 +219,6 @@ async function routeRequest(request, env) {
 
 By implementing these improvements, the system can evolve beyond hardcoded functions while maintaining security and providing better scalability and maintainability.
 
-
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

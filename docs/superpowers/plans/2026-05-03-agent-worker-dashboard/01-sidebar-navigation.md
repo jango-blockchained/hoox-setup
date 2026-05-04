@@ -1,6 +1,7 @@
 ### Task 1: Update Sidebar Navigation
 
 **Files:**
+
 - Modify: `src/components/dashboard/nav-main.tsx`
 
 - [ ] **Step 1: Read current nav-main.tsx**
@@ -35,7 +36,7 @@ Also import `Brain` from `lucide-react` at the top of the file.
 Modify the `NavMain` component to render children items when a nav item has them. Replace the current component:
 
 ```tsx
-"use client"
+"use client";
 
 import {
   LayoutDashboard,
@@ -46,12 +47,19 @@ import {
   Wrench,
   Brain,
   ChevronDown,
-} from "lucide-react"
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from "@/components/ui/sidebar"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
-import { useState } from "react"
+} from "lucide-react";
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+} from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useState } from "react";
 
 const navItems = [
   {
@@ -91,28 +99,28 @@ const navItems = [
       { title: "Models", href: "/dashboard/agent/models" },
       { title: "Risk", href: "/dashboard/agent/risk" },
       { title: "Usage", href: "/dashboard/agent/usage" },
-    ]
+    ],
   },
   {
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
   },
-]
+];
 
 export function NavMain() {
-  const pathname = usePathname()
-  const [expandedItem, setExpandedItem] = useState<string | null>(null)
+  const pathname = usePathname();
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   return (
     <SidebarMenu>
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
-          (item.href !== "/dashboard" && pathname?.startsWith(item.href))
-        
-        const hasChildren = item.children && item.children.length > 0
-        const isExpanded = expandedItem === item.title
+          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+
+        const hasChildren = item.children && item.children.length > 0;
+        const isExpanded = expandedItem === item.title;
 
         return (
           <div key={item.href}>
@@ -121,17 +129,19 @@ export function NavMain() {
                 asChild
                 isActive={isActive}
                 className="transition-colors"
-                onClick={() => hasChildren && setExpandedItem(isExpanded ? null : item.title)}
+                onClick={() =>
+                  hasChildren && setExpandedItem(isExpanded ? null : item.title)
+                }
               >
                 {hasChildren ? (
                   <button className="flex items-center w-full">
                     <item.icon />
                     <span>{item.title}</span>
-                    <ChevronDown 
+                    <ChevronDown
                       className={cn(
                         "ml-auto h-4 w-4 transition-transform",
                         isExpanded && "rotate-180"
-                      )} 
+                      )}
                     />
                   </button>
                 ) : (
@@ -146,7 +156,10 @@ export function NavMain() {
               <SidebarMenuSub>
                 {item.children.map((child) => (
                   <SidebarMenuSubItem key={child.href}>
-                    <SidebarMenuSubButton asChild isActive={pathname === child.href}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname === child.href}
+                    >
                       <Link href={child.href}>{child.title}</Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
@@ -154,10 +167,10 @@ export function NavMain() {
               </SidebarMenuSub>
             )}
           </div>
-        )
+        );
       })}
     </SidebarMenu>
-  )
+  );
 }
 ```
 

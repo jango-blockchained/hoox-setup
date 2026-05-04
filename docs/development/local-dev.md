@@ -41,12 +41,12 @@ bunx wrangler dev --port 8787
 
 When running locally, Cloudflare® Workers can communicate with each other using local service bindings. The ports for local development are mapped as follows:
 
-| Service | Local Port |
-|---------|------------|
-| hoox | 8787 |
-| trade-worker | 8788 |
-| d1-worker | 8789 |
-| telegram-worker | 8790 |
+| Service         | Local Port |
+| --------------- | ---------- |
+| hoox            | 8787       |
+| trade-worker    | 8788       |
+| d1-worker       | 8789       |
+| telegram-worker | 8790       |
 
 | web3-wallet | 8792 |
 | dashboard (Pages) | 8783 |
@@ -64,6 +64,7 @@ Or directly:
 ```
 cd pages/dashboard && bun run dev
 ```
+
 ```
 
 This runs the Next.js dev server, which can be accessed at `http://localhost:3000`.
@@ -78,3 +79,4 @@ To test local bindings, you must have all dependent workers running in separate 
 ---
 
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+```

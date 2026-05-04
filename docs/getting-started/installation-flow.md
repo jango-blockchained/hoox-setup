@@ -69,6 +69,7 @@ hoox check-setup
 ```
 
 This command verifies:
+
 - All required configuration files exist
 - Configuration files are properly formatted
 - Configuration structure matches between actual and example files
@@ -92,18 +93,18 @@ The project uses JSONC (JSON with Comments) as its configuration format:
     "cloudflare_api_token": "your_api_token",
     "cloudflare_account_id": "your_account_id",
     "cloudflare_secret_store_id": "your_secret_store_id",
-    "subdomain_prefix": "your-prefix"
+    "subdomain_prefix": "your-prefix",
   },
   "workers": {
     "d1-worker": {
       "enabled": true,
       "path": "workers/d1-worker",
-      "vars": { 
-        "database_name": "my-database" 
+      "vars": {
+        "database_name": "my-database",
       },
-      "secrets": []
-    }
-  }
+      "secrets": [],
+    },
+  },
 }
 ```
 
@@ -118,11 +119,13 @@ This project uses Cloudflare®'s Secret Store for managing sensitive information
 ### Setting Up Secret Store
 
 1. Create a Secret Store using Wrangler:
+
    ```bash
    npx wrangler secrets-store store create <your-store-name>
    ```
 
 2. List your stores to find the Secret Store ID:
+
    ```bash
    npx wrangler secrets-store store list
    ```
@@ -196,9 +199,9 @@ Environment variables can be set in `workers.jsonc` under each worker's `vars` o
 {
   "workers": {
     "d1-worker": {
-      "vars": { "database_name": "my-database", "api_version": "v1" }
-    }
-  }
+      "vars": { "database_name": "my-database", "api_version": "v1" },
+    },
+  },
 }
 ```
 
@@ -209,6 +212,7 @@ These are added to the worker's configuration file during setup.
 After installation, you can use the following commands to manage your workers:
 
 - **Setup (without deploying)**:
+
   ```bash
   hoox workers setup
   # or with the full command
@@ -216,6 +220,7 @@ After installation, you can use the following commands to manage your workers:
   ```
 
 - **Deploy**:
+
   ```bash
   hoox workers deploy
   # or with the full command
@@ -223,6 +228,7 @@ After installation, you can use the following commands to manage your workers:
   ```
 
 - **Run Dev Server**:
+
   ```bash
   hoox workers dev <worker-name>
   # or with the full command
@@ -230,6 +236,7 @@ After installation, you can use the following commands to manage your workers:
   ```
 
 - **Check Status**:
+
   ```bash
   hoox workers status
   # or with the full command
@@ -259,12 +266,14 @@ hoox workers clone
 ```
 
 This command will:
+
 1. Check if the workers directory exists and create it if needed
 2. Provide a list of available worker repositories to clone
 3. Allow you to select specific workers or clone all of them
 4. Clone the selected workers as Git submodules by default
 
 Options:
+
 - Use `--direct` to clone repositories directly instead of as submodules:
   ```bash
   hoox workers clone --direct
@@ -277,8 +286,8 @@ Options:
 - **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `hoox init` again to continue.
 - **Secret Binding Issues**: Verify secrets exist in your Secret Store with `wrangler secrets-store secret list --store-id <your-store-id>`
 - **Check Worker Status**: Use `hoox workers status` to see if any workers are misconfigured
-- **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs 
+- **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
