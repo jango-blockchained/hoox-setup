@@ -9,6 +9,7 @@ import {
   Wrench,
   Brain,
   ChevronDown,
+  BarChart3,
 } from "lucide-react"
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
@@ -31,6 +32,11 @@ const navItems = [
     title: "Signal Flow",
     href: "/dashboard/signal-flow",
     icon: GitBranch,
+  },
+  {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
   },
   {
     title: "Logs",
