@@ -55,7 +55,7 @@ function printBanner(commands: Record<string, Command>): void {
   const categoryOrder = [
     "init",
     "clone",
-    "checkSetup",
+    "check-setup",
     "config",
     "workers",
     "trade",
@@ -64,7 +64,8 @@ function printBanner(commands: Record<string, Command>): void {
     "logs",
     "housekeeping",
     "waf",
-    "r2Provision",
+    "r2",
+    "repair",
   ];
 
   for (const cat of categoryOrder) {

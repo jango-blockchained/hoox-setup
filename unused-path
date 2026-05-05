@@ -1,0 +1,6 @@
+{
+  "name": "hoox-dashboard",
+  "vars": {
+    "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev"
+  }
+}

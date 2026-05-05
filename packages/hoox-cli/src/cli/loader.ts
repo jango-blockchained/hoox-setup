@@ -10,8 +10,8 @@ export async function loadCommands(): Promise<Record<string, Command>> {
     const files = new Bun.Glob("**/*.ts").scan({ cwd: commandDir });
 
     for await (const file of files) {
-      // Skip test files and index files
-      if (file.includes(".test.") || file.endsWith("index.ts")) continue;
+      // Skip test files and the barrel index (root-level index.ts only)
+      if (file.includes(".test.") || file === "index.ts") continue;
 
       const fullPath = path.join(commandDir, file);
       const mod = await import(fullPath);

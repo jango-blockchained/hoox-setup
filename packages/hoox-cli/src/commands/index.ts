@@ -36,3 +36,9 @@ export { default as waf } from "./waf/index.js";
 
 // Check commands
 export { CheckSetupCommand as checkSetup } from "./check-setup/index.js";
+
+// Housekeeping commands
+export { default as housekeeping } from "./housekeeping/index.js";
+
+// Repair commands
+export { RepairCommand as repair } from "./repair/index.js";
