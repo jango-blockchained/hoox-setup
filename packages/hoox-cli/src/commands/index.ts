@@ -6,6 +6,7 @@ export { WorkersDeployCommand as workersDeploy } from "./workers/deploy.js";
 export { WorkersStatusCommand as workersStatus } from "./workers/status.js";
 export { WorkersTestCommand as workersTest } from "./workers/test.js";
 export { WorkersLogsCommand as workersLogs } from "./workers/logs.js";
+export { WorkersMonitorCommand as workersMonitor } from "./workers/monitor.js";
 export { WorkersListCommand as workersList } from "./workers/list.js";
 export { WorkersUpdateInternalUrlsCommand as workersUpdateInternalUrls } from "./workers/update-urls.js";
 
@@ -24,6 +25,7 @@ export { default as cfZones } from "./cf/zones.js";
 
 // Dashboard commands
 export { DashboardDeployCommand as dashboardDeploy } from "./dashboard/deploy.js";
+export { DashboardUpdateUrlsCommand as dashboardUpdateUrls } from "./dashboard/update-urls.js";
 
 // R2 provisioning command
 export { default as r2Provision } from "./r2/index.js";
