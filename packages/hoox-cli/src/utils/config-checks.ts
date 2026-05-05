@@ -1,11 +1,15 @@
 import { createValidationResult, ValidationResult } from "./validation.js";
 
-export async function checkWorkersJsonc(cwd: string): Promise<ValidationResult> {
+export async function checkWorkersJsonc(
+  cwd: string
+): Promise<ValidationResult> {
   const result = createValidationResult("workers.jsonc");
   const file = Bun.file(`${cwd}/workers.jsonc`);
 
   if (!(await file.exists())) {
-    result.addError("workers.jsonc not found in project root. Run: hoox config:init");
+    result.addError(
+      "workers.jsonc not found in project root. Run: hoox config:init"
+    );
     return result;
   }
 
@@ -16,7 +20,9 @@ export async function checkWorkersJsonc(cwd: string): Promise<ValidationResult> 
     );
 
     if (!config.global?.cloudflare_account_id) {
-      result.addError("global.cloudflare_account_id is required in workers.jsonc");
+      result.addError(
+        "global.cloudflare_account_id is required in workers.jsonc"
+      );
     }
     if (!config.global?.subdomain_prefix) {
       result.addError("global.subdomain_prefix is required in workers.jsonc");
@@ -47,7 +53,9 @@ export async function checkWranglerConfigs(
     const tomlFile = Bun.file(tomlPath);
 
     if (!(await jsoncFile.exists()) && !(await tomlFile.exists())) {
-      result.addError(`Worker "${name}" missing wrangler.jsonc/toml at ${worker.path}`);
+      result.addError(
+        `Worker "${name}" missing wrangler.jsonc/toml at ${worker.path}`
+      );
       continue;
     }
 
@@ -76,7 +84,9 @@ export async function checkEnvLocal(cwd: string): Promise<ValidationResult> {
 
   for (const key of required) {
     if (!content.includes(`${key}=`) || content.includes(`${key}="your_`)) {
-      result.addError(`${key} is missing or has placeholder value in .env.local`);
+      result.addError(
+        `${key} is missing or has placeholder value in .env.local`
+      );
     }
   }
 
@@ -99,7 +109,9 @@ export async function checkSubmodules(cwd: string): Promise<ValidationResult> {
   for (const worker of requiredWorkers) {
     const dirExists = await Bun.file(`${cwd}/${worker}/package.json`).exists();
     if (!dirExists) {
-      result.addError(`Worker directory missing: ${worker}. Run: git submodule update --init --recursive`);
+      result.addError(
+        `Worker directory missing: ${worker}. Run: git submodule update --init --recursive`
+      );
     }
   }
 

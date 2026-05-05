@@ -66,7 +66,11 @@ export class WorkersSetupCommand implements Command {
       const config = await this.readWorkersConfig(`${ctx.cwd}/workers.jsonc`);
 
       // 2. Determine which workers to process
-      const workersToSetup = this.filterWorkers(config, specificWorker, setupAll);
+      const workersToSetup = this.filterWorkers(
+        config,
+        specificWorker,
+        setupAll
+      );
       const workerNames = Object.keys(workersToSetup);
 
       if (workerNames.length === 0) {
@@ -125,7 +129,11 @@ export class WorkersSetupCommand implements Command {
             }
 
             // Bind secret to Cloudflare via wrangler (piped via stdin)
-            await ctx.adapters.cloudflare.setSecret(workerName, secretName, value);
+            await ctx.adapters.cloudflare.setSecret(
+              workerName,
+              secretName,
+              value
+            );
             result.secretsBound++;
             devVarsEntries.push(`${secretName}="${value}"`);
           } catch (err) {
@@ -272,7 +280,8 @@ export class WorkersSetupCommand implements Command {
     console.log(ansis.dim("  ──────────────────────────────────────────────"));
 
     for (const result of results) {
-      const icon = result.errors.length > 0 ? ansis.yellow("⚠") : ansis.green("✓");
+      const icon =
+        result.errors.length > 0 ? ansis.yellow("⚠") : ansis.green("✓");
       console.log(`  ${icon} ${ansis.bold(result.worker)}`);
 
       if (result.secretsBound > 0) {

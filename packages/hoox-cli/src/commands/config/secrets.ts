@@ -103,7 +103,7 @@ export class ConfigSecretsCommand implements Command {
       spinner.stop("Secrets retrieved successfully!");
       p.log.info("No secrets found (placeholder - implement with adapter)");
     } catch (error) {
-      spinner.stop("Failed to fetch secrets", 1);
+      spinner.stop("Failed to fetch secrets");
       throw error;
     }
   }
@@ -126,9 +126,9 @@ export class ConfigSecretsCommand implements Command {
       secretName = input;
     }
 
-    let secretValue = ctx.args?.value as string | undefined;
+    let _secretValue = ctx.args?.value as string | undefined;
 
-    if (!secretValue) {
+    if (!_secretValue) {
       const input =
         (await p.password?.({
           message: `Enter value for ${secretName}:`,
@@ -137,8 +137,9 @@ export class ConfigSecretsCommand implements Command {
         p.cancel("Operation cancelled.");
         return;
       }
-      secretValue = input as string;
+      _secretValue = input as string;
     }
+    void _secretValue; // Will be used when cloudflare adapter is integrated
 
     spinner.start(`Setting secret ${secretName}...`);
 
@@ -149,7 +150,7 @@ export class ConfigSecretsCommand implements Command {
 
       spinner.stop(`Secret ${secretName} set successfully!`);
     } catch (error) {
-      spinner.stop(`Failed to set secret ${secretName}`, 1);
+      spinner.stop(`Failed to set secret ${secretName}`);
       throw error;
     }
   }
@@ -191,7 +192,7 @@ export class ConfigSecretsCommand implements Command {
 
       spinner.stop(`Secret ${secretName} deleted successfully!`);
     } catch (error) {
-      spinner.stop(`Failed to delete secret ${secretName}`, 1);
+      spinner.stop(`Failed to delete secret ${secretName}`);
       throw error;
     }
   }

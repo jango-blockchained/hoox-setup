@@ -69,7 +69,7 @@ export default class CfQueuesCommand implements Command {
         p.log.message(q.queue_name);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch queues.", 1);
+      spinner.stop("Failed to fetch queues.");
       throw error;
     }
   }
@@ -102,7 +102,7 @@ export default class CfQueuesCommand implements Command {
       const queue = await ctx.adapters.cloudflare.createQueue(name);
       spinner.stop(`Queue "${queue.queue_name}" created successfully!`);
     } catch (error) {
-      spinner.stop("Failed to create queue.", 1);
+      spinner.stop("Failed to create queue.");
       throw error;
     }
   }
@@ -145,7 +145,7 @@ export default class CfQueuesCommand implements Command {
       await ctx.adapters.cloudflare.deleteQueue(queueName);
       spinner.stop("Queue deleted successfully!");
     } catch (error) {
-      spinner.stop("Failed to delete queue.", 1);
+      spinner.stop("Failed to delete queue.");
       throw error;
     }
   }

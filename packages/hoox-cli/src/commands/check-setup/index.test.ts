@@ -107,7 +107,7 @@ describe("CheckSetupCommand", () => {
                   path: "workers/d1-worker",
                   vars: { database_name: "my-database" },
                 },
-                "hoox": {
+                hoox: {
                   enabled: true,
                   path: "workers/hoox",
                   secrets: ["WEBHOOK_API_KEY_BINDING"],
@@ -190,7 +190,10 @@ describe("CheckSetupCommand", () => {
           exists: mock(async () => true),
           text: mock(async () =>
             JSON.stringify({
-              global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
+              global: {
+                cloudflare_account_id: "test",
+                subdomain_prefix: "test",
+              },
               workers: {
                 hoox: { enabled: true, path: "workers/hoox" },
               },
@@ -274,16 +277,14 @@ describe("CheckSetupCommand", () => {
     }
 
     // Verify JSON was output
-    const jsonCalls = logSpy.mock.calls.filter(
-      (call: any[]) => {
-        try {
-          const parsed = JSON.parse(call[0]);
-          return parsed.success !== undefined && parsed.categories !== undefined;
-        } catch {
-          return false;
-        }
+    const jsonCalls = logSpy.mock.calls.filter((call: any[]) => {
+      try {
+        const parsed = JSON.parse(call[0]);
+        return parsed.success !== undefined && parsed.categories !== undefined;
+      } catch {
+        return false;
       }
-    );
+    });
     expect(jsonCalls.length).toBeGreaterThan(0);
 
     const report = JSON.parse(jsonCalls[0][0] as string);
@@ -505,7 +506,8 @@ describe("CheckSetupCommand", () => {
     }
 
     // Verify that listSecrets was called only for the "hoox" worker
-    const listSecretsCalls = (mockCtx.adapters.cloudflare.listSecrets as any).mock.calls;
+    const listSecretsCalls = (mockCtx.adapters.cloudflare.listSecrets as any)
+      .mock.calls;
     // checkWorkerSecrets should be called with specificWorker="hoox"
     // which means it only checks that worker's secrets
     const calledWorkers = listSecretsCalls.map((call: any[]) => call[0]);

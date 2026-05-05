@@ -4,3 +4,11 @@ export const metadata: Metadata = {
   title: "Analytics | Hoox Trading System",
   description: "View trading analytics, worker performance, and signal outcomes",
 }
+
+export default function AnalyticsLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <>{children}</>
+}

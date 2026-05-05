@@ -9,11 +9,7 @@ const REQUIRED_TABLES = [
   "system_logs",
 ];
 
-const TRACKING_TABLES = [
-  "signal_events",
-  "event_trace",
-  "worker_stats",
-];
+const TRACKING_TABLES = ["signal_events", "event_trace", "worker_stats"];
 
 const REQUIRED_INDEXES = [
   "idx_trade_signals_timestamp",
@@ -33,11 +29,15 @@ export async function checkRequiredTables(
       databaseName,
       "SELECT name FROM sqlite_master WHERE type='table'"
     );
-    const tableNames = response.results?.map((r: Record<string, unknown>) => r.name as string) || [];
+    const tableNames =
+      response.results?.map((r: Record<string, unknown>) => r.name as string) ||
+      [];
 
     for (const table of REQUIRED_TABLES) {
       if (!tableNames.includes(table)) {
-        result.addError(`Missing required table: ${table}. Apply schema with: wrangler d1 execute ${databaseName} --file=workers/trade-worker/schema.sql --remote`);
+        result.addError(
+          `Missing required table: ${table}. Apply schema with: wrangler d1 execute ${databaseName} --file=workers/trade-worker/schema.sql --remote`
+        );
       }
     }
   } catch (err) {
@@ -58,7 +58,9 @@ export async function checkRequiredIndexes(
       databaseName,
       "SELECT name FROM sqlite_master WHERE type='index'"
     );
-    const indexNames = response.results?.map((r: Record<string, unknown>) => r.name as string) || [];
+    const indexNames =
+      response.results?.map((r: Record<string, unknown>) => r.name as string) ||
+      [];
 
     for (const idx of REQUIRED_INDEXES) {
       if (!indexNames.includes(idx)) {
@@ -83,11 +85,15 @@ export async function checkTrackingSchema(
       databaseName,
       "SELECT name FROM sqlite_master WHERE type='table'"
     );
-    const tableNames = response.results?.map((r: Record<string, unknown>) => r.name as string) || [];
+    const tableNames =
+      response.results?.map((r: Record<string, unknown>) => r.name as string) ||
+      [];
 
     for (const table of TRACKING_TABLES) {
       if (!tableNames.includes(table)) {
-        result.addError(`Missing tracking table: ${table}. Run: bun run migrate:tracking`);
+        result.addError(
+          `Missing tracking table: ${table}. Run: bun run migrate:tracking`
+        );
       }
     }
   } catch (err) {

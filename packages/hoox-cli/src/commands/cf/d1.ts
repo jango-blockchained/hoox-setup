@@ -69,7 +69,7 @@ export default class CfD1Command implements Command {
         p.log.message(`${db.name} (${db.uuid})`);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch D1 databases.", 1);
+      spinner.stop("Failed to fetch D1 databases.");
       throw error;
     }
   }
@@ -102,7 +102,7 @@ export default class CfD1Command implements Command {
       const db = await ctx.adapters.cloudflare.createD1Database(name);
       spinner.stop(`Database "${db.name}" created successfully!`);
     } catch (error) {
-      spinner.stop("Failed to create database.", 1);
+      spinner.stop("Failed to create database.");
       throw error;
     }
   }
@@ -145,7 +145,7 @@ export default class CfD1Command implements Command {
       await ctx.adapters.cloudflare.deleteD1Database(dbName);
       spinner.stop("Database deleted successfully!");
     } catch (error) {
-      spinner.stop("Failed to delete database.", 1);
+      spinner.stop("Failed to delete database.");
       throw error;
     }
   }

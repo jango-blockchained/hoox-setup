@@ -95,7 +95,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
   it("should have correct name and description", () => {
     expect(command.name).toBe("workers:update-internal-urls");
     expect(command.description).toBe(
-      "Update dashboard wrangler.jsonc with worker service URLs",
+      "Update dashboard wrangler.jsonc with worker service URLs"
     );
   });
 
@@ -106,7 +106,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     expect(dryRunOption?.type).toBe("boolean");
 
     const customDomainOption = command.options?.find(
-      (o) => o.flag === "custom-domain",
+      (o) => o.flag === "custom-domain"
     );
     expect(customDomainOption).toBeDefined();
     expect(customDomainOption?.type).toBe("string");
@@ -128,9 +128,15 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     const urlMap = buildUrlMap("myapp", config, {});
 
     expect(urlMap.D1_WORKER_URL).toBe("https://d1-worker.myapp.workers.dev");
-    expect(urlMap.AGENT_SERVICE_URL).toBe("https://agent-worker.myapp.workers.dev");
-    expect(urlMap.TRADE_SERVICE_URL).toBe("https://trade-worker.myapp.workers.dev");
-    expect(urlMap.TELEGRAM_SERVICE_URL).toBe("https://telegram-worker.myapp.workers.dev");
+    expect(urlMap.AGENT_SERVICE_URL).toBe(
+      "https://agent-worker.myapp.workers.dev"
+    );
+    expect(urlMap.TRADE_SERVICE_URL).toBe(
+      "https://trade-worker.myapp.workers.dev"
+    );
+    expect(urlMap.TELEGRAM_SERVICE_URL).toBe(
+      "https://telegram-worker.myapp.workers.dev"
+    );
   });
 
   it("should apply custom domain overrides from CLI arg", () => {
@@ -160,7 +166,11 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
       global: { cloudflare_account_id: "test", subdomain_prefix: "myapp" },
       workers: {
         "d1-worker": { enabled: true, path: "workers/d1-worker" },
-        "agent-worker": { enabled: true, path: "workers/agent-worker", custom_domain: "agent.myapp.io" },
+        "agent-worker": {
+          enabled: true,
+          path: "workers/agent-worker",
+          custom_domain: "agent.myapp.io",
+        },
         "trade-worker": { enabled: true, path: "workers/trade-worker" },
         "telegram-worker": { enabled: true, path: "workers/telegram-worker" },
       },
@@ -179,7 +189,11 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
       global: { cloudflare_account_id: "test", subdomain_prefix: "myapp" },
       workers: {
         "d1-worker": { enabled: true, path: "workers/d1-worker" },
-        "agent-worker": { enabled: true, path: "workers/agent-worker", custom_domain: "agent.myapp.io" },
+        "agent-worker": {
+          enabled: true,
+          path: "workers/agent-worker",
+          custom_domain: "agent.myapp.io",
+        },
         "trade-worker": { enabled: true, path: "workers/trade-worker" },
         "telegram-worker": { enabled: true, path: "workers/telegram-worker" },
       },
@@ -262,7 +276,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
       "trade-worker": "trade.example.com",
     });
     expect(
-      parseArg("trade-worker=trade.example.com,agent-worker=agent.example.com"),
+      parseArg("trade-worker=trade.example.com,agent-worker=agent.example.com")
     ).toEqual({
       "trade-worker": "trade.example.com",
       "agent-worker": "agent.example.com",
@@ -278,20 +292,30 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
 }`;
 
     const changes = [
-      { key: "D1_WORKER_URL", newValue: "https://d1-worker.cryptolinx.workers.dev" },
+      {
+        key: "D1_WORKER_URL",
+        newValue: "https://d1-worker.cryptolinx.workers.dev",
+      },
     ];
 
     // Use jsonc-parser modify + applyEdits directly
     let editedContent = originalContent;
     for (const change of changes) {
-      const edits = modify(editedContent, ["vars", change.key], change.newValue, {
-        formattingOptions: { insertSpaces: true, tabSize: 2 },
-      });
+      const edits = modify(
+        editedContent,
+        ["vars", change.key],
+        change.newValue,
+        {
+          formattingOptions: { insertSpaces: true, tabSize: 2 },
+        }
+      );
       editedContent = applyEdits(editedContent, edits);
     }
 
     const parsed = parse(editedContent) as any;
-    expect(parsed.vars.D1_WORKER_URL).toBe("https://d1-worker.cryptolinx.workers.dev");
+    expect(parsed.vars.D1_WORKER_URL).toBe(
+      "https://d1-worker.cryptolinx.workers.dev"
+    );
     // Verify JSONC formatting is preserved (comments, etc.)
     expect(editedContent).toContain('"name": "hoox-dashboard"');
   });
@@ -307,21 +331,36 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
 }`;
 
     const changes = [
-      { key: "D1_WORKER_URL", newValue: "https://d1-worker.cryptolinx.workers.dev" },
-      { key: "AGENT_SERVICE_URL", newValue: "https://agent-worker.cryptolinx.workers.dev" },
+      {
+        key: "D1_WORKER_URL",
+        newValue: "https://d1-worker.cryptolinx.workers.dev",
+      },
+      {
+        key: "AGENT_SERVICE_URL",
+        newValue: "https://agent-worker.cryptolinx.workers.dev",
+      },
     ];
 
     let editedContent = originalContent;
     for (const change of changes) {
-      const edits = modify(editedContent, ["vars", change.key], change.newValue, {
-        formattingOptions: { insertSpaces: true, tabSize: 2 },
-      });
+      const edits = modify(
+        editedContent,
+        ["vars", change.key],
+        change.newValue,
+        {
+          formattingOptions: { insertSpaces: true, tabSize: 2 },
+        }
+      );
       editedContent = applyEdits(editedContent, edits);
     }
 
     const parsed = parse(editedContent) as any;
-    expect(parsed.vars.D1_WORKER_URL).toBe("https://d1-worker.cryptolinx.workers.dev");
-    expect(parsed.vars.AGENT_SERVICE_URL).toBe("https://agent-worker.cryptolinx.workers.dev");
+    expect(parsed.vars.D1_WORKER_URL).toBe(
+      "https://d1-worker.cryptolinx.workers.dev"
+    );
+    expect(parsed.vars.AGENT_SERVICE_URL).toBe(
+      "https://agent-worker.cryptolinx.workers.dev"
+    );
     // Verify comment is preserved
     expect(editedContent).toContain("// Dashboard config");
   });
@@ -351,12 +390,14 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
   it("should read dashboard wrangler.jsonc correctly", async () => {
     writeFileSync(
       join(tmpDir, "pages", "dashboard", "wrangler.jsonc"),
-      DASHBOARD_WRANGLER,
+      DASHBOARD_WRANGLER
     );
 
-    const readWranglerConfig = (command as any).readWranglerConfig.bind(command);
+    const readWranglerConfig = (command as any).readWranglerConfig.bind(
+      command
+    );
     const content = await readWranglerConfig(
-      `${tmpDir}/pages/dashboard/wrangler.jsonc`,
+      `${tmpDir}/pages/dashboard/wrangler.jsonc`
     );
 
     expect(content).toContain("hoox-dashboard");
@@ -364,7 +405,9 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
   });
 
   it("should throw CLIError when dashboard wrangler.jsonc is missing", async () => {
-    const readWranglerConfig = (command as any).readWranglerConfig.bind(command);
+    const readWranglerConfig = (command as any).readWranglerConfig.bind(
+      command
+    );
 
     try {
       await readWranglerConfig(`${tmpDir}/nonexistent.jsonc`);
@@ -378,7 +421,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     writeFileSync(join(tmpDir, "workers.jsonc"), WORKERS_JSONC);
     writeFileSync(
       join(tmpDir, "pages", "dashboard", "wrangler.jsonc"),
-      DASHBOARD_WRANGLER,
+      DASHBOARD_WRANGLER
     );
 
     mockCtx.args = { "dry-run": true };
@@ -387,7 +430,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
 
     // Verify the file was NOT modified
     const content = await Bun.file(
-      join(tmpDir, "pages", "dashboard", "wrangler.jsonc"),
+      join(tmpDir, "pages", "dashboard", "wrangler.jsonc")
     ).text();
     expect(content).toContain("old-prefix");
     expect(content).not.toContain("cryptolinx");
@@ -397,7 +440,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     writeFileSync(join(tmpDir, "workers.jsonc"), WORKERS_JSONC);
     writeFileSync(
       join(tmpDir, "pages", "dashboard", "wrangler.jsonc"),
-      DASHBOARD_WRANGLER,
+      DASHBOARD_WRANGLER
     );
 
     // Use dry-run to avoid interactive prompt
@@ -407,7 +450,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
 
     expect(mockCtx.observer.emit).toHaveBeenCalledWith(
       "command:start",
-      expect.objectContaining({ cmd: "workers:update-internal-urls" }),
+      expect.objectContaining({ cmd: "workers:update-internal-urls" })
     );
   });
 
@@ -418,7 +461,7 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     await command.execute(mockCtx);
 
     expect(mockCtx.observer.setState).toHaveBeenCalledWith(
-      expect.objectContaining({ commandStatus: "error" }),
+      expect.objectContaining({ commandStatus: "error" })
     );
   });
 
@@ -426,13 +469,13 @@ describe("WorkersUpdateInternalUrlsCommand", () => {
     writeFileSync(join(tmpDir, "workers.jsonc"), WORKERS_JSONC);
     writeFileSync(
       join(tmpDir, "pages", "dashboard", "wrangler.jsonc"),
-      DASHBOARD_WRANGLER_UP_TO_DATE,
+      DASHBOARD_WRANGLER_UP_TO_DATE
     );
 
     await command.execute(mockCtx);
 
     expect(mockCtx.observer.setState).toHaveBeenCalledWith(
-      expect.objectContaining({ commandStatus: "success" }),
+      expect.objectContaining({ commandStatus: "success" })
     );
   });
 });

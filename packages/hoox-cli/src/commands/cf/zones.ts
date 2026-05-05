@@ -69,7 +69,7 @@ export default class CfZonesCommand implements Command {
         p.log.message(`${z.name} [${z.status}]`);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch zones.", 1);
+      spinner.stop("Failed to fetch zones.");
       throw error;
     }
   }
@@ -113,7 +113,7 @@ export default class CfZonesCommand implements Command {
         p.log.message(`${r.type} ${r.name} -> ${r.content}`);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch DNS records.", 1);
+      spinner.stop("Failed to fetch DNS records.");
       throw error;
     }
   }
@@ -196,7 +196,7 @@ export default class CfZonesCommand implements Command {
       });
       spinner.stop("DNS record added successfully!");
     } catch (error) {
-      spinner.stop("Failed to add DNS record.", 1);
+      spinner.stop("Failed to add DNS record.");
       throw error;
     }
   }

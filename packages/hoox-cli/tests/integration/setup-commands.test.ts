@@ -25,10 +25,21 @@ import { WorkersUpdateInternalUrlsCommand } from "../../src/commands/workers/upd
 // ── Utility imports ───────────────────────────────────────────────────
 
 import { createValidationResult } from "../../src/utils/validation.js";
-import { checkWorkersJsonc, checkEnvLocal, checkSubmodules } from "../../src/utils/config-checks.js";
-import { checkD1Database, checkR2Buckets, checkQueues } from "../../src/utils/infrastructure-checks.js";
+import {
+  checkWorkersJsonc,
+  checkEnvLocal,
+  checkSubmodules,
+} from "../../src/utils/config-checks.js";
+import {
+  checkD1Database,
+  checkR2Buckets,
+  checkQueues,
+} from "../../src/utils/infrastructure-checks.js";
 import { checkLocalSecrets } from "../../src/utils/secret-checks.js";
-import { checkRequiredTables, checkTrackingSchema } from "../../src/utils/database-checks.js";
+import {
+  checkRequiredTables,
+  checkTrackingSchema,
+} from "../../src/utils/database-checks.js";
 
 // ── Mock helpers ──────────────────────────────────────────────────────
 
@@ -153,10 +164,16 @@ describe("CLI Setup Commands - Integration", () => {
     });
 
     it("validates workers.jsonc with required fields", async () => {
-      writeFileSync(join(tmpDir, "workers.jsonc"), JSON.stringify({
-        global: { cloudflare_account_id: "test123", subdomain_prefix: "test" },
-        workers: { hoox: { enabled: true, path: "workers/hoox" } },
-      }));
+      writeFileSync(
+        join(tmpDir, "workers.jsonc"),
+        JSON.stringify({
+          global: {
+            cloudflare_account_id: "test123",
+            subdomain_prefix: "test",
+          },
+          workers: { hoox: { enabled: true, path: "workers/hoox" } },
+        })
+      );
       const result = await checkWorkersJsonc(tmpDir);
       expect(result.success).toBe(true);
     });

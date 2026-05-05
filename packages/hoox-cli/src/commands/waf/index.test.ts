@@ -9,11 +9,13 @@ const mockGetKVValue = mock((namespaceId: string, key: string) => {
   return Promise.resolve(kvStore.get(fullKey) ?? null);
 });
 
-const mockPutKVValue = mock((namespaceId: string, key: string, value: string) => {
-  const fullKey = `${namespaceId}:${key}`;
-  kvStore.set(fullKey, value);
-  return Promise.resolve();
-});
+const mockPutKVValue = mock(
+  (namespaceId: string, key: string, value: string) => {
+    const fullKey = `${namespaceId}:${key}`;
+    kvStore.set(fullKey, value);
+    return Promise.resolve();
+  }
+);
 
 const mockListKVNamespaces = mock(() =>
   Promise.resolve([{ id: "ns-config-kv", title: "CONFIG_KV" }])
@@ -68,7 +70,12 @@ describe("WafCommand", () => {
   let WafCommand: new () => {
     name: string;
     description: string;
-    options: Array<{ flag: string; short?: string; type: string; description?: string }>;
+    options: Array<{
+      flag: string;
+      short?: string;
+      type: string;
+      description?: string;
+    }>;
     execute: (ctx: CommandContext) => Promise<void>;
   };
   let mockObserver: Observer;
@@ -84,11 +91,13 @@ describe("WafCommand", () => {
       const fullKey = `${namespaceId}:${key}`;
       return Promise.resolve(kvStore.get(fullKey) ?? null);
     });
-    mockPutKVValue.mockImplementation((namespaceId: string, key: string, value: string) => {
-      const fullKey = `${namespaceId}:${key}`;
-      kvStore.set(fullKey, value);
-      return Promise.resolve();
-    });
+    mockPutKVValue.mockImplementation(
+      (namespaceId: string, key: string, value: string) => {
+        const fullKey = `${namespaceId}:${key}`;
+        kvStore.set(fullKey, value);
+        return Promise.resolve();
+      }
+    );
 
     const module = await import("./index.js");
     WafCommand = module.default;

@@ -69,7 +69,7 @@ export default class CfR2Command implements Command {
         p.log.message(b.name);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch R2 buckets.", 1);
+      spinner.stop("Failed to fetch R2 buckets.");
       throw error;
     }
   }
@@ -102,7 +102,7 @@ export default class CfR2Command implements Command {
       const bucket = await ctx.adapters.cloudflare.createR2Bucket(name);
       spinner.stop(`Bucket "${bucket.name}" created successfully!`);
     } catch (error) {
-      spinner.stop("Failed to create bucket.", 1);
+      spinner.stop("Failed to create bucket.");
       throw error;
     }
   }
@@ -145,7 +145,7 @@ export default class CfR2Command implements Command {
       await ctx.adapters.cloudflare.deleteR2Bucket(bucketName);
       spinner.stop("Bucket deleted successfully!");
     } catch (error) {
-      spinner.stop("Failed to delete bucket.", 1);
+      spinner.stop("Failed to delete bucket.");
       throw error;
     }
   }

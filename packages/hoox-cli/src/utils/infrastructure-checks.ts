@@ -10,7 +10,9 @@ export async function checkD1Database(
     const databases = await adapter.listD1Databases();
     const found = databases.find((db) => db.name === expectedName);
     if (!found) {
-      result.addError(`D1 database "${expectedName}" not found. Create it with: wrangler d1 create ${expectedName}`);
+      result.addError(
+        `D1 database "${expectedName}" not found. Create it with: wrangler d1 create ${expectedName}`
+      );
     }
   } catch (err) {
     result.addError(`Failed to list D1 databases: ${err}`);
@@ -28,7 +30,9 @@ export async function checkKVNamespaces(
     for (const expected of expectedNamespaces) {
       const found = namespaces.find((ns) => ns.id === expected.id);
       if (!found) {
-        result.addError(`KV namespace "${expected.binding}" (id: ${expected.id}) not found. Create it with: wrangler kv:namespace create ${expected.binding}`);
+        result.addError(
+          `KV namespace "${expected.binding}" (id: ${expected.id}) not found. Create it with: wrangler kv:namespace create ${expected.binding}`
+        );
       }
     }
   } catch (err) {
@@ -47,7 +51,9 @@ export async function checkR2Buckets(
     for (const expected of expectedBuckets) {
       const found = buckets.find((b) => b.name === expected);
       if (!found) {
-        result.addError(`R2 bucket "${expected}" not found. Create it with: wrangler r2 bucket create ${expected}`);
+        result.addError(
+          `R2 bucket "${expected}" not found. Create it with: wrangler r2 bucket create ${expected}`
+        );
       }
     }
   } catch (err) {
@@ -66,7 +72,9 @@ export async function checkQueues(
     for (const expected of expectedQueues) {
       const found = queues.find((q) => q.queue_name === expected);
       if (!found) {
-        result.addError(`Queue "${expected}" not found. Create it with: wrangler queues create ${expected}`);
+        result.addError(
+          `Queue "${expected}" not found. Create it with: wrangler queues create ${expected}`
+        );
       }
     }
   } catch (err) {
@@ -83,7 +91,9 @@ export async function checkVectorizeIndex(
   try {
     // Vectorize indexes are checked via wrangler CLI, not directly via adapter
     // We'll use a best-effort approach
-    result.addWarning(`Vectorize index "${expectedIndex}" must be verified manually. Create with: wrangler vectorize create ${expectedIndex} --dimensions=768 --metric=cosine`);
+    result.addWarning(
+      `Vectorize index "${expectedIndex}" must be verified manually. Create with: wrangler vectorize create ${expectedIndex} --dimensions=768 --metric=cosine`
+    );
   } catch (err) {
     result.addWarning(`Could not verify Vectorize index: ${err}`);
   }
@@ -94,6 +104,8 @@ export async function checkAnalyticsEngine(
   expectedDataset: string
 ): Promise<ValidationResult> {
   const result = createValidationResult("Analytics Engine");
-  result.addWarning(`Analytics Engine dataset "${expectedDataset}" must be verified manually in Cloudflare Dashboard`);
+  result.addWarning(
+    `Analytics Engine dataset "${expectedDataset}" must be verified manually in Cloudflare Dashboard`
+  );
   return result;
 }

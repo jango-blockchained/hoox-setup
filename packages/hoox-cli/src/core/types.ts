@@ -44,7 +44,7 @@ export interface AppState {
   workers: Record<string, WorkerHealth>;
   system: {
     bunVersion: string;
-    memoryUsage: NodeJS.MemoryUsage;
+    memoryUsage: ReturnType<typeof process.memoryUsage>;
     cloudflareQuota?: { remaining: number; limit: number };
     apiRateLimits?: Record<string, { remaining: number; resetAt: Date }>;
   };
@@ -104,9 +104,7 @@ export interface CloudflareAdapter {
   deleteQueue(name: string): Promise<void>;
 
   // Secrets methods
-  listSecrets(
-    workerName: string
-  ): Promise<
+  listSecrets(workerName: string): Promise<
     Array<{
       name: string;
       created: string;

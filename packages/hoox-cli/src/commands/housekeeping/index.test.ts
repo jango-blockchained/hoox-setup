@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-import type { CommandContext, Observer, CloudflareAdapter } from "../../core/types.js";
+import type {
+  CommandContext,
+  Observer,
+  CloudflareAdapter,
+} from "../../core/types.js";
 
 // ── Mock factories ─────────────────────────────────────────────────────
 
@@ -323,8 +327,8 @@ describe("HousekeepingCommand", () => {
 
     // Should have called executeD1Query for health check
     const calls = executeD1QueryMock.mock.calls;
-    const healthCheckCall = calls.find(
-      (call: any[]) => call[1]?.includes("SELECT 1")
+    const healthCheckCall = calls.find((call: any[]) =>
+      call[1]?.includes("SELECT 1")
     );
     expect(healthCheckCall).toBeDefined();
 
@@ -410,7 +414,8 @@ describe("HousekeepingCommand", () => {
     // Should have called executeD1Query for error log check
     const calls = executeD1QueryMock.mock.calls;
     const errorLogCall = calls.find(
-      (call: any[]) => call[1]?.includes("system_logs") && call[1]?.includes("ERROR")
+      (call: any[]) =>
+        call[1]?.includes("system_logs") && call[1]?.includes("ERROR")
     );
     expect(errorLogCall).toBeDefined();
 
@@ -446,8 +451,8 @@ describe("HousekeepingCommand", () => {
 
     // Should have called executeD1Query with DELETE for log cleanup
     const calls = executeD1QueryMock.mock.calls;
-    const deleteCall = calls.find(
-      (call: any[]) => call[1]?.includes("DELETE FROM system_logs")
+    const deleteCall = calls.find((call: any[]) =>
+      call[1]?.includes("DELETE FROM system_logs")
     );
     expect(deleteCall).toBeDefined();
 
@@ -483,8 +488,8 @@ describe("HousekeepingCommand", () => {
 
     // Should NOT have called executeD1Query with DELETE
     const calls = executeD1QueryMock.mock.calls;
-    const deleteCall = calls.find(
-      (call: any[]) => call[1]?.includes("DELETE FROM system_logs")
+    const deleteCall = calls.find((call: any[]) =>
+      call[1]?.includes("DELETE FROM system_logs")
     );
     expect(deleteCall).toBeUndefined();
 

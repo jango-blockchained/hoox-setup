@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createErrorResponse, Errors } from "@/shared/src/errors";
+import { createErrorResponse, Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";

@@ -1,9 +1,18 @@
 import { describe, it, expect } from "bun:test";
-import { checkD1Database, checkKVNamespaces, checkR2Buckets, checkQueues, checkVectorizeIndex, checkAnalyticsEngine } from "./infrastructure-checks.js";
+import {
+  checkD1Database,
+  checkKVNamespaces,
+  checkR2Buckets,
+  checkQueues,
+  checkVectorizeIndex,
+  checkAnalyticsEngine,
+} from "./infrastructure-checks.js";
 import { CloudflareAdapter } from "../adapters/cloudflare.js";
 
 // Create mock adapter
-function createMockAdapter(overrides: Record<string, unknown> = {}): CloudflareAdapter {
+function createMockAdapter(
+  overrides: Record<string, unknown> = {}
+): CloudflareAdapter {
   return {
     listD1Databases: overrides.listD1Databases || (async () => []),
     listKVNamespaces: overrides.listKVNamespaces || (async () => []),
@@ -17,7 +26,9 @@ describe("infrastructure checks", () => {
   describe("checkD1Database", () => {
     it("returns success when D1 database exists", async () => {
       const adapter = createMockAdapter({
-        listD1Databases: async () => [{ name: "trade-data-db", uuid: "abc123" }],
+        listD1Databases: async () => [
+          { name: "trade-data-db", uuid: "abc123" },
+        ],
       });
       const result = await checkD1Database(adapter, "trade-data-db");
       expect(result.success).toBe(true);
@@ -35,7 +46,9 @@ describe("infrastructure checks", () => {
 
     it("returns error when listing fails", async () => {
       const adapter = createMockAdapter({
-        listD1Databases: async () => { throw new Error("API error"); },
+        listD1Databases: async () => {
+          throw new Error("API error");
+        },
       });
       const result = await checkD1Database(adapter, "trade-data-db");
       expect(result.success).toBe(false);
@@ -78,7 +91,11 @@ describe("infrastructure checks", () => {
           { name: "user-uploads" },
         ],
       });
-      const result = await checkR2Buckets(adapter, ["trade-reports", "hoox-system-logs", "user-uploads"]);
+      const result = await checkR2Buckets(adapter, [
+        "trade-reports",
+        "hoox-system-logs",
+        "user-uploads",
+      ]);
       expect(result.success).toBe(true);
     });
 
@@ -86,7 +103,10 @@ describe("infrastructure checks", () => {
       const adapter = createMockAdapter({
         listR2Buckets: async () => [{ name: "trade-reports" }],
       });
-      const result = await checkR2Buckets(adapter, ["trade-reports", "missing-bucket"]);
+      const result = await checkR2Buckets(adapter, [
+        "trade-reports",
+        "missing-bucket",
+      ]);
       expect(result.success).toBe(false);
       expect(result.errors[0]).toContain("missing-bucket");
     });

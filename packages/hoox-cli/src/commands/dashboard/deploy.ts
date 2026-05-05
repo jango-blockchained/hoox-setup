@@ -65,7 +65,7 @@ export class DashboardDeployCommand implements Command {
 
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      spinner.stop("Deployment failed.", 1);
+      spinner.stop("Deployment failed.");
       p.log.error(error instanceof Error ? error.message : String(error));
       ctx.observer.setState({
         commandStatus: "error",

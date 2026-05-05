@@ -56,7 +56,10 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
   async execute(ctx: CommandContext): Promise<void> {
     ctx.observer.emit("command:start", {
       cmd: this.name,
-      args: { dryRun: ctx.args?.["dry-run"], customDomain: ctx.args?.["custom-domain"] },
+      args: {
+        dryRun: ctx.args?.["dry-run"],
+        customDomain: ctx.args?.["custom-domain"],
+      },
     });
 
     try {
@@ -73,7 +76,7 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
         throw new CLIError(
           "Missing global.subdomain_prefix in workers.jsonc",
           "CONFIG_INVALID",
-          true,
+          true
         );
       }
 
@@ -84,11 +87,17 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
       const customDomainOverrides = this.parseCustomDomainArg(customDomainArg);
 
       // 3. Build URL map
-      const urlMap = this.buildUrlMap(subdomainPrefix, workersConfig, customDomainOverrides);
+      const urlMap = this.buildUrlMap(
+        subdomainPrefix,
+        workersConfig,
+        customDomainOverrides
+      );
 
       // 4. Read dashboard wrangler.jsonc
       const dashboardWranglerPath = `${ctx.cwd}/pages/dashboard/wrangler.jsonc`;
-      const wranglerContent = await this.readWranglerConfig(dashboardWranglerPath);
+      const wranglerContent = await this.readWranglerConfig(
+        dashboardWranglerPath
+      );
       const wrangler = parse(wranglerContent) as DashboardWrangler;
 
       // 5. Compute diff
@@ -133,7 +142,7 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
           : new CLIError(
               `Update failed: ${error instanceof Error ? error.message : String(error)}`,
               "UPDATE_URLS_FAILED",
-              false,
+              false
             );
       p.log.error(ansis.red(cliError.message));
       ctx.observer.setState({ commandStatus: "error", lastError: cliError });
@@ -147,7 +156,7 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
       throw new CLIError(
         `workers.jsonc not found at ${path}. Run: hoox config:init`,
         "CONFIG_NOT_FOUND",
-        true,
+        true
       );
     }
     const content = await file.text();
@@ -156,7 +165,7 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
       throw new CLIError(
         "Invalid workers.jsonc: missing global or workers section",
         "CONFIG_INVALID",
-        true,
+        true
       );
     }
     return config;
@@ -169,14 +178,16 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
       throw new CLIError(
         `Dashboard wrangler.jsonc not found at ${path}`,
         "WRANGLER_NOT_FOUND",
-        true,
+        true
       );
     }
     return file.text();
   }
 
   /** Parse --custom-domain arg like "trade-worker=trade.example.com" */
-  private parseCustomDomainArg(arg: string | undefined): Record<string, string> {
+  private parseCustomDomainArg(
+    arg: string | undefined
+  ): Record<string, string> {
     const overrides: Record<string, string> = {};
     if (!arg) return overrides;
 
@@ -195,7 +206,7 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
   private buildUrlMap(
     subdomainPrefix: string,
     config: WorkersConfig,
-    customDomainOverrides: Record<string, string>,
+    customDomainOverrides: Record<string, string>
   ): Record<string, string> {
     const urlMap: Record<string, string> = {};
 
@@ -224,9 +235,10 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
   /** Compute changes between current vars and new URL map */
   private computeChanges(
     currentVars: Record<string, string>,
-    urlMap: Record<string, string>,
+    urlMap: Record<string, string>
   ): Array<{ key: string; oldValue: string; newValue: string }> {
-    const changes: Array<{ key: string; oldValue: string; newValue: string }> = [];
+    const changes: Array<{ key: string; oldValue: string; newValue: string }> =
+      [];
 
     for (const [key, newValue] of Object.entries(urlMap)) {
       const oldValue = currentVars[key];
@@ -239,7 +251,9 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
   }
 
   /** Show a colored diff of changes */
-  private showDiff(changes: Array<{ key: string; oldValue: string; newValue: string }>): void {
+  private showDiff(
+    changes: Array<{ key: string; oldValue: string; newValue: string }>
+  ): void {
     console.log("");
     console.log(ansis.bold("  Changes to apply:"));
     console.log(ansis.dim("  ──────────────────────────────────────────────"));
@@ -249,18 +263,18 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
         console.log(
           ansis.dim(`  ${change.key}:`) +
             " " +
-            ansis.red(`- ${change.oldValue}`),
+            ansis.red(`- ${change.oldValue}`)
         );
         console.log(
           ansis.dim(`  ${" ".repeat(change.key.length)}: `) +
-            ansis.green(`+ ${change.newValue}`),
+            ansis.green(`+ ${change.newValue}`)
         );
       } else {
         console.log(
           ansis.dim(`  ${change.key}:`) +
             " " +
             ansis.green(`+ ${change.newValue}`) +
-            ansis.dim(" (new)"),
+            ansis.dim(" (new)")
         );
       }
     }
@@ -273,14 +287,19 @@ export class WorkersUpdateInternalUrlsCommand implements Command {
   private async applyChanges(
     filePath: string,
     content: string,
-    changes: Array<{ key: string; newValue: string }>,
+    changes: Array<{ key: string; newValue: string }>
   ): Promise<void> {
     let editedContent = content;
 
     for (const change of changes) {
-      const edits = modify(editedContent, ["vars", change.key], change.newValue, {
-        formattingOptions: { insertSpaces: true, tabSize: 2 },
-      });
+      const edits = modify(
+        editedContent,
+        ["vars", change.key],
+        change.newValue,
+        {
+          formattingOptions: { insertSpaces: true, tabSize: 2 },
+        }
+      );
       editedContent = applyEdits(editedContent, edits);
     }
 

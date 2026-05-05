@@ -81,7 +81,9 @@ describe("WorkersSetupCommand", () => {
 
   function createMockCtx(overrides?: Partial<CommandContext>): CommandContext {
     const setSecretMock = mock(async () => {});
-    const promptSecretMock = mock(async (_prompt: string) => "test-secret-value");
+    const promptSecretMock = mock(
+      async (_prompt: string) => "test-secret-value"
+    );
 
     return {
       observer: {
@@ -166,7 +168,9 @@ describe("WorkersSetupCommand", () => {
     expect(config.global.cloudflare_account_id).toBe("test-account-id");
     expect(config.global.subdomain_prefix).toBe("cryptolinx");
     expect(config.workers["telegram-worker"]).toBeDefined();
-    expect(config.workers["telegram-worker"].secrets).toEqual(["TELEGRAM_BOT_TOKEN"]);
+    expect(config.workers["telegram-worker"].secrets).toEqual([
+      "TELEGRAM_BOT_TOKEN",
+    ]);
   });
 
   it("should throw CLIError when workers.jsonc is missing", async () => {
@@ -202,8 +206,12 @@ describe("WorkersSetupCommand", () => {
     const config = {
       global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
       workers: {
-        "hoox": { enabled: true, path: "workers/hoox", secrets: ["KEY"] },
-        "trade-worker": { enabled: true, path: "workers/trade-worker", secrets: ["API_KEY"] },
+        hoox: { enabled: true, path: "workers/hoox", secrets: ["KEY"] },
+        "trade-worker": {
+          enabled: true,
+          path: "workers/trade-worker",
+          secrets: ["API_KEY"],
+        },
       },
     };
 
@@ -217,7 +225,7 @@ describe("WorkersSetupCommand", () => {
     const config = {
       global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
       workers: {
-        "hoox": { enabled: true, path: "workers/hoox" },
+        hoox: { enabled: true, path: "workers/hoox" },
       },
     };
 
@@ -253,7 +261,7 @@ describe("WorkersSetupCommand", () => {
     const config = {
       global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
       workers: {
-        "hoox": { enabled: true, path: "workers/hoox" },
+        hoox: { enabled: true, path: "workers/hoox" },
         "trade-worker": { enabled: true, path: "workers/trade-worker" },
         "disabled-worker": { enabled: false, path: "workers/disabled-worker" },
       },
@@ -269,7 +277,7 @@ describe("WorkersSetupCommand", () => {
     const config = {
       global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
       workers: {
-        "hoox": { enabled: true, path: "workers/hoox" },
+        hoox: { enabled: true, path: "workers/hoox" },
         "trade-worker": { enabled: true, path: "workers/trade-worker" },
         "disabled-worker": { enabled: false, path: "workers/disabled-worker" },
       },
@@ -338,7 +346,7 @@ describe("WorkersSetupCommand", () => {
     setupWorkerDirs({
       "telegram-worker": "workers/telegram-worker",
       "trade-worker": "workers/trade-worker",
-      "hoox": "workers/hoox",
+      hoox: "workers/hoox",
       "d1-worker": "workers/d1-worker",
     });
     mockCtx.args = { worker: "trade-worker" };

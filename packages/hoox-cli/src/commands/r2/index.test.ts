@@ -3,14 +3,9 @@ import type { CommandContext, Observer } from "../../core/types.js";
 
 // Create mock functions at module level so tests can access and modify them
 const listR2BucketsMock = mock(() =>
-  Promise.resolve([
-    { name: "trade-reports" },
-    { name: "hoox-system-logs" },
-  ])
+  Promise.resolve([{ name: "trade-reports" }, { name: "hoox-system-logs" }])
 );
-const createR2BucketMock = mock((name: string) =>
-  Promise.resolve({ name })
-);
+const createR2BucketMock = mock((name: string) => Promise.resolve({ name }));
 const confirmMock = mock(() => Promise.resolve(true));
 const isCancelMock = mock(() => false);
 const spinnerStartMock = mock(() => {});
@@ -60,7 +55,12 @@ describe("R2ProvisionCommand", () => {
   let R2ProvisionCommand: new () => {
     name: string;
     description: string;
-    options: Array<{ flag: string; short?: string; type: string; description?: string }>;
+    options: Array<{
+      flag: string;
+      short?: string;
+      type: string;
+      description?: string;
+    }>;
     execute: (ctx: CommandContext) => Promise<void>;
   };
   let mockObserver: Observer;
@@ -78,10 +78,7 @@ describe("R2ProvisionCommand", () => {
 
     // Default implementations
     listR2BucketsMock.mockImplementation(() =>
-      Promise.resolve([
-        { name: "trade-reports" },
-        { name: "hoox-system-logs" },
-      ])
+      Promise.resolve([{ name: "trade-reports" }, { name: "hoox-system-logs" }])
     );
     createR2BucketMock.mockImplementation((name: string) =>
       Promise.resolve({ name })

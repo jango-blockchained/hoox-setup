@@ -8,7 +8,10 @@ export class CloudflareAdapter implements ICloudflareAdapter {
    * Helper to run a wrangler command and return stdout text.
    * Throws on non-zero exit codes.
    */
-  private async runWrangler(args: string[], errorMessage: string): Promise<string> {
+  private async runWrangler(
+    args: string[],
+    errorMessage: string
+  ): Promise<string> {
     const proc = Bun.spawn(["wrangler", ...args], {
       stderr: "pipe",
       stdout: "pipe",
@@ -59,19 +62,28 @@ export class CloudflareAdapter implements ICloudflareAdapter {
   async listD1Databases(): Promise<
     Array<{ uuid: string; name: string; title: string }>
   > {
-    const stdout = await this.runWrangler(["d1", "list", "--json"], "Failed to list D1 databases");
+    const stdout = await this.runWrangler(
+      ["d1", "list", "--json"],
+      "Failed to list D1 databases"
+    );
     return JSON.parse(stdout || "[]");
   }
 
   async createD1Database(
     name: string
   ): Promise<{ uuid: string; name: string; title: string }> {
-    const stdout = await this.runWrangler(["d1", "create", name, "--json"], `Failed to create D1 database: ${name}`);
+    const stdout = await this.runWrangler(
+      ["d1", "create", name, "--json"],
+      `Failed to create D1 database: ${name}`
+    );
     return JSON.parse(stdout);
   }
 
   async deleteD1Database(uuid: string): Promise<void> {
-    await this.runWrangler(["d1", "delete", uuid, "--yes"], `Failed to delete D1 database: ${uuid}`);
+    await this.runWrangler(
+      ["d1", "delete", uuid, "--yes"],
+      `Failed to delete D1 database: ${uuid}`
+    );
   }
 
   async executeD1Query(
@@ -88,19 +100,28 @@ export class CloudflareAdapter implements ICloudflareAdapter {
 
   // KV Namespace methods
   async listKVNamespaces(): Promise<Array<{ id: string; title: string }>> {
-    const stdout = await this.runWrangler(["kv", "namespace", "list", "--json"], "Failed to list KV namespaces");
+    const stdout = await this.runWrangler(
+      ["kv", "namespace", "list", "--json"],
+      "Failed to list KV namespaces"
+    );
     return JSON.parse(stdout || "[]");
   }
 
   async createKVNamespace(
     title: string
   ): Promise<{ id: string; title: string }> {
-    const stdout = await this.runWrangler(["kv", "namespace", "create", title, "--json"], `Failed to create KV namespace: ${title}`);
+    const stdout = await this.runWrangler(
+      ["kv", "namespace", "create", title, "--json"],
+      `Failed to create KV namespace: ${title}`
+    );
     return JSON.parse(stdout);
   }
 
   async deleteKVNamespace(id: string): Promise<void> {
-    await this.runWrangler(["kv", "namespace", "delete", id, "--yes"], `Failed to delete KV namespace: ${id}`);
+    await this.runWrangler(
+      ["kv", "namespace", "delete", id, "--yes"],
+      `Failed to delete KV namespace: ${id}`
+    );
   }
 
   async getKVValue(namespaceId: string, key: string): Promise<string | null> {
@@ -115,7 +136,11 @@ export class CloudflareAdapter implements ICloudflareAdapter {
     }
   }
 
-  async putKVValue(namespaceId: string, key: string, value: string): Promise<void> {
+  async putKVValue(
+    namespaceId: string,
+    key: string,
+    value: string
+  ): Promise<void> {
     await this.runWrangler(
       ["kv", "key", "put", key, value, "--namespace-id", namespaceId],
       `Failed to put KV value for key: ${key}`
@@ -124,38 +149,54 @@ export class CloudflareAdapter implements ICloudflareAdapter {
 
   // R2 Bucket methods
   async listR2Buckets(): Promise<Array<{ name: string }>> {
-    const stdout = await this.runWrangler(["r2", "bucket", "list", "--json"], "Failed to list R2 buckets");
+    const stdout = await this.runWrangler(
+      ["r2", "bucket", "list", "--json"],
+      "Failed to list R2 buckets"
+    );
     return JSON.parse(stdout || "[]");
   }
 
   async createR2Bucket(name: string): Promise<{ name: string }> {
-    const stdout = await this.runWrangler(["r2", "bucket", "create", name, "--json"], `Failed to create R2 bucket: ${name}`);
+    const stdout = await this.runWrangler(
+      ["r2", "bucket", "create", name, "--json"],
+      `Failed to create R2 bucket: ${name}`
+    );
     return JSON.parse(stdout);
   }
 
   async deleteR2Bucket(name: string): Promise<void> {
-    await this.runWrangler(["r2", "bucket", "delete", name, "--yes"], `Failed to delete R2 bucket: ${name}`);
+    await this.runWrangler(
+      ["r2", "bucket", "delete", name, "--yes"],
+      `Failed to delete R2 bucket: ${name}`
+    );
   }
 
   // Queues methods
   async listQueues(): Promise<Array<{ queue_name: string }>> {
-    const stdout = await this.runWrangler(["queues", "list", "--json"], "Failed to list queues");
+    const stdout = await this.runWrangler(
+      ["queues", "list", "--json"],
+      "Failed to list queues"
+    );
     return JSON.parse(stdout || "[]");
   }
 
   async createQueue(name: string): Promise<{ queue_name: string }> {
-    const stdout = await this.runWrangler(["queues", "create", name, "--json"], `Failed to create queue: ${name}`);
+    const stdout = await this.runWrangler(
+      ["queues", "create", name, "--json"],
+      `Failed to create queue: ${name}`
+    );
     return JSON.parse(stdout);
   }
 
   async deleteQueue(name: string): Promise<void> {
-    await this.runWrangler(["queues", "delete", name, "--yes"], `Failed to delete queue: ${name}`);
+    await this.runWrangler(
+      ["queues", "delete", name, "--yes"],
+      `Failed to delete queue: ${name}`
+    );
   }
 
   // Secrets methods
-  async listSecrets(
-    workerName: string
-  ): Promise<
+  async listSecrets(workerName: string): Promise<
     Array<{
       name: string;
       created: string;
@@ -164,7 +205,13 @@ export class CloudflareAdapter implements ICloudflareAdapter {
     }>
   > {
     const stdout = await this.runWrangler(
-      ["secret", "list", "--config", `workers/${workerName}/wrangler.jsonc`, "--json"],
+      [
+        "secret",
+        "list",
+        "--config",
+        `workers/${workerName}/wrangler.jsonc`,
+        "--json",
+      ],
       `Failed to list secrets for: ${workerName}`
     );
     return JSON.parse(stdout || "[]");
@@ -207,12 +254,8 @@ export class CloudflareAdapter implements ICloudflareAdapter {
       }
     );
 
-    const writer = proc.stdin.getWriter();
-    try {
-      await writer.write(new TextEncoder().encode(value + "\n"));
-    } finally {
-      await writer.close();
-    }
+    await proc.stdin.write(value + "\n");
+    proc.stdin.end();
 
     const exitCode = await proc.exited;
     if (exitCode !== 0) {
@@ -222,7 +265,14 @@ export class CloudflareAdapter implements ICloudflareAdapter {
 
   async deleteSecret(workerName: string, name: string): Promise<void> {
     await this.runWrangler(
-      ["secret", "delete", name, "--config", `workers/${workerName}/wrangler.jsonc`, "--yes"],
+      [
+        "secret",
+        "delete",
+        name,
+        "--config",
+        `workers/${workerName}/wrangler.jsonc`,
+        "--yes",
+      ],
       `Failed to delete secret: ${name}`
     );
   }

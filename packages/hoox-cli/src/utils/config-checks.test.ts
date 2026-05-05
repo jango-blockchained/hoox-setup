@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { checkWorkersJsonc, checkWranglerConfigs, checkEnvLocal, checkSubmodules } from "./config-checks.js";
+import {
+  checkWorkersJsonc,
+  checkWranglerConfigs,
+  checkEnvLocal,
+  checkSubmodules,
+} from "./config-checks.js";
 
 describe("config checks", () => {
   let tmpDir: string;
@@ -26,7 +31,10 @@ describe("config checks", () => {
       writeFileSync(
         join(tmpDir, "workers.jsonc"),
         JSON.stringify({
-          global: { cloudflare_account_id: "test123", subdomain_prefix: "test" },
+          global: {
+            cloudflare_account_id: "test123",
+            subdomain_prefix: "test",
+          },
           workers: { hoox: { enabled: true, path: "workers/hoox" } },
         })
       );
@@ -64,7 +72,10 @@ describe("config checks", () => {
       writeFileSync(
         join(tmpDir, "workers.jsonc"),
         JSON.stringify({
-          global: { cloudflare_account_id: "test123", subdomain_prefix: "test" },
+          global: {
+            cloudflare_account_id: "test123",
+            subdomain_prefix: "test",
+          },
           workers: {},
         })
       );
@@ -167,10 +178,15 @@ describe("config checks", () => {
     });
 
     it("returns error when required key is missing", async () => {
-      writeFileSync(join(tmpDir, ".env.local"), 'CLOUDFLARE_API_TOKEN="real_token"');
+      writeFileSync(
+        join(tmpDir, ".env.local"),
+        'CLOUDFLARE_API_TOKEN="real_token"'
+      );
       const result = await checkEnvLocal(tmpDir);
       expect(result.success).toBe(false);
-      expect(result.errors.some((e) => e.includes("CLOUDFLARE_ACCOUNT_ID"))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes("CLOUDFLARE_ACCOUNT_ID"))
+      ).toBe(true);
     });
   });
 

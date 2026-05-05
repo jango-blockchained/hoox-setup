@@ -1,6 +1,10 @@
 import * as p from "@clack/prompts";
 import ansis from "ansis";
-import type { Command, CommandContext, CommandOption } from "../../core/types.js";
+import type {
+  Command,
+  CommandContext,
+  CommandOption,
+} from "../../core/types.js";
 import { CLIError } from "../../core/errors.js";
 
 /** R2 bucket requirements extracted from wrangler.jsonc files. */
@@ -65,9 +69,14 @@ export default class R2ProvisionCommand implements Command {
       p.log.step("R2 Bucket Status:");
       for (const req of REQUIRED_R2_BUCKETS) {
         if (existingNames.has(req.name)) {
-          p.log.message(ansis.green(`  ✓ ${req.name}`) + ansis.dim(` (${req.source})`));
+          p.log.message(
+            ansis.green(`  ✓ ${req.name}`) + ansis.dim(` (${req.source})`)
+          );
         } else {
-          p.log.message(ansis.red(`  ✗ ${req.name}`) + ansis.dim(` (${req.source}) — missing`));
+          p.log.message(
+            ansis.red(`  ✗ ${req.name}`) +
+              ansis.dim(` (${req.source}) — missing`)
+          );
         }
       }
 
@@ -108,7 +117,7 @@ export default class R2ProvisionCommand implements Command {
             createSpinner.stop(`Bucket "${bucket.name}" created!`);
             created.push(bucket.name);
           } catch (error) {
-            createSpinner.stop(`Failed to create bucket "${bucket.name}".`, 1);
+            createSpinner.stop(`Failed to create bucket "${bucket.name}".`);
             throw error;
           }
         } else {
@@ -119,9 +128,7 @@ export default class R2ProvisionCommand implements Command {
       // Final summary
       p.log.step("Summary:");
       if (created.length > 0) {
-        p.log.message(
-          ansis.green(`  Created: ${created.join(", ")}`)
-        );
+        p.log.message(ansis.green(`  Created: ${created.join(", ")}`));
       }
       if (existing.length > 0) {
         p.log.message(
@@ -129,9 +136,7 @@ export default class R2ProvisionCommand implements Command {
         );
       }
       if (skipped.length > 0) {
-        p.log.message(
-          ansis.yellow(`  Skipped: ${skipped.join(", ")}`)
-        );
+        p.log.message(ansis.yellow(`  Skipped: ${skipped.join(", ")}`));
       }
 
       ctx.observer.setState({ commandStatus: "success" });
@@ -168,7 +173,7 @@ export default class R2ProvisionCommand implements Command {
         p.log.message(ansis.cyan(`  ${b.name}`));
       }
     } catch (error) {
-      spinner.stop("Failed to fetch R2 buckets.", 1);
+      spinner.stop("Failed to fetch R2 buckets.");
       throw error;
     }
   }

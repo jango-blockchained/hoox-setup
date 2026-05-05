@@ -1,8 +1,14 @@
 import { describe, it, expect } from "bun:test";
-import { checkRequiredTables, checkRequiredIndexes, checkTrackingSchema } from "./database-checks.js";
+import {
+  checkRequiredTables,
+  checkRequiredIndexes,
+  checkTrackingSchema,
+} from "./database-checks.js";
 import { CloudflareAdapter } from "../adapters/cloudflare.js";
 
-function createMockAdapter(overrides: Record<string, unknown> = {}): CloudflareAdapter {
+function createMockAdapter(
+  overrides: Record<string, unknown> = {}
+): CloudflareAdapter {
   return {
     executeD1Query: overrides.executeD1Query || (async () => ({ results: [] })),
     ...overrides,
@@ -18,11 +24,17 @@ describe("database checks", () => {
 
       const result = await checkRequiredTables(adapter, "trade-data-db");
       expect(result.success).toBe(false);
-      expect(result.errors.some(e => e.includes("trade_signals"))).toBe(true);
+      expect(result.errors.some((e) => e.includes("trade_signals"))).toBe(true);
     });
 
     it("returns success when all tables exist", async () => {
-      const allTables = ["trade_signals", "trades", "positions", "balances", "system_logs"].map(name => ({ name }));
+      const allTables = [
+        "trade_signals",
+        "trades",
+        "positions",
+        "balances",
+        "system_logs",
+      ].map((name) => ({ name }));
       const adapter = createMockAdapter({
         executeD1Query: async () => ({ results: allTables }),
       });
@@ -33,7 +45,9 @@ describe("database checks", () => {
 
     it("handles query failure", async () => {
       const adapter = createMockAdapter({
-        executeD1Query: async () => { throw new Error("Connection failed"); },
+        executeD1Query: async () => {
+          throw new Error("Connection failed");
+        },
       });
 
       const result = await checkRequiredTables(adapter, "trade-data-db");
@@ -53,7 +67,12 @@ describe("database checks", () => {
     });
 
     it("returns success when all indexes exist", async () => {
-      const allIndexes = ["idx_trade_signals_timestamp", "idx_trades_timestamp", "idx_positions_status", "idx_system_logs_timestamp"].map(name => ({ name }));
+      const allIndexes = [
+        "idx_trade_signals_timestamp",
+        "idx_trades_timestamp",
+        "idx_positions_status",
+        "idx_system_logs_timestamp",
+      ].map((name) => ({ name }));
       const adapter = createMockAdapter({
         executeD1Query: async () => ({ results: allIndexes }),
       });
@@ -72,12 +91,18 @@ describe("database checks", () => {
 
       const result = await checkTrackingSchema(adapter, "trade-data-db");
       expect(result.success).toBe(false);
-      expect(result.errors.some(e => e.includes("signal_events"))).toBe(true);
-      expect(result.errors.some(e => e.includes("migrate:tracking"))).toBe(true);
+      expect(result.errors.some((e) => e.includes("signal_events"))).toBe(true);
+      expect(result.errors.some((e) => e.includes("migrate:tracking"))).toBe(
+        true
+      );
     });
 
     it("returns success when tracking tables exist", async () => {
-      const trackingTables = ["signal_events", "event_trace", "worker_stats"].map(name => ({ name }));
+      const trackingTables = [
+        "signal_events",
+        "event_trace",
+        "worker_stats",
+      ].map((name) => ({ name }));
       const adapter = createMockAdapter({
         executeD1Query: async () => ({ results: trackingTables }),
       });

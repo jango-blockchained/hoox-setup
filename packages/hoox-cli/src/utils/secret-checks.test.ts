@@ -1,8 +1,14 @@
 import { describe, it, expect } from "bun:test";
-import { checkWorkerSecrets, checkLocalSecrets, checkDevVars } from "./secret-checks.js";
+import {
+  checkWorkerSecrets,
+  checkLocalSecrets,
+  checkDevVars,
+} from "./secret-checks.js";
 import { CloudflareAdapter } from "../adapters/cloudflare.js";
 
-function createMockAdapter(overrides: Record<string, unknown> = {}): CloudflareAdapter {
+function createMockAdapter(
+  overrides: Record<string, unknown> = {}
+): CloudflareAdapter {
   return {
     listSecrets: overrides.listSecrets || (async () => []),
     ...overrides,
@@ -17,12 +23,17 @@ describe("secret checks", () => {
       });
 
       const workers = {
-        hoox: { enabled: true, secrets: ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"] },
+        hoox: {
+          enabled: true,
+          secrets: ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
+        },
       };
 
       const result = await checkWorkerSecrets(adapter, workers, "hoox");
       expect(result.success).toBe(false);
-      expect(result.errors.some(e => e.includes("INTERNAL_KEY_BINDING"))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes("INTERNAL_KEY_BINDING"))
+      ).toBe(true);
     });
 
     it("returns success when all secrets exist", async () => {
@@ -34,7 +45,10 @@ describe("secret checks", () => {
       });
 
       const workers = {
-        hoox: { enabled: true, secrets: ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"] },
+        hoox: {
+          enabled: true,
+          secrets: ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
+        },
       };
 
       const result = await checkWorkerSecrets(adapter, workers, "hoox");

@@ -8,9 +8,7 @@ export async function checkWorkerSecrets(
 ): Promise<ValidationResult> {
   const result = createValidationResult("Worker Secrets");
 
-  const toCheck = workerName
-    ? { [workerName]: workers[workerName] }
-    : workers;
+  const toCheck = workerName ? { [workerName]: workers[workerName] } : workers;
 
   for (const [name, worker] of Object.entries(toCheck)) {
     if (!worker?.enabled) continue;
@@ -33,7 +31,9 @@ export async function checkWorkerSecrets(
   return result;
 }
 
-export async function checkLocalSecrets(cwd: string): Promise<ValidationResult> {
+export async function checkLocalSecrets(
+  cwd: string
+): Promise<ValidationResult> {
   const result = createValidationResult("Local Secrets");
   const envFile = Bun.file(`${cwd}/.env.local`);
 
@@ -43,14 +43,13 @@ export async function checkLocalSecrets(cwd: string): Promise<ValidationResult> 
   }
 
   const content = await envFile.text();
-  const secrets = [
-    "CLOUDFLARE_API_TOKEN",
-    "CLOUDFLARE_ACCOUNT_ID",
-  ];
+  const secrets = ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"];
 
   for (const secret of secrets) {
     const hasKey = content.includes(`${secret}=`);
-    const hasPlaceholder = content.includes(`${secret}="your_`) || content.includes(`${secret}="generate_`);
+    const hasPlaceholder =
+      content.includes(`${secret}="your_`) ||
+      content.includes(`${secret}="generate_`);
     if (!hasKey) {
       result.addError(`${secret} is missing in .env.local`);
     } else if (hasPlaceholder) {
@@ -74,7 +73,9 @@ export async function checkDevVars(
     const devVarsFile = Bun.file(devVarsPath);
 
     if (!(await devVarsFile.exists())) {
-      result.addWarning(`Worker "${name}" missing .dev.vars for local development`);
+      result.addWarning(
+        `Worker "${name}" missing .dev.vars for local development`
+      );
     }
   }
 

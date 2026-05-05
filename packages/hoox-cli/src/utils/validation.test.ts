@@ -1,5 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { createValidationResult, formatValidationResults } from "./validation.js";
+import {
+  createValidationResult,
+  formatValidationResults,
+} from "./validation.js";
 
 describe("validation utilities", () => {
   it("creates empty validation result", () => {

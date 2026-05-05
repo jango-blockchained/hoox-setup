@@ -45,7 +45,7 @@ describe("CfZonesCommand", () => {
   let CfZonesCommand: new () => {
     name: string;
     description: string;
-    execute: Function;
+    execute: (...args: any[]) => Promise<unknown>;
   };
   let mockObserver: Observer;
   let mockContext: CommandContext;

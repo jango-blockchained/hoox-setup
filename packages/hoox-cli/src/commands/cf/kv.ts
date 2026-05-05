@@ -69,7 +69,7 @@ export default class CfKvCommand implements Command {
         p.log.message(`${ns.title} (${ns.id})`);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch KV namespaces.", 1);
+      spinner.stop("Failed to fetch KV namespaces.");
       throw error;
     }
   }
@@ -102,7 +102,7 @@ export default class CfKvCommand implements Command {
       const ns = await ctx.adapters.cloudflare.createKVNamespace(title);
       spinner.stop(`Namespace "${ns.title}" created successfully!`);
     } catch (error) {
-      spinner.stop("Failed to create namespace.", 1);
+      spinner.stop("Failed to create namespace.");
       throw error;
     }
   }
@@ -145,7 +145,7 @@ export default class CfKvCommand implements Command {
       await ctx.adapters.cloudflare.deleteKVNamespace(nsId);
       spinner.stop("Namespace deleted successfully!");
     } catch (error) {
-      spinner.stop("Failed to delete namespace.", 1);
+      spinner.stop("Failed to delete namespace.");
       throw error;
     }
   }

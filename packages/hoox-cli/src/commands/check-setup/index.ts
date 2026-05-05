@@ -1,9 +1,12 @@
 import * as p from "@clack/prompts";
-import type { Command, CommandContext, CommandOption, CloudflareAdapter } from "../../core/types.js";
+import type {
+  Command,
+  CommandContext,
+  CommandOption,
+  CloudflareAdapter,
+} from "../../core/types.js";
 import { CLIError } from "../../core/errors.js";
-import {
-  type ValidationResult,
-} from "../../utils/validation.js";
+import { type ValidationResult } from "../../utils/validation.js";
 import {
   checkWorkersJsonc,
   checkWranglerConfigs,
@@ -139,9 +142,7 @@ function renderReport(report: CheckSetupReport): void {
   );
 
   if (!report.success) {
-    p.log.warn(
-      "Fix the issues above and re-run: hoox check-setup"
-    );
+    p.log.warn("Fix the issues above and re-run: hoox check-setup");
   } else {
     p.outro("All checks passed! 🎉");
   }
@@ -161,7 +162,12 @@ export async function executeCheckSetup(
   const config = await loadWorkersConfig(cwd);
   const workers = (config.workers || {}) as Record<
     string,
-    { enabled: boolean; path: string; secrets?: string[]; vars?: Record<string, string> }
+    {
+      enabled: boolean;
+      path: string;
+      secrets?: string[];
+      vars?: Record<string, string>;
+    }
   >;
 
   // If specific worker is set, validate that it exists in config
@@ -200,9 +206,7 @@ export async function executeCheckSetup(
   infraResults.push(
     await checkR2Buckets(adapter, extractR2BucketNames(config))
   );
-  infraResults.push(
-    await checkQueues(adapter, extractQueueNames(config))
-  );
+  infraResults.push(await checkQueues(adapter, extractQueueNames(config)));
   infraResults.push(
     await checkVectorizeIndex(adapter, extractVectorizeIndex(config))
   );
@@ -279,7 +283,8 @@ function extractAnalyticsDataset(config: Record<string, unknown>): string {
 
 export class CheckSetupCommand implements Command {
   name = "check-setup";
-  description = "Validate system setup (config, infrastructure, secrets, database)";
+  description =
+    "Validate system setup (config, infrastructure, secrets, database)";
   options: CommandOption[] = [
     {
       flag: "json",

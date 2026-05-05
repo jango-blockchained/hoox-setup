@@ -122,7 +122,7 @@ SECRET_KEY=${secretKey}
         "Keep these files secure and never commit them to version control!"
       );
     } catch (error) {
-      spinner.stop(`Failed to generate key file ${keyName}.env`, 1);
+      spinner.stop(`Failed to generate key file ${keyName}.env`);
       throw error;
     }
   }
@@ -144,7 +144,7 @@ SECRET_KEY=${secretKey}
       spinner.stop("Key files listed!");
       p.log.info("No key files found (placeholder - implement with adapter)");
     } catch (error) {
-      spinner.stop("Failed to list key files", 1);
+      spinner.stop("Failed to list key files");
       throw error;
     }
   }

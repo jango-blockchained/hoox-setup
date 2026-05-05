@@ -7,7 +7,9 @@ import type { CommandContext, CloudflareAdapter } from "../../core/types.js";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function createMockAdapter(overrides: Record<string, unknown> = {}): CloudflareAdapter {
+function createMockAdapter(
+  overrides: Record<string, unknown> = {}
+): CloudflareAdapter {
   return {
     listD1Databases: async () => [],
     listKVNamespaces: async () => [],
@@ -19,7 +21,10 @@ function createMockAdapter(overrides: Record<string, unknown> = {}): CloudflareA
   } as unknown as CloudflareAdapter;
 }
 
-function createMockContext(tmpDir: string, overrides: Record<string, unknown> = {}): CommandContext {
+function createMockContext(
+  tmpDir: string,
+  overrides: Record<string, unknown> = {}
+): CommandContext {
   return {
     cwd: tmpDir,
     adapters: {
@@ -72,13 +77,19 @@ describe("repair command", () => {
 
   it("creates .env.local from .env.example when available", async () => {
     // Create workers.jsonc
-    writeFileSync(join(tmpDir, "workers.jsonc"), JSON.stringify({
-      global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
-      workers: {},
-    }));
+    writeFileSync(
+      join(tmpDir, "workers.jsonc"),
+      JSON.stringify({
+        global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
+        workers: {},
+      })
+    );
 
     // Create .env.example
-    writeFileSync(join(tmpDir, ".env.example"), "CLOUDFLARE_API_TOKEN=example\nCLOUDFLARE_ACCOUNT_ID=example\n");
+    writeFileSync(
+      join(tmpDir, ".env.example"),
+      "CLOUDFLARE_API_TOKEN=example\nCLOUDFLARE_ACCOUNT_ID=example\n"
+    );
 
     const ctx = createMockContext(tmpDir, { args: { force: true } });
     const command = new RepairCommand();
@@ -91,16 +102,26 @@ describe("repair command", () => {
 
   it("processes workers with secrets in force mode", async () => {
     // Create workers.jsonc with a worker that has secrets
-    writeFileSync(join(tmpDir, "workers.jsonc"), JSON.stringify({
-      global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
-      workers: {
-        hoox: { enabled: true, path: "workers/hoox", secrets: ["WEBHOOK_API_KEY_BINDING"] },
-      },
-    }));
+    writeFileSync(
+      join(tmpDir, "workers.jsonc"),
+      JSON.stringify({
+        global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
+        workers: {
+          hoox: {
+            enabled: true,
+            path: "workers/hoox",
+            secrets: ["WEBHOOK_API_KEY_BINDING"],
+          },
+        },
+      })
+    );
 
     // Create worker directory
     mkdirSync(join(tmpDir, "workers", "hoox"), { recursive: true });
-    writeFileSync(join(tmpDir, "workers", "hoox", "wrangler.jsonc"), JSON.stringify({ name: "hoox" }));
+    writeFileSync(
+      join(tmpDir, "workers", "hoox", "wrangler.jsonc"),
+      JSON.stringify({ name: "hoox" })
+    );
 
     const ctx = createMockContext(tmpDir, { args: { force: true } });
     const command = new RepairCommand();
@@ -109,10 +130,13 @@ describe("repair command", () => {
   });
 
   it("handles force mode without prompts", async () => {
-    writeFileSync(join(tmpDir, "workers.jsonc"), JSON.stringify({
-      global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
-      workers: {},
-    }));
+    writeFileSync(
+      join(tmpDir, "workers.jsonc"),
+      JSON.stringify({
+        global: { cloudflare_account_id: "test", subdomain_prefix: "test" },
+        workers: {},
+      })
+    );
 
     const ctx = createMockContext(tmpDir, { args: { force: true } });
     const command = new RepairCommand();

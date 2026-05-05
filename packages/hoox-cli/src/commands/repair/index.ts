@@ -1,8 +1,16 @@
 import * as p from "@clack/prompts";
 import ansis from "ansis";
-import type { Command, CommandContext, CommandOption, CloudflareAdapter } from "../../core/types.js";
+import type {
+  Command,
+  CommandContext,
+  CommandOption,
+  CloudflareAdapter,
+} from "../../core/types.js";
 import { CLIError } from "../../core/errors.js";
-import { executeCheckSetup, type CheckSetupReport } from "../check-setup/index.js";
+import {
+  executeCheckSetup,
+  type CheckSetupReport,
+} from "../check-setup/index.js";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -173,10 +181,18 @@ function getDatabaseName(config: WorkersConfig): string {
 /**
  * Collects all failed checks from the report, grouped by category.
  */
-function collectFailedChecks(
-  report: CheckSetupReport
-): Array<{ category: string; check: string; errors: string[]; warnings: string[] }> {
-  const failed: Array<{ category: string; check: string; errors: string[]; warnings: string[] }> = [];
+function collectFailedChecks(report: CheckSetupReport): Array<{
+  category: string;
+  check: string;
+  errors: string[];
+  warnings: string[];
+}> {
+  const failed: Array<{
+    category: string;
+    check: string;
+    errors: string[];
+    warnings: string[];
+  }> = [];
 
   for (const category of report.categories) {
     for (const check of category.checks) {
@@ -238,7 +254,8 @@ async function fixEnvLocal(
       category: "Config",
       check: "Environment",
       applied: true,
-      message: "Created .env.local from default template (review and fill in real values)",
+      message:
+        "Created .env.local from default template (review and fill in real values)",
     };
   } catch (err) {
     return {
@@ -381,7 +398,8 @@ function fixMissingSecrets(
   report: CheckSetupReport,
   config: WorkersConfig
 ): Array<{ category: string; check: string; message: string }> {
-  const manual: Array<{ category: string; check: string; message: string }> = [];
+  const manual: Array<{ category: string; check: string; message: string }> =
+    [];
   const workers = config.workers || {};
 
   // Find "Worker Secrets" check failures
@@ -544,12 +562,8 @@ function renderRepairReport(report: RepairReport): void {
   if (report.fixed.length > 0) {
     p.log.step(report.dryRun ? "Would Fix" : "Fixed");
     for (const fix of report.fixed) {
-      const icon = fix.applied
-        ? ansis.green("✓")
-        : ansis.yellow("⏳");
-      p.log.message(
-        `${icon} [${fix.category}] ${fix.check}: ${fix.message}`
-      );
+      const icon = fix.applied ? ansis.green("✓") : ansis.yellow("⏳");
+      p.log.message(`${icon} [${fix.category}] ${fix.check}: ${fix.message}`);
     }
   }
 
@@ -565,18 +579,21 @@ function renderRepairReport(report: RepairReport): void {
 
   // Summary
   const { summary } = report;
-  const statusIcon = summary.manualRequired === 0
-    ? ansis.green("✓")
-    : ansis.yellow("⚠");
+  const statusIcon =
+    summary.manualRequired === 0 ? ansis.green("✓") : ansis.yellow("⚠");
 
   console.log(
     `\n${statusIcon} Summary: ${summary.autoFixed} auto-fixed, ${summary.manualRequired} require manual action (of ${summary.totalIssues} total issues)`
   );
 
   if (report.dryRun) {
-    p.outro("Dry run complete — no changes were applied. Re-run without --dry-run to apply fixes.");
+    p.outro(
+      "Dry run complete — no changes were applied. Re-run without --dry-run to apply fixes."
+    );
   } else if (summary.manualRequired > 0) {
-    p.outro("Some issues require manual attention. Follow the instructions above.");
+    p.outro(
+      "Some issues require manual attention. Follow the instructions above."
+    );
   } else if (summary.autoFixed > 0) {
     p.outro("All auto-fixable issues resolved! 🎉");
   } else {
@@ -701,7 +718,11 @@ export class RepairCommand implements Command {
       fixSpinner?.start(dryRun ? "Previewing fixes..." : "Applying fixes...");
 
       const fixed: RepairResult[] = [];
-      const manual: Array<{ category: string; check: string; message: string }> = [];
+      const manual: Array<{
+        category: string;
+        check: string;
+        message: string;
+      }> = [];
 
       // Fix 1: Missing .env.local
       const envCheck = failedChecks.find(
@@ -726,7 +747,11 @@ export class RepairCommand implements Command {
         (c) => c.category === "Config" && c.check === "Wrangler Configs"
       );
       if (wranglerCheck) {
-        const wranglerResults = await fixWranglerBindings(ctx.cwd, config, dryRun);
+        const wranglerResults = await fixWranglerBindings(
+          ctx.cwd,
+          config,
+          dryRun
+        );
         fixed.push(...wranglerResults);
       }
 
@@ -746,10 +771,14 @@ export class RepairCommand implements Command {
       // Collect remaining manual items from checks we can't auto-fix
       for (const check of failedChecks) {
         // Skip checks we've already handled above
-        if (check.category === "Config" && check.check === "Environment") continue;
-        if (check.category === "Secrets" && check.check === "Dev Vars") continue;
-        if (check.category === "Config" && check.check === "Wrangler Configs") continue;
-        if (check.category === "Secrets" && check.check === "Worker Secrets") continue;
+        if (check.category === "Config" && check.check === "Environment")
+          continue;
+        if (check.category === "Secrets" && check.check === "Dev Vars")
+          continue;
+        if (check.category === "Config" && check.check === "Wrangler Configs")
+          continue;
+        if (check.category === "Secrets" && check.check === "Worker Secrets")
+          continue;
         if (check.category === "Database") continue;
 
         // Infrastructure and other unfixable checks → manual

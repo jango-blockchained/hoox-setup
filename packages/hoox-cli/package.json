@@ -1,6 +1,6 @@
 {
   "name": "hoox-cli-tools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official Hoox CLI for deploying and operating Cloudflare workers, pages, and secrets.",
   "type": "module",
   "main": "./bin/hoox.js",
@@ -14,7 +14,7 @@
   "scripts": {
     "test": "bun test",
     "test:coverage": "bun test --coverage",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "build": "bun build ./src/index.ts --outdir ./dist --target bun",
     "prepublishOnly": "bun run build && bun run lint && bun run typecheck"
@@ -37,8 +37,7 @@
     "typescript": "^5.0.0"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "access": "public"
   },
   "repository": {
     "type": "git",

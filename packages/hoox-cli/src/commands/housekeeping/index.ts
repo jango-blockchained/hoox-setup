@@ -1,6 +1,10 @@
 import * as p from "@clack/prompts";
 import ansis from "ansis";
-import type { Command, CommandContext, CommandOption } from "../../core/types.js";
+import type {
+  Command,
+  CommandContext,
+  CommandOption,
+} from "../../core/types.js";
 import { CLIError } from "../../core/errors.js";
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -82,9 +86,7 @@ function getDatabaseName(config: WorkersConfig): string {
 }
 
 /** Determine overall status from individual check statuses. */
-function rollupStatus(
-  checks: HealthCheck[]
-): "healthy" | "degraded" | "down" {
+function rollupStatus(checks: HealthCheck[]): "healthy" | "degraded" | "down" {
   if (checks.some((c) => c.status === "down")) return "down";
   if (checks.some((c) => c.status === "degraded")) return "degraded";
   return "healthy";
@@ -189,9 +191,7 @@ async function checkDatabaseConnectivity(
  * Check KV accessibility by performing a read/write test.
  * Writes a test value, reads it back, then cleans up.
  */
-async function checkKVAccessibility(
-  ctx: CommandContext
-): Promise<HealthCheck> {
+async function checkKVAccessibility(ctx: CommandContext): Promise<HealthCheck> {
   try {
     // Find the CONFIG_KV namespace
     const namespaces = await ctx.adapters.cloudflare.listKVNamespaces();
@@ -259,9 +259,7 @@ async function checkKVAccessibility(
 /**
  * Check queue depth and consumer status by listing queues.
  */
-async function checkQueues(
-  ctx: CommandContext
-): Promise<HealthCheck> {
+async function checkQueues(ctx: CommandContext): Promise<HealthCheck> {
   try {
     const queues = await ctx.adapters.cloudflare.listQueues();
 
@@ -344,7 +342,11 @@ async function checkErrorLogs(
       name: "logs",
       status,
       message: `${errorCount} ERROR entries in system_logs in the last ${ERROR_LOOKBACK_HOURS}h`,
-      details: { errorCount, lookbackHours: ERROR_LOOKBACK_HOURS, sampleErrors },
+      details: {
+        errorCount,
+        lookbackHours: ERROR_LOOKBACK_HOURS,
+        sampleErrors,
+      },
     };
   } catch (err) {
     return {

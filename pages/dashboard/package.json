@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "opennext:build": "bunx opennextjs-cloudflare build",
-    "opennext:deploy": "bunx wrangler deploy",
+    "opennext:deploy": "bunx opennextjs-cloudflare deploy",
     "deploy": "bun run opennext:build && bun run opennext:deploy",
     "test": "bun test",
     "test:e2e": "bun run test/e2e.test.ts",
@@ -69,6 +69,6 @@
     "tailwindcss": "^4.2.4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.87.0"
   }
 }

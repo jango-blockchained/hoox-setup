@@ -77,7 +77,7 @@ export default class CfSecretsCommand implements Command {
         p.log.message(`${s.name} - v${s.version} (${s.created})`);
       });
     } catch (error) {
-      spinner.stop("Failed to fetch secrets.", 1);
+      spinner.stop("Failed to fetch secrets.");
       throw error;
     }
   }
@@ -115,7 +115,7 @@ export default class CfSecretsCommand implements Command {
         p.log.message(`Expires: ${secret.expires_on}`);
       }
     } catch (error) {
-      spinner.stop("Failed to fetch secret.", 1);
+      spinner.stop("Failed to fetch secret.");
       throw error;
     }
   }
@@ -165,7 +165,7 @@ export default class CfSecretsCommand implements Command {
       );
       spinner.stop(`Secret "${name}" set successfully!`);
     } catch (error) {
-      spinner.stop("Failed to set secret.", 1);
+      spinner.stop("Failed to set secret.");
       throw error;
     }
   }
@@ -201,7 +201,7 @@ export default class CfSecretsCommand implements Command {
       await ctx.adapters.cloudflare.deleteSecret(config.secretStoreId, name);
       spinner.stop(`Secret "${name}" deleted successfully!`);
     } catch (error) {
-      spinner.stop("Failed to delete secret.", 1);
+      spinner.stop("Failed to delete secret.");
       throw error;
     }
   }

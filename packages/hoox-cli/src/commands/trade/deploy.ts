@@ -39,7 +39,7 @@ export class TradeDeployCommand implements Command {
       spinner.stop("Trade-worker deployed successfully!");
       ctx.observer.setState({ commandStatus: "success" });
     } catch (error) {
-      spinner.stop("Deployment failed.", 1);
+      spinner.stop("Deployment failed.");
       ctx.observer.setState({ commandStatus: "error" });
       throw error;
     }

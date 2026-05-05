@@ -18,28 +18,31 @@ export async function loadCommands(): Promise<Record<string, Command>> {
 
       // Check all exports for a valid Command
       for (const [, exportValue] of Object.entries(mod)) {
-        // Check if it's a class/object with execute method
-        if (
-          (exportValue && typeof exportValue === "function") ||
-          typeof exportValue === "object"
-        ) {
-          // For classes, check prototype; for objects, check directly
-          const hasExecute =
-            (typeof exportValue === "function" &&
-              typeof exportValue.prototype?.execute === "function") ||
-            (typeof exportValue === "object" &&
-              typeof (exportValue as Command).execute === "function");
+        // Skip null/undefined values
+        if (!exportValue) continue;
 
-          if (hasExecute) {
-            // Generate command name from file path
-            const commandName = file
-              .replace(/\.ts$/, "")
-              .replace(/\/index$/, "")
-              .replace(/\//g, ":");
+        // Check if it's a class (function with prototype.execute) or object with execute
+        const isClass =
+          typeof exportValue === "function" &&
+          typeof exportValue.prototype?.execute === "function";
+        const isObject =
+          typeof exportValue === "object" &&
+          typeof (exportValue as Command).execute === "function";
 
+        if (isClass || isObject) {
+          // Generate command name from file path
+          const commandName = file
+            .replace(/\.ts$/, "")
+            .replace(/\/index$/, "")
+            .replace(/\//g, ":");
+
+          // Instantiate classes, use objects directly
+          if (isClass) {
+            commands[commandName] = new (exportValue as new () => Command)();
+          } else {
             commands[commandName] = exportValue as Command;
-            break; // Use first matching export
           }
+          break; // Use first matching export
         }
       }
     }

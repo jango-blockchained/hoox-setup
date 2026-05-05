@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
-import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync } from "fs";
+import {
+  mkdtempSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  readFileSync,
+} from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { ConfigInitCommand } from "./init.js";
@@ -222,9 +228,9 @@ describe("ConfigInitCommand", () => {
   });
 
   it("should set error state when token validation fails", async () => {
-    (mockCtx.adapters.cloudflare.testConnection as ReturnType<typeof mock>).mockImplementation(
-      async () => false
-    );
+    (
+      mockCtx.adapters.cloudflare.testConnection as ReturnType<typeof mock>
+    ).mockImplementation(async () => false);
 
     mockCtx.args = {
       token: "invalid-token",
@@ -242,9 +248,9 @@ describe("ConfigInitCommand", () => {
   });
 
   it("should not create files when token validation fails", async () => {
-    (mockCtx.adapters.cloudflare.testConnection as ReturnType<typeof mock>).mockImplementation(
-      async () => false
-    );
+    (
+      mockCtx.adapters.cloudflare.testConnection as ReturnType<typeof mock>
+    ).mockImplementation(async () => false);
 
     mockCtx.args = {
       token: "invalid-token",
@@ -294,11 +300,11 @@ describe("ConfigInitCommand", () => {
   });
 
   it("should handle errors gracefully", async () => {
-    (mockCtx.adapters.bun.writeFile as ReturnType<typeof mock>).mockImplementation(
-      async () => {
-        throw new Error("Write failed");
-      }
-    );
+    (
+      mockCtx.adapters.bun.writeFile as ReturnType<typeof mock>
+    ).mockImplementation(async () => {
+      throw new Error("Write failed");
+    });
 
     mockCtx.args = {
       token: "test-token",

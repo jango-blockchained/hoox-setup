@@ -1,6 +1,10 @@
 import * as p from "@clack/prompts";
 import ansis from "ansis";
-import type { Command, CommandContext, CommandOption } from "../../core/types.js";
+import type {
+  Command,
+  CommandContext,
+  CommandOption,
+} from "../../core/types.js";
 import { CLIError } from "../../core/errors.js";
 
 /** WAF enforcement mode. */
@@ -40,7 +44,8 @@ export default class WafCommand implements Command {
       flag: "ips",
       short: "i",
       type: "string",
-      description: "Comma-separated list of allowed IPs (CIDR notation supported)",
+      description:
+        "Comma-separated list of allowed IPs (CIDR notation supported)",
     },
     {
       flag: "mode",
@@ -68,7 +73,10 @@ export default class WafCommand implements Command {
 
       // Validate IPs if provided
       if (ipsArg) {
-        const ips = ipsArg.split(",").map((ip) => ip.trim()).filter(Boolean);
+        const ips = ipsArg
+          .split(",")
+          .map((ip) => ip.trim())
+          .filter(Boolean);
         const invalidIPs = ips.filter((ip) => !this.isValidIP(ip));
         if (invalidIPs.length > 0) {
           throw new CLIError(
@@ -80,7 +88,10 @@ export default class WafCommand implements Command {
 
       // If flags provided, apply directly
       if (ipsArg || modeArg) {
-        await this.applyFlags(ctx, { ips: ipsArg, mode: modeArg as WAFMode | undefined });
+        await this.applyFlags(ctx, {
+          ips: ipsArg,
+          mode: modeArg as WAFMode | undefined,
+        });
       } else {
         // Interactive mode
         await this.interactiveFlow(ctx);
@@ -139,10 +150,14 @@ export default class WafCommand implements Command {
     const spinner = p.spinner();
     spinner.start("Saving WAF rules to KV...");
     try {
-      await ctx.adapters.cloudflare.putKVValue(namespaceId, KV_KEY, JSON.stringify(rules, null, 2));
+      await ctx.adapters.cloudflare.putKVValue(
+        namespaceId,
+        KV_KEY,
+        JSON.stringify(rules, null, 2)
+      );
       spinner.stop("WAF rules saved!");
     } catch (error) {
-      spinner.stop("Failed to save WAF rules.", 1);
+      spinner.stop("Failed to save WAF rules.");
       throw error;
     }
   }
@@ -163,7 +178,9 @@ export default class WafCommand implements Command {
 
     p.log.message(
       ansis.bold("  Rate Limiting: ") +
-      ansis.dim(`${rules.rateLimiting.requestsPerMinute} req/min, burst ${rules.rateLimiting.burstSize}`)
+        ansis.dim(
+          `${rules.rateLimiting.requestsPerMinute} req/min, burst ${rules.rateLimiting.burstSize}`
+        )
     );
   }
 
@@ -180,7 +197,10 @@ export default class WafCommand implements Command {
     }
 
     if (flags.ips) {
-      const ips = flags.ips.split(",").map((ip) => ip.trim()).filter(Boolean);
+      const ips = flags.ips
+        .split(",")
+        .map((ip) => ip.trim())
+        .filter(Boolean);
       rules.allowedIPs = ips;
       p.log.success(`IP allowlist updated: ${ansis.green(ips.join(", "))}`);
     }
@@ -230,7 +250,10 @@ export default class WafCommand implements Command {
   }
 
   /** Interactive IP allowlist configuration. */
-  private async configureIPs(ctx: CommandContext, rules: WAFRules): Promise<void> {
+  private async configureIPs(
+    ctx: CommandContext,
+    rules: WAFRules
+  ): Promise<void> {
     const ipAction = await p.select({
       message: "IP allowlist action:",
       options: [
@@ -247,12 +270,19 @@ export default class WafCommand implements Command {
 
     if (ipAction === "add" || ipAction === "set") {
       const input = await p.text({
-        message: ipAction === "add" ? "Enter IPs to add (comma-separated):" : "Enter new allowlist (comma-separated):",
+        message:
+          ipAction === "add"
+            ? "Enter IPs to add (comma-separated):"
+            : "Enter new allowlist (comma-separated):",
         validate: (v) => {
           if (!v?.trim()) return "At least one IP is required";
-          const ips = v.split(",").map((ip) => ip.trim()).filter(Boolean);
+          const ips = v
+            .split(",")
+            .map((ip) => ip.trim())
+            .filter(Boolean);
           const invalid = ips.filter((ip) => !this.isValidIP(ip));
-          if (invalid.length > 0) return `Invalid IP format: ${invalid.join(", ")}`;
+          if (invalid.length > 0)
+            return `Invalid IP format: ${invalid.join(", ")}`;
           return undefined;
         },
       });
@@ -262,7 +292,10 @@ export default class WafCommand implements Command {
         return;
       }
 
-      const newIPs = (input as string).split(",").map((ip) => ip.trim()).filter(Boolean);
+      const newIPs = (input as string)
+        .split(",")
+        .map((ip) => ip.trim())
+        .filter(Boolean);
 
       if (ipAction === "add") {
         const existing = new Set(rules.allowedIPs);
@@ -301,13 +334,28 @@ export default class WafCommand implements Command {
   }
 
   /** Interactive mode configuration. */
-  private async configureMode(ctx: CommandContext, rules: WAFRules): Promise<void> {
+  private async configureMode(
+    ctx: CommandContext,
+    rules: WAFRules
+  ): Promise<void> {
     const mode = await p.select({
       message: "Select enforcement mode:",
       options: [
-        { value: "block", label: "Block — deny requests from non-allowlisted IPs", hint: "strict" },
-        { value: "challenge", label: "Challenge — show challenge page", hint: "moderate" },
-        { value: "simulate", label: "Simulate — log only, no enforcement", hint: "permissive" },
+        {
+          value: "block",
+          label: "Block — deny requests from non-allowlisted IPs",
+          hint: "strict",
+        },
+        {
+          value: "challenge",
+          label: "Challenge — show challenge page",
+          hint: "moderate",
+        },
+        {
+          value: "simulate",
+          label: "Simulate — log only, no enforcement",
+          hint: "permissive",
+        },
       ],
     });
 
@@ -323,13 +371,17 @@ export default class WafCommand implements Command {
   }
 
   /** Interactive rate limiting configuration. */
-  private async configureRateLimit(ctx: CommandContext, rules: WAFRules): Promise<void> {
+  private async configureRateLimit(
+    ctx: CommandContext,
+    rules: WAFRules
+  ): Promise<void> {
     const rpmInput = await p.text({
       message: "Requests per minute:",
       initialValue: String(rules.rateLimiting.requestsPerMinute),
       validate: (v) => {
         const n = Number(v ?? "0");
-        if (isNaN(n) || n < 1 || !Number.isInteger(n)) return "Must be a positive integer";
+        if (isNaN(n) || n < 1 || !Number.isInteger(n))
+          return "Must be a positive integer";
         return undefined;
       },
     });
@@ -344,7 +396,8 @@ export default class WafCommand implements Command {
       initialValue: String(rules.rateLimiting.burstSize),
       validate: (v) => {
         const n = Number(v ?? "0");
-        if (isNaN(n) || n < 1 || !Number.isInteger(n)) return "Must be a positive integer";
+        if (isNaN(n) || n < 1 || !Number.isInteger(n))
+          return "Must be a positive integer";
         return undefined;
       },
     });
@@ -376,7 +429,11 @@ export default class WafCommand implements Command {
       return;
     }
 
-    const defaults: WAFRules = { ...DEFAULT_RULES, allowedIPs: [], rateLimiting: { ...DEFAULT_RULES.rateLimiting } };
+    const defaults: WAFRules = {
+      ...DEFAULT_RULES,
+      allowedIPs: [],
+      rateLimiting: { ...DEFAULT_RULES.rateLimiting },
+    };
     await this.saveRules(ctx, defaults);
     p.log.success("WAF rules reset to defaults.");
     this.showRules(defaults);

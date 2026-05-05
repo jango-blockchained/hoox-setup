@@ -75,9 +75,7 @@ export class ConfigInitCommand implements Command {
         if (envLocalExists) existingFiles.push(".env.local");
         if (workersJsoncExists) existingFiles.push("workers.jsonc");
 
-        p.log.warn(
-          `Found existing configuration: ${existingFiles.join(", ")}`
-        );
+        p.log.warn(`Found existing configuration: ${existingFiles.join(", ")}`);
 
         const overwrite = await p.confirm({
           message: "Do you want to overwrite the existing configuration?",
@@ -85,7 +83,9 @@ export class ConfigInitCommand implements Command {
         });
 
         if (p.isCancel(overwrite) || !overwrite) {
-          p.cancel("Initialization cancelled. Use --force to skip this prompt.");
+          p.cancel(
+            "Initialization cancelled. Use --force to skip this prompt."
+          );
           return;
         }
       }
@@ -101,7 +101,7 @@ export class ConfigInitCommand implements Command {
       const isValid = await this.validateApiToken(ctx, config.apiToken);
 
       if (!isValid) {
-        spinner.stop("Token validation failed", 1);
+        spinner.stop("Token validation failed");
         p.log.error(
           "Cloudflare API token is invalid. Please check your token and try again."
         );
@@ -140,9 +140,15 @@ export class ConfigInitCommand implements Command {
       p.log.info("");
       p.log.info(ansis.bold("Configuration summary:"));
       p.log.info(`  Cloudflare Account ID: ${ansis.cyan(config.accountId)}`);
-      p.log.info(`  Secret Store ID:       ${ansis.cyan(config.secretStoreId)}`);
-      p.log.info(`  Subdomain Prefix:     ${ansis.cyan(config.subdomainPrefix)}`);
-      p.log.info(`  API Token:            ${ansis.cyan(this.maskToken(config.apiToken))}`);
+      p.log.info(
+        `  Secret Store ID:       ${ansis.cyan(config.secretStoreId)}`
+      );
+      p.log.info(
+        `  Subdomain Prefix:     ${ansis.cyan(config.subdomainPrefix)}`
+      );
+      p.log.info(
+        `  API Token:            ${ansis.cyan(this.maskToken(config.apiToken))}`
+      );
 
       p.outro(
         `You can now deploy workers with: ${ansis.bold("hoox workers deploy")}`
@@ -366,16 +372,9 @@ export class ConfigInitCommand implements Command {
     return `${token.slice(0, 4)}${"*".repeat(maskedLength)}${token.slice(-4)}`;
   }
 
-  private replaceEnvValue(
-    content: string,
-    key: string,
-    value: string
-  ): string {
+  private replaceEnvValue(content: string, key: string, value: string): string {
     // Match KEY="value" or KEY=value patterns, preserving the quote style
-    const regex = new RegExp(
-      `(${key}="?)([^"]*?)("?)$`,
-      "m"
-    );
+    const regex = new RegExp(`(${key}="?)([^"]*?)("?)$`, "m");
     return content.replace(regex, `$1${value}$3`);
   }
 
