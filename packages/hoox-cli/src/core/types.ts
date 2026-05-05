@@ -79,11 +79,19 @@ export interface CloudflareAdapter {
     name: string
   ): Promise<{ uuid: string; name: string; title: string }>;
   deleteD1Database(uuid: string): Promise<void>;
+  executeD1Query(
+    databaseName: string,
+    sql: string
+  ): Promise<{ results: Record<string, unknown>[] }>;
 
   // KV Namespace methods
   listKVNamespaces(): Promise<Array<{ id: string; title: string }>>;
   createKVNamespace(title: string): Promise<{ id: string; title: string }>;
   deleteKVNamespace(id: string): Promise<void>;
+
+  // KV Key-Value methods
+  getKVValue(namespaceId: string, key: string): Promise<string | null>;
+  putKVValue(namespaceId: string, key: string, value: string): Promise<void>;
 
   // R2 Bucket methods
   listR2Buckets(): Promise<Array<{ name: string }>>;

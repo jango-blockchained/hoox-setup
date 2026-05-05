@@ -74,6 +74,18 @@ export class CloudflareAdapter implements ICloudflareAdapter {
     await this.runWrangler(["d1", "delete", uuid, "--yes"], `Failed to delete D1 database: ${uuid}`);
   }
 
+  async executeD1Query(
+    databaseName: string,
+    sql: string
+  ): Promise<{ results: Record<string, unknown>[] }> {
+    const stdout = await this.runWrangler(
+      ["d1", "execute", databaseName, "--command", sql, "--json"],
+      `Failed to execute D1 query on ${databaseName}`
+    );
+    const parsed = JSON.parse(stdout || "{}");
+    return { results: parsed?.results || [] };
+  }
+
   // KV Namespace methods
   async listKVNamespaces(): Promise<Array<{ id: string; title: string }>> {
     const stdout = await this.runWrangler(["kv", "namespace", "list", "--json"], "Failed to list KV namespaces");
@@ -89,6 +101,25 @@ export class CloudflareAdapter implements ICloudflareAdapter {
 
   async deleteKVNamespace(id: string): Promise<void> {
     await this.runWrangler(["kv", "namespace", "delete", id, "--yes"], `Failed to delete KV namespace: ${id}`);
+  }
+
+  async getKVValue(namespaceId: string, key: string): Promise<string | null> {
+    try {
+      const stdout = await this.runWrangler(
+        ["kv", "key", "get", key, "--namespace-id", namespaceId],
+        `Failed to get KV value for key: ${key}`
+      );
+      return stdout || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async putKVValue(namespaceId: string, key: string, value: string): Promise<void> {
+    await this.runWrangler(
+      ["kv", "key", "put", key, value, "--namespace-id", namespaceId],
+      `Failed to put KV value for key: ${key}`
+    );
   }
 
   // R2 Bucket methods
