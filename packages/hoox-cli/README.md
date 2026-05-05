@@ -2,6 +2,8 @@
 
 Official CLI for Hoox infrastructure workflows on Cloudflare.
 
+> **Part of the [Hoox Trading System](https://github.com/jango-blockchained/hoox-setup)** - A zero-latency edge trading ecosystem.
+
 ## Install
 
 ```bash

@@ -7,6 +7,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
 [![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/development/testing.md)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Main Repo](https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&logo=github)](https://github.com/jango-blockchained/hoox-setup)
 
 **[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
@@ -103,6 +104,25 @@ hoox workers deploy
 
 > **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all workers simultaneously on your local machine!
 >
+---
+
+## 📦 Worker Submodules
+
+Hoox uses Git submodules for each worker, allowing independent development and deployment. All workers are part of the [hoox-setup](https://github.com/jango-blockchained/hoox-setup) monorepo.
+
+| Worker | Description | Repository |
+|--------|-------------|------------|
+| 🔐 **hoox** (Gateway) | Webhook entrypoint & firewall | [jango-blockchained/hoox](https://github.com/jango-blockchained/hoox) |
+| 📈 **trade-worker** | Multi-exchange execution engine | [jango-blockchained/trade-worker](https://github.com/jango-blockchained/trade-worker) |
+| 🧠 **agent-worker** | AI risk manager & cron jobs | [jango-blockchained/agent-worker](https://github.com/jango-blockchained/agent-worker) |
+| 💬 **telegram-worker** | Telegram notifications & commands | [jango-blockchained/telegram-worker](https://github.com/jango-blockchained/telegram-worker) |
+| 🗄️ **d1-worker** | D1 database operations | [jango-blockchained/d1-worker](https://github.com/jango-blockchained/d1-worker) |
+| 🌐 **web3-wallet-worker** | DeFi & on-chain execution | [jango-blockchained/web3-wallet-worker](https://github.com/jango-blockchained/web3-wallet-worker) |
+| 📧 **email-worker** | Email signal parsing | [jango-blockchained/email-worker](https://github.com/jango-blockchained/email-worker) |
+| 📊 **analytics-worker** | Analytics & reporting | [jango-blockchained/analytics-worker](https://github.com/jango-blockchained/analytics-worker) |
+
+> **Note:** Clone with `git clone --recursive` to get all submodules, or run `git submodule update --init --recursive` after cloning.
+
 ---
 
 ## 🛠️ The `@hoox/cli` & Workspaces

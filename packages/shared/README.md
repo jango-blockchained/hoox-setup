@@ -4,6 +4,8 @@
 
 A shared utility library used across the Hoox Trading System workers. It provides common types, response helpers, and utility functions.
 
+> **Part of the [Hoox Trading System](https://github.com/jango-blockchained/hoox-setup)** - A zero-latency edge trading ecosystem.
+
 ## Contents
 
 ### 1. `exchange-client.ts`
