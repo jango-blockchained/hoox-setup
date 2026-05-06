@@ -305,7 +305,7 @@ async function collectIntegrationSecrets(
     const secretEntries = Object.entries(integration.secrets);
     const groupFields: Record<string, () => Promise<string | symbol>> = {};
 
-    for (const [secretName, label] of secretEntries) {
+    for (const [secretName] of secretEntries) {
       groupFields[secretName] = () =>
         p.password({
           message: `${label}:`,

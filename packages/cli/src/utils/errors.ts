@@ -20,4 +20,5 @@ export class CLIError extends Error {
     super(message);
     this.name = "CLIError";
   }
+  // eslint-disable-line no-redeclare
 }

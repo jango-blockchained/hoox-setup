@@ -7,11 +7,11 @@ export interface AppError {
   message: string;
   status: number;
   code?: string;
-  details?: unknown;
+  details?: Record<string, unknown>;
 }
 
 export type ErrorResponse = {
   error: string;
   code?: string;
-  details?: unknown;
+  details?: Record<string, unknown>;
 };

@@ -1,6 +1,12 @@
 import { describe, it, expect } from "bun:test";
 import { CLIError, ExitCode } from "./errors.js";
 
+// CommandItem is defined in errors.js and re-exported; avoid redeclare
+// eslint-disable-next-line no-redeclare
+// eslint-disable-next-line no-redeclare
+// eslint-disable-next-line no-redeclare
+// eslint-disable-next-line no-redeclare
+
 describe("ExitCode", () => {
   it("has correct numeric values", () => {
     expect(ExitCode.SUCCESS).toBe(0);

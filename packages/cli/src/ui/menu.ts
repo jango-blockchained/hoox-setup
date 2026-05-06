@@ -395,7 +395,7 @@ async function runCommand(program: Command, commandStr: string): Promise<void> {
 
   try {
     await program.parseAsync(
-      ["node", "hoox", ...args],
+      [process.execPath, "hoox", ...args],
       { from: "user" },
     );
   } catch (err) {
