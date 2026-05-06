@@ -131,56 +131,82 @@ Hoox is split into distinct, highly specialized micro-workers. If one fails, the
 ```mermaid
 graph TB
     subgraph "External World"
-        TV["📊 TradingView<br/>Signals"]
-        TG["💬 Telegram<br/>Commands"]
+        TV["📊 TradingView<br/>Webhooks"]
+        TG["💬 Telegram<br/>Bot Commands"]
+        EM["📧 Email<br/>Signal Parsing"]
     end
 
     subgraph "Cloudflare® WAF"
-        WAF["🛡️ IP Allowlist & Rate Limits"]
+        WAF["🛡️ WAF<br/>IP Allowlist & Rate Limits"]
     end
 
-    subgraph "Cloudflare® Edge Network (Zero Latency)"
-        hoox["🔐 hoox<br/>Gateway Firewall"]
+    subgraph "Cloudflare® Edge Network"
+        hoox["🔐 hoox<br/>Gateway & Firewall"]
         trade["📈 trade-worker<br/>Execution Engine"]
-        telegram["💬 telegram-worker<br/>AI Notifications"]
-        agent["🧠 agent-worker<br/>Risk & AI Manager"]
-        dash["📊 dashboard<br/>UI & Command Center"]
-        d1["🗄️ d1-worker<br/>Data Aggregator"]
-        web3["🌐 web3-wallet<br/>On-Chain Router"]
+        telegram["💬 telegram-worker<br/>Notifications"]
+        agent["🧠 agent-worker<br/>AI Risk Manager"]
+        dash["📊 dashboard<br/>Next.js Command Center"]
+        d1["🗄️ d1-worker<br/>SQL Operations"]
+        web3["🌐 web3-wallet<br/>DeFi Execution"]
+        email["📧 email-worker<br/>Email Parser"]
+        analytics["📈 analytics-worker<br/>Reporting"]
     end
 
     subgraph "Cloudflare® Infrastructure"
-        KV[(🟠 💾 KV Store)]
-        AI[(🟠 🤖 Workers AI)]
-        DB[(🟠 🗄️ D1 SQL)]
-        Q[(🟠 📨 Queue)]
-        DO[(🟠 🛡️ Durable Obj)]
-        R2[(🟠 🪣 R2 Logs)]
+        KV[(🟠 KV<br/>Config & Kill-Switch)]
+        AI[(🟠 Workers AI<br/>LLaMA 3)]
+        DB[(🟠 D1<br/>Trade Database)]
+        Q[(🟠 Queue<br/>Trade Execution)]
+        DO[(🟠 Durable Objects<br/>Idempotency)]
+        R2[(🟠 R2<br/>Reports & Logs)]
+        VEC[(🟠 Vectorize<br/>RAG Index)]
+        BROWSER[(🟠 Browser<br/>Web Scraping)]
     end
 
-    TV --> WAF
+    %% External inputs
+    TV -->|HTTPS + API Key| WAF
+    TG -->|HTTPS + Bot Token| telegram
+    EM -->|SMTP| email
+
     WAF --> hoox
-    TG --> hoox
-    TG --> telegram
+
+    %% Dashboard connections
+    dash -->|Service Binding| hoox
     dash --> KV
-    dash --> hoox
 
-    hoox -->|Fast Path Binding| trade
-    hoox -->|Fallback Queue| Q
-    hoox -->|Durable Obj| DO
-    hoox -->|Isolated Binding| telegram
-    agent -->|Isolated Binding| trade
-    agent -->|Isolated Binding| telegram
-    agent -->|Isolated Binding| d1
+    %% hoox gateway routing
+    hoox -->|Fast Path<br/>Service Binding| trade
+    hoox -->|Fallback<br/>Queue| Q
+    hoox -->|Idempotency<br/>Durable Object| DO
+    hoox -->|Notifications<br/>Service Binding| telegram
+    hoox --> KV
 
-    trade -->|Isolated Binding| d1
-    trade -->|Isolated Binding| web3
+    %% agent-worker cron (every 5 min)
+    agent -->|Cron: */5<br/>Service Binding| trade
+    agent -->|Service Binding| telegram
+    agent -->|Service Binding| d1
+    agent --> AI
 
-    hoox -.-> KV
-    trade -.-> DB
-    trade -.-> R2
-    telegram -.-> AI
-    agent -.-> AI
+    %% trade-worker execution
+    trade -->|Service Binding| d1
+    trade -->|Service Binding| web3
+    trade -->|Service Binding| telegram
+    trade -->|Service Binding| analytics
+    trade --> DB
+    trade -->|Logs| R2
+    trade --> Q
+    trade --> KV
+    trade --> VEC
+    trade --> BROWSER
+    trade --> AI
+
+    %% telegram-worker
+    telegram -->|Service Binding| analytics
+    telegram --> AI
+
+    %% email-worker
+    email -->|Service Binding| analytics
+    email --> KV
 ```
 
 ---
