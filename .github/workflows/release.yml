@@ -39,24 +39,22 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Publish to npm
-        run: npm publish --workspaces --if-present --access public
+      - name: Publish @jango-blockchained/hoox-cli to npm
+        run: cd packages/cli && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # ===== Publish to GitHub Packages =====
-      # - name: Setup Node.js for GitHub Packages
-      #   uses: actions/setup-node@v6
-      #   with:
-      #     node-version: '20'
-      #     registry-url: https://npm.pkg.github.com
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          registry-url: "https://npm.pkg.github.com"
 
-      # - name: Publish to GitHub Packages
-      #   run: |
-      #     npm config set @hoox:registry https://npm.pkg.github.com/
-      #     npm publish --workspaces --if-present
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish @jango-blockchained/hoox-cli to GitHub Packages
+        run: cd packages/cli && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
