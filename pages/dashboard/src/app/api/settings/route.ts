@@ -165,7 +165,7 @@ export async function GET(
           }
         }
 
-        return NextResponse.json({ settings: normalized } as any);
+        return NextResponse.json({ settings: normalized });
       }
     }
   } catch (e) {

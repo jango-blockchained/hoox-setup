@@ -25,4 +25,4 @@
 
 **Monorepo**: `package.json` (workspaces: packages/_, workers/_, pages/\*)
 **Dashboard**: `pages/dashboard/next.config.ts` (Cloudflare Workers + OpenNext, NOT Pages)
-**CLI**: `packages/hoox-cli/`
+**CLI**: `packages/cli/`

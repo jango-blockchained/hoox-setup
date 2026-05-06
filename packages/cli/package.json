@@ -1,0 +1,60 @@
+{
+  "name": "@jango-blockchained/hoox-cli",
+  "version": "0.2.0",
+  "description": "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments (@jango-blockchained/hoox-cli)",
+  "type": "module",
+  "main": "./bin/hoox2.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./bin/hoox2.js"
+  },
+  "bin": {
+    "hoox2": "./bin/hoox2.js"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "prepublishOnly": "bun run build && bun run lint && bun run typecheck"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.3.0",
+    "@hoox/shared": "workspace:*",
+    "ansis": "^4.2.0",
+    "commander": "^13.1.0",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "bun-types": "^1.3.13",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jango-blockchained/hoox-setup.git"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "cli",
+    "trading",
+    "crypto",
+    "automation",
+    "hoox"
+  ],
+  "author": "Hoox Team",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.0"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ]
+}

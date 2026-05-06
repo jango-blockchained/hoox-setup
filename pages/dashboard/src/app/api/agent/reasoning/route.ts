@@ -25,15 +25,15 @@ export async function POST(request: NextRequest) {
     };
 
     if (env.AI && model.includes('deepseek')) {
-      const result = await env.AI.run(model as any, {
+      const result = await env.AI.run(model, {
         messages: [{ role: "user", content: prompt }],
         max_tokens: 2000,
-      } as any);
+      });
 
       return NextResponse.json({
         success: true,
-        reasoning: (result as any).reasoning || "",
-        answer: (result as any).response || String(result),
+        reasoning: result.reasoning || "",
+        answer: result.response || String(result),
         model,
       });
     }

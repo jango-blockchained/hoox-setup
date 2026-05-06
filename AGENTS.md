@@ -6,7 +6,7 @@ Monorepo using Bun workspaces: `packages/*`, `workers/*`, `pages/*`.
 
 | Workspace                    | Purpose                                              |
 | ---------------------------- | ---------------------------------------------------- |
-| `packages/hoox-cli`          | CLI tool (`hoox` commands)                           |
+| `packages/cli`          | CLI tool (`hoox` commands)                           |
 | `packages/shared`            | Shared types and utilities                           |
 | `workers/hoox`               | Gateway (webhook entrypoint)                         |
 | `workers/trade-worker`       | Multi-exchange execution                             |
@@ -33,7 +33,7 @@ hoox workers deploy     # deploy all workers to Cloudflare
 
 ## CI Pipeline Order
 
-`bun run lint` → `bun run typecheck` → `bun test packages/hoox-cli --coverage` → `bun run build`
+`bun run lint` → `bun run typecheck` → `bun test packages/cli --coverage` → `bun run build`
 
 ## Testing
 

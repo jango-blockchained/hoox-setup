@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     if (provider === "workers-ai" && env.AI && model) {
       try {
-        const result = await env.AI.run(model as any, {
+        const result = await env.AI.run(model, {
           messages: [{ role: "user", content: prompt }],
           max_tokens: 100,
         });
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
           success: true,
           provider,
           model,
-          response: (result as any).response || String(result),
+          response: result?.response || String(result),
           latency: Date.now() - start,
         });
       } catch (e) {

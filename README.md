@@ -125,9 +125,9 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ---
 
-## 🛠️ The `@hoox/cli` & Workspaces
+## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing Bun Workspaces, the core management commands are isolated in `packages/hoox-cli` and exposed directly to your terminal.
+The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing Bun Workspaces, the core management commands are isolated in `packages/cli` and exposed directly to your terminal.
 
 - **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox workers deploy` or `hoox init`.
 - **Strict Configuration**: Configuration is distinctly split between `workers.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
@@ -340,7 +340,7 @@ bun test --coverage
 ```
 
 **Current Test Coverage:**
-- **packages/hoox-cli**: 83.33% function coverage (utils.ts), 100% (cf-client.ts)
+- **packages/cli**: 83.33% function coverage (utils.ts), 100% (cf-client.ts)
 - **workers/hoox**: >85% line coverage
 - **workers/trade-worker**: >85% line coverage
 - **workers/agent-worker**: >87% line coverage

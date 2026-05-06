@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Refactor `packages/hoox-cli` into a modular, layered architecture using Command Pattern, Observer Pattern, and Bun-native APIs with @clack/prompts.
+**Goal:** Refactor `packages/cli` into a modular, layered architecture using Command Pattern, Observer Pattern, and Bun-native APIs with @clack/prompts.
 
 **Architecture:** 4-layer architecture (UI → Observer → Engine → Adapters) with folder-based command discovery. UI layer emits events via Clack, Observer manages central state (CLI + workers + system), Engine handles business logic, Adapters wrap external services.
 
@@ -13,8 +13,8 @@
 ### Task 1: Create Core Types
 
 **Files:**
-- Create: `packages/hoox-cli/src/core/types.ts`
-- Test: `packages/hoox-cli/src/core/types.test.ts`
+- Create: `packages/cli/src/core/types.ts`
+- Test: `packages/cli/src/core/types.test.ts`
 
 - [ ] **Step 1: Write failing tests for types**
 
@@ -62,7 +62,7 @@ describe('Core Types', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/core/types.test.ts`
+Run: `cd packages/cli && bun test src/core/types.test.ts`
 Expected: FAIL with "Cannot find module './types.js'"
 
 - [ ] **Step 3: Write minimal type definitions**
@@ -158,14 +158,14 @@ export interface WorkersAdapter {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/core/types.test.ts`
+Run: `cd packages/cli && bun test src/core/types.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/core/types.ts packages/hoox-cli/src/core/types.test.ts
+git add packages/cli/src/core/types.ts packages/cli/src/core/types.test.ts
 git commit -m "feat(cli): add core type definitions for layered architecture"
 ```
 
@@ -174,8 +174,8 @@ git commit -m "feat(cli): add core type definitions for layered architecture"
 ### Task 2: Implement Observer (AppObserver)
 
 **Files:**
-- Create: `packages/hoox-cli/src/core/observer.ts`
-- Test: `packages/hoox-cli/src/core/observer.test.ts`
+- Create: `packages/cli/src/core/observer.ts`
+- Test: `packages/cli/src/core/observer.test.ts`
 
 - [ ] **Step 1: Write failing tests for Observer**
 
@@ -255,7 +255,7 @@ describe('AppObserver', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/core/observer.test.ts`
+Run: `cd packages/cli && bun test src/core/observer.test.ts`
 Expected: FAIL with "Cannot find module './observer.js'"
 
 - [ ] **Step 3: Implement AppObserver**
@@ -325,14 +325,14 @@ export class AppObserver implements Observer {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/core/observer.test.ts`
+Run: `cd packages/cli && bun test src/core/observer.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/core/observer.ts packages/hoox-cli/src/core/observer.test.ts
+git add packages/cli/src/core/observer.ts packages/cli/src/core/observer.test.ts
 git commit -m "feat(cli): implement AppObserver with EventEmitter"
 ```
 
@@ -341,8 +341,8 @@ git commit -m "feat(cli): implement AppObserver with EventEmitter"
 ### Task 3: Create Error Classes
 
 **Files:**
-- Create: `packages/hoox-cli/src/core/errors.ts`
-- Test: `packages/hoox-cli/src/core/errors.test.ts`
+- Create: `packages/cli/src/core/errors.ts`
+- Test: `packages/cli/src/core/errors.test.ts`
 
 - [ ] **Step 1: Write failing tests for errors**
 
@@ -382,7 +382,7 @@ describe('Error Classes', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/core/errors.test.ts`
+Run: `cd packages/cli && bun test src/core/errors.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement error classes**
@@ -415,14 +415,14 @@ export class ConfigValidationError extends CLIError {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/core/errors.test.ts`
+Run: `cd packages/cli && bun test src/core/errors.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/core/errors.ts packages/hoox-cli/src/core/errors.test.ts
+git add packages/cli/src/core/errors.ts packages/cli/src/core/errors.test.ts
 git commit -m "feat(cli): add CLIError hierarchy for structured error handling"
 ```
 
@@ -431,8 +431,8 @@ git commit -m "feat(cli): add CLIError hierarchy for structured error handling"
 ### Task 4: Implement Bun Adapter
 
 **Files:**
-- Create: `packages/hoox-cli/src/adapters/bun.ts`
-- Test: `packages/hoox-cli/src/adapters/bun.test.ts`
+- Create: `packages/cli/src/adapters/bun.ts`
+- Test: `packages/cli/src/adapters/bun.test.ts`
 
 - [ ] **Step 1: Write failing tests for BunAdapter**
 
@@ -490,7 +490,7 @@ describe('BunAdapter', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/bun.test.ts`
+Run: `cd packages/cli && bun test src/adapters/bun.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement BunAdapter**
@@ -521,14 +521,14 @@ export class BunAdapter {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/bun.test.ts`
+Run: `cd packages/cli && bun test src/adapters/bun.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/adapters/bun.ts packages/hoox-cli/src/adapters/bun.test.ts
+git add packages/cli/src/adapters/bun.ts packages/cli/src/adapters/bun.test.ts
 git commit -m "feat(cli): implement BunAdapter with native Bun APIs"
 ```
 
@@ -537,8 +537,8 @@ git commit -m "feat(cli): implement BunAdapter with native Bun APIs"
 ### Task 5: Implement Cloudflare Adapter
 
 **Files:**
-- Create: `packages/hoox-cli/src/adapters/cloudflare.ts`
-- Test: `packages/hoox-cli/src/adapters/cloudflare.test.ts`
+- Create: `packages/cli/src/adapters/cloudflare.ts`
+- Test: `packages/cli/src/adapters/cloudflare.test.ts`
 
 - [ ] **Step 1: Write failing tests for CloudflareAdapter**
 
@@ -574,7 +574,7 @@ describe('CloudflareAdapter', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/cloudflare.test.ts`
+Run: `cd packages/cli && bun test src/adapters/cloudflare.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement CloudflareAdapter**
@@ -617,14 +617,14 @@ export class CloudflareAdapter {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/cloudflare.test.ts`
+Run: `cd packages/cli && bun test src/adapters/cloudflare.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/adapters/cloudflare.ts packages/hoox-cli/src/adapters/cloudflare.test.ts
+git add packages/cli/src/adapters/cloudflare.ts packages/cli/src/adapters/cloudflare.test.ts
 git commit -m "feat(cli): implement CloudflareAdapter with wrangler integration"
 ```
 
@@ -633,8 +633,8 @@ git commit -m "feat(cli): implement CloudflareAdapter with wrangler integration"
 ### Task 6: Implement Workers Adapter
 
 **Files:**
-- Create: `packages/hoox-cli/src/adapters/workers.ts`
-- Test: `packages/hoox-cli/src/adapters/workers.test.ts`
+- Create: `packages/cli/src/adapters/workers.ts`
+- Test: `packages/cli/src/adapters/workers.test.ts`
 
 - [ ] **Step 1: Write failing tests for WorkersAdapter**
 
@@ -658,7 +658,7 @@ describe('WorkersAdapter', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/workers.test.ts`
+Run: `cd packages/cli && bun test src/adapters/workers.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement WorkersAdapter**
@@ -680,14 +680,14 @@ export class WorkersAdapter {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/adapters/workers.test.ts`
+Run: `cd packages/cli && bun test src/adapters/workers.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/adapters/workers.ts packages/hoox-cli/src/adapters/workers.test.ts
+git add packages/cli/src/adapters/workers.ts packages/cli/src/adapters/workers.test.ts
 git commit -m "feat(cli): implement WorkersAdapter for service bindings"
 ```
 
@@ -696,8 +696,8 @@ git commit -m "feat(cli): implement WorkersAdapter for service bindings"
 ### Task 7: Implement Engine
 
 **Files:**
-- Create: `packages/hoox-cli/src/core/engine.ts`
-- Test: `packages/hoox-cli/src/core/engine.test.ts`
+- Create: `packages/cli/src/core/engine.ts`
+- Test: `packages/cli/src/core/engine.test.ts`
 
 - [ ] **Step 1: Write failing tests for AppEngine**
 
@@ -749,7 +749,7 @@ describe('AppEngine', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/core/engine.test.ts`
+Run: `cd packages/cli && bun test src/core/engine.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement AppEngine**
@@ -833,14 +833,14 @@ export class AppEngine implements Engine {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/core/engine.test.ts`
+Run: `cd packages/cli && bun test src/core/engine.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/core/engine.ts packages/hoox-cli/src/core/engine.test.ts
+git add packages/cli/src/core/engine.ts packages/cli/src/core/engine.test.ts
 git commit -m "feat(cli): implement AppEngine with command routing"
 ```
 
@@ -849,8 +849,8 @@ git commit -m "feat(cli): implement AppEngine with command routing"
 ### Task 8: Create Command Loader
 
 **Files:**
-- Create: `packages/hoox-cli/src/cli/loader.ts`
-- Test: `packages/hoox-cli/src/cli/loader.test.ts`
+- Create: `packages/cli/src/cli/loader.ts`
+- Test: `packages/cli/src/cli/loader.test.ts`
 
 - [ ] **Step 1: Write failing tests for command loader**
 
@@ -891,7 +891,7 @@ describe('Command Loader', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/cli/loader.test.ts`
+Run: `cd packages/cli && bun test src/cli/loader.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement command loader**
@@ -931,14 +931,14 @@ export async function loadCommands(): Promise<Record<string, Command>> {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/cli/loader.test.ts`
+Run: `cd packages/cli && bun test src/cli/loader.test.ts`
 Expected: PASS (or skip if integration test)
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/cli/loader.ts packages/hoox-cli/src/cli/loader.test.ts
+git add packages/cli/src/cli/loader.ts packages/cli/src/cli/loader.test.ts
 git commit -m "feat(cli): add folder-based command loader"
 ```
 
@@ -947,8 +947,8 @@ git commit -m "feat(cli): add folder-based command loader"
 ### Task 9: Create Command Registry
 
 **Files:**
-- Create: `packages/hoox-cli/src/cli/registry.ts`
-- Test: `packages/hoox-cli/src/cli/registry.test.ts`
+- Create: `packages/cli/src/cli/registry.ts`
+- Test: `packages/cli/src/cli/registry.test.ts`
 
 - [ ] **Step 1: Write failing tests for registry**
 
@@ -992,7 +992,7 @@ describe('CommandRegistry', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/cli/registry.test.ts`
+Run: `cd packages/cli && bun test src/cli/registry.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement registry**
@@ -1019,14 +1019,14 @@ export class CommandRegistry {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/cli/registry.test.ts`
+Run: `cd packages/cli && bun test src/cli/registry.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/cli/registry.ts packages/hoox-cli/src/cli/registry.test.ts
+git add packages/cli/src/cli/registry.ts packages/cli/src/cli/registry.test.ts
 git commit -m "feat(cli): add CommandRegistry for command management"
 ```
 
@@ -1035,8 +1035,8 @@ git commit -m "feat(cli): add CommandRegistry for command management"
 ### Task 10: Create Sample Command (trade:deploy)
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/trade/deploy.ts`
-- Test: `packages/hoox-cli/src/commands/trade/deploy.test.ts`
+- Create: `packages/cli/src/commands/trade/deploy.ts`
+- Test: `packages/cli/src/commands/trade/deploy.test.ts`
 
 - [ ] **Step 1: Write failing tests for TradeDeployCommand**
 
@@ -1077,7 +1077,7 @@ describe('TradeDeployCommand', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/commands/trade/deploy.test.ts`
+Run: `cd packages/cli && bun test src/commands/trade/deploy.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement TradeDeployCommand**
@@ -1133,14 +1133,14 @@ export class TradeDeployCommand implements Command {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/commands/trade/deploy.test.ts`
+Run: `cd packages/cli && bun test src/commands/trade/deploy.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/commands/trade/deploy.ts packages/hoox-cli/src/commands/trade/deploy.test.ts
+git add packages/cli/src/commands/trade/deploy.ts packages/cli/src/commands/trade/deploy.test.ts
 git commit -m "feat(cli): add trade:deploy command with Clack UI"
 ```
 
@@ -1149,8 +1149,8 @@ git commit -m "feat(cli): add trade:deploy command with Clack UI"
 ### Task 11: Create Entry Point (src/index.ts)
 
 **Files:**
-- Modify: `packages/hoox-cli/src/index.ts` (rewrite)
-- Test: `packages/hoox-cli/src/index.test.ts`
+- Modify: `packages/cli/src/index.ts` (rewrite)
+- Test: `packages/cli/src/index.test.ts`
 
 - [ ] **Step 1: Write failing tests for entry point**
 
@@ -1167,7 +1167,7 @@ describe('Entry Point', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd packages/hoox-cli && bun test src/index.test.ts`
+Run: `cd packages/cli && bun test src/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Rewrite index.ts with new architecture**
@@ -1298,14 +1298,14 @@ main();
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd packages/hoox-cli && bun test src/index.test.ts`
+Run: `cd packages/cli && bun test src/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/index.ts packages/hoox-cli/src/index.test.ts
+git add packages/cli/src/index.ts packages/cli/src/index.test.ts
 git commit -m "feat(cli): rewrite entry point with layered architecture"
 ```
 
@@ -1314,8 +1314,8 @@ git commit -m "feat(cli): rewrite entry point with layered architecture"
 ### Task 12: Add More Commands (config:init, workers:list)
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/config/init.ts`
-- Create: `packages/hoox-cli/src/commands/workers/list.ts`
+- Create: `packages/cli/src/commands/config/init.ts`
+- Create: `packages/cli/src/commands/workers/list.ts`
 
 - [ ] **Step 1: Create config:init command**
 
@@ -1376,14 +1376,14 @@ export class WorkersListCommand implements Command {
 
 - [ ] **Step 3: Run typecheck**
 
-Run: `cd packages/hoox-cli && bun run typecheck`
+Run: `cd packages/cli && bun run typecheck`
 Expected: No errors
 
 - [ ] **Step 4: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/commands/config/init.ts packages/hoox-cli/src/commands/workers/list.ts
+git add packages/cli/src/commands/config/init.ts packages/cli/src/commands/workers/list.ts
 git commit -m "feat(cli): add config:init and workers:list commands"
 ```
 
@@ -1392,7 +1392,7 @@ git commit -m "feat(cli): add config:init and workers:list commands"
 ### Task 13: Integration Test
 
 **Files:**
-- Create: `packages/hoox-cli/src/integration.test.ts`
+- Create: `packages/cli/src/integration.test.ts`
 
 - [ ] **Step 1: Write integration test**
 
@@ -1439,14 +1439,14 @@ describe('CLI Integration', () => {
 
 - [ ] **Step 2: Run integration test**
 
-Run: `cd packages/hoox-cli && bun test src/integration.test.ts`
+Run: `cd packages/cli && bun test src/integration.test.ts`
 Expected: PASS (or expected failure if no real Cloudflare connection)
 
 - [ ] **Step 3: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/src/integration.test.ts
+git add packages/cli/src/integration.test.ts
 git commit -m "test(cli): add integration test for layered architecture"
 ```
 
@@ -1455,7 +1455,7 @@ git commit -m "test(cli): add integration test for layered architecture"
 ### Task 14: Update package.json and Cleanup
 
 **Files:**
-- Modify: `packages/hoox-cli/package.json` (update main, add dependencies if needed)
+- Modify: `packages/cli/package.json` (update main, add dependencies if needed)
 - Delete: Old files (`router.ts`, `wizard.ts`, etc. - after verifying migration)
 
 - [ ] **Step 1: Update package.json main field**
@@ -1464,19 +1464,19 @@ Change `"main": "./bin/hoox.ts"` to `"main": "./src/index.ts"`
 
 - [ ] **Step 2: Run lint and typecheck**
 
-Run: `cd packages/hoox-cli && bun run lint && bun run typecheck`
+Run: `cd packages/cli && bun run lint && bun run typecheck`
 Expected: No errors
 
 - [ ] **Step 3: Run all tests**
 
-Run: `cd packages/hoox-cli && bun test`
+Run: `cd packages/cli && bun test`
 Expected: All tests pass
 
 - [ ] **Step 4: Commit**
 
 ```bash
 cd /home/jango/Git/hoox-setup
-git add packages/hoox-cli/package.json
+git add packages/cli/package.json
 git commit -m "chore(cli): update package.json for new architecture"
 ```
 

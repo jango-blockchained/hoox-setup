@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (env.AI) {
       const imageData = imageBase64 || imageUrl;
-      const result = await env.AI.run(selectedModel as any, {
+      const result = await env.AI.run(selectedModel, {
         messages: [
           {
             role: "user",
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             ],
           },
         ],
-      } as any);
+      });
 
       return NextResponse.json({
         success: true,

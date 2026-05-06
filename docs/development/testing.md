@@ -22,7 +22,7 @@ bun test --coverage
 
 ```bash
 # hoox-cli
-cd packages/hoox-cli && bun test
+cd packages/cli && bun test
 
 # Specific worker
 cd workers/agent-worker && bun test
@@ -35,7 +35,7 @@ hoox workers test hoox
 
 ```bash
 # Watch mode for active development
-cd packages/hoox-cli && bun test --watch
+cd packages/cli && bun test --watch
 ```
 
 ## Mocking Bindings
@@ -113,7 +113,7 @@ We use `bun test --coverage` to track code coverage across the project. The CI p
 
 | Package/File             | Function Coverage | Line Coverage | Status               |
 | ------------------------ | ----------------- | ------------- | -------------------- |
-| **packages/hoox-cli**    |                   |               |                      |
+| **packages/cli**    |                   |               |                      |
 | cf-client.ts             | 100%              | 100%          | ✅                   |
 | utils.ts                 | 83.33%            | 83.51%        | ✅                   |
 | validation.ts            | 92.86%            | 74.37%        | ⚠️ (functions only)  |
@@ -132,13 +132,13 @@ We use `bun test --coverage` to track code coverage across the project. The CI p
 
 ```bash
 # Run all tests with coverage
-bun test packages/hoox-cli --coverage
+bun test packages/cli --coverage
 
 # Run specific package tests
 bun test workers/hoox --coverage
 
 # Check coverage for a specific file (in isolation)
-cd packages/hoox-cli && bun test test/cf-client.test.ts --coverage
+cd packages/cli && bun test test/cf-client.test.ts --coverage
 ```
 
 ### Improving Coverage

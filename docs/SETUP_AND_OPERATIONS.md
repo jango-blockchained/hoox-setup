@@ -41,7 +41,7 @@ Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Worke
 | **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing) |
 | **Analytics** | `analytics-worker` (Cloudflare Analytics Engine) |
 | **Dashboard** | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers) |
-| **CLI** | `packages/hoox-cli` (management tool) |
+| **CLI** | `packages/cli` (management tool) |
 | **Shared** | `packages/shared` (types, router, middleware, utilities) |
 
 ### 1.2 Communication Flow
@@ -1212,7 +1212,7 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 | Package | Main Export | Purpose |
 |---------|-------------|---------|
-| `packages/hoox-cli` | `bin/hoox.js` | CLI management tool |
+| `packages/cli` | `bin/hoox.js` | CLI management tool |
 | `packages/shared` | `src/index.ts` | Shared types, router, middleware |
 
 ### 13.5 Script Files
@@ -1324,7 +1324,7 @@ hoox-setup/
 ├── hoox-tui                      # TUI launcher (if exists)
 │
 ├── packages/
-│   ├── hoox-cli/                 # CLI tool
+│   ├── cli/                 # CLI tool
 │   │   ├── bin/hoox.js           # CLI entry
 │   │   └── src/
 │   │       ├── index.ts          # Command dispatcher

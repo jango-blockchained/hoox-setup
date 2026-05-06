@@ -44,15 +44,15 @@ export async function POST(request: NextRequest) {
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            const result = await env.AI.run(selectedModel as any, {
+            const result = await env.AI.run(selectedModel, {
               messages,
               temperature,
               max_tokens: maxTokens,
               stream: true,
-            } as any);
+            });
 
             if (result && typeof result === 'object' && 'response' in result) {
-              const aiStream = (result as any).response;
+              const aiStream = result.response;
               if (aiStream && typeof aiStream.getReader === 'function') {
                 const reader = aiStream.getReader();
                 while (true) {
@@ -86,11 +86,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (env.AI) {
-      const result = await env.AI.run(selectedModel as any, {
+      const result = await env.AI.run(selectedModel, {
         messages,
         temperature,
         max_tokens: maxTokens,
-      } as any);
+      });
 
       return NextResponse.json({
         success: true,

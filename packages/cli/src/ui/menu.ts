@@ -1,0 +1,419 @@
+/**
+ * Interactive TUI loop for the Hoox CLI.
+ *
+ * When `hoox2` is called with no arguments, this module takes over:
+ * shows the ASCII banner, an interactive clack menu, dispatches to
+ * the appropriate Commander action, and returns to the menu.
+ */
+
+import { Command } from "commander";
+import {
+  intro,
+  outro,
+  select,
+  text,
+  confirm,
+  log,
+  isCancel,
+  cancel,
+} from "@clack/prompts";
+import { renderBanner } from "./banner.js";
+import { CLIError } from "../utils/errors.js";
+
+// ---------------------------------------------------------------------------
+// Main entry
+// ---------------------------------------------------------------------------
+
+/**
+ * Run the interactive TUI loop.
+ * - Shows the banner once
+ * - Shows a category-selection menu
+ * - Each category leads to sub-actions
+ * - After each action, returns to the menu
+ * - Exit or Ctrl+C to quit
+ */
+export async function runInteractiveTUI(program: Command): Promise<void> {
+  // Print banner directly, then start clack prompt session
+  process.stdout.write(renderBanner());
+  intro("hoox2");
+
+  while (true) {
+    const category = await showMainMenu();
+    if (category === "__exit") break;
+
+    const result = await handleCategory(category, program);
+    if (result === "exit") break;
+    // "back" or "continue" → loop back to main menu
+  }
+
+  outro("See you later! 🦊");
+}
+
+// ---------------------------------------------------------------------------
+// Main menu
+// ---------------------------------------------------------------------------
+
+const MAIN_CATEGORIES = [
+  { value: "deploy", label: "Deploy", hint: "workers, dashboard" },
+  { value: "develop", label: "Develop", hint: "dev server, init project" },
+  {
+    value: "manage",
+    label: "Manage",
+    hint: "infrastructure, config, secrets",
+  },
+  {
+    value: "monitor",
+    label: "Monitor",
+    hint: "diagnostics, health, logs, tests",
+  },
+  { value: "tools", label: "Tools", hint: "WAF, clone worker, dashboard UI" },
+  { value: "__exit", label: "Exit" },
+] as const;
+
+async function showMainMenu(): Promise<string> {
+  const choice = await select({
+    message: "What would you like to do?",
+    options: [...MAIN_CATEGORIES],
+  });
+
+  if (isCancel(choice)) {
+    cancel("Operation cancelled.");
+    return "__exit";
+  }
+
+  return choice;
+}
+
+// ---------------------------------------------------------------------------
+// Category handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * Handle a selected category. Returns "back", "exit", or "continue".
+ */
+async function handleCategory(
+  category: string,
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  switch (category) {
+    case "deploy":
+      return showDeployMenu(program);
+    case "develop":
+      return showDevelopMenu(program);
+    case "manage":
+      return showManageMenu(program);
+    case "monitor":
+      return showMonitorMenu(program);
+    case "tools":
+      return showToolsMenu(program);
+    default:
+      return "back";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Deploy sub-menu
+// ---------------------------------------------------------------------------
+
+async function showDeployMenu(
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  while (true) {
+    const choice = await select({
+      message: "Deploy",
+      options: [
+        { value: "all", label: "All workers + dashboard", hint: "recommended" },
+        { value: "workers", label: "Workers only" },
+        { value: "single", label: "Single worker..." },
+        { value: "dashboard", label: "Dashboard only" },
+        { value: "__back", label: "Back to main menu" },
+      ],
+    });
+
+    if (isCancel(choice)) return "back";
+    if (choice === "__back") return "continue";
+
+    if (choice === "single") {
+      const name = await text({
+        message: "Which worker?",
+        placeholder: "e.g. hoox, trade-worker, d1-worker",
+        validate: (v) => (v === undefined || v.length === 0 ? "Worker name is required" : undefined),
+      });
+      if (isCancel(name)) continue;
+      if (!name) continue;
+      await runCommand(program, `deploy worker ${name}`);
+    } else {
+      const cmd = choice === "all" ? "deploy all" : `deploy ${choice}`;
+      await runCommand(program, cmd);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Develop sub-menu
+
+async function showDevelopMenu(
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  while (true) {
+    const choice = await select({
+      message: "Develop",
+      options: [
+        { value: "dev", label: "Start dev server", hint: "runs all workers locally" },
+        { value: "init", label: "Init project", hint: "bootstrap new project" },
+        { value: "__back", label: "Back to main menu" },
+      ],
+    });
+
+    if (isCancel(choice)) return "back";
+    if (choice === "__back") return "continue";
+
+    await runCommand(program, choice);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Manage sub-menu
+
+async function showManageMenu(
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  while (true) {
+    const choice = await select({
+      message: "Manage",
+      options: [
+        { value: "infra", label: "Infrastructure", hint: "D1, R2, KV, Queues" },
+        { value: "config", label: "Configuration", hint: "show / set workers.jsonc" },
+        { value: "secrets", label: "Secrets", hint: "list, set, sync" },
+        { value: "keys", label: "Auth keys", hint: "generate, list" },
+        { value: "waf", label: "WAF rules" },
+        { value: "__back", label: "Back to main menu" },
+      ],
+    });
+
+    if (isCancel(choice)) return "back";
+    if (choice === "__back") return "continue";
+
+    switch (choice) {
+      case "infra":
+        await runCommand(program, "infra");
+        break;
+      case "config":
+        await showConfigSubMenu(program);
+        break;
+      case "secrets":
+        await showSecretsSubMenu(program);
+        break;
+      case "keys":
+        await showKeysSubMenu(program);
+        break;
+      case "waf":
+        await runCommand(program, "waf");
+        break;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Config sub-sub-menu
+// ---------------------------------------------------------------------------
+
+async function showConfigSubMenu(
+  program: Command,
+): Promise<void> {
+  const choice = await select({
+    message: "Configuration",
+    options: [
+      { value: "show", label: "Show config", hint: "display workers.jsonc" },
+      { value: "set", label: "Set a value..." },
+      { value: "__back", label: "Back to Manage" },
+    ],
+  });
+
+  if (isCancel(choice) || choice === "__back") return;
+
+  if (choice === "set") {
+    const key = await text({
+      message: "Config key (dot-separated path)",
+      placeholder: "e.g. global.cloudflare_account_id",
+      validate: (v) => (v === undefined || v.length === 0 ? "Key is required" : undefined),
+    });
+    if (isCancel(key) || !key) return;
+
+    const value = await text({
+      message: `Value for "${key}"`,
+      placeholder: "enter value",
+    });
+    if (isCancel(value) || value === undefined) return;
+
+    await runCommand(program, `config set ${key} ${value ?? ""}`);
+  } else {
+    await runCommand(program, "config show");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Secrets sub-sub-menu
+// ---------------------------------------------------------------------------
+
+async function showSecretsSubMenu(
+  program: Command,
+): Promise<void> {
+  const choice = await select({
+    message: "Secrets",
+    options: [
+      { value: "list", label: "List secrets" },
+      { value: "set", label: "Set a secret..." },
+      { value: "sync", label: "Sync to Cloudflare" },
+      { value: "__back", label: "Back to Manage" },
+    ],
+  });
+
+  if (isCancel(choice) || choice === "__back") return;
+
+  switch (choice) {
+    case "list":
+      await runCommand(program, "config secrets list");
+      break;
+    case "set": {
+      const worker = await text({
+        message: "Worker name",
+        placeholder: "e.g. hoox, trade-worker",
+        validate: (v) => (v === undefined || v.length === 0 ? "Worker name is required" : undefined),
+      });
+      if (isCancel(worker) || !worker) return;
+
+      const secretName = await text({
+        message: "Secret name",
+        placeholder: "e.g. API_KEY, DATABASE_URL",
+        validate: (v) => (v === undefined || v.length === 0 ? "Secret name is required" : undefined),
+      });
+      if (isCancel(secretName) || !secretName) return;
+
+      // Use the command's built-in promptSecret which handles masking
+      await runCommand(program, `config secrets set ${worker} ${secretName}`);
+      break;
+    }
+    case "sync":
+      await runCommand(program, "config secrets sync");
+      break;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Keys sub-sub-menu
+// ---------------------------------------------------------------------------
+
+async function showKeysSubMenu(
+  program: Command,
+): Promise<void> {
+  const choice = await select({
+    message: "Auth Keys",
+    options: [
+      { value: "generate", label: "Generate new keys" },
+      { value: "list", label: "List existing keys" },
+      { value: "__back", label: "Back to Manage" },
+    ],
+  });
+
+  if (isCancel(choice) || choice === "__back") return;
+
+  if (choice === "generate") {
+    const proceed = await confirm({
+      message: "Generate new internal auth keys? This will create .keys/*.env files.",
+      initialValue: false,
+    });
+    if (isCancel(proceed) || !proceed) return;
+  }
+
+  await runCommand(program, `config keys ${choice}`);
+}
+
+// ---------------------------------------------------------------------------
+// Monitor sub-menu
+// ---------------------------------------------------------------------------
+
+async function showMonitorMenu(
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  while (true) {
+    const choice = await select({
+      message: "Monitor",
+      options: [
+        { value: "check setup", label: "Run diagnostics", hint: "full system validation" },
+        { value: "check health", label: "Health check", hint: "worker connectivity" },
+        { value: "check fix", label: "Auto-repair", hint: "fix common issues" },
+        { value: "logs", label: "View logs", hint: "real-time log tailing" },
+        { value: "test", label: "Run tests" },
+        { value: "__back", label: "Back to main menu" },
+      ],
+    });
+
+    if (isCancel(choice)) return "back";
+    if (choice === "__back") return "continue";
+
+    await runCommand(program, choice);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tools sub-menu
+// ---------------------------------------------------------------------------
+
+async function showToolsMenu(
+  program: Command,
+): Promise<"back" | "exit" | "continue"> {
+  while (true) {
+    const choice = await select({
+      message: "Tools",
+      options: [
+        { value: "clone", label: "Clone worker", hint: "scaffold from template" },
+        { value: "dashboard", label: "Dashboard UI", hint: "manage dashboard URLs" },
+        { value: "__back", label: "Back to main menu" },
+      ],
+    });
+
+    if (isCancel(choice)) return "back";
+    if (choice === "__back") return "continue";
+
+    await runCommand(program, choice);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Command execution
+// ---------------------------------------------------------------------------
+
+/**
+ * Run a Commander command string inside the TUI loop.
+ *
+ * Delegates to `program.parseAsync()` with the given arguments.
+ * Wraps in try-catch so errors don't terminate the loop.
+ */
+async function runCommand(program: Command, commandStr: string): Promise<void> {
+  const args = commandStr.split(" ");
+
+  try {
+    await program.parseAsync(
+      ["node", "hoox2", ...args],
+      { from: "user" },
+    );
+  } catch (err) {
+    // Check if it's a Commander informational exit (help/version)
+    if (
+      err instanceof Error &&
+      "code" in err &&
+      (err as { code: string }).code === "commander.helpDisplayed"
+    ) {
+      return;
+    }
+
+    const message =
+      err instanceof CLIError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : String(err);
+    log.error(`Command failed: ${message}`);
+  }
+}

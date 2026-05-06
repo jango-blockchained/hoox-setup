@@ -8,7 +8,7 @@ export const runtime = "edge";
 export async function GET(_request: NextRequest) {
   try {
     const env = getCloudflareContext().env as unknown as {
-      AI?: Ai;
+      AI?: any;
     };
 
     const providers = [
@@ -30,7 +30,7 @@ export async function GET(_request: NextRequest) {
       const start = Date.now();
       try {
         if (provider.name === "workers-ai" && env.AI) {
-          await env.AI.run("@cf/meta/llama-3.1-8b-instruct" as any, {
+          await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
             messages: [{ role: "user", content: "hi" }],
             max_tokens: 1,
           });

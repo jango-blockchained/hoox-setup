@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-04
 **Status:** Approved
-**Scope:** Full refactoring of `packages/hoox-cli` into a modular, layered architecture
+**Scope:** Full refactoring of `packages/cli` into a modular, layered architecture
 
 ## 1. Architecture Overview
 
@@ -68,7 +68,7 @@ The refactored CLI uses a **4-layer architecture** with strict boundaries and a 
 ## 2. Directory Structure
 
 ```
-packages/hoox-cli/src/
+packages/cli/src/
 ├── index.ts                    # Entry point (thin, just bootstraps)
 ├── cli/
 │   ├── loader.ts              # Folder-based command loader

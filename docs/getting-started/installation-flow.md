@@ -80,7 +80,7 @@ The validation tool provides a detailed report with color-coded results to help 
 
 ## Configuration Files
 
-> **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/hoox-cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations.
+> **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations.
 
 ### workers.jsonc / workers.jsonc.example
 

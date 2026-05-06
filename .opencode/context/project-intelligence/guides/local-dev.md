@@ -41,4 +41,4 @@ cd pages/dashboard && bun run dev
 ## 📂 Codebase References
 
 **Local dev doc**: `docs/development/local-dev.md`
-**CLI**: `packages/hoox-cli/` - `hoox workers dev` command
+**CLI**: `packages/cli/` - `hoox workers dev` command

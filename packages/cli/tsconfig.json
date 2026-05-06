@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@hoox/shared": ["../shared/src/index.ts"]
+    },
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "bin/**/*"],
+  "exclude": ["tests/**/*", "node_modules", "dist"]
+}

@@ -13,7 +13,7 @@
 ## File Structure
 
 ```
-packages/hoox-cli/src/
+packages/cli/src/
 ├── utils/
 │   ├── validation.ts              # Shared validation types and helpers
 │   ├── validation.test.ts
@@ -79,8 +79,8 @@ packages/hoox-cli/src/
 ## Task 01: Create Shared Validation Utilities
 
 **Files:**
-- Create: `packages/hoox-cli/src/utils/validation.ts`
-- Create: `packages/hoox-cli/src/utils/validation.test.ts`
+- Create: `packages/cli/src/utils/validation.ts`
+- Create: `packages/cli/src/utils/validation.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -115,13 +115,13 @@ describe("validation utilities", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/utils/validation.test.ts`
+Run: `bun test packages/cli/src/utils/validation.test.ts`
 Expected: FAIL with "Module not found"
 
 - [ ] **Step 3: Write minimal implementation**
 
 ```typescript
-// packages/hoox-cli/src/utils/validation.ts
+// packages/cli/src/utils/validation.ts
 
 export interface ValidationResult {
   name: string;
@@ -169,13 +169,13 @@ export function formatValidationResults(results: ValidationResult[]): string {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/utils/validation.test.ts`
+Run: `bun test packages/cli/src/utils/validation.test.ts`
 Expected: PASS (3 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/utils/validation.ts packages/hoox-cli/src/utils/validation.test.ts
+git add packages/cli/src/utils/validation.ts packages/cli/src/utils/validation.test.ts
 git commit -m "feat(cli): add shared validation utilities"
 ```
 
@@ -184,8 +184,8 @@ git commit -m "feat(cli): add shared validation utilities"
 ## Task 02: Create Infrastructure Checker Utility
 
 **Files:**
-- Create: `packages/hoox-cli/src/utils/infrastructure-checks.ts`
-- Create: `packages/hoox-cli/src/utils/infrastructure-checks.test.ts`
+- Create: `packages/cli/src/utils/infrastructure-checks.ts`
+- Create: `packages/cli/src/utils/infrastructure-checks.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -218,13 +218,13 @@ describe("infrastructure checks", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/utils/infrastructure-checks.test.ts`
+Run: `bun test packages/cli/src/utils/infrastructure-checks.test.ts`
 Expected: FAIL with "Module not found"
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/utils/infrastructure-checks.ts
+// packages/cli/src/utils/infrastructure-checks.ts
 
 import { CloudflareAdapter } from "../adapters/cloudflare";
 import { createValidationResult, ValidationResult } from "./validation";
@@ -334,13 +334,13 @@ export async function checkAnalyticsEngine(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/utils/infrastructure-checks.test.ts`
+Run: `bun test packages/cli/src/utils/infrastructure-checks.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/utils/infrastructure-checks.ts packages/hoox-cli/src/utils/infrastructure-checks.test.ts
+git add packages/cli/src/utils/infrastructure-checks.ts packages/cli/src/utils/infrastructure-checks.test.ts
 git commit -m "feat(cli): add infrastructure validation checks"
 ```
 
@@ -349,8 +349,8 @@ git commit -m "feat(cli): add infrastructure validation checks"
 ## Task 03: Create Configuration Checker Utility
 
 **Files:**
-- Create: `packages/hoox-cli/src/utils/config-checks.ts`
-- Create: `packages/hoox-cli/src/utils/config-checks.test.ts`
+- Create: `packages/cli/src/utils/config-checks.ts`
+- Create: `packages/cli/src/utils/config-checks.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -376,13 +376,13 @@ describe("config checks", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/utils/config-checks.test.ts`
+Run: `bun test packages/cli/src/utils/config-checks.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/utils/config-checks.ts
+// packages/cli/src/utils/config-checks.ts
 
 import { createValidationResult, ValidationResult } from "./validation";
 
@@ -493,13 +493,13 @@ export async function checkSubmodules(cwd: string): Promise<ValidationResult> {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/utils/config-checks.test.ts`
+Run: `bun test packages/cli/src/utils/config-checks.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/utils/config-checks.ts packages/hoox-cli/src/utils/config-checks.test.ts
+git add packages/cli/src/utils/config-checks.ts packages/cli/src/utils/config-checks.test.ts
 git commit -m "feat(cli): add configuration validation checks"
 ```
 
@@ -508,8 +508,8 @@ git commit -m "feat(cli): add configuration validation checks"
 ## Task 04: Create Secret Checker Utility
 
 **Files:**
-- Create: `packages/hoox-cli/src/utils/secret-checks.ts`
-- Create: `packages/hoox-cli/src/utils/secret-checks.test.ts`
+- Create: `packages/cli/src/utils/secret-checks.ts`
+- Create: `packages/cli/src/utils/secret-checks.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -537,13 +537,13 @@ describe("secret checks", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/utils/secret-checks.test.ts`
+Run: `bun test packages/cli/src/utils/secret-checks.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/utils/secret-checks.ts
+// packages/cli/src/utils/secret-checks.ts
 
 import { CloudflareAdapter } from "../adapters/cloudflare";
 import { createValidationResult, ValidationResult } from "./validation";
@@ -625,13 +625,13 @@ export async function checkDevVars(cwd: string, workers: Record<string, { enable
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/utils/secret-checks.test.ts`
+Run: `bun test packages/cli/src/utils/secret-checks.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/utils/secret-checks.ts packages/hoox-cli/src/utils/secret-checks.test.ts
+git add packages/cli/src/utils/secret-checks.ts packages/cli/src/utils/secret-checks.test.ts
 git commit -m "feat(cli): add secret validation checks"
 ```
 
@@ -640,8 +640,8 @@ git commit -m "feat(cli): add secret validation checks"
 ## Task 05: Create Database Schema Checker Utility
 
 **Files:**
-- Create: `packages/hoox-cli/src/utils/database-checks.ts`
-- Create: `packages/hoox-cli/src/utils/database-checks.test.ts`
+- Create: `packages/cli/src/utils/database-checks.ts`
+- Create: `packages/cli/src/utils/database-checks.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -665,13 +665,13 @@ describe("database checks", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/utils/database-checks.test.ts`
+Run: `bun test packages/cli/src/utils/database-checks.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/utils/database-checks.ts
+// packages/cli/src/utils/database-checks.ts
 
 import { CloudflareAdapter } from "../adapters/cloudflare";
 import { createValidationResult, ValidationResult } from "./validation";
@@ -775,13 +775,13 @@ export async function checkTrackingSchema(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/utils/database-checks.test.ts`
+Run: `bun test packages/cli/src/utils/database-checks.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/utils/database-checks.ts packages/hoox-cli/src/utils/database-checks.test.ts
+git add packages/cli/src/utils/database-checks.ts packages/cli/src/utils/database-checks.test.ts
 git commit -m "feat(cli): add database schema validation checks"
 ```
 
@@ -790,9 +790,9 @@ git commit -m "feat(cli): add database schema validation checks"
 ## Task 06: Implement check-setup Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/check-setup/index.ts`
-- Create: `packages/hoox-cli/src/commands/check-setup/index.test.ts`
-- Modify: `packages/hoox-cli/src/index.ts` (add to categoryOrder)
+- Create: `packages/cli/src/commands/check-setup/index.ts`
+- Create: `packages/cli/src/commands/check-setup/index.test.ts`
+- Modify: `packages/cli/src/index.ts` (add to categoryOrder)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -818,13 +818,13 @@ describe("check-setup command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/check-setup/index.test.ts`
+Run: `bun test packages/cli/src/commands/check-setup/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/check-setup/index.ts
+// packages/cli/src/commands/check-setup/index.ts
 
 import { intro, outro, spinner, note } from "@clack/prompts";
 import ansis from "ansis";
@@ -961,13 +961,13 @@ export { executeCheckSetup };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/check-setup/index.test.ts`
+Run: `bun test packages/cli/src/commands/check-setup/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/check-setup/ packages/hoox-cli/src/index.ts
+git add packages/cli/src/commands/check-setup/ packages/cli/src/index.ts
 git commit -m "feat(cli): implement check-setup command"
 ```
 
@@ -976,8 +976,8 @@ git commit -m "feat(cli): implement check-setup command"
 ## Task 07: Implement config:init Command
 
 **Files:**
-- Modify: `packages/hoox-cli/src/commands/config/init.ts` (replace stub)
-- Create: `packages/hoox-cli/src/commands/config/init.test.ts`
+- Modify: `packages/cli/src/commands/config/init.ts` (replace stub)
+- Create: `packages/cli/src/commands/config/init.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -995,13 +995,13 @@ describe("config:init command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/config/init.test.ts`
+Run: `bun test packages/cli/src/commands/config/init.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/config/init.ts
+// packages/cli/src/commands/config/init.ts
 
 import { intro, outro, text, confirm, spinner } from "@clack/prompts";
 import ansis from "ansis";
@@ -1169,13 +1169,13 @@ export { executeConfigInit };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/config/init.test.ts`
+Run: `bun test packages/cli/src/commands/config/init.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/config/init.ts packages/hoox-cli/src/commands/config/init.test.ts
+git add packages/cli/src/commands/config/init.ts packages/cli/src/commands/config/init.test.ts
 git commit -m "feat(cli): implement config:init command with interactive and non-interactive modes"
 ```
 
@@ -1184,8 +1184,8 @@ git commit -m "feat(cli): implement config:init command with interactive and non
 ## Task 08: Implement workers:setup Command
 
 **Files:**
-- Modify: `packages/hoox-cli/src/commands/workers/setup.ts` (replace stub)
-- Create: `packages/hoox-cli/src/commands/workers/setup.test.ts`
+- Modify: `packages/cli/src/commands/workers/setup.ts` (replace stub)
+- Create: `packages/cli/src/commands/workers/setup.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1203,13 +1203,13 @@ describe("workers:setup command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/workers/setup.test.ts`
+Run: `bun test packages/cli/src/commands/workers/setup.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/workers/setup.ts
+// packages/cli/src/commands/workers/setup.ts
 
 import { intro, outro, confirm, spinner } from "@clack/prompts";
 import ansis from "ansis";
@@ -1306,13 +1306,13 @@ export { executeWorkersSetup };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/workers/setup.test.ts`
+Run: `bun test packages/cli/src/commands/workers/setup.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/workers/setup.ts packages/hoox-cli/src/commands/workers/setup.test.ts
+git add packages/cli/src/commands/workers/setup.ts packages/cli/src/commands/workers/setup.test.ts
 git commit -m "feat(cli): implement workers:setup command with secret binding"
 ```
 
@@ -1321,8 +1321,8 @@ git commit -m "feat(cli): implement workers:setup command with secret binding"
 ## Task 09: Implement housekeeping Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/housekeeping/index.ts`
-- Create: `packages/hoox-cli/src/commands/housekeeping/index.test.ts`
+- Create: `packages/cli/src/commands/housekeeping/index.ts`
+- Create: `packages/cli/src/commands/housekeeping/index.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1341,13 +1341,13 @@ describe("housekeeping command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/housekeeping/index.test.ts`
+Run: `bun test packages/cli/src/commands/housekeeping/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/housekeeping/index.ts
+// packages/cli/src/commands/housekeeping/index.ts
 
 import { intro, outro, spinner, confirm } from "@clack/prompts";
 import ansis from "ansis";
@@ -1480,13 +1480,13 @@ export { executeHousekeeping };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/housekeeping/index.test.ts`
+Run: `bun test packages/cli/src/commands/housekeeping/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/housekeeping/
+git add packages/cli/src/commands/housekeeping/
 git commit -m "feat(cli): implement housekeeping command with health checks"
 ```
 
@@ -1495,8 +1495,8 @@ git commit -m "feat(cli): implement housekeeping command with health checks"
 ## Task 10: Implement R2 Provisioning Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/r2/index.ts`
-- Create: `packages/hoox-cli/src/commands/r2/index.test.ts`
+- Create: `packages/cli/src/commands/r2/index.ts`
+- Create: `packages/cli/src/commands/r2/index.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1515,13 +1515,13 @@ describe("r2 command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/r2/index.test.ts`
+Run: `bun test packages/cli/src/commands/r2/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/r2/index.ts
+// packages/cli/src/commands/r2/index.ts
 
 import { intro, outro, confirm, spinner } from "@clack/prompts";
 import ansis from "ansis";
@@ -1621,13 +1621,13 @@ export { executeR2 };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/r2/index.test.ts`
+Run: `bun test packages/cli/src/commands/r2/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/r2/
+git add packages/cli/src/commands/r2/
 git commit -m "feat(cli): implement r2 bucket provisioning command"
 ```
 
@@ -1636,8 +1636,8 @@ git commit -m "feat(cli): implement r2 bucket provisioning command"
 ## Task 11: Implement WAF Configuration Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/waf/index.ts`
-- Create: `packages/hoox-cli/src/commands/waf/index.test.ts`
+- Create: `packages/cli/src/commands/waf/index.ts`
+- Create: `packages/cli/src/commands/waf/index.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1655,13 +1655,13 @@ describe("waf command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/waf/index.test.ts`
+Run: `bun test packages/cli/src/commands/waf/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/waf/index.ts
+// packages/cli/src/commands/waf/index.ts
 
 import { intro, outro, text, select } from "@clack/prompts";
 import ansis from "ansis";
@@ -1743,13 +1743,13 @@ export { executeWaf };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/waf/index.test.ts`
+Run: `bun test packages/cli/src/commands/waf/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/waf/
+git add packages/cli/src/commands/waf/
 git commit -m "feat(cli): implement waf configuration command"
 ```
 
@@ -1758,8 +1758,8 @@ git commit -m "feat(cli): implement waf configuration command"
 ## Task 12: Implement Repair Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/repair/index.ts`
-- Create: `packages/hoox-cli/src/commands/repair/index.test.ts`
+- Create: `packages/cli/src/commands/repair/index.ts`
+- Create: `packages/cli/src/commands/repair/index.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1778,13 +1778,13 @@ describe("repair command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/repair/index.test.ts`
+Run: `bun test packages/cli/src/commands/repair/index.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/repair/index.ts
+// packages/cli/src/commands/repair/index.ts
 
 import { intro, outro, confirm, spinner } from "@clack/prompts";
 import ansis from "ansis";
@@ -1919,13 +1919,13 @@ export { executeRepair };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/repair/index.test.ts`
+Run: `bun test packages/cli/src/commands/repair/index.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/repair/
+git add packages/cli/src/commands/repair/
 git commit -m "feat(cli): implement repair command with auto-fix capabilities"
 ```
 
@@ -1934,8 +1934,8 @@ git commit -m "feat(cli): implement repair command with auto-fix capabilities"
 ## Task 13: Enhance workers:update-internal-urls Command
 
 **Files:**
-- Modify: `packages/hoox-cli/src/commands/workers/update-urls.ts`
-- Create: `packages/hoox-cli/src/commands/workers/update-urls.test.ts`
+- Modify: `packages/cli/src/commands/workers/update-urls.ts`
+- Create: `packages/cli/src/commands/workers/update-urls.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1953,13 +1953,13 @@ describe("workers:update-internal-urls command", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/src/commands/workers/update-urls.test.ts`
+Run: `bun test packages/cli/src/commands/workers/update-urls.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write implementation**
 
 ```typescript
-// packages/hoox-cli/src/commands/workers/update-urls.ts
+// packages/cli/src/commands/workers/update-urls.ts
 
 import { intro, outro, spinner } from "@clack/prompts";
 import ansis from "ansis";
@@ -2054,13 +2054,13 @@ export { executeUpdateUrls };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/src/commands/workers/update-urls.test.ts`
+Run: `bun test packages/cli/src/commands/workers/update-urls.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/workers/update-urls.ts packages/hoox-cli/src/commands/workers/update-urls.test.ts
+git add packages/cli/src/commands/workers/update-urls.ts packages/cli/src/commands/workers/update-urls.test.ts
 git commit -m "feat(cli): enhance workers:update-internal-urls with diff display"
 ```
 
@@ -2069,13 +2069,13 @@ git commit -m "feat(cli): enhance workers:update-internal-urls with diff display
 ## Task 14: Write Integration Tests
 
 **Files:**
-- Create: `packages/hoox-cli/tests/integration/setup-commands.test.ts`
-- Create: `packages/hoox-cli/tests/integration/repair-commands.test.ts`
+- Create: `packages/cli/tests/integration/setup-commands.test.ts`
+- Create: `packages/cli/tests/integration/repair-commands.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 ```typescript
-// packages/hoox-cli/tests/integration/setup-commands.test.ts
+// packages/cli/tests/integration/setup-commands.test.ts
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, writeFileSync, rmSync } from "fs";
@@ -2112,13 +2112,13 @@ describe("setup commands integration", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/tests/integration/setup-commands.test.ts`
+Run: `bun test packages/cli/tests/integration/setup-commands.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Write full integration test suite**
 
 ```typescript
-// packages/hoox-cli/tests/integration/setup-commands.test.ts
+// packages/cli/tests/integration/setup-commands.test.ts
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "fs";
@@ -2215,13 +2215,13 @@ describe("setup commands integration", () => {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/tests/integration/setup-commands.test.ts`
+Run: `bun test packages/cli/tests/integration/setup-commands.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/tests/integration/
+git add packages/cli/tests/integration/
 git commit -m "test(cli): add integration tests for setup commands"
 ```
 
@@ -2230,8 +2230,8 @@ git commit -m "test(cli): add integration tests for setup commands"
 ## Task 15: Update Help Banner and Command Registry
 
 **Files:**
-- Modify: `packages/hoox-cli/src/index.ts`
-- Create: `packages/hoox-cli/tests/help-banner.test.ts`
+- Modify: `packages/cli/src/index.ts`
+- Create: `packages/cli/tests/help-banner.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -2250,12 +2250,12 @@ describe("help banner", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `bun test packages/hoox-cli/tests/help-banner.test.ts`
+Run: `bun test packages/cli/tests/help-banner.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Update index.ts**
 
-Modify `packages/hoox-cli/src/index.ts` around line 55-67:
+Modify `packages/cli/src/index.ts` around line 55-67:
 
 ```typescript
 const categoryOrder = [
@@ -2277,13 +2277,13 @@ const categoryOrder = [
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `bun test packages/hoox-cli/tests/help-banner.test.ts`
+Run: `bun test packages/cli/tests/help-banner.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/index.ts packages/hoox-cli/tests/help-banner.test.ts
+git add packages/cli/src/index.ts packages/cli/tests/help-banner.test.ts
 git commit -m "feat(cli): update help banner with new command categories"
 ```
 
@@ -2305,12 +2305,12 @@ Expected: No TypeScript errors
 
 - [ ] **Step 3: Run tests**
 
-Run: `bun test packages/hoox-cli`
+Run: `bun test packages/cli`
 Expected: All tests pass, coverage >80%
 
 - [ ] **Step 4: Verify commands are discoverable**
 
-Run: `cd packages/hoox-cli && bun run src/index.ts --help`
+Run: `cd packages/cli && bun run src/index.ts --help`
 Expected: All new commands appear in help output
 
 - [ ] **Step 5: Update documentation**

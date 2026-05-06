@@ -61,8 +61,8 @@ CF (Cloudflare):
 ### Task 1: Implement `init` Command (Wizard)
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/init.ts`
-- Test: `packages/hoox-cli/src/commands/init.test.ts`
+- Create: `packages/cli/src/commands/init.ts`
+- Test: `packages/cli/src/commands/init.test.ts`
 
 - [ ] **Step 1: Write failing test**
 
@@ -81,7 +81,7 @@ describe("InitCommand", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd packages/hoox-cli && bun test src/commands/init.test.ts`
+Run: `cd packages/cli && bun test src/commands/init.test.ts`
 
 - [ ] **Step 3: Implement init command**
 
@@ -120,7 +120,7 @@ export class InitCommand implements Command {
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/hoox-cli/src/commands/init.ts packages/hoox-cli/src/commands/init.test.ts
+git add packages/cli/src/commands/init.ts packages/cli/src/commands/init.test.ts
 git commit -m "feat(cli): implement init command with wizard"
 ```
 
@@ -129,8 +129,8 @@ git commit -m "feat(cli): implement init command with wizard"
 ### Task 2: Implement `check-setup` Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/check-setup.ts`
-- Test: `packages/hoox-cli/src/commands/check-setup.test.ts`
+- Create: `packages/cli/src/commands/check-setup.ts`
+- Test: `packages/cli/src/commands/check-setup.test.ts`
 
 - [ ] **Step 1: Write failing test**
 
@@ -173,8 +173,8 @@ export class CheckSetupCommand implements Command {
 ### Task 3: Implement `clone` Command
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/clone.ts`
-- Test: `packages/hoox-cli/src/commands/clone.test.ts`
+- Create: `packages/cli/src/commands/clone.ts`
+- Test: `packages/cli/src/commands/clone.test.ts`
 
 - [ ] **Step 1-5: Follow TDD steps**
 
@@ -211,13 +211,13 @@ export class CloneCommand implements Command {
 ### Task 4: Implement Workers Commands
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/workers/clone.ts`
-- Create: `packages/hoox-cli/src/commands/workers/setup.ts`
-- Create: `packages/hoox-cli/src/commands/workers/dev.ts`
-- Create: `packages/hoox-cli/src/commands/workers/deploy.ts`
-- Create: `packages/hoox-cli/src/commands/workers/status.ts`
-- Create: `packages/hoox-cli/src/commands/workers/test.ts`
-- Create: `packages/hoox-cli/src/commands/workers/logs.ts`
+- Create: `packages/cli/src/commands/workers/clone.ts`
+- Create: `packages/cli/src/commands/workers/setup.ts`
+- Create: `packages/cli/src/commands/workers/dev.ts`
+- Create: `packages/cli/src/commands/workers/deploy.ts`
+- Create: `packages/cli/src/commands/workers/status.ts`
+- Create: `packages/cli/src/commands/workers/test.ts`
+- Create: `packages/cli/src/commands/workers/logs.ts`
 - Already exists: `list.ts`, `rollback.ts`, `metrics.ts`
 
 - [ ] **Step 1-5: Follow TDD steps for each command**
@@ -268,8 +268,8 @@ export class WorkersDeployCommand implements Command {
 
 **Files:**
 - Already exists: `config/init.ts`
-- Create: `packages/hoox-cli/src/commands/config/secrets.ts`
-- Create: `packages/hoox-cli/src/commands/config/keys.ts`
+- Create: `packages/cli/src/commands/config/secrets.ts`
+- Create: `packages/cli/src/commands/config/keys.ts`
 
 - [ ] **Step 1-5: Follow TDD steps**
 
@@ -295,7 +295,7 @@ export class ConfigSecretsCommand implements Command {
 ### Task 6: Implement Utility Commands
 
 **Files:**
-- Create: `packages/hoox-cli/src/commands/logs/download.ts`
+- Create: `packages/cli/src/commands/logs/download.ts`
 - Already exists: `housekeeping.ts`, `waf.ts`, `r2-provision.ts`
 
 - [ ] **Step 1-5: Follow TDD steps**
@@ -324,7 +324,7 @@ export class ConfigSecretsCommand implements Command {
 ### Task 9: Update Menu Display
 
 **Files:**
-- Modify: `packages/hoox-cli/src/index.ts` to show hierarchical menu
+- Modify: `packages/cli/src/index.ts` to show hierarchical menu
 
 - [ ] **Step 1: Update printBanner to show commands by group**
 
@@ -358,7 +358,7 @@ function printBanner(commands: Record<string, Command>): void {
 ### Task 10: Update CLI Entry Point
 
 **Files:**
-- Modify: `packages/hoox-cli/src/index.ts` to load and display commands
+- Modify: `packages/cli/src/index.ts` to load and display commands
 
 - [ ] **Step 1: Update main() to pass commands to printBanner**
 
