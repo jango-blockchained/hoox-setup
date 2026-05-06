@@ -71,8 +71,8 @@ export default [
   },
   {
     files: [
-      'packages/hoox-cli/src/housekeeping.ts',
-      'packages/hoox-cli/src/wafCommands.ts',
+      'packages/cli/src/commands/housekeeping/index.ts',
+      'packages/cli/src/commands/waf/waf-command.ts',
       'pages/dashboard/src/lib/settings/loader.ts',
       'pages/dashboard/src/lib/api.ts',
       'pages/dashboard/src/components/dashboard/settings-form.tsx',

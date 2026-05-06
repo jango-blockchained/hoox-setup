@@ -1,1 +1,12 @@
-// File moved to tests/e2e.test.ts - this file can be deleted
+import { describe, test, expect } from "bun:test";
+
+describe("E2E Tests", () => {
+  test("basic e2e test placeholder", () => {
+    // TODO: Add actual e2e tests
+    // These tests would test end-to-end flows like:
+    // - CLI command execution
+    // - Worker deployment flows
+    // - API endpoint integration
+    expect(true).toBe(true);
+  });
+});

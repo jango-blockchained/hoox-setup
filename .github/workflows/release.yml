@@ -27,7 +27,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run tests
-        run: bun test packages/hoox-cli
+        run: bun test packages/cli
 
       - name: Build project
         run: bun run build

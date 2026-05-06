@@ -25,8 +25,8 @@ for worker in workers/*/; do
 done
 
 echo "Updating imports in packages..."
-# Update hoox-cli if it imports from shared
-find packages/hoox-cli -name "*.ts" -type f 2>/dev/null | while read file; do
+# Update cli if it imports from shared
+find packages/cli -name "*.ts" -type f 2>/dev/null | while read file; do
   sed -i "s|from ['\"].*packages/shared/src/|from '@hoox/shared/src/|g" "$file"
 done
 
