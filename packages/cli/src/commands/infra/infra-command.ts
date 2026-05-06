@@ -311,7 +311,7 @@ async function doProvision(
 
     if (!(await file.exists())) continue;
 
-    let wranglerConfig: Record<string, unknown> = {};
+    let wranglerConfig: Record<string, unknown>;
     try {
       const content = await file.text();
       wranglerConfig = (parse(content) ?? {}) as Record<string, unknown>;

@@ -43,8 +43,9 @@ function mockCfFetch(
 ): Array<{ url: string; method: string; body?: string }> {
   const calls: Array<{ url: string; method: string; body?: string }> = [];
 
-  const fetchMock = mock(
-    async (url: string, init?: RequestInit) => {
+    const fetchMock = mock(
+      async (url: string, init?: Record<string, unknown>) => {
+        void init; // Mark as used
       // Find matching response by path partial match
       let matched: unknown = null;
       for (const [pathPattern, response] of Object.entries(responseMap)) {
