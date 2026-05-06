@@ -14,15 +14,14 @@
 
 ### Option A: Install via CLI (Recommended)
 
-We recommend installing the `@jango-blockchained/hoox-cli` globally to bootstrap your environment seamlessly without dealing with git submodules manually:
+Use the `hoox` CLI to bootstrap your environment without dealing with git submodules manually:
 
 ```bash
 # 1. Install the CLI globally
-# Recommended
-bun add -g @jango-blockchained/hoox-cli
+bun add -g @hoox/cli
 
-# Alternatives
-npm install -g @jango-blockchained/hoox-cli
+# Alternative: Build from source
+cd packages/cli && bun run build && cd ..
 
 # 2. Download the repo and properly initialize all submodules
 hoox clone my-hoox-app

@@ -62,10 +62,10 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 
    ```bash
    # Recommended
-   bun add -g @jango-blockchained/hoox-cli
+   bun add -g @hoox/cli
 
-   # Alternatives
-   npm install -g @jango-blockchained/hoox-cli
+   # Or from source
+   bun run hoox
    ```
 
 2. **Bootstrap your environment:**
@@ -125,13 +125,13 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ---
 
-## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
+## 🛠️ The `@hoox/cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool. By utilizing Bun Workspaces, the core management commands are isolated in `packages/cli` and exposed directly to your terminal.
+The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli`. By utilizing Bun Workspaces, the core management commands are available via the `hoox` binary.
 
-- **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox workers deploy` or `hoox init`.
-- **Strict Configuration**: Configuration is distinctly split between `workers.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
-- **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets (`hoox r2`) and updating WAF rules (`hoox waf`) through the Cloudflare API directly.
+- **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox deploy workers` or `hoox init`.
+- **Strict Configuration**: Configuration is split between `workers.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
+- **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets and updating WAF rules through the Cloudflare API directly.
 
 ---
 

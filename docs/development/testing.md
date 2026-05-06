@@ -21,7 +21,7 @@ bun test --coverage
 ### Per Package
 
 ```bash
-# hoox-cli
+# CLI
 cd packages/cli && bun test
 
 # Specific worker

@@ -121,7 +121,6 @@ You need access to clone with submodules:
 git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
 
 # Or via CLI
-bun add -g @jango-blockchained/hoox-cli
 hoox clone my-hoox-app
 ```
 
@@ -309,7 +308,6 @@ These keys must be set in `CONFIG_KV` namespace:
 
 ```bash
 # Option A: Via CLI (Recommended)
-bun add -g @jango-blockchained/hoox-cli
 hoox clone my-hoox-app
 cd my-hoox-app
 

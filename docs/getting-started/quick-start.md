@@ -14,7 +14,7 @@
 
 ```bash
 # 1. Install the CLI globally
-bun add -g @jango-blockchained/hoox-cli
+bun add -g @hoox/cli
 
 # 2. Bootstrap the complete repository
 hoox clone hoox-setup
