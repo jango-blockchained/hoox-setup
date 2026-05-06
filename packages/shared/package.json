@@ -15,11 +15,14 @@
     "./middleware/auth": "./src/middleware/auth.ts",
     "./middleware/validate": "./src/middleware/validate.ts",
     "./middleware/rate-limit": "./src/middleware/rate-limit.ts",
+    "./middleware/cors": "./src/middleware/cors.ts",
     "./errors": "./src/errors.ts",
     "./router": "./src/router.ts",
     "./kvUtils": "./src/kvUtils.ts",
     "./json-response": "./src/json-response.ts",
-    "./exchange-client": "./src/exchange-client.ts"
+    "./exchange-client": "./src/exchange-client.ts",
+    "./analytics": "./src/analytics.ts",
+    "./health": "./src/health.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -17,6 +17,7 @@ export function createJsonResponse(data: unknown, status = 200): Response {
 
 /**
  * Create a Cloudflare Worker error response
+ * Includes `success: false` in the response body for consistent client-side handling
  */
 export function createErrorResponse(
   error: AppError | string,
@@ -25,7 +26,7 @@ export function createErrorResponse(
   const message = typeof error === 'string' ? error : error.message;
   const statusCode = typeof error === 'string' ? (status ?? 500) : (error.status ?? 500);
   
-  const body: ErrorResponse = { error: message };
+  const body: Record<string, unknown> = { success: false, error: message };
   if (typeof error !== 'string' && error.code) body.code = error.code;
   if (typeof error !== 'string' && error.details) body.details = error.details;
 
@@ -43,6 +44,7 @@ export const Errors = {
   unauthorized: (message = 'Unauthorized') => createErrorResponse({ message, status: 401, code: 'UNAUTHORIZED' }),
   forbidden: (message = 'Forbidden') => createErrorResponse({ message, status: 403, code: 'FORBIDDEN' }),
   notFound: (message = 'Not found') => createErrorResponse({ message, status: 404, code: 'NOT_FOUND' }),
+  methodNotAllowed: (message = 'Method not allowed') => createErrorResponse({ message, status: 405, code: 'METHOD_NOT_ALLOWED' }),
   rateLimited: (retryAfter?: number) => {
     const res = createErrorResponse({ message: 'Rate limit exceeded', status: 429, code: 'RATE_LIMITED' });
     if (retryAfter) res.headers.set('Retry-After', String(retryAfter));

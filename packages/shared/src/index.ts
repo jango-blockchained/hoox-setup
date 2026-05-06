@@ -11,6 +11,8 @@ export type {
   HousekeepingPayload,
   HousekeepingSummary,
   SettingsPayload,
+  ProcessRequestBody,
+  BaseEnv,
 } from "./types.js";
 export {
   createJsonResponse,
@@ -31,3 +33,7 @@ export {
   kvTimestampMiddleware,
 } from "./kvUtils.js";
 export type { EnvWithKV } from "./kvUtils.js";
+export { trackAnalytics } from "./analytics.js";
+export type { AnalyticsEnv } from "./analytics.js";
+export { healthCheck } from "./health.js";
+export type { HealthCheckOptions } from "./health.js";

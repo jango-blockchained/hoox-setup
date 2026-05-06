@@ -12,6 +12,10 @@ export default [
       '*.bak',
       '**/.wrangler/',
       '*.md',
+      '.opencode/',
+      '.tmp/',
+      '.agents/',
+      '.worktrees/',
     ],
   },
   js.configs.recommended,
@@ -57,6 +61,9 @@ export default [
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
+      // TypeScript handles this more accurately; disable to avoid false
+      // positives from Cloudflare Workers types (Fetcher, KVNamespace, etc.)
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {

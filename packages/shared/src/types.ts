@@ -89,6 +89,18 @@ export interface Env {
   [key: string]: any;
 }
 
+/**
+ * Base environment type for workers with common Cloudflare bindings.
+ * Workers should extend this with their specific bindings.
+ */
+export interface BaseEnv {
+  /** Optional analytics service binding for tracking */
+  ANALYTICS_SERVICE?: Fetcher;
+  /** Optional KV namespace for configuration */
+  CONFIG_KV?: KVNamespace;
+  [key: string]: unknown;
+}
+
 export type Result<T> =
   | { ok: true; value: T }
   | { ok: false; error: string };
@@ -128,4 +140,16 @@ export interface QueryPayload {
 
 export interface BatchPayload {
   statements: QueryPayload[];
+}
+
+// --- Internal service-to-service request types ---
+
+/**
+ * Generic process request body for internal worker-to-worker calls.
+ * The payload type varies per worker (WebhookPayload, NotificationPayload, etc.)
+ */
+export interface ProcessRequestBody<T = unknown> {
+  requestId?: string;
+  internalAuthKey?: string;
+  payload: T;
 }
