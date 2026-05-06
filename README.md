@@ -62,7 +62,7 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 
    ```bash
    # Recommended
-   bun add -g @hoox/cli
+   bun add -g @jango-blockchained/hoox-cli
 
    # Or from source
    bun run hoox
@@ -125,7 +125,7 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ---
 
-## 🛠️ The `@hoox/cli` & Workspaces
+## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
 The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli`. By utilizing Bun Workspaces, the core management commands are available via the `hoox` binary.
 

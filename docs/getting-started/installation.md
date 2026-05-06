@@ -18,7 +18,7 @@ Use the `hoox` CLI to bootstrap your environment without dealing with git submod
 
 ```bash
 # 1. Install the CLI globally
-bun add -g @hoox/cli
+bun add -g @jango-blockchained/hoox-cli
 
 # Alternative: Build from source
 cd packages/cli && bun run build && cd ..
