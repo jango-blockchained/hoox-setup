@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Main Repo](https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&logo=github)](https://github.com/jango-blockchained/hoox-setup)
 
-**[Live Demo](https://hoox.cryptolinx.workers.dev)** · **[Comprehensive Docs](docs/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
+**Comprehensive Docs:** **[Documentation Home](docs/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
 </div>
 
@@ -56,44 +56,22 @@ Hoox provides a modern approach to algorithmic trading infrastructure deployment
 
 ## 🚀 Quick Start (Deploy in 5 Minutes)
 
-### Option A: Install via CLI (Recommended)
-
-1. **Install the CLI globally:**
-
-   ```bash
-   # Recommended
-   bun add -g @jango-blockchained/hoox-cli
-
-   # Or from source
-   bun run hoox
-   ```
-
-2. **Bootstrap your environment:**
-
-   ```bash
-   hoox clone hoox-trading
-   cd hoox-trading
-   bun install
-   hoox config setup
-   hoox init
-   ```
-
-### Option B: Install from Source
+### Option A: Install from Source (Recommended)
 
 1. **Clone the repository:**
 
-   ```bash
-   git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
-   cd hoox-trading
-   bun install
-   ```
+    ```bash
+    git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
+    cd hoox-trading
+    ```
 
-2. **Setup:**
+2. **Install dependencies and bootstrap:**
 
-   ```bash
-   hoox config setup
-   hoox init
-   ```
+    ```bash
+    bun install
+    bun run hoox config setup
+    bun run hoox init
+    ```
 
 ### Deploy
 
@@ -340,20 +318,20 @@ bun test --coverage
 ```
 
 **Current Test Coverage:**
-- **packages/cli**: 83.33% function coverage (utils.ts), 100% (cf-client.ts)
-- **workers/hoox**: >85% line coverage
-- **workers/trade-worker**: >85% line coverage
-- **workers/agent-worker**: >87% line coverage
+- **packages/cli**: ~88% function coverage, ~82% line coverage
+- **workers/hoox**: test suite in progress
+- **workers/trade-worker**: test suite in progress
+- **workers/agent-worker**: test suite in progress
 
-Built natively on Bun, Hoox features uncompromising TypeScript type safety out of the box—no `as any` escape hatches, just rock-solid code.
+Built natively on Bun, Hoox features TypeScript type safety with strict mode enabled.
 
 > **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/development/testing.md) for detailed coverage reports.
 
 ---
 
-## 🐳 Self-Hosting (Docker)
+## 🐳 Local Development (Docker)
 
-Hoox supports a **Hybrid Edge** deployment model. You can run the worker logic entirely on your own infrastructure using Docker, while still leveraging Cloudflare's AI, D1, KV, and R2 for heavy lifting—no code rewrites required.
+Hoox supports local development using Docker. While production deployment targets Cloudflare Workers, Docker allows you to run and test the worker logic locally.
 
 ### Prerequisites
 
@@ -362,7 +340,7 @@ Hoox supports a **Hybrid Edge** deployment model. You can run the worker logic e
 
 ### Development (Hot-Reload)
 
-Spin up all 8 workers locally with hot-reloading enabled. Changes to your code are reflected instantly without rebuilding the container.
+Spin up all workers locally with hot-reloading enabled. Changes to your code are reflected instantly without rebuilding the container.
 
 ```bash
 # Build and start the dev environment
@@ -373,13 +351,6 @@ docker compose config
 ```
 
 This launches all workers on the following ports:
-
-To stop local dev cleanly:
-
-```bash
-bun run docker:down
-```
-
 
 | Service | Port |
 |---------|------|
@@ -392,9 +363,15 @@ bun run docker:down
 | Agent | 8795 |
 | Email | 8796 |
 
-### Production (Self-Hosted)
+To stop local dev cleanly:
 
-Build and run the optimized production image. This compiles all TypeScript workers into high-performance JavaScript bundles served via a lightweight Bun runtime.
+```bash
+bun run docker:down
+```
+
+### Production Build
+
+Build the optimized production image for local testing.
 
 ```bash
 # Build the production image
