@@ -1,5 +1,5 @@
 /**
- * Types for the `hoox2 init` interactive setup wizard.
+ * Types for the `hoox init` interactive setup wizard.
  */
 
 /** CLI flags for non-interactive mode. */

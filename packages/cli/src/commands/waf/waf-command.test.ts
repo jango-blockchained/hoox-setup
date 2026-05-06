@@ -1,5 +1,5 @@
 /**
- * Unit tests for `hoox2 waf` command.
+ * Unit tests for `hoox waf` command.
  *
  * Mocks CloudflareService.zonesList() and global fetch() for Cloudflare API
  * calls. Tests verify command action functions produce correct output and
@@ -110,7 +110,7 @@ afterEach(() => {
 
 function makeProgram(): Command {
   const program = new Command()
-    .name("hoox2")
+    .name("hoox")
     .option("--json", "JSON output")
     .option("--quiet", "Minimal output");
 

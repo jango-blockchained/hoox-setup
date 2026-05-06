@@ -1,5 +1,5 @@
 /**
- * Unit tests for `config-command.ts` — the `hoox2 config` command group.
+ * Unit tests for `config-command.ts` — the `hoox config` command group.
  *
  * Tests verify:
  *  - Subcommand registration (show, set, secrets, keys)

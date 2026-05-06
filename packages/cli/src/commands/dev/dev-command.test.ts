@@ -121,7 +121,7 @@ async function importDevCommand(): Promise<{
 async function createProgram(): Promise<Command> {
   const { registerDevCommand } = await importDevCommand();
   const program = new Command()
-    .name("hoox2-test")
+    .name("hoox-test")
     .exitOverride(() => {
       // Suppress Commander's own exit during tests
     });

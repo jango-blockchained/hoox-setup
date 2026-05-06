@@ -1,5 +1,5 @@
 /**
- * `hoox2 waf` command — Cloudflare WAF (Web Application Firewall) management.
+ * `hoox waf` command — Cloudflare WAF (Web Application Firewall) management.
  *
  * Subcommands:
  *   waf status                 Show WAF status for the zone
@@ -442,7 +442,7 @@ async function handleMode(mode: "on" | "off", opts: FormatOptions): Promise<void
 // ---------------------------------------------------------------------------
 
 /**
- * Registers the `hoox2 waf` command and all subcommands on the given
+ * Registers the `hoox waf` command and all subcommands on the given
  * Commander.js program instance.
  */
 export function registerWafCommand(program: Command): void {

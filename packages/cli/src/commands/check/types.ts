@@ -1,5 +1,5 @@
 /**
- * `hoox2 check` command types — validation check results, health status,
+ * `hoox check` command types — validation check results, health status,
  * and fix reports for the check command group.
  */
 
@@ -28,7 +28,7 @@ export interface CheckCategory {
 }
 
 /**
- * Top-level report produced by `hoox2 check setup`.
+ * Top-level report produced by `hoox check setup`.
  * Rendered as a table (human mode) or JSON (--json mode).
  */
 export interface CheckReport {
@@ -70,7 +70,7 @@ export interface HealthCheckResult {
 // ---------------------------------------------------------------------------
 
 /**
- * A single fix action to be applied (or simulated in --dry-run) by `hoox2 check fix`.
+ * A single fix action to be applied (or simulated in --dry-run) by `hoox check fix`.
  */
 export interface FixAction {
   description: string;
@@ -86,7 +86,7 @@ export interface FixAction {
 }
 
 /**
- * Report produced by `hoox2 check fix` summarising all fix actions.
+ * Report produced by `hoox check fix` summarising all fix actions.
  */
 export interface FixReport {
   /** Ordered list of fix actions. */

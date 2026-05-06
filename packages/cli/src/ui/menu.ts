@@ -1,7 +1,7 @@
 /**
  * Interactive TUI loop for the Hoox CLI.
  *
- * When `hoox2` is called with no arguments, this module takes over:
+ * When `hoox` is called with no arguments, this module takes over:
  * shows the ASCII banner, an interactive clack menu, dispatches to
  * the appropriate Commander action, and returns to the menu.
  */
@@ -35,7 +35,7 @@ import { CLIError } from "../utils/errors.js";
 export async function runInteractiveTUI(program: Command): Promise<void> {
   // Print banner directly, then start clack prompt session
   process.stdout.write(renderBanner());
-  intro("hoox2");
+  intro("hoox");
 
   while (true) {
     const category = await showMainMenu();
@@ -395,7 +395,7 @@ async function runCommand(program: Command, commandStr: string): Promise<void> {
 
   try {
     await program.parseAsync(
-      ["node", "hoox2", ...args],
+      ["node", "hoox", ...args],
       { from: "user" },
     );
   } catch (err) {

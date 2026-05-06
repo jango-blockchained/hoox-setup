@@ -47,7 +47,7 @@ function captureStdout(): { output: () => string; restore: () => void } {
 /** Create a fresh Commander program with global --json / --quiet options. */
 function makeProgram(): Command {
   const program = new Command();
-  program.name("hoox2");
+  program.name("hoox");
   program.option("--json", "");
   program.option("--quiet", "");
   return program;

@@ -43,7 +43,7 @@ export class ConfigService {
 
     if (!(await file.exists())) {
       throw new Error(
-        `Config file not found: ${filePath}. Run 'hoox2 config init' to create one.`,
+        `Config file not found: ${filePath}. Run 'hoox config init' to create one.`,
       );
     }
 

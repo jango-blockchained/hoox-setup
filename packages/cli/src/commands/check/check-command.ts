@@ -1,5 +1,5 @@
 /**
- * `hoox2 check` command group — validation, health checks, and auto-repair.
+ * `hoox check` command group — validation, health checks, and auto-repair.
  *
  * Subcommands:
  *   setup [--json]  — Full system validation (Config, Infrastructure, Secrets, Database)
@@ -430,7 +430,7 @@ async function handleHealth(opts: FormatOptions, autoFix: boolean): Promise<void
         `\n${theme.warning(icons.warning)} Auto-fix flag set but health issues require manual investigation.\n`,
       );
       process.stdout.write(
-        `${theme.dim("Try: hoox2 check fix")}\n`,
+        `${theme.dim("Try: hoox check fix")}\n`,
       );
     }
 
@@ -658,7 +658,7 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 check` command group with subcommands:
+ * Register the `hoox check` command group with subcommands:
  * setup, health, fix.
  */
 export function registerCheckCommand(program: Command): void {

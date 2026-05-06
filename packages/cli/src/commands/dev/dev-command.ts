@@ -1,5 +1,5 @@
 /**
- * `hoox2 dev` command group — local development for workers and dashboard.
+ * `hoox dev` command group — local development for workers and dashboard.
  *
  * Subcommands:
  *   start     — Launch all workers via Hoox TUI
@@ -31,7 +31,7 @@ function getFormatOptions(cmd: Command) {
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 dev` command group with subcommands:
+ * Register the `hoox dev` command group with subcommands:
  * start, worker <name>, dashboard.
  */
 export function registerDevCommand(program: Command): void {

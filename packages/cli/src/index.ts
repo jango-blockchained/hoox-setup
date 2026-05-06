@@ -17,7 +17,7 @@ import { theme } from "./utils/theme.js";
 const program = new Command();
 
 program
-  .name("hoox2")
+  .name("hoox")
   .description(
     "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments",
   )
@@ -145,7 +145,7 @@ registerCloneCommand(program);
 registerDashboardCommand(program);
 
 // ---------------------------------------------------------------------------
-// Parse and run (only when hoox2 is the entry point, not when imported)
+// Parse and run (only when hoox is the entry point, not when imported)
 // ---------------------------------------------------------------------------
 
 if (import.meta.main) {
@@ -154,7 +154,7 @@ if (import.meta.main) {
   if (hasArgs) {
     program.parse();
   } else {
-    // Interactive TUI mode — launches when hoox2 is called with no arguments
+    // Interactive TUI mode — launches when hoox is called with no arguments
     await runInteractiveTUI(program);
     process.exit(ExitCode.SUCCESS);
   }

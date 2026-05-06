@@ -1,5 +1,5 @@
 /**
- * `hoox2 config` command group — configuration and secrets management.
+ * `hoox config` command group — configuration and secrets management.
  *
  * Subcommands:
  *   show          Display current workers.jsonc config

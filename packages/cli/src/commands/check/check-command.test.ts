@@ -191,7 +191,7 @@ import { ExitCode } from "../../utils/errors.js";
 async function createProgram() {
   const { registerCheckCommand } = await importCheckCommand();
   const program = new Command()
-    .name("hoox2-test")
+    .name("hoox-test")
     .option("--json", "Output in JSON format")
     .option("--quiet", "Minimal output")
     .exitOverride(() => {

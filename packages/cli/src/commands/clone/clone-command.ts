@@ -1,10 +1,10 @@
 /**
- * `hoox2 clone` command — clone worker repos as git submodules.
+ * `hoox clone` command — clone worker repos as git submodules.
  *
  * Modes:
- *   hoox2 clone           — List workers with clone status (cloned / not cloned)
- *   hoox2 clone --all     — Clone all workers from workers.jsonc
- *   hoox2 clone <name>    — Clone a specific worker by name
+ *   hoox clone           — List workers with clone status (cloned / not cloned)
+ *   hoox clone --all     — Clone all workers from workers.jsonc
+ *   hoox clone <name>    — Clone a specific worker by name
  *
  * Repo URLs are derived from: https://github.com/<org>/<worker-name>.git
  * The org is auto-detected from `git remote get-url origin` or set via --org.
@@ -185,7 +185,7 @@ async function buildStatusList(
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 clone` command on the given commander program.
+ * Register the `hoox clone` command on the given commander program.
  *
  * @example
  * ```ts

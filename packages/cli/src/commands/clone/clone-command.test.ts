@@ -92,7 +92,7 @@ function markCloned(workerName: string, workerPath: string): void {
 /** Build a fresh commander program with the clone command registered. */
 function buildProgram(): Command {
   const program = new Command();
-  program.name("hoox2");
+  program.name("hoox");
   program.option("--json", "JSON output");
   program.option("--quiet", "Minimal output");
   program.exitOverride();

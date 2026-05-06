@@ -1,5 +1,5 @@
 /**
- * Unit tests for the `hoox2 infra` command group.
+ * Unit tests for the `hoox infra` command group.
  *
  * Tests each subcommand handler directly by injecting mock CloudflareService
  * and ConfigService instances. Output is captured via process.stdout.write mock.

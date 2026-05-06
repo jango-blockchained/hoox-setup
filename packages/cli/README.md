@@ -4,7 +4,7 @@ Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments
 
 ## Features
 
-- **Interactive TUI**: Launch an interactive terminal UI when running `hoox2` with no arguments
+- **Interactive TUI**: Launch an interactive terminal UI when running `hoox` with no arguments
 - **Worker Management**: Initialize, develop, and deploy Cloudflare Workers
 - **Infrastructure as Code**: Manage D1 databases, R2 storage, KV namespaces, and more
 - **Configuration**: Centralized config management via `workers.jsonc`
@@ -38,31 +38,31 @@ bun run build
 
 ```bash
 # Launch interactive TUI (no arguments)
-hoox2
+hoox
 
 # Or use specific commands
-hoox2 --help
-hoox2 init
-hoox2 dev
-hoox2 deploy
+hoox --help
+hoox init
+hoox dev
+hoox deploy
 ```
 
 ## Available Commands
 
 | Command | Description |
 |---------|-------------|
-| `hoox2` | Launch interactive TUI (when called with no arguments) |
-| `hoox2 init` | Initialize a new Hoox project with worker configuration |
-| `hoox2 dev` | Start local development environment for all workers |
-| `hoox2 deploy` | Deploy workers to Cloudflare |
-| `hoox2 infra` | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
-| `hoox2 config` | View and modify `workers.jsonc` configuration |
-| `hoox2 check` | Verify project setup and diagnose issues |
-| `hoox2 logs` | Stream and filter Cloudflare Worker logs |
-| `hoox2 test` | Run tests for workers and packages |
-| `hoox2 waf` | Manage Cloudflare WAF rules and policies |
-| `hoox2 clone` | Clone and set up an existing Hoox project |
-| `hoox2 dashboard` | Launch or deploy the Next.js dashboard |
+| `hoox` | Launch interactive TUI (when called with no arguments) |
+| `hoox init` | Initialize a new Hoox project with worker configuration |
+| `hoox dev` | Start local development environment for all workers |
+| `hoox deploy` | Deploy workers to Cloudflare |
+| `hoox infra` | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
+| `hoox config` | View and modify `workers.jsonc` configuration |
+| `hoox check` | Verify project setup and diagnose issues |
+| `hoox logs` | Stream and filter Cloudflare Worker logs |
+| `hoox test` | Run tests for workers and packages |
+| `hoox waf` | Manage Cloudflare WAF rules and policies |
+| `hoox clone` | Clone and set up an existing Hoox project |
+| `hoox dashboard` | Launch or deploy the Next.js dashboard |
 
 ### Global Options
 
@@ -78,7 +78,7 @@ All commands support these global options:
 ### Initialize a New Project
 
 ```bash
-hoox2 init
+hoox init
 ```
 
 Interactive prompts will guide you through setting up your project with the necessary worker configurations.
@@ -86,7 +86,7 @@ Interactive prompts will guide you through setting up your project with the nece
 ### Start Development Environment
 
 ```bash
-hoox2 dev
+hoox dev
 ```
 
 Starts all workers locally with hot-reload. Each worker runs on a dedicated port (see `workers.jsonc` for port assignments).
@@ -95,16 +95,16 @@ Starts all workers locally with hot-reload. Each worker runs on a dedicated port
 
 ```bash
 # Deploy all workers
-hoox2 deploy
+hoox deploy
 
 # Deploy specific worker
-hoox2 deploy --worker hoox
+hoox deploy --worker hoox
 ```
 
 ### Check Project Setup
 
 ```bash
-hoox2 check
+hoox check
 ```
 
 Verifies that all dependencies, configurations, and Cloudflare credentials are properly set up.
@@ -113,33 +113,33 @@ Verifies that all dependencies, configurations, and Cloudflare credentials are p
 
 ```bash
 # List all infrastructure resources
-hoox2 infra list
+hoox infra list
 
 # Create a new D1 database
-hoox2 infra create d1 my-database
+hoox infra create d1 my-database
 ```
 
 ### Manage Secrets
 
 ```bash
 # Update secrets in Cloudflare
-hoox2 config secrets update-cf
+hoox config secrets update-cf
 ```
 
 ### View Logs
 
 ```bash
 # Stream logs from all workers
-hoox2 logs
+hoox logs
 
 # Filter logs by worker
-hoox2 logs --worker trade-worker
+hoox logs --worker trade-worker
 ```
 
 ### JSON Output for Scripting
 
 ```bash
-hoox2 check --json
+hoox check --json
 # Output: {"status": "ok", "checks": [...]}
 ```
 
@@ -222,7 +222,7 @@ packages/cli/
 │       ├── formatters.ts
 │       └── theme.ts
 ├── bin/
-│   └── hoox2.js              # CLI binary entry point
+│   └── hoox.js              # CLI binary entry point
 ├── package.json
 └── README.md
 ```

@@ -1,5 +1,5 @@
 /**
- * `hoox2 deploy` command group — deploy workers and dashboard to Cloudflare.
+ * `hoox deploy` command group — deploy workers and dashboard to Cloudflare.
  *
  * Subcommands:
  *   all       — Deploy all enabled workers, then the dashboard
@@ -203,7 +203,7 @@ function printSummary(results: DeployResult[], opts: { json?: boolean; quiet?: b
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 deploy` command group with subcommands:
+ * Register the `hoox deploy` command group with subcommands:
  * all, workers, worker <name>, dashboard.
  */
 export function registerDeployCommand(program: Command): void {

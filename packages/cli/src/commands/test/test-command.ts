@@ -1,5 +1,5 @@
 /**
- * `hoox2 test` command group — run tests and CI pipeline.
+ * `hoox test` command group — run tests and CI pipeline.
  *
  * Subcommands:
  *   all         — Run full CI pipeline (lint → typecheck → unit → integration)
@@ -197,7 +197,7 @@ const PIPELINE_STEPS: { label: string; args: string[] }[] = [
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 test` command group with subcommands:
+ * Register the `hoox test` command group with subcommands:
  * all, unit, integration, worker.
  */
 export function registerTestCommand(program: Command): void {

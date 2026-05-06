@@ -1,5 +1,5 @@
 /**
- * Types for the `hoox2 infra` command group.
+ * Types for the `hoox infra` command group.
  */
 
 /** Global CLI options available to infra subcommands. */

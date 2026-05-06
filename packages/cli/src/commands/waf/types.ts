@@ -2,7 +2,7 @@
  * Waf command type definitions.
  */
 
-/** WAF status summary returned by `hoox2 waf status`. */
+/** WAF status summary returned by `hoox waf status`. */
 export interface WafStatus {
   /** Whether WAF protection is enabled on the zone. */
   enabled: boolean;

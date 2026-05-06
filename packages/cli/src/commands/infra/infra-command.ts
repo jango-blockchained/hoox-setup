@@ -1,5 +1,5 @@
 /**
- * `hoox2 infra` command group — Cloudflare infrastructure management.
+ * `hoox infra` command group — Cloudflare infrastructure management.
  *
  * Subcommands:
  *   provision          — Auto-provision D1/KV/R2/Queues from wrangler.jsonc
@@ -454,7 +454,7 @@ async function doProvision(
 // ---------------------------------------------------------------------------
 
 /**
- * Register the `hoox2 infra` command group on the given commander program.
+ * Register the `hoox infra` command group on the given commander program.
  *
  * @example
  * ```ts
