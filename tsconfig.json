@@ -41,7 +41,6 @@
   },
   "include": [
     "src/**/*",
-    "workers/**/*",
     "scripts/**/*",
     "test/**/*"
   ],
