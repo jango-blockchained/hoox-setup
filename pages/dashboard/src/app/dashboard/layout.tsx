@@ -27,6 +27,11 @@ export default function DashboardLayout({
           <main className="flex-1 p-4 pt-2 sm:p-6 lg:p-8">
             {children}
           </main>
+          <footer className="border-t border-border/50 py-2 px-6 text-center text-xs text-muted-foreground">
+            Hoox is provided &quot;as-is&quot; for educational purposes only. Not financial advice.
+            Trading involves risk of loss. Users are responsible for regulatory compliance in their
+            jurisdiction.
+          </footer>
           <CommandPalette />
         </SidebarInset>
       </SidebarProvider>

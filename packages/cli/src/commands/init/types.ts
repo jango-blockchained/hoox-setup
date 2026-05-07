@@ -12,6 +12,8 @@ export interface InitOptions {
   secretStore?: string;
   /** --prefix: Subdomain prefix (non-interactive mode) */
   prefix?: string;
+  /** --accept-risk: Skip the risk acknowledgment confirmation */
+  acceptRisk?: boolean;
 }
 
 /** Definition of an integration that can be enabled during setup. */

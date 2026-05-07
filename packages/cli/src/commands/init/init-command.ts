@@ -349,6 +349,7 @@ export function registerInitCommand(program: Command): void {
       "--prefix <prefix>",
       "Subdomain prefix (non-interactive, default: cryptolinx)",
     )
+    .option("--accept-risk", "Skip the risk acknowledgment confirmation")
     .action(async (options: InitOptions) => {
       const globalOpts = program.opts() as { json?: boolean; quiet?: boolean };
       const isNonInteractive = Boolean(
@@ -427,6 +428,27 @@ export async function runInitCommand(
   // ------------------------------------------------------------------
 
   p.intro(theme.heading("Hoox Setup Wizard"));
+
+  const skipRiskWarning = options.acceptRisk || isNonInteractive;
+  if (!skipRiskWarning) {
+    const accepted = await p.confirm({
+      message:
+        "Hoox connects to live trading exchanges and can execute real trades with real money. " +
+        "By continuing, you acknowledge that you are solely responsible for all trading activity " +
+        "and accept the risk of financial loss. Do you accept these terms?",
+      initialValue: false,
+    });
+
+    if (p.isCancel(accepted)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    if (!accepted) {
+      p.outro("Setup cancelled. See DISCLAIMER.md for full terms.");
+      process.exit(0);
+    }
+  }
 
   // Step 1: Cloudflare API token with validation loop
   const cf = new CloudflareService();
