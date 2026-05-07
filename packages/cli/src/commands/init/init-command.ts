@@ -308,7 +308,7 @@ async function collectIntegrationSecrets(
     for (const [secretName] of secretEntries) {
       groupFields[secretName] = () =>
         p.password({
-          message: `${label}:`,
+          message: `${secretName}:`,
           validate(value) {
             if (!value) return "This secret is required";
             return;
