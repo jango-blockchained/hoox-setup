@@ -52,19 +52,52 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 
 ## ✨ Enterprise-Grade Features
 
-| Feature                 | Description                                                |
-| ----------------------- | ---------------------------------------------------------- |
-| 🟠 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing |
-| 🟠 🤖 **AI Integration**   | Cloudflare® Workers AI for LLaMA 3 powered summaries & decisions |
-| 🟠 🗄️ **D1 Database**      | Globally distributed SQLite at the edge for persistent, atomic storage |
-| 🟠 📦 **R2 Storage**       | Zero-egress S3-compatible object storage for trade reports |
-| 🟠 🔐 **KV Storage**       | Global, ultra-fast key-value caching for dynamic settings and kill-switches |
-| 📈 **Trading Engine**   | Multi-exchange automated execution (CEX & DEX) |
-| 📊 **Command Center**   | React-based Dashboard for real-time portfolio monitoring |
-| 🖥️ **Interactive TUI**  | Fully integrated Terminal UI (`hoox-tui`) for local process management |
-| 🟠 📨 **Queues**           | Async trade execution with guaranteed delivery—survives exchange downtime |
-| 🟠 🛡️ **Idempotency**    | Durable Object prevents duplicate trades on network retries |
-| ⚡ **Rate Limiting**    | Built-in protection against trade spam (10 trades/min) |
+### Core Platform
+
+| Feature | Description |
+| ------- | ----------- |
+| 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing, no TLS overhead, no DNS resolution. Workers call each other via internal V8 isolates. |
+| 📨 **Async Queues** | Cloudflare® Queues with exponential backoff retry policy (30s → 15min). Guaranteed delivery survives exchange downtime, API rate limits, and network partitions. |
+| 🛡️ **Idempotent Execution** | Durable Objects with SQLite-backed state prevent duplicate trades on network retries. Every webhook gets a unique trace ID for end-to-end signal tracking. |
+| 🤖 **Multi-Provider AI Gateway** | 5 AI providers (Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI) with automatic fallback chain, health checks, SSE streaming, vision analysis, reasoning models, and usage tracking. |
+| 🧠 **AI Risk Manager** | `agent-worker` runs on a 5-minute cron: monitors open positions, moves trailing stops, scales out of profitable trades, flips the Global Kill Switch on max drawdown, and sends health summaries. |
+
+### Data & Storage
+
+| Feature | Description |
+| ------- | ----------- |
+| 🗄️ **D1 Edge Database** | Globally distributed SQLite at the edge. Persistent, atomic storage for trade history, positions, and balances. Preserved write limits via R2 log offloading. |
+| 📦 **R2 Object Storage** | Zero-egress, S3-compatible storage for trade reports, system logs, and user uploads. No bandwidth charges on retrieval. |
+| 🔐 **KV Configuration** | Sub-millisecond global key-value store for dynamic routing, IP allowlists, session state, kill-switch toggles, and live settings—no redeployment required. |
+| 🔎 **Vectorize RAG Index** | Embedded vector database for retrieval-augmented generation. Powers context-aware AI responses and intelligent Telegram bot conversations. |
+
+### Trading Infrastructure
+
+| Feature | Description |
+| ------- | ----------- |
+| 📈 **Multi-Exchange Engine** | Execute across Binance, Bybit, and MEXC with dynamic routing via `CONFIG_KV`. Redirect symbols to different exchanges instantly without code deployment. |
+| 🌐 **DeFi Execution** | On-chain swap execution via `web3-wallet-worker` with secure mnemonic management and browser rendering for DApp interactions. |
+| 📧 **Email Signal Parsing** | Trigger trades from raw email parsing via `email-worker`. Ancillary input channel alongside TradingView webhooks and Telegram commands. |
+| ⚡ **Rate Limiting** | Built-in throttling (10 trades/min) prevents accidental trade spamming and API ban from exchange rate limits. |
+
+### Developer Experience
+
+| Feature | Description |
+| ------- | ----------- |
+| 📊 **Command Center** | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration. |
+| 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 8 workers simultaneously with one command. |
+| 🛠️ **CLI Workspaces** | Bun workspace monorepo managed via `hoox` CLI. Interactive setup wizard (`hoox init`), health checks, infrastructure provisioning, secret management, and WAF rule configuration. |
+| 🐳 **Docker Support** | Full local dev environment with Docker Compose. Hot-reload mode for development, optimized production images for testing. |
+
+### Security
+
+| Feature | Description |
+| ------- | ----------- |
+| 🔒 **Zero Trust Architecture** | Internal workers (`trade-worker`, `d1-worker`) have zero public endpoints—accessible only via Cloudflare® Service Bindings. |
+| 🛡️ **WAF Integration** | IP allowlisting and rate limiting at the Cloudflare edge. Malicious traffic dropped before hitting the gateway worker. |
+| 🔑 **Secret Injection** | API keys injected directly into the V8 isolate at runtime. Never stored in plaintext, never logged. Local `.dev.vars` excluded from version control. |
+| 🏴 **Global Kill Switch** | Instant trading halt via KV toggle. No redeployment, no downtime—immediate effect across all workers on next request cycle. |
+| 🔐 **Security Headers** | Full CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy on every response. CORS disabled (same-origin only). |
 
 ---
 
@@ -456,9 +489,9 @@ Our long-term vision includes native, edge-based execution of trading logic. **P
 - **Advanced Dashboard:** More intuitive UI for deeper historical trade analysis.
 
 ---
-
 ## 📄 License
-MIT License - Built for the community, by the community. See [LICENSE](LICENSE) for details.
+
+Licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/). See [LICENSE](LICENSE) for the full license text and [DISCLAIMER](DISCLAIMER.md) for legal terms.
 
 ---
 <div align="center">
