@@ -1,6 +1,6 @@
-# @hoox/shared
+# @jango-blockchained/hoox-shared
 
-**Last Updated:** April 2026
+**Last Updated:** May 2026
 
 A shared utility library used across the Hoox Trading System workers. It provides common types, response helpers, and utility functions.
 
@@ -26,7 +26,7 @@ This package is installed locally in the mono-repo and shared across workers.
 
 ```json
 "dependencies": {
-  "@hoox/shared": "workspace:*"
+  "@jango-blockchained/hoox-shared": "workspace:*"
 }
 ```
 

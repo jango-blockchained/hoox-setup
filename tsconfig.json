@@ -9,8 +9,8 @@
     ],
     "moduleResolution": "bundler",
     "paths": {
-      "@hoox/shared/*": ["./packages/shared/src/*"],
-      "@hoox/shared": ["./packages/shared/src/index.ts"]
+      "@jango-blockchained/hoox-shared/*": ["./packages/shared/src/*"],
+      "@jango-blockchained/hoox-shared": ["./packages/shared/src/index.ts"]
     },
     "types": [
       "bun-types",

@@ -2,7 +2,7 @@
  * SecretsService types — secret management for Cloudflare Workers.
  *
  * The `Result<T>` discriminated-union mirrors the pattern used in
- * @hoox/shared (see packages/shared/src/types.ts:92) but is defined
+ * @jango-blockchained/hoox-shared (see packages/shared/src/types.ts:92) but is defined
  * locally to avoid adding a public export to the shared package.
  */
 

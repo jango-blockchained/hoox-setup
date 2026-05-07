@@ -264,4 +264,4 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
-import type { HousekeepingPayload } from "@hoox/shared";
+import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared";

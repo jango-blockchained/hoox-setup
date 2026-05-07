@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@hoox/shared": ["../shared/src/index.ts"]
+      "@jango-blockchained/hoox-shared": ["../shared/src/index.ts"]
     },
     "skipLibCheck": true
   },

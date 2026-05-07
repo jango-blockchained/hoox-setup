@@ -235,7 +235,7 @@ packages/cli/
 | `@clack/prompts` | Interactive prompts for the TUI |
 | `ansis` | Terminal styling and colors |
 | `jsonc-parser` | Parse `workers.jsonc` configuration files |
-| `@hoox/shared` | Shared types and utilities |
+| `@jango-blockchained/hoox-shared` | Shared types and utilities |
 
 ## Contributing
 
