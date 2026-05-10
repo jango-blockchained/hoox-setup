@@ -1,6 +1,7 @@
 node_modules/
 .wrangler/
 dist/
+dist.bak/
 .env*
 dev.vars*
 */*.env*

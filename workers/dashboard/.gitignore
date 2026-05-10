@@ -5,6 +5,7 @@ node_modules/
 
 # Build & Output
 dist/
+.open-next/
 
 # Environment & Secrets
 .dev.vars
