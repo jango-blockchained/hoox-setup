@@ -166,7 +166,7 @@ describe("registerDevCommand", () => {
     const devCmd = program.commands.find((c) => c.name() === "dev")!;
     const startCmd = devCmd.commands.find((c) => c.name() === "start");
     expect(startCmd).toBeDefined();
-    expect(startCmd!.description()).toContain("TUI");
+    expect(startCmd!.description()).toContain("wrangler dev");
   });
 
   it("registers 'dev worker <name>' subcommand with argument", async () => {
@@ -215,7 +215,7 @@ describe("registerDevCommand", () => {
       expect(process.exitCode).toBe(2); // INVALID_USAGE
     });
 
-    it("completes successfully with enabled workers", async () => {
+    it("starts all enabled workers on assigned ports", async () => {
       listEnabledWorkersMock = mock(() => ["hoox", "trade-worker"]);
       (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
         listEnabledWorkersMock;
@@ -223,9 +223,15 @@ describe("registerDevCommand", () => {
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
 
-      // The handler completes with exitCode 2 (INVALID_USAGE) when the
-      // Bun.spawn call fires (cannot be fully prevented in test env).
-      expect(process.exitCode).toBe(2);
+      // Both workers should be started via CloudflareService.dev()
+      expect(devMock).toHaveBeenCalledTimes(2);
+      const calls = (
+        devMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
+      // hoox → port 8787, trade-worker → port 8788
+      expect(calls[0][1]).toBe(8787);
+      expect(calls[1][1]).toBe(8788);
+      // exitCode remains unset since the action ran successfully
     });
   });
 
