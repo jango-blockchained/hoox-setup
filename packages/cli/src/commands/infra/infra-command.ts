@@ -501,14 +501,41 @@ async function doProvision(
 export function registerInfraCommand(program: Command): void {
   const infraCmd = program
     .command("infra")
-    .description("Manage Cloudflare infrastructure (D1, KV, R2, Queues)");
+    .summary("Manage Cloudflare infrastructure (D1, KV, R2, Queues)")
+    .description(
+      `Provision and manage Cloudflare infrastructure resources.
+
+INFRASTRUCTURE TYPES:
+  D1      - SQL databases for persistent storage
+  KV      - Key-value stores for configuration and caching
+  R2      - S3-compatible object storage
+  Queues  - Message queues for async processing
+
+EXAMPLES:
+  hoox infra provision                 Auto-provision from wrangler.jsonc
+  hoox infra d1 list                   List D1 databases
+  hoox infra d1 create my-db           Create a D1 database
+  hoox infra kv list                   List KV namespaces
+  hoox infra r2 list                   List R2 buckets
+  hoox infra queues list               List queues`
+    );
 
   // -- provision ---------------------------------------------------------
 
   infraCmd
     .command("provision")
+    .summary("Auto-provision infrastructure from wrangler.jsonc")
     .description(
-      "Auto-provision infrastructure from worker wrangler.jsonc files"
+      `Automatically provision all required infrastructure based on worker wrangler.jsonc files.
+
+This reads each worker's wrangler.jsonc and creates:
+  - D1 databases (from d1 binding)
+  - KV namespaces (from kv_namespaces)
+  - R2 buckets (from r2_buckets)
+  - Queues (from queues)
+
+EXAMPLES:
+  hoox infra provision`
     )
     .action(async function (this: Command) {
       const opts = getOptions(this);
@@ -517,11 +544,27 @@ export function registerInfraCommand(program: Command): void {
 
   // -- d1 -----------------------------------------------------------------
 
-  const d1Cmd = infraCmd.command("d1").description("Manage D1 databases");
+  const d1Cmd = infraCmd
+    .command("d1")
+    .summary("Manage D1 SQL databases")
+    .description(
+      `D1 is Cloudflare's serverless SQL database.
+
+EXAMPLES:
+  hoox infra d1 list
+  hoox infra d1 create my-database
+  hoox infra d1 delete my-database`
+    );
 
   d1Cmd
     .command("list")
-    .description("List all D1 databases")
+    .summary("List all D1 databases")
+    .description(
+      `List all D1 databases in your Cloudflare account.
+
+EXAMPLES:
+  hoox infra d1 list`
+    )
     .action(async function (this: Command) {
       const opts = getOptions(this);
       await doD1List(opts);
@@ -529,7 +572,16 @@ export function registerInfraCommand(program: Command): void {
 
   d1Cmd
     .command("create <name>")
-    .description("Create a D1 database")
+    .summary("Create a new D1 database")
+    .description(
+      `Create a new D1 database.
+
+ARGUMENTS:
+  name    Database name
+
+EXAMPLES:
+  hoox infra d1 create trade-data-db`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doD1Create(name, opts);
@@ -537,7 +589,16 @@ export function registerInfraCommand(program: Command): void {
 
   d1Cmd
     .command("delete <name>")
-    .description("Delete a D1 database")
+    .summary("Delete a D1 database")
+    .description(
+      `Delete a D1 database (WARNING: destructive operation).
+
+ARGUMENTS:
+  name    Database name
+
+EXAMPLES:
+  hoox infra d1 delete trade-data-db`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doD1Delete(name, opts);
@@ -545,11 +606,27 @@ export function registerInfraCommand(program: Command): void {
 
   // -- kv -----------------------------------------------------------------
 
-  const kvCmd = infraCmd.command("kv").description("Manage KV namespaces");
+  const kvCmd = infraCmd
+    .command("kv")
+    .summary("Manage KV namespaces")
+    .description(
+      `KV (Key-Value) namespaces for configuration and caching.
+
+EXAMPLES:
+  hoox infra kv list
+  hoox infra kv create CONFIG_KV
+  hoox infra kv delete <id>`
+    );
 
   kvCmd
     .command("list")
-    .description("List all KV namespaces")
+    .summary("List all KV namespaces")
+    .description(
+      `List all KV namespaces in your Cloudflare account.
+
+EXAMPLES:
+  hoox infra kv list`
+    )
     .action(async function (this: Command) {
       const opts = getOptions(this);
       await doKvList(opts);
@@ -557,7 +634,16 @@ export function registerInfraCommand(program: Command): void {
 
   kvCmd
     .command("create <name>")
-    .description("Create a KV namespace")
+    .summary("Create a new KV namespace")
+    .description(
+      `Create a new KV namespace.
+
+ARGUMENTS:
+  name    KV namespace title
+
+EXAMPLES:
+  hoox infra kv create CONFIG_KV`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doKvCreate(name, opts);
@@ -565,7 +651,16 @@ export function registerInfraCommand(program: Command): void {
 
   kvCmd
     .command("delete <id>")
-    .description("Delete a KV namespace by ID")
+    .summary("Delete a KV namespace by ID")
+    .description(
+      `Delete a KV namespace by its ID (WARNING: destructive operation).
+
+ARGUMENTS:
+  id    KV namespace ID (get from 'kv list')
+
+EXAMPLES:
+  hoox infra kv delete c5917667a21745e390ff969f32b1847d`
+    )
     .action(async function (this: Command, id: string) {
       const opts = getOptions(this);
       await doKvDelete(id, opts);
@@ -573,11 +668,27 @@ export function registerInfraCommand(program: Command): void {
 
   // -- r2 -----------------------------------------------------------------
 
-  const r2Cmd = infraCmd.command("r2").description("Manage R2 buckets");
+  const r2Cmd = infraCmd
+    .command("r2")
+    .summary("Manage R2 object storage buckets")
+    .description(
+      `R2 is Cloudflare's S3-compatible object storage.
+
+EXAMPLES:
+  hoox infra r2 list
+  hoox infra r2 create trade-reports
+  hoox infra r2 delete trade-reports`
+    );
 
   r2Cmd
     .command("list")
-    .description("List all R2 buckets")
+    .summary("List all R2 buckets")
+    .description(
+      `List all R2 buckets in your Cloudflare account.
+
+EXAMPLES:
+  hoox infra r2 list`
+    )
     .action(async function (this: Command) {
       const opts = getOptions(this);
       await doR2List(opts);
@@ -585,7 +696,16 @@ export function registerInfraCommand(program: Command): void {
 
   r2Cmd
     .command("create <name>")
-    .description("Create an R2 bucket")
+    .summary("Create a new R2 bucket")
+    .description(
+      `Create a new R2 bucket.
+
+ARGUMENTS:
+  name    Bucket name
+
+EXAMPLES:
+  hoox infra r2 create trade-reports`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doR2Create(name, opts);
@@ -593,7 +713,16 @@ export function registerInfraCommand(program: Command): void {
 
   r2Cmd
     .command("delete <name>")
-    .description("Delete an R2 bucket")
+    .summary("Delete an R2 bucket")
+    .description(
+      `Delete an R2 bucket (WARNING: destructive operation).
+
+ARGUMENTS:
+  name    Bucket name
+
+EXAMPLES:
+  hoox infra r2 delete trade-reports`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doR2Delete(name, opts);
@@ -601,11 +730,27 @@ export function registerInfraCommand(program: Command): void {
 
   // -- queues -------------------------------------------------------------
 
-  const queuesCmd = infraCmd.command("queues").description("Manage Queues");
+  const queuesCmd = infraCmd
+    .command("queues")
+    .summary("Manage Cloudflare Queues")
+    .description(
+      `Queues for asynchronous message processing between workers.
+
+EXAMPLES:
+  hoox infra queues list
+  hoox infra queues create trade-execution
+  hoox infra queues delete trade-execution`
+    );
 
   queuesCmd
     .command("list")
-    .description("List all Queues")
+    .summary("List all Queues")
+    .description(
+      `List all queues in your Cloudflare account.
+
+EXAMPLES:
+  hoox infra queues list`
+    )
     .action(async function (this: Command) {
       const opts = getOptions(this);
       await doQueueList(opts);
@@ -613,7 +758,16 @@ export function registerInfraCommand(program: Command): void {
 
   queuesCmd
     .command("create <name>")
-    .description("Create a Queue")
+    .summary("Create a new Queue")
+    .description(
+      `Create a new queue.
+
+ARGUMENTS:
+  name    Queue name
+
+EXAMPLES:
+  hoox infra queues create trade-execution`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doQueueCreate(name, opts);
@@ -621,7 +775,16 @@ export function registerInfraCommand(program: Command): void {
 
   queuesCmd
     .command("delete <name>")
-    .description("Delete a Queue")
+    .summary("Delete a Queue")
+    .description(
+      `Delete a queue (WARNING: destructive operation).
+
+ARGUMENTS:
+  name    Queue name
+
+EXAMPLES:
+  hoox infra queues delete trade-execution`
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doQueueDelete(name, opts);

@@ -191,7 +191,30 @@ async function buildStatusList(
 export function registerCloneCommand(program: Command): void {
   program
     .command("clone")
-    .description("Clone worker repositories as git submodules")
+    .summary("Clone worker repositories as git submodules")
+    .description(
+      `Clone worker repositories from GitHub as git submodules.
+
+Workers in the Hoox monorepo are stored as git submodules. This command helps you clone them.
+
+MODES:
+  hoox clone              List clone status of all workers
+  hoox clone --all        Clone all workers
+  hoox clone <name>      Clone a specific worker
+
+OPTIONS:
+  --all       Clone all worker repositories
+  --org <org> GitHub organization (auto-detected from git remote by default)
+
+ARGUMENTS:
+  name      Optional worker name to clone (e.g., trade-worker, agent-worker)
+
+EXAMPLES:
+  hoox clone                     List all workers' clone status
+  hoox clone --all               Clone all workers
+  hoox clone trade-worker        Clone specific worker
+  hoox clone --org my-org        Clone from specific org`
+    )
     .option("--all", "Clone all worker repositories")
     .option(
       "--org <org>",

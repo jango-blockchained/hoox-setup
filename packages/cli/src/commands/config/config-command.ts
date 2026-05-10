@@ -181,14 +181,50 @@ function generateKey(bytes = 32): string {
 export function registerConfigCommand(program: Command): void {
   const configCmd = program
     .command("config")
-    .description("Manage configuration and secrets");
+    .summary("Manage configuration, secrets, and keys")
+    .description(
+      `Manage your Hoox configuration and secrets.
+
+CONFIGURATION:
+  The main configuration lives in wrangler.jsonc at the project root.
+  Use 'config show' to view current settings and 'config set' to modify them.
+
+SECRETS:
+  Secrets are stored in Cloudflare and managed via 'config secrets'.
+  Local development uses .dev.vars files in each worker directory.
+
+KEYS:
+  Generate and manage internal auth keys for inter-worker communication.
+  Keys are stored in the .keys/ directory (add to .gitignore).
+
+EXAMPLES:
+  hoox config show                    Display current configuration
+  hoox config set workers.agent-worker.enabled false
+  hoox config secrets list            List secrets for a worker
+  hoox config secrets set trade-worker BINANCE_API_KEY
+  hoox config keys generate           Generate new internal keys`
+    );
 
   // ──────────────────────────────────────────────────────────────────────
   // show
   // ──────────────────────────────────────────────────────────────────────
   configCmd
     .command("show")
-    .description("Display current wrangler.jsonc configuration")
+    .summary("Display current wrangler.jsonc configuration")
+    .description(
+      `Display the current wrangler.jsonc configuration in a formatted table.
+
+Output includes:
+  - Global settings (account_id, subdomain_prefix, etc.)
+  - All workers with their enabled status, path, secrets count, and vars
+
+OPTIONS:
+  --json    Output raw JSON instead of formatted table
+
+EXAMPLES:
+  hoox config show
+  hoox config show --json`
+    )
     .action(async () => {
       const opts = formatOpts(program);
 
@@ -247,7 +283,24 @@ export function registerConfigCommand(program: Command): void {
   // ──────────────────────────────────────────────────────────────────────
   configCmd
     .command("set <key> <value>")
-    .description("Update a config value in wrangler.jsonc")
+    .summary("Update a config value in wrangler.jsonc")
+    .description(
+      `Update a configuration value in wrangler.jsonc.
+
+ARGUMENTS:
+  key     Dot-notation path to the config value (e.g., workers.agent-worker.enabled)
+  value   New value (auto-detects type: boolean, number, or string)
+
+PATH EXAMPLES:
+  global.subdomain_prefix          → Set subdomain
+  workers.trade-worker.enabled    → Enable/disable worker
+  workers.agent-worker.vars.interval → Set worker variable
+
+EXAMPLES:
+  hoox config set global.subdomain_prefix myapp
+  hoox config set workers.trade-worker.enabled false
+  hoox config set workers.agent-worker.vars.interval 5`
+    )
     .action(async (key: string, value: string) => {
       const opts = formatOpts(program);
 
@@ -291,12 +344,39 @@ export function registerConfigCommand(program: Command): void {
   // ──────────────────────────────────────────────────────────────────────
   const secretsCmd = configCmd
     .command("secrets")
-    .description("Manage Cloudflare Worker secrets");
+    .summary("Manage Cloudflare Worker secrets")
+    .description(
+      `Manage secrets for your Cloudflare Workers.
+
+Secrets are defined in wrangler.jsonc under each worker's 'secrets' array.
+They are stored securely in Cloudflare and uploaded via 'wrangler secret put'.
+
+LOCAL DEVELOPMENT:
+  For local development, create .dev.vars files in each worker directory.
+  The 'config secrets sync' command can generate these from your config.
+
+EXAMPLES:
+  hoox config secrets list                    List all secrets
+  hoox config secrets list trade-worker      List secrets for one worker
+  hoox config secrets set trade-worker API_KEY  Set a secret value
+  hoox config secrets delete trade-worker API_KEY  Delete a secret
+  hoox config secrets sync                   Sync secrets to .dev.vars`
+    );
 
   // secrets list [worker]
   secretsCmd
     .command("list [worker]")
-    .description("List secrets for all workers or a specific worker")
+    .summary("List secrets for all workers or a specific worker")
+    .description(
+      `List the secrets declared in wrangler.jsonc for workers.
+
+ARGUMENTS:
+  worker    Optional worker name to filter by
+
+EXAMPLES:
+  hoox config secrets list
+  hoox config secrets list trade-worker`
+    )
     .action(async (worker?: string) => {
       const opts = formatOpts(program);
 
@@ -359,7 +439,21 @@ export function registerConfigCommand(program: Command): void {
   // secrets set <worker> <name>
   secretsCmd
     .command("set <worker> <name>")
-    .description("Set a secret value for a worker")
+    .summary("Set a secret value for a worker")
+    .description(
+      `Set a secret value for a worker and sync to Cloudflare.
+
+ARGUMENTS:
+  worker    Worker name (e.g., trade-worker, agent-worker)
+  name      Secret name (must be declared in wrangler.jsonc)
+
+The command will prompt for the secret value (hidden input).
+It writes to the worker's .dev.vars file and syncs to Cloudflare.
+
+EXAMPLES:
+  hoox config secrets set trade-worker BINANCE_API_KEY
+  hoox config secrets set agent-worker OPENAI_KEY`
+    )
     .action(async (workerName: string, secretName: string) => {
       const opts = formatOpts(program);
 
@@ -421,7 +515,19 @@ export function registerConfigCommand(program: Command): void {
   // secrets delete <worker> <name>
   secretsCmd
     .command("delete <worker> <name>")
-    .description("Delete a secret from Cloudflare")
+    .summary("Delete a secret from Cloudflare")
+    .description(
+      `Delete a secret from Cloudflare Workers.
+
+ARGUMENTS:
+  worker    Worker name (e.g., trade-worker, agent-worker)
+  name      Secret name to delete
+
+This removes the secret from Cloudflare and from the worker's .dev.vars file.
+
+EXAMPLES:
+  hoox config secrets delete trade-worker BINANCE_API_KEY`
+    )
     .action(async (workerName: string, secretName: string) => {
       const opts = formatOpts(program);
 
@@ -485,7 +591,19 @@ export function registerConfigCommand(program: Command): void {
   // secrets sync [worker]
   secretsCmd
     .command("sync [worker]")
-    .description("Sync secrets to Cloudflare (all workers or a specific one)")
+    .summary("Sync secrets to Cloudflare")
+    .description(
+      `Sync secrets from .dev.vars files to Cloudflare Workers.
+
+ARGUMENTS:
+  worker    Optional worker name to sync (syncs all if not specified)
+
+This reads .dev.vars files and uploads secrets to Cloudflare via wrangler.
+
+EXAMPLES:
+  hoox config secrets sync                 Sync all workers
+  hoox config secrets sync trade-worker    Sync specific worker`
+    )
     .action(async (workerName?: string) => {
       const opts = formatOpts(program);
 
@@ -567,12 +685,37 @@ export function registerConfigCommand(program: Command): void {
   // ──────────────────────────────────────────────────────────────────────
   const keysCmd = configCmd
     .command("keys")
-    .description("Manage internal auth keys");
+    .summary("Manage internal auth keys")
+    .description(
+      `Generate and manage internal auth keys for inter-worker communication.
+
+Keys are stored in the .keys/ directory as .env files (add .keys/ to .gitignore).
+These keys are used for authentication between workers.
+
+EXAMPLES:
+  hoox config keys generate              Generate new keys
+  hoox config keys list                  List existing keys`
+    );
 
   // keys generate
   keysCmd
     .command("generate")
-    .description("Generate .keys/*.env files with internal auth keys")
+    .summary("Generate new internal auth keys")
+    .description(
+      `Generate new internal auth keys and save to .keys/ directory.
+
+Creates the following keys:
+  - INTERNAL_SERVICE_KEY   (32 char)
+  - WEBHOOK_API_KEY        (32 char)
+  - AGENT_INTERNAL_KEY     (32 char)
+  - TELEGRAM_BOT_TOKEN     (16 char)
+  - INTERNAL_KEY           (32 char)
+
+WARNING: Add .keys/ to your .gitignore to avoid committing secrets!
+
+EXAMPLES:
+  hoox config keys generate`
+    )
     .action(async () => {
       const opts = formatOpts(program);
 
@@ -618,7 +761,15 @@ export function registerConfigCommand(program: Command): void {
   // keys list
   keysCmd
     .command("list")
-    .description("List existing internal auth keys")
+    .summary("List existing internal auth keys")
+    .description(
+      `List existing internal auth keys from the .keys/ directory.
+
+Shows key names (values are hidden for security).
+
+EXAMPLES:
+  hoox config keys list`
+    )
     .action(async () => {
       const opts = formatOpts(program);
 

@@ -328,7 +328,33 @@ async function collectIntegrationSecrets(
 export function registerInitCommand(program: Command): void {
   program
     .command("init")
-    .description("Interactive setup wizard for Hoox Workspace")
+    .summary("Interactive setup wizard for Hoox Workspace")
+    .description(
+      `Initialize a new Hoox workspace with interactive prompts.
+
+This wizard helps you set up:
+  - Cloudflare API token and account
+  - Subdomain prefix for worker URLs
+  - Secret store configuration
+  - Initial worker configuration
+
+INTERACTIVE MODE:
+  Run without flags to use the interactive wizard.
+
+NON-INTERACTIVE MODE:
+  Provide all required options to skip prompts.
+
+OPTIONS:
+  --token <token>         Cloudflare API token
+  --account <id>         Cloudflare Account ID
+  --secret-store <id>    Secret Store ID
+  --prefix <prefix>      Subdomain prefix (default: cryptolinx)
+  --accept-risk          Skip risk acknowledgment
+
+EXAMPLES:
+  hoox init                           Interactive wizard
+  hoox init --token cfut_xxx --account xxx  Non-interactive`
+    )
     .option("--token <token>", "Cloudflare API token (non-interactive)")
     .option("--account <id>", "Cloudflare Account ID (non-interactive)")
     .option("--secret-store <id>", "Secret Store ID (non-interactive)")
