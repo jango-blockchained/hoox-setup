@@ -1,37 +1,37 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { TrendingUp, TrendingDown, Activity } from "lucide-react"
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { TrendingUp, TrendingDown, Activity } from "lucide-react";
 
 interface TickerItem {
-  symbol: string
-  price: number
-  change: number
-  changePercent: number
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
 }
 
 const initialTickers: TickerItem[] = [
-  { symbol: "BTC", price: 68420.50, change: 1170.50, changePercent: 1.74 },
-  { symbol: "ETH", price: 3485.20, change: -34.80, changePercent: -0.99 },
-  { symbol: "SOL", price: 145.80, change: 3.30, changePercent: 2.32 },
+  { symbol: "BTC", price: 68420.5, change: 1170.5, changePercent: 1.74 },
+  { symbol: "ETH", price: 3485.2, change: -34.8, changePercent: -0.99 },
+  { symbol: "SOL", price: 145.8, change: 3.3, changePercent: 2.32 },
   { symbol: "DOGE", price: 0.1198, change: -0.0047, changePercent: -3.78 },
   { symbol: "XRP", price: 0.5234, change: 0.0156, changePercent: 3.07 },
   { symbol: "AVAX", price: 38.45, change: 0.87, changePercent: 2.32 },
-]
+];
 
 export function LiveTicker() {
-  const [tickers, setTickers] = useState(initialTickers)
-  const [flashingSymbol, setFlashingSymbol] = useState<string | null>(null)
+  const [tickers, setTickers] = useState(initialTickers);
+  const [flashingSymbol, setFlashingSymbol] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * tickers.length)
-      const ticker = tickers[randomIndex]
-      const changeAmount = (Math.random() - 0.5) * ticker.price * 0.002
-      const newPrice = ticker.price + changeAmount
-      const newChange = ticker.change + changeAmount
-      const newChangePercent = (newChange / (newPrice - newChange)) * 100
+      const randomIndex = Math.floor(Math.random() * tickers.length);
+      const ticker = tickers[randomIndex];
+      const changeAmount = (Math.random() - 0.5) * ticker.price * 0.002;
+      const newPrice = ticker.price + changeAmount;
+      const newChange = ticker.change + changeAmount;
+      const newChangePercent = (newChange / (newPrice - newChange)) * 100;
 
       setTickers((prev) =>
         prev.map((t, i) =>
@@ -44,13 +44,13 @@ export function LiveTicker() {
               }
             : t
         )
-      )
-      setFlashingSymbol(ticker.symbol)
-      setTimeout(() => setFlashingSymbol(null), 300)
-    }, 2000)
+      );
+      setFlashingSymbol(ticker.symbol);
+      setTimeout(() => setFlashingSymbol(null), 300);
+    }, 2000);
 
-    return () => clearInterval(interval)
-  }, [tickers])
+    return () => clearInterval(interval);
+  }, [tickers]);
 
   return (
     <div className="relative overflow-hidden border-b border-border bg-sidebar/50">
@@ -79,7 +79,13 @@ export function LiveTicker() {
                   {ticker.symbol}
                 </span>
                 <span className="font-mono text-xs text-muted-foreground">
-                  ${ticker.price < 1 ? ticker.price.toFixed(4) : ticker.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {ticker.price < 1
+                    ? ticker.price.toFixed(4)
+                    : ticker.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                 </span>
                 <div
                   className={`flex items-center gap-0.5 text-[10px] font-medium ${
@@ -100,5 +106,5 @@ export function LiveTicker() {
         </div>
       </div>
     </div>
-  )
+  );
 }

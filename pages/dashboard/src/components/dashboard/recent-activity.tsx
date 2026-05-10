@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowUpRight, ArrowDownRight, Clock, Zap } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ArrowUpRight, ArrowDownRight, Clock, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Activity {
-  id: string
-  symbol: string
-  side: "LONG" | "SHORT"
-  exchange: string
-  timestamp: number
-  status: "filled" | "closed" | "pending"
-  price: number
-  size: number
-  pnl?: number
+  id: string;
+  symbol: string;
+  side: "LONG" | "SHORT";
+  exchange: string;
+  timestamp: number;
+  status: "filled" | "closed" | "pending";
+  price: number;
+  size: number;
+  pnl?: number;
 }
 
 const initialActivity: Activity[] = [
@@ -27,7 +27,7 @@ const initialActivity: Activity[] = [
     exchange: "binance",
     timestamp: Date.now() - 1000 * 60 * 5,
     status: "filled",
-    price: 68420.50,
+    price: 68420.5,
     size: 0.125,
   },
   {
@@ -37,7 +37,7 @@ const initialActivity: Activity[] = [
     exchange: "mexc",
     timestamp: Date.now() - 1000 * 60 * 23,
     status: "filled",
-    price: 3485.20,
+    price: 3485.2,
     size: 2.5,
   },
   {
@@ -47,7 +47,7 @@ const initialActivity: Activity[] = [
     exchange: "bybit",
     timestamp: Date.now() - 1000 * 60 * 45,
     status: "filled",
-    price: 145.80,
+    price: 145.8,
     size: 50,
   },
   {
@@ -59,7 +59,7 @@ const initialActivity: Activity[] = [
     status: "closed",
     price: 0.1198,
     size: 10000,
-    pnl: 47.50,
+    pnl: 47.5,
   },
   {
     id: "1a2b3c4d",
@@ -70,32 +70,40 @@ const initialActivity: Activity[] = [
     status: "closed",
     price: 0.5234,
     size: 5000,
-    pnl: -23.80,
+    pnl: -23.8,
   },
-]
+];
 
-const symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOGE/USDT", "XRP/USDT", "AVAX/USDT", "LINK/USDT"]
-const exchanges = ["binance", "mexc", "bybit"]
+const symbols = [
+  "BTC/USDT",
+  "ETH/USDT",
+  "SOL/USDT",
+  "DOGE/USDT",
+  "XRP/USDT",
+  "AVAX/USDT",
+  "LINK/USDT",
+];
+const exchanges = ["binance", "mexc", "bybit"];
 
 function formatTimeAgo(timestamp: number) {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000)
-  if (seconds < 60) return `${seconds}s ago`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  return `${hours}h ago`
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
 }
 
 function generateId() {
-  return Math.random().toString(16).slice(2, 10)
+  return Math.random().toString(16).slice(2, 10);
 }
 
 export function RecentActivity() {
-  const [activities, setActivities] = useState(initialActivity)
-  const [isLive, setIsLive] = useState(true)
+  const [activities, setActivities] = useState(initialActivity);
+  const [isLive, setIsLive] = useState(true);
 
   useEffect(() => {
-    if (!isLive) return
+    if (!isLive) return;
 
     const interval = setInterval(() => {
       if (Math.random() > 0.7) {
@@ -108,13 +116,13 @@ export function RecentActivity() {
           status: "filled",
           price: Math.random() * 70000,
           size: Math.random() * 100,
-        }
-        setActivities((prev) => [newActivity, ...prev.slice(0, 9)])
+        };
+        setActivities((prev) => [newActivity, ...prev.slice(0, 9)]);
       }
-    }, 5000)
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [isLive])
+    return () => clearInterval(interval);
+  }, [isLive]);
 
   return (
     <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5">
@@ -124,8 +132,8 @@ export function RecentActivity() {
           onClick={() => setIsLive(!isLive)}
           className="flex items-center gap-1.5"
         >
-          <Badge 
-            variant={isLive ? "default" : "secondary"} 
+          <Badge
+            variant={isLive ? "default" : "secondary"}
             className={`gap-1 text-xs cursor-pointer transition-colors ${isLive ? "bg-success/20 text-success hover:bg-success/30" : ""}`}
           >
             <Zap className={`h-3 w-3 ${isLive ? "animate-pulse" : ""}`} />
@@ -156,12 +164,14 @@ export function RecentActivity() {
                       className="absolute left-0 top-0 h-full w-1 bg-primary"
                     />
                   )}
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-9 w-9 items-center justify-center rounded-lg transition-transform group-hover:scale-105 ${
-                          activity.side === "LONG" ? "bg-success/20" : "bg-destructive/20"
+                          activity.side === "LONG"
+                            ? "bg-success/20"
+                            : "bg-destructive/20"
                         }`}
                       >
                         {activity.side === "LONG" ? (
@@ -177,7 +187,9 @@ export function RecentActivity() {
                           </p>
                           <span
                             className={`text-xs font-medium ${
-                              activity.side === "LONG" ? "text-success" : "text-destructive"
+                              activity.side === "LONG"
+                                ? "text-success"
+                                : "text-destructive"
                             }`}
                           >
                             {activity.side}
@@ -188,7 +200,13 @@ export function RecentActivity() {
                             {activity.id}
                           </span>
                           <Badge
-                            variant={activity.status === "filled" ? "default" : activity.status === "closed" ? "secondary" : "outline"}
+                            variant={
+                              activity.status === "filled"
+                                ? "default"
+                                : activity.status === "closed"
+                                  ? "secondary"
+                                  : "outline"
+                            }
                             className="h-4 px-1 text-[10px]"
                           >
                             {activity.status}
@@ -197,14 +215,19 @@ export function RecentActivity() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-medium text-foreground capitalize">{activity.exchange}</p>
+                      <p className="text-xs font-medium text-foreground capitalize">
+                        {activity.exchange}
+                      </p>
                       <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground mt-0.5">
                         <Clock className="h-3 w-3" />
                         {formatTimeAgo(activity.timestamp)}
                       </div>
                       {activity.pnl !== undefined && (
-                        <p className={`text-xs font-medium mt-0.5 ${activity.pnl >= 0 ? "text-success" : "text-destructive"}`}>
-                          {activity.pnl >= 0 ? "+" : ""}${activity.pnl.toFixed(2)}
+                        <p
+                          className={`text-xs font-medium mt-0.5 ${activity.pnl >= 0 ? "text-success" : "text-destructive"}`}
+                        >
+                          {activity.pnl >= 0 ? "+" : ""}$
+                          {activity.pnl.toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -216,5 +239,5 @@ export function RecentActivity() {
         </ScrollArea>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -95,7 +95,12 @@ interface CallCounters {
   confirm: number;
 }
 
-let counters: CallCounters = { password: 0, text: 0, multiselect: 0, confirm: 0 };
+let counters: CallCounters = {
+  password: 0,
+  text: 0,
+  multiselect: 0,
+  confirm: 0,
+};
 
 function resetCounters(): void {
   counters = { password: 0, text: 0, multiselect: 0, confirm: 0 };
@@ -114,10 +119,12 @@ let customPasswordResponder: ((msg: string) => string | symbol) | null = null;
 const origWhoami = CloudflareService.prototype.whoami;
 
 const mockWhoami = mock(
-  async (): Promise<{ ok: true; data: string } | { ok: false; error: string }> => ({
+  async (): Promise<
+    { ok: true; data: string } | { ok: false; error: string }
+  > => ({
     ok: true,
     data: "user@example.com",
-  }),
+  })
 );
 
 // ---------------------------------------------------------------------------
@@ -137,13 +144,16 @@ function installClackSpies(): void {
     captured.note.push({ title: title ?? "", content });
   });
   spyOn(clack, "password").mockImplementation(
-    async (opts: { message: string; validate?: (v: string) => string | void }) => {
+    async (opts: {
+      message: string;
+      validate?: (v: string) => string | void;
+    }) => {
       captured.passwordMessages.push(opts.message);
       counters.password++;
       if (simulateCancel) return Symbol.for("clack.cancel");
       if (customPasswordResponder) return customPasswordResponder(opts.message);
       return responses.password ?? defaultResponses.password;
-    },
+    }
   );
   spyOn(clack, "text").mockImplementation(
     async (opts: {
@@ -156,8 +166,8 @@ function installClackSpies(): void {
       counters.text++;
       return simulateCancel
         ? Symbol.for("clack.cancel")
-        : responses.text ?? defaultResponses.text;
-    },
+        : (responses.text ?? defaultResponses.text);
+    }
   );
   spyOn(clack, "multiselect").mockImplementation(
     async (opts: {
@@ -169,8 +179,8 @@ function installClackSpies(): void {
       counters.multiselect++;
       return simulateCancel
         ? Symbol.for("clack.cancel")
-        : responses.multiselect ?? defaultResponses.multiselect;
-    },
+        : (responses.multiselect ?? defaultResponses.multiselect);
+    }
   );
   spyOn(clack, "confirm").mockImplementation(
     async (opts: { message: string; initialValue?: boolean }) => {
@@ -178,13 +188,13 @@ function installClackSpies(): void {
       counters.confirm++;
       return simulateCancel
         ? Symbol.for("clack.cancel")
-        : responses.confirm ?? defaultResponses.confirm;
-    },
+        : (responses.confirm ?? defaultResponses.confirm);
+    }
   );
   spyOn(clack, "group").mockImplementation(
     async (
       fields: Record<string, () => Promise<string | symbol>>,
-      groupOpts?: { onCancel?: () => void },
+      groupOpts?: { onCancel?: () => void }
     ) => {
       const results: Record<string, string> = {};
       for (const [key, fn] of Object.entries(fields)) {
@@ -201,7 +211,7 @@ function installClackSpies(): void {
               : "";
       }
       return results;
-    },
+    }
   );
   spyOn(clack, "isCancel").mockImplementation((value: unknown) => {
     return (
@@ -213,11 +223,21 @@ function installClackSpies(): void {
   spyOn(clack, "cancel").mockImplementation((msg: string) => {
     captured.cancelMessages.push(msg);
   });
-  spyOn(clack.log, "info").mockImplementation((msg: string) => captured.logInfo.push(msg));
-  spyOn(clack.log, "step").mockImplementation((msg: string) => captured.logStep.push(msg));
-  spyOn(clack.log, "success").mockImplementation((msg: string) => captured.logSuccess.push(msg));
-  spyOn(clack.log, "warn").mockImplementation((msg: string) => captured.logWarn.push(msg));
-  spyOn(clack.log, "error").mockImplementation((msg: string) => captured.logError.push(msg));
+  spyOn(clack.log, "info").mockImplementation((msg: string) =>
+    captured.logInfo.push(msg)
+  );
+  spyOn(clack.log, "step").mockImplementation((msg: string) =>
+    captured.logStep.push(msg)
+  );
+  spyOn(clack.log, "success").mockImplementation((msg: string) =>
+    captured.logSuccess.push(msg)
+  );
+  spyOn(clack.log, "warn").mockImplementation((msg: string) =>
+    captured.logWarn.push(msg)
+  );
+  spyOn(clack.log, "error").mockImplementation((msg: string) =>
+    captured.logError.push(msg)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -233,7 +253,10 @@ beforeEach(() => {
   resetCounters();
   simulateCancel = false;
   customPasswordResponder = null;
-  mockWhoami.mockImplementation(async () => ({ ok: true, data: "user@example.com" }));
+  mockWhoami.mockImplementation(async () => ({
+    ok: true,
+    data: "user@example.com",
+  }));
 
   // Mock: CloudflareService prototype
   CloudflareService.prototype.whoami = mockWhoami;
@@ -249,10 +272,8 @@ beforeEach(() => {
         typeof content === "string"
           ? content
           : new TextDecoder().decode(content);
-      return typeof content === "string"
-        ? content.length
-        : content.byteLength;
-    },
+      return typeof content === "string" ? content.length : content.byteLength;
+    }
   );
 
   // Mock Bun.file to simulate filesystem (no existing workers.jsonc by default)
@@ -270,7 +291,7 @@ beforeEach(() => {
         slice: () => new Blob(),
         stream: () => new ReadableStream(),
         type: "",
-      }) as unknown as Bun.BunFile,
+      }) as unknown as Bun.BunFile
   );
 
   // Mock process.exit — no-op to prevent actual test termination
@@ -307,7 +328,7 @@ describe("init command", () => {
 
       expect(captured.intro.length).toBeGreaterThan(0);
       expect(captured.intro.some((m) => m.includes("Hoox Setup Wizard"))).toBe(
-        true,
+        true
       );
       // Outro may or may not fire depending on flow. If confirm returns false,
       // the base secrets confirm gets captured but the flow continues.
@@ -389,7 +410,7 @@ describe("init command", () => {
             stream: () => new ReadableStream(),
             type: "",
           } as unknown as Bun.BunFile;
-        },
+        }
       );
 
       responses = {
@@ -402,7 +423,7 @@ describe("init command", () => {
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       expect(captured.textMessages.some((m) => m.includes("Account ID"))).toBe(
-        true,
+        true
       );
 
       fileSpy.mockRestore();
@@ -425,8 +446,8 @@ describe("init command", () => {
 
       expect(
         captured.multiselectMessages.some((m) =>
-          m.includes("Select integrations"),
-        ),
+          m.includes("Select integrations")
+        )
       ).toBe(true);
     });
 
@@ -445,9 +466,7 @@ describe("init command", () => {
 
       // Password prompts should include Telegram Bot Token
       expect(
-        captured.passwordMessages.some((m) =>
-          m.includes("Telegram Bot Token"),
-        ),
+        captured.passwordMessages.some((m) => m.includes("Telegram Bot Token"))
       ).toBe(true);
     });
   });
@@ -494,8 +513,14 @@ describe("init command", () => {
         account: "account-123",
       };
 
-      const promise = runInitCommand(options, { json: false, quiet: true }, true);
-      await promise.catch(() => { /* expected */ });
+      const promise = runInitCommand(
+        options,
+        { json: false, quiet: true },
+        true
+      );
+      await promise.catch(() => {
+        /* expected */
+      });
 
       expect(exitCode).toBe(ExitCode.ERROR);
     });

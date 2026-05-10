@@ -6,7 +6,7 @@ Monorepo using Bun workspaces: `packages/*`, `workers/*`, `pages/*`.
 
 | Workspace                    | Purpose                                              |
 | ---------------------------- | ---------------------------------------------------- |
-| `packages/cli`          | CLI tool (`hoox` commands)                           |
+| `packages/cli`               | CLI tool (`hoox` commands)                           |
 | `packages/shared`            | Shared types and utilities                           |
 | `workers/hoox`               | Gateway (webhook entrypoint)                         |
 | `workers/trade-worker`       | Multi-exchange execution                             |

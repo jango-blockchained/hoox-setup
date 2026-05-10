@@ -4,8 +4,11 @@ import { getEnvVar, ENV_KEYS } from "@/lib/config";
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
-function buildWorkerPerformanceQuery(worker: string, timeRange?: string): string {
-  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : '';
+function buildWorkerPerformanceQuery(
+  worker: string,
+  timeRange?: string
+): string {
+  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : "";
   return `
     SELECT
       blob1 as data_type,

@@ -1,54 +1,52 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { 
-  Plus, 
-  Pause, 
-  Play, 
-  RefreshCw, 
-  Download, 
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Pause,
+  Play,
+  RefreshCw,
+  Download,
   Settings2,
   Zap,
-  ShieldAlert
-} from "lucide-react"
-import { toast } from "sonner"
-import { useState } from "react"
+  ShieldAlert,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export function QuickActions() {
-  const [isTradingActive, setIsTradingActive] = useState(true)
+  const [isTradingActive, setIsTradingActive] = useState(true);
 
   const handleToggleTrading = () => {
-    setIsTradingActive(!isTradingActive)
+    setIsTradingActive(!isTradingActive);
     toast.success(isTradingActive ? "Trading paused" : "Trading resumed", {
-      description: isTradingActive 
-        ? "The system will not execute new trades" 
+      description: isTradingActive
+        ? "The system will not execute new trades"
         : "The system will resume executing trades",
-    })
-  }
+    });
+  };
 
   const handleEmergencyStop = () => {
     toast.error("Emergency stop activated", {
-      description: "All trading activities have been halted and positions preserved.",
-    })
-  }
+      description:
+        "All trading activities have been halted and positions preserved.",
+    });
+  };
 
   const handleSyncPositions = () => {
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: "Syncing positions...",
-        success: "Positions synced successfully",
-        error: "Failed to sync positions",
-      }
-    )
-  }
+    toast.promise(new Promise((resolve) => setTimeout(resolve, 2000)), {
+      loading: "Syncing positions...",
+      success: "Positions synced successfully",
+      error: "Failed to sync positions",
+    });
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -70,7 +68,7 @@ export function QuickActions() {
           </>
         )}
       </Button>
-      
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-2">
@@ -96,7 +94,7 @@ export function QuickActions() {
             Configure AI
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem 
+          <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={handleEmergencyStop}
           >
@@ -106,5 +104,5 @@ export function QuickActions() {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  )
+  );
 }

@@ -26,12 +26,18 @@ let getWorkerMock: ReturnType<typeof mock>;
 let validateMock: ReturnType<typeof mock>;
 
 // Preserve originals so we can restore them after tests
-const origLoad = ConfigService.prototype.load as typeof ConfigService.prototype.load;
-const origListWorkers = ConfigService.prototype.listWorkers as typeof ConfigService.prototype.listWorkers;
-const origListEnabled = ConfigService.prototype.listEnabledWorkers as typeof ConfigService.prototype.listEnabledWorkers;
-const origGetWorker = ConfigService.prototype.getWorker as typeof ConfigService.prototype.getWorker;
-const origValidate = ConfigService.prototype.validate as typeof ConfigService.prototype.validate;
-const origDev = CloudflareService.prototype.dev as typeof CloudflareService.prototype.dev;
+const origLoad = ConfigService.prototype
+  .load as typeof ConfigService.prototype.load;
+const origListWorkers = ConfigService.prototype
+  .listWorkers as typeof ConfigService.prototype.listWorkers;
+const origListEnabled = ConfigService.prototype
+  .listEnabledWorkers as typeof ConfigService.prototype.listEnabledWorkers;
+const origGetWorker = ConfigService.prototype
+  .getWorker as typeof ConfigService.prototype.getWorker;
+const origValidate = ConfigService.prototype
+  .validate as typeof ConfigService.prototype.validate;
+const origDev = CloudflareService.prototype
+  .dev as typeof CloudflareService.prototype.dev;
 
 // Preserve original Bun globals
 const origBunSpawn = Bun.spawn;
@@ -45,9 +51,12 @@ beforeEach(() => {
 
   // Restore prototypes to originals
   (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers = origListWorkers;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = origGetWorker;
+  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+    origListWorkers;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    origListEnabled;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    origGetWorker;
   (ConfigService.prototype as Record<string, unknown>).validate = origValidate;
   (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
 
@@ -82,9 +91,12 @@ beforeEach(() => {
 
   // Install mocks on prototypes
   (ConfigService.prototype as Record<string, unknown>).load = loadMock;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers = listWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+    listWorkersMock;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    listEnabledWorkersMock;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    getWorkerMock;
   (ConfigService.prototype as Record<string, unknown>).validate = validateMock;
   (CloudflareService.prototype as Record<string, unknown>).dev = devMock;
 });
@@ -94,9 +106,12 @@ afterEach(() => {
 
   // Restore originals
   (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers = origListWorkers;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = origGetWorker;
+  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+    origListWorkers;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    origListEnabled;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    origGetWorker;
   (ConfigService.prototype as Record<string, unknown>).validate = origValidate;
   (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
 
@@ -120,11 +135,9 @@ async function importDevCommand(): Promise<{
  */
 async function createProgram(): Promise<Command> {
   const { registerDevCommand } = await importDevCommand();
-  const program = new Command()
-    .name("hoox-test")
-    .exitOverride(() => {
-      // Suppress Commander's own exit during tests
-    });
+  const program = new Command().name("hoox-test").exitOverride(() => {
+    // Suppress Commander's own exit during tests
+  });
   registerDevCommand(program);
   return program;
 }
@@ -169,9 +182,7 @@ describe("registerDevCommand", () => {
   it("registers 'dev dashboard' subcommand", async () => {
     const program = await createProgram();
     const devCmd = program.commands.find((c) => c.name() === "dev")!;
-    const dashboardCmd = devCmd.commands.find(
-      (c) => c.name() === "dashboard",
-    );
+    const dashboardCmd = devCmd.commands.find((c) => c.name() === "dashboard");
     expect(dashboardCmd).toBeDefined();
     expect(dashboardCmd!.description()).toContain("dashboard");
   });
@@ -184,7 +195,8 @@ describe("registerDevCommand", () => {
         valid: false,
         errors: ["global.cloudflare_account_id is required"],
       }));
-      (ConfigService.prototype as Record<string, unknown>).validate = validateMock;
+      (ConfigService.prototype as Record<string, unknown>).validate =
+        validateMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
@@ -194,7 +206,8 @@ describe("registerDevCommand", () => {
 
     it("handles no enabled workers gracefully", async () => {
       listEnabledWorkersMock = mock(() => []);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
@@ -204,7 +217,8 @@ describe("registerDevCommand", () => {
 
     it("completes successfully with enabled workers", async () => {
       listEnabledWorkersMock = mock(() => ["hoox", "trade-worker"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
@@ -220,42 +234,37 @@ describe("registerDevCommand", () => {
   describe("dev worker <name>", () => {
     it("starts the specified worker with default port", async () => {
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "worker",
-        "hoox",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "worker", "hoox"], { from: "user" });
 
       expect(devMock).toHaveBeenCalledTimes(1);
-      const calls = (devMock as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls;
+      const calls = (
+        devMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
       expect(calls[0][0]).toContain("test-worker");
       expect(calls[0][1]).toBe(8787);
     });
 
     it("passes --port to dev service", async () => {
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "worker",
-        "hoox",
-        "--port",
-        "3000",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "worker", "hoox", "--port", "3000"], {
+        from: "user",
+      });
 
-      const calls = (devMock as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls;
+      const calls = (
+        devMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
       expect(calls[0][1]).toBe(3000);
     });
 
     it("handles unknown worker name", async () => {
       getWorkerMock = mock(() => undefined);
-      (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+      (ConfigService.prototype as Record<string, unknown>).getWorker =
+        getWorkerMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "worker",
-        "nonexistent",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "worker", "nonexistent"], {
+        from: "user",
+      });
 
       expect(devMock).toHaveBeenCalledTimes(0);
       expect(process.exitCode).toBe(2); // INVALID_USAGE
@@ -266,14 +275,13 @@ describe("registerDevCommand", () => {
         enabled: false,
         path: "workers/disabled-worker",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+      (ConfigService.prototype as Record<string, unknown>).getWorker =
+        getWorkerMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "worker",
-        "disabled-worker",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "worker", "disabled-worker"], {
+        from: "user",
+      });
 
       expect(devMock).toHaveBeenCalledTimes(0);
       expect(process.exitCode).toBe(2); // INVALID_USAGE
@@ -285,14 +293,11 @@ describe("registerDevCommand", () => {
         enabled: true,
         path: "workers/hoox",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+      (ConfigService.prototype as Record<string, unknown>).getWorker =
+        getWorkerMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "worker",
-        "hoox",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "worker", "hoox"], { from: "user" });
 
       expect(process.exitCode).toBe(1); // ERROR
     });
@@ -308,10 +313,7 @@ describe("registerDevCommand", () => {
       }));
 
       const program = await createProgram();
-      await program.parseAsync([
-        "dev",
-        "dashboard",
-      ], { from: "user" });
+      await program.parseAsync(["dev", "dashboard"], { from: "user" });
 
       expect(process.exitCode).toBe(2); // INVALID_USAGE
     });

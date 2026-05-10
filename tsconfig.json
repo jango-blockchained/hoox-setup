@@ -2,20 +2,13 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "WebWorker",
-      "DOM"
-    ],
+    "lib": ["es2020", "WebWorker", "DOM"],
     "moduleResolution": "bundler",
     "paths": {
       "@jango-blockchained/hoox-shared/*": ["./packages/shared/src/*"],
       "@jango-blockchained/hoox-shared": ["./packages/shared/src/index.ts"]
     },
-    "types": [
-      "bun-types",
-      "node"
-    ],
+    "types": ["bun-types", "node"],
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": true,
@@ -39,14 +32,6 @@
     "allowImportingTsExtensions": true,
     "ignoreDeprecations": "5.0"
   },
-  "include": [
-    "src/**/*",
-    "scripts/**/*",
-    "test/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/node_modules/*",
-    "dist"
-  ]
+  "include": ["src/**/*", "scripts/**/*", "test/**/*"],
+  "exclude": ["node_modules", "**/node_modules/*", "dist"]
 }

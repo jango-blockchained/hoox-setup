@@ -12,7 +12,11 @@ import { spinner } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { theme, icons } from "../../utils/theme.js";
-import { formatSuccess, formatError, formatTable } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatError,
+  formatTable,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { DeployResult } from "./types.js";
 
@@ -36,7 +40,7 @@ async function deploySingle(
   configService: ConfigService,
   cf: CloudflareService,
   workerName: string,
-  env?: string,
+  env?: string
 ): Promise<DeployResult> {
   const workerConfig = configService.getWorker(workerName);
 
@@ -72,7 +76,7 @@ async function deploySingle(
 async function deployWorkers(
   configService: ConfigService,
   cf: CloudflareService,
-  env?: string,
+  env?: string
 ): Promise<DeployResult[]> {
   const enabledWorkers = configService.listEnabledWorkers();
   const results: DeployResult[] = [];
@@ -93,11 +97,11 @@ async function deployWorkers(
 
     if (result.success) {
       s.message(
-        `[${i + 1}/${enabledWorkers.length}] ${icons.success} ${name} deployed`,
+        `[${i + 1}/${enabledWorkers.length}] ${icons.success} ${name} deployed`
       );
     } else {
       s.message(
-        `[${i + 1}/${enabledWorkers.length}] ${icons.error} ${name} failed: ${result.error}`,
+        `[${i + 1}/${enabledWorkers.length}] ${icons.error} ${name} failed: ${result.error}`
       );
     }
   }
@@ -106,9 +110,7 @@ async function deployWorkers(
   const failed = results.filter((r) => !r.success).length;
 
   if (failed > 0) {
-    s.stop(
-      `Deploy complete: ${succeeded} succeeded, ${failed} failed`,
-    );
+    s.stop(`Deploy complete: ${succeeded} succeeded, ${failed} failed`);
   } else {
     s.stop(`All ${succeeded} worker(s) deployed successfully`);
   }
@@ -120,9 +122,7 @@ async function deployWorkers(
  * Build and deploy the dashboard (pages/dashboard) via OpenNext + wrangler.
  * Uses Bun.spawn directly for the build step, then CloudflareService for deploy.
  */
-async function deployDashboard(
-  cf: CloudflareService,
-): Promise<DeployResult> {
+async function deployDashboard(cf: CloudflareService): Promise<DeployResult> {
   const dashboardPath = "pages/dashboard";
 
   const s = spinner();
@@ -130,14 +130,11 @@ async function deployDashboard(
 
   try {
     // 1. Build: bunx opennextjs-cloudflare build
-    const buildProc = Bun.spawn(
-      ["bunx", "opennextjs-cloudflare", "build"],
-      {
-        cwd: dashboardPath,
-        stdout: "pipe",
-        stderr: "pipe",
-      },
-    );
+    const buildProc = Bun.spawn(["bunx", "opennextjs-cloudflare", "build"], {
+      cwd: dashboardPath,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
 
     const buildExit = await buildProc.exited;
 
@@ -186,13 +183,16 @@ async function deployDashboard(
  * Print a summary table of deploy results.
  * Excluded in quiet mode; uses JSON or box-drawn table depending on --json.
  */
-function printSummary(results: DeployResult[], opts: { json?: boolean; quiet?: boolean }): void {
+function printSummary(
+  results: DeployResult[],
+  opts: { json?: boolean; quiet?: boolean }
+): void {
   if (opts.quiet) return;
 
   const rows = results.map((r) => ({
     Worker: r.worker,
     Status: r.success ? "success" : "failed",
-    URL: r.url ?? (r.error ?? "-"),
+    URL: r.url ?? r.error ?? "-",
   }));
 
   formatTable(rows, opts);
@@ -224,7 +224,11 @@ export function registerDeployCommand(program: Command): void {
         const cf = new CloudflareService();
 
         // Phase 1: deploy workers
-        const workerResults = await deployWorkers(configService, cf, options.env);
+        const workerResults = await deployWorkers(
+          configService,
+          cf,
+          options.env
+        );
 
         // Phase 2: deploy dashboard
         const dashboardResult = await deployDashboard(cf);
@@ -286,9 +290,9 @@ export function registerDeployCommand(program: Command): void {
           formatError(
             new CLIError(
               `Failed to deploy "${name}": ${result.error}`,
-              ExitCode.ERROR,
+              ExitCode.ERROR
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.ERROR;
         }
@@ -317,9 +321,9 @@ export function registerDeployCommand(program: Command): void {
           formatError(
             new CLIError(
               `Dashboard deployment failed: ${result.error}`,
-              ExitCode.ERROR,
+              ExitCode.ERROR
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.ERROR;
         }

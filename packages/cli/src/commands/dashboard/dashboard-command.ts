@@ -1,7 +1,11 @@
 import type { Command } from "commander";
 import { ConfigService } from "../../services/config/index.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import { formatSuccess, formatError, formatTable } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatError,
+  formatTable,
+} from "../../utils/formatters.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import { theme, icons } from "../../utils/theme.js";
 import * as jsonc from "jsonc-parser";
@@ -28,12 +32,12 @@ function updateWranglerVars(
   filePath: string,
   urls: ServiceUrl[],
   dryRun: boolean,
-  opts: FormatOptions,
+  opts: FormatOptions
 ): void {
   if (!existsSync(filePath)) {
     throw new CLIError(
       `Dashboard wrangler.jsonc not found at ${filePath}`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -42,10 +46,7 @@ function updateWranglerVars(
   const parsed = jsonc.parse(content, errors) as Record<string, unknown>;
 
   if (errors.length > 0) {
-    throw new CLIError(
-      `Invalid JSONC in ${filePath}`,
-      ExitCode.ERROR,
-    );
+    throw new CLIError(`Invalid JSONC in ${filePath}`, ExitCode.ERROR);
   }
 
   const vars = (parsed.vars as Record<string, string>) ?? {};
@@ -78,18 +79,15 @@ function updateWranglerVars(
     return;
   }
 
-  const edits = jsonc.modify(
-    content,
-    ["vars"],
-    vars,
-    { formattingOptions: { tabSize: 2, insertSpaces: true } },
-  );
+  const edits = jsonc.modify(content, ["vars"], vars, {
+    formattingOptions: { tabSize: 2, insertSpaces: true },
+  });
   const updated = jsonc.applyEdits(content, edits);
   writeFileSync(filePath, updated, "utf-8");
 
   formatSuccess(
     `Updated ${changes.length} service URL(s) in dashboard wrangler.jsonc`,
-    opts,
+    opts
   );
 }
 
@@ -117,15 +115,13 @@ export function registerDashboardCommand(program: Command): void {
           process.cwd(),
           "pages",
           "dashboard",
-          "wrangler.jsonc",
+          "wrangler.jsonc"
         );
 
         updateWranglerVars(dashboardPath, urls, options.dryRun === true, opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 }

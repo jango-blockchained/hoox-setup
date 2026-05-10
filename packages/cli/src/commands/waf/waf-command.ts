@@ -39,13 +39,13 @@ function getCredentials(): { token: string; accountId: string } {
   if (!token) {
     throw new CLIError(
       "CLOUDFLARE_API_TOKEN environment variable is not set. Set it or run `wrangler login`.",
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
   if (!accountId) {
     throw new CLIError(
       "CLOUDFLARE_ACCOUNT_ID environment variable is not set.",
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
   return { token, accountId };
@@ -58,7 +58,7 @@ function getCredentials(): { token: string; accountId: string } {
 async function cfApi<T>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
-  body?: unknown,
+  body?: unknown
 ): Promise<WranglerResult<T>> {
   const { token } = getCredentials();
   const url = `${CF_API_BASE}${path}`;
@@ -142,9 +142,7 @@ function buildExpression(type: WafRuleInput["type"], value: string): string {
 /**
  * Maps rule type and value to a Cloudflare firewall rule action.
  */
-function mapAction(
-  type: WafRuleInput["type"],
-): string {
+function mapAction(type: WafRuleInput["type"]): string {
   switch (type) {
     case "ip-allowlist":
       return "allow";
@@ -161,7 +159,9 @@ function mapAction(
  * Fetches the Cloudflare zone to operate on. Uses CloudflareService.zonesList()
  * and picks the first zone. Falls back to env CLOUDFLARE_ZONE_ID.
  */
-async function resolveZone(cf: CloudflareService): Promise<{ id: string; name: string }> {
+async function resolveZone(
+  cf: CloudflareService
+): Promise<{ id: string; name: string }> {
   // Try explicit env var first
   if (process.env.CLOUDFLARE_ZONE_ID) {
     return {
@@ -172,10 +172,7 @@ async function resolveZone(cf: CloudflareService): Promise<{ id: string; name: s
 
   const result = await cf.zonesList();
   if (!result.ok) {
-    throw new CLIError(
-      `Failed to list zones: ${result.error}`,
-      ExitCode.ERROR,
-    );
+    throw new CLIError(`Failed to list zones: ${result.error}`, ExitCode.ERROR);
   }
 
   // wrangler zones list outputs lines like "zone-name (zone-id)"
@@ -183,7 +180,7 @@ async function resolveZone(cf: CloudflareService): Promise<{ id: string; name: s
   if (lines.length === 0) {
     throw new CLIError(
       "No zones found. Set CLOUDFLARE_ZONE_ID environment variable.",
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -209,16 +206,19 @@ async function handleStatus(opts: FormatOptions): Promise<void> {
   // Fetch WAF setting
   const wafResult = await cfApi<CfWafSetting>(
     "GET",
-    `/zones/${zone.id}/settings/waf`,
+    `/zones/${zone.id}/settings/waf`
   );
   if (!wafResult.ok) {
-    throw new CLIError(`Failed to get WAF status: ${wafResult.error}`, ExitCode.ERROR);
+    throw new CLIError(
+      `Failed to get WAF status: ${wafResult.error}`,
+      ExitCode.ERROR
+    );
   }
 
   // Fetch firewall rules count
   const rulesResult = await cfApi<CfFirewallRule[]>(
     "GET",
-    `/zones/${zone.id}/firewall/rules?per_page=50`,
+    `/zones/${zone.id}/firewall/rules?per_page=50`
   );
   const activeRulesCount = rulesResult.ok ? rulesResult.data.length : 0;
 
@@ -227,7 +227,7 @@ async function handleStatus(opts: FormatOptions): Promise<void> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const analyticsResult = await cfApi<CfAnalyticsOverview>(
     "GET",
-    `/zones/${zone.id}/analytics/dashboard?since=${encodeURIComponent(since)}&continuous=true`,
+    `/zones/${zone.id}/analytics/dashboard?since=${encodeURIComponent(since)}&continuous=true`
   );
   if (analyticsResult.ok) {
     recentBlocks = analyticsResult.data.totals?.threats ?? 0;
@@ -251,7 +251,7 @@ async function handleStatus(opts: FormatOptions): Promise<void> {
 
   const colorFn = status.enabled ? theme.success : theme.error;
   process.stdout.write(
-    `  Status:  ${colorFn(status.enabled ? `${icons.success} ENABLED` : `${icons.error} DISABLED`)}\n`,
+    `  Status:  ${colorFn(status.enabled ? `${icons.success} ENABLED` : `${icons.error} DISABLED`)}\n`
   );
   process.stdout.write(`  Mode:    ${status.mode}\n`);
   process.stdout.write(`  Rules:   ${status.activeRulesCount} active\n`);
@@ -269,10 +269,13 @@ async function handleRulesList(opts: FormatOptions): Promise<void> {
 
   const result = await cfApi<CfFirewallRule[]>(
     "GET",
-    `/zones/${zone.id}/firewall/rules?per_page=50`,
+    `/zones/${zone.id}/firewall/rules?per_page=50`
   );
   if (!result.ok) {
-    throw new CLIError(`Failed to list firewall rules: ${result.error}`, ExitCode.ERROR);
+    throw new CLIError(
+      `Failed to list firewall rules: ${result.error}`,
+      ExitCode.ERROR
+    );
   }
 
   const rules: WafRule[] = result.data.map((r) => ({
@@ -291,22 +294,21 @@ async function handleRulesList(opts: FormatOptions): Promise<void> {
 
   if (rules.length === 0) {
     process.stdout.write(
-      `${theme.dim(`${icons.info}  No firewall rules configured.\n`)}`,
+      `${theme.dim(`${icons.info}  No firewall rules configured.\n`)}`
     );
     return;
   }
 
-  process.stdout.write(
-    theme.heading(`\nWAF rules for ${zone.name}\n\n`),
-  );
+  process.stdout.write(theme.heading(`\nWAF rules for ${zone.name}\n\n`));
 
   const rows = rules.map((r) => ({
     ID: r.id.substring(0, 8) + "...",
     Description: r.description || "(no description)",
     Mode: r.mode,
-    Expression: r.expression.length > 40
-      ? r.expression.substring(0, 37) + "..."
-      : r.expression,
+    Expression:
+      r.expression.length > 40
+        ? r.expression.substring(0, 37) + "..."
+        : r.expression,
   }));
 
   formatTable(rows, opts);
@@ -319,13 +321,13 @@ async function handleRulesList(opts: FormatOptions): Promise<void> {
 async function handleRulesAdd(
   type: string,
   value: string,
-  opts: FormatOptions,
+  opts: FormatOptions
 ): Promise<void> {
   const validTypes = ["ip-allowlist", "ip-blocklist", "rate-limit", "custom"];
   if (!validTypes.includes(type)) {
     throw new CLIError(
       `Invalid rule type "${type}". Must be one of: ${validTypes.join(", ")}`,
-      ExitCode.INVALID_USAGE,
+      ExitCode.INVALID_USAGE
     );
   }
 
@@ -350,12 +352,12 @@ async function handleRulesAdd(
   const filterResult = await cfApi<{ id: string }>(
     "POST",
     `/zones/${zone.id}/filters`,
-    { expression },
+    { expression }
   );
   if (!filterResult.ok) {
     throw new CLIError(
       `Failed to create filter: ${filterResult.error}`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -368,12 +370,12 @@ async function handleRulesAdd(
   const ruleResult = await cfApi<CfFirewallRule>(
     "POST",
     `/zones/${zone.id}/firewall/rules`,
-    [ruleBody], // Cloudflare expects an array of rules
+    [ruleBody] // Cloudflare expects an array of rules
   );
   if (!ruleResult.ok) {
     throw new CLIError(
       `Failed to create firewall rule: ${ruleResult.error}`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -384,7 +386,7 @@ async function handleRulesAdd(
 
   formatSuccess(
     `WAF rule added (${created.id}) — ${created.action} for "${value}"`,
-    opts,
+    opts
   );
 }
 
@@ -394,19 +396,19 @@ async function handleRulesAdd(
 
 async function handleRulesRemove(
   ruleId: string,
-  opts: FormatOptions,
+  opts: FormatOptions
 ): Promise<void> {
   const cf = new CloudflareService();
   const zone = await resolveZone(cf);
 
   const result = await cfApi<{ id: string }>(
     "DELETE",
-    `/zones/${zone.id}/firewall/rules/${ruleId}`,
+    `/zones/${zone.id}/firewall/rules/${ruleId}`
   );
   if (!result.ok) {
     throw new CLIError(
       `Failed to remove firewall rule: ${result.error}`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -417,19 +419,22 @@ async function handleRulesRemove(
 // Command action: waf mode enable / disable
 // ---------------------------------------------------------------------------
 
-async function handleMode(mode: "on" | "off", opts: FormatOptions): Promise<void> {
+async function handleMode(
+  mode: "on" | "off",
+  opts: FormatOptions
+): Promise<void> {
   const cf = new CloudflareService();
   const zone = await resolveZone(cf);
 
   const result = await cfApi<CfWafSetting>(
     "PATCH",
     `/zones/${zone.id}/settings/waf`,
-    { value: mode },
+    { value: mode }
   );
   if (!result.ok) {
     throw new CLIError(
       `Failed to ${mode === "on" ? "enable" : "disable"} WAF: ${result.error}`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -453,23 +458,21 @@ export function registerWafCommand(program: Command): void {
   // -- waf status ------------------------------------------------------------
   waf
     .command("status")
-    .description("Show WAF status (enabled/disabled, active rules, recent blocks)")
+    .description(
+      "Show WAF status (enabled/disabled, active rules, recent blocks)"
+    )
     .action(async (_, cmd: Command) => {
       const opts: FormatOptions = cmd.parent!.parent!.opts();
       try {
         await handleStatus(opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
   // -- waf rules -------------------------------------------------------------
-  const rules = waf
-    .command("rules")
-    .description("Manage WAF firewall rules");
+  const rules = waf.command("rules").description("Manage WAF firewall rules");
 
   rules
     .command("list")
@@ -480,16 +483,14 @@ export function registerWafCommand(program: Command): void {
         await handleRulesList(opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
   rules
     .command("add <type> <value>")
     .description(
-      "Add a WAF rule. Types: ip-allowlist, ip-blocklist, rate-limit, custom",
+      "Add a WAF rule. Types: ip-allowlist, ip-blocklist, rate-limit, custom"
     )
     .action(async (type: string, value: string, _, cmd: Command) => {
       const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
@@ -497,9 +498,7 @@ export function registerWafCommand(program: Command): void {
         await handleRulesAdd(type, value, opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -512,9 +511,7 @@ export function registerWafCommand(program: Command): void {
         await handleRulesRemove(ruleId, opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -532,9 +529,7 @@ export function registerWafCommand(program: Command): void {
         await handleMode("on", opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -547,9 +542,7 @@ export function registerWafCommand(program: Command): void {
         await handleMode("off", opts);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 }

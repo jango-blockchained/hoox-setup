@@ -28,5 +28,14 @@
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*", "workers/**/src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", "**/node_modules/*", "**/*.test.ts", "**/*.spec.ts", "**/*.test.js", "**/*.spec.js", "test", "dist"]
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.js",
+    "**/*.spec.js",
+    "test",
+    "dist"
+  ]
 }

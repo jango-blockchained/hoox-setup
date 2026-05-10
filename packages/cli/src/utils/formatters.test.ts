@@ -82,7 +82,7 @@ describe("formatError", () => {
     const err = new CLIError(
       "deploy failed",
       ExitCode.ERROR,
-      "wranger exited with code 1",
+      "wranger exited with code 1"
     );
     formatError(err);
     const out = capture.output();
@@ -92,7 +92,11 @@ describe("formatError", () => {
   });
 
   it("outputs JSON when json=true", () => {
-    const err = new CLIError("bad input", ExitCode.INVALID_USAGE, "missing --name");
+    const err = new CLIError(
+      "bad input",
+      ExitCode.INVALID_USAGE,
+      "missing --name"
+    );
     formatError(err, { json: true });
     const out = capture.output();
     const parsed = JSON.parse(out);

@@ -8,13 +8,13 @@ The `agent-worker` serves as the proactive intelligence layer of the Hoox tradin
 
 | Feature                        | Description                                                                                                                                   |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| ⏱️ **Cron-Driven Observation** | Automatically runs every 5 minutes (`*/5 * * *`) to fetch live market data from Binance, Bybit, and MEXC.                                   |
+| ⏱️ **Cron-Driven Observation** | Automatically runs every 5 minutes (`*/5 * * *`) to fetch live market data from Binance, Bybit, and MEXC.                                     |
 | 🛡️ **Global Kill Switch**      | Calculates total account PnL and instantly locks out the `hoox` gateway from new entries if the `max_daily_drawdown_percent` is breached.     |
 | 🎯 **Dynamic Trailing Stops**  | Stores watermark prices in `CONFIG_KV` and automatically triggers `CLOSE` payloads if the market reverses.                                    |
 | 💸 **Scale-Out Take Profits**  | Detects when a position reaches a specific profit target and automatically sends partial close commands to secure gains.                      |
 | 🤖 **AI System Summarization** | Periodically fetches `system_logs` from the `d1-worker`, analyzes them via LLAMA 3 8B, and sends natural language health reports to Telegram. |
-| 🌐 **Multi-Provider AI**       | Seamlessly switches between Workers AI, OpenAI, Anthropic, Google AI, and Azure OpenAI with automatic fallbacks.                                            |
-| 🧠 **Advanced Models**         | Supports vision, embeddings, reasoning (extended thinking), and code generation models.                                                                           |
+| 🌐 **Multi-Provider AI**       | Seamlessly switches between Workers AI, OpenAI, Anthropic, Google AI, and Azure OpenAI with automatic fallbacks.                              |
+| 🧠 **Advanced Models**         | Supports vision, embeddings, reasoning (extended thinking), and code generation models.                                                       |
 
 ## Architecture & Flow
 
@@ -52,17 +52,17 @@ Update agent configuration at runtime.
 
 ```json
 {
-	"defaultProvider": "openai",
-	"fallbackChain": ["openai", "workers-ai", "anthropic", "google", "azure"],
-	"modelMap": {
- 		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
- 		"openai": "gpt-4o-mini-2024-07-18",
- 		"anthropic": "claude-3-haiku-20240307",
- 		"google": "gemini-1.5-flash-002",
- 		"azure": "gpt-4o-mini"
-	},
-	"timeoutMs": 30000,
-	"retryCount": 3
+  "defaultProvider": "openai",
+  "fallbackChain": ["openai", "workers-ai", "anthropic", "google", "azure"],
+  "modelMap": {
+    "workers-ai": "@cf/meta/llama-3.1-8b-instruct",
+    "openai": "gpt-4o-mini-2024-07-18",
+    "anthropic": "claude-3-haiku-20240307",
+    "google": "gemini-1.5-flash-002",
+    "azure": "gpt-4o-mini"
+  },
+  "timeoutMs": 30000,
+  "retryCount": 3
 }
 ```
 
@@ -76,9 +76,9 @@ Test a specific AI model.
 
 ```json
 {
-	"prompt": "Say hello",
-	"model": "@cf/meta/llama-3.1-8b-instruct",
-	"provider": "workers-ai"
+  "prompt": "Say hello",
+  "model": "@cf/meta/llama-3.1-8b-instruct",
+  "provider": "workers-ai"
 }
 ```
 
@@ -88,11 +88,11 @@ Returns health status of all configured AI providers.
 
 ```json
 {
-	"success": true,
-	"providers": {
- 		"workers-ai": { "healthy": true, "latency": 150 },
- 		"openai": { "healthy": true, "latency": 200 }
-	}
+  "success": true,
+  "providers": {
+    "workers-ai": { "healthy": true, "latency": 150 },
+    "openai": { "healthy": true, "latency": 200 }
+  }
 }
 ```
 
@@ -103,17 +103,19 @@ Returns health status of all configured AI providers.
 Send a chat request with automatic provider fallback and **SSE streaming support**.
 
 **Request:**
+
 ```json
 {
-	"messages": [{"role": "user", "content": "Analyze BTC market sentiment"}],
-	"systemPrompt": "You are a professional crypto trading analyst.",
-	"temperature": 0.7,
-	"maxTokens": 500,
-	"stream": true
+  "messages": [{ "role": "user", "content": "Analyze BTC market sentiment" }],
+  "systemPrompt": "You are a professional crypto trading analyst.",
+  "temperature": 0.7,
+  "maxTokens": 500,
+  "stream": true
 }
 ```
 
 **Streaming Response (SSE):**
+
 ```
 data: {"content": "Based on current market conditions..."}
 data: {"content": " technical indicators suggest..."}
@@ -126,17 +128,18 @@ Analyze images with AI vision models. Supports both URL and base64 input.
 
 ```json
 {
-	"imageUrl": "https://example.com/chart.png",
-	"prompt": "Analyze this price chart and identify key support/resistance levels",
-	"model": "@cf/meta/llama-3.2-11b-vision-instruct"
+  "imageUrl": "https://example.com/chart.png",
+  "prompt": "Analyze this price chart and identify key support/resistance levels",
+  "model": "@cf/meta/llama-3.2-11b-vision-instruct"
 }
 ```
 
 Or with base64:
+
 ```json
 {
-	"imageBase64": "iVBORw0KGgoAAAANSUhEUgAA...",
-	"prompt": "What pattern do you see in this chart?"
+  "imageBase64": "iVBORw0KGgoAAAANSUhEUgAA...",
+  "prompt": "What pattern do you see in this chart?"
 }
 ```
 
@@ -146,18 +149,19 @@ Extended thinking queries with reasoning models like OpenAI o1.
 
 ```json
 {
-	"prompt": "Design a risk management strategy for a $100k portfolio",
-	"model": "o1-preview",
-	"reasoningEffort": "medium"
+  "prompt": "Design a risk management strategy for a $100k portfolio",
+  "model": "o1-preview",
+  "reasoningEffort": "medium"
 }
 ```
 
 **Response:**
+
 ```json
 {
-	"reasoning": "Let me think through this step by step...",
-	"answer": "Here's a comprehensive risk management strategy...",
-	"model": "o1-preview"
+  "reasoning": "Let me think through this step by step...",
+  "answer": "Here's a comprehensive risk management strategy...",
+  "model": "o1-preview"
 }
 ```
 
@@ -167,11 +171,11 @@ Get AI API usage statistics across all providers.
 
 ```json
 {
-	"success": true,
-	"usage": {
-		"workers-ai": { "requests": 150, "tokens": 45000 },
-		"openai": { "requests": 75, "tokens": 22000 }
-	}
+  "success": true,
+  "usage": {
+    "workers-ai": { "requests": 150, "tokens": 45000 },
+    "openai": { "requests": 75, "tokens": 22000 }
+  }
 }
 ```
 
@@ -181,8 +185,8 @@ List available prompt templates.
 
 ```json
 {
-	"success": true,
-	"prompts": ["trading-analyst", "risk-assessor", "market-scanner"]
+  "success": true,
+  "prompts": ["trading-analyst", "risk-assessor", "market-scanner"]
 }
 ```
 
@@ -192,8 +196,8 @@ Generate text embeddings using Workers AI embedding models.
 
 ```json
 {
-	"text": "Bitcoin price analysis for position sizing",
-	"provider": "workers-ai"
+  "text": "Bitcoin price analysis for position sizing",
+  "provider": "workers-ai"
 }
 ```
 
@@ -205,8 +209,8 @@ Manually enforce or release risk locks.
 
 ```json
 {
-	"action": "engage_kill_switch",
-	"reason": "Manual override from dashboard"
+  "action": "engage_kill_switch",
+  "reason": "Manual override from dashboard"
 }
 ```
 
@@ -227,7 +231,7 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 | `agent:anthropic_key`                        | -           | Anthropic API key                       |
 | `agent:google_key`                           | -           | Google AI API key                       |
 | `agent:azure_api_key`                        | -           | Azure OpenAI API key                    |
-| `agent:azure_endpoint`                        | -           | Azure OpenAI endpoint URL               |
+| `agent:azure_endpoint`                       | -           | Azure OpenAI endpoint URL               |
 | `trade:max_daily_drawdown_percent`           | `-5`        | Account PnL % that triggers Kill Switch |
 | `trade:kill_switch`                          | `false`     | When `true`, halts all new trades       |
 | `trade:watermark:{exchange}:{symbol}:{side}` | N/A         | High/low watermark                      |
@@ -236,20 +240,20 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 
 ```json
 {
-	"defaultProvider": "workers-ai",
-	"fallbackChain": ["workers-ai", "openai", "anthropic", "google", "azure"],
-	"modelMap": {
- 		"workers-ai": "@cf/meta/llama-3.1-8b-instruct",
- 		"openai": "gpt-4o-mini-2024-07-18",
- 		"anthropic": "claude-3-haiku-20240307",
- 		"google": "gemini-1.5-flash-002",
- 		"azure": "gpt-4o-mini"
-	},
-	"timeoutMs": 30000,
-	"retryCount": 3,
-	"maxDailyDrawdownPercent": -5,
-	"trailingStopPercent": 0.05,
-	"takeProfitPercent": 0.1
+  "defaultProvider": "workers-ai",
+  "fallbackChain": ["workers-ai", "openai", "anthropic", "google", "azure"],
+  "modelMap": {
+    "workers-ai": "@cf/meta/llama-3.1-8b-instruct",
+    "openai": "gpt-4o-mini-2024-07-18",
+    "anthropic": "claude-3-haiku-20240307",
+    "google": "gemini-1.5-flash-002",
+    "azure": "gpt-4o-mini"
+  },
+  "timeoutMs": 30000,
+  "retryCount": 3,
+  "maxDailyDrawdownPercent": -5,
+  "trailingStopPercent": 0.05,
+  "takeProfitPercent": 0.1
 }
 ```
 
@@ -268,12 +272,12 @@ All configuration is stored in `CONFIG_KV` for real-time adjustments.
 
 #### External Providers
 
-| Provider   | Models                                    |
-| ---------- | ------------------------------------------ |
-| OpenAI     | GPT-4o, GPT-4o-mini, GPT-4 Turbo, o1    |
-| Anthropic  | Claude 3 Haiku, Sonnet, Opus              |
-| Google     | Gemini 1.5 Flash, Gemini 1.5 Pro         |
-| Azure       | GPT-4o, GPT-4o-mini (custom deployment)  |
+| Provider  | Models                                  |
+| --------- | --------------------------------------- |
+| OpenAI    | GPT-4o, GPT-4o-mini, GPT-4 Turbo, o1    |
+| Anthropic | Claude 3 Haiku, Sonnet, Opus            |
+| Google    | Gemini 1.5 Flash, Gemini 1.5 Pro        |
+| Azure     | GPT-4o, GPT-4o-mini (custom deployment) |
 
 ### AI Gateway Features
 
@@ -331,4 +335,4 @@ tests/
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

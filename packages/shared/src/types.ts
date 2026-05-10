@@ -101,9 +101,7 @@ export interface BaseEnv {
   [key: string]: unknown;
 }
 
-export type Result<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: string };
+export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 // --- Trade and webhook types (consolidated) ---
 

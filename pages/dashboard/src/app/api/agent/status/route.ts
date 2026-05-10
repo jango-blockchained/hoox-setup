@@ -16,8 +16,10 @@ export async function GET(_request: NextRequest) {
       const configData = await env.CONFIG_KV.get("agent:config");
       const config = configData ? JSON.parse(configData) : null;
 
-      const stopsList = await env.CONFIG_KV.list({ prefix: "trade:watermark:" });
-      
+      const stopsList = await env.CONFIG_KV.list({
+        prefix: "trade:watermark:",
+      });
+
       return NextResponse.json({
         success: true,
         status: {
@@ -25,7 +27,7 @@ export async function GET(_request: NextRequest) {
           config,
           activeStops: stopsList.keys.length,
           lastCheck: new Date().toISOString(),
-        }
+        },
       });
     }
 

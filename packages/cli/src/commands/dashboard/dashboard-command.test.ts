@@ -6,7 +6,8 @@ const { registerDashboardCommand } = await import("./dashboard-command.js");
 describe("registerDashboardCommand", () => {
   it("registers dashboard command group on program", () => {
     const commands: { name: string; description: string }[] = [];
-    const subcommands: { parent: string; name: string; description: string }[] = [];
+    const subcommands: { parent: string; name: string; description: string }[] =
+      [];
 
     const mockProgram = {
       command: (name: string) => {
@@ -15,7 +16,11 @@ describe("registerDashboardCommand", () => {
           commands[commands.length - 1].description = d;
           return {
             command: (subName: string) => {
-              subcommands.push({ parent: name, name: subName, description: "" });
+              subcommands.push({
+                parent: name,
+                name: subName,
+                description: "",
+              });
               return {
                 description: (d2: string) => {
                   subcommands[subcommands.length - 1].description = d2;

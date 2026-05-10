@@ -1,10 +1,6 @@
-"use client"
+"use client";
 
-import {
-  Database,
-  FileText,
-  BarChart3,
-} from "lucide-react"
+import { Database, FileText, BarChart3 } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -12,10 +8,16 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuAction,
-} from "@/components/ui/sidebar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
-import { useSidebar } from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const documents = [
   {
@@ -33,13 +35,13 @@ const documents = [
     href: "#",
     icon: Database,
   },
-]
+];
 
 export function NavDocuments({
   className,
   ...props
 }: React.ComponentProps<typeof SidebarGroup>) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className={className} {...props}>
@@ -84,5 +86,5 @@ export function NavDocuments({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

@@ -53,7 +53,7 @@ async function readConfigRaw(configPath?: string): Promise<string> {
   if (!(await file.exists())) {
     throw new CLIError(
       `Config file not found: ${path}`,
-      ExitCode.INVALID_USAGE,
+      ExitCode.INVALID_USAGE
     );
   }
   return await file.text();
@@ -64,7 +64,7 @@ async function readConfigRaw(configPath?: string): Promise<string> {
  */
 async function writeConfigRaw(
   content: string,
-  configPath?: string,
+  configPath?: string
 ): Promise<void> {
   const path = configPath ?? "workers.jsonc";
   await Bun.write(path, content);
@@ -96,7 +96,10 @@ async function promptSecret(promptText: string): Promise<string> {
   if (process.stdin.isTTY) {
     let prevRaw = false;
     try {
-      prevRaw = (process.stdin as unknown as { isRawMode?: () => boolean }).isRawMode?.() ?? false;
+      prevRaw =
+        (
+          process.stdin as unknown as { isRawMode?: () => boolean }
+        ).isRawMode?.() ?? false;
     } catch {
       // isRawMode not available
     }
@@ -118,10 +121,7 @@ async function promptSecret(promptText: string): Promise<string> {
           if (char === "\x03") {
             // Ctrl+C
             process.stdout.write("\n");
-            throw new CLIError(
-              "Operation cancelled",
-              ExitCode.INVALID_USAGE,
-            );
+            throw new CLIError("Operation cancelled", ExitCode.INVALID_USAGE);
           }
           if (char === "\x7f") {
             // Backspace
@@ -225,9 +225,10 @@ export function registerConfigCommand(program: Command): void {
               Enabled: w.enabled ? `${theme.success("•")} yes` : "-",
               Path: w.path,
               Secrets: w.secrets?.length ? String(w.secrets.length) : "-",
-              Vars: w.vars && Object.keys(w.vars).length
-                ? String(Object.keys(w.vars).length)
-                : "-",
+              Vars:
+                w.vars && Object.keys(w.vars).length
+                  ? String(Object.keys(w.vars).length)
+                  : "-",
             };
           });
           formatTable(rows, opts);
@@ -236,7 +237,7 @@ export function registerConfigCommand(program: Command): void {
         const message = err instanceof Error ? err.message : String(err);
         formatError(
           new CLIError(`Failed to show config: ${message}`, ExitCode.ERROR),
-          opts,
+          opts
         );
       }
     });
@@ -264,17 +265,14 @@ export function registerConfigCommand(program: Command): void {
           const msg = err instanceof Error ? err.message : String(err);
           throw new CLIError(
             `Invalid key path "${key}": ${msg}`,
-            ExitCode.INVALID_USAGE,
+            ExitCode.INVALID_USAGE
           );
         }
 
         const updated = applyEdits(raw, edits);
         await writeConfigRaw(updated);
 
-        formatSuccess(
-          `Updated "${key}" = "${value}" in workers.jsonc`,
-          opts,
-        );
+        formatSuccess(`Updated "${key}" = "${value}" in workers.jsonc`, opts);
       } catch (err: unknown) {
         if (err instanceof CLIError) {
           formatError(err, opts);
@@ -282,7 +280,7 @@ export function registerConfigCommand(program: Command): void {
           const message = err instanceof Error ? err.message : String(err);
           formatError(
             new CLIError(`Failed to set config: ${message}`, ExitCode.ERROR),
-            opts,
+            opts
           );
         }
       }
@@ -309,7 +307,7 @@ export function registerConfigCommand(program: Command): void {
           const secrets = svc.listSecrets(worker);
           if (secrets.length === 0) {
             process.stdout.write(
-              `${theme.dim(`No secrets declared for worker "${worker}".`)}\n`,
+              `${theme.dim(`No secrets declared for worker "${worker}".`)}\n`
             );
             return;
           }
@@ -318,7 +316,7 @@ export function registerConfigCommand(program: Command): void {
             formatJson({ worker, secrets }, opts);
           } else {
             process.stdout.write(
-              `${theme.heading(`\nSecrets for ${worker}`)}\n`,
+              `${theme.heading(`\nSecrets for ${worker}`)}\n`
             );
             for (const s of secrets) {
               process.stdout.write(`  ${theme.label("•")} ${s}\n`);
@@ -330,7 +328,7 @@ export function registerConfigCommand(program: Command): void {
 
           if (workers.length === 0) {
             process.stdout.write(
-              `${theme.dim("No secrets declared for any worker.")}\n`,
+              `${theme.dim("No secrets declared for any worker.")}\n`
             );
             return;
           }
@@ -338,12 +336,10 @@ export function registerConfigCommand(program: Command): void {
           if (opts.json) {
             formatJson(all, opts);
           } else {
-            process.stdout.write(
-              `${theme.heading("\nSecrets by Worker")}\n`,
-            );
+            process.stdout.write(`${theme.heading("\nSecrets by Worker")}\n`);
             for (const [name, secrets] of Object.entries(all)) {
               process.stdout.write(
-                `\n  ${theme.bold(name)} (${secrets.length})\n`,
+                `\n  ${theme.bold(name)} (${secrets.length})\n`
               );
               for (const s of secrets) {
                 process.stdout.write(`    ${theme.dim("•")} ${s}\n`);
@@ -355,7 +351,7 @@ export function registerConfigCommand(program: Command): void {
         const message = err instanceof Error ? err.message : String(err);
         formatError(
           new CLIError(`Failed to list secrets: ${message}`, ExitCode.ERROR),
-          opts,
+          opts
         );
       }
     });
@@ -375,17 +371,15 @@ export function registerConfigCommand(program: Command): void {
           throw new CLIError(
             `Secret "${secretName}" is not declared for worker "${workerName}". ` +
               `Declared secrets: ${declared.join(", ")}`,
-            ExitCode.INVALID_USAGE,
+            ExitCode.INVALID_USAGE
           );
         }
 
-        const value = await promptSecret(
-          `Enter value for "${secretName}"`,
-        );
+        const value = await promptSecret(`Enter value for "${secretName}"`);
         if (!value) {
           throw new CLIError(
             "Secret value cannot be empty",
-            ExitCode.INVALID_USAGE,
+            ExitCode.INVALID_USAGE
           );
         }
 
@@ -393,28 +387,22 @@ export function registerConfigCommand(program: Command): void {
         const devVarsPath = `workers/${workerName}/.dev.vars`;
         await updateDevVars(devVarsPath, secretName, value);
 
-        formatSuccess(
-          `Secret "${secretName}" updated in ${devVarsPath}`,
-          opts,
-        );
+        formatSuccess(`Secret "${secretName}" updated in ${devVarsPath}`, opts);
 
         // Sync to Cloudflare
         process.stdout.write(
-          `${theme.info(icons.info)} Syncing to Cloudflare...\n`,
+          `${theme.info(icons.info)} Syncing to Cloudflare...\n`
         );
         const result = await svc.syncToCloudflare(workerName);
         if (result.success) {
-          formatSuccess(
-            `Secret "${secretName}" synced to Cloudflare`,
-            opts,
-          );
+          formatSuccess(`Secret "${secretName}" synced to Cloudflare`, opts);
         } else {
           formatError(
             new CLIError(
               `Sync partial: ${result.error ?? "unknown error"}`,
-              ExitCode.ERROR,
+              ExitCode.ERROR
             ),
-            opts,
+            opts
           );
         }
       } catch (err: unknown) {
@@ -424,7 +412,7 @@ export function registerConfigCommand(program: Command): void {
           const message = err instanceof Error ? err.message : String(err);
           formatError(
             new CLIError(`Failed to set secret: ${message}`, ExitCode.ERROR),
-            opts,
+            opts
           );
         }
       }
@@ -444,26 +432,23 @@ export function registerConfigCommand(program: Command): void {
         if (!declared.includes(secretName)) {
           throw new CLIError(
             `Secret "${secretName}" is not declared for worker "${workerName}".`,
-            ExitCode.INVALID_USAGE,
+            ExitCode.INVALID_USAGE
           );
         }
 
         // Wrangler secret delete
-        const proc = Bun.spawn(
-          ["wrangler", "secret", "delete", secretName],
-          {
-            cwd: `workers/${workerName}`,
-            stdout: "pipe",
-            stderr: "pipe",
-          },
-        );
+        const proc = Bun.spawn(["wrangler", "secret", "delete", secretName], {
+          cwd: `workers/${workerName}`,
+          stdout: "pipe",
+          stderr: "pipe",
+        });
 
         const exitCode = await proc.exited;
         if (exitCode !== 0) {
           const stderrText = await new Response(proc.stderr).text();
           throw new CLIError(
             `wrangler exited with code ${exitCode}: ${stderrText.trim()}`,
-            ExitCode.ERROR,
+            ExitCode.ERROR
           );
         }
 
@@ -474,29 +459,24 @@ export function registerConfigCommand(program: Command): void {
           let content = await devFile.text();
           const lines = content.split("\n");
           const filtered = lines.filter(
-            (line) =>
-              !line.startsWith(`${secretName}=`) &&
-              line.trim() !== "",
+            (line) => !line.startsWith(`${secretName}=`) && line.trim() !== ""
           );
           // Keep commented lines, remove empty ones
-          await Bun.write(devVarsPath, filtered.join("\n") + (filtered.length > 0 ? "\n" : ""));
+          await Bun.write(
+            devVarsPath,
+            filtered.join("\n") + (filtered.length > 0 ? "\n" : "")
+          );
         }
 
-        formatSuccess(
-          `Secret "${secretName}" deleted from Cloudflare`,
-          opts,
-        );
+        formatSuccess(`Secret "${secretName}" deleted from Cloudflare`, opts);
       } catch (err: unknown) {
         if (err instanceof CLIError) {
           formatError(err, opts);
         } else {
           const message = err instanceof Error ? err.message : String(err);
           formatError(
-            new CLIError(
-              `Failed to delete secret: ${message}`,
-              ExitCode.ERROR,
-            ),
-            opts,
+            new CLIError(`Failed to delete secret: ${message}`, ExitCode.ERROR),
+            opts
           );
         }
       }
@@ -514,21 +494,21 @@ export function registerConfigCommand(program: Command): void {
 
         if (workerName) {
           process.stdout.write(
-            `${theme.info(icons.info)} Syncing secrets for "${workerName}"...\n`,
+            `${theme.info(icons.info)} Syncing secrets for "${workerName}"...\n`
           );
           const result = await svc.syncToCloudflare(workerName);
           if (result.success) {
             formatSuccess(
               `Synced ${result.data?.length ?? 0} secrets for "${workerName}"`,
-              opts,
+              opts
             );
           } else {
             formatError(
               new CLIError(
                 `Sync failed: ${result.error ?? "unknown error"}`,
-                ExitCode.ERROR,
+                ExitCode.ERROR
               ),
-              opts,
+              opts
             );
           }
         } else {
@@ -544,13 +524,11 @@ export function registerConfigCommand(program: Command): void {
           let failed = 0;
 
           for (const name of workers) {
-            process.stdout.write(
-              `  ${theme.info(icons.arrow)} ${name}... `,
-            );
+            process.stdout.write(`  ${theme.info(icons.arrow)} ${name}... `);
             const result = await svc.syncToCloudflare(name);
             if (result.success) {
               process.stdout.write(
-                `${theme.success(`synced ${result.data?.length ?? 0}`)}\n`,
+                `${theme.success(`synced ${result.data?.length ?? 0}`)}\n`
               );
               synced++;
             } else {
@@ -560,17 +538,14 @@ export function registerConfigCommand(program: Command): void {
           }
 
           if (failed === 0) {
-            formatSuccess(
-              `All ${synced} workers synced successfully`,
-              opts,
-            );
+            formatSuccess(`All ${synced} workers synced successfully`, opts);
           } else {
             formatError(
               new CLIError(
                 `${synced} synced, ${failed} failed`,
-                ExitCode.ERROR,
+                ExitCode.ERROR
               ),
-              opts,
+              opts
             );
           }
         }
@@ -580,11 +555,8 @@ export function registerConfigCommand(program: Command): void {
         } else {
           const message = err instanceof Error ? err.message : String(err);
           formatError(
-            new CLIError(
-              `Failed to sync secrets: ${message}`,
-              ExitCode.ERROR,
-            ),
-            opts,
+            new CLIError(`Failed to sync secrets: ${message}`, ExitCode.ERROR),
+            opts
           );
         }
       }
@@ -625,23 +597,20 @@ export function registerConfigCommand(program: Command): void {
 
         formatSuccess(
           `Generated ${Object.keys(keys).length} keys in ${keysDir}/`,
-          opts,
+          opts
         );
 
         if (!opts.quiet && !opts.json) {
           process.stdout.write(
-            `${theme.warning("⚠")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`,
+            `${theme.warning("⚠")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`
           );
           formatKeyValue(keys, opts);
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(
-          new CLIError(
-            `Failed to generate keys: ${message}`,
-            ExitCode.ERROR,
-          ),
-          opts,
+          new CLIError(`Failed to generate keys: ${message}`, ExitCode.ERROR),
+          opts
         );
       }
     });
@@ -656,9 +625,7 @@ export function registerConfigCommand(program: Command): void {
       try {
         const keysDir = ".keys";
         if (!existsSync(keysDir)) {
-          process.stdout.write(
-            `${theme.dim("No .keys/ directory found.")}\n`,
-          );
+          process.stdout.write(`${theme.dim("No .keys/ directory found.")}\n`);
           return;
         }
 
@@ -671,7 +638,7 @@ export function registerConfigCommand(program: Command): void {
 
         if (entries.length === 0) {
           process.stdout.write(
-            `${theme.dim("No key files found in .keys/")}\n`,
+            `${theme.dim("No key files found in .keys/")}\n`
           );
           return;
         }
@@ -687,24 +654,18 @@ export function registerConfigCommand(program: Command): void {
         }
 
         if (opts.json) {
-          formatJson(
-            { keys: entries.length, files: entries },
-            opts,
-          );
+          formatJson({ keys: entries.length, files: entries }, opts);
         } else {
           process.stdout.write(
-            `${theme.heading(`\nKey files in ${keysDir}/`)}\n`,
+            `${theme.heading(`\nKey files in ${keysDir}/`)}\n`
           );
           formatKeyValue(keyMap, opts);
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(
-          new CLIError(
-            `Failed to list keys: ${message}`,
-            ExitCode.ERROR,
-          ),
-          opts,
+          new CLIError(`Failed to list keys: ${message}`, ExitCode.ERROR),
+          opts
         );
       }
     });
@@ -738,7 +699,7 @@ function parseValue(raw: string): string | number | boolean {
 async function updateDevVars(
   filePath: string,
   key: string,
-  value: string,
+  value: string
 ): Promise<void> {
   const file = Bun.file(filePath);
   if (await file.exists()) {

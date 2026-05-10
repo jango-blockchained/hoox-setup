@@ -64,7 +64,7 @@ function getFormatOptions(cmd: Command) {
  */
 export async function runStep(
   args: string[],
-  cwd?: string,
+  cwd?: string
 ): Promise<TestStepResult> {
   const command = args.join(" ");
   const start = Date.now();
@@ -108,7 +108,7 @@ export async function runStep(
  */
 async function runWithInherit(
   args: string[],
-  cwd?: string,
+  cwd?: string
 ): Promise<TestStepResult> {
   const command = args.join(" ");
   const start = Date.now();
@@ -147,7 +147,7 @@ async function runWithInherit(
  */
 export function printSummary(
   summary: TestSummary,
-  opts: { json?: boolean; quiet?: boolean },
+  opts: { json?: boolean; quiet?: boolean }
 ): void {
   if (opts.quiet) return;
 
@@ -169,9 +169,9 @@ export function printSummary(
     formatError(
       new CLIError(
         `${summary.passed}/${summary.total} passed — ${summary.failed} failed`,
-        ExitCode.ERROR,
+        ExitCode.ERROR
       ),
-      opts,
+      opts
     );
   } else {
     formatSuccess(`All ${summary.total} steps passed`, opts);
@@ -209,7 +209,7 @@ export function registerTestCommand(program: Command): void {
   testCmd
     .command("all")
     .description(
-      "Run full CI pipeline: lint → typecheck → unit tests → integration tests",
+      "Run full CI pipeline: lint → typecheck → unit tests → integration tests"
     )
     .option("--json", "Output results as JSON")
     .action(async (options: { json?: boolean }) => {
@@ -230,11 +230,11 @@ export function registerTestCommand(program: Command): void {
 
           if (result.success) {
             s.message(
-              `  ${theme.success(icons.success)} ${step.label} passed (${result.duration}ms)`,
+              `  ${theme.success(icons.success)} ${step.label} passed (${result.duration}ms)`
             );
           } else {
             s.message(
-              `  ${theme.error(icons.error)} ${step.label} failed (${result.duration}ms)`,
+              `  ${theme.error(icons.error)} ${step.label} failed (${result.duration}ms)`
             );
             if (result.error) {
               s.message(theme.dim(result.error.slice(0, 500)));
@@ -261,7 +261,7 @@ export function registerTestCommand(program: Command): void {
       s.stop(
         summary.failed > 0
           ? `Pipeline complete: ${summary.passed} passed, ${summary.failed} failed`
-          : "Pipeline complete",
+          : "Pipeline complete"
       );
 
       printSummary(summary, opts);
@@ -289,9 +289,9 @@ export function registerTestCommand(program: Command): void {
         formatError(
           new CLIError(
             `Unit tests failed (exit code ${result.exitCode})`,
-            ExitCode.ERROR,
+            ExitCode.ERROR
           ),
-          fmt,
+          fmt
         );
         process.exitCode = ExitCode.ERROR;
       }
@@ -315,9 +315,9 @@ export function registerTestCommand(program: Command): void {
         formatError(
           new CLIError(
             `Integration tests failed (exit code ${result.exitCode})`,
-            ExitCode.ERROR,
+            ExitCode.ERROR
           ),
-          fmt,
+          fmt
         );
         process.exitCode = ExitCode.ERROR;
       }
@@ -340,9 +340,9 @@ export function registerTestCommand(program: Command): void {
           formatError(
             new CLIError(
               `Worker "${name}" not found in workers.jsonc`,
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
@@ -360,9 +360,9 @@ export function registerTestCommand(program: Command): void {
           formatError(
             new CLIError(
               `Worker "${name}" tests failed (exit code ${result.exitCode})`,
-              ExitCode.ERROR,
+              ExitCode.ERROR
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.ERROR;
         }

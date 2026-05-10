@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { 
-  TrendingUp, 
-  ScrollText, 
-  Settings, 
-  Wrench, 
+import { motion } from "framer-motion";
+import {
+  TrendingUp,
+  ScrollText,
+  Settings,
+  Wrench,
   GitBranch,
   Inbox,
   Plus,
-  RefreshCw
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+  RefreshCw,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  icon?: 'positions' | 'logs' | 'settings' | 'setup' | 'signal' | 'inbox';
+  icon?: "positions" | "logs" | "settings" | "setup" | "signal" | "inbox";
   title: string;
   description: string;
   action?: {
     label: string;
     onClick: () => void;
-    icon?: 'plus' | 'refresh';
+    icon?: "plus" | "refresh";
   };
 }
 
@@ -38,7 +38,12 @@ const actionIconMap = {
   refresh: RefreshCw,
 };
 
-export function EmptyState({ icon = 'inbox', title, description, action }: EmptyStateProps) {
+export function EmptyState({
+  icon = "inbox",
+  title,
+  description,
+  action,
+}: EmptyStateProps) {
   const Icon = iconMap[icon];
   const ActionIcon = action?.icon ? actionIconMap[action.icon] : null;
 
@@ -46,13 +51,13 @@ export function EmptyState({ icon = 'inbox', title, description, action }: Empty
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       className="flex flex-col items-center justify-center py-16 px-4"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
         className="relative mb-6"
       >
         <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl" />
@@ -60,7 +65,7 @@ export function EmptyState({ icon = 'inbox', title, description, action }: Empty
           <Icon className="h-12 w-12 text-muted-foreground" />
         </div>
       </motion.div>
-      
+
       <motion.h3
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -69,7 +74,7 @@ export function EmptyState({ icon = 'inbox', title, description, action }: Empty
       >
         {title}
       </motion.h3>
-      
+
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -78,7 +83,7 @@ export function EmptyState({ icon = 'inbox', title, description, action }: Empty
       >
         {description}
       </motion.p>
-      
+
       {action && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}

@@ -93,7 +93,7 @@ async function showMainMenu(): Promise<string> {
  */
 async function handleCategory(
   category: string,
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   switch (category) {
     case "deploy":
@@ -116,7 +116,7 @@ async function handleCategory(
 // ---------------------------------------------------------------------------
 
 async function showDeployMenu(
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   while (true) {
     const choice = await select({
@@ -137,7 +137,10 @@ async function showDeployMenu(
       const name = await text({
         message: "Which worker?",
         placeholder: "e.g. hoox, trade-worker, d1-worker",
-        validate: (v) => (v === undefined || v.length === 0 ? "Worker name is required" : undefined),
+        validate: (v) =>
+          v === undefined || v.length === 0
+            ? "Worker name is required"
+            : undefined,
       });
       if (isCancel(name)) continue;
       if (!name) continue;
@@ -153,13 +156,17 @@ async function showDeployMenu(
 // Develop sub-menu
 
 async function showDevelopMenu(
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   while (true) {
     const choice = await select({
       message: "Develop",
       options: [
-        { value: "dev", label: "Start dev server", hint: "runs all workers locally" },
+        {
+          value: "dev",
+          label: "Start dev server",
+          hint: "runs all workers locally",
+        },
         { value: "init", label: "Init project", hint: "bootstrap new project" },
         { value: "__back", label: "Back to main menu" },
       ],
@@ -176,14 +183,18 @@ async function showDevelopMenu(
 // Manage sub-menu
 
 async function showManageMenu(
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   while (true) {
     const choice = await select({
       message: "Manage",
       options: [
         { value: "infra", label: "Infrastructure", hint: "D1, R2, KV, Queues" },
-        { value: "config", label: "Configuration", hint: "show / set workers.jsonc" },
+        {
+          value: "config",
+          label: "Configuration",
+          hint: "show / set workers.jsonc",
+        },
         { value: "secrets", label: "Secrets", hint: "list, set, sync" },
         { value: "keys", label: "Auth keys", hint: "generate, list" },
         { value: "waf", label: "WAF rules" },
@@ -218,9 +229,7 @@ async function showManageMenu(
 // Config sub-sub-menu
 // ---------------------------------------------------------------------------
 
-async function showConfigSubMenu(
-  program: Command,
-): Promise<void> {
+async function showConfigSubMenu(program: Command): Promise<void> {
   const choice = await select({
     message: "Configuration",
     options: [
@@ -236,7 +245,8 @@ async function showConfigSubMenu(
     const key = await text({
       message: "Config key (dot-separated path)",
       placeholder: "e.g. global.cloudflare_account_id",
-      validate: (v) => (v === undefined || v.length === 0 ? "Key is required" : undefined),
+      validate: (v) =>
+        v === undefined || v.length === 0 ? "Key is required" : undefined,
     });
     if (isCancel(key) || !key) return;
 
@@ -256,9 +266,7 @@ async function showConfigSubMenu(
 // Secrets sub-sub-menu
 // ---------------------------------------------------------------------------
 
-async function showSecretsSubMenu(
-  program: Command,
-): Promise<void> {
+async function showSecretsSubMenu(program: Command): Promise<void> {
   const choice = await select({
     message: "Secrets",
     options: [
@@ -279,14 +287,20 @@ async function showSecretsSubMenu(
       const worker = await text({
         message: "Worker name",
         placeholder: "e.g. hoox, trade-worker",
-        validate: (v) => (v === undefined || v.length === 0 ? "Worker name is required" : undefined),
+        validate: (v) =>
+          v === undefined || v.length === 0
+            ? "Worker name is required"
+            : undefined,
       });
       if (isCancel(worker) || !worker) return;
 
       const secretName = await text({
         message: "Secret name",
         placeholder: "e.g. API_KEY, DATABASE_URL",
-        validate: (v) => (v === undefined || v.length === 0 ? "Secret name is required" : undefined),
+        validate: (v) =>
+          v === undefined || v.length === 0
+            ? "Secret name is required"
+            : undefined,
       });
       if (isCancel(secretName) || !secretName) return;
 
@@ -304,9 +318,7 @@ async function showSecretsSubMenu(
 // Keys sub-sub-menu
 // ---------------------------------------------------------------------------
 
-async function showKeysSubMenu(
-  program: Command,
-): Promise<void> {
+async function showKeysSubMenu(program: Command): Promise<void> {
   const choice = await select({
     message: "Auth Keys",
     options: [
@@ -320,7 +332,8 @@ async function showKeysSubMenu(
 
   if (choice === "generate") {
     const proceed = await confirm({
-      message: "Generate new internal auth keys? This will create .keys/*.env files.",
+      message:
+        "Generate new internal auth keys? This will create .keys/*.env files.",
       initialValue: false,
     });
     if (isCancel(proceed) || !proceed) return;
@@ -334,14 +347,22 @@ async function showKeysSubMenu(
 // ---------------------------------------------------------------------------
 
 async function showMonitorMenu(
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   while (true) {
     const choice = await select({
       message: "Monitor",
       options: [
-        { value: "check setup", label: "Run diagnostics", hint: "full system validation" },
-        { value: "check health", label: "Health check", hint: "worker connectivity" },
+        {
+          value: "check setup",
+          label: "Run diagnostics",
+          hint: "full system validation",
+        },
+        {
+          value: "check health",
+          label: "Health check",
+          hint: "worker connectivity",
+        },
         { value: "check fix", label: "Auto-repair", hint: "fix common issues" },
         { value: "logs", label: "View logs", hint: "real-time log tailing" },
         { value: "test", label: "Run tests" },
@@ -361,14 +382,22 @@ async function showMonitorMenu(
 // ---------------------------------------------------------------------------
 
 async function showToolsMenu(
-  program: Command,
+  program: Command
 ): Promise<"back" | "exit" | "continue"> {
   while (true) {
     const choice = await select({
       message: "Tools",
       options: [
-        { value: "clone", label: "Clone worker", hint: "scaffold from template" },
-        { value: "dashboard", label: "Dashboard UI", hint: "manage dashboard URLs" },
+        {
+          value: "clone",
+          label: "Clone worker",
+          hint: "scaffold from template",
+        },
+        {
+          value: "dashboard",
+          label: "Dashboard UI",
+          hint: "manage dashboard URLs",
+        },
         { value: "__back", label: "Back to main menu" },
       ],
     });
@@ -394,10 +423,9 @@ async function runCommand(program: Command, commandStr: string): Promise<void> {
   const args = commandStr.split(" ");
 
   try {
-    await program.parseAsync(
-      [process.execPath, "hoox", ...args],
-      { from: "user" },
-    );
+    await program.parseAsync([process.execPath, "hoox", ...args], {
+      from: "user",
+    });
   } catch (err) {
     // Check if it's a Commander informational exit (help/version)
     if (

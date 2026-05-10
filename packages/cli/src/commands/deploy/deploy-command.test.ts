@@ -27,10 +27,14 @@ let listEnabledWorkersMock: ReturnType<typeof mock>;
 let getWorkerMock: ReturnType<typeof mock>;
 
 // Preserve originals so we can restore them after tests
-const origLoad = ConfigService.prototype.load as typeof ConfigService.prototype.load;
-const origListEnabled = ConfigService.prototype.listEnabledWorkers as typeof ConfigService.prototype.listEnabledWorkers;
-const origGetWorker = ConfigService.prototype.getWorker as typeof ConfigService.prototype.getWorker;
-const origDeploy = CloudflareService.prototype.deploy as typeof CloudflareService.prototype.deploy;
+const origLoad = ConfigService.prototype
+  .load as typeof ConfigService.prototype.load;
+const origListEnabled = ConfigService.prototype
+  .listEnabledWorkers as typeof ConfigService.prototype.listEnabledWorkers;
+const origGetWorker = ConfigService.prototype
+  .getWorker as typeof ConfigService.prototype.getWorker;
+const origDeploy = CloudflareService.prototype
+  .deploy as typeof CloudflareService.prototype.deploy;
 
 beforeEach(() => {
   mock.restore();
@@ -40,8 +44,10 @@ beforeEach(() => {
 
   // Reset prototypes to originals (in case a previous test didn't restore)
   (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = origGetWorker;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    origListEnabled;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    origGetWorker;
   (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
 
   // Fresh mocks
@@ -51,11 +57,7 @@ beforeEach(() => {
   }));
 
   loadMock = mock(async () => ({}));
-  listEnabledWorkersMock = mock(() => [
-    "d1-worker",
-    "hoox",
-    "trade-worker",
-  ]);
+  listEnabledWorkersMock = mock(() => ["d1-worker", "hoox", "trade-worker"]);
   getWorkerMock = mock((_name: string) => ({
     enabled: true,
     path: "workers/test-worker",
@@ -63,8 +65,10 @@ beforeEach(() => {
 
   // Install mocks on prototypes
   (ConfigService.prototype as Record<string, unknown>).load = loadMock;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    listEnabledWorkersMock;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    getWorkerMock;
   (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
 });
 
@@ -73,8 +77,10 @@ afterEach(() => {
 
   // Restore originals
   (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker = origGetWorker;
+  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+    origListEnabled;
+  (ConfigService.prototype as Record<string, unknown>).getWorker =
+    origGetWorker;
   (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
 });
 
@@ -93,11 +99,9 @@ async function importDeployCommand(): Promise<{
  */
 async function createProgram(): Promise<Command> {
   const { registerDeployCommand } = await importDeployCommand();
-  const program = new Command()
-    .name("hoox-test")
-    .exitOverride(() => {
-      // Suppress Commander's own exit during tests
-    });
+  const program = new Command().name("hoox-test").exitOverride(() => {
+    // Suppress Commander's own exit during tests
+  });
   registerDeployCommand(program);
   return program;
 }
@@ -150,7 +154,7 @@ describe("registerDeployCommand", () => {
     const program = await createProgram();
     const deployCmd = program.commands.find((c) => c.name() === "deploy")!;
     const dashboardCmd = deployCmd.commands.find(
-      (c) => c.name() === "dashboard",
+      (c) => c.name() === "dashboard"
     );
     expect(dashboardCmd).toBeDefined();
     expect(dashboardCmd!.description()).toContain("dashboard");
@@ -165,7 +169,8 @@ describe("registerDeployCommand", () => {
         "hoox",
         "trade-worker",
       ]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -176,7 +181,8 @@ describe("registerDeployCommand", () => {
 
     it("handles no enabled workers gracefully", async () => {
       listEnabledWorkersMock = mock(() => []);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -186,7 +192,8 @@ describe("registerDeployCommand", () => {
 
     it("continues deploying remaining workers on partial failure", async () => {
       listEnabledWorkersMock = mock(() => ["a", "b", "c"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       let calls = 0;
       deployMock = mock(async () => {
@@ -196,7 +203,8 @@ describe("registerDeployCommand", () => {
         }
         return { ok: true as const, data: { url: "https://x.workers.dev" } };
       });
-      (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
+      (CloudflareService.prototype as Record<string, unknown>).deploy =
+        deployMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -207,18 +215,18 @@ describe("registerDeployCommand", () => {
 
     it("passes --env to deploy", async () => {
       listEnabledWorkersMock = mock(() => ["single-worker"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers = listEnabledWorkersMock;
+      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
+        listEnabledWorkersMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "deploy",
-        "workers",
-        "--env",
-        "staging",
-      ], { from: "user" });
+      await program.parseAsync(["deploy", "workers", "--env", "staging"], {
+        from: "user",
+      });
 
       expect(deployMock).toHaveBeenCalledTimes(1);
-      const calls = (deployMock as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls;
+      const calls = (
+        deployMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
       expect(calls[0][1]).toBe("staging");
     });
   });
@@ -228,28 +236,25 @@ describe("registerDeployCommand", () => {
   describe("deploy worker <name>", () => {
     it("deploys the specified worker successfully", async () => {
       const program = await createProgram();
-      await program.parseAsync([
-        "deploy",
-        "worker",
-        "hoox",
-      ], { from: "user" });
+      await program.parseAsync(["deploy", "worker", "hoox"], { from: "user" });
 
       expect(deployMock).toHaveBeenCalledTimes(1);
-      const calls = (deployMock as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls;
+      const calls = (
+        deployMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
       expect(calls[0][0]).toContain("test-worker");
     });
 
     it("passes --env to deploy", async () => {
       const program = await createProgram();
-      await program.parseAsync([
-        "deploy",
-        "worker",
-        "hoox",
-        "--env",
-        "production",
-      ], { from: "user" });
+      await program.parseAsync(
+        ["deploy", "worker", "hoox", "--env", "production"],
+        { from: "user" }
+      );
 
-      const calls = (deployMock as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls;
+      const calls = (
+        deployMock as unknown as { mock: { calls: Array<unknown[]> } }
+      ).mock.calls;
       expect(calls[0][1]).toBe("production");
     });
 
@@ -259,28 +264,24 @@ describe("registerDeployCommand", () => {
         enabled: true,
         path: "workers/hoox",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+      (ConfigService.prototype as Record<string, unknown>).getWorker =
+        getWorkerMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "deploy",
-        "worker",
-        "hoox",
-      ], { from: "user" });
+      await program.parseAsync(["deploy", "worker", "hoox"], { from: "user" });
 
       expect(process.exitCode).toBe(1);
     });
 
     it("handles unknown worker name without calling deploy", async () => {
       getWorkerMock = mock(() => undefined);
-      (ConfigService.prototype as Record<string, unknown>).getWorker = getWorkerMock;
+      (ConfigService.prototype as Record<string, unknown>).getWorker =
+        getWorkerMock;
 
       const program = await createProgram();
-      await program.parseAsync([
-        "deploy",
-        "worker",
-        "nonexistent",
-      ], { from: "user" });
+      await program.parseAsync(["deploy", "worker", "nonexistent"], {
+        from: "user",
+      });
 
       expect(deployMock).toHaveBeenCalledTimes(0);
       expect(process.exitCode).toBe(1);

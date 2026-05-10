@@ -1,19 +1,53 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 const PROVIDER_DATA = [
-  { name: "workers-ai", requests: 850, tokens: 300000, avgLatency: 150, cost: "$0.00" },
-  { name: "openai", requests: 320, tokens: 120000, avgLatency: 200, cost: "$9.60" },
-  { name: "anthropic", requests: 77, tokens: 30000, avgLatency: 350, cost: "$2.75" },
+  {
+    name: "workers-ai",
+    requests: 850,
+    tokens: 300000,
+    avgLatency: 150,
+    cost: "$0.00",
+  },
+  {
+    name: "openai",
+    requests: 320,
+    tokens: 120000,
+    avgLatency: 200,
+    cost: "$9.60",
+  },
+  {
+    name: "anthropic",
+    requests: 77,
+    tokens: 30000,
+    avgLatency: 350,
+    cost: "$2.75",
+  },
 ];
 
 export function UsageTable() {
   const totalRequests = PROVIDER_DATA.reduce((sum, p) => sum + p.requests, 0);
   const totalTokens = PROVIDER_DATA.reduce((sum, p) => sum + p.tokens, 0);
-  const totalCost = PROVIDER_DATA.reduce((sum, p) => sum + parseFloat(p.cost.replace("$", "")), 0);
+  const totalCost = PROVIDER_DATA.reduce(
+    (sum, p) => sum + parseFloat(p.cost.replace("$", "")),
+    0
+  );
 
   return (
     <Card className="bg-card border-border">
@@ -24,7 +58,9 @@ export function UsageTable() {
       <CardContent>
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="rounded-lg bg-secondary/30 p-3">
-            <p className="text-2xl font-bold">{totalRequests.toLocaleString()}</p>
+            <p className="text-2xl font-bold">
+              {totalRequests.toLocaleString()}
+            </p>
             <p className="text-xs text-muted-foreground">Total Requests</p>
           </div>
           <div className="rounded-lg bg-secondary/30 p-3">

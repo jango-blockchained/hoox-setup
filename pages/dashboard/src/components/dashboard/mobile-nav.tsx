@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { 
+} from "@/components/ui/sheet";
+import {
   Menu,
-  LayoutDashboard, 
-  TrendingUp, 
-  ScrollText, 
+  LayoutDashboard,
+  TrendingUp,
+  ScrollText,
   Settings,
   Zap,
-  GitBranch
-} from "lucide-react"
+  GitBranch,
+} from "lucide-react";
 
 const navItems = [
   {
@@ -48,11 +48,11 @@ const navItems = [
     href: "/dashboard/settings",
     icon: Settings,
   },
-]
+];
 
 export function MobileNav() {
-  const [open, setOpen] = useState(false)
-  const pathname = usePathname()
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -69,15 +69,18 @@ export function MobileNav() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold">Hoox</span>
-              <span className="text-[10px] text-muted-foreground">Edge Trading</span>
+              <span className="text-[10px] text-muted-foreground">
+                Edge Trading
+              </span>
             </div>
           </SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-1 p-4">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || 
-              (item.href !== "/dashboard" && pathname?.startsWith(item.href))
-            
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+
             return (
               <Link
                 key={item.href}
@@ -93,10 +96,10 @@ export function MobileNav() {
                 <item.icon className="h-4 w-4" />
                 {item.title}
               </Link>
-            )
+            );
           })}
         </nav>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

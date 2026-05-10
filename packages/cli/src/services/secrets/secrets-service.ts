@@ -152,9 +152,8 @@ export class SecretsService {
     const secrets = worker.secrets ?? [];
     const content =
       secrets.length > 0
-        ? secrets
-            .map((s) => `${s}=placeholder_${s.toLowerCase()}`)
-            .join("\n") + "\n"
+        ? secrets.map((s) => `${s}=placeholder_${s.toLowerCase()}`).join("\n") +
+          "\n"
         : "";
     const devVarsPath = `${worker.path}/.dev.vars`;
 
@@ -175,7 +174,7 @@ export class SecretsService {
    * skipped and reported as errors.
    */
   async syncToCloudflare(
-    workerName: string,
+    workerName: string
   ): Promise<WranglerResult<string[]>> {
     const worker = this.config.workers[workerName];
     if (!worker) {
@@ -207,7 +206,7 @@ export class SecretsService {
           synced.push(secret);
         } else {
           errors.push(
-            `Secret "${secret}": no valid value in .dev.vars (run generateDevVars then edit)`,
+            `Secret "${secret}": no valid value in .dev.vars (run generateDevVars then edit)`
           );
         }
       } catch (err: unknown) {
@@ -269,7 +268,7 @@ export class SecretsService {
   protected async execWranglerSecretPut(
     workerPath: string,
     name: string,
-    value: string,
+    value: string
   ): Promise<void> {
     const proc = Bun.spawn(["wrangler", "secret", "put", name], {
       cwd: workerPath,
@@ -285,7 +284,7 @@ export class SecretsService {
     if (exitCode !== 0) {
       const stderrText = await new Response(proc.stderr).text();
       throw new Error(
-        `wrangler exited with code ${exitCode}: ${stderrText.trim()}`,
+        `wrangler exited with code ${exitCode}: ${stderrText.trim()}`
       );
     }
   }

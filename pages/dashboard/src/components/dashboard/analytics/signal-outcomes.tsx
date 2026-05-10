@@ -1,47 +1,69 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { BarChart3, Zap } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function SignalOutcomes() {
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState("30d")
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState("30d");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const url = new URL(`/api/analytics/signals`, window.location.origin)
+        const url = new URL(`/api/analytics/signals`, window.location.origin);
         if (timeRange !== "all") {
-          const days = timeRange === "7d" ? 7 : 30
-          url.searchParams.set("timeRange", new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+          const days = timeRange === "7d" ? 7 : 30;
+          url.searchParams.set(
+            "timeRange",
+            new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+          );
         }
-        const res = await fetch(url.toString())
-        const json = await res.json() as { success: boolean; data?: any[] }
+        const res = await fetch(url.toString());
+        const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
-          setData(json.data || [])
+          setData(json.data || []);
         }
       } catch (error) {
-        console.error("Failed to fetch signal outcomes:", error)
+        console.error("Failed to fetch signal outcomes:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    if (mounted) fetchData()
-  }, [timeRange, mounted])
+    if (mounted) fetchData();
+  }, [timeRange, mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <motion.div
@@ -56,7 +78,9 @@ export function SignalOutcomes() {
               <Zap className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>Signal Outcomes</CardTitle>
-                <CardDescription>Signal distribution by source and type</CardDescription>
+                <CardDescription>
+                  Signal distribution by source and type
+                </CardDescription>
               </div>
             </div>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -101,7 +125,15 @@ export function SignalOutcomes() {
                     <TableCell>{row.symbol}</TableCell>
                     <TableCell>{row.signal_count}</TableCell>
                     <TableCell>
-                      <span className={row.avg_confidence >= 0.7 ? "text-green-500" : row.avg_confidence >= 0.4 ? "text-yellow-500" : "text-red-500"}>
+                      <span
+                        className={
+                          row.avg_confidence >= 0.7
+                            ? "text-green-500"
+                            : row.avg_confidence >= 0.4
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                        }
+                      >
                         {(row.avg_confidence * 100).toFixed(0)}%
                       </span>
                     </TableCell>
@@ -113,5 +145,5 @@ export function SignalOutcomes() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

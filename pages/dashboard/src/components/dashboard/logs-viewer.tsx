@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { EmptyState } from "@/components/dashboard/empty-state"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/dashboard/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Search, RefreshCw, Download, Filter } from "lucide-react"
+} from "@/components/ui/select";
+import { Search, RefreshCw, Download, Filter } from "lucide-react";
 
-type LogLevel = "info" | "warn" | "error" | "debug"
+type LogLevel = "info" | "warn" | "error" | "debug";
 
 interface LogEntry {
-  id: string
-  timestamp: number
-  level: LogLevel
-  worker: string
-  message: string
-  details?: string
+  id: string;
+  timestamp: number;
+  level: LogLevel;
+  worker: string;
+  message: string;
+  details?: string;
 }
 
 const logs: LogEntry[] = [
@@ -108,14 +108,14 @@ const logs: LogEntry[] = [
     message: "Notification sent",
     details: "Trade alert delivered to chat ID: -1001234567890",
   },
-]
+];
 
 const levelColors: Record<LogLevel, string> = {
   info: "bg-primary/20 text-primary",
   warn: "bg-warning/20 text-warning",
   error: "bg-destructive/20 text-destructive",
   debug: "bg-muted text-muted-foreground",
-}
+};
 
 function formatTimestamp(timestamp: number) {
   return new Date(timestamp).toLocaleTimeString("en-US", {
@@ -123,25 +123,25 @@ function formatTimestamp(timestamp: number) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  })
+  });
 }
 
 export function LogsViewer() {
-  const [filter, setFilter] = useState<string>("all")
-  const [workerFilter, setWorkerFilter] = useState<string>("all")
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [filter, setFilter] = useState<string>("all");
+  const [workerFilter, setWorkerFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filteredLogs = logs.filter((log) => {
-    const matchesLevel = filter === "all" || log.level === filter
-    const matchesWorker = workerFilter === "all" || log.worker === workerFilter
+    const matchesLevel = filter === "all" || log.level === filter;
+    const matchesWorker = workerFilter === "all" || log.worker === workerFilter;
     const matchesSearch =
       searchQuery === "" ||
       log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.details?.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesLevel && matchesWorker && matchesSearch
-  })
+      log.details?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesLevel && matchesWorker && matchesSearch;
+  });
 
-  const workers = [...new Set(logs.map((log) => log.worker))]
+  const workers = [...new Set(logs.map((log) => log.worker))];
 
   return (
     <Card className="bg-card border-border">
@@ -241,10 +241,12 @@ export function LogsViewer() {
         </ScrollArea>
 
         <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-          <span>Showing {filteredLogs.length} of {logs.length} logs</span>
+          <span>
+            Showing {filteredLogs.length} of {logs.length} logs
+          </span>
           <span>Auto-refresh: 5s</span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

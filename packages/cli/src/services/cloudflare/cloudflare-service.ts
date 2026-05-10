@@ -1,9 +1,5 @@
 import path from "node:path";
-import type {
-  WranglerResult,
-  DeployResult,
-  DevResult,
-} from "./types.js";
+import type { WranglerResult, DeployResult, DevResult } from "./types.js";
 
 /**
  * CloudflareService wraps the `wrangler` CLI via Bun.spawn for all
@@ -43,7 +39,7 @@ export class CloudflareService {
    */
   private async runWrangler(
     args: string[],
-    cwd?: string,
+    cwd?: string
   ): Promise<WranglerResult<string>> {
     try {
       const proc = Bun.spawn(["wrangler", ...args], {
@@ -92,7 +88,7 @@ export class CloudflareService {
    */
   async deploy(
     workerPath: string,
-    env?: string,
+    env?: string
   ): Promise<WranglerResult<DeployResult>> {
     const resolvedPath = path.resolve(this.cwd, workerPath);
     const args = ["deploy"];
@@ -130,7 +126,7 @@ export class CloudflareService {
    */
   async dev(
     workerPath: string,
-    port?: number,
+    port?: number
   ): Promise<WranglerResult<DevResult>> {
     const devPort = port ?? 8787;
     const resolvedPath = path.resolve(this.cwd, workerPath);
@@ -253,7 +249,7 @@ export class CloudflareService {
   async secretPut(
     workerName: string,
     secretName: string,
-    value: string,
+    value: string
   ): Promise<WranglerResult<string>> {
     try {
       const proc = Bun.spawn(
@@ -263,7 +259,7 @@ export class CloudflareService {
           stdout: "pipe",
           stderr: "pipe",
           stdin: "pipe",
-        },
+        }
       );
 
       // Pipe the secret value through stdin — never via CLI args.
@@ -291,9 +287,15 @@ export class CloudflareService {
   /** Deletes a secret from a worker (`wrangler secret delete <secretName> --name <workerName>`). */
   async secretDelete(
     workerName: string,
-    secretName: string,
+    secretName: string
   ): Promise<WranglerResult<string>> {
-    return this.runWrangler(["secret", "delete", secretName, "--name", workerName]);
+    return this.runWrangler([
+      "secret",
+      "delete",
+      secretName,
+      "--name",
+      workerName,
+    ]);
   }
 
   // ---------------------------------------------------------------------------

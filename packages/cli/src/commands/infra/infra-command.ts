@@ -45,7 +45,7 @@ function getOptions(cmd: Command): InfraOptions {
 function displayListResult(
   result: WranglerResult<string>,
   opts: InfraOptions,
-  columns?: string[],
+  columns?: string[]
 ): void {
   if (!result.ok) {
     formatError(new CLIError(result.error, ExitCode.ERROR), opts);
@@ -82,7 +82,11 @@ function displayListResult(
       formatTable(rows, opts);
       return;
     }
-    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
       if (opts.json) {
         formatJson(parsed, opts);
         return;
@@ -105,7 +109,7 @@ async function handleCreate(
   name: string,
   label: string,
   fn: (name: string) => Promise<WranglerResult<string>>,
-  opts: InfraOptions,
+  opts: InfraOptions
 ): Promise<void> {
   if (!opts.quiet) {
     process.stdout.write(`${theme.label(`Creating ${label}:`)} ${name}\n`);
@@ -124,7 +128,7 @@ async function handleDelete(
   name: string,
   label: string,
   fn: (name: string) => Promise<WranglerResult<string>>,
-  opts: InfraOptions,
+  opts: InfraOptions
 ): Promise<void> {
   if (!opts.quiet) {
     process.stdout.write(`${theme.label(`Deleting ${label}:`)} ${name}\n`);
@@ -144,7 +148,7 @@ async function handleDelete(
 
 async function doD1List(
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.d1List();
@@ -154,7 +158,7 @@ async function doD1List(
 async function doD1Create(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleCreate(name, "D1 database", (n) => cloudflare.d1Create(n), opts);
@@ -163,7 +167,7 @@ async function doD1Create(
 async function doD1Delete(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleDelete(name, "D1 database", (n) => cloudflare.d1Delete(n), opts);
@@ -175,7 +179,7 @@ async function doD1Delete(
 
 async function doKvList(
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.kvList();
@@ -185,7 +189,7 @@ async function doKvList(
 async function doKvCreate(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleCreate(name, "KV namespace", (n) => cloudflare.kvCreate(n), opts);
@@ -194,7 +198,7 @@ async function doKvCreate(
 async function doKvDelete(
   id: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleDelete(id, "KV namespace", (n) => cloudflare.kvDelete(n), opts);
@@ -206,7 +210,7 @@ async function doKvDelete(
 
 async function doR2List(
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.r2List();
@@ -216,7 +220,7 @@ async function doR2List(
 async function doR2Create(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleCreate(name, "R2 bucket", (n) => cloudflare.r2Create(n), opts);
@@ -225,7 +229,7 @@ async function doR2Create(
 async function doR2Delete(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleDelete(name, "R2 bucket", (n) => cloudflare.r2Delete(n), opts);
@@ -237,7 +241,7 @@ async function doR2Delete(
 
 async function doQueueList(
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.queueList();
@@ -247,7 +251,7 @@ async function doQueueList(
 async function doQueueCreate(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleCreate(name, "Queue", (n) => cloudflare.queueCreate(n), opts);
@@ -256,7 +260,7 @@ async function doQueueCreate(
 async function doQueueDelete(
   name: string,
   opts: InfraOptions,
-  cf?: CloudflareService,
+  cf?: CloudflareService
 ): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   await handleDelete(name, "Queue", (n) => cloudflare.queueDelete(n), opts);
@@ -274,7 +278,7 @@ async function doQueueDelete(
 async function doProvision(
   opts: InfraOptions,
   cf?: CloudflareService,
-  config?: ConfigService,
+  config?: ConfigService
 ): Promise<ProvisionResult> {
   const cloudflare = cf ?? new CloudflareService();
   const configService = config ?? new ConfigService();
@@ -288,16 +292,24 @@ async function doProvision(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     formatError(new CLIError(message, ExitCode.ERROR), opts);
-    return { items: [], summary: { total: 0, created: 0, errors: 0, exists: 0 } };
+    return {
+      items: [],
+      summary: { total: 0, created: 0, errors: 0, exists: 0 },
+    };
   }
 
   const enabledWorkers = configService.listEnabledWorkers();
 
   if (enabledWorkers.length === 0) {
     if (!opts.quiet) {
-      process.stdout.write(theme.dim("No enabled workers found in workers.jsonc.\n"));
+      process.stdout.write(
+        theme.dim("No enabled workers found in workers.jsonc.\n")
+      );
     }
-    return { items: [], summary: { total: 0, created: 0, errors: 0, exists: 0 } };
+    return {
+      items: [],
+      summary: { total: 0, created: 0, errors: 0, exists: 0 },
+    };
   }
 
   const s = spinner();
@@ -339,7 +351,12 @@ async function doProvision(
         exists++;
         s.stop(`D1 database "${dbName}" already exists`);
       } else {
-        items.push({ name: dbName, type: "d1", status: "error", error: result.error });
+        items.push({
+          name: dbName,
+          type: "d1",
+          status: "error",
+          error: result.error,
+        });
         errors++;
         s.stop(`D1 database "${dbName}" failed: ${result.error}`);
       }
@@ -362,7 +379,12 @@ async function doProvision(
         exists++;
         s.stop(`KV namespace "${kvBinding}" already exists`);
       } else {
-        items.push({ name: kvBinding, type: "kv", status: "error", error: result.error });
+        items.push({
+          name: kvBinding,
+          type: "kv",
+          status: "error",
+          error: result.error,
+        });
         errors++;
         s.stop(`KV namespace "${kvBinding}" failed: ${result.error}`);
       }
@@ -373,7 +395,8 @@ async function doProvision(
       ? (wranglerConfig.r2_buckets as Array<Record<string, unknown>>)
       : [];
     for (const bucket of r2Buckets) {
-      const bucketName = (bucket.bucket_name as string) ?? (bucket.binding as string);
+      const bucketName =
+        (bucket.bucket_name as string) ?? (bucket.binding as string);
       if (!bucketName) continue;
 
       s.start(`Provisioning R2 bucket: ${bucketName}`);
@@ -387,7 +410,12 @@ async function doProvision(
         exists++;
         s.stop(`R2 bucket "${bucketName}" already exists`);
       } else {
-        items.push({ name: bucketName, type: "r2", status: "error", error: result.error });
+        items.push({
+          name: bucketName,
+          type: "r2",
+          status: "error",
+          error: result.error,
+        });
         errors++;
         s.stop(`R2 bucket "${bucketName}" failed: ${result.error}`);
       }
@@ -420,7 +448,12 @@ async function doProvision(
         exists++;
         s.stop(`Queue "${qName}" already exists`);
       } else {
-        items.push({ name: qName, type: "queue", status: "error", error: result.error });
+        items.push({
+          name: qName,
+          type: "queue",
+          status: "error",
+          error: result.error,
+        });
         errors++;
         s.stop(`Queue "${qName}" failed: ${result.error}`);
       }
@@ -474,7 +507,9 @@ export function registerInfraCommand(program: Command): void {
 
   infraCmd
     .command("provision")
-    .description("Auto-provision infrastructure from worker wrangler.jsonc files")
+    .description(
+      "Auto-provision infrastructure from worker wrangler.jsonc files"
+    )
     .action(async function (this: Command) {
       const opts = getOptions(this);
       await doProvision(opts);

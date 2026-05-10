@@ -68,7 +68,9 @@ function checkIcon(success: boolean): string {
 // Category 1: Config checks
 // ---------------------------------------------------------------------------
 
-async function runConfigChecks(configService: ConfigService): Promise<CheckCategory> {
+async function runConfigChecks(
+  configService: ConfigService
+): Promise<CheckCategory> {
   const checks: CheckResult[] = [];
 
   // Validate workers.jsonc structure
@@ -90,7 +92,11 @@ async function runConfigChecks(configService: ConfigService): Promise<CheckCateg
     name: "Global config",
     success: globalErrors.length === 0,
     errors: globalErrors,
-    warnings: global.cloudflare_api_token ? [] : ["global.cloudflare_api_token uses <USE_WRANGLER_SECRET_PUT> placeholder — set via wrangler secret"],
+    warnings: global.cloudflare_api_token
+      ? []
+      : [
+          "global.cloudflare_api_token uses <USE_WRANGLER_SECRET_PUT> placeholder — set via wrangler secret",
+        ],
   });
 
   // Check that each worker has a path
@@ -124,7 +130,9 @@ async function runInfraChecks(cf: CloudflareService): Promise<CheckCategory> {
   checks.push({
     name: "D1 Databases",
     success: d1Result.ok,
-    errors: d1Result.ok ? [] : [d1Result.error ?? "Failed to list D1 databases"],
+    errors: d1Result.ok
+      ? []
+      : [d1Result.error ?? "Failed to list D1 databases"],
     warnings: [],
   });
 
@@ -133,7 +141,9 @@ async function runInfraChecks(cf: CloudflareService): Promise<CheckCategory> {
   checks.push({
     name: "KV Namespaces",
     success: kvResult.ok,
-    errors: kvResult.ok ? [] : [kvResult.error ?? "Failed to list KV namespaces"],
+    errors: kvResult.ok
+      ? []
+      : [kvResult.error ?? "Failed to list KV namespaces"],
     warnings: [],
   });
 
@@ -151,7 +161,9 @@ async function runInfraChecks(cf: CloudflareService): Promise<CheckCategory> {
   checks.push({
     name: "Queues",
     success: queueResult.ok,
-    errors: queueResult.ok ? [] : [queueResult.error ?? "Failed to list queues"],
+    errors: queueResult.ok
+      ? []
+      : [queueResult.error ?? "Failed to list queues"],
     warnings: [],
   });
 
@@ -165,7 +177,7 @@ async function runInfraChecks(cf: CloudflareService): Promise<CheckCategory> {
 async function runSecretsChecks(
   secretsService: SecretsService,
   configService: ConfigService,
-  cf: CloudflareService,
+  cf: CloudflareService
 ): Promise<CheckCategory> {
   const checks: CheckResult[] = [];
   const enabledWorkers = configService.listEnabledWorkers();
@@ -176,12 +188,14 @@ async function runSecretsChecks(
     const result = await secretsService.checkLocalSecrets(workerName);
     if (result.missing.length > 0) {
       errors.push(
-        `Worker "${workerName}" missing secrets: ${result.missing.join(", ")}`,
+        `Worker "${workerName}" missing secrets: ${result.missing.join(", ")}`
       );
     }
     for (const secret of result.secrets) {
       if (secret.set && secret.source) {
-        warnings.push(`Worker "${workerName}": ${secret.name} is set locally (source: ${secret.source})`);
+        warnings.push(
+          `Worker "${workerName}": ${secret.name} is set locally (source: ${secret.source})`
+        );
       }
     }
   }
@@ -204,7 +218,9 @@ async function runSecretsChecks(
     if (!result.ok) {
       remoteErrors.push(`Worker "${workerName}": ${result.error}`);
     } else {
-      remoteWarnings.push(`Worker "${workerName}": remote secrets listed OK (${secrets.length} expected)`);
+      remoteWarnings.push(
+        `Worker "${workerName}": remote secrets listed OK (${secrets.length} expected)`
+      );
     }
   }
 
@@ -224,13 +240,15 @@ async function runSecretsChecks(
 
 async function runDatabaseChecks(
   cf: CloudflareService,
-  configService: ConfigService,
+  configService: ConfigService
 ): Promise<CheckCategory> {
   const checks: CheckResult[] = [];
 
   // Look for the D1 worker's database_name
   const d1Worker = configService.getWorker("d1-worker");
-  const dbName = (d1Worker?.vars as Record<string, string> | undefined)?.database_name ?? "my-database";
+  const dbName =
+    (d1Worker?.vars as Record<string, string> | undefined)?.database_name ??
+    "my-database";
 
   // Check that database exists via wrangler d1 list
   const d1ListResult = await cf.d1List();
@@ -239,7 +257,11 @@ async function runDatabaseChecks(
     checks.push({
       name: `D1 Database "${dbName}"`,
       success: hasDb,
-      errors: hasDb ? [] : [`Database "${dbName}" not found. Create with: wrangler d1 create ${dbName}`],
+      errors: hasDb
+        ? []
+        : [
+            `Database "${dbName}" not found. Create with: wrangler d1 create ${dbName}`,
+          ],
       warnings: [],
     });
   } else {
@@ -253,7 +275,11 @@ async function runDatabaseChecks(
 
   // Verify tables exist (best effort via wrangler d1 execute)
   const requiredTables = [
-    "trade_signals", "trades", "positions", "balances", "system_logs",
+    "trade_signals",
+    "trades",
+    "positions",
+    "balances",
+    "system_logs",
   ];
   try {
     // We can't easily run SQL through the service, so this is a best-effort check
@@ -304,7 +330,7 @@ function renderReport(report: CheckReport): void {
   const { summary } = report;
   process.stdout.write(
     `\n${summary.failed > 0 ? theme.error(icons.error) : theme.success(icons.success)} ` +
-      `Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed, ${summary.warnings} warnings\n`,
+      `Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed, ${summary.warnings} warnings\n`
   );
 }
 
@@ -368,7 +394,10 @@ async function handleSetup(opts: FormatOptions): Promise<void> {
 // Subcommand: check health
 // ---------------------------------------------------------------------------
 
-async function handleHealth(opts: FormatOptions, autoFix: boolean): Promise<void> {
+async function handleHealth(
+  opts: FormatOptions,
+  autoFix: boolean
+): Promise<void> {
   const s = spinner();
   const results: HealthCheckResult[] = [];
 
@@ -398,7 +427,9 @@ async function handleHealth(opts: FormatOptions, autoFix: boolean): Promise<void
           worker: workerName,
           status: healthy ? "healthy" : "degraded",
           connectivity: healthy,
-          error: tailResult.ok ? undefined : (tailResult.error ?? "Unknown error"),
+          error: tailResult.ok
+            ? undefined
+            : (tailResult.error ?? "Unknown error"),
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -427,11 +458,9 @@ async function handleHealth(opts: FormatOptions, autoFix: boolean): Promise<void
 
     if (autoFix && results.some((r) => !r.connectivity)) {
       process.stdout.write(
-        `\n${theme.warning(icons.warning)} Auto-fix flag set but health issues require manual investigation.\n`,
+        `\n${theme.warning(icons.warning)} Auto-fix flag set but health issues require manual investigation.\n`
       );
-      process.stdout.write(
-        `${theme.dim("Try: hoox check fix")}\n`,
-      );
+      process.stdout.write(`${theme.dim("Try: hoox check fix")}\n`);
     }
 
     const allHealthy = results.every((r) => r.status === "healthy");
@@ -481,9 +510,10 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 
         if (!dryRun) {
           try {
-            const secrets = (worker.secrets ?? [])
-              .map((s: string) => `${s}=placeholder_${s.toLowerCase()}`)
-              .join("\n") + "\n";
+            const secrets =
+              (worker.secrets ?? [])
+                .map((s: string) => `${s}=placeholder_${s.toLowerCase()}`)
+                .join("\n") + "\n";
             await Bun.write(devVarsPath, secrets);
             action.applied = true;
           } catch (err) {
@@ -515,7 +545,8 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
             description: `Add nodejs_compat to compatibility_flags for worker "${workerName}"`,
             type: "flag",
             target: wranglerPath,
-            change: 'Add "nodejs_compat" to compatibility_flags array in wrangler.jsonc',
+            change:
+              'Add "nodejs_compat" to compatibility_flags array in wrangler.jsonc',
             applied: false,
           };
 
@@ -588,7 +619,8 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
             target: wranglerPath,
             change: "Fix JSON syntax errors manually",
             applied: false,
-            error: "Could not parse wrangler.jsonc — fix JSON syntax errors manually",
+            error:
+              "Could not parse wrangler.jsonc — fix JSON syntax errors manually",
           });
         }
       }
@@ -628,17 +660,17 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
             : dryRun
               ? "would apply"
               : "skipped";
-        process.stdout.write(
-          `${icon} [${status}] ${action.description}\n`,
-        );
+        process.stdout.write(`${icon} [${status}] ${action.description}\n`);
         if (action.error) {
-          process.stdout.write(`    ${theme.error(icons.error)} ${action.error}\n`);
+          process.stdout.write(
+            `    ${theme.error(icons.error)} ${action.error}\n`
+          );
         }
       }
 
       process.stdout.write(
         `\n${theme.heading("Summary:")} ${report.summary.total} issues found — ` +
-          `${report.summary.applied} applied, ${report.summary.skipped} skipped, ${report.summary.failed} failed\n`,
+          `${report.summary.applied} applied, ${report.summary.skipped} skipped, ${report.summary.failed} failed\n`
       );
     }
 
@@ -664,15 +696,13 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 export function registerCheckCommand(program: Command): void {
   const checkCmd = program
     .command("check")
-    .description(
-      "Validate, health-check, and repair your Hoox setup",
-    );
+    .description("Validate, health-check, and repair your Hoox setup");
 
   // -- check setup -----------------------------------------------------------
   checkCmd
     .command("setup")
     .description(
-      "Full system validation (Config, Infrastructure, Secrets, Database)",
+      "Full system validation (Config, Infrastructure, Secrets, Database)"
     )
     .action(async (_, cmd: Command) => {
       const rootCmd = cmd.parent?.parent as Command | undefined;
@@ -700,7 +730,9 @@ export function registerCheckCommand(program: Command): void {
   // -- check fix -------------------------------------------------------------
   checkCmd
     .command("fix")
-    .description("Repair known common issues (.dev.vars, compatibility_flags, wrangler.jsonc)")
+    .description(
+      "Repair known common issues (.dev.vars, compatibility_flags, wrangler.jsonc)"
+    )
     .option("--dry-run", "Preview changes without applying them")
     .action(async (options: { dryRun?: boolean }, cmd: Command) => {
       const rootCmd = cmd.parent?.parent as Command | undefined;

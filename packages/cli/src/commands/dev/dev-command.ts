@@ -38,7 +38,7 @@ export function registerDevCommand(program: Command): void {
   const devCmd = program
     .command("dev")
     .description(
-      "Local development commands for running workers and dashboard",
+      "Local development commands for running workers and dashboard"
     );
 
   // -- dev start ------------------------------------------------------------
@@ -57,9 +57,9 @@ export function registerDevCommand(program: Command): void {
           formatError(
             new CLIError(
               `Invalid configuration:\n${validation.errors.map((e) => `  - ${e}`).join("\n")}`,
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
@@ -70,9 +70,9 @@ export function registerDevCommand(program: Command): void {
           formatError(
             new CLIError(
               "No enabled workers found in workers.jsonc. Enable at least one worker.",
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
@@ -80,7 +80,7 @@ export function registerDevCommand(program: Command): void {
 
         formatSuccess(
           `Launching Hoox TUI for ${enabledCount} enabled worker(s)...`,
-          fmt,
+          fmt
         );
 
         // Try the local script first, fall back to bunx package
@@ -115,10 +115,8 @@ export function registerDevCommand(program: Command): void {
   devCmd
     .command("worker <name>")
     .description("Start a single worker with wrangler dev")
-    .option(
-      "--port <port>",
-      "Dev server port (default: 8787)",
-      (v: string) => parseInt(v, 10),
+    .option("--port <port>", "Dev server port (default: 8787)", (v: string) =>
+      parseInt(v, 10)
     )
     .action(async (name: string, options: { port?: number }) => {
       const fmt = getFormatOptions(program);
@@ -133,9 +131,9 @@ export function registerDevCommand(program: Command): void {
             new CLIError(
               `Worker "${name}" not found in workers.jsonc.\n` +
                 `Available workers: ${configService.listWorkers().join(", ")}`,
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
@@ -145,9 +143,9 @@ export function registerDevCommand(program: Command): void {
           formatError(
             new CLIError(
               `Worker "${name}" is disabled. Enable it with the config command first.`,
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
@@ -157,7 +155,7 @@ export function registerDevCommand(program: Command): void {
 
         formatSuccess(
           `Starting worker "${name}" (${worker.path}) on port ${port}...`,
-          fmt,
+          fmt
         );
 
         const cf = new CloudflareService();
@@ -167,9 +165,9 @@ export function registerDevCommand(program: Command): void {
           formatError(
             new CLIError(
               `Failed to start worker "${name}": ${result.error}`,
-              ExitCode.ERROR,
+              ExitCode.ERROR
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.ERROR;
           return;
@@ -177,7 +175,7 @@ export function registerDevCommand(program: Command): void {
 
         formatSuccess(
           `Worker "${name}" running on http://localhost:${result.data.port}`,
-          fmt,
+          fmt
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -200,18 +198,15 @@ export function registerDevCommand(program: Command): void {
           formatError(
             new CLIError(
               `Dashboard directory not found: ${dashboardPath}`,
-              ExitCode.INVALID_USAGE,
+              ExitCode.INVALID_USAGE
             ),
-            fmt,
+            fmt
           );
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
         }
 
-        formatSuccess(
-          "Starting Next.js dashboard dev server...",
-          fmt,
-        );
+        formatSuccess("Starting Next.js dashboard dev server...", fmt);
 
         // Fire-and-forget: spawn `bun run dev` inside pages/dashboard
         Bun.spawn(["bun", "run", "dev"], {
@@ -220,10 +215,7 @@ export function registerDevCommand(program: Command): void {
           stderr: "inherit",
         });
 
-        formatSuccess(
-          "Dashboard starting on http://localhost:3000",
-          fmt,
-        );
+        formatSuccess("Dashboard starting on http://localhost:3000", fmt);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(message, fmt);

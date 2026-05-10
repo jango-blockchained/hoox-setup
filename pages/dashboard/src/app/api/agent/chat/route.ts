@@ -7,15 +7,24 @@ export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
-      messages?: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+    const body = (await request.json()) as {
+      messages?: Array<{
+        role: "system" | "user" | "assistant";
+        content: string;
+      }>;
       model?: string;
       temperature?: number;
       maxTokens?: number;
       stream?: boolean;
     };
 
-    const { messages, model, temperature = 0.7, maxTokens = 500, stream = true } = body;
+    const {
+      messages,
+      model,
+      temperature = 0.7,
+      maxTokens = 500,
+      stream = true,
+    } = body;
 
     if (!messages || messages.length === 0) {
       return Errors.badRequest("Messages are required");
@@ -31,7 +40,9 @@ export async function POST(request: NextRequest) {
       const configData = await env.CONFIG_KV.get("agent:config");
       if (configData) {
         const config = JSON.parse(configData);
-        selectedModel = config.modelMap?.[config.defaultProvider] || "@cf/meta/llama-3.1-8b-instruct";
+        selectedModel =
+          config.modelMap?.[config.defaultProvider] ||
+          "@cf/meta/llama-3.1-8b-instruct";
       }
     }
 
@@ -51,25 +62,29 @@ export async function POST(request: NextRequest) {
               stream: true,
             });
 
-            if (result && typeof result === 'object' && 'response' in result) {
+            if (result && typeof result === "object" && "response" in result) {
               const aiStream = result.response;
-              if (aiStream && typeof aiStream.getReader === 'function') {
+              if (aiStream && typeof aiStream.getReader === "function") {
                 const reader = aiStream.getReader();
                 while (true) {
                   const { done, value } = await reader.read();
                   if (done) break;
                   const chunk = new TextDecoder().decode(value);
                   controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ content: chunk })}\n\n`)
+                    encoder.encode(
+                      `data: ${JSON.stringify({ content: chunk })}\n\n`
+                    )
                   );
                 }
               }
             }
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           } catch (e) {
             controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`)
+              encoder.encode(
+                `data: ${JSON.stringify({ error: String(e) })}\n\n`
+              )
             );
             controller.close();
           }
@@ -78,9 +93,9 @@ export async function POST(request: NextRequest) {
 
       return new NextResponse(stream, {
         headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
         },
       });
     }

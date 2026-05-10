@@ -48,24 +48,24 @@ A Cloudflare® Worker service that handles interactions with the Telegram Bot AP
         "INTERNAL_KEY_BINDING",
         "TELEGRAM_BOT_TOKEN",
         "TELEGRAM_CHAT_ID_DEFAULT",
-        "TELEGRAM_WEBHOOK_SECRET"
+        "TELEGRAM_WEBHOOK_SECRET",
       ],
       "kv_namespaces": [
-        { "binding": "CONFIG_KV", "id": "...", "preview_id": "..." }
+        { "binding": "CONFIG_KV", "id": "...", "preview_id": "..." },
       ],
       "r2_buckets": [
-        { "binding": "UPLOADS_BUCKET", "bucket_name": "user-uploads" }
+        { "binding": "UPLOADS_BUCKET", "bucket_name": "user-uploads" },
       ],
       "vectorize": [
-        { "binding": "VECTORIZE_INDEX", "index_name": "my-rag-index" }
+        { "binding": "VECTORIZE_INDEX", "index_name": "my-rag-index" },
       ],
       "ai": {
-        "binding": "AI"
+        "binding": "AI",
       },
       "observability": {
         "enabled": true,
-        "head_sampling_rate": 1
-      }
+        "head_sampling_rate": 1,
+      },
     }
     ```
 5.  Update the corresponding `worker-configuration.d.ts` file.
@@ -162,4 +162,4 @@ The worker typically defaults to sending messages with `parse_mode` set to `HTML
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

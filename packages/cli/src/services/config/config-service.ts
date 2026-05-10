@@ -43,7 +43,7 @@ export class ConfigService {
 
     if (!(await file.exists())) {
       throw new Error(
-        `Config file not found: ${filePath}. Run 'hoox config init' to create one.`,
+        `Config file not found: ${filePath}. Run 'hoox config init' to create one.`
       );
     }
 
@@ -54,11 +54,9 @@ export class ConfigService {
     if (errors.length > 0) {
       const messages = errors.map(
         (e) =>
-          `  - ${printParseErrorCode(e.error)} at offset ${e.offset} (length ${e.length})`,
+          `  - ${printParseErrorCode(e.error)} at offset ${e.offset} (length ${e.length})`
       );
-      throw new Error(
-        `Invalid JSONC in ${filePath}:\n${messages.join("\n")}`,
-      );
+      throw new Error(`Invalid JSONC in ${filePath}:\n${messages.join("\n")}`);
     }
 
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
@@ -128,7 +126,7 @@ export class ConfigService {
     // Global required fields
     if (!this.config.global?.cloudflare_account_id) {
       errors.push(
-        "Required field missing: global.cloudflare_account_id — must be set in workers.jsonc",
+        "Required field missing: global.cloudflare_account_id — must be set in workers.jsonc"
       );
     }
 
@@ -138,9 +136,7 @@ export class ConfigService {
     } else {
       for (const [name, worker] of Object.entries(this.config.workers)) {
         if (!worker.path) {
-          errors.push(
-            `Worker "${name}" is missing required field: path`,
-          );
+          errors.push(`Worker "${name}" is missing required field: path`);
         }
       }
     }
@@ -154,7 +150,7 @@ export class ConfigService {
   private ensureLoaded(): HooxConfig {
     if (!this.config) {
       throw new Error(
-        "Config not loaded. Call load() before accessing configuration.",
+        "Config not loaded. Call load() before accessing configuration."
       );
     }
     return this.config;

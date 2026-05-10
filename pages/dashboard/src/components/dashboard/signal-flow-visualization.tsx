@@ -1,11 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { CFServiceBadge, CFServiceType } from "@/components/ui/cf-service-badge"
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  CFServiceBadge,
+  CFServiceType,
+} from "@/components/ui/cf-service-badge";
 import {
   Webhook,
   Split,
@@ -20,19 +23,19 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
-} from "lucide-react"
+} from "lucide-react";
 
 interface Signal {
-  id: string
-  symbol: string
-  action: "BUY" | "SELL"
-  status: "pending" | "processing" | "completed" | "rejected"
-  currentStage: number
-  startTime: number
-  splitInto?: number
-  aiScore?: number
-  riskApproved?: boolean
-  executed?: boolean
+  id: string;
+  symbol: string;
+  action: "BUY" | "SELL";
+  status: "pending" | "processing" | "completed" | "rejected";
+  currentStage: number;
+  startTime: number;
+  splitInto?: number;
+  aiScore?: number;
+  riskApproved?: boolean;
+  executed?: boolean;
 }
 
 const stages = [
@@ -108,9 +111,9 @@ const stages = [
     borderColor: "border-red-500/30",
     services: ["Service Binding", "R2"] as CFServiceType[],
   },
-]
+];
 
-const symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT", "LINK/USDT"]
+const symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "AVAX/USDT", "LINK/USDT"];
 
 function generateSignal(): Signal {
   return {
@@ -120,7 +123,7 @@ function generateSignal(): Signal {
     status: "pending",
     currentStage: -1,
     startTime: Date.now(),
-  }
+  };
 }
 
 function SignalParticle({
@@ -129,23 +132,27 @@ function SignalParticle({
   totalStages,
   onComplete,
 }: {
-  signal: Signal
-  stageIndex: number
-  totalStages: number
-  onComplete: () => void
+  signal: Signal;
+  stageIndex: number;
+  totalStages: number;
+  onComplete: () => void;
 }) {
-  const progress = (stageIndex + 1) / totalStages
-  const stage = stages[stageIndex]
+  const progress = (stageIndex + 1) / totalStages;
+  const stage = stages[stageIndex];
 
   useEffect(() => {
-    const timer = setTimeout(onComplete, 800 + Math.random() * 400)
-    return () => clearTimeout(timer)
-  }, [onComplete])
+    const timer = setTimeout(onComplete, 800 + Math.random() * 400);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
 
   return (
     <motion.div
       className="absolute z-20"
-      initial={{ left: `${(stageIndex / totalStages) * 100}%`, opacity: 0, scale: 0 }}
+      initial={{
+        left: `${(stageIndex / totalStages) * 100}%`,
+        opacity: 0,
+        scale: 0,
+      }}
       animate={{
         left: `${((stageIndex + 0.5) / totalStages) * 100}%`,
         opacity: 1,
@@ -170,13 +177,17 @@ function SignalParticle({
         }}
         transition={{ duration: 1, repeat: Infinity }}
       >
-        <span className={signal.action === "BUY" ? "text-green-200" : "text-red-200"}>
+        <span
+          className={
+            signal.action === "BUY" ? "text-green-200" : "text-red-200"
+          }
+        >
           {signal.action}
         </span>
         <span>{signal.symbol.split("/")[0]}</span>
       </motion.div>
     </motion.div>
-  )
+  );
 }
 
 function StageNode({
@@ -185,12 +196,12 @@ function StageNode({
   isProcessing,
   stats,
 }: {
-  stage: (typeof stages)[0]
-  isActive: boolean
-  isProcessing: boolean
-  stats: { processed: number; latency: number }
+  stage: (typeof stages)[0];
+  isActive: boolean;
+  isProcessing: boolean;
+  stats: { processed: number; latency: number };
 }) {
-  const Icon = stage.icon
+  const Icon = stage.icon;
 
   return (
     <motion.div
@@ -224,7 +235,9 @@ function StageNode({
       >
         <Icon
           className={`h-7 w-7 transition-colors duration-300 ${
-            isProcessing || isActive ? "text-foreground" : "text-muted-foreground"
+            isProcessing || isActive
+              ? "text-foreground"
+              : "text-muted-foreground"
           }`}
         />
 
@@ -239,7 +252,9 @@ function StageNode({
       </motion.div>
 
       {/* Stage name */}
-      <span className="mt-2 text-xs font-medium text-foreground">{stage.shortName}</span>
+      <span className="mt-2 text-xs font-medium text-foreground">
+        {stage.shortName}
+      </span>
 
       {/* Stats */}
       <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
@@ -252,9 +267,9 @@ function StageNode({
       {stage.services && stage.services.length > 0 && (
         <div className="mt-2 flex flex-nowrap overflow-x-auto scrollbar-none justify-start gap-1 w-full max-w-[80px] px-1 pb-1">
           {stage.services.map((service) => (
-            <CFServiceBadge 
-              key={service} 
-              service={service} 
+            <CFServiceBadge
+              key={service}
+              service={service}
               isActive={isProcessing}
               mini
             />
@@ -262,7 +277,7 @@ function StageNode({
         </div>
       )}
     </motion.div>
-  )
+  );
 }
 
 function ConnectionLine({
@@ -271,10 +286,10 @@ function ConnectionLine({
   isActive,
   hasSignal,
 }: {
-  fromStage: number
-  toStage: number
-  isActive: boolean
-  hasSignal: boolean
+  fromStage: number;
+  toStage: number;
+  isActive: boolean;
+  hasSignal: boolean;
 }) {
   return (
     <div className="relative flex-1 flex items-center justify-center px-1">
@@ -309,33 +324,40 @@ function ConnectionLine({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 export function SignalFlowVisualization() {
-  const [signals, setSignals] = useState<Signal[]>([])
-  const [isRunning, setIsRunning] = useState(true)
+  const [signals, setSignals] = useState<Signal[]>([]);
+  const [isRunning, setIsRunning] = useState(true);
   const [stageStats, setStageStats] = useState(
-    stages.map(() => ({ processed: 0, latency: Math.floor(Math.random() * 30) + 10 }))
-  )
+    stages.map(() => ({
+      processed: 0,
+      latency: Math.floor(Math.random() * 30) + 10,
+    }))
+  );
   const [completedSignals, setCompletedSignals] = useState<{
-    successful: number
-    rejected: number
-  }>({ successful: 0, rejected: 0 })
+    successful: number;
+    rejected: number;
+  }>({ successful: 0, rejected: 0 });
 
   // Process signals through stages
   useEffect(() => {
-    if (!isRunning) return
+    if (!isRunning) return;
 
     const interval = setInterval(() => {
       setSignals((prev) => {
         const updated = prev.map((signal) => {
           if (signal.currentStage < stages.length - 1) {
-            const nextStage = signal.currentStage + 1
+            const nextStage = signal.currentStage + 1;
 
             // Random rejection at risk stage
             if (nextStage === 3 && Math.random() < 0.15) {
-              return { ...signal, status: "rejected" as const, riskApproved: false }
+              return {
+                ...signal,
+                status: "rejected" as const,
+                riskApproved: false,
+              };
             }
 
             // Update stats
@@ -348,7 +370,7 @@ export function SignalFlowVisualization() {
                     }
                   : s
               )
-            )
+            );
 
             // Add AI score at AI stage
             if (nextStage === 2) {
@@ -356,24 +378,31 @@ export function SignalFlowVisualization() {
                 ...signal,
                 currentStage: nextStage,
                 aiScore: Math.floor(Math.random() * 30) + 70,
-              }
+              };
             }
 
             // Mark as completed at final stage
             if (nextStage === stages.length - 1) {
-              setCompletedSignals((c) => ({ ...c, successful: c.successful + 1 }))
+              setCompletedSignals((c) => ({
+                ...c,
+                successful: c.successful + 1,
+              }));
               return {
                 ...signal,
                 currentStage: nextStage,
                 status: "completed" as const,
                 executed: true,
-              }
+              };
             }
 
-            return { ...signal, currentStage: nextStage, status: "processing" as const }
+            return {
+              ...signal,
+              currentStage: nextStage,
+              status: "processing" as const,
+            };
           }
-          return signal
-        })
+          return signal;
+        });
 
         // Remove completed/rejected signals after delay
         return updated.filter(
@@ -382,61 +411,77 @@ export function SignalFlowVisualization() {
               (s.status === "completed" || s.status === "rejected") &&
               Date.now() - s.startTime > 5000
             )
-        )
-      })
-    }, 600)
+        );
+      });
+    }, 600);
 
-    return () => clearInterval(interval)
-  }, [isRunning])
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   // Generate new signals
   useEffect(() => {
-    if (!isRunning) return
+    if (!isRunning) return;
 
-    const interval = setInterval(() => {
-      if (signals.length < 5) {
-        setSignals((prev) => [...prev, generateSignal()])
-      }
-    }, 2000 + Math.random() * 2000)
+    const interval = setInterval(
+      () => {
+        if (signals.length < 5) {
+          setSignals((prev) => [...prev, generateSignal()]);
+        }
+      },
+      2000 + Math.random() * 2000
+    );
 
-    return () => clearInterval(interval)
-  }, [isRunning, signals.length])
+    return () => clearInterval(interval);
+  }, [isRunning, signals.length]);
 
   // Start initial signal
   useEffect(() => {
     if (signals.length === 0 && isRunning) {
-      setSignals([generateSignal()])
+      setSignals([generateSignal()]);
     }
-  }, [signals.length, isRunning])
+  }, [signals.length, isRunning]);
 
   const handleReset = useCallback(() => {
-    setSignals([])
-    setStageStats(stages.map(() => ({ processed: 0, latency: Math.floor(Math.random() * 30) + 10 })))
-    setCompletedSignals({ successful: 0, rejected: 0 })
-  }, [])
+    setSignals([]);
+    setStageStats(
+      stages.map(() => ({
+        processed: 0,
+        latency: Math.floor(Math.random() * 30) + 10,
+      }))
+    );
+    setCompletedSignals({ successful: 0, rejected: 0 });
+  }, []);
 
-  const activeStages = new Set(signals.map((s) => s.currentStage))
+  const activeStages = new Set(signals.map((s) => s.currentStage));
   const processingStages = new Set(
     signals.filter((s) => s.status === "processing").map((s) => s.currentStage)
-  )
+  );
 
   return (
     <Card className="overflow-hidden border-border bg-card">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold">Signal Flow Pipeline</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Signal Flow Pipeline
+            </CardTitle>
             <p className="text-sm text-muted-foreground">
               Real-time visualization of signal processing through workers
             </p>
           </div>
           <div className="flex items-center gap-2">
             {/* Stats badges */}
-            <Badge variant="outline" className="gap-1 border-emerald-500/30 text-emerald-500">
+            <Badge
+              variant="outline"
+              className="gap-1 border-emerald-500/30 text-emerald-500"
+            >
               <CheckCircle2 className="h-3 w-3" />
               {completedSignals.successful}
             </Badge>
-            <Badge variant="outline" className="gap-1 border-red-500/30 text-red-500">
+            <Badge
+              variant="outline"
+              className="gap-1 border-red-500/30 text-red-500"
+            >
               <XCircle className="h-3 w-3" />
               {completedSignals.rejected}
             </Badge>
@@ -448,7 +493,11 @@ export function SignalFlowVisualization() {
               onClick={() => setIsRunning(!isRunning)}
               className="gap-1.5"
             >
-              {isRunning ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {isRunning ? (
+                <Pause className="h-3.5 w-3.5" />
+              ) : (
+                <Play className="h-3.5 w-3.5" />
+              )}
               {isRunning ? "Pause" : "Play"}
             </Button>
             <Button variant="outline" size="sm" onClick={handleReset}>
@@ -464,10 +513,16 @@ export function SignalFlowVisualization() {
           {/* Stage nodes and connections */}
           <div className="flex items-center justify-between">
             {stages.map((stage, index) => (
-              <div key={stage.id} className="flex items-center" style={{ flex: index < stages.length - 1 ? 1 : 0 }}>
+              <div
+                key={stage.id}
+                className="flex items-center"
+                style={{ flex: index < stages.length - 1 ? 1 : 0 }}
+              >
                 <StageNode
                   stage={stage}
-                  isActive={activeStages.has(index) || stageStats[index].processed > 0}
+                  isActive={
+                    activeStages.has(index) || stageStats[index].processed > 0
+                  }
                   isProcessing={processingStages.has(index)}
                   stats={stageStats[index]}
                 />
@@ -476,7 +531,10 @@ export function SignalFlowVisualization() {
                     fromStage={index}
                     toStage={index + 1}
                     isActive={stageStats[index].processed > 0}
-                    hasSignal={signals.some((s) => s.currentStage === index && s.status === "processing")}
+                    hasSignal={signals.some(
+                      (s) =>
+                        s.currentStage === index && s.status === "processing"
+                    )}
                   />
                 )}
               </div>
@@ -485,7 +543,9 @@ export function SignalFlowVisualization() {
 
           {/* Active signals queue */}
           <div className="mt-6 flex items-center gap-3">
-            <span className="text-xs font-medium text-muted-foreground">Active Signals:</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              Active Signals:
+            </span>
             <div className="flex flex-wrap gap-2">
               <AnimatePresence mode="popLayout">
                 {signals.map((signal) => (
@@ -520,19 +580,27 @@ export function SignalFlowVisualization() {
                         />
                       )}
                       <span className="font-medium">{signal.action}</span>
-                      <span className="text-muted-foreground">{signal.symbol.split("/")[0]}</span>
+                      <span className="text-muted-foreground">
+                        {signal.symbol.split("/")[0]}
+                      </span>
                       {signal.aiScore && (
-                        <span className="text-purple-400">AI:{signal.aiScore}%</span>
+                        <span className="text-purple-400">
+                          AI:{signal.aiScore}%
+                        </span>
                       )}
                       <span className="text-muted-foreground/60">
-                        @{stages[Math.max(0, signal.currentStage)]?.shortName || "Queue"}
+                        @
+                        {stages[Math.max(0, signal.currentStage)]?.shortName ||
+                          "Queue"}
                       </span>
                     </Badge>
                   </motion.div>
                 ))}
               </AnimatePresence>
               {signals.length === 0 && (
-                <span className="text-xs text-muted-foreground">No active signals</span>
+                <span className="text-xs text-muted-foreground">
+                  No active signals
+                </span>
               )}
             </div>
           </div>
@@ -541,9 +609,9 @@ export function SignalFlowVisualization() {
         {/* Worker details grid */}
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {stages.map((stage, index) => {
-            const stats = stageStats[index]
-            const isActive = processingStages.has(index)
-            const Icon = stage.icon
+            const stats = stageStats[index];
+            const isActive = processingStages.has(index);
+            const Icon = stage.icon;
 
             return (
               <motion.div
@@ -557,19 +625,23 @@ export function SignalFlowVisualization() {
                 transition={{ duration: 0.5 }}
               >
                 <div className="flex items-center gap-2">
-                  <Icon className={`h-4 w-4 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />
+                  <Icon
+                    className={`h-4 w-4 ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+                  />
                   <span className="text-xs font-medium">{stage.name}</span>
                 </div>
-                <div className="mt-2 text-lg font-bold tabular-nums">{stats.processed}</div>
+                <div className="mt-2 text-lg font-bold tabular-nums">
+                  {stats.processed}
+                </div>
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                   <span>processed</span>
                   <span className="tabular-nums">{stats.latency}ms</span>
                 </div>
               </motion.div>
-            )
+            );
           })}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

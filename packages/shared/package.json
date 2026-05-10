@@ -18,11 +18,13 @@
     "./middleware/cors": "./src/middleware/cors.ts",
     "./errors": "./src/errors.ts",
     "./router": "./src/router.ts",
+    "./kvKeys": "./src/kvKeys.ts",
     "./kvUtils": "./src/kvUtils.ts",
     "./json-response": "./src/json-response.ts",
     "./exchange-client": "./src/exchange-client.ts",
     "./analytics": "./src/analytics.ts",
-    "./health": "./src/health.ts"
+    "./health": "./src/health.ts",
+    "./d1": "./src/d1/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -49,6 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@cloudflare/workers-types": "^4.20260506.0",
     "typescript": "^5.9.3"
   }
 }

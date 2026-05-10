@@ -33,11 +33,11 @@ The `email-worker` is responsible for scanning emails and triggering trading sig
 
 The worker can be configured dynamically using keys in `CONFIG_KV`:
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `email:coin_pattern` | `BTC\|ETH\|SOL` | Regex pattern for matching symbols. |
-| `email:action_pattern` | `BUY\|SELL\|LONG\|SHORT` | Regex pattern for matching actions. |
-| `email:quantity_multiplier` | `1` | Multiplier applied to parsed quantities. |
+| Key                         | Default                  | Description                              |
+| --------------------------- | ------------------------ | ---------------------------------------- |
+| `email:coin_pattern`        | `BTC\|ETH\|SOL`          | Regex pattern for matching symbols.      |
+| `email:action_pattern`      | `BUY\|SELL\|LONG\|SHORT` | Regex pattern for matching actions.      |
+| `email:quantity_multiplier` | `1`                      | Multiplier applied to parsed quantities. |
 
 ## API Interface
 
@@ -67,4 +67,4 @@ Handles incoming updates from Mailgun.
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

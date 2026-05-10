@@ -2,10 +2,6 @@ import { describe, it, expect } from "bun:test";
 import { CLIError, ExitCode } from "./errors.js";
 
 // CommandItem is defined in errors.js and re-exported; avoid redeclare
-// eslint-disable-next-line no-redeclare
-// eslint-disable-next-line no-redeclare
-// eslint-disable-next-line no-redeclare
-// eslint-disable-next-line no-redeclare
 
 describe("ExitCode", () => {
   it("has correct numeric values", () => {
@@ -21,7 +17,12 @@ describe("ExitCode", () => {
     expect(ExitCode.INVALID_USAGE).toBe(2);
     expect(ExitCode.INFRA_UNAVAILABLE).toBe(3);
     // All values are distinct
-    const values = [ExitCode.SUCCESS, ExitCode.ERROR, ExitCode.INVALID_USAGE, ExitCode.INFRA_UNAVAILABLE];
+    const values = [
+      ExitCode.SUCCESS,
+      ExitCode.ERROR,
+      ExitCode.INVALID_USAGE,
+      ExitCode.INFRA_UNAVAILABLE,
+    ];
     expect(new Set(values).size).toBe(4);
   });
 });
@@ -43,7 +44,7 @@ describe("CLIError", () => {
       "invalid input",
       ExitCode.INVALID_USAGE,
       "Expected --name to be a non-empty string",
-      true,
+      true
     );
     expect(err.message).toBe("invalid input");
     expect(err.code).toBe(ExitCode.INVALID_USAGE);
@@ -55,7 +56,7 @@ describe("CLIError", () => {
     const err = new CLIError(
       "Cloudflare API unreachable",
       ExitCode.INFRA_UNAVAILABLE,
-      "Check your network or try again later",
+      "Check your network or try again later"
     );
     expect(err.code).toBe(3);
     expect(err.recoverable).toBe(false);

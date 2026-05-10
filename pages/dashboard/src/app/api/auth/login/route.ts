@@ -6,7 +6,7 @@ export const runtime = "edge";
 
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{}> }
+  context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
     const body = (await request.json()) as {
@@ -56,7 +56,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  _context: { params: Promise<{}> }
+  _context: { params: Promise<Record<string, unknown>> }
 ) {
   const response = NextResponse.json({ success: true });
   response.cookies.delete("session");

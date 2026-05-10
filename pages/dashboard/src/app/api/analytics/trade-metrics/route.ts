@@ -21,7 +21,7 @@ function buildTradeMetricsQuery(start: string, end: string): string {
 }
 
 function buildSuccessRateQuery(timeRange?: string): string {
-  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : '';
+  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : "";
   return `
     SELECT
       COUNT(*) as total,
@@ -67,7 +67,9 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
-    const start = url.searchParams.get("start") || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const start =
+      url.searchParams.get("start") ||
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const end = url.searchParams.get("end") || new Date().toISOString();
     const type = url.searchParams.get("type") || "metrics";
 

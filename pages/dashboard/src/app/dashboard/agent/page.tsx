@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -40,7 +46,9 @@ export default function AgentOverviewPage() {
     fetchStatus();
   }, []);
 
-  const handleKillSwitch = async (action: 'engage_kill_switch' | 'release_kill_switch') => {
+  const handleKillSwitch = async (
+    action: "engage_kill_switch" | "release_kill_switch"
+  ) => {
     setActionLoading(true);
     try {
       const res = await fetch("/api/agent/risk-override", {
@@ -80,7 +88,7 @@ export default function AgentOverviewPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -101,7 +109,12 @@ export default function AgentOverviewPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchStatus} disabled={loading}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchStatus}
+          disabled={loading}
+        >
           <RefreshCw className="h-4 w-4" data-icon="inline-start" />
           Refresh
         </Button>
@@ -124,18 +137,24 @@ export default function AgentOverviewPage() {
               <div className="flex flex-col gap-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge variant={status?.killSwitch ? "destructive" : "default"}>
+                  <Badge
+                    variant={status?.killSwitch ? "destructive" : "default"}
+                  >
                     {status?.killSwitch ? "Kill Switch Active" : "Active"}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Provider</span>
+                  <span className="text-sm text-muted-foreground">
+                    Provider
+                  </span>
                   <span className="text-sm font-medium text-foreground">
                     {config?.defaultProvider || "workers-ai"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Active Stops</span>
+                  <span className="text-sm text-muted-foreground">
+                    Active Stops
+                  </span>
                   <span className="text-sm font-medium text-foreground">
                     {status?.activeStops || 0}
                   </span>
@@ -159,10 +178,16 @@ export default function AgentOverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-2">
-                <Button 
-                  variant={status?.killSwitch ? "default" : "destructive"} 
+                <Button
+                  variant={status?.killSwitch ? "default" : "destructive"}
                   className="w-full"
-                  onClick={() => handleKillSwitch(status?.killSwitch ? 'release_kill_switch' : 'engage_kill_switch')}
+                  onClick={() =>
+                    handleKillSwitch(
+                      status?.killSwitch
+                        ? "release_kill_switch"
+                        : "engage_kill_switch"
+                    )
+                  }
                   disabled={actionLoading}
                 >
                   {actionLoading ? (
@@ -173,7 +198,9 @@ export default function AgentOverviewPage() {
                   ) : (
                     <>
                       <Shield className="h-4 w-4" data-icon="inline-start" />
-                      {status?.killSwitch ? "Release Kill Switch" : "Engage Kill Switch"}
+                      {status?.killSwitch
+                        ? "Release Kill Switch"
+                        : "Engage Kill Switch"}
                     </>
                   )}
                 </Button>
@@ -202,26 +229,46 @@ export default function AgentOverviewPage() {
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Default Provider</span>
-                <span className="text-sm font-medium">{config?.defaultProvider || "workers-ai"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Fallback Chain</span>
+                <span className="text-sm text-muted-foreground">
+                  Default Provider
+                </span>
                 <span className="text-sm font-medium">
-                  {(config?.fallbackChain || ["workers-ai", "openai"]).join(" → ")}
+                  {config?.defaultProvider || "workers-ai"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Trailing Stop</span>
-                <span className="text-sm font-medium">{(config?.trailingStopPercent || 0.05) * 100}%</span>
+                <span className="text-sm text-muted-foreground">
+                  Fallback Chain
+                </span>
+                <span className="text-sm font-medium">
+                  {(config?.fallbackChain || ["workers-ai", "openai"]).join(
+                    " → "
+                  )}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Take Profit</span>
-                <span className="text-sm font-medium">{(config?.takeProfitPercent || 0.1) * 100}%</span>
+                <span className="text-sm text-muted-foreground">
+                  Trailing Stop
+                </span>
+                <span className="text-sm font-medium">
+                  {(config?.trailingStopPercent || 0.05) * 100}%
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Max Drawdown</span>
-                <span className="text-sm font-medium text-destructive">{(config?.maxDailyDrawdownPercent || -5)}%</span>
+                <span className="text-sm text-muted-foreground">
+                  Take Profit
+                </span>
+                <span className="text-sm font-medium">
+                  {(config?.takeProfitPercent || 0.1) * 100}%
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Max Drawdown
+                </span>
+                <span className="text-sm font-medium text-destructive">
+                  {config?.maxDailyDrawdownPercent || -5}%
+                </span>
               </div>
             </div>
           </CardContent>

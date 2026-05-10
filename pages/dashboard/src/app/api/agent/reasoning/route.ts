@@ -7,10 +7,10 @@ export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       prompt?: string;
       model?: string;
-      reasoningEffort?: 'low' | 'medium' | 'high';
+      reasoningEffort?: "low" | "medium" | "high";
     };
 
     const { prompt, model = "o1-preview", reasoningEffort = "medium" } = body;
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       CONFIG_KV?: KVNamespace;
     };
 
-    if (env.AI && model.includes('deepseek')) {
+    if (env.AI && model.includes("deepseek")) {
       const result = await env.AI.run(model, {
         messages: [{ role: "user", content: prompt }],
         max_tokens: 2000,

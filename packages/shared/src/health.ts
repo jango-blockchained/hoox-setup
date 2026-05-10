@@ -3,7 +3,7 @@
  * Provides a standardized /health endpoint response
  */
 
-import { createSuccessResponse } from './json-response.js';
+import { createSuccessResponse } from "./json-response.js";
 
 export interface HealthCheckOptions {
   /** Worker/service name included in the response */
@@ -21,7 +21,7 @@ export interface HealthCheckOptions {
  */
 export function healthCheck(options?: HealthCheckOptions): Response {
   const result: Record<string, unknown> = {
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
   };
 

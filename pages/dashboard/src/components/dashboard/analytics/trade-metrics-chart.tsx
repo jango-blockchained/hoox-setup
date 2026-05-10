@@ -1,13 +1,33 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
-import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const chartConfig = {
   trade_count: {
@@ -22,39 +42,48 @@ const chartConfig = {
     label: "Failures",
     color: "var(--color-chart-3)",
   },
-}
+};
 
 export function TradeMetricsChart() {
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState("7d")
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState("7d");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const end = new Date().toISOString()
-        const start = new Date(Date.now() - (timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90) * 24 * 60 * 60 * 1000).toISOString()
-        const res = await fetch(`/api/analytics/trade-metrics?start=${start}&end=${end}`)
-        const json = await res.json() as { success: boolean; data?: any[] }
+        const end = new Date().toISOString();
+        const start = new Date(
+          Date.now() -
+            (timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90) *
+              24 *
+              60 *
+              60 *
+              1000
+        ).toISOString();
+        const res = await fetch(
+          `/api/analytics/trade-metrics?start=${start}&end=${end}`
+        );
+        const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
-          setData(json.data || [])
+          setData(json.data || []);
         }
       } catch (error) {
-        console.error("Failed to fetch trade metrics:", error)
+        console.error("Failed to fetch trade metrics:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    if (mounted) fetchData()
-  }, [timeRange, mounted])
+    if (mounted) fetchData();
+  }, [timeRange, mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <motion.div
@@ -69,7 +98,9 @@ export function TradeMetricsChart() {
               <BarChart3 className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>Trade Metrics by Exchange</CardTitle>
-                <CardDescription>Trading activity across exchanges</CardDescription>
+                <CardDescription>
+                  Trading activity across exchanges
+                </CardDescription>
               </div>
             </div>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -101,9 +132,21 @@ export function TradeMetricsChart() {
                   <XAxis dataKey="exchange" />
                   <YAxis />
                   <Tooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="trade_count" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="success_count" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="failure_count" fill="var(--color-chart-3)" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="trade_count"
+                    fill="var(--color-chart-1)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="success_count"
+                    fill="var(--color-chart-2)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="failure_count"
+                    fill="var(--color-chart-3)"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -111,5 +154,5 @@ export function TradeMetricsChart() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

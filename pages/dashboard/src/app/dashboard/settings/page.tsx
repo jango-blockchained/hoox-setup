@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { SettingsForm } from "@/components/dashboard/settings-form"
-import { Settings } from "lucide-react"
-import { motion } from "framer-motion"
+import { SettingsForm } from "@/components/dashboard/settings-form";
+import { Settings } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -29,5 +29,5 @@ export default function SettingsPage() {
       </motion.div>
       <SettingsForm />
     </div>
-  )
+  );
 }

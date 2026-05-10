@@ -32,17 +32,17 @@
 
 Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Workers. It consists of:
 
-| Layer | Components |
-|-------|------------|
-| **Gateway** | `hoox` (webhook entrypoint, idempotency, rate limiting) |
-| **Execution** | `trade-worker` (multi-exchange trading), `web3-wallet-worker` (DeFi) |
-| **Intelligence** | `agent-worker` (AI risk manager, 5min cron) |
-| **Data** | `d1-worker` (centralized D1 database service) |
+| Layer             | Components                                                              |
+| ----------------- | ----------------------------------------------------------------------- |
+| **Gateway**       | `hoox` (webhook entrypoint, idempotency, rate limiting)                 |
+| **Execution**     | `trade-worker` (multi-exchange trading), `web3-wallet-worker` (DeFi)    |
+| **Intelligence**  | `agent-worker` (AI risk manager, 5min cron)                             |
+| **Data**          | `d1-worker` (centralized D1 database service)                           |
 | **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing) |
-| **Analytics** | `analytics-worker` (Cloudflare Analytics Engine) |
-| **Dashboard** | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers) |
-| **CLI** | `packages/cli` (management tool) |
-| **Shared** | `packages/shared` (types, router, middleware, utilities) |
+| **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine)                        |
+| **Dashboard**     | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)         |
+| **CLI**           | `packages/cli` (management tool)                                        |
+| **Shared**        | `packages/shared` (types, router, middleware, utilities)                |
 
 ### 1.2 Communication Flow
 
@@ -59,20 +59,20 @@ email-worker (cron) → trade-worker
 
 ### 1.3 Infrastructure Components
 
-| Service | Instance Name | Binding | Used By |
-|---------|---------------|---------|---------|
-| **D1 Database** | `trade-data-db` | `DB` | trade-worker, d1-worker |
-| **KV Namespace** | `CONFIG_KV` | `CONFIG_KV` | ALL workers + dashboard |
-| **KV Namespace** | `SESSIONS_KV` | `SESSIONS_KV` | hoox |
-| **R2 Bucket** | `trade-reports` | `REPORTS_BUCKET` | trade-worker |
-| **R2 Bucket** | `hoox-system-logs` | `SYSTEM_LOGS_BUCKET` | trade-worker |
-| **R2 Bucket** | `user-uploads` | `UPLOADS_BUCKET` | telegram-worker |
-| **Queue** | `trade-execution` | `TRADE_QUEUE` | hoox (producer), trade-worker (consumer) |
-| **Vectorize** | `my-rag-index` | `VECTORIZE_INDEX` | hoox, trade-worker, telegram-worker, agent-worker |
-| **Analytics Engine** | `hoox-analytics` | `ANALYTICS_ENGINE` | analytics-worker |
-| **Durable Objects** | `IdempotencyStore` | `IDEMPOTENCY_STORE` | hoox |
-| **Browser** | — | `BROWSER` | trade-worker, web3-wallet-worker |
-| **AI** | — | `AI` | hoox, trade-worker, telegram-worker, agent-worker |
+| Service              | Instance Name      | Binding              | Used By                                           |
+| -------------------- | ------------------ | -------------------- | ------------------------------------------------- |
+| **D1 Database**      | `trade-data-db`    | `DB`                 | trade-worker, d1-worker                           |
+| **KV Namespace**     | `CONFIG_KV`        | `CONFIG_KV`          | ALL workers + dashboard                           |
+| **KV Namespace**     | `SESSIONS_KV`      | `SESSIONS_KV`        | hoox                                              |
+| **R2 Bucket**        | `trade-reports`    | `REPORTS_BUCKET`     | trade-worker                                      |
+| **R2 Bucket**        | `hoox-system-logs` | `SYSTEM_LOGS_BUCKET` | trade-worker                                      |
+| **R2 Bucket**        | `user-uploads`     | `UPLOADS_BUCKET`     | telegram-worker                                   |
+| **Queue**            | `trade-execution`  | `TRADE_QUEUE`        | hoox (producer), trade-worker (consumer)          |
+| **Vectorize**        | `my-rag-index`     | `VECTORIZE_INDEX`    | hoox, trade-worker, telegram-worker, agent-worker |
+| **Analytics Engine** | `hoox-analytics`   | `ANALYTICS_ENGINE`   | analytics-worker                                  |
+| **Durable Objects**  | `IdempotencyStore` | `IDEMPOTENCY_STORE`  | hoox                                              |
+| **Browser**          | —                  | `BROWSER`            | trade-worker, web3-wallet-worker                  |
+| **AI**               | —                  | `AI`                 | hoox, trade-worker, telegram-worker, agent-worker |
 
 ---
 
@@ -80,37 +80,37 @@ email-worker (cron) → trade-worker
 
 ### 2.1 Required Accounts
 
-| Account | Purpose | URL |
-|---------|---------|-----|
-| Cloudflare Account | Worker hosting, D1, KV, R2, Queues | https://dash.cloudflare.com |
-| Telegram Bot | Notifications | Via @BotFather |
-| Exchange APIs | Trading execution | Binance, MEXC, Bybit |
-| AI Providers (optional) | Agent intelligence | OpenAI, Anthropic, Google |
+| Account                 | Purpose                            | URL                         |
+| ----------------------- | ---------------------------------- | --------------------------- |
+| Cloudflare Account      | Worker hosting, D1, KV, R2, Queues | https://dash.cloudflare.com |
+| Telegram Bot            | Notifications                      | Via @BotFather              |
+| Exchange APIs           | Trading execution                  | Binance, MEXC, Bybit        |
+| AI Providers (optional) | Agent intelligence                 | OpenAI, Anthropic, Google   |
 
 ### 2.2 Required Tools
 
-| Tool | Version | Installation Command | Verification |
-|------|---------|---------------------|--------------|
-| Bun | >=1.2 | `curl -fsSL https://bun.sh \| bash` | `bun --version` |
-| Git | >=2.40 | `apt install git` | `git --version` |
-| Wrangler CLI | latest | `bun add -g wrangler` | `wrangler --version` |
-| Node.js | >=18 (for some tools) | — | `node --version` |
+| Tool         | Version               | Installation Command                | Verification         |
+| ------------ | --------------------- | ----------------------------------- | -------------------- |
+| Bun          | >=1.2                 | `curl -fsSL https://bun.sh \| bash` | `bun --version`      |
+| Git          | >=2.40                | `apt install git`                   | `git --version`      |
+| Wrangler CLI | latest                | `bun add -g wrangler`               | `wrangler --version` |
+| Node.js      | >=18 (for some tools) | —                                   | `node --version`     |
 
 ### 2.3 Required Cloudflare Permissions
 
 Your Cloudflare API Token needs these permissions:
 
-| Permission | Scope | Why |
-|------------|-------|-----|
-| Cloudflare Workers Scripts | Edit | Deploy workers |
-| Account Workers Scripts | Edit | Deploy workers |
-| Account Workers KV Storage | Edit | Manage KV |
-| Account D1 | Edit | Manage databases |
-| Account R2 | Edit | Manage buckets |
-| Account Queues | Edit | Manage queues |
-| Account AI | Read | Use Workers AI |
-| Zone Settings | Read | DNS management |
-| Zone DNS | Edit | Custom domains |
+| Permission                 | Scope | Why              |
+| -------------------------- | ----- | ---------------- |
+| Cloudflare Workers Scripts | Edit  | Deploy workers   |
+| Account Workers Scripts    | Edit  | Deploy workers   |
+| Account Workers KV Storage | Edit  | Manage KV        |
+| Account D1                 | Edit  | Manage databases |
+| Account R2                 | Edit  | Manage buckets   |
+| Account Queues             | Edit  | Manage queues    |
+| Account AI                 | Read  | Use Workers AI   |
+| Zone Settings              | Read  | DNS management   |
+| Zone DNS                   | Edit  | Custom domains   |
 
 ### 2.4 Required Repository Access
 
@@ -132,31 +132,31 @@ hoox clone my-hoox-app
 
 > **CRITICAL:** All production secrets must be set via `wrangler secret put` or `hoox secrets update-cf`. Never commit secrets to version control.
 
-| Secret Name | Worker(s) | Set Via | Required For | Description |
-|-------------|-----------|---------|--------------|-------------|
-| `CLOUDFLARE_API_TOKEN` | analytics-worker, CLI | `wrangler secret put` | Production | CF API token for Analytics SQL queries |
-| `WEBHOOK_API_KEY_BINDING` | hoox | `wrangler secret put` | Production | External webhook auth key |
-| `INTERNAL_KEY_BINDING` | hoox, trade-worker, telegram-worker | `wrangler secret put` | Production | Inter-worker auth |
-| `AGENT_INTERNAL_KEY` | agent-worker | `wrangler secret put` | Production | Agent worker auth |
-| `API_SERVICE_KEY` | trade-worker | `wrangler secret put` | Production | Trade worker service key |
-| `BINANCE_API_KEY` | trade-worker | `wrangler secret put` | Optional | Binance exchange API |
-| `BINANCE_API_SECRET` | trade-worker | `wrangler secret put` | Optional | Binance exchange secret |
-| `MEXC_API_KEY` | trade-worker | `wrangler secret put` | Optional | MEXC exchange API |
-| `MEXC_API_SECRET` | trade-worker | `wrangler secret put` | Optional | MEXC exchange secret |
-| `BYBIT_API_KEY` | trade-worker | `wrangler secret put` | Optional | Bybit exchange API |
-| `BYBIT_API_SECRET` | trade-worker | `wrangler secret put` | Optional | Bybit exchange secret |
-| `TELEGRAM_BOT_TOKEN` | telegram-worker | `wrangler secret put` | Optional | Telegram bot token |
-| `TELEGRAM_SECRET_TOKEN` | telegram-worker | `wrangler secret put` | Optional | Telegram webhook secret |
-| `TG_BOT_TOKEN_BINDING` | telegram-worker | `wrangler secret put` | Optional | Telegram bot token (binding) |
-| `TG_CHAT_ID_BINDING` | telegram-worker | `wrangler secret put` | Optional | Default Telegram chat ID |
-| `WALLET_PK_SECRET` | web3-wallet-worker | `wrangler secret put` | Optional | Wallet private key |
-| `WALLET_MNEMONIC_SECRET` | web3-wallet-worker | `wrangler secret put` | Optional | Wallet mnemonic phrase |
-| `EMAIL_HOST` | email-worker | `wrangler secret put` | Optional | Email IMAP host |
-| `EMAIL_USER` | email-worker | `wrangler secret put` | Optional | Email username |
-| `EMAIL_PASS` | email-worker | `wrangler secret put` | Optional | Email password |
-| `INTERNAL_KEY` | email-worker | `wrangler secret put` | Optional | Email worker auth |
-| `D1_INTERNAL_KEY` | d1-worker (header check) | `wrangler secret put` | Optional | D1 worker API auth |
-| `HA_TOKEN_BINDING` | hoox | `wrangler secret put` | Optional | Home Assistant token |
+| Secret Name               | Worker(s)                           | Set Via               | Required For | Description                            |
+| ------------------------- | ----------------------------------- | --------------------- | ------------ | -------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`    | analytics-worker, CLI               | `wrangler secret put` | Production   | CF API token for Analytics SQL queries |
+| `WEBHOOK_API_KEY_BINDING` | hoox                                | `wrangler secret put` | Production   | External webhook auth key              |
+| `INTERNAL_KEY_BINDING`    | hoox, trade-worker, telegram-worker | `wrangler secret put` | Production   | Inter-worker auth                      |
+| `AGENT_INTERNAL_KEY`      | agent-worker                        | `wrangler secret put` | Production   | Agent worker auth                      |
+| `API_SERVICE_KEY`         | trade-worker                        | `wrangler secret put` | Production   | Trade worker service key               |
+| `BINANCE_API_KEY`         | trade-worker                        | `wrangler secret put` | Optional     | Binance exchange API                   |
+| `BINANCE_API_SECRET`      | trade-worker                        | `wrangler secret put` | Optional     | Binance exchange secret                |
+| `MEXC_API_KEY`            | trade-worker                        | `wrangler secret put` | Optional     | MEXC exchange API                      |
+| `MEXC_API_SECRET`         | trade-worker                        | `wrangler secret put` | Optional     | MEXC exchange secret                   |
+| `BYBIT_API_KEY`           | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange API                     |
+| `BYBIT_API_SECRET`        | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange secret                  |
+| `TELEGRAM_BOT_TOKEN`      | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token                     |
+| `TELEGRAM_SECRET_TOKEN`   | telegram-worker                     | `wrangler secret put` | Optional     | Telegram webhook secret                |
+| `TG_BOT_TOKEN_BINDING`    | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token (binding)           |
+| `TG_CHAT_ID_BINDING`      | telegram-worker                     | `wrangler secret put` | Optional     | Default Telegram chat ID               |
+| `WALLET_PK_SECRET`        | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet private key                     |
+| `WALLET_MNEMONIC_SECRET`  | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet mnemonic phrase                 |
+| `EMAIL_HOST`              | email-worker                        | `wrangler secret put` | Optional     | Email IMAP host                        |
+| `EMAIL_USER`              | email-worker                        | `wrangler secret put` | Optional     | Email username                         |
+| `EMAIL_PASS`              | email-worker                        | `wrangler secret put` | Optional     | Email password                         |
+| `INTERNAL_KEY`            | email-worker                        | `wrangler secret put` | Optional     | Email worker auth                      |
+| `D1_INTERNAL_KEY`         | d1-worker (header check)            | `wrangler secret put` | Optional     | D1 worker API auth                     |
+| `HA_TOKEN_BINDING`        | hoox                                | `wrangler secret put` | Optional     | Home Assistant token                   |
 
 ### 3.2 Environment Variables by File
 
@@ -218,19 +218,19 @@ DASHBOARD_PASS=admin
     "cloudflare_api_token": "<USE_WRANGLER_SECRET_PUT>",
     "cloudflare_account_id": "debc6545e63bea36be059cbc82d80ec8",
     "cloudflare_secret_store_id": "48433bc559a943f09d9d6c622e188fd5",
-    "subdomain_prefix": "cryptolinx"
+    "subdomain_prefix": "cryptolinx",
   },
   "workers": {
     "d1-worker": {
       "enabled": true,
       "path": "workers/d1-worker",
-      "vars": { "database_name": "my-database" }
+      "vars": { "database_name": "my-database" },
     },
     "telegram-worker": {
       "enabled": true,
       "path": "workers/telegram-worker",
       "vars": {},
-      "secrets": ["TELEGRAM_BOT_TOKEN"]
+      "secrets": ["TELEGRAM_BOT_TOKEN"],
     },
     "trade-worker": {
       "enabled": true,
@@ -238,42 +238,45 @@ DASHBOARD_PASS=admin
       "vars": {},
       "secrets": [
         "API_SERVICE_KEY",
-        "BINANCE_API_KEY", "BINANCE_API_SECRET",
-        "MEXC_API_KEY", "MEXC_API_SECRET",
-        "BYBIT_API_KEY", "BYBIT_API_SECRET"
-      ]
+        "BINANCE_API_KEY",
+        "BINANCE_API_SECRET",
+        "MEXC_API_KEY",
+        "MEXC_API_SECRET",
+        "BYBIT_API_KEY",
+        "BYBIT_API_SECRET",
+      ],
     },
     "web3-wallet-worker": {
       "enabled": true,
       "path": "workers/web3-wallet-worker",
       "vars": {},
-      "secrets": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"]
+      "secrets": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"],
     },
     "hoox": {
       "enabled": true,
       "path": "workers/hoox",
       "vars": {},
-      "secrets": ["WEBHOOK_API_KEY_BINDING"]
+      "secrets": ["WEBHOOK_API_KEY_BINDING"],
     },
     "agent-worker": {
       "enabled": true,
       "path": "workers/agent-worker",
       "vars": {},
-      "secrets": ["AGENT_INTERNAL_KEY"]
+      "secrets": ["AGENT_INTERNAL_KEY"],
     },
     "email-worker": {
       "enabled": true,
       "path": "workers/email-worker",
       "vars": { "USE_IMAP": "false" },
-      "secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
+      "secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"],
     },
     "analytics-worker": {
       "enabled": true,
       "path": "workers/analytics-worker",
       "vars": {},
-      "secrets": ["CLOUDFLARE_API_TOKEN"]
-    }
-  }
+      "secrets": ["CLOUDFLARE_API_TOKEN"],
+    },
+  },
 }
 ```
 
@@ -281,24 +284,24 @@ DASHBOARD_PASS=admin
 
 These keys must be set in `CONFIG_KV` namespace:
 
-| Key | Type | Default | Set By | Used By |
-|-----|------|---------|--------|---------|
-| `webhook:tradingview:ip_check_enabled` | boolean | `false` | Manual | hoox |
-| `webhook:allowed_ips` | string | `""` | Manual | hoox |
-| `routing:dynamic:enabled` | boolean | `false` | Manual | hoox |
-| `trade:max_daily_drawdown_percent` | number | `10` | Manual | agent-worker |
-| `trade:kill_switch` | boolean | `false` | Manual | agent-worker, hoox |
-| `trade:watermark:{exchange}:{symbol}:{side}` | number | — | agent-worker | agent-worker |
-| `agent:openai_key` | string | — | Manual | agent-worker |
-| `agent:anthropic_key` | string | — | Manual | agent-worker |
-| `agent:google_key` | string | — | Manual | agent-worker |
-| `agent:azure_api_key` | string | — | Manual | agent-worker |
-| `agent:azure_endpoint` | string | — | Manual | agent-worker |
-| `email:scan_subject` | string | — | Manual | email-worker |
-| `email:coin_pattern` | string | — | Manual | email-worker |
-| `email:action_pattern` | string | — | Manual | email-worker |
-| `email:quantity_multiplier` | number | `1` | Manual | email-worker |
-| `email:use_imap` | boolean | `false` | Manual | email-worker |
+| Key                                          | Type    | Default | Set By       | Used By            |
+| -------------------------------------------- | ------- | ------- | ------------ | ------------------ |
+| `webhook:tradingview:ip_check_enabled`       | boolean | `false` | Manual       | hoox               |
+| `webhook:allowed_ips`                        | string  | `""`    | Manual       | hoox               |
+| `routing:dynamic:enabled`                    | boolean | `false` | Manual       | hoox               |
+| `trade:max_daily_drawdown_percent`           | number  | `10`    | Manual       | agent-worker       |
+| `trade:kill_switch`                          | boolean | `false` | Manual       | agent-worker, hoox |
+| `trade:watermark:{exchange}:{symbol}:{side}` | number  | —       | agent-worker | agent-worker       |
+| `agent:openai_key`                           | string  | —       | Manual       | agent-worker       |
+| `agent:anthropic_key`                        | string  | —       | Manual       | agent-worker       |
+| `agent:google_key`                           | string  | —       | Manual       | agent-worker       |
+| `agent:azure_api_key`                        | string  | —       | Manual       | agent-worker       |
+| `agent:azure_endpoint`                       | string  | —       | Manual       | agent-worker       |
+| `email:scan_subject`                         | string  | —       | Manual       | email-worker       |
+| `email:coin_pattern`                         | string  | —       | Manual       | email-worker       |
+| `email:action_pattern`                       | string  | —       | Manual       | email-worker       |
+| `email:quantity_multiplier`                  | number  | `1`     | Manual       | email-worker       |
+| `email:use_imap`                             | boolean | `false` | Manual       | email-worker       |
 
 ---
 
@@ -375,10 +378,12 @@ wrangler whoami
 For local development, some infrastructure is optional. You need:
 
 **Required:**
+
 - D1 database (for trade data)
 - KV namespace (for config)
 
 **Optional for local dev:**
+
 - R2 buckets
 - Queues
 - Vectorize
@@ -555,6 +560,7 @@ wrangler d1 execute trade-data-db --file=workers/trade-worker/schema.sql --remot
 ```
 
 **Schema Tables:**
+
 - `trade_signals` — Incoming signal tracker
 - `trades` — Executed trades log
 - `positions` — Active & closed positions
@@ -696,13 +702,13 @@ hoox workers update-internal-urls
 
 ### 8.1 Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `pages/dashboard/next.config.ts` | Next.js config (OpenNext init) |
-| `pages/dashboard/wrangler.jsonc` | Worker deployment config |
-| `pages/dashboard/open-next.config.ts` | OpenNext adapter config |
-| `pages/dashboard/.env.local` | Local dev credentials |
-| `pages/dashboard/.dev.vars` | Wrangler dev credentials |
+| File                                  | Purpose                        |
+| ------------------------------------- | ------------------------------ |
+| `pages/dashboard/next.config.ts`      | Next.js config (OpenNext init) |
+| `pages/dashboard/wrangler.jsonc`      | Worker deployment config       |
+| `pages/dashboard/open-next.config.ts` | OpenNext adapter config        |
+| `pages/dashboard/.env.local`          | Local dev credentials          |
+| `pages/dashboard/.dev.vars`           | Wrangler dev credentials       |
 
 ### 8.2 Wrangler Configuration
 
@@ -716,20 +722,20 @@ hoox workers update-internal-urls
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "kv_namespaces": [
     {
       "binding": "CONFIG_KV",
-      "id": "c5917667a21745e390ff969f32b1847d"
-    }
+      "id": "c5917667a21745e390ff969f32b1847d",
+    },
   ],
   "vars": {
     "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev",
     "AGENT_SERVICE_URL": "https://agent-worker.cryptolinx.workers.dev",
     "TRADE_SERVICE_URL": "https://trade-worker.cryptolinx.workers.dev",
-    "TELEGRAM_SERVICE_URL": "https://telegram-worker.cryptolinx.workers.dev"
-  }
+    "TELEGRAM_SERVICE_URL": "https://telegram-worker.cryptolinx.workers.dev",
+  },
 }
 ```
 
@@ -771,21 +777,21 @@ bun run pages:deploy
 
 ### 8.5 Dashboard Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DASHBOARD_USER` | Yes | Login username |
-| `DASHBOARD_PASS` | Yes | Login password |
-| `SESSION_SECRET` | Yes | Cookie signing secret (32+ chars) |
-| `AUTH_TYPE` | No | `basic`, `cf-access`, or `none` |
-| `CF_ACCESS_TEAM_NAME` | No | CF Access team (if using cf-access) |
-| `D1_WORKER_URL` | Yes | D1 worker service URL |
-| `TRADE_SERVICE_URL` | Yes | Trade worker service URL |
-| `AGENT_SERVICE_URL` | Yes | Agent worker service URL |
-| `TELEGRAM_SERVICE_URL` | Yes | Telegram worker service URL |
-| `D1_INTERNAL_KEY` | Yes | Auth key for D1 worker |
-| `AGENT_INTERNAL_KEY` | Yes | Auth key for agent worker |
-| `TELEGRAM_INTERNAL_KEY` | No | Auth key for telegram worker |
-| `API_SERVICE_KEY` | No | General API service key |
+| Variable                | Required | Description                         |
+| ----------------------- | -------- | ----------------------------------- |
+| `DASHBOARD_USER`        | Yes      | Login username                      |
+| `DASHBOARD_PASS`        | Yes      | Login password                      |
+| `SESSION_SECRET`        | Yes      | Cookie signing secret (32+ chars)   |
+| `AUTH_TYPE`             | No       | `basic`, `cf-access`, or `none`     |
+| `CF_ACCESS_TEAM_NAME`   | No       | CF Access team (if using cf-access) |
+| `D1_WORKER_URL`         | Yes      | D1 worker service URL               |
+| `TRADE_SERVICE_URL`     | Yes      | Trade worker service URL            |
+| `AGENT_SERVICE_URL`     | Yes      | Agent worker service URL            |
+| `TELEGRAM_SERVICE_URL`  | Yes      | Telegram worker service URL         |
+| `D1_INTERNAL_KEY`       | Yes      | Auth key for D1 worker              |
+| `AGENT_INTERNAL_KEY`    | Yes      | Auth key for agent worker           |
+| `TELEGRAM_INTERNAL_KEY` | No       | Auth key for telegram worker        |
+| `API_SERVICE_KEY`       | No       | General API service key             |
 
 ---
 
@@ -1148,14 +1154,14 @@ bun test
 
 ### 12.5 Monitoring
 
-| Metric | How to Check |
-|--------|--------------|
-| Worker errors | `wrangler tail --config workers/<worker>/wrangler.jsonc` |
-| Trade volume | D1 `SELECT COUNT(*) FROM trades WHERE timestamp > unixepoch() - 86400` |
-| Queue depth | Cloudflare Dashboard > Queues |
-| Analytics | Cloudflare Dashboard > Analytics Engine |
-| System logs | D1 `system_logs` table |
-| Uptime | Cloudflare Dashboard > Workers |
+| Metric        | How to Check                                                           |
+| ------------- | ---------------------------------------------------------------------- |
+| Worker errors | `wrangler tail --config workers/<worker>/wrangler.jsonc`               |
+| Trade volume  | D1 `SELECT COUNT(*) FROM trades WHERE timestamp > unixepoch() - 86400` |
+| Queue depth   | Cloudflare Dashboard > Queues                                          |
+| Analytics     | Cloudflare Dashboard > Analytics Engine                                |
+| System logs   | D1 `system_logs` table                                                 |
+| Uptime        | Cloudflare Dashboard > Workers                                         |
 
 ### 12.6 Backup Procedures
 
@@ -1173,92 +1179,92 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 ### 13.1 Required Configuration Files
 
-| File | Purpose | Required |
-|------|---------|----------|
-| `workers.jsonc` | Central worker configuration | **Yes** |
-| `.env.local` | Local environment variables | **Yes** |
-| `package.json` | Root workspace manifest | **Yes** |
-| `bunfig.toml` | Bun test configuration | **Yes** |
-| `tsconfig.json` | TypeScript configuration | **Yes** |
-| `vitest.config.ts` | Integration test config | **Yes** |
+| File               | Purpose                      | Required |
+| ------------------ | ---------------------------- | -------- |
+| `workers.jsonc`    | Central worker configuration | **Yes**  |
+| `.env.local`       | Local environment variables  | **Yes**  |
+| `package.json`     | Root workspace manifest      | **Yes**  |
+| `bunfig.toml`      | Bun test configuration       | **Yes**  |
+| `tsconfig.json`    | TypeScript configuration     | **Yes**  |
+| `vitest.config.ts` | Integration test config      | **Yes**  |
 
 ### 13.2 Worker Configuration Files
 
-| Worker | Wrangler Config | Main Entry | Schema |
-|--------|----------------|------------|--------|
-| `hoox` | `workers/hoox/wrangler.jsonc` | `workers/hoox/src/index.ts` | — |
-| `trade-worker` | `workers/trade-worker/wrangler.jsonc` | `workers/trade-worker/src/index.ts` | `workers/trade-worker/schema.sql` |
-| `agent-worker` | `workers/agent-worker/wrangler.jsonc` | `workers/agent-worker/src/index.ts` | — |
-| `d1-worker` | `workers/d1-worker/wrangler.jsonc` | `workers/d1-worker/src/index.ts` | — |
-| `telegram-worker` | `workers/telegram-worker/wrangler.jsonc` | `workers/telegram-worker/src/index.ts` | — |
-| `web3-wallet-worker` | `workers/web3-wallet-worker/wrangler.jsonc` | `workers/web3-wallet-worker/src/index.ts` | — |
-| `email-worker` | `workers/email-worker/wrangler.jsonc` | `workers/email-worker/src/index.ts` | — |
-| `analytics-worker` | `workers/analytics-worker/wrangler.jsonc` | `workers/analytics-worker/src/index.ts` | — |
+| Worker               | Wrangler Config                             | Main Entry                                | Schema                            |
+| -------------------- | ------------------------------------------- | ----------------------------------------- | --------------------------------- |
+| `hoox`               | `workers/hoox/wrangler.jsonc`               | `workers/hoox/src/index.ts`               | —                                 |
+| `trade-worker`       | `workers/trade-worker/wrangler.jsonc`       | `workers/trade-worker/src/index.ts`       | `workers/trade-worker/schema.sql` |
+| `agent-worker`       | `workers/agent-worker/wrangler.jsonc`       | `workers/agent-worker/src/index.ts`       | —                                 |
+| `d1-worker`          | `workers/d1-worker/wrangler.jsonc`          | `workers/d1-worker/src/index.ts`          | —                                 |
+| `telegram-worker`    | `workers/telegram-worker/wrangler.jsonc`    | `workers/telegram-worker/src/index.ts`    | —                                 |
+| `web3-wallet-worker` | `workers/web3-wallet-worker/wrangler.jsonc` | `workers/web3-wallet-worker/src/index.ts` | —                                 |
+| `email-worker`       | `workers/email-worker/wrangler.jsonc`       | `workers/email-worker/src/index.ts`       | —                                 |
+| `analytics-worker`   | `workers/analytics-worker/wrangler.jsonc`   | `workers/analytics-worker/src/index.ts`   | —                                 |
 
 ### 13.3 Dashboard Files
 
-| File | Purpose |
-|------|---------|
-| `pages/dashboard/next.config.ts` | Next.js configuration |
-| `pages/dashboard/wrangler.jsonc` | Cloudflare Workers deployment config |
-| `pages/dashboard/open-next.config.ts` | OpenNext adapter configuration |
-| `pages/dashboard/src/middleware.ts` | Edge middleware (auth) |
-| `pages/dashboard/.env.local` | Local dev credentials |
-| `pages/dashboard/.dev.vars` | Wrangler dev credentials |
+| File                                  | Purpose                              |
+| ------------------------------------- | ------------------------------------ |
+| `pages/dashboard/next.config.ts`      | Next.js configuration                |
+| `pages/dashboard/wrangler.jsonc`      | Cloudflare Workers deployment config |
+| `pages/dashboard/open-next.config.ts` | OpenNext adapter configuration       |
+| `pages/dashboard/src/middleware.ts`   | Edge middleware (auth)               |
+| `pages/dashboard/.env.local`          | Local dev credentials                |
+| `pages/dashboard/.dev.vars`           | Wrangler dev credentials             |
 
 ### 13.4 Package Files
 
-| Package | Main Export | Purpose |
-|---------|-------------|---------|
-| `packages/cli` | `bin/hoox.js` | CLI management tool |
+| Package           | Main Export    | Purpose                          |
+| ----------------- | -------------- | -------------------------------- |
+| `packages/cli`    | `bin/hoox.js`  | CLI management tool              |
 | `packages/shared` | `src/index.ts` | Shared types, router, middleware |
 
 ### 13.5 Script Files
 
-| Script | Purpose |
-|--------|---------|
-| `scripts/migrate-tracking.sh` | D1 tracking schema migration |
-| `scripts/check-script-paths.ts` | Validate script paths |
-| `scripts/check-worker-submodules.ts` | Verify worker directories exist |
-| `scripts/purge-credentials.sh` | Git history credential purge |
-| `hoox-tui` | Terminal UI for local dev (if exists) |
+| Script                               | Purpose                               |
+| ------------------------------------ | ------------------------------------- |
+| `scripts/migrate-tracking.sh`        | D1 tracking schema migration          |
+| `scripts/check-script-paths.ts`      | Validate script paths                 |
+| `scripts/check-worker-submodules.ts` | Verify worker directories exist       |
+| `scripts/purge-credentials.sh`       | Git history credential purge          |
+| `hoox-tui`                           | Terminal UI for local dev (if exists) |
 
 ### 13.6 Documentation Files
 
-| Document | Purpose |
-|----------|---------|
-| `docs/home.md` | Project home |
-| `docs/getting-started/installation.md` | Installation guide |
-| `docs/getting-started/configuration.md` | Configuration guide |
-| `docs/deployment/production.md` | Production deployment |
-| `docs/development/local-dev.md` | Local development |
-| `docs/workers/*.md` | Per-worker documentation |
-| `docs/architecture/*.md` | Architecture documentation |
-| `docs/api/*.md` | API documentation |
+| Document                                | Purpose                    |
+| --------------------------------------- | -------------------------- |
+| `docs/home.md`                          | Project home               |
+| `docs/getting-started/installation.md`  | Installation guide         |
+| `docs/getting-started/configuration.md` | Configuration guide        |
+| `docs/deployment/production.md`         | Production deployment      |
+| `docs/development/local-dev.md`         | Local development          |
+| `docs/workers/*.md`                     | Per-worker documentation   |
+| `docs/architecture/*.md`                | Architecture documentation |
+| `docs/api/*.md`                         | API documentation          |
 
 ---
 
 ## 14. Troubleshooting Matrix
 
-| Symptom | Likely Cause | Solution |
-|---------|-------------|----------|
-| `bun install` fails | Missing submodules | `git submodule update --init --recursive` |
-| `wrangler login` fails | Browser/auth issue | Try `wrangler login --browser=false` |
-| Worker deploy fails | Missing secrets | `hoox secrets update-cf` |
-| 502 Bad Gateway | Service binding not found | Deploy dependency workers first (Section 7) |
-| 401 Unauthorized | Wrong API key | Check secret values with `wrangler secret list` |
-| 429 Too Many Requests | Rate limiting | Check KV rate limit keys; increase limits |
-| D1 query fails | Schema not applied | Run `wrangler d1 execute trade-data-db --file=workers/trade-worker/schema.sql --remote` |
-| Telegram not receiving | Webhook not set | Run webhook setup (Section 7.3) |
-| Dashboard 500 error | Missing env vars | Check `.env.local` and `.dev.vars` |
-| TypeScript errors | Missing types | `bun install` to refresh `@cloudflare/workers-types` |
-| Tests fail | Missing test env | Check `bunfig.toml` test.env settings |
-| Queue not processing | Consumer not bound | Check `trade-worker` wrangler.jsonc queue consumer config |
-| Analytics missing | Dataset not created | Create `hoox-analytics` in Cloudflare Dashboard |
-| Kill switch not working | KV key missing | Set `trade:kill_switch` in CONFIG_KV |
-| Exchange API errors | Invalid keys | Regenerate and re-upload exchange secrets |
-| Build fails | TypeScript errors | `bun run typecheck` to identify issues |
-| OpenNext build fails | Missing assets | Ensure `next.config.ts` has `initOpenNextCloudflareForDev()` |
+| Symptom                 | Likely Cause              | Solution                                                                                |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------- |
+| `bun install` fails     | Missing submodules        | `git submodule update --init --recursive`                                               |
+| `wrangler login` fails  | Browser/auth issue        | Try `wrangler login --browser=false`                                                    |
+| Worker deploy fails     | Missing secrets           | `hoox secrets update-cf`                                                                |
+| 502 Bad Gateway         | Service binding not found | Deploy dependency workers first (Section 7)                                             |
+| 401 Unauthorized        | Wrong API key             | Check secret values with `wrangler secret list`                                         |
+| 429 Too Many Requests   | Rate limiting             | Check KV rate limit keys; increase limits                                               |
+| D1 query fails          | Schema not applied        | Run `wrangler d1 execute trade-data-db --file=workers/trade-worker/schema.sql --remote` |
+| Telegram not receiving  | Webhook not set           | Run webhook setup (Section 7.3)                                                         |
+| Dashboard 500 error     | Missing env vars          | Check `.env.local` and `.dev.vars`                                                      |
+| TypeScript errors       | Missing types             | `bun install` to refresh `@cloudflare/workers-types`                                    |
+| Tests fail              | Missing test env          | Check `bunfig.toml` test.env settings                                                   |
+| Queue not processing    | Consumer not bound        | Check `trade-worker` wrangler.jsonc queue consumer config                               |
+| Analytics missing       | Dataset not created       | Create `hoox-analytics` in Cloudflare Dashboard                                         |
+| Kill switch not working | KV key missing            | Set `trade:kill_switch` in CONFIG_KV                                                    |
+| Exchange API errors     | Invalid keys              | Regenerate and re-upload exchange secrets                                               |
+| Build fails             | TypeScript errors         | `bun run typecheck` to identify issues                                                  |
+| OpenNext build fails    | Missing assets            | Ensure `next.config.ts` has `initOpenNextCloudflareForDev()`                            |
 
 ---
 
@@ -1369,6 +1375,6 @@ hoox-setup/
 
 ---
 
-*Document Version: 1.0.0*  
-*Last Updated: 2026-05-05*  
-*Maintainer: Hoox Development Team*
+_Document Version: 1.0.0_  
+_Last Updated: 2026-05-05_  
+_Maintainer: Hoox Development Team_

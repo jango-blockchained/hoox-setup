@@ -26,9 +26,7 @@ export function formatSuccess(message: string, opts?: FormatOptions): void {
     return;
   }
 
-  process.stdout.write(
-    `${theme.success(icons.success)} ${message}\n`,
-  );
+  process.stdout.write(`${theme.success(icons.success)} ${message}\n`);
 }
 
 /**
@@ -37,10 +35,7 @@ export function formatSuccess(message: string, opts?: FormatOptions): void {
  * - Quiet mode: prints only the error message (no icon)
  * - Human mode: red "✗ message" + optional details indented
  */
-export function formatError(
-  error: Error | string,
-  opts?: FormatOptions,
-): void {
+export function formatError(error: Error | string, opts?: FormatOptions): void {
   const message = typeof error === "string" ? error : error.message;
   const cliError = error instanceof CLIError ? error : null;
 
@@ -77,7 +72,7 @@ export function formatError(
  */
 export function formatTable(
   rows: Record<string, string>[],
-  opts?: FormatOptions,
+  opts?: FormatOptions
 ): void {
   if (opts?.quiet) return;
 
@@ -111,9 +106,7 @@ export function formatTable(
   const botBorder = `└${topParts.join("┴")}┘`;
 
   // Header
-  const headerCells = keys.map((k) =>
-    theme.bold(k.padEnd(widths[k])),
-  );
+  const headerCells = keys.map((k) => theme.bold(k.padEnd(widths[k])));
   const headerRow = `│ ${headerCells.join(" │ ")} │`;
 
   // Data rows
@@ -126,7 +119,7 @@ export function formatTable(
   });
 
   process.stdout.write(
-    `${theme.dim(topBorder)}\n${headerRow}\n${theme.dim(sepBorder)}\n${dataRows.join("\n")}\n${theme.dim(botBorder)}\n`,
+    `${theme.dim(topBorder)}\n${headerRow}\n${theme.dim(sepBorder)}\n${dataRows.join("\n")}\n${theme.dim(botBorder)}\n`
   );
 }
 
@@ -151,7 +144,7 @@ export function formatJson(data: unknown, opts?: FormatOptions): void {
  */
 export function formatKeyValue(
   pairs: Record<string, string>,
-  opts?: FormatOptions,
+  opts?: FormatOptions
 ): void {
   if (opts?.quiet) return;
 

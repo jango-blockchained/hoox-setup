@@ -40,12 +40,9 @@ A Cloudflare® Worker service designed to manage interactions with Web3 wallets 
       "compatibility_flags": ["nodejs_compat"],
       "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
       "vars": {
-        "RPC_URL": null
+        "RPC_URL": null,
       },
-      "secrets": [
-        "INTERNAL_KEY_BINDING",
-        "WALLET_PRIVATE_KEY"
-      ]
+      "secrets": ["INTERNAL_KEY_BINDING", "WALLET_PRIVATE_KEY"],
     }
     ```
 5.  Update the corresponding `worker-configuration.d.ts` file.
@@ -126,4 +123,4 @@ This worker **only** accepts requests from authenticated internal services (like
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

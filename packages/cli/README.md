@@ -49,29 +49,29 @@ hoox deploy
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `hoox` | Launch interactive TUI (when called with no arguments) |
-| `hoox init` | Initialize a new Hoox project with worker configuration |
-| `hoox dev` | Start local development environment for all workers |
-| `hoox deploy` | Deploy workers to Cloudflare |
-| `hoox infra` | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
-| `hoox config` | View and modify `workers.jsonc` configuration |
-| `hoox check` | Verify project setup and diagnose issues |
-| `hoox logs` | Stream and filter Cloudflare Worker logs |
-| `hoox test` | Run tests for workers and packages |
-| `hoox waf` | Manage Cloudflare WAF rules and policies |
-| `hoox clone` | Clone and set up an existing Hoox project |
-| `hoox dashboard` | Launch or deploy the Next.js dashboard |
+| Command          | Description                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| `hoox`           | Launch interactive TUI (when called with no arguments)      |
+| `hoox init`      | Initialize a new Hoox project with worker configuration     |
+| `hoox dev`       | Start local development environment for all workers         |
+| `hoox deploy`    | Deploy workers to Cloudflare                                |
+| `hoox infra`     | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
+| `hoox config`    | View and modify `workers.jsonc` configuration               |
+| `hoox check`     | Verify project setup and diagnose issues                    |
+| `hoox logs`      | Stream and filter Cloudflare Worker logs                    |
+| `hoox test`      | Run tests for workers and packages                          |
+| `hoox waf`       | Manage Cloudflare WAF rules and policies                    |
+| `hoox clone`     | Clone and set up an existing Hoox project                   |
+| `hoox dashboard` | Launch or deploy the Next.js dashboard                      |
 
 ### Global Options
 
 All commands support these global options:
 
-| Option | Description |
-|--------|-------------|
-| `--json` | Output in JSON format (useful for scripting) |
-| `--quiet` | Minimal output mode |
+| Option    | Description                                  |
+| --------- | -------------------------------------------- |
+| `--json`  | Output in JSON format (useful for scripting) |
+| `--quiet` | Minimal output mode                          |
 
 ## Usage Examples
 
@@ -229,13 +229,13 @@ packages/cli/
 
 ## Key Dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `commander` | CLI framework for command registration and parsing |
-| `@clack/prompts` | Interactive prompts for the TUI |
-| `ansis` | Terminal styling and colors |
-| `jsonc-parser` | Parse `workers.jsonc` configuration files |
-| `@jango-blockchained/hoox-shared` | Shared types and utilities |
+| Package                           | Purpose                                            |
+| --------------------------------- | -------------------------------------------------- |
+| `commander`                       | CLI framework for command registration and parsing |
+| `@clack/prompts`                  | Interactive prompts for the TUI                    |
+| `ansis`                           | Terminal styling and colors                        |
+| `jsonc-parser`                    | Parse `workers.jsonc` configuration files          |
+| `@jango-blockchained/hoox-shared` | Shared types and utilities                         |
 
 ## Contributing
 

@@ -1,14 +1,15 @@
-import type { Metadata } from "next"
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Analytics | Hoox Trading System",
-  description: "View trading analytics, worker performance, and signal outcomes",
-}
+  description:
+    "View trading analytics, worker performance, and signal outcomes",
+};
 
 export default function AnalyticsLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

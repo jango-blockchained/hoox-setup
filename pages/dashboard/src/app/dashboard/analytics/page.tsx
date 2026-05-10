@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { TradeMetricsChart } from "@/components/dashboard/analytics/trade-metrics-chart"
-import { SuccessRateCard } from "@/components/dashboard/analytics/success-rate-card"
-import { WorkerPerformance } from "@/components/dashboard/analytics/worker-performance"
-import { ApiStats } from "@/components/dashboard/analytics/api-stats"
-import { SignalOutcomes } from "@/components/dashboard/analytics/signal-outcomes"
-import { BarChart3, Activity } from "lucide-react"
-import { motion } from "framer-motion"
+import { TradeMetricsChart } from "@/components/dashboard/analytics/trade-metrics-chart";
+import { SuccessRateCard } from "@/components/dashboard/analytics/success-rate-card";
+import { WorkerPerformance } from "@/components/dashboard/analytics/worker-performance";
+import { ApiStats } from "@/components/dashboard/analytics/api-stats";
+import { SignalOutcomes } from "@/components/dashboard/analytics/signal-outcomes";
+import { BarChart3, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AnalyticsPage() {
   return (
@@ -41,5 +41,5 @@ export default function AnalyticsPage() {
       <ApiStats />
       <SignalOutcomes />
     </div>
-  )
+  );
 }

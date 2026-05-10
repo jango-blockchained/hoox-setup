@@ -1,12 +1,5 @@
 // @ts-nocheck
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-} from "bun:test";
+import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import { Command } from "commander";
 import { registerTestCommand, runStep, printSummary } from "./test-command.js";
 import type { TestStepResult, TestSummary } from "./test-command.js";
@@ -93,7 +86,12 @@ describe("runStep", () => {
 
   it("returns the command string", async () => {
     (Bun as any).spawn = mockSpawn(0);
-    const result = await runStep(["vitest", "run", "--config", "vite.config.ts"]);
+    const result = await runStep([
+      "vitest",
+      "run",
+      "--config",
+      "vite.config.ts",
+    ]);
     expect(result.command).toBe("vitest run --config vite.config.ts");
   });
 
@@ -128,10 +126,34 @@ describe("printSummary", () => {
     passed: 4,
     failed: 0,
     results: [
-      { step: "Lint", command: "bun run lint", success: true, exitCode: 0, duration: 1200 },
-      { step: "TypeCheck", command: "bun run typecheck", success: true, exitCode: 0, duration: 3400 },
-      { step: "Unit Tests", command: "bun test --coverage", success: true, exitCode: 0, duration: 8900 },
-      { step: "Integration Tests", command: "vitest run...", success: true, exitCode: 0, duration: 15000 },
+      {
+        step: "Lint",
+        command: "bun run lint",
+        success: true,
+        exitCode: 0,
+        duration: 1200,
+      },
+      {
+        step: "TypeCheck",
+        command: "bun run typecheck",
+        success: true,
+        exitCode: 0,
+        duration: 3400,
+      },
+      {
+        step: "Unit Tests",
+        command: "bun test --coverage",
+        success: true,
+        exitCode: 0,
+        duration: 8900,
+      },
+      {
+        step: "Integration Tests",
+        command: "vitest run...",
+        success: true,
+        exitCode: 0,
+        duration: 15000,
+      },
     ],
   };
 
@@ -140,8 +162,21 @@ describe("printSummary", () => {
     passed: 1,
     failed: 1,
     results: [
-      { step: "Lint", command: "bun run lint", success: true, exitCode: 0, duration: 500 },
-      { step: "TypeCheck", command: "bun run typecheck", success: false, exitCode: 2, duration: 800, error: "TS2322: type error" },
+      {
+        step: "Lint",
+        command: "bun run lint",
+        success: true,
+        exitCode: 0,
+        duration: 500,
+      },
+      {
+        step: "TypeCheck",
+        command: "bun run typecheck",
+        success: false,
+        exitCode: 2,
+        duration: 800,
+        error: "TS2322: type error",
+      },
     ],
   };
 

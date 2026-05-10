@@ -19,12 +19,12 @@ const program = new Command();
 program
   .name("hoox")
   .description(
-    "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments",
+    "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments"
   )
   .version("0.2.0")
   .addHelpText(
     "beforeAll",
-    theme.heading("\n🦊  Hoox CLI — Cloudflare Workers Platform\n"),
+    theme.heading("\n🦊  Hoox CLI — Cloudflare Workers Platform\n")
   )
   .configureHelp({
     styleTitle: (str: string) => theme.heading(str),
@@ -56,7 +56,7 @@ program.exitOverride((err) => {
     err.code === "commander.unknownOption"
   ) {
     formatError(
-      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
+      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false)
     );
     process.exit(ExitCode.INVALID_USAGE);
   }
@@ -67,7 +67,7 @@ program.exitOverride((err) => {
     err.code === "commander.missingArgument"
   ) {
     formatError(
-      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
+      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false)
     );
     process.exit(ExitCode.INVALID_USAGE);
   }
@@ -79,9 +79,7 @@ program.exitOverride((err) => {
   }
 
   // Generic fallback
-  formatError(
-    new CLIError(err.message, ExitCode.ERROR, undefined, false),
-  );
+  formatError(new CLIError(err.message, ExitCode.ERROR, undefined, false));
   process.exit(ExitCode.ERROR);
 });
 
@@ -97,8 +95,8 @@ process.on("uncaughtException", (err) => {
           `Uncaught exception: ${err.message}`,
           ExitCode.ERROR,
           err.stack,
-          false,
-        ),
+          false
+        )
   );
   process.exit(ExitCode.ERROR);
 });
@@ -109,9 +107,7 @@ process.on("unhandledRejection", (reason) => {
       ? reason
       : new Error(`Unhandled rejection: ${String(reason)}`);
 
-  formatError(
-    new CLIError(err.message, ExitCode.ERROR, err.stack, false),
-  );
+  formatError(new CLIError(err.message, ExitCode.ERROR, err.stack, false));
   process.exit(ExitCode.ERROR);
 });
 

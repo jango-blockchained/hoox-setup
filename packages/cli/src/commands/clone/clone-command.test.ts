@@ -72,7 +72,9 @@ function installSpawnMock(): void {
 let tmpDir: string;
 
 /** Write a minimal workers.jsonc into tmpDir for ConfigService to load. */
-async function writeTestConfig(workers: Record<string, { enabled: boolean; path: string }>): Promise<string> {
+async function writeTestConfig(
+  workers: Record<string, { enabled: boolean; path: string }>
+): Promise<string> {
   const content = JSON.stringify({
     global: { cloudflare_account_id: "test-account" },
     workers,
@@ -86,7 +88,10 @@ function markCloned(workerName: string, workerPath: string): void {
   const workerDir = join(tmpDir, workerPath);
   mkdirSync(workerDir, { recursive: true });
   // Git submodules use a .git FILE (not directory) pointing to superproject
-  writeFileSync(join(workerDir, ".git"), "gitdir: ../.git/modules/" + workerName);
+  writeFileSync(
+    join(workerDir, ".git"),
+    "gitdir: ../.git/modules/" + workerName
+  );
 }
 
 /** Build a fresh commander program with the clone command registered. */
@@ -101,7 +106,10 @@ function buildProgram(): Command {
 }
 
 /** Capture stdout during program.parseAsync, chdir'd to tmpDir first. */
-async function captureStdout(program: Command, args: string[]): Promise<string> {
+async function captureStdout(
+  program: Command,
+  args: string[]
+): Promise<string> {
   const origCwd = process.cwd();
   process.chdir(tmpDir);
 

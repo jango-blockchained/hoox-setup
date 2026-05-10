@@ -110,18 +110,22 @@ function makeProgram(): Command {
  */
 async function runCommand(
   program: Command,
-  args: string[],
+  args: string[]
 ): Promise<OutputCapture> {
   const capture = new OutputCapture();
   try {
     // Commander v13 parseAsync waits for async actions
-    await (program as Command & { parseAsync?: (a: string[], o: { from: string }) => Promise<void> }).parseAsync?.(
-      [...args],
-      { from: "user" },
-    );
+    await (
+      program as Command & {
+        parseAsync?: (a: string[], o: { from: string }) => Promise<void>;
+      }
+    ).parseAsync?.([...args], { from: "user" });
 
     // Fallback: if parseAsync isn't available, parse synchronously and wait
-    if (typeof (program as Command & { parseAsync?: unknown }).parseAsync !== "function") {
+    if (
+      typeof (program as Command & { parseAsync?: unknown }).parseAsync !==
+      "function"
+    ) {
       program.parse([...args], { from: "user" });
       // Give async actions a tick to complete
       await new Promise((r) => setTimeout(r, 50));
@@ -171,9 +175,7 @@ describe("registerConfigCommand", () => {
     registerConfigCommand(program);
 
     const configCmd = program.commands.find((c) => c.name() === "config");
-    const secretsCmd = configCmd?.commands.find(
-      (c) => c.name() === "secrets",
-    );
+    const secretsCmd = configCmd?.commands.find((c) => c.name() === "secrets");
     expect(secretsCmd).toBeDefined();
     expect(secretsCmd?.description()).toContain("Cloudflare");
 

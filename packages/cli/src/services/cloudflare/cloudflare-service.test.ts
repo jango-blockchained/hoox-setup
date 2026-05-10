@@ -26,7 +26,7 @@ type MockSpawnResult = {
 function makeSpawnResult(
   stdoutText: string,
   stderrText: string,
-  exitCode: number,
+  exitCode: number
 ): MockSpawnResult {
   return {
     stdout: new Blob([stdoutText]),
@@ -65,13 +65,11 @@ let lastSpawnCmd: string[] = [];
 let lastSpawnCwd: string | undefined;
 
 function mockSpawnWithCapture(result: MockSpawnResult): void {
-  const spawnMock = mock(
-    (cmd: string[], options?: { cwd?: string }) => {
-      lastSpawnCmd = cmd;
-      lastSpawnCwd = options?.cwd;
-      return result;
-    },
-  );
+  const spawnMock = mock((cmd: string[], options?: { cwd?: string }) => {
+    lastSpawnCmd = cmd;
+    lastSpawnCwd = options?.cwd;
+    return result;
+  });
   (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
 }
 
@@ -150,7 +148,7 @@ describe("CloudflareService", () => {
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.data.url).toBe(
-          "https://test-worker.cryptolinx.workers.dev",
+          "https://test-worker.cryptolinx.workers.dev"
         );
       }
       expect(lastSpawnCmd).toEqual(["wrangler", "deploy"]);
@@ -167,7 +165,7 @@ describe("CloudflareService", () => {
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.data.url).toBe(
-          "https://test-worker.cryptolinx.workers.dev",
+          "https://test-worker.cryptolinx.workers.dev"
         );
       }
       expect(lastSpawnCmd).toEqual([
@@ -216,12 +214,7 @@ describe("CloudflareService", () => {
       if (result.ok) {
         expect(result.data.port).toBe(8787);
       }
-      expect(lastSpawnCmd).toEqual([
-        "wrangler",
-        "dev",
-        "--port",
-        "8787",
-      ]);
+      expect(lastSpawnCmd).toEqual(["wrangler", "dev", "--port", "8787"]);
     });
 
     it("returns custom port when specified", async () => {
@@ -234,12 +227,7 @@ describe("CloudflareService", () => {
       if (result.ok) {
         expect(result.data.port).toBe(3000);
       }
-      expect(lastSpawnCmd).toEqual([
-        "wrangler",
-        "dev",
-        "--port",
-        "3000",
-      ]);
+      expect(lastSpawnCmd).toEqual(["wrangler", "dev", "--port", "3000"]);
     });
   });
 
@@ -450,19 +438,17 @@ describe("CloudflareService", () => {
         kill: mock(() => {}),
       };
 
-      const spawnMock = mock(
-        (cmd: string[]) => {
-          lastSpawnCmd = cmd;
-          return spawnResult;
-        },
-      );
+      const spawnMock = mock((cmd: string[]) => {
+        lastSpawnCmd = cmd;
+        return spawnResult;
+      });
       (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
 
       const service = new CloudflareService();
       const result = await service.secretPut(
         "my-worker",
         "API_KEY",
-        "super-secret-value",
+        "super-secret-value"
       );
 
       expect(result.ok).toBe(true);

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-export const dynamic = "force-dynamic"
-export const runtime = "edge"
+export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
-import { PositionsTable } from "@/components/dashboard/positions-table"
-import { CandlestickChart } from "@/components/dashboard/candlestick-chart"
-import { TrendingUp } from "lucide-react"
-import { motion } from "framer-motion"
-import { useState } from "react"
+import { PositionsTable } from "@/components/dashboard/positions-table";
+import { CandlestickChart } from "@/components/dashboard/candlestick-chart";
+import { TrendingUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 // Mock data for demonstration
 const mockCandleData = [
@@ -18,14 +18,14 @@ const mockCandleData = [
   { time: "2026-04-28", open: 69300, high: 70500, low: 69200, close: 70200 },
   { time: "2026-04-29", open: 70200, high: 71200, low: 70100, close: 70900 },
   { time: "2026-04-30", open: 70900, high: 71500, low: 70700, close: 71200 },
-]
+];
 
 export default function PositionsPage() {
-  const [showChart, setShowChart] = useState(true)
+  const [showChart, setShowChart] = useState(true);
 
   return (
     <div className="flex flex-col gap-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -40,7 +40,9 @@ export default function PositionsPage() {
             <TrendingUp className="h-8 w-8 text-primary" />
           </motion.div>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Positions</h1>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Positions
+            </h1>
             <p className="text-sm text-muted-foreground">
               Manage your active trading positions
             </p>
@@ -50,14 +52,14 @@ export default function PositionsPage() {
           onClick={() => setShowChart(!showChart)}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          {showChart ? 'Hide Chart' : 'Show Chart'}
+          {showChart ? "Hide Chart" : "Show Chart"}
         </button>
       </motion.div>
 
       {showChart && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
+          animate={{ opacity: 1, height: "auto" }}
           transition={{ duration: 0.3 }}
         >
           <CandlestickChart
@@ -71,5 +73,5 @@ export default function PositionsPage() {
 
       <PositionsTable />
     </div>
-  )
+  );
 }

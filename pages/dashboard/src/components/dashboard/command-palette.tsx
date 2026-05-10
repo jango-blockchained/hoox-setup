@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Command,
   CommandDialog,
@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   LayoutDashboard,
   TrendingUp,
@@ -20,35 +20,35 @@ import {
   ScrollText,
   Home,
   Search,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface CommandItem {
-  icon: typeof LayoutDashboard
-  label: string
-  shortcut?: string
-  action: () => void
-  group: string
+interface CommandPaletteItem {
+  icon: typeof LayoutDashboard;
+  label: string;
+  shortcut?: string;
+  action: () => void;
+  group: string;
 }
 
 export function CommandPalette() {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault()
-        setOpen((prev) => !prev)
+        e.preventDefault();
+        setOpen((prev) => !prev);
       }
-    }
+    };
 
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  const commands: CommandItem[] = [
+  const commands: CommandPaletteItem[] = [
     {
       icon: Home,
       label: "Go to Home",
@@ -98,7 +98,7 @@ export function CommandPalette() {
       action: () => router.push("/dashboard/logs"),
       group: "Navigation",
     },
-  ]
+  ];
 
   return (
     <>
@@ -114,11 +114,16 @@ export function CommandPalette() {
         )}
       </AnimatePresence>
 
-      <CommandDialog open={open} onOpenChange={setOpen} title="Command Palette" description="Search for pages and actions...">
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Command Palette"
+        description="Search for pages and actions..."
+      >
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
-          
+
           <CommandGroup heading="Navigation">
             {commands
               .filter((cmd) => cmd.group === "Navigation")
@@ -126,8 +131,8 @@ export function CommandPalette() {
                 <CommandItem
                   key={cmd.label}
                   onSelect={() => {
-                    cmd.action()
-                    setOpen(false)
+                    cmd.action();
+                    setOpen(false);
                   }}
                   className="cursor-pointer"
                 >
@@ -147,8 +152,8 @@ export function CommandPalette() {
           <CommandGroup heading="Actions">
             <CommandItem
               onSelect={() => {
-                window.location.reload()
-                setOpen(false)
+                window.location.reload();
+                setOpen(false);
               }}
               className="cursor-pointer"
             >
@@ -184,5 +189,5 @@ export function CommandPalette() {
         </button>
       </motion.div>
     </>
-  )
+  );
 }

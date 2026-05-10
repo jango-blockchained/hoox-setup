@@ -17,9 +17,10 @@ export interface CorsOptions {
 }
 
 const DEFAULT_OPTIONS: Required<CorsOptions> = {
-  allowOrigin: '*',
-  allowMethods: 'GET, POST, OPTIONS, PUT, DELETE',
-  allowHeaders: 'Content-Type, Authorization, X-Request-ID, X-Internal-Auth-Key',
+  allowOrigin: "*",
+  allowMethods: "GET, POST, OPTIONS, PUT, DELETE",
+  allowHeaders:
+    "Content-Type, Authorization, X-Request-ID, X-Internal-Auth-Key",
   allowCredentials: false,
   maxAge: 86400,
 };
@@ -30,13 +31,13 @@ const DEFAULT_OPTIONS: Required<CorsOptions> = {
 export function corsHeaders(options?: CorsOptions): Record<string, string> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const headers: Record<string, string> = {
-    'Access-Control-Allow-Origin': opts.allowOrigin,
-    'Access-Control-Allow-Methods': opts.allowMethods,
-    'Access-Control-Allow-Headers': opts.allowHeaders,
-    'Access-Control-Max-Age': String(opts.maxAge),
+    "Access-Control-Allow-Origin": opts.allowOrigin,
+    "Access-Control-Allow-Methods": opts.allowMethods,
+    "Access-Control-Allow-Headers": opts.allowHeaders,
+    "Access-Control-Max-Age": String(opts.maxAge),
   };
   if (opts.allowCredentials) {
-    headers['Access-Control-Allow-Credentials'] = 'true';
+    headers["Access-Control-Allow-Credentials"] = "true";
   }
   return headers;
 }
@@ -47,9 +48,9 @@ export function corsHeaders(options?: CorsOptions): Record<string, string> {
  */
 export function handleCorsPreflightRequest(
   request: Request,
-  options?: CorsOptions,
+  options?: CorsOptions
 ): Response | null {
-  if (request.method !== 'OPTIONS') return null;
+  if (request.method !== "OPTIONS") return null;
 
   return new Response(null, {
     status: 204,

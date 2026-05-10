@@ -37,6 +37,7 @@ hoox workers status
 ```
 
 **Key paths:**
+
 - Workers: `workers/*/src/index.ts`
 - Config: `workers/*/wrangler.jsonc`
 - Dashboard: `pages/dashboard/` (Cloudflare Workers + OpenNext, NOT Pages)
@@ -57,11 +58,13 @@ hoox workers deploy hoox
 ### 3. Troubleshooting
 
 **Endpoints:**
+
 - `GET /health` - Worker health check
 - `GET /api/logs?limit=50` - Recent system logs
 - `POST /agent/housekeeping` - Run health checks
 
 **Commands:**
+
 ```bash
 # View live logs
 bunx wrangler tail <worker-name>
@@ -71,6 +74,7 @@ hoox housekeeping
 ```
 
 **Common issues:**
+
 - Rate limiting: Check `kill_switch` in KV
 - Failed trades: Check queue dead letter
 - Exchange errors: Check R2 reports bucket
@@ -80,6 +84,7 @@ hoox housekeeping
 **Database ID:** `a682f084-594e-4bd8-be2d-40ea5f8cf42e`
 
 **Key tables:**
+
 - `trade_signals` - Incoming signals
 - `trades` - Executed trades
 - `positions` - Active positions
@@ -96,6 +101,7 @@ hoox housekeeping
 - Secrets: Cloudflare Secret Store
 
 **KV Keys:**
+
 - `webhook:tradingview:ip_check_enabled`
 - `webhook:tradingview:allowed_ips`
 - `kill_switch`
@@ -119,13 +125,13 @@ bun test:watch               # Watch mode
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Dev server | `hoox workers dev <name>` |
-| Deploy | `hoox workers deploy <name>` |
-| Test | `bun test workers/<name>` |
-| Logs | `bunx wrangler tail <name>` |
-| Housekeeping | `hoox housekeeping` |
+| Task         | Command                      |
+| ------------ | ---------------------------- |
+| Dev server   | `hoox workers dev <name>`    |
+| Deploy       | `hoox workers deploy <name>` |
+| Test         | `bun test workers/<name>`    |
+| Logs         | `bunx wrangler tail <name>`  |
+| Housekeeping | `hoox housekeeping`          |
 
 ## Common Mistakes
 

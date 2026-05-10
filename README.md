@@ -29,10 +29,10 @@ git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-
 
 Hoox provides a modern approach to algorithmic trading infrastructure deployment.
 
-*   💸 **Cost-Effective & Open Source:** Hoox leverages Cloudflare®'s free tiers, allowing you to run your trading infrastructure with minimal or no server costs.
-*   ⚡ **Edge Execution:** Your code runs on Cloudflare®'s Edge, geographically close to exchange API servers (like Binance, Bybit, and MEXC). When a signal fires, Hoox executes with minimal network latency.
-*   🛡️ **Built-in Security:** Hoox inherits Cloudflare®'s security features. With a Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are well-protected.
-*   🧠 **Automated Management:** Featuring an embedded risk manager (`agent-worker`), Hoox can monitor your portfolio, manage trailing stops, trigger kill-switches, and send system health summaries.
+- 💸 **Cost-Effective & Open Source:** Hoox leverages Cloudflare®'s free tiers, allowing you to run your trading infrastructure with minimal or no server costs.
+- ⚡ **Edge Execution:** Your code runs on Cloudflare®'s Edge, geographically close to exchange API servers (like Binance, Bybit, and MEXC). When a signal fires, Hoox executes with minimal network latency.
+- 🛡️ **Built-in Security:** Hoox inherits Cloudflare®'s security features. With a Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are well-protected.
+- 🧠 **Automated Management:** Featuring an embedded risk manager (`agent-worker`), Hoox can monitor your portfolio, manage trailing stops, trigger kill-switches, and send system health summaries.
 
 ---
 
@@ -54,50 +54,50 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 
 ### Core Platform
 
-| Feature | Description |
-| ------- | ----------- |
-| 🔗 **Service Bindings** | Microsecond inter-worker communication—no public internet routing, no TLS overhead, no DNS resolution. Workers call each other via internal V8 isolates. |
-| 📨 **Async Queues** | Cloudflare® Queues with exponential backoff retry policy (30s → 15min). Guaranteed delivery survives exchange downtime, API rate limits, and network partitions. |
-| 🛡️ **Idempotent Execution** | Durable Objects with SQLite-backed state prevent duplicate trades on network retries. Every webhook gets a unique trace ID for end-to-end signal tracking. |
-| 🤖 **Multi-Provider AI Gateway** | 5 AI providers (Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI) with automatic fallback chain, health checks, SSE streaming, vision analysis, reasoning models, and usage tracking. |
-| 🧠 **AI Risk Manager** | `agent-worker` runs on a 5-minute cron: monitors open positions, moves trailing stops, scales out of profitable trades, flips the Global Kill Switch on max drawdown, and sends health summaries. |
+| Feature                          | Description                                                                                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔗 **Service Bindings**          | Microsecond inter-worker communication—no public internet routing, no TLS overhead, no DNS resolution. Workers call each other via internal V8 isolates.                                          |
+| 📨 **Async Queues**              | Cloudflare® Queues with exponential backoff retry policy (30s → 15min). Guaranteed delivery survives exchange downtime, API rate limits, and network partitions.                                  |
+| 🛡️ **Idempotent Execution**      | Durable Objects with SQLite-backed state prevent duplicate trades on network retries. Every webhook gets a unique trace ID for end-to-end signal tracking.                                        |
+| 🤖 **Multi-Provider AI Gateway** | 5 AI providers (Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI) with automatic fallback chain, health checks, SSE streaming, vision analysis, reasoning models, and usage tracking.       |
+| 🧠 **AI Risk Manager**           | `agent-worker` runs on a 5-minute cron: monitors open positions, moves trailing stops, scales out of profitable trades, flips the Global Kill Switch on max drawdown, and sends health summaries. |
 
 ### Data & Storage
 
-| Feature | Description |
-| ------- | ----------- |
-| 🗄️ **D1 Edge Database** | Globally distributed SQLite at the edge. Persistent, atomic storage for trade history, positions, and balances. Preserved write limits via R2 log offloading. |
-| 📦 **R2 Object Storage** | Zero-egress, S3-compatible storage for trade reports, system logs, and user uploads. No bandwidth charges on retrieval. |
-| 🔐 **KV Configuration** | Sub-millisecond global key-value store for dynamic routing, IP allowlists, session state, kill-switch toggles, and live settings—no redeployment required. |
-| 🔎 **Vectorize RAG Index** | Embedded vector database for retrieval-augmented generation. Powers context-aware AI responses and intelligent Telegram bot conversations. |
+| Feature                    | Description                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🗄️ **D1 Edge Database**    | Globally distributed SQLite at the edge. Persistent, atomic storage for trade history, positions, and balances. Preserved write limits via R2 log offloading. |
+| 📦 **R2 Object Storage**   | Zero-egress, S3-compatible storage for trade reports, system logs, and user uploads. No bandwidth charges on retrieval.                                       |
+| 🔐 **KV Configuration**    | Sub-millisecond global key-value store for dynamic routing, IP allowlists, session state, kill-switch toggles, and live settings—no redeployment required.    |
+| 🔎 **Vectorize RAG Index** | Embedded vector database for retrieval-augmented generation. Powers context-aware AI responses and intelligent Telegram bot conversations.                    |
 
 ### Trading Infrastructure
 
-| Feature | Description |
-| ------- | ----------- |
+| Feature                      | Description                                                                                                                                              |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📈 **Multi-Exchange Engine** | Execute across Binance, Bybit, and MEXC with dynamic routing via `CONFIG_KV`. Redirect symbols to different exchanges instantly without code deployment. |
-| 🌐 **DeFi Execution** | On-chain swap execution via `web3-wallet-worker` with secure mnemonic management and browser rendering for DApp interactions. |
-| 📧 **Email Signal Parsing** | Trigger trades from raw email parsing via `email-worker`. Ancillary input channel alongside TradingView webhooks and Telegram commands. |
-| ⚡ **Rate Limiting** | Built-in throttling (10 trades/min) prevents accidental trade spamming and API ban from exchange rate limits. |
+| 🌐 **DeFi Execution**        | On-chain swap execution via `web3-wallet-worker` with secure mnemonic management and browser rendering for DApp interactions.                            |
+| 📧 **Email Signal Parsing**  | Trigger trades from raw email parsing via `email-worker`. Ancillary input channel alongside TradingView webhooks and Telegram commands.                  |
+| ⚡ **Rate Limiting**         | Built-in throttling (10 trades/min) prevents accidental trade spamming and API ban from exchange rate limits.                                            |
 
 ### Developer Experience
 
-| Feature | Description |
-| ------- | ----------- |
-| 📊 **Command Center** | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration. |
-| 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 8 workers simultaneously with one command. |
-| 🛠️ **CLI Workspaces** | Bun workspace monorepo managed via `hoox` CLI. Interactive setup wizard (`hoox init`), health checks, infrastructure provisioning, secret management, and WAF rule configuration. |
-| 🐳 **Docker Support** | Full local dev environment with Docker Compose. Hot-reload mode for development, optimized production images for testing. |
+| Feature                | Description                                                                                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📊 **Command Center**  | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration. |
+| 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 8 workers simultaneously with one command.                                                          |
+| 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI. Interactive setup wizard (`hoox init`), health checks, infrastructure provisioning, secret management, and WAF rule configuration.       |
+| 🐳 **Docker Support**  | Full local dev environment with Docker Compose. Hot-reload mode for development, optimized production images for testing.                                                               |
 
 ### Security
 
-| Feature | Description |
-| ------- | ----------- |
-| 🔒 **Zero Trust Architecture** | Internal workers (`trade-worker`, `d1-worker`) have zero public endpoints—accessible only via Cloudflare® Service Bindings. |
-| 🛡️ **WAF Integration** | IP allowlisting and rate limiting at the Cloudflare edge. Malicious traffic dropped before hitting the gateway worker. |
-| 🔑 **Secret Injection** | API keys injected directly into the V8 isolate at runtime. Never stored in plaintext, never logged. Local `.dev.vars` excluded from version control. |
-| 🏴 **Global Kill Switch** | Instant trading halt via KV toggle. No redeployment, no downtime—immediate effect across all workers on next request cycle. |
-| 🔐 **Security Headers** | Full CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy on every response. CORS disabled (same-origin only). |
+| Feature                        | Description                                                                                                                                           |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔒 **Zero Trust Architecture** | Internal workers (`trade-worker`, `d1-worker`) have zero public endpoints—accessible only via Cloudflare® Service Bindings.                           |
+| 🛡️ **WAF Integration**         | IP allowlisting and rate limiting at the Cloudflare edge. Malicious traffic dropped before hitting the gateway worker.                                |
+| 🔑 **Secret Injection**        | API keys injected directly into the V8 isolate at runtime. Never stored in plaintext, never logged. Local `.dev.vars` excluded from version control.  |
+| 🏴 **Global Kill Switch**      | Instant trading halt via KV toggle. No redeployment, no downtime—immediate effect across all workers on next request cycle.                           |
+| 🔐 **Security Headers**        | Full CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy on every response. CORS disabled (same-origin only). |
 
 ---
 
@@ -107,44 +107,45 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 
 1. **Clone the repository:**
 
-    ```bash
-    git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
-    cd hoox-trading
-    ```
+   ```bash
+   git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
+   cd hoox-trading
+   ```
 
 2. **Install dependencies and bootstrap:**
 
-    ```bash
-    bun install
-    bun run hoox config setup
-    bun run hoox init
-    ```
+   ```bash
+   bun install
+   bun run hoox config setup
+   bun run hoox init
+   ```
 
 ### Deploy
 
 **Deploy your entire trading empire to the Cloudflare® Edge!**
+
 ```bash
 hoox workers deploy
 ```
 
 > **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all workers simultaneously on your local machine!
->
+
 ---
 
 ## 📦 Worker Submodules
 
 Hoox uses Git submodules for each worker, allowing independent development and deployment. All workers are part of the [hoox-setup](https://github.com/jango-blockchained/hoox-setup) monorepo.
 
-| Worker | Description | Repository |
-|--------|-------------|------------|
-| 🔐 **hoox** (Gateway) | Webhook entrypoint & firewall | [jango-blockchained/hoox](https://github.com/jango-blockchained/hoox) |
-| 📈 **trade-worker** | Multi-exchange execution engine | [jango-blockchained/trade-worker](https://github.com/jango-blockchained/trade-worker) |
-| 🧠 **agent-worker** | AI risk manager & cron jobs | [jango-blockchained/agent-worker](https://github.com/jango-blockchained/agent-worker) |
-| 💬 **telegram-worker** | Telegram notifications & commands | [jango-blockchained/telegram-worker](https://github.com/jango-blockchained/telegram-worker) |
-| 🗄️ **d1-worker** | D1 database operations | [jango-blockchained/d1-worker](https://github.com/jango-blockchained/d1-worker) |
-| 🌐 **web3-wallet-worker** | DeFi & on-chain execution | [jango-blockchained/web3-wallet-worker](https://github.com/jango-blockchained/web3-wallet-worker) |
-| 📧 **email-worker** | Email signal parsing | [jango-blockchained/email-worker](https://github.com/jango-blockchained/email-worker) |
-| 📊 **analytics-worker** | Analytics & reporting | [jango-blockchained/analytics-worker](https://github.com/jango-blockchained/analytics-worker) |
+| Worker                    | Description                       | Repository                                                                                        |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 🔐 **hoox** (Gateway)     | Webhook entrypoint & firewall     | [jango-blockchained/hoox](https://github.com/jango-blockchained/hoox)                             |
+| 📈 **trade-worker**       | Multi-exchange execution engine   | [jango-blockchained/trade-worker](https://github.com/jango-blockchained/trade-worker)             |
+| 🧠 **agent-worker**       | AI risk manager & cron jobs       | [jango-blockchained/agent-worker](https://github.com/jango-blockchained/agent-worker)             |
+| 💬 **telegram-worker**    | Telegram notifications & commands | [jango-blockchained/telegram-worker](https://github.com/jango-blockchained/telegram-worker)       |
+| 🗄️ **d1-worker**          | D1 database operations            | [jango-blockchained/d1-worker](https://github.com/jango-blockchained/d1-worker)                   |
+| 🌐 **web3-wallet-worker** | DeFi & on-chain execution         | [jango-blockchained/web3-wallet-worker](https://github.com/jango-blockchained/web3-wallet-worker) |
+| 📧 **email-worker**       | Email signal parsing              | [jango-blockchained/email-worker](https://github.com/jango-blockchained/email-worker)             |
+| 📊 **analytics-worker**   | Analytics & reporting             | [jango-blockchained/analytics-worker](https://github.com/jango-blockchained/analytics-worker)     |
 
 > **Note:** Clone with `git clone --recursive` to get all submodules, or run `git submodule update --init --recursive` after cloning.
 
@@ -261,21 +262,28 @@ graph TB
 ## 📋 The 8 Pillars of Hoox (Workers)
 
 ### 🔐 hoox (The Gateway)
+
 The main entry point. It validates incoming TradingView webhooks, verifies API keys, and routes valid signals to the execution engine.
+
 - **WAF Integration**: IP allowlisting and rate limiting are handled via Cloudflare WAF to drop malicious traffic before it hits the worker.
 - **Fast Path Execution**: Attempts to execute trades instantly via direct Service Bindings, falling back to queues if necessary.
 - **Idempotency**: Prevents duplicate trades using Durable Objects.
 - **Trace IDs**: Generates distributed trace IDs for end-to-end signal tracking.
 
 ### 📈 trade-worker (The Execution Engine)
+
 The execution module. Routes and executes orders across MEXC, Binance, and Bybit. Handles leverage calculation and size mapping.
+
 - **Dynamic Routing**: Uses an `ExchangeRouter` with `CONFIG_KV` to instantly redirect symbols to different exchanges without code deployment.
 - **Smart Placement**: Automatically executes on the Cloudflare edge node closest to the exchange's API servers.
 - **R2 Log Offloading**: Verbose request and response logs are saved to R2 (`hoox-system-logs`), preserving D1 write limits for critical financial data.
+
 ### 🧠 agent-worker (The AI Risk Manager & Multi-Provider AI Gateway)
+
 Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.
 
 **Enhanced with Multi-Provider AI (Tasks 18-30):**
+
 - **5 AI Providers**: Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI
 - **Automatic Fallback Chain**: Seamless switching between providers on failure
 - **Health Checks**: Providers self-report health status for intelligent routing
@@ -286,20 +294,31 @@ Runs silently on a 5-minute Cron schedule. It observes open positions, moves tra
 - **Usage Tracking**: Monitor API usage across all providers
 
 **New Endpoints:**
+
 - `POST /agent/chat` - AI chat with streaming support
 - `POST /agent/vision` - Image analysis
 - `POST /agent/reasoning` - Extended thinking queries
 - `GET /agent/usage` - Usage statistics
 - `GET /agent/prompts` - List prompt templates
+
 ### 📊 dashboard (The Command Center)
+
 A secure, Cloudflare Workers-powered React dashboard using Next.js 16 + OpenNext. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.
+
 ### 💬 telegram-worker (The Communicator)
+
 Sends instant trade confirmations and AI-generated market summaries straight to your phone.
+
 ### 🗄️ d1-worker (The Memory)
+
 Handles all heavy SQL operations, aggregating trade histories and system logs to keep the execution workers incredibly lightweight.
+
 ### 🌐 web3-wallet-worker (The On-Chain Bridge)
+
 Ready for DeFi execution. Securely manages mnemonic phrases to execute swaps on decentralized exchanges.
+
 ### 📧 email-worker
+
 Ancillary plugin allowing you to trigger trades via raw email parsing.
 
 ---
@@ -310,21 +329,21 @@ Security is a foundational aspect of the Hoox system.
 
 ### Implemented Security Features
 
-| Feature | Description |
-|---------|-------------|
-| **CORS** | Disabled - same-origin only |
-| **X-Frame-Options** | DENY - prevents iframe embedding |
-| **X-Content-Type-Options** | nosniff - prevents MIME sniffing |
-| **X-XSS-Protection** | 1; mode=block |
-| **Referrer-Policy** | strict-origin-when-cross-origin |
-| **Permissions-Policy** | Blocks accelerometer, camera, geolocation, microphone, etc. |
-| **Strict-Transport-Security** | max-age=31536000; includeSubDomains |
-| **Content-Security-Policy** | default-src 'self' |
-| **Idempotent Execution** | Durable Objects prevent duplicate trades |
-| **Rate Limiting** | 10 trades/minute protection |
-| **IP Allow-listing** | Optional IP filtering via KV |
-| **API Key Auth** | Secret binding validation |
-| **Kill Switch** | Global trading pause via KV |
+| Feature                       | Description                                                 |
+| ----------------------------- | ----------------------------------------------------------- |
+| **CORS**                      | Disabled - same-origin only                                 |
+| **X-Frame-Options**           | DENY - prevents iframe embedding                            |
+| **X-Content-Type-Options**    | nosniff - prevents MIME sniffing                            |
+| **X-XSS-Protection**          | 1; mode=block                                               |
+| **Referrer-Policy**           | strict-origin-when-cross-origin                             |
+| **Permissions-Policy**        | Blocks accelerometer, camera, geolocation, microphone, etc. |
+| **Strict-Transport-Security** | max-age=31536000; includeSubDomains                         |
+| **Content-Security-Policy**   | default-src 'self'                                          |
+| **Idempotent Execution**      | Durable Objects prevent duplicate trades                    |
+| **Rate Limiting**             | 10 trades/minute protection                                 |
+| **IP Allow-listing**          | Optional IP filtering via KV                                |
+| **API Key Auth**              | Secret binding validation                                   |
+| **Kill Switch**               | Global trading pause via KV                                 |
 
 ### Security Layers
 
@@ -332,7 +351,8 @@ Security is a foundational aspect of the Hoox system.
 2. **Worker-Level**: IP allow-listing, API key validation, rate limiting
 3. **Execution-Level**: Idempotency keys prevent duplicates, kill switches halt trading
 4. **Response-Level**: All responses include security headers
-- **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can *only* be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
+
+- **No Public APIs:** The `trade-worker` and `d1-worker` literally do not exist on the public internet. They can _only_ be accessed internally by the `hoox` gateway via Cloudflare® Service Bindings.
 - **Zero Trust Dashboard:** Your UI is secured with authentication and deployed to Cloudflare Workers using the OpenNext adapter for full Next.js feature support.
 - **Hardware-Level Secret Injection:** API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.
 - **Idempotent Execution:** Durable Objects prevent duplicate trades on network retries—no lost ETH from double-spending.
@@ -344,18 +364,20 @@ Security is a foundational aspect of the Hoox system.
 
 Hoox uses Cloudflare® Queues for guaranteed trade delivery:
 
-| Mode | Description |
-|------|-------------|
+| Mode                       | Description                                  |
+| -------------------------- | -------------------------------------------- |
 | `queue_failover` (default) | Try direct execution first, queue on failure |
-| `queue_everywhere` | Always queue trades asynchronously |
+| `queue_everywhere`         | Always queue trades asynchronously           |
 
 ### Configuration
+
 ```bash
 # Set mode in KV
 wrangler kv key put webhooks:queue_mode queue_failover --binding CONFIG_KV --remote
 ```
 
 ### Retry Behavior
+
 - **Attempt 1**: Immediate
 - **Attempt 2**: 30 seconds
 - **Attempt 3**: 1 minute
@@ -369,15 +391,15 @@ wrangler kv key put webhooks:queue_mode queue_failover --binding CONFIG_KV --rem
 
 Hoox runs entirely on Cloudflare® Workers Free tier:
 
-| Service | Free Limit | Notes |
-|---------|-----------|-------|
-| 🟠 Workers | 100k req/day | ~3k trades/day |
-| 🟠 D1 | 5M rows read, 100k writes/day | 5GB storage |
-| 🟠 KV | 1GB, 1k ops/day | Config storage |
-| 🟠 R2 | 10GB/month | Trade reports |
-| 🟠 Queues | 10k ops/day | ~3k trades/day |
-| 🟠 Durable Objects | SQLite-backed only | Idempotency |
-| 🟠 Workers AI | 10k neurons/day | AI summaries |
+| Service            | Free Limit                    | Notes          |
+| ------------------ | ----------------------------- | -------------- |
+| 🟠 Workers         | 100k req/day                  | ~3k trades/day |
+| 🟠 D1              | 5M rows read, 100k writes/day | 5GB storage    |
+| 🟠 KV              | 1GB, 1k ops/day               | Config storage |
+| 🟠 R2              | 10GB/month                    | Trade reports  |
+| 🟠 Queues          | 10k ops/day                   | ~3k trades/day |
+| 🟠 Durable Objects | SQLite-backed only            | Idempotency    |
+| 🟠 Workers AI      | 10k neurons/day               | AI summaries   |
 
 ---
 
@@ -391,6 +413,7 @@ bun test --coverage
 ```
 
 **Current Test Coverage:**
+
 - **packages/cli**: ~88% function coverage, ~82% line coverage
 - **workers/hoox**: test suite in progress
 - **workers/trade-worker**: test suite in progress
@@ -408,8 +431,8 @@ Hoox supports local development using Docker. While production deployment target
 
 ### Prerequisites
 
-*   [Docker](https://www.docker.com/) & Docker Compose
-*   Bun runtime (included in our Docker images)
+- [Docker](https://www.docker.com/) & Docker Compose
+- Bun runtime (included in our Docker images)
 
 ### Development (Hot-Reload)
 
@@ -425,16 +448,16 @@ docker compose config
 
 This launches all workers on the following ports:
 
-| Service | Port |
-|---------|------|
-| Gateway (hoox) | 8787 |
-| Trade Worker | 8789 |
+| Service         | Port |
+| --------------- | ---- |
+| Gateway (hoox)  | 8787 |
+| Trade Worker    | 8789 |
 | Telegram Worker | 8791 |
-| D1 Worker | 8792 |
-| Web3 Wallet | 8793 |
-| Dashboard | 8794 |
-| Agent | 8795 |
-| Email | 8796 |
+| D1 Worker       | 8792 |
+| Web3 Wallet     | 8793 |
+| Dashboard       | 8794 |
+| Agent           | 8795 |
+| Email           | 8796 |
 
 To stop local dev cleanly:
 
@@ -463,7 +486,7 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id
 
 ## 🤝 Contribute
 
-Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this. 
+Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/new-strategy`)
@@ -477,28 +500,31 @@ Traditional algorithmic trading is often complex and difficult to deploy. Hoox a
 
 ### Coming Soon: Pynescript - Native Pine Script™ Execution
 
-Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike. 
+Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike.
 
 Our long-term vision includes native, edge-based execution of trading logic. **Pynescript** is a planned **100% fully featured Pine Script™ parser, converter, and executor** that will allow you to run complex Pine Script™ strategies natively within the Cloudflare Workers ecosystem.
 
 > ⚠️ **Status:** This project is not yet started. Track progress in our [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues).
 
 ### Future Features
+
 - **Enhanced AI Analytics:** Automated reporting and personalized risk-management insights via LLaMA 3.
 - **Deeper DeFi Integration:** Expanded on-chain capabilities via the `web3-wallet-worker`.
 - **Advanced Dashboard:** More intuitive UI for deeper historical trade analysis.
 
 ---
+
 ## 📄 License
 
 Licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/). See [LICENSE](LICENSE) for the full license text and [DISCLAIMER](DISCLAIMER.md) for legal terms.
 
 ---
+
 <div align="center">
 Built with 🔥 on the Cloudflare® Edge.
 </div>
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
-*Pine Script™ and TradingView® are trademarks of TradingView, Inc. This project is an independent effort and is not affiliated with or endorsed by TradingView, Inc.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+_Pine Script™ and TradingView® are trademarks of TradingView, Inc. This project is an independent effort and is not affiliated with or endorsed by TradingView, Inc._

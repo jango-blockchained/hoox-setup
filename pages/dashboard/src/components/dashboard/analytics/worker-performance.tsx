@@ -1,46 +1,74 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Activity, AlertTriangle } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Activity, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 
-const WORKERS = ["trade-worker", "agent-worker", "d1-worker", "telegram-worker", "hoox"]
+const WORKERS = [
+  "trade-worker",
+  "agent-worker",
+  "d1-worker",
+  "telegram-worker",
+  "hoox",
+];
 
 export function WorkerPerformance() {
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedWorker, setSelectedWorker] = useState(WORKERS[0])
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedWorker, setSelectedWorker] = useState(WORKERS[0]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const url = new URL(`/api/analytics/worker-performance`, window.location.origin)
-        url.searchParams.set("worker", selectedWorker)
-        const res = await fetch(url.toString())
-        const json = await res.json() as { success: boolean; data?: any[] }
+        const url = new URL(
+          `/api/analytics/worker-performance`,
+          window.location.origin
+        );
+        url.searchParams.set("worker", selectedWorker);
+        const res = await fetch(url.toString());
+        const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
-          setData(json.data || [])
+          setData(json.data || []);
         }
       } catch (error) {
-        console.error("Failed to fetch worker performance:", error)
+        console.error("Failed to fetch worker performance:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    if (mounted) fetchData()
-  }, [selectedWorker, mounted])
+    if (mounted) fetchData();
+  }, [selectedWorker, mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <motion.div
@@ -55,7 +83,9 @@ export function WorkerPerformance() {
               <Activity className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>Worker Performance</CardTitle>
-                <CardDescription>Request counts, errors, and latency</CardDescription>
+                <CardDescription>
+                  Request counts, errors, and latency
+                </CardDescription>
               </div>
             </div>
             <Select value={selectedWorker} onValueChange={setSelectedWorker}>
@@ -64,7 +94,9 @@ export function WorkerPerformance() {
               </SelectTrigger>
               <SelectContent>
                 {WORKERS.map((w) => (
-                  <SelectItem key={w} value={w}>{w}</SelectItem>
+                  <SelectItem key={w} value={w}>
+                    {w}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -93,15 +125,21 @@ export function WorkerPerformance() {
               <TableBody>
                 {data.map((row, i) => (
                   <TableRow key={i}>
-                    <TableCell className="font-medium">{row.data_type}</TableCell>
+                    <TableCell className="font-medium">
+                      {row.data_type}
+                    </TableCell>
                     <TableCell>{row.total_requests || 0}</TableCell>
                     <TableCell>
-                      <span className={row.total_errors > 0 ? "text-red-500" : ""}>
+                      <span
+                        className={row.total_errors > 0 ? "text-red-500" : ""}
+                      >
                         {row.total_errors || 0}
                       </span>
                     </TableCell>
                     <TableCell>
-                      {row.avg_duration_ms ? `${Math.round(row.avg_duration_ms)}ms` : "N/A"}
+                      {row.avg_duration_ms
+                        ? `${Math.round(row.avg_duration_ms)}ms`
+                        : "N/A"}
                     </TableCell>
                     <TableCell>
                       {row.total_errors > 0 ? (
@@ -121,5 +159,5 @@ export function WorkerPerformance() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

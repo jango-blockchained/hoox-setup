@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -16,10 +22,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldLabel, FieldDescription, FieldGroup } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldGroup,
+} from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
-import { Zap, Shield, AlertTriangle, Brain, Bell, Save, KeyRound, Database, Mail, Layers, Clock, Activity, Search, Archive, Router, Send, Sparkles, Percent } from "lucide-react";
+import {
+  Zap,
+  Shield,
+  AlertTriangle,
+  Brain,
+  Bell,
+  Save,
+  KeyRound,
+  Database,
+  Mail,
+  Layers,
+  Clock,
+  Activity,
+  Search,
+  Archive,
+  Router,
+  Send,
+  Sparkles,
+  Percent,
+} from "lucide-react";
 import type { WorkerConfigManifest } from "@/lib/settings/loader";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
 import type { DashboardSection, SettingField } from "@/lib/settings/types";
@@ -42,7 +72,6 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   percent: Percent,
 };
 
-
 interface ConnectedWorker {
   name: string;
   displayName: string;
@@ -57,19 +86,22 @@ const DEFAULT_WORKERS: ConnectedWorker[] = [
   { name: "telegram-worker", displayName: "Telegram Worker", enabled: true },
   { name: "email-worker", displayName: "Email Worker", enabled: true },
   { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: true },
-
 ];
 
 export function SettingsForm() {
   const [configs, setConfigs] = useState<WorkerConfigManifest[]>([]);
-  const [settings, setSettings] = useState<Record<string, Record<string, string | number | boolean>>>({});
+  const [settings, setSettings] = useState<
+    Record<string, Record<string, string | number | boolean>>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const workerNames = DEFAULT_WORKERS.filter((w) => w.enabled).map((w) => w.name);
+        const workerNames = DEFAULT_WORKERS.filter((w) => w.enabled).map(
+          (w) => w.name
+        );
         const loadedConfigs = await loadAllConfigs(workerNames);
         const loadedSettings = await loadMergedSettings(workerNames);
 
@@ -86,7 +118,11 @@ export function SettingsForm() {
     load();
   }, []);
 
-  const handleChange = (worker: string, key: string, value: string | number | boolean) => {
+  const handleChange = (
+    worker: string,
+    key: string,
+    value: string | number | boolean
+  ) => {
     setSettings((prev) => ({
       ...prev,
       [worker]: {
@@ -109,7 +145,7 @@ export function SettingsForm() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ worker, key, value }),
           });
-          
+
           if (res.ok) {
             savedCount++;
           } else {
@@ -147,14 +183,20 @@ export function SettingsForm() {
         return (
           <div className="flex items-center justify-between rounded-md bg-secondary/30 p-4">
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-foreground">{field.label}</span>
+              <span className="text-sm font-medium text-foreground">
+                {field.label}
+              </span>
               {field.description && (
-                <span className="text-xs text-muted-foreground">{field.description}</span>
+                <span className="text-xs text-muted-foreground">
+                  {field.description}
+                </span>
               )}
             </div>
             <Switch
               checked={value as boolean}
-              onCheckedChange={(checked) => handleChange(worker, field.key, checked)}
+              onCheckedChange={(checked) =>
+                handleChange(worker, field.key, checked)
+              }
             />
           </div>
         );
@@ -166,11 +208,15 @@ export function SettingsForm() {
             <Input
               type="number"
               value={value as number}
-              onChange={(e) => handleChange(worker, field.key, parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                handleChange(worker, field.key, parseFloat(e.target.value) || 0)
+              }
               placeholder={String(field.placeholder)}
               className="bg-secondary/50"
             />
-            {field.description && <FieldDescription>{field.description}</FieldDescription>}
+            {field.description && (
+              <FieldDescription>{field.description}</FieldDescription>
+            )}
           </Field>
         );
 
@@ -180,7 +226,9 @@ export function SettingsForm() {
             <FieldLabel>{field.label}</FieldLabel>
             <Select
               value={String(value)}
-              onValueChange={(newValue) => handleChange(worker, field.key, newValue)}
+              onValueChange={(newValue) =>
+                handleChange(worker, field.key, newValue)
+              }
             >
               <SelectTrigger className="bg-secondary/50">
                 <SelectValue placeholder={field.placeholder} />
@@ -193,7 +241,9 @@ export function SettingsForm() {
                 ))}
               </SelectContent>
             </Select>
-            {field.description && <FieldDescription>{field.description}</FieldDescription>}
+            {field.description && (
+              <FieldDescription>{field.description}</FieldDescription>
+            )}
           </Field>
         );
 
@@ -208,7 +258,9 @@ export function SettingsForm() {
               placeholder={String(field.placeholder)}
               className="min-h-[80px] bg-secondary/50 font-mono text-sm"
             />
-            {field.description && <FieldDescription>{field.description}</FieldDescription>}
+            {field.description && (
+              <FieldDescription>{field.description}</FieldDescription>
+            )}
           </Field>
         );
 
@@ -223,7 +275,9 @@ export function SettingsForm() {
               placeholder={String(field.placeholder)}
               className="bg-secondary/50"
             />
-            {field.description && <FieldDescription>{field.description}</FieldDescription>}
+            {field.description && (
+              <FieldDescription>{field.description}</FieldDescription>
+            )}
           </Field>
         );
     }
@@ -243,7 +297,9 @@ export function SettingsForm() {
     <div className="flex flex-col gap-6">
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Connected Workers</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Connected Workers
+          </CardTitle>
           <CardDescription>Services connected to the dashboard</CardDescription>
         </CardHeader>
         <CardContent>
@@ -280,12 +336,19 @@ export function SettingsForm() {
             ))}
           </TabsList>
 
-      {configs.map((config) => (
-        <TabsContent key={config.worker} value={config.worker} className="space-y-6">
-          {config.sections.map((section: DashboardSection) => {
-            const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
+          {configs.map((config) => (
+            <TabsContent
+              key={config.worker}
+              value={config.worker}
+              className="space-y-6"
+            >
+              {config.sections.map((section: DashboardSection) => {
+                const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
                 return (
-                  <Card key={`${config.worker}-${section.id}`} className="bg-card border-border">
+                  <Card
+                    key={`${config.worker}-${section.id}`}
+                    className="bg-card border-border"
+                  >
                     <CardHeader className="pb-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1">
@@ -293,20 +356,27 @@ export function SettingsForm() {
                             <Icon className="h-5 w-5 text-primary" />
                             {section.title}
                             {section.priority !== undefined && (
-                              <Badge variant="secondary" className="ml-2 font-normal text-xs">
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 font-normal text-xs"
+                              >
                                 Priority {section.priority}
                               </Badge>
                             )}
                           </CardTitle>
-                          <CardDescription>{section.description}</CardDescription>
+                          <CardDescription>
+                            {section.description}
+                          </CardDescription>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <FieldGroup>
-                  {section.fields.map((field: SettingField) => (
-                    <div key={field.key}>{renderField(config.worker, field)}</div>
-                  ))}
+                        {section.fields.map((field: SettingField) => (
+                          <div key={field.key}>
+                            {renderField(config.worker, field)}
+                          </div>
+                        ))}
                       </FieldGroup>
                     </CardContent>
                   </Card>

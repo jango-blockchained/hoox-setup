@@ -81,7 +81,7 @@ A Cloudflare® Worker service for executing cryptocurrency trades, logging signa
         "BINANCE_API_KEY",
         "BINANCE_API_SECRET",
         "BYBIT_API_KEY",
-        "BYBIT_API_SECRET"
+        "BYBIT_API_SECRET",
       ],
       "observability": {
         "enabled": true,
@@ -190,4 +190,4 @@ The worker includes error handling for authentication failures, invalid paramete
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

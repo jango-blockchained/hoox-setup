@@ -113,7 +113,7 @@ We use `bun test --coverage` to track code coverage across the project. The CI p
 
 | Package/File             | Function Coverage | Line Coverage | Status               |
 | ------------------------ | ----------------- | ------------- | -------------------- |
-| **packages/cli**    |                   |               |                      |
+| **packages/cli**         |                   |               |                      |
 | cf-client.ts             | 100%              | 100%          | ✅                   |
 | utils.ts                 | 83.33%            | 83.51%        | ✅                   |
 | validation.ts            | 92.86%            | 74.37%        | ⚠️ (functions only)  |

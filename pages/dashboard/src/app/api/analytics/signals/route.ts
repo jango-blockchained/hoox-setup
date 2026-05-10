@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 function buildSignalOutcomesQuery(timeRange?: string): string {
-  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : '';
+  const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : "";
   return `
     SELECT
       blob2 as source,

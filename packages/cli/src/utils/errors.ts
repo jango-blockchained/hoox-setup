@@ -15,10 +15,9 @@ export class CLIError extends Error {
     message: string,
     public readonly code: ExitCode = ExitCode.ERROR,
     public readonly details?: string,
-    public readonly recoverable = false,
+    public readonly recoverable = false
   ) {
     super(message);
     this.name = "CLIError";
   }
-  // eslint-disable-line no-redeclare
 }

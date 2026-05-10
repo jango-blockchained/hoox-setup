@@ -1,48 +1,67 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { BarChart3, TrendingUp, TrendingDown } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
+import { motion } from "framer-motion";
 
-const EXCHANGES = ["Binance", "Bybit", "MEXC", "all"]
+const EXCHANGES = ["Binance", "Bybit", "MEXC", "all"];
 
 export function ApiStats() {
-  const [data, setData] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedExchange, setSelectedExchange] = useState("all")
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedExchange, setSelectedExchange] = useState("all");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const url = new URL(`/api/analytics/api-stats`, window.location.origin)
+        const url = new URL(`/api/analytics/api-stats`, window.location.origin);
         if (selectedExchange !== "all") {
-          url.searchParams.set("exchange", selectedExchange)
+          url.searchParams.set("exchange", selectedExchange);
         }
-        const res = await fetch(url.toString())
-        const json = await res.json() as { success: boolean; data?: any[] }
+        const res = await fetch(url.toString());
+        const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
-          setData(json.data || [])
+          setData(json.data || []);
         }
       } catch (error) {
-        console.error("Failed to fetch API stats:", error)
+        console.error("Failed to fetch API stats:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    if (mounted) fetchData()
-  }, [selectedExchange, mounted])
+    if (mounted) fetchData();
+  }, [selectedExchange, mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <motion.div
@@ -57,10 +76,15 @@ export function ApiStats() {
               <BarChart3 className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>API Call Statistics</CardTitle>
-                <CardDescription>Latency and success rates by endpoint</CardDescription>
+                <CardDescription>
+                  Latency and success rates by endpoint
+                </CardDescription>
               </div>
             </div>
-            <Select value={selectedExchange} onValueChange={setSelectedExchange}>
+            <Select
+              value={selectedExchange}
+              onValueChange={setSelectedExchange}
+            >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
@@ -96,16 +120,29 @@ export function ApiStats() {
               </TableHeader>
               <TableBody>
                 {data.map((row, i) => {
-                  const successRate = row.call_count > 0
-                    ? ((row.success_count / row.call_count) * 100).toFixed(1)
-                    : "0"
-                  const latency = row.avg_latency_ms ? Math.round(row.avg_latency_ms) : 0
+                  const successRate =
+                    row.call_count > 0
+                      ? ((row.success_count / row.call_count) * 100).toFixed(1)
+                      : "0";
+                  const latency = row.avg_latency_ms
+                    ? Math.round(row.avg_latency_ms)
+                    : 0;
                   return (
                     <TableRow key={i}>
-                      <TableCell className="font-medium">{row.endpoint}</TableCell>
+                      <TableCell className="font-medium">
+                        {row.endpoint}
+                      </TableCell>
                       <TableCell>{row.call_count}</TableCell>
                       <TableCell>
-                        <span className={latency > 500 ? "text-red-500" : latency > 200 ? "text-yellow-500" : ""}>
+                        <span
+                          className={
+                            latency > 500
+                              ? "text-red-500"
+                              : latency > 200
+                                ? "text-yellow-500"
+                                : ""
+                          }
+                        >
                           {latency}ms
                         </span>
                       </TableCell>
@@ -129,7 +166,7 @@ export function ApiStats() {
                         )}
                       </TableCell>
                     </TableRow>
-                  )
+                  );
                 })}
               </TableBody>
             </Table>
@@ -137,5 +174,5 @@ export function ApiStats() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

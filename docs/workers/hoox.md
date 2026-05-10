@@ -39,34 +39,33 @@ A Cloudflare® Worker service that acts as the **primary gateway** for external 
       "compatibility_date": "2025-03-07",
       "compatibility_flags": ["nodejs_compat"],
       "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-      "secrets": [
-        "WEBHOOK_API_KEY_BINDING",
-        "INTERNAL_KEY_BINDING"
-      ],
+      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
       "kv_namespaces": [
-        { "binding": "CONFIG_KV", "id": "<CONFIG_KV_ID>", "preview_id": "<CONFIG_KV_PREVIEW_ID>" }
+        {
+          "binding": "CONFIG_KV",
+          "id": "<CONFIG_KV_ID>",
+          "preview_id": "<CONFIG_KV_PREVIEW_ID>",
+        },
       ],
       "services": [
         { "binding": "TRADE_SERVICE", "service": "trade-worker" },
-        { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" }
+        { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
       ],
       "observability": {
         "enabled": true,
-        "head_sampling_rate": 1
+        "head_sampling_rate": 1,
       },
       "queues": {
-        "producers": [
-          { "queue": "trade-execution", "binding": "TRADE_QUEUE" }
-        ]
+        "producers": [{ "queue": "trade-execution", "binding": "TRADE_QUEUE" }],
       },
       "durable_objects": {
         "bindings": [
-          { "name": "IDEMPOTENCY_STORE", "class_name": "IdempotencyStore" }
+          { "name": "IDEMPOTENCY_STORE", "class_name": "IdempotencyStore" },
         ],
         "migrations": [
-          { "tag": "v1", "new_sqlite_classes": ["IdempotencyStore"] }
-        ]
-      }
+          { "tag": "v1", "new_sqlite_classes": ["IdempotencyStore"] },
+        ],
+      },
     }
     ```
 6.  Update the corresponding `worker-configuration.d.ts` file.
@@ -100,4 +99,4 @@ bun run deploy
 
 ---
 
-*Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
+_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._

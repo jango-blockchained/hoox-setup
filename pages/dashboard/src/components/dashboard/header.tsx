@@ -1,53 +1,61 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Activity, ExternalLink, Code2, Zap, Wifi, WifiOff, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  Activity,
+  ExternalLink,
+  Code2,
+  Zap,
+  Wifi,
+  WifiOff,
+  Clock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { MobileNav } from "./mobile-nav"
-import { motion } from "framer-motion"
+} from "@/components/ui/tooltip";
+import { MobileNav } from "./mobile-nav";
+import { motion } from "framer-motion";
 
 export function DashboardHeader() {
-  const [isOnline, setIsOnline] = useState(true)
-  const [currentTime, setCurrentTime] = useState<Date | null>(null)
-  const [latency, setLatency] = useState(12)
+  const [isOnline, setIsOnline] = useState(true);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [latency, setLatency] = useState(12);
 
   useEffect(() => {
     const timeInterval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
+      setCurrentTime(new Date());
+    }, 1000);
 
     const latencyInterval = setInterval(() => {
-      setLatency(Math.floor(Math.random() * 20) + 5)
-    }, 5000)
+      setLatency(Math.floor(Math.random() * 20) + 5);
+    }, 5000);
 
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener("online", handleOnline)
-    window.addEventListener("offline", handleOffline)
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      clearInterval(timeInterval)
-      clearInterval(latencyInterval)
-      window.removeEventListener("online", handleOnline)
-      window.removeEventListener("offline", handleOffline)
-    }
-  }, [])
+      clearInterval(timeInterval);
+      clearInterval(latencyInterval);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   return (
     <TooltipProvider>
@@ -56,18 +64,22 @@ export function DashboardHeader() {
           <div className="flex items-center gap-4">
             <MobileNav />
             <Link href="/dashboard" className="flex items-center gap-2 group">
-              <motion.div 
+              <motion.div
                 className="flex size-8 items-center justify-center rounded-md bg-primary transition-transform group-hover:scale-105"
                 whileHover={{ rotate: 5 }}
               >
                 <Zap className="size-5 text-primary-foreground" />
               </motion.div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground">Hoox</span>
-                <span className="text-[10px] text-muted-foreground">Edge Trading</span>
+                <span className="text-sm font-semibold text-foreground">
+                  Hoox
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  Edge Trading
+                </span>
               </div>
             </Link>
-            
+
             {/* Status Indicators */}
             <div className="hidden items-center gap-3 md:flex">
               <Tooltip>
@@ -81,12 +93,16 @@ export function DashboardHeader() {
                         >
                           <Wifi className="size-3 text-success" />
                         </motion.div>
-                        <span className="text-xs text-muted-foreground">Online</span>
+                        <span className="text-xs text-muted-foreground">
+                          Online
+                        </span>
                       </>
                     ) : (
                       <>
                         <WifiOff className="size-3 text-destructive" />
-                        <span className="text-xs text-destructive">Offline</span>
+                        <span className="text-xs text-destructive">
+                          Offline
+                        </span>
                       </>
                     )}
                   </div>
@@ -98,7 +114,10 @@ export function DashboardHeader() {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="secondary" className="gap-1.5 font-mono text-[10px]">
+                  <Badge
+                    variant="secondary"
+                    className="gap-1.5 font-mono text-[10px]"
+                  >
                     <Activity className="size-3 text-success" />
                     {latency}ms
                   </Badge>
@@ -113,12 +132,14 @@ export function DashboardHeader() {
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="size-3" />
                     <span className="font-mono">
-                      {currentTime ? currentTime.toLocaleTimeString("en-US", { 
-                        hour: "2-digit", 
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false 
-                      }) : "--:--:--"}
+                      {currentTime
+                        ? currentTime.toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            hour12: false,
+                          })
+                        : "--:--:--"}
                     </span>
                   </div>
                 </TooltipTrigger>
@@ -130,13 +151,22 @@ export function DashboardHeader() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden gap-2 text-muted-foreground md:flex" asChild>
-              <a href="https://github.com/jango-blockchained/hoox-setup" target="_blank" rel="noopener noreferrer">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden gap-2 text-muted-foreground md:flex"
+              asChild
+            >
+              <a
+                href="https://github.com/jango-blockchained/hoox-setup"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Code2 className="size-4" />
                 <span>Source</span>
               </a>
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -146,13 +176,21 @@ export function DashboardHeader() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <a href="https://hoox.cryptolinx.workers.dev" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://hoox.cryptolinx.workers.dev"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Live Gateway
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://dash.cloudflare.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Cloudflare Dashboard
                   </a>
                 </DropdownMenuItem>
@@ -162,5 +200,5 @@ export function DashboardHeader() {
         </div>
       </header>
     </TooltipProvider>
-  )
+  );
 }

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 function buildApiCallStatsQuery(exchange?: string): string {
-  const exchangeFilter = exchange ? `AND blob3 = '${exchange}'` : '';
+  const exchangeFilter = exchange ? `AND blob3 = '${exchange}'` : "";
   return `
     SELECT
       blob3 as endpoint,

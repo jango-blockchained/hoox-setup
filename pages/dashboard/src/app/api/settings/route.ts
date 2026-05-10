@@ -82,7 +82,7 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
 
 export async function GET(
   request: NextRequest,
-  _context: { params: Promise<{}> }
+  _context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
     const env = getCloudflareContext().env as unknown as {
@@ -177,7 +177,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  _context: { params: Promise<{}> }
+  _context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
     const body = (await request.json()) as {

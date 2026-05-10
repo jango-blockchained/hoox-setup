@@ -1,4 +1,7 @@
-export { SecretsService, default as SecretsServiceDefault } from "./secrets-service.js";
+export {
+  SecretsService,
+  default as SecretsServiceDefault,
+} from "./secrets-service.js";
 export type {
   Result,
   WranglerResult,

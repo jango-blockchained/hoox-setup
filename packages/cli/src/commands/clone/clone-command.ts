@@ -97,16 +97,13 @@ async function cloneWorker(
   repoUrl: string,
   targetPath: string,
   name: string,
-  cwd: string,
+  cwd: string
 ): Promise<CloneStatus> {
-  const proc = Bun.spawn(
-    ["git", "submodule", "add", repoUrl, targetPath],
-    {
-      cwd,
-      stdout: "pipe",
-      stderr: "pipe",
-    },
-  );
+  const proc = Bun.spawn(["git", "submodule", "add", repoUrl, targetPath], {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
 
   const exitCode = await proc.exited;
 
@@ -118,8 +115,7 @@ async function cloneWorker(
       cloned: false,
       repo: repoUrl,
       error:
-        stderr.trim() ||
-        `git submodule add failed with exit code ${exitCode}`,
+        stderr.trim() || `git submodule add failed with exit code ${exitCode}`,
     };
   }
 
@@ -139,7 +135,7 @@ async function updateSubmodules(cwd: string): Promise<void> {
       cwd,
       stdout: "pipe",
       stderr: "pipe",
-    },
+    }
   );
 
   const exitCode = await proc.exited;
@@ -147,8 +143,7 @@ async function updateSubmodules(cwd: string): Promise<void> {
   if (exitCode !== 0) {
     const stderr = await new Response(proc.stderr).text();
     throw new Error(
-      stderr.trim() ||
-        `git submodule update failed with exit code ${exitCode}`,
+      stderr.trim() || `git submodule update failed with exit code ${exitCode}`
     );
   }
 }
@@ -159,7 +154,7 @@ async function updateSubmodules(cwd: string): Promise<void> {
  */
 async function buildStatusList(
   configService: ConfigService,
-  repoBase: string,
+  repoBase: string
 ): Promise<CloneStatus[]> {
   const workers = configService.listWorkers();
   const statuses: CloneStatus[] = [];
@@ -200,13 +195,13 @@ export function registerCloneCommand(program: Command): void {
     .option("--all", "Clone all worker repositories")
     .option(
       "--org <org>",
-      "GitHub organization (derived from git remote by default)",
+      "GitHub organization (derived from git remote by default)"
     )
     .argument("[name]", "Worker name to clone (omit to list status)")
     .action(
       async (
         name: string | undefined,
-        options: { all?: boolean; org?: string },
+        options: { all?: boolean; org?: string }
       ) => {
         const fmt = getFormatOptions(program);
 
@@ -234,7 +229,7 @@ export function registerCloneCommand(program: Command): void {
             if (fmt.quiet) {
               for (const s of statuses) {
                 process.stdout.write(
-                  `${s.worker}: ${s.cloned ? "cloned" : "not cloned"}\n`,
+                  `${s.worker}: ${s.cloned ? "cloned" : "not cloned"}\n`
                 );
               }
               return;
@@ -254,10 +249,7 @@ export function registerCloneCommand(program: Command): void {
           // -------------------------------------------------------------------
           if (options.all) {
             if (workers.length === 0) {
-              formatSuccess(
-                "No workers defined in workers.jsonc",
-                fmt,
-              );
+              formatSuccess("No workers defined in workers.jsonc", fmt);
               return;
             }
 
@@ -276,12 +268,10 @@ export function registerCloneCommand(program: Command): void {
               if (!workerConfig) continue;
 
               // Skip already cloned workers
-              const alreadyCloned = await isWorkerCloned(
-                workerConfig.path,
-              );
+              const alreadyCloned = await isWorkerCloned(workerConfig.path);
               if (alreadyCloned) {
                 s.message(
-                  `[${i + 1}/${workers.length}] ${icons.info} ${name} already cloned — skipping`,
+                  `[${i + 1}/${workers.length}] ${icons.info} ${name} already cloned — skipping`
                 );
                 results.push({
                   worker: name,
@@ -292,25 +282,23 @@ export function registerCloneCommand(program: Command): void {
                 continue;
               }
 
-              s.message(
-                `[${i + 1}/${workers.length}] Cloning ${name}...`,
-              );
+              s.message(`[${i + 1}/${workers.length}] Cloning ${name}...`);
 
               const result = await cloneWorker(
                 getRepoUrl(repoBase, name),
                 workerConfig.path,
                 name,
-                process.cwd(),
+                process.cwd()
               );
               results.push(result);
 
               if (result.cloned) {
                 s.message(
-                  `[${i + 1}/${workers.length}] ${icons.success} ${name} cloned`,
+                  `[${i + 1}/${workers.length}] ${icons.success} ${name} cloned`
                 );
               } else {
                 s.message(
-                  `[${i + 1}/${workers.length}] ${icons.error} ${name} failed: ${result.error}`,
+                  `[${i + 1}/${workers.length}] ${icons.error} ${name} failed: ${result.error}`
                 );
               }
             }
@@ -332,13 +320,11 @@ export function registerCloneCommand(program: Command): void {
 
             if (failed > 0) {
               s.stop(
-                `Clone complete: ${succeeded} succeeded, ${failed} failed`,
+                `Clone complete: ${succeeded} succeeded, ${failed} failed`
               );
               process.exitCode = ExitCode.ERROR;
             } else {
-              s.stop(
-                `All ${succeeded} worker(s) cloned successfully`,
-              );
+              s.stop(`All ${succeeded} worker(s) cloned successfully`);
             }
 
             // Print summary table (unless quiet)
@@ -364,22 +350,20 @@ export function registerCloneCommand(program: Command): void {
               formatError(
                 new CLIError(
                   `Worker "${name}" not found in workers.jsonc`,
-                  ExitCode.ERROR,
+                  ExitCode.ERROR
                 ),
-                fmt,
+                fmt
               );
               process.exitCode = ExitCode.ERROR;
               return;
             }
 
             // Already cloned → early exit with success
-            const alreadyCloned = await isWorkerCloned(
-              workerConfig.path,
-            );
+            const alreadyCloned = await isWorkerCloned(workerConfig.path);
             if (alreadyCloned) {
               formatSuccess(
                 `Worker "${name}" is already cloned at ${workerConfig.path}`,
-                fmt,
+                fmt
               );
               return;
             }
@@ -395,7 +379,7 @@ export function registerCloneCommand(program: Command): void {
               getRepoUrl(repoBase, name),
               workerConfig.path,
               name,
-              process.cwd(),
+              process.cwd()
             );
 
             if (result.cloned) {
@@ -408,18 +392,15 @@ export function registerCloneCommand(program: Command): void {
               }
 
               s.stop(`Successfully cloned ${name}`);
-              formatSuccess(
-                `Cloned ${name} from ${result.repo}`,
-                fmt,
-              );
+              formatSuccess(`Cloned ${name} from ${result.repo}`, fmt);
             } else {
               s.stop(`Failed to clone ${name}`);
               formatError(
                 new CLIError(
                   `Failed to clone "${name}": ${result.error}`,
-                  ExitCode.ERROR,
+                  ExitCode.ERROR
                 ),
-                fmt,
+                fmt
               );
               process.exitCode = ExitCode.ERROR;
             }
@@ -427,11 +408,10 @@ export function registerCloneCommand(program: Command): void {
             return;
           }
         } catch (err) {
-          const message =
-            err instanceof Error ? err.message : String(err);
+          const message = err instanceof Error ? err.message : String(err);
           formatError(message, fmt);
           process.exitCode = ExitCode.ERROR;
         }
-      },
+      }
     );
 }

@@ -3,7 +3,7 @@
  * Provides both Bearer token auth and internal service-to-service auth
  */
 
-import type { Env } from '../types';
+import type { Env } from "../types";
 
 /**
  * Constant-time string comparison to prevent timing attacks.
@@ -27,23 +27,23 @@ function timingSafeEqual(a: string, b: string): boolean {
  */
 export async function requireAuth(
   request: Request,
-  env: Env,
+  env: Env
 ): Promise<Response | null> {
   const apiKey = env.INTERNAL_API_KEY;
   if (!apiKey) {
     return new Response(
-      JSON.stringify({ error: 'Internal API key not configured' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
+      JSON.stringify({ error: "Internal API key not configured" }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const authHeader = request.headers.get('Authorization');
+  const authHeader = request.headers.get("Authorization");
   const expectedHeader = `Bearer ${apiKey}`;
   if (!authHeader || !timingSafeEqual(authHeader, expectedHeader)) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   return null;
@@ -72,17 +72,17 @@ export interface InternalAuthEnv {
 export function requireInternalAuth(
   request: Request,
   env: InternalAuthEnv,
-  keyName: string = 'INTERNAL_KEY_BINDING',
+  keyName: string = "INTERNAL_KEY_BINDING"
 ): Response | null {
   const expectedKey = env[keyName] as string | undefined;
   // If no key is configured, auth is optional — allow through
   if (!expectedKey) return null;
 
-  const providedKey = request.headers.get('X-Internal-Auth-Key');
+  const providedKey = request.headers.get("X-Internal-Auth-Key");
   if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
     return new Response(
-      JSON.stringify({ success: false, error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -101,16 +101,16 @@ export function requireInternalAuth(
 export function checkInternalAuth(
   request: Request,
   env: InternalAuthEnv,
-  keyName: string = 'INTERNAL_KEY_BINDING',
+  keyName: string = "INTERNAL_KEY_BINDING"
 ): { authorized: boolean; error?: string } {
   const expectedKey = env[keyName] as string | undefined;
   if (!expectedKey) {
     return { authorized: false, error: `${keyName} not configured` };
   }
 
-  const providedKey = request.headers.get('X-Internal-Auth-Key');
+  const providedKey = request.headers.get("X-Internal-Auth-Key");
   if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
-    return { authorized: false, error: 'Unauthorized' };
+    return { authorized: false, error: "Unauthorized" };
   }
 
   return { authorized: true };

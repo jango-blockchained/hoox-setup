@@ -6,7 +6,15 @@
  * handle errors gracefully.
  */
 
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { Command } from "commander";
 import { registerWafCommand } from "./waf-command.js";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
@@ -20,17 +28,13 @@ const realFetch = globalThis.fetch;
 const realEnv = { ...process.env };
 
 /** Mock CloudflareService.zonesList to return a known zone. */
-function mockZonesList(
-  output: string,
-  ok = true,
-  error?: string,
-): void {
+function mockZonesList(output: string, ok = true, error?: string): void {
   const result: WranglerResult<string> = ok
     ? { ok: true, data: output }
     : { ok: false, error: error ?? "zone list failed" };
 
-  spyOn(CloudflareService.prototype, "zonesList").mockImplementation(
-    () => Promise.resolve(result),
+  spyOn(CloudflareService.prototype, "zonesList").mockImplementation(() =>
+    Promise.resolve(result)
   );
 }
 
@@ -39,13 +43,13 @@ function mockZonesList(
  * Returns the list of calls made to fetch for assertions.
  */
 function mockCfFetch(
-  responseMap: Record<string, unknown>,
+  responseMap: Record<string, unknown>
 ): Array<{ url: string; method: string; body?: string }> {
   const calls: Array<{ url: string; method: string; body?: string }> = [];
 
-    const fetchMock = mock(
-      async (url: string, init?: Record<string, unknown>) => {
-        void init; // Mark as used
+  const fetchMock = mock(
+    async (url: string, init?: Record<string, unknown>) => {
+      void init; // Mark as used
       // Find matching response by path partial match
       let matched: unknown = null;
       for (const [pathPattern, response] of Object.entries(responseMap)) {
@@ -61,7 +65,12 @@ function mockCfFetch(
         body: init?.body as string | undefined,
       });
 
-      if (matched && typeof matched === "object" && matched !== null && "error" in (matched as Record<string, unknown>)) {
+      if (
+        matched &&
+        typeof matched === "object" &&
+        matched !== null &&
+        "error" in (matched as Record<string, unknown>)
+      ) {
         // Error response
         return {
           ok: false,
@@ -81,7 +90,7 @@ function mockCfFetch(
           result: matched,
         }),
       };
-    },
+    }
   );
 
   (globalThis as unknown as Record<string, unknown>).fetch = fetchMock;
@@ -121,7 +130,7 @@ function makeProgram(): Command {
 
 /** Run a command string (e.g. "waf status --json") and capture stdout. */
 async function runCommand(
-  args: string,
+  args: string
 ): Promise<{ stdout: string; exitCode: number }> {
   const program = makeProgram();
 
@@ -130,11 +139,13 @@ async function runCommand(
     (chunk: unknown) => {
       stdout += typeof chunk === "string" ? chunk : String(chunk ?? "");
       return true;
-    },
+    }
   );
 
   // We don't want process.exit() to kill the test runner
-  const exitSpy = spyOn(process, "exit").mockImplementation((() => {}) as never);
+  const exitSpy = spyOn(process, "exit").mockImplementation(
+    (() => {}) as never
+  );
 
   try {
     await program.parseAsync([...args.split(" ")], { from: "user" });
@@ -258,7 +269,7 @@ describe("waf command", () => {
             action: "allow",
             filter: {
               id: "f2",
-              expression: "(http.request.uri.path contains \"/api\")",
+              expression: '(http.request.uri.path contains "/api")',
             },
             created_on: "2026-01-03T00:00:00Z",
             modified_on: "2026-01-04T00:00:00Z",
@@ -338,7 +349,7 @@ describe("waf command", () => {
       });
 
       const { stdout } = await runCommand(
-        "waf rules add ip-allowlist 192.168.1.1",
+        "waf rules add ip-allowlist 192.168.1.1"
       );
 
       expect(stdout).toContain("WAF rule added");
@@ -348,9 +359,7 @@ describe("waf command", () => {
     it("rejects invalid rule types", async () => {
       mockZonesList("example.com (zone-1)");
 
-      const { stdout } = await runCommand(
-        "waf rules add invalid-type 1.2.3.4",
-      );
+      const { stdout } = await runCommand("waf rules add invalid-type 1.2.3.4");
 
       expect(stdout).toContain("Invalid rule type");
     });
@@ -362,7 +371,7 @@ describe("waf command", () => {
       });
 
       const { stdout } = await runCommand(
-        "waf rules add ip-blocklist 10.0.0.1",
+        "waf rules add ip-blocklist 10.0.0.1"
       );
 
       expect(stdout).toContain("Filter creation failed");
@@ -475,7 +484,7 @@ describe("waf command", () => {
       const program = makeProgram();
       const wafCmd = program.commands.find((c) => c.name() === "waf")!;
       const rulesCmd = (wafCmd as Command).commands.find(
-        (c) => c.name() === "rules",
+        (c) => c.name() === "rules"
       )!;
       const ruleSubNames = (rulesCmd as Command).commands.map((c) => c.name());
       expect(ruleSubNames).toContain("list");
@@ -487,7 +496,7 @@ describe("waf command", () => {
       const program = makeProgram();
       const wafCmd = program.commands.find((c) => c.name() === "waf")!;
       const modeCmd = (wafCmd as Command).commands.find(
-        (c) => c.name() === "mode",
+        (c) => c.name() === "mode"
       )!;
       const modeSubNames = (modeCmd as Command).commands.map((c) => c.name());
       expect(modeSubNames).toContain("enable");

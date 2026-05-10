@@ -7,7 +7,7 @@ export async function GET(_request: NextRequest) {
   try {
     const templates = [
       "trading-analyst",
-      "risk-assessor", 
+      "risk-assessor",
       "market-scanner",
       "sentiment-analyzer",
       "position-advisor",
@@ -15,9 +15,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ success: true, prompts: templates });
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }

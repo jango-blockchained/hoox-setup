@@ -1,11 +1,13 @@
-"use client"
+"use client";
 
+import { Settings, HelpCircle, Search } from "lucide-react";
 import {
-  Settings,
-  HelpCircle,
-  Search,
-} from "lucide-react"
-import { SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
 
 const navSecondary = [
   {
@@ -24,7 +26,7 @@ const navSecondary = [
     href: "#",
     icon: Search,
   },
-]
+];
 
 export function NavSecondary({
   className,
@@ -51,5 +53,5 @@ export function NavSecondary({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }

@@ -10,22 +10,16 @@
       "fields": {
         "enabled": false,
         "default_chain": "ethereum",
-        "private_key_binding": "WEB3_PRIVATE_KEY"
+        "private_key_binding": "WEB3_PRIVATE_KEY",
       },
       "options": {
-        "default_chain": [
-          "ethereum",
-          "bsc",
-          "polygon",
-          "arbitrum",
-          "optimism"
-        ]
+        "default_chain": ["ethereum", "bsc", "polygon", "arbitrum", "optimism"],
       },
       "descriptions": {
         "enabled": "Enable or disable Web3 wallet operations.",
         "default_chain": "Default blockchain network for DEX trades.",
-        "private_key_binding": "Cloudflare secret binding for the wallet private key."
-      }
+        "private_key_binding": "Cloudflare secret binding for the wallet private key.",
+      },
     },
     "dex": {
       "title": "DEX Configuration",
@@ -35,13 +29,13 @@
       "fields": {
         "slippage_tolerance": 0.5,
         "gas_multiplier": 1.2,
-        "max_approval_amount": 1000000
+        "max_approval_amount": 1000000,
       },
       "descriptions": {
         "slippage_tolerance": "Maximum slippage percentage for DEX trades (0.5 = 0.5%).",
         "gas_multiplier": "Multiplier for gas price to ensure fast execution.",
-        "max_approval_amount": "Maximum token approval amount in wei."
-      }
+        "max_approval_amount": "Maximum token approval amount in wei.",
+      },
     },
     "security": {
       "title": "Security",
@@ -51,13 +45,13 @@
       "fields": {
         "max_transaction_value_usd": 10000,
         "require_confirmation": true,
-        "whitelisted_contracts_only": true
+        "whitelisted_contracts_only": true,
       },
       "descriptions": {
         "max_transaction_value_usd": "Maximum single transaction value in USD.",
         "require_confirmation": "Require manual confirmation for transactions above threshold.",
-        "whitelisted_contracts_only": "Only interact with pre-approved smart contracts."
-      }
-    }
-  }
+        "whitelisted_contracts_only": "Only interact with pre-approved smart contracts.",
+      },
+    },
+  },
 }

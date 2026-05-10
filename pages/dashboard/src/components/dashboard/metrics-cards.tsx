@@ -1,8 +1,15 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, TrendingUp, AlertTriangle, DollarSign, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Activity,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 
@@ -58,63 +65,74 @@ const initialMetrics: MetricData[] = [
   },
 ];
 
-function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [displayValue, setDisplayValue] = useState(value)
-  
+function AnimatedNumber({
+  value,
+  suffix = "",
+}: {
+  value: number;
+  suffix?: string;
+}) {
+  const [displayValue, setDisplayValue] = useState(value);
+
   useEffect(() => {
-    const startValue = displayValue
-    const endValue = value
-    const duration = 500
-    const startTime = Date.now()
-    
+    const startValue = displayValue;
+    const endValue = value;
+    const duration = 500;
+    const startTime = Date.now();
+
     const animate = () => {
-      const elapsed = Date.now() - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3) // easeOutCubic
-      const current = startValue + (endValue - startValue) * eased
-      
-      setDisplayValue(current)
-      
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      const current = startValue + (endValue - startValue) * eased;
+
+      setDisplayValue(current);
+
       if (progress < 1) {
-        requestAnimationFrame(animate)
+        requestAnimationFrame(animate);
       }
-    }
-    
-    requestAnimationFrame(animate)
-  }, [value])
+    };
+
+    requestAnimationFrame(animate);
+  }, [value]);
 
   const display = (() => {
     if (Math.abs(displayValue) >= 1000) {
-      return displayValue.toLocaleString(undefined, { maximumFractionDigits: 0 }) + suffix
+      return (
+        displayValue.toLocaleString(undefined, { maximumFractionDigits: 0 }) +
+        suffix
+      );
     }
     if (Math.abs(displayValue) < 10) {
-      return displayValue.toFixed(1) + suffix
+      return displayValue.toFixed(1) + suffix;
     }
-    return Math.round(displayValue).toLocaleString() + suffix
-  })()
+    return Math.round(displayValue).toLocaleString() + suffix;
+  })();
 
-  return <motion.span 
-    key={value}
-    initial={{ scale: 1 }}
-    animate={{ scale: [1, 1.05, 1] }}
-    transition={{ duration: 0.3 }}
-  >
-    {display}
-  </motion.span>
+  return (
+    <motion.span
+      key={value}
+      initial={{ scale: 1 }}
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 0.3 }}
+    >
+      {display}
+    </motion.span>
+  );
 }
 
 function SparkLine({ data, positive }: { data: number[]; positive: boolean }) {
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
 
   const points = data
     .map((value, index) => {
-      const x = (index / (data.length - 1)) * 60
-      const y = 20 - ((value - min) / range) * 16
-      return `${x},${y}`
+      const x = (index / (data.length - 1)) * 60;
+      const y = 20 - ((value - min) / range) * 16;
+      return `${x},${y}`;
     })
-    .join(" ")
+    .join(" ");
 
   return (
     <svg className="h-5 w-15" viewBox="0 0 60 24">
@@ -127,7 +145,7 @@ function SparkLine({ data, positive }: { data: number[]; positive: boolean }) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
 
 export function MetricsCards() {
@@ -147,14 +165,29 @@ export function MetricsCards() {
           setMetrics((prev) =>
             prev.map((metric) => {
               if (metric.title === "Total Trades") {
-                return { ...metric, value: data.stats.totalTrades, displayValue: String(data.stats.totalTrades) };
+                return {
+                  ...metric,
+                  value: data.stats.totalTrades,
+                  displayValue: String(data.stats.totalTrades),
+                };
               }
               if (metric.title === "Win Rate") {
-                const winRate = data.stats.winRate === "N/A" ? 0 : parseFloat(data.stats.winRate);
-                return { ...metric, value: winRate, displayValue: data.stats.winRate };
+                const winRate =
+                  data.stats.winRate === "N/A"
+                    ? 0
+                    : parseFloat(data.stats.winRate);
+                return {
+                  ...metric,
+                  value: winRate,
+                  displayValue: data.stats.winRate,
+                };
               }
               if (metric.title === "Open Positions") {
-                return { ...metric, value: data.stats.openPositions, displayValue: String(data.stats.openPositions) };
+                return {
+                  ...metric,
+                  value: data.stats.openPositions,
+                  displayValue: String(data.stats.openPositions),
+                };
               }
               return metric;
             })
@@ -180,7 +213,7 @@ export function MetricsCards() {
           transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.1 }}
         >
           <Card className="group relative overflow-hidden border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]">
-             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <CardContent className="relative p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">
@@ -214,9 +247,9 @@ export function MetricsCards() {
                       </span>
                     )}
                   </div>
-                  <SparkLine 
-                    data={sparkData[metric.title] || []} 
-                    positive={metric.trendUp ?? true} 
+                  <SparkLine
+                    data={sparkData[metric.title] || []}
+                    positive={metric.trendUp ?? true}
                   />
                 </div>
               </div>
@@ -225,5 +258,5 @@ export function MetricsCards() {
         </motion.div>
       ))}
     </div>
-  )
+  );
 }

@@ -20,16 +20,8 @@ import { CloudflareService } from "../../services/cloudflare/index.js";
 import { formatSuccess, formatError } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
-import {
-  INTEGRATIONS,
-  BASE_WORKERS,
-  BASE_SECRETS,
-} from "./types.js";
-import type {
-  InitOptions,
-  WorkersJsonConfig,
-  WorkerConfig,
-} from "./types.js";
+import { INTEGRATIONS, BASE_WORKERS, BASE_SECRETS } from "./types.js";
+import type { InitOptions, WorkersJsonConfig, WorkerConfig } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,7 +50,7 @@ async function getExistingAccountId(): Promise<string | undefined> {
  */
 async function validateApiToken(
   cf: CloudflareService,
-  token: string,
+  token: string
 ): Promise<string | undefined> {
   // CloudflareService uses wrangler which reads CLOUDFLARE_API_TOKEN from env.
   // We need to pass the token. Temporarily set the env var for the whoami call.
@@ -96,15 +88,13 @@ function buildConfig(
   globalPrefix: string,
   selectedIntegrations: string[],
   integrationSecrets: Record<string, Record<string, string>>,
-  baseSecrets: Record<string, Record<string, string>>,
+  baseSecrets: Record<string, Record<string, string>>
 ): WorkersJsonConfig {
   const workers: Record<string, InternalWorkerConfig> = {};
 
   // Base workers (always enabled)
   for (const [name, baseCfg] of Object.entries(BASE_WORKERS)) {
-    const secrets = BASE_SECRETS[name]
-      ? [...BASE_SECRETS[name]]
-      : [];
+    const secrets = BASE_SECRETS[name] ? [...BASE_SECRETS[name]] : [];
     workers[name] = {
       enabled: true,
       path: baseCfg.path,
@@ -144,10 +134,7 @@ function buildConfig(
     if (!workers[workerName]._collectedSecrets) {
       workers[workerName]._collectedSecrets = {};
     }
-    Object.assign(
-      workers[workerName]._collectedSecrets!,
-      collected,
-    );
+    Object.assign(workers[workerName]._collectedSecrets!, collected);
   }
 
   // Merge base secrets that are collected (per-worker map)
@@ -175,7 +162,7 @@ function buildConfig(
  */
 async function writeWorkersJsonc(
   config: WorkersJsonConfig,
-  opts?: { json?: boolean; quiet?: boolean },
+  opts?: { json?: boolean; quiet?: boolean }
 ): Promise<void> {
   const { workers, ...restGlobal } = config;
 
@@ -227,7 +214,7 @@ async function createDevVars(
   config: WorkersJsonConfig,
   integrationSecrets: Record<string, Record<string, string>>,
   baseSecrets: Record<string, Record<string, string>>,
-  opts?: { json?: boolean; quiet?: boolean },
+  opts?: { json?: boolean; quiet?: boolean }
 ): Promise<void> {
   for (const [workerName, worker] of Object.entries(config.workers)) {
     const lines: string[] = [];
@@ -294,7 +281,7 @@ async function createDevVars(
  * collected secret values.
  */
 async function collectIntegrationSecrets(
-  selectedIntegrations: string[],
+  selectedIntegrations: string[]
 ): Promise<Record<string, Record<string, string>>> {
   const result: Record<string, Record<string, string>> = {};
 
@@ -308,7 +295,7 @@ async function collectIntegrationSecrets(
     for (const [secretName] of secretEntries) {
       groupFields[secretName] = () =>
         p.password({
-          message: `${secretName}:`,
+          message: `${integration.secrets[secretName]}:`,
           validate(value) {
             if (!value) return "This secret is required";
             return;
@@ -347,25 +334,19 @@ export function registerInitCommand(program: Command): void {
     .option("--secret-store <id>", "Secret Store ID (non-interactive)")
     .option(
       "--prefix <prefix>",
-      "Subdomain prefix (non-interactive, default: cryptolinx)",
+      "Subdomain prefix (non-interactive, default: cryptolinx)"
     )
     .option("--accept-risk", "Skip the risk acknowledgment confirmation")
     .action(async (options: InitOptions) => {
       const globalOpts = program.opts() as { json?: boolean; quiet?: boolean };
-      const isNonInteractive = Boolean(
-        options.token && options.account,
-      );
+      const isNonInteractive = Boolean(options.token && options.account);
 
       try {
         await runInitCommand(options, globalOpts, isNonInteractive);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : String(err);
+        const message = err instanceof Error ? err.message : String(err);
         p.log.error(message);
-        formatError(
-          new CLIError(message, ExitCode.ERROR),
-          globalOpts,
-        );
+        formatError(new CLIError(message, ExitCode.ERROR), globalOpts);
         process.exit(ExitCode.ERROR);
       }
     });
@@ -377,7 +358,7 @@ export function registerInitCommand(program: Command): void {
 export async function runInitCommand(
   options: InitOptions,
   globalOpts: { json?: boolean; quiet?: boolean },
-  isNonInteractive: boolean,
+  isNonInteractive: boolean
 ): Promise<void> {
   // ------------------------------------------------------------------
   // Non-interactive mode: write config directly from flags
@@ -411,7 +392,7 @@ export async function runInitCommand(
       prefix,
       [], // no integrations in non-interactive mode
       {},
-      {},
+      {}
     );
 
     await writeWorkersJsonc(config, globalOpts);
@@ -605,7 +586,7 @@ export async function runInitCommand(
     prefix,
     selected,
     integrationSecrets,
-    baseSecrets,
+    baseSecrets
   );
 
   await writeWorkersJsonc(config, globalOpts);
@@ -615,6 +596,6 @@ export async function runInitCommand(
   p.outro(
     theme.success("Setup complete! Run ") +
       theme.bold("hoox check setup") +
-      theme.success(" to verify."),
+      theme.success(" to verify.")
   );
 }

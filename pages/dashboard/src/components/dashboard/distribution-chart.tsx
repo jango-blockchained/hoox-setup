@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ChartContainer,
@@ -11,7 +11,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Pie, PieChart, Sector } from "recharts";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface DistributionData {
   name: string;
@@ -23,7 +29,7 @@ interface DistributionChartProps {
   data: DistributionData[];
   title?: string;
   description?: string;
-  type?: 'pie' | 'donut';
+  type?: "pie" | "donut";
   className?: string;
 }
 
@@ -31,13 +37,13 @@ export function DistributionChart({
   data,
   title = "Distribution",
   description,
-  type = 'donut',
+  type = "donut",
   className,
 }: DistributionChartProps) {
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const chartConfig = data.reduce((acc, item, index) => {
-    acc[item.name.toLowerCase().replace(/\s+/g, '-')] = {
+    acc[item.name.toLowerCase().replace(/\s+/g, "-")] = {
       label: item.name,
       color: item.fill || `hsl(var(--chart-${index + 1}))`,
     };
@@ -47,7 +53,12 @@ export function DistributionChart({
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className={cn("flex flex-col border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5", className)}>
+    <Card
+      className={cn(
+        "flex flex-col border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5",
+        className
+      )}
+    >
       <CardHeader className="items-center pb-0">
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -66,7 +77,7 @@ export function DistributionChart({
               data={data}
               dataKey="value"
               nameKey="name"
-              innerRadius={type === 'donut' ? 60 : 0}
+              innerRadius={type === "donut" ? 60 : 0}
               strokeWidth={5}
               onMouseEnter={(_, index) => setActiveIndex(index)}
               onMouseLeave={() => setActiveIndex(-1)}
@@ -83,7 +94,10 @@ export function DistributionChart({
             >
               <div
                 className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: item.fill || `hsl(var(--chart-${index + 1}))` }}
+                style={{
+                  backgroundColor:
+                    item.fill || `hsl(var(--chart-${index + 1}))`,
+                }}
               />
               <span className="text-muted-foreground">{item.name}</span>
               <span className="font-medium">

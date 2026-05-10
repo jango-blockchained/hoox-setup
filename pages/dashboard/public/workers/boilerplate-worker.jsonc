@@ -8,8 +8,8 @@
       "icon": "settings",
       "priority": 10,
       "fields": {
-        "enabled": true
-      }
-    }
-  }
+        "enabled": true,
+      },
+    },
+  },
 }

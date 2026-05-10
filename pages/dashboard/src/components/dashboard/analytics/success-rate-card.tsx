@@ -1,46 +1,70 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Progress } from "@/components/ui/progress"
-import { TrendingUp, TrendingDown, Percent } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { TrendingUp, TrendingDown, Percent } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function SuccessRateCard() {
-  const [data, setData] = useState<{ total: number; successes: number; success_rate: number } | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState("30d")
-  const [mounted, setMounted] = useState(false)
+  const [data, setData] = useState<{
+    total: number;
+    successes: number;
+    success_rate: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState("30d");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const timeRangeParam = timeRange === "all" ? undefined : timeRange === "7d" ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-        const url = new URL(`/api/analytics/trade-metrics?type=success-rate`, window.location.origin)
-        if (timeRangeParam) url.searchParams.set("timeRange", timeRangeParam)
-        const res = await fetch(url.toString())
-        const json = await res.json() as { success: boolean; data?: any[] }
+        const timeRangeParam =
+          timeRange === "all"
+            ? undefined
+            : timeRange === "7d"
+              ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+              : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const url = new URL(
+          `/api/analytics/trade-metrics?type=success-rate`,
+          window.location.origin
+        );
+        if (timeRangeParam) url.searchParams.set("timeRange", timeRangeParam);
+        const res = await fetch(url.toString());
+        const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success && json.data && json.data.length > 0) {
-          setData(json.data[0])
+          setData(json.data[0]);
         }
       } catch (error) {
-        console.error("Failed to fetch success rate:", error)
+        console.error("Failed to fetch success rate:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    if (mounted) fetchData()
-  }, [timeRange, mounted])
+    if (mounted) fetchData();
+  }, [timeRange, mounted]);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
-  const rate = data?.success_rate || 0
+  const rate = data?.success_rate || 0;
 
   return (
     <motion.div
@@ -55,7 +79,9 @@ export function SuccessRateCard() {
               <Percent className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>Trade Success Rate</CardTitle>
-                <CardDescription>Percentage of successful trades</CardDescription>
+                <CardDescription>
+                  Percentage of successful trades
+                </CardDescription>
               </div>
             </div>
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -79,11 +105,10 @@ export function SuccessRateCard() {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <div className="text-4xl font-bold">
-                    {rate.toFixed(1)}%
-                  </div>
+                  <div className="text-4xl font-bold">{rate.toFixed(1)}%</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {data?.successes || 0} of {data?.total || 0} trades successful
+                    {data?.successes || 0} of {data?.total || 0} trades
+                    successful
                   </div>
                 </div>
                 <div className="size-16 rounded-full border-8 border-primary/20 flex items-center justify-center">
@@ -100,5 +125,5 @@ export function SuccessRateCard() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

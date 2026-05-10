@@ -6,8 +6,8 @@ export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
-      action?: 'engage_kill_switch' | 'release_kill_switch';
+    const body = (await request.json()) as {
+      action?: "engage_kill_switch" | "release_kill_switch";
       trailingStopPercent?: number;
     };
 
@@ -18,19 +18,19 @@ export async function POST(request: NextRequest) {
     };
 
     if (env?.CONFIG_KV) {
-      if (action === 'engage_kill_switch') {
+      if (action === "engage_kill_switch") {
         await env.CONFIG_KV.put("trade:kill_switch", "true");
-        return NextResponse.json({ 
-          success: true, 
-          message: "Kill switch engaged - trading disabled" 
+        return NextResponse.json({
+          success: true,
+          message: "Kill switch engaged - trading disabled",
         });
       }
 
-      if (action === 'release_kill_switch') {
+      if (action === "release_kill_switch") {
         await env.CONFIG_KV.put("trade:kill_switch", "false");
-        return NextResponse.json({ 
-          success: true, 
-          message: "Kill switch released - trading enabled" 
+        return NextResponse.json({
+          success: true,
+          message: "Kill switch released - trading enabled",
         });
       }
 
@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
         const configData = await env.CONFIG_KV.get("agent:config");
         const config = configData ? JSON.parse(configData) : {};
         config.trailingStopPercent = trailingStopPercent;
-        await env.CONFIG_KV.put("agent:config", JSON.stringify(config));        
-        return NextResponse.json({ 
-          success: true, 
+        await env.CONFIG_KV.put("agent:config", JSON.stringify(config));
+        return NextResponse.json({
+          success: true,
           config,
-          message: `Trailing stop updated to ${trailingStopPercent * 100}%` 
+          message: `Trailing stop updated to ${trailingStopPercent * 100}%`,
         });
       }
 
@@ -57,9 +57,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   } catch (e) {
-    return NextResponse.json(
-      { error: String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }

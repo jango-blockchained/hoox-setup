@@ -9,7 +9,7 @@ export interface LogContext {
 }
 
 interface LogEntry {
-  level: 'info' | 'warn' | 'error';
+  level: "info" | "warn" | "error";
   timestamp: string;
   service: string;
   module?: string;
@@ -26,7 +26,11 @@ export interface Logger {
 export function createLogger(ctx: LogContext): Logger {
   const base = { service: ctx.service, module: ctx.module };
 
-  function emit(level: LogEntry['level'], message: string, context?: Record<string, unknown>) {
+  function emit(
+    level: LogEntry["level"],
+    message: string,
+    context?: Record<string, unknown>
+  ) {
     const entry: LogEntry = {
       level,
       timestamp: new Date().toISOString(),
@@ -35,21 +39,25 @@ export function createLogger(ctx: LogContext): Logger {
       ...(context && { context }),
     };
     const line = JSON.stringify(entry);
-    if (level === 'error') console.error(line);
-    else if (level === 'warn') console.warn(line);
+    if (level === "error") console.error(line);
+    else if (level === "warn") console.warn(line);
     else console.info(line);
   }
 
   return {
-    info: (msg, ctx) => emit('info', msg, ctx),
-    warn: (msg, ctx) => emit('warn', msg, ctx),
-    error: (msg, ctx) => emit('error', msg, ctx),
+    info: (msg, ctx) => emit("info", msg, ctx),
+    warn: (msg, ctx) => emit("warn", msg, ctx),
+    error: (msg, ctx) => emit("error", msg, ctx),
   };
 }
 
 export function withRequestLog(
-  handler: (request: Request, env: any, ctx: ExecutionContext) => Promise<Response>,
-  logCtx: LogContext,
+  handler: (
+    request: Request,
+    env: any,
+    ctx: ExecutionContext
+  ) => Promise<Response>,
+  logCtx: LogContext
 ): (request: Request, env: any, ctx: ExecutionContext) => Promise<Response> {
   return async (request: Request, env: any, ctx: ExecutionContext) => {
     const start = Date.now();
@@ -68,7 +76,7 @@ export function withRequestLog(
       return response;
     } catch (error) {
       const duration = Date.now() - start;
-      logger.error('Request failed', {
+      logger.error("Request failed", {
         method: request.method,
         path: new URL(request.url).pathname,
         durationMs: duration,

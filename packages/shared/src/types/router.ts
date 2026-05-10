@@ -18,8 +18,16 @@ export interface RouteDefinition<TEnv = Record<string, unknown>> {
 
 export interface Router<TEnv = Record<string, unknown>> {
   get(path: string, handler: Handler<TEnv>, middleware?: Handler<TEnv>[]): void;
-  post(path: string, handler: Handler<TEnv>, middleware?: Handler<TEnv>[]): void;
+  post(
+    path: string,
+    handler: Handler<TEnv>,
+    middleware?: Handler<TEnv>[]
+  ): void;
   put(path: string, handler: Handler<TEnv>, middleware?: Handler<TEnv>[]): void;
-  delete(path: string, handler: Handler<TEnv>, middleware?: Handler<TEnv>[]): void;
+  delete(
+    path: string,
+    handler: Handler<TEnv>,
+    middleware?: Handler<TEnv>[]
+  ): void;
   handle(request: Request, env: TEnv, ctx: ExecutionContext): Promise<Response>;
 }

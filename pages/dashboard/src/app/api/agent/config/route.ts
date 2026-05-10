@@ -31,7 +31,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       defaultProvider?: string;
       fallbackChain?: string[];
       modelMap?: Record<string, string>;
@@ -49,15 +49,20 @@ export async function POST(request: NextRequest) {
     if (env?.CONFIG_KV) {
       const existing = await env.CONFIG_KV.get("agent:config");
       const config = existing ? JSON.parse(existing) : {};
-      
-      if (body.defaultProvider !== undefined) config.defaultProvider = body.defaultProvider;
-      if (body.fallbackChain !== undefined) config.fallbackChain = body.fallbackChain;
+
+      if (body.defaultProvider !== undefined)
+        config.defaultProvider = body.defaultProvider;
+      if (body.fallbackChain !== undefined)
+        config.fallbackChain = body.fallbackChain;
       if (body.modelMap !== undefined) config.modelMap = body.modelMap;
       if (body.timeoutMs !== undefined) config.timeoutMs = body.timeoutMs;
       if (body.retryCount !== undefined) config.retryCount = body.retryCount;
-      if (body.maxDailyDrawdownPercent !== undefined) config.maxDailyDrawdownPercent = body.maxDailyDrawdownPercent;
-      if (body.trailingStopPercent !== undefined) config.trailingStopPercent = body.trailingStopPercent;
-      if (body.takeProfitPercent !== undefined) config.takeProfitPercent = body.takeProfitPercent;
+      if (body.maxDailyDrawdownPercent !== undefined)
+        config.maxDailyDrawdownPercent = body.maxDailyDrawdownPercent;
+      if (body.trailingStopPercent !== undefined)
+        config.trailingStopPercent = body.trailingStopPercent;
+      if (body.takeProfitPercent !== undefined)
+        config.takeProfitPercent = body.takeProfitPercent;
 
       await env.CONFIG_KV.put("agent:config", JSON.stringify(config));
       return NextResponse.json({ success: true, config });

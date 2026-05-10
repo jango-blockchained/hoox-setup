@@ -19,11 +19,7 @@ const WORKERS_JSONC = JSON.stringify({
     "trade-worker": {
       enabled: true,
       path: "workers/trade-worker",
-      secrets: [
-        "API_SERVICE_KEY",
-        "BINANCE_API_KEY",
-        "BINANCE_API_SECRET",
-      ],
+      secrets: ["API_SERVICE_KEY", "BINANCE_API_KEY", "BINANCE_API_SECRET"],
     },
     "d1-worker": {
       enabled: true,
@@ -42,9 +38,7 @@ const WORKERS_JSONC = JSON.stringify({
  * instead of hitting the real file-system.  We override `Bun.file` for the
  * config path only and call the private constructor via a test-only subclass.
  */
-async function createService(
-  workersJsonc?: string,
-): Promise<SecretsService> {
+async function createService(workersJsonc?: string): Promise<SecretsService> {
   const jsonc = workersJsonc ?? WORKERS_JSONC;
 
   // Spy on Bun.file so we can intercept the config read while letting
@@ -180,7 +174,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=abc123\nBINANCE_API_KEY=xyz789\nBINANCE_API_SECRET=sec456\n",
+          "API_SERVICE_KEY=abc123\nBINANCE_API_KEY=xyz789\nBINANCE_API_SECRET=sec456\n"
         );
 
         const svc = await createService();
@@ -204,7 +198,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=binance-real-key\nBINANCE_API_SECRET=your_secret\n",
+          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=binance-real-key\nBINANCE_API_SECRET=your_secret\n"
         );
 
         const svc = await createService();
@@ -227,7 +221,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "# This is a comment\nAPI_SERVICE_KEY=real-key\n\n# Another comment\nBINANCE_API_KEY=another-key\nBINANCE_API_SECRET=third-key\n",
+          "# This is a comment\nAPI_SERVICE_KEY=real-key\n\n# Another comment\nBINANCE_API_KEY=another-key\nBINANCE_API_SECRET=third-key\n"
         );
 
         const svc = await createService();
@@ -267,7 +261,9 @@ describe("SecretsService", () => {
 
         // Verify file content
         const content = await Bun.file(join(dir, ".dev.vars")).text();
-        expect(content).toContain("TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token");
+        expect(content).toContain(
+          "TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token"
+        );
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -310,7 +306,9 @@ describe("SecretsService", () => {
         await svc.generateDevVars("telegram-worker");
 
         const content = await Bun.file(join(dir, ".dev.vars")).text();
-        expect(content).toContain("TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token");
+        expect(content).toContain(
+          "TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token"
+        );
         expect(content).not.toContain("OLD_KEY");
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -326,7 +324,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "TELEGRAM_BOT_TOKEN=my-real-token\n",
+          "TELEGRAM_BOT_TOKEN=my-real-token\n"
         );
 
         const svc = await createService();
@@ -339,7 +337,7 @@ describe("SecretsService", () => {
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
-          },
+          }
         );
 
         const result = await svc.syncToCloudflare("telegram-worker");
@@ -356,7 +354,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=real-binance-key\nBINANCE_API_SECRET=generate_something\n",
+          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=real-binance-key\nBINANCE_API_SECRET=generate_something\n"
         );
 
         const svc = await createService();
@@ -368,7 +366,7 @@ describe("SecretsService", () => {
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
-          },
+          }
         );
 
         const result = await svc.syncToCloudflare("trade-worker");
@@ -395,7 +393,7 @@ describe("SecretsService", () => {
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
-          },
+          }
         );
 
         const result = await svc.syncToCloudflare("trade-worker");
@@ -420,10 +418,7 @@ describe("SecretsService", () => {
     it("handles wrangler failures gracefully", async () => {
       const dir = tmpDir();
       try {
-        writeFileSync(
-          join(dir, ".dev.vars"),
-          "TELEGRAM_BOT_TOKEN=my-token\n",
-        );
+        writeFileSync(join(dir, ".dev.vars"), "TELEGRAM_BOT_TOKEN=my-token\n");
 
         const svc = await createService();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -431,11 +426,9 @@ describe("SecretsService", () => {
 
         // Stub execWranglerSecretPut to throw
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (svc as any).execWranglerSecretPut = mock(
-          async () => {
-            throw new Error("wrangler command failed");
-          },
-        );
+        (svc as any).execWranglerSecretPut = mock(async () => {
+          throw new Error("wrangler command failed");
+        });
 
         const result = await svc.syncToCloudflare("telegram-worker");
         expect(result.success).toBe(false);
@@ -466,9 +459,9 @@ describe("SecretsService", () => {
 
   describe("edge cases", () => {
     it("throws when config file does not exist", async () => {
-      await expect(SecretsService.create("/nonexistent/workers.jsonc")).rejects.toThrow(
-        "Config file not found",
-      );
+      await expect(
+        SecretsService.create("/nonexistent/workers.jsonc")
+      ).rejects.toThrow("Config file not found");
     });
 
     it("handles worker at path with trailing/leading whitespace in .dev.vars", async () => {
@@ -476,7 +469,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "   TELEGRAM_BOT_TOKEN   =   my-token   \n",
+          "   TELEGRAM_BOT_TOKEN   =   my-token   \n"
         );
 
         const svc = await createService();

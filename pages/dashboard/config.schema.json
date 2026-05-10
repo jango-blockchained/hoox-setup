@@ -156,10 +156,7 @@
       },
       "trade-worker": {
         "enabled": true,
-        "settings": [
-          "trade:default_leverage",
-          "trade:max_position_size"
-        ]
+        "settings": ["trade:default_leverage", "trade:max_position_size"]
       }
     }
   }

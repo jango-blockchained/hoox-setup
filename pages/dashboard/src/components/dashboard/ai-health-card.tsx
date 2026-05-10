@@ -1,73 +1,85 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Brain, RefreshCw, Sparkles, Shield, AlertCircle, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Brain,
+  RefreshCw,
+  Sparkles,
+  Shield,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface AIInsight {
-  type: "info" | "warning" | "success"
-  message: string
-  timestamp: Date
+  type: "info" | "warning" | "success";
+  message: string;
+  timestamp: Date;
 }
 
 const insights: AIInsight[] = [
   {
     type: "success",
-    message: "All systems operating normally. Portfolio is well-balanced with 4 open positions across MEXC and Binance.",
+    message:
+      "All systems operating normally. Portfolio is well-balanced with 4 open positions across MEXC and Binance.",
     timestamp: new Date(),
   },
   {
     type: "info",
-    message: "Current risk exposure is at 23% of maximum allowed. Trailing stops are active on 2 positions.",
+    message:
+      "Current risk exposure is at 23% of maximum allowed. Trailing stops are active on 2 positions.",
     timestamp: new Date(Date.now() - 60000),
   },
   {
     type: "warning",
-    message: "Monitor BTC/USDT position approaching take-profit target. Consider partial close.",
+    message:
+      "Monitor BTC/USDT position approaching take-profit target. Consider partial close.",
     timestamp: new Date(Date.now() - 120000),
   },
-]
+];
 
 export function AiHealthCard() {
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [riskLevel, setRiskLevel] = useState(23)
-  const [currentInsightIndex, setCurrentInsightIndex] = useState(0)
-  const [displayedInsights, setDisplayedInsights] = useState<AIInsight[]>([insights[0]])
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [riskLevel, setRiskLevel] = useState(23);
+  const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
+  const [displayedInsights, setDisplayedInsights] = useState<AIInsight[]>([
+    insights[0],
+  ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentInsightIndex((prev) => {
-        const next = (prev + 1) % insights.length
+        const next = (prev + 1) % insights.length;
         setDisplayedInsights((current) => {
-          const newInsights = [insights[next], ...current]
-          return newInsights.slice(0, 3)
-        })
-        return next
-      })
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
+          const newInsights = [insights[next], ...current];
+          return newInsights.slice(0, 3);
+        });
+        return next;
+      });
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRefresh = () => {
-    setIsRefreshing(true)
-    setRiskLevel(Math.floor(Math.random() * 30) + 15)
-    setTimeout(() => setIsRefreshing(false), 1500)
-  }
+    setIsRefreshing(true);
+    setRiskLevel(Math.floor(Math.random() * 30) + 15);
+    setTimeout(() => setIsRefreshing(false), 1500);
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle2 className="size-4 text-success" />
+        return <CheckCircle2 className="size-4 text-success" />;
       case "warning":
-        return <AlertCircle className="size-4 text-warning" />
+        return <AlertCircle className="size-4 text-warning" />;
       default:
-        return <Sparkles className="size-4 text-primary" />
+        return <Sparkles className="size-4 text-primary" />;
     }
-  }
+  };
 
   return (
     <Card className="border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5 overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
@@ -88,14 +100,16 @@ export function AiHealthCard() {
             <Shield className="size-3" />
             Active
           </Badge>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="size-8 p-0"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`size-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`size-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`}
+            />
           </Button>
         </div>
       </CardHeader>
@@ -103,13 +117,14 @@ export function AiHealthCard() {
         {/* Risk Gauge */}
         <div className="rounded-lg bg-secondary/30 p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-muted-foreground">Risk Exposure</span>
-            <span className="text-sm font-bold text-foreground">{riskLevel}%</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              Risk Exposure
+            </span>
+            <span className="text-sm font-bold text-foreground">
+              {riskLevel}%
+            </span>
           </div>
-          <Progress 
-            value={riskLevel} 
-            className="h-2"
-          />
+          <Progress value={riskLevel} className="h-2" />
           <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
             <span>Low</span>
             <span>Medium</span>
@@ -131,8 +146,8 @@ export function AiHealthCard() {
                   insight.type === "warning"
                     ? "border-warning/30 bg-warning/5"
                     : insight.type === "success"
-                    ? "border-success/30 bg-success/5"
-                    : "border-primary/30 bg-primary/5"
+                      ? "border-success/30 bg-success/5"
+                      : "border-primary/30 bg-primary/5"
                 }`}
               >
                 <div className="flex gap-3">
@@ -158,7 +173,10 @@ export function AiHealthCard() {
             { label: "Avg Response", value: "45ms" },
             { label: "Accuracy", value: "94%" },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-lg bg-secondary/30 p-2 text-center">
+            <div
+              key={stat.label}
+              className="rounded-lg bg-secondary/30 p-2 text-center"
+            >
               <p className="text-lg font-bold text-foreground">{stat.value}</p>
               <p className="text-[10px] text-muted-foreground">{stat.label}</p>
             </div>
@@ -166,5 +184,5 @@ export function AiHealthCard() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

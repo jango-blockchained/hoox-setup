@@ -1,7 +1,20 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
@@ -45,13 +58,37 @@ export function UsageChart() {
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <AreaChart data={DAILY_DATA}>
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value.slice(5)} />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(5)}
+            />
             <YAxis tickLine={false} axisLine={false} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Area type="monotone" dataKey="workers-ai" stroke="var(--color-workers-ai)" fill="var(--color-workers-ai)" fillOpacity={0.2} />
-            <Area type="monotone" dataKey="openai" stroke="var(--color-openai)" fill="var(--color-openai)" fillOpacity={0.2} />
-            <Area type="monotone" dataKey="anthropic" stroke="var(--color-anthropic)" fill="var(--color-anthropic)" fillOpacity={0.2} />
+            <Area
+              type="monotone"
+              dataKey="workers-ai"
+              stroke="var(--color-workers-ai)"
+              fill="var(--color-workers-ai)"
+              fillOpacity={0.2}
+            />
+            <Area
+              type="monotone"
+              dataKey="openai"
+              stroke="var(--color-openai)"
+              fill="var(--color-openai)"
+              fillOpacity={0.2}
+            />
+            <Area
+              type="monotone"
+              dataKey="anthropic"
+              stroke="var(--color-anthropic)"
+              fill="var(--color-anthropic)"
+              fillOpacity={0.2}
+            />
           </AreaChart>
         </ChartContainer>
       </CardContent>

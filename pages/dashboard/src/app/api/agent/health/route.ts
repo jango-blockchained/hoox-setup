@@ -19,11 +19,17 @@ export async function GET(_request: NextRequest) {
       { name: "azure", available: true },
     ];
 
-    const results: Record<string, { healthy: boolean; latency?: number; error?: string }> = {};
+    const results: Record<
+      string,
+      { healthy: boolean; latency?: number; error?: string }
+    > = {};
 
     for (const provider of providers) {
       if (!provider.available) {
-        results[provider.name] = { healthy: false, error: "Provider not configured" };
+        results[provider.name] = {
+          healthy: false,
+          error: "Provider not configured",
+        };
         continue;
       }
 
@@ -37,10 +43,10 @@ export async function GET(_request: NextRequest) {
         }
         results[provider.name] = { healthy: true, latency: Date.now() - start };
       } catch (e) {
-        results[provider.name] = { 
-          healthy: false, 
-          latency: Date.now() - start, 
-          error: String(e) 
+        results[provider.name] = {
+          healthy: false,
+          latency: Date.now() - start,
+          error: String(e),
         };
       }
     }

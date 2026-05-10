@@ -117,9 +117,11 @@ beforeEach(() => {
 
   secretsCreateMock = mock(async () =>
     Object.create(SecretsService.prototype, {
-      checkLocalSecrets: { value: mock(async () => ({ allSet: true, missing: [], secrets: [] })) },
+      checkLocalSecrets: {
+        value: mock(async () => ({ allSet: true, missing: [], secrets: [] })),
+      },
       listSecrets: { value: mock(() => []) },
-    }),
+    })
   );
 
   checkLocalSecretsMock = mock(async () => ({
@@ -146,7 +148,8 @@ beforeEach(() => {
   CloudflareService.prototype.secretList = secretListMock;
 
   // Replace static create on SecretsService
-  (SecretsService as unknown as Record<string, unknown>).create = secretsCreateMock;
+  (SecretsService as unknown as Record<string, unknown>).create =
+    secretsCreateMock;
 });
 
 afterEach(() => {
@@ -259,26 +262,26 @@ describe("registerCheckCommand", () => {
       (process.stdout as unknown as Record<string, unknown>).write = logSpy;
 
       try {
-        await program.parseAsync([
-          "--json",
-          "check",
-          "setup",
-        ], { from: "user" });
+        await program.parseAsync(["--json", "check", "setup"], {
+          from: "user",
+        });
 
         // Should have called stdout.write with JSON
-        const jsonCalls = (logSpy as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls
-          .filter((call: unknown[]) => {
-            const str = String(call[0] ?? "");
-            try {
-              JSON.parse(str);
-              return str.includes("categories") && str.includes("summary");
-            } catch {
-              return false;
-            }
-          });
+        const jsonCalls = (
+          logSpy as unknown as { mock: { calls: Array<unknown[]> } }
+        ).mock.calls.filter((call: unknown[]) => {
+          const str = String(call[0] ?? "");
+          try {
+            JSON.parse(str);
+            return str.includes("categories") && str.includes("summary");
+          } catch {
+            return false;
+          }
+        });
         expect(jsonCalls.length).toBeGreaterThan(0);
       } finally {
-        (process.stdout as unknown as Record<string, unknown>).write = origWrite;
+        (process.stdout as unknown as Record<string, unknown>).write =
+          origWrite;
       }
     });
 
@@ -340,25 +343,25 @@ describe("registerCheckCommand", () => {
       (process.stdout as unknown as Record<string, unknown>).write = logSpy;
 
       try {
-        await program.parseAsync([
-          "--json",
-          "check",
-          "health",
-        ], { from: "user" });
+        await program.parseAsync(["--json", "check", "health"], {
+          from: "user",
+        });
 
-        const jsonCalls = (logSpy as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls
-          .filter((call: unknown[]) => {
-            const str = String(call[0] ?? "");
-            try {
-              const parsed = JSON.parse(str);
-              return Array.isArray(parsed) && parsed.length > 0;
-            } catch {
-              return false;
-            }
-          });
+        const jsonCalls = (
+          logSpy as unknown as { mock: { calls: Array<unknown[]> } }
+        ).mock.calls.filter((call: unknown[]) => {
+          const str = String(call[0] ?? "");
+          try {
+            const parsed = JSON.parse(str);
+            return Array.isArray(parsed) && parsed.length > 0;
+          } catch {
+            return false;
+          }
+        });
         expect(jsonCalls.length).toBeGreaterThan(0);
       } finally {
-        (process.stdout as unknown as Record<string, unknown>).write = origWrite;
+        (process.stdout as unknown as Record<string, unknown>).write =
+          origWrite;
       }
     });
 
@@ -402,11 +405,9 @@ describe("registerCheckCommand", () => {
       }));
 
       try {
-        await program.parseAsync([
-          "check",
-          "fix",
-          "--dry-run",
-        ], { from: "user" });
+        await program.parseAsync(["check", "fix", "--dry-run"], {
+          from: "user",
+        });
 
         // Should complete without errors
         // In dry-run mode, exitCode should not be ERROR (no actual failures to apply)
@@ -429,26 +430,25 @@ describe("registerCheckCommand", () => {
       }));
 
       try {
-        await program.parseAsync([
-          "--json",
-          "check",
-          "fix",
-          "--dry-run",
-        ], { from: "user" });
+        await program.parseAsync(["--json", "check", "fix", "--dry-run"], {
+          from: "user",
+        });
 
-        const jsonCalls = (logSpy as unknown as { mock: { calls: Array<unknown[]> } }).mock.calls
-          .filter((call: unknown[]) => {
-            const str = String(call[0] ?? "");
-            try {
-              const parsed = JSON.parse(str);
-              return parsed.actions !== undefined && parsed.summary !== undefined;
-            } catch {
-              return false;
-            }
-          });
+        const jsonCalls = (
+          logSpy as unknown as { mock: { calls: Array<unknown[]> } }
+        ).mock.calls.filter((call: unknown[]) => {
+          const str = String(call[0] ?? "");
+          try {
+            const parsed = JSON.parse(str);
+            return parsed.actions !== undefined && parsed.summary !== undefined;
+          } catch {
+            return false;
+          }
+        });
         expect(jsonCalls.length).toBeGreaterThan(0);
       } finally {
-        (process.stdout as unknown as Record<string, unknown>).write = origWrite;
+        (process.stdout as unknown as Record<string, unknown>).write =
+          origWrite;
         (Bun as Record<string, unknown>).file = origBunFile;
       }
     });
@@ -466,5 +466,3 @@ describe("registerCheckCommand", () => {
     });
   });
 });
-
-

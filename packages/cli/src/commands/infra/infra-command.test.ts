@@ -101,7 +101,7 @@ interface MockCloudflareService {
 }
 
 function createMockCloudflare(
-  overrides?: Partial<MockCloudflareService>,
+  overrides?: Partial<MockCloudflareService>
 ): MockCloudflareService {
   return {
     d1List: async () => okResult(D1_LIST_JSON),
@@ -236,7 +236,7 @@ describe("infra-command", () => {
         "my-resource",
         "D1 database",
         async () => okResult("created"),
-        humanOpts,
+        humanOpts
       );
 
       const out = capture.output();
@@ -249,7 +249,7 @@ describe("infra-command", () => {
         "bad-resource",
         "D1 database",
         async () => errResult("Already exists"),
-        humanOpts,
+        humanOpts
       );
 
       const out = capture.output();
@@ -265,7 +265,7 @@ describe("infra-command", () => {
         "my-resource",
         "D1 database",
         async () => okResult("deleted"),
-        humanOpts,
+        humanOpts
       );
 
       const out = capture.output();
@@ -278,7 +278,7 @@ describe("infra-command", () => {
         "missing",
         "D1 database",
         async () => errResult("Not found"),
-        humanOpts,
+        humanOpts
       );
 
       const out = capture.output();
@@ -291,7 +291,10 @@ describe("infra-command", () => {
   describe("doD1List", () => {
     it("shows D1 databases as a table", async () => {
       const mockCf = createMockCloudflare();
-      await doD1List(humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1List(
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("test-db");
@@ -302,7 +305,11 @@ describe("infra-command", () => {
   describe("doD1Create", () => {
     it("creates a D1 database and shows success", async () => {
       const mockCf = createMockCloudflare();
-      await doD1Create("new-db", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1Create(
+        "new-db",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("new-db");
@@ -312,7 +319,11 @@ describe("infra-command", () => {
   describe("doD1Delete", () => {
     it("deletes a D1 database and shows success", async () => {
       const mockCf = createMockCloudflare();
-      await doD1Delete("old-db", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1Delete(
+        "old-db",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("old-db");
@@ -324,7 +335,10 @@ describe("infra-command", () => {
   describe("doKvList", () => {
     it("shows KV namespaces", async () => {
       const mockCf = createMockCloudflare();
-      await doKvList(humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doKvList(
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("config-kv");
@@ -334,7 +348,11 @@ describe("infra-command", () => {
   describe("doKvCreate", () => {
     it("creates a KV namespace", async () => {
       const mockCf = createMockCloudflare();
-      await doKvCreate("my-kv", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doKvCreate(
+        "my-kv",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("my-kv");
@@ -344,7 +362,11 @@ describe("infra-command", () => {
   describe("doKvDelete", () => {
     it("deletes a KV namespace by ID", async () => {
       const mockCf = createMockCloudflare();
-      await doKvDelete("kv-abc", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doKvDelete(
+        "kv-abc",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("kv-abc");
@@ -356,7 +378,10 @@ describe("infra-command", () => {
   describe("doR2List", () => {
     it("shows R2 buckets", async () => {
       const mockCf = createMockCloudflare();
-      await doR2List(humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doR2List(
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("my-bucket");
@@ -366,7 +391,11 @@ describe("infra-command", () => {
   describe("doR2Create", () => {
     it("creates an R2 bucket", async () => {
       const mockCf = createMockCloudflare();
-      await doR2Create("new-bucket", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doR2Create(
+        "new-bucket",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("new-bucket");
@@ -376,7 +405,11 @@ describe("infra-command", () => {
   describe("doR2Delete", () => {
     it("deletes an R2 bucket", async () => {
       const mockCf = createMockCloudflare();
-      await doR2Delete("old-bucket", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doR2Delete(
+        "old-bucket",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("old-bucket");
@@ -388,7 +421,10 @@ describe("infra-command", () => {
   describe("doQueueList", () => {
     it("shows Queues", async () => {
       const mockCf = createMockCloudflare();
-      await doQueueList(humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doQueueList(
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("trade-queue");
@@ -398,7 +434,11 @@ describe("infra-command", () => {
   describe("doQueueCreate", () => {
     it("creates a Queue", async () => {
       const mockCf = createMockCloudflare();
-      await doQueueCreate("new-queue", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doQueueCreate(
+        "new-queue",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("new-queue");
@@ -408,7 +448,11 @@ describe("infra-command", () => {
   describe("doQueueDelete", () => {
     it("deletes a Queue", async () => {
       const mockCf = createMockCloudflare();
-      await doQueueDelete("old-queue", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doQueueDelete(
+        "old-queue",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("old-queue");
@@ -420,7 +464,10 @@ describe("infra-command", () => {
   describe("JSON output mode", () => {
     it("outputs D1 list as JSON", async () => {
       const mockCf = createMockCloudflare();
-      await doD1List(jsonOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1List(
+        jsonOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       const parsed = JSON.parse(out);
@@ -430,7 +477,10 @@ describe("infra-command", () => {
 
     it("outputs KV list as JSON", async () => {
       const mockCf = createMockCloudflare();
-      await doKvList(jsonOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doKvList(
+        jsonOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       const parsed = JSON.parse(out);
@@ -444,7 +494,10 @@ describe("infra-command", () => {
   describe("Quiet mode", () => {
     it("produces no output for list in quiet mode", async () => {
       const mockCf = createMockCloudflare();
-      await doD1List(quietOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1List(
+        quietOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       expect(capture.output()).toBe("");
     });
@@ -457,7 +510,10 @@ describe("infra-command", () => {
       const mockCf = createMockCloudflare({
         d1List: async () => errResult("wrangler not authenticated"),
       });
-      await doD1List(humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1List(
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("wrangler not authenticated");
@@ -467,7 +523,11 @@ describe("infra-command", () => {
       const mockCf = createMockCloudflare({
         d1Create: async () => errResult("database already exists"),
       });
-      await doD1Create("dup-db", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doD1Create(
+        "dup-db",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("database already exists");
@@ -477,7 +537,11 @@ describe("infra-command", () => {
       const mockCf = createMockCloudflare({
         queueDelete: async () => errResult("queue not found"),
       });
-      await doQueueDelete("ghost", humanOpts, mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService);
+      await doQueueDelete(
+        "ghost",
+        humanOpts,
+        mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService
+      );
 
       const out = capture.output();
       expect(out).toContain("queue not found");
@@ -505,7 +569,7 @@ describe("infra-command", () => {
       const result = await doProvision(
         humanOpts,
         mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService,
-        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService,
+        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService
       );
 
       expect(result.items).toEqual([]);
@@ -525,7 +589,7 @@ describe("infra-command", () => {
       const result = await doProvision(
         humanOpts,
         mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService,
-        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService,
+        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService
       );
 
       expect(result.items).toEqual([]);
@@ -539,7 +603,10 @@ describe("infra-command", () => {
       const workerPath = "/fake/workers/test-worker";
 
       const mockConfig = {
-        load: async () => ({ global: {}, workers: { "test-worker": { enabled: true, path: workerPath } } }),
+        load: async () => ({
+          global: {},
+          workers: { "test-worker": { enabled: true, path: workerPath } },
+        }),
         listEnabledWorkers: () => ["test-worker"],
         getWorker: (name: string) =>
           name === "test-worker"
@@ -554,12 +621,10 @@ describe("infra-command", () => {
       });
 
       // Mock Bun.file to return our fake wrangler.jsonc
-      (Bun as unknown as Record<string, unknown>).file = mock(
-        (p: string) => ({
-          exists: async () => p === `${workerPath}/wrangler.jsonc`,
-          text: async () => wranglerConfig,
-        }),
-      );
+      (Bun as unknown as Record<string, unknown>).file = mock((p: string) => ({
+        exists: async () => p === `${workerPath}/wrangler.jsonc`,
+        text: async () => wranglerConfig,
+      }));
 
       const mockCf = createMockCloudflare({
         d1Create: async () => okResult("Created my-db"),
@@ -568,11 +633,13 @@ describe("infra-command", () => {
       const result = await doProvision(
         humanOpts,
         mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService,
-        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService,
+        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService
       );
 
       expect(result.items.length).toBeGreaterThan(0);
-      const d1Item = result.items.find((i) => i.name === "my-db" && i.type === "d1");
+      const d1Item = result.items.find(
+        (i) => i.name === "my-db" && i.type === "d1"
+      );
       expect(d1Item).toBeDefined();
       expect(d1Item!.status).toBe("created");
     });
@@ -596,12 +663,10 @@ describe("infra-command", () => {
         r2_buckets: [{ binding: "FILES", bucket_name: "storage" }],
       });
 
-      (Bun as unknown as Record<string, unknown>).file = mock(
-        (p: string) => ({
-          exists: async () => p === `${workerPath}/wrangler.jsonc`,
-          text: async () => wranglerConfig,
-        }),
-      );
+      (Bun as unknown as Record<string, unknown>).file = mock((p: string) => ({
+        exists: async () => p === `${workerPath}/wrangler.jsonc`,
+        text: async () => wranglerConfig,
+      }));
 
       const mockCf = createMockCloudflare({
         r2Create: async () => errResult("bucket already exists"),
@@ -610,10 +675,12 @@ describe("infra-command", () => {
       const result = await doProvision(
         humanOpts,
         mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService,
-        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService,
+        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService
       );
 
-      const r2Item = result.items.find((i) => i.name === "storage" && i.type === "r2");
+      const r2Item = result.items.find(
+        (i) => i.name === "storage" && i.type === "r2"
+      );
       expect(r2Item).toBeDefined();
       expect(r2Item!.status).toBe("exists");
     });
@@ -633,18 +700,16 @@ describe("infra-command", () => {
             : undefined,
       };
 
-      (Bun as unknown as Record<string, unknown>).file = mock(
-        () => ({
-          exists: async () => false,
-          text: async () => "",
-        }),
-      );
+      (Bun as unknown as Record<string, unknown>).file = mock(() => ({
+        exists: async () => false,
+        text: async () => "",
+      }));
 
       const mockCf = createMockCloudflare();
       const result = await doProvision(
         humanOpts,
         mockCf as unknown as import("../../services/cloudflare/cloudflare-service.js").CloudflareService,
-        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService,
+        mockConfig as unknown as import("../../services/config/config-service.js").ConfigService
       );
 
       // No wrangler.jsonc → no items to provision

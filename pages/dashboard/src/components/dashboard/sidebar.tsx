@@ -1,12 +1,20 @@
-"use client"
+"use client";
 
-import { IconInnerShadowTop } from "@tabler/icons-react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
-import { NavMain } from "./nav-main"
-import { NavDocuments } from "./nav-documents"
-import { NavSecondary } from "./nav-secondary"
-import { NavUser } from "./nav-user"
-import Link from "next/link"
+import { IconInnerShadowTop } from "@tabler/icons-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { NavMain } from "./nav-main";
+import { NavDocuments } from "./nav-documents";
+import { NavSecondary } from "./nav-secondary";
+import { NavUser } from "./nav-user";
+import Link from "next/link";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -40,5 +48,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

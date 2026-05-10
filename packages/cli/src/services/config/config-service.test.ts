@@ -28,7 +28,7 @@ function validConfigJson(): string {
       },
     },
     null,
-    2,
+    2
   );
 }
 
@@ -188,8 +188,8 @@ describe("ConfigService", () => {
     const content = JSON.stringify({
       global: { cloudflare_account_id: "abc123" },
       workers: {
-        "w1": { enabled: true, path: "workers/w1" },
-        "w2": { enabled: false, path: "workers/w2" },
+        w1: { enabled: true, path: "workers/w1" },
+        w2: { enabled: false, path: "workers/w2" },
       },
     });
     await writeConfig(tmpDir, content);
@@ -202,9 +202,9 @@ describe("ConfigService", () => {
     const content = JSON.stringify({
       global: { cloudflare_account_id: "abc123" },
       workers: {
-        "w1": { enabled: true, path: "workers/w1" },
-        "w2": { enabled: false, path: "workers/w2" },
-        "w3": { enabled: true, path: "workers/w3" },
+        w1: { enabled: true, path: "workers/w1" },
+        w2: { enabled: false, path: "workers/w2" },
+        w3: { enabled: true, path: "workers/w3" },
       },
     });
     await writeConfig(tmpDir, content);
@@ -219,8 +219,8 @@ describe("ConfigService", () => {
     const content = JSON.stringify({
       global: { cloudflare_account_id: "abc123" },
       workers: {
-        "w1": { enabled: false, path: "workers/w1" },
-        "w2": { enabled: false, path: "workers/w2" },
+        w1: { enabled: false, path: "workers/w1" },
+        w2: { enabled: false, path: "workers/w2" },
       },
     });
     await writeConfig(tmpDir, content);
@@ -272,7 +272,7 @@ describe("ConfigService", () => {
   it("validate() catches missing global.cloudflare_account_id", async () => {
     const content = JSON.stringify({
       global: {},
-      workers: { "w": { enabled: true, path: "workers/w" } },
+      workers: { w: { enabled: true, path: "workers/w" } },
     });
     await writeConfig(tmpDir, content);
     const service = new ConfigService(join(tmpDir, "workers.jsonc"));
@@ -280,13 +280,13 @@ describe("ConfigService", () => {
     const result = service.validate();
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes("cloudflare_account_id"))).toBe(
-      true,
+      true
     );
   });
 
   it("validate() catches missing global section entirely", async () => {
     const content = JSON.stringify({
-      workers: { "w": { enabled: true, path: "workers/w" } },
+      workers: { w: { enabled: true, path: "workers/w" } },
     });
     await writeConfig(tmpDir, content);
     const service = new ConfigService(join(tmpDir, "workers.jsonc"));
@@ -294,7 +294,7 @@ describe("ConfigService", () => {
     const result = service.validate();
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes("cloudflare_account_id"))).toBe(
-      true,
+      true
     );
   });
 
@@ -330,8 +330,8 @@ describe("ConfigService", () => {
     const content = JSON.stringify({
       global: {},
       workers: {
-        "w1": { enabled: true },
-        "w2": { enabled: false },
+        w1: { enabled: true },
+        w2: { enabled: false },
       },
     });
     await writeConfig(tmpDir, content);
@@ -378,7 +378,10 @@ describe("ConfigService", () => {
     const service = new ConfigService(join(tmpDir, "workers.jsonc"));
     await service.load();
     const worker = service.getWorker("vars-worker");
-    expect(worker?.vars).toEqual({ DATABASE_NAME: "my-db", LOG_LEVEL: "debug" });
+    expect(worker?.vars).toEqual({
+      DATABASE_NAME: "my-db",
+      LOG_LEVEL: "debug",
+    });
   });
 
   // ── load() called with explicit path overrides constructor ─────────

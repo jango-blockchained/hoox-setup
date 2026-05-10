@@ -7,14 +7,19 @@ export const runtime = "edge";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       imageUrl?: string;
       imageBase64?: string;
       prompt?: string;
       model?: string;
     };
 
-    const { imageUrl, imageBase64, prompt = "Analyze this image", model } = body;
+    const {
+      imageUrl,
+      imageBase64,
+      prompt = "Analyze this image",
+      model,
+    } = body;
 
     if (!imageUrl && !imageBase64) {
       return Errors.badRequest("imageUrl or imageBase64 is required");
@@ -30,7 +35,9 @@ export async function POST(request: NextRequest) {
       const configData = await env.CONFIG_KV.get("agent:config");
       if (configData) {
         const config = JSON.parse(configData);
-        selectedModel = config.modelMap?.['workers-ai'] || "@cf/meta/llama-3.2-11b-vision-instruct";
+        selectedModel =
+          config.modelMap?.["workers-ai"] ||
+          "@cf/meta/llama-3.2-11b-vision-instruct";
       }
     }
 

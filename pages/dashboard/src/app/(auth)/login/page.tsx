@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Terminal, Loader2, Shield, ArrowRight, Lock, Key } from "lucide-react";
 import { motion } from "framer-motion";
@@ -61,9 +67,9 @@ export default function LoginPage() {
       >
         <Card className="border-neutral-800 bg-neutral-950/80 backdrop-blur-xl shadow-2xl overflow-hidden relative">
           <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-          
+
           <CardHeader className="space-y-3 pb-6 text-center">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -78,12 +84,18 @@ export default function LoginPage() {
               Authenticate to access the command center
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-                  <Alert variant="destructive" className="border-red-900/50 bg-red-950/20 text-red-400">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                >
+                  <Alert
+                    variant="destructive"
+                    className="border-red-900/50 bg-red-950/20 text-red-400"
+                  >
                     <AlertDescription className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       {error}
@@ -91,10 +103,13 @@ export default function LoginPage() {
                   </Alert>
                 </motion.div>
               )}
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                  <Label
+                    htmlFor="username"
+                    className="text-xs uppercase tracking-wider text-neutral-400 font-semibold"
+                  >
                     Username
                   </Label>
                   <Input
@@ -107,10 +122,13 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                    <Label
+                      htmlFor="password"
+                      className="text-xs uppercase tracking-wider text-neutral-400 font-semibold"
+                    >
                       Password
                     </Label>
                   </div>
@@ -148,7 +166,7 @@ export default function LoginPage() {
             </form>
           </CardContent>
         </Card>
-        
+
         {/* Footer text */}
         <div className="flex flex-col items-center justify-center mt-6 gap-2">
           <div className="flex items-center justify-center gap-3 text-neutral-600">
