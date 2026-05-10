@@ -116,19 +116,19 @@ export class CloudflareService {
     deployResult.name = pathParts[pathParts.length - 1];
 
     // Extract bundle size (e.g., "Total Upload: 7102.32 KiB / gzip: 1493.05 KiB")
-    const sizeMatch = output.match(/Total Upload:\s*([\d.]+\s*[KMGT]?i?B)/i);
+    const sizeMatch = output.match(/Total Upload:\s*([\d.]+)\s*([KMGT]?i?B)/i);
     if (sizeMatch) {
-      deployResult.size = sizeMatch[1];
+      deployResult.size = `${sizeMatch[1]} ${sizeMatch[2]}`;
     }
 
     // Extract startup time (e.g., "Worker Startup Time: 37 ms")
-    const startupMatch = output.match(/Worker Startup Time:\s*([\d.]+\s*(?:ms|s|m))/i);
+    const startupMatch = output.match(/Worker Startup Time:\s*(\d+)\s*ms/i);
     if (startupMatch) {
-      deployResult.startupTime = startupMatch[1];
+      deployResult.startupTime = `${startupMatch[1]} ms`;
     }
 
     // Extract version ID (e.g., "Current Version ID: 6a6efd9b-64cf-422b-8b10-84d9c2c6b2d3")
-    const versionMatch = output.match(/Current Version ID:\s*([a-f0-9-]+)/i);
+    const versionMatch = output.match(/Current Version ID:\s*([a-f0-9-]{36,})/i);
     if (versionMatch) {
       deployResult.versionId = versionMatch[1];
     }
@@ -342,7 +342,8 @@ export class CloudflareService {
    * wrangler prints lines like:  https://name.subdomain.workers.dev
    */
   private extractUrl(stdout: string): string | undefined {
-    const match = stdout.match(/https?:\/\/\S+/);
+    // Match worker URLs (workers.dev or cloudflareworkers.com domains)
+    const match = stdout.match(/https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*\.(workers\.dev|cloudflareworkers\.com)/);
     return match ? match[0] : undefined;
   }
 }
