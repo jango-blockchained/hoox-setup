@@ -10,6 +10,16 @@ export type WranglerResult<T> =
 export interface DeployResult {
   /** The deployed worker URL extracted from wrangler stdout. */
   url?: string;
+  /** Worker name */
+  name?: string;
+  /** Uploaded bundle size (e.g., "7102.32 KiB") */
+  size?: string;
+  /** Worker startup time (e.g., "37 ms") */
+  startupTime?: string;
+  /** Version ID */
+  versionId?: string;
+  /** Raw deploy output for verbose display */
+  rawOutput?: string;
 }
 
 /** Result of a wrangler dev operation. */

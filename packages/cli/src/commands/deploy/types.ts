@@ -23,4 +23,10 @@ export interface DeployResult {
   success: boolean;
   /** Error message when success is false. */
   error?: string;
+  /** Bundle size (e.g., "7102.32 KiB") */
+  size?: string;
+  /** Worker startup time (e.g., "37 ms") */
+  startupTime?: string;
+  /** Version ID */
+  versionId?: string;
 }
