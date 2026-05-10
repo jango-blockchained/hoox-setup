@@ -200,6 +200,17 @@ export class CloudflareService {
     return this.runWrangler(["d1", "delete", name]);
   }
 
+  /** Runs a SQL query on a D1 database (`wrangler d1 execute`). */
+  async d1Execute(
+    name: string,
+    sql: string,
+    remote: boolean = true
+  ): Promise<WranglerResult<string>> {
+    const args = ["d1", "execute", name, "--command", sql];
+    if (remote) args.push("--remote");
+    return this.runWrangler(args);
+  }
+
   // ---------------------------------------------------------------------------
   // KV (wrangler v4+: use `kv namespace` instead of deprecated `kv:namespace`)
   // ---------------------------------------------------------------------------

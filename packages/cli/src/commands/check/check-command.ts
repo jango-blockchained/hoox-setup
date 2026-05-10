@@ -388,16 +388,72 @@ async function runDatabaseChecks(
     "balances",
     "system_logs",
   ];
+
+  // Only run table check if the database exists
   try {
-    // We can't easily run SQL through the service, so this is a best-effort check
-    checks.push({
-      name: "Required Tables",
-      success: true,
-      errors: [],
-      warnings: [
-        `Table schema not verified via CLI. Run: wrangler d1 execute ${dbName} --command="SELECT name FROM sqlite_master WHERE type='table'" --remote`,
-      ],
-    });
+    const hasDb = d1ListResult.ok && d1ListResult.data.includes(dbName);
+    if (!hasDb) {
+      checks.push({
+        name: "Required Tables",
+        success: true,
+        errors: [],
+        warnings: ["Skipped: database does not exist yet"],
+      });
+    } else {
+      const sqlResult = await cf.d1Execute(
+        dbName,
+        `SELECT name FROM sqlite_master WHERE type='table'`,
+        true
+      );
+
+      if (sqlResult.ok) {
+        // wrangler d1 execute --json outputs the result rows
+        // Parse the JSON output to extract table names
+        const tableNames: string[] = [];
+        const lines = sqlResult.data.split("\n");
+        for (const line of lines) {
+          try {
+            const parsed = JSON.parse(line.trim());
+            if (parsed.results) {
+              for (const row of parsed.results) {
+                if (row.name) tableNames.push(row.name);
+              }
+            }
+          } catch {
+            // skip non-JSON lines
+          }
+        }
+
+        const missing = requiredTables.filter((t) => !tableNames.includes(t));
+        if (missing.length === 0) {
+          checks.push({
+            name: "Required Tables",
+            success: true,
+            errors: [],
+            warnings: [],
+          });
+        } else {
+          checks.push({
+            name: "Required Tables",
+            success: false,
+            errors: [
+              `Missing tables: ${missing.join(", ")}. Run migrations first.`,
+            ],
+            warnings: [],
+          });
+        }
+      } else {
+        // Query failed — show warning instead of hard error
+        checks.push({
+          name: "Required Tables",
+          success: true,
+          errors: [],
+          warnings: [
+            `Table schema not verified: ${sqlResult.error}. Run: wrangler d1 execute ${dbName} --command="SELECT name FROM sqlite_master WHERE type='table'" --remote`,
+          ],
+        });
+      }
+    }
   } catch {
     checks.push({
       name: "Required Tables",
