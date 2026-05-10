@@ -29,4 +29,6 @@ export interface DeployResult {
   startupTime?: string;
   /** Version ID */
   versionId?: string;
+  /** Raw wrangler output (first non-empty line, for debugging) */
+  rawOutput?: string;
 }

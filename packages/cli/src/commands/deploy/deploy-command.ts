@@ -118,6 +118,7 @@ async function deploySingle(
   const result = await cf.deploy(workerConfig.path, env);
 
   if (result.ok) {
+    const rawLine = result.data.rawOutput?.split("\n").find(l => l.trim())?.trim();
     return {
       worker: workerName,
       url: result.data.url,
@@ -125,6 +126,7 @@ async function deploySingle(
       size: result.data.size,
       startupTime: result.data.startupTime,
       versionId: result.data.versionId,
+      rawOutput: rawLine,
     };
   }
 
@@ -227,6 +229,10 @@ async function deployAll(
       }
       if (result.versionId) {
         process.stdout.write(`   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`);
+      }
+      // If no details at all, show raw output first line for debugging
+      if (!result.url && !result.size && !result.startupTime && !result.versionId && result.rawOutput) {
+        process.stdout.write(`   ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}\n`);
       }
     } else {
       // Red dot for failure
@@ -608,6 +614,9 @@ EXAMPLES:
             if (result.size) process.stdout.write(`   ${theme.dim("Size:")}     ${result.size}\n`);
             if (result.startupTime) process.stdout.write(`   ${theme.dim("Startup:")} ${result.startupTime}\n`);
             if (result.versionId) process.stdout.write(`   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`);
+            if (!result.url && !result.size && !result.startupTime && !result.versionId && result.rawOutput) {
+              process.stdout.write(`   ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}\n`);
+            }
           } else {
             process.stdout.write(`${theme.error("●")} ${name.padEnd(25)} failed\n`);
             if (result.error) process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);

@@ -339,12 +339,20 @@ export class CloudflareService {
 
   /**
    * Extracts a URL from wrangler deploy output.
-   * wrangler prints lines like:  https://name.subdomain.workers.dev
+   * wrangler v4+ prints lines like:  https://name.subdomain.workers.dev
    */
   private extractUrl(stdout: string): string | undefined {
-    // Match worker URLs (workers.dev or cloudflareworkers.com domains)
-    // Handles both direct (name.workers.dev) and subdomain (name.acme.workers.dev) patterns
-    const match = stdout.match(/https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*\.[-a-zA-Z0-9]+\.(workers\.dev|cloudflareworkers\.com)/);
-    return match ? match[0] : undefined;
+    // Match any https:// URL ending in workers.dev or cloudflareworkers.com
+    // Handles direct (name.workers.dev), subdomain (name.acme.workers.dev),
+    // and any other URL pattern wrangler v4+ might produce.
+    // Also try to match URLs at the start of a line.
+    for (const line of stdout.split("\n")) {
+      const trimmed = line.trim();
+      // wrangler v4+ outputs URLs like: https://name.subdomain.workers.dev
+      // Possibly preceded by "Published" or "Uploaded"
+      const match = trimmed.match(/(https?:\/\/[^\s]+(?:workers\.dev|cloudflareworkers\.com)[^\s]*)/);
+      if (match) return match[1];
+    }
+    return undefined;
   }
 }
