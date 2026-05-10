@@ -179,8 +179,8 @@ async function deployAll(
     let result: DeployResult;
 
     if (isDashboard) {
-      // Deploy dashboard
-      result = await deployDashboard(cf, forceRebuildDashboard);
+      // Deploy dashboard silently (deployAll handles the UI)
+      result = await deployDashboard(cf, forceRebuildDashboard, true);
     } else {
       // Deploy worker
       result = await deploySingle(configService, cf, name, env);
@@ -236,9 +236,9 @@ async function deployAll(
 
 /**
  * Build and deploy the dashboard (workers/dashboard) via OpenNext + wrangler.
- * Checks for existing build and prompts user to rebuild or use existing.
+ * @param silentMode If true, skips prompt and header for use in deployAll
  */
-async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = false): Promise<DeployResult> {
+async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = false, silentMode: boolean = false): Promise<DeployResult> {
   const dashboardPath = "workers/dashboard";
 
   // Check existing build status
@@ -246,7 +246,7 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
 
   // Determine action based on build status and user choice
   let action: "rebuild" | "deploy" | "cancel";
-  if (forceRebuild) {
+  if (forceRebuild || silentMode) {
     action = "rebuild";
   } else {
     action = await promptRebuildDecision(buildInfo);
@@ -261,18 +261,22 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
     };
   }
 
-  // Show dashboard header
-  process.stdout.write(`\n${theme.heading("Deploying Dashboard")}\n`);
-  process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
-  process.stdout.write(`${theme.dim("○")} dashboard\n`);
-  process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
+  // Only show header if not in silent mode (deployAll handles its own UI)
+  if (!silentMode) {
+    process.stdout.write(`\n${theme.heading("Deploying Dashboard")}\n`);
+    process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
+    process.stdout.write(`${theme.dim("○")} dashboard\n`);
+    process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
+  }
 
   // Show spinner while deploying
   const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
   let spinIdx = 0;
   const actionText = action === "rebuild" ? "Building & deploying" : "Deploying";
   const spinInterval = setInterval(() => {
-    process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} ${actionText} dashboard... `);
+    if (!silentMode) {
+      process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} ${actionText} dashboard... `);
+    }
     spinIdx = (spinIdx + 1) % spinChars.length;
   }, 80);
 
@@ -293,8 +297,10 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
 
       if (buildExit !== 0) {
         const error = await new Response(buildProc.stderr).text();
-        process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
-        process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
+        if (!silentMode) {
+          process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+          process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
+        }
         return {
           worker: "dashboard",
           success: false,
@@ -307,15 +313,17 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
       const startupMatch = output.match(/Worker Startup Time:\s*(\d+)\s*ms/i);
       const urlMatch = output.match(/https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/);
 
-      process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
-      if (urlMatch) {
-        process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
-      }
-      if (sizeMatch) {
-        process.stdout.write(`   ${theme.dim("Size:")} ${sizeMatch[1]} ${sizeMatch[2]}\n`);
-      }
-      if (startupMatch) {
-        process.stdout.write(`   ${theme.dim("Startup:")} ${startupMatch[1]} ms\n`);
+      if (!silentMode) {
+        process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
+        if (urlMatch) {
+          process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
+        }
+        if (sizeMatch) {
+          process.stdout.write(`   ${theme.dim("Size:")} ${sizeMatch[1]} ${sizeMatch[2]}\n`);
+        }
+        if (startupMatch) {
+          process.stdout.write(`   ${theme.dim("Startup:")} ${startupMatch[1]} ms\n`);
+        }
       }
 
       return {
@@ -341,8 +349,10 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
 
       if (deployExit !== 0) {
         const error = await new Response(deployProc.stderr).text();
-        process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
-        process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
+        if (!silentMode) {
+          process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+          process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
+        }
         return {
           worker: "dashboard",
           success: false,
@@ -352,9 +362,11 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
 
       const urlMatch = output.match(/https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/);
 
-      process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
-      if (urlMatch) {
-        process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
+      if (!silentMode) {
+        process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
+        if (urlMatch) {
+          process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
+        }
       }
 
       return {
@@ -367,8 +379,10 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
     clearInterval(spinInterval);
     const message = err instanceof Error ? err.message : String(err);
     process.stdout.write(`\r${" ".repeat(40)}\r`);
-    process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
-    process.stdout.write(`   ${theme.error("Error:")} ${message}\n`);
+    if (!silentMode) {
+      process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+      process.stdout.write(`   ${theme.error("Error:")} ${message}\n`);
+    }
     return {
       worker: "dashboard",
       success: false,
