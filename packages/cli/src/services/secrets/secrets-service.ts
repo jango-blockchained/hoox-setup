@@ -7,7 +7,7 @@ import type {
 } from "./types.js";
 
 /**
- * Manages Cloudflare Worker secrets defined in `workers.jsonc`.
+ * Manages Cloudflare Worker secrets defined in `wrangler.jsonc`.
  *
  * Reads worker-level `secrets` arrays, checks local `.dev.vars` files,
  * syncs secrets to Cloudflare via `wrangler secret put`, and generates
@@ -19,7 +19,7 @@ import type {
  *
  * @example
  * ```ts
- * const svc = await SecretsService.create("workers.jsonc");
+ * const svc = await SecretsService.create("wrangler.jsonc");
  * const names = svc.listSecrets("trade-worker");
  * const check = await svc.checkLocalSecrets("trade-worker");
  * ```
@@ -39,11 +39,11 @@ export class SecretsService {
   }
 
   /**
-   * Factory that reads and parses the workers.jsonc config file.
+   * Factory that reads and parses the wrangler.jsonc config file.
    * Throws if the file doesn't exist or can't be parsed.
    */
   static async create(configPath?: string): Promise<SecretsService> {
-    const path = configPath ?? "workers.jsonc";
+    const path = configPath ?? "wrangler.jsonc";
     const file = Bun.file(path);
     if (!(await file.exists())) {
       throw new Error(`Config file not found: ${path}`);
@@ -58,7 +58,7 @@ export class SecretsService {
   // -----------------------------------------------------------------------
 
   /**
-   * Returns secret names declared for a worker in `workers.jsonc`.
+   * Returns secret names declared for a worker in `wrangler.jsonc`.
    * Synchronous because the config was loaded during construction.
    */
   listSecrets(workerName: string): string[] {
@@ -138,7 +138,7 @@ export class SecretsService {
 
   /**
    * Creates (or overwrites) a `.dev.vars` template file for a worker
-   * with placeholder values for every secret declared in `workers.jsonc`.
+   * with placeholder values for every secret declared in `wrangler.jsonc`.
    */
   async generateDevVars(workerName: string): Promise<WranglerResult<string>> {
     const worker = this.config.workers[workerName];

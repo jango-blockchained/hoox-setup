@@ -66,7 +66,7 @@ Exceptions: `hoox` (inline fetch), `email-worker` (content-type based routing).
 ## 📂 Codebase References
 
 **Gateway**: `workers/hoox/src/index.ts` - Request routing logic
-**Config**: `workers.jsonc` - Central worker configuration
+**Config**: `wrangler.jsonc` - Central worker configuration
 **Shared Router**: `packages/shared/src/router.ts` - `createRouter<Env>()` implementation
 **Health Check**: `packages/shared/src/health.ts` - `healthCheck()` function
 **Request Logger**: `packages/shared/src/middleware/logger.ts` - `withRequestLog()` wrapper

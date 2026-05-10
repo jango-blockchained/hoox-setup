@@ -15,7 +15,7 @@ export interface DeployOptions {
  * Result of deploying a single worker.
  */
 export interface DeployResult {
-  /** Worker name as defined in workers.jsonc. */
+  /** Worker name as defined in wrangler.jsonc. */
   worker: string;
   /** Deployed URL extracted from wrangler output, if available. */
   url?: string;

@@ -7,7 +7,7 @@ Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments
 - **Interactive TUI**: Launch an interactive terminal UI when running `hoox` with no arguments
 - **Worker Management**: Initialize, develop, and deploy Cloudflare Workers
 - **Infrastructure as Code**: Manage D1 databases, R2 storage, KV namespaces, and more
-- **Configuration**: Centralized config management via `workers.jsonc`
+- **Configuration**: Centralized config management via `wrangler.jsonc`
 - **Secret Management**: Securely manage and deploy secrets to Cloudflare
 - **Health Checks**: Verify setup and diagnose issues with `check-setup`
 - **Logging**: Stream and filter worker logs
@@ -56,7 +56,7 @@ hoox deploy
 | `hoox dev`       | Start local development environment for all workers         |
 | `hoox deploy`    | Deploy workers to Cloudflare                                |
 | `hoox infra`     | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
-| `hoox config`    | View and modify `workers.jsonc` configuration               |
+| `hoox config`    | View and modify `wrangler.jsonc` configuration               |
 | `hoox check`     | Verify project setup and diagnose issues                    |
 | `hoox logs`      | Stream and filter Cloudflare Worker logs                    |
 | `hoox test`      | Run tests for workers and packages                          |
@@ -89,7 +89,7 @@ Interactive prompts will guide you through setting up your project with the nece
 hoox dev
 ```
 
-Starts all workers locally with hot-reload. Each worker runs on a dedicated port (see `workers.jsonc` for port assignments).
+Starts all workers locally with hot-reload. Each worker runs on a dedicated port (see `wrangler.jsonc` for port assignments).
 
 ### Deploy to Cloudflare
 
@@ -234,7 +234,7 @@ packages/cli/
 | `commander`                       | CLI framework for command registration and parsing |
 | `@clack/prompts`                  | Interactive prompts for the TUI                    |
 | `ansis`                           | Terminal styling and colors                        |
-| `jsonc-parser`                    | Parse `workers.jsonc` configuration files          |
+| `jsonc-parser`                    | Parse `wrangler.jsonc` configuration files          |
 | `@jango-blockchained/hoox-shared` | Shared types and utilities                         |
 
 ## Contributing

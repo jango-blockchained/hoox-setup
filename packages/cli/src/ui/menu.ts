@@ -163,7 +163,7 @@ async function showDevelopMenu(
       message: "Develop",
       options: [
         {
-          value: "dev",
+          value: "dev start",
           label: "Start dev server",
           hint: "runs all workers locally",
         },
@@ -193,7 +193,7 @@ async function showManageMenu(
         {
           value: "config",
           label: "Configuration",
-          hint: "show / set workers.jsonc",
+          hint: "show / set wrangler.jsonc",
         },
         { value: "secrets", label: "Secrets", hint: "list, set, sync" },
         { value: "keys", label: "Auth keys", hint: "generate, list" },
@@ -233,7 +233,7 @@ async function showConfigSubMenu(program: Command): Promise<void> {
   const choice = await select({
     message: "Configuration",
     options: [
-      { value: "show", label: "Show config", hint: "display workers.jsonc" },
+      { value: "show", label: "Show config", hint: "display wrangler.jsonc" },
       { value: "set", label: "Set a value..." },
       { value: "__back", label: "Back to Manage" },
     ],
@@ -423,7 +423,9 @@ async function runCommand(program: Command, commandStr: string): Promise<void> {
   const args = commandStr.split(" ");
 
   try {
-    await program.parseAsync([process.execPath, "hoox", ...args], {
+    // from: "user" means Commander expects raw user arguments only —
+    // NOT [node, script, ...args] format. So just pass the args directly.
+    await program.parseAsync(args, {
       from: "user",
     });
   } catch (err) {

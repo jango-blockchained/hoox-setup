@@ -5,10 +5,10 @@ import { join } from "node:path";
 import { ConfigService } from "./config-service.js";
 
 /**
- * Helper: write a workers.jsonc file to a test directory using Bun.
+ * Helper: write a wrangler.jsonc file to a test directory using Bun.
  */
 async function writeConfig(dir: string, content: string): Promise<void> {
-  await Bun.write(join(dir, "workers.jsonc"), content);
+  await Bun.write(join(dir, "wrangler.jsonc"), content);
 }
 
 /**
@@ -64,23 +64,23 @@ describe("ConfigService", () => {
 
   // ── Constructor defaults ──────────────────────────────────────────
 
-  it("defaults config path to workers.jsonc in cwd", () => {
+  it("defaults config path to wrangler.jsonc in cwd", () => {
     const service = new ConfigService();
     // Constructor stores the default path — verified via load() behavior
     expect(service).toBeInstanceOf(ConfigService);
   });
 
   it("accepts a custom config path in constructor", () => {
-    const customPath = "/tmp/custom-workers.jsonc";
+    const customPath = "/tmp/custom-wrangler.jsonc";
     const service = new ConfigService(customPath);
     expect(service).toBeInstanceOf(ConfigService);
   });
 
   // ── load() — happy path ───────────────────────────────────────────
 
-  it("loads and parses a valid workers.jsonc", async () => {
+  it("loads and parses a valid wrangler.jsonc", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     const config = await service.load();
     expect(config.global.cloudflare_account_id).toBe("abc123");
     expect(config.workers["test-worker"]).toBeDefined();
@@ -96,7 +96,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     expect(service.listWorkers()).toEqual(["worker-a", "worker-b", "worker-c"]);
     expect(service.listEnabledWorkers()).toEqual(["worker-a", "worker-c"]);
@@ -111,19 +111,19 @@ describe("ConfigService", () => {
 
   it("throws for invalid JSONC syntax", async () => {
     await writeConfig(tmpDir, "{ not valid json @@@ }");
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await expect(service.load()).rejects.toThrow("Invalid JSONC");
   });
 
   it("throws when root is not an object (e.g. an array)", async () => {
     await writeConfig(tmpDir, "[1, 2, 3]");
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await expect(service.load()).rejects.toThrow("must contain a JSON object");
   });
 
   it("throws when root is a primitive (e.g. string)", async () => {
     await writeConfig(tmpDir, '"just a string"');
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await expect(service.load()).rejects.toThrow("must contain a JSON object");
   });
 
@@ -131,7 +131,7 @@ describe("ConfigService", () => {
 
   it("strips // line comments via jsonc-parser", async () => {
     await writeConfig(tmpDir, validConfigWithComments());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     const config = await service.load();
     expect(config.global.cloudflare_account_id).toBe("abc123");
   });
@@ -145,14 +145,14 @@ describe("ConfigService", () => {
   "workers": { "w": { "enabled": true, "path": "p" } }
 }`;
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     const config = await service.load();
     expect(config.global.cloudflare_account_id).toBe("xyz");
   });
 
   it("handles pure JSON (no comments) correctly", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     const config = await service.load();
     expect(config.global.cloudflare_account_id).toBe("abc123");
   });
@@ -161,7 +161,7 @@ describe("ConfigService", () => {
 
   it("getWorker() returns a worker config by name", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const worker = service.getWorker("test-worker");
     expect(worker).toBeDefined();
@@ -171,14 +171,14 @@ describe("ConfigService", () => {
 
   it("getWorker() returns undefined for unknown worker", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     expect(service.getWorker("nonexistent")).toBeUndefined();
   });
 
   it("getGlobal() returns the global config section", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const global = service.getGlobal();
     expect(global.cloudflare_account_id).toBe("abc123");
@@ -193,7 +193,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     expect(service.listWorkers().sort()).toEqual(["w1", "w2"]);
   });
@@ -208,7 +208,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const enabled = service.listEnabledWorkers().sort();
     expect(enabled).toEqual(["w1", "w3"]);
@@ -224,7 +224,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     expect(service.listEnabledWorkers()).toEqual([]);
   });
@@ -255,7 +255,7 @@ describe("ConfigService", () => {
 
   it("validate() returns valid: true for a valid config", async () => {
     await writeConfig(tmpDir, validConfigJson());
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(true);
@@ -275,7 +275,7 @@ describe("ConfigService", () => {
       workers: { w: { enabled: true, path: "workers/w" } },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(false);
@@ -289,7 +289,7 @@ describe("ConfigService", () => {
       workers: { w: { enabled: true, path: "workers/w" } },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(false);
@@ -306,7 +306,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(false);
@@ -319,7 +319,7 @@ describe("ConfigService", () => {
       workers: {},
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(false);
@@ -335,7 +335,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const result = service.validate();
     expect(result.valid).toBe(false);
@@ -357,7 +357,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const worker = service.getWorker("secrets-worker");
     expect(worker?.secrets).toEqual(["API_KEY", "DB_PASSWORD"]);
@@ -375,7 +375,7 @@ describe("ConfigService", () => {
       },
     });
     await writeConfig(tmpDir, content);
-    const service = new ConfigService(join(tmpDir, "workers.jsonc"));
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
     await service.load();
     const worker = service.getWorker("vars-worker");
     expect(worker?.vars).toEqual({
@@ -389,7 +389,7 @@ describe("ConfigService", () => {
   it("load() with explicit path overrides the constructor path", async () => {
     await writeConfig(tmpDir, validConfigJson());
     const service = new ConfigService("/some/wrong/path.jsonc");
-    const config = await service.load(join(tmpDir, "workers.jsonc"));
+    const config = await service.load(join(tmpDir, "wrangler.jsonc"));
     expect(config.global.cloudflare_account_id).toBe("abc123");
   });
 });

@@ -29,7 +29,7 @@ The installation wizard guides you through 7 steps:
    - Subdomain prefix for workers (e.g., "my-app" → worker-name.my-app.workers.dev)
 3. **Select Workers**: Choose which workers to enable from the available workers in the `workers/` directory.
 4. **Setup D1 Database**: If any worker requires a D1 database, it will be set up during this step.
-5. **Save Configuration**: Saves all your settings to `workers.jsonc`.
+5. **Save Configuration**: Saves all your settings to `wrangler.jsonc`.
 6. **Configure Secrets**: Guides you through setting up secrets for your workers.
 7. **Initial Deployment**: Optionally deploys all enabled workers.
 
@@ -45,17 +45,17 @@ hoox init
 
 The installation wizard will:
 
-1. Detect the `workers.jsonc` configuration format
+1. Detect the `wrangler.jsonc` configuration format
 2. Guide you through the setup process step by step
 3. Save your progress in `.install-wizard-state.json`, so you can continue from where you left off if needed
-4. Save the final configuration to `workers.jsonc`
+4. Save the final configuration to `wrangler.jsonc`
 
 ### Configuration File
 
-The system uses `workers.jsonc` as the central configuration file:
+The system uses `wrangler.jsonc` as the central configuration file:
 
-- If `workers.jsonc` already exists, the wizard will use and update that file
-- If it doesn't exist, the wizard will create one from `workers.jsonc.example`
+- If `wrangler.jsonc` already exists, the wizard will use and update that file
+- If it doesn't exist, the wizard will create one from `wrangler.jsonc.example`
 - The format choice is stored in the wizard state file for consistency during the setup process
 
 ## Validating Your Setup
@@ -82,7 +82,7 @@ The validation tool provides a detailed report with color-coded results to help 
 
 > **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations.
 
-### workers.jsonc / workers.jsonc.example
+### wrangler.jsonc / wrangler.jsonc.example
 
 The project uses JSONC (JSON with Comments) as its configuration format:
 
@@ -130,13 +130,13 @@ This project uses Cloudflare®'s Secret Store for managing sensitive information
    npx wrangler secrets-store store list
    ```
 
-3. Add your Secret Store ID to `workers.jsonc` under the `cloudflare_secret_store_id` field.
+3. Add your Secret Store ID to `wrangler.jsonc` under the `cloudflare_secret_store_id` field.
 
 ### Adding Secrets
 
 For each worker that requires secrets:
 
-1. Define the secret names in the worker's section in `workers.jsonc` under the `secrets` array.
+1. Define the secret names in the worker's section in `wrangler.jsonc` under the `secrets` array.
 2. Add the secret to your Secret Store:
    ```bash
    npx wrangler secrets-store secret put <secret-name> --store-id <store-id>
@@ -187,13 +187,13 @@ The script will automatically detect which format is used for each worker and up
 
 ### Bindings
 
-- **Secret Store Bindings**: Automatically configured based on the `secrets` array in `workers.jsonc`
+- **Secret Store Bindings**: Automatically configured based on the `secrets` array in `wrangler.jsonc`
 - **D1 Bindings**: Set up for workers that need database access
 - **Other Bindings**: Must be manually configured in each worker's wrangler configuration file
 
 ### Environment Variables
 
-Environment variables can be set in `workers.jsonc` under each worker's `vars` object:
+Environment variables can be set in `wrangler.jsonc` under each worker's `vars` object:
 
 ```jsonc
 {

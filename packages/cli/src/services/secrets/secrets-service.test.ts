@@ -34,7 +34,7 @@ const WORKERS_JSONC = JSON.stringify({
 });
 
 /**
- * Creates a SecretsService that reads from a synthetic workers.jsonc string
+ * Creates a SecretsService that reads from a synthetic wrangler.jsonc string
  * instead of hitting the real file-system.  We override `Bun.file` for the
  * config path only and call the private constructor via a test-only subclass.
  */
@@ -51,7 +51,7 @@ async function createService(workersJsonc?: string): Promise<SecretsService> {
   // works in Bun 1.3.x for individual Bun properties.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (Bun as any).file = mock((path: string) => {
-    if (typeof path === "string" && path.endsWith("workers.jsonc")) {
+    if (typeof path === "string" && path.endsWith("wrangler.jsonc")) {
       return {
         exists: mock(async () => true),
         text: mock(async () => jsonc),
@@ -61,7 +61,7 @@ async function createService(workersJsonc?: string): Promise<SecretsService> {
     return originalBunFile(path);
   });
 
-  const svc = await SecretsService.create("workers.jsonc");
+  const svc = await SecretsService.create("wrangler.jsonc");
 
   // Restore original so subsequent tests aren't polluted
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -460,7 +460,7 @@ describe("SecretsService", () => {
   describe("edge cases", () => {
     it("throws when config file does not exist", async () => {
       await expect(
-        SecretsService.create("/nonexistent/workers.jsonc")
+        SecretsService.create("/nonexistent/wrangler.jsonc")
       ).rejects.toThrow("Config file not found");
     });
 

@@ -3,7 +3,7 @@
  *
  * Modes:
  *   hoox clone           — List workers with clone status (cloned / not cloned)
- *   hoox clone --all     — Clone all workers from workers.jsonc
+ *   hoox clone --all     — Clone all workers from wrangler.jsonc
  *   hoox clone <name>    — Clone a specific worker by name
  *
  * Repo URLs are derived from: https://github.com/<org>/<worker-name>.git
@@ -249,7 +249,7 @@ export function registerCloneCommand(program: Command): void {
           // -------------------------------------------------------------------
           if (options.all) {
             if (workers.length === 0) {
-              formatSuccess("No workers defined in workers.jsonc", fmt);
+              formatSuccess("No workers defined in wrangler.jsonc", fmt);
               return;
             }
 
@@ -349,7 +349,7 @@ export function registerCloneCommand(program: Command): void {
             if (!workerConfig) {
               formatError(
                 new CLIError(
-                  `Worker "${name}" not found in workers.jsonc`,
+                  `Worker "${name}" not found in wrangler.jsonc`,
                   ExitCode.ERROR
                 ),
                 fmt

@@ -2,9 +2,9 @@
 
 > How to configure Hoox workers
 
-## workers.jsonc
+## wrangler.jsonc
 
-The central configuration file is `workers.jsonc`. Here's a complete example:
+The central configuration file is `wrangler.jsonc`. Here's a complete example:
 
 ```jsonc
 {
@@ -81,7 +81,7 @@ WEBHOOK_API_KEY_BINDING=dev-key
 
 ## Worker Secrets
 
-Each worker can define required secrets in `workers.jsonc`. These are prompted for during setup.
+Each worker can define required secrets in `wrangler.jsonc`. These are prompted for during setup.
 
 ```jsonc
 {

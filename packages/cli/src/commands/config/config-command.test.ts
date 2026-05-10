@@ -18,7 +18,7 @@ import { registerConfigCommand } from "./config-command.js";
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Minimal valid workers.jsonc content for testing. */
+/** Minimal valid wrangler.jsonc content for testing. */
 const VALID_CONFIG = `{
   "global": {
     "cloudflare_account_id": "abc123",
@@ -42,10 +42,10 @@ const VALID_CONFIG = `{
   }
 }`;
 
-/** Create a real workers.jsonc in a temp dir and cd into it. */
+/** Create a real wrangler.jsonc in a temp dir and cd into it. */
 function setupTempConfig(name = "hoox-cli-test"): string {
   const dir = mkdtempSync(join(tmpdir(), `${name}-`));
-  writeFileSync(join(dir, "workers.jsonc"), VALID_CONFIG);
+  writeFileSync(join(dir, "wrangler.jsonc"), VALID_CONFIG);
   return dir;
 }
 
@@ -252,7 +252,7 @@ describe("config show", () => {
   });
 
   it("handles missing config file gracefully", async () => {
-    // Create empty temp dir without workers.jsonc
+    // Create empty temp dir without wrangler.jsonc
     const emptyDir = mkdtempSync(join(tmpdir(), "empty-config-"));
     process.chdir(emptyDir);
 
@@ -303,7 +303,7 @@ describe("config set", () => {
     capture.restore();
 
     // Read the file back to verify the update
-    const updated = await Bun.file("workers.jsonc").text();
+    const updated = await Bun.file("wrangler.jsonc").text();
     const parsed = JSON.parse(updated) as {
       global: { cloudflare_account_id: string };
     };
@@ -324,7 +324,7 @@ describe("config set", () => {
     ]);
     capture.restore();
 
-    const updated = await Bun.file("workers.jsonc").text();
+    const updated = await Bun.file("wrangler.jsonc").text();
     const parsed = JSON.parse(updated) as {
       workers: Record<string, { vars: Record<string, string> }>;
     };
@@ -344,7 +344,7 @@ describe("config set", () => {
     ]);
     capture.restore();
 
-    const updated = await Bun.file("workers.jsonc").text();
+    const updated = await Bun.file("wrangler.jsonc").text();
     const parsed = JSON.parse(updated) as {
       workers: Record<string, { enabled: boolean }>;
     };
@@ -364,7 +364,7 @@ describe("config set", () => {
     ]);
     capture.restore();
 
-    const updated = await Bun.file("workers.jsonc").text();
+    const updated = await Bun.file("wrangler.jsonc").text();
     const parsed = JSON.parse(updated) as {
       workers: Record<string, { vars: Record<string, number> }>;
     };

@@ -339,7 +339,7 @@ export function registerTestCommand(program: Command): void {
         if (!workerConfig) {
           formatError(
             new CLIError(
-              `Worker "${name}" not found in workers.jsonc`,
+              `Worker "${name}" not found in wrangler.jsonc`,
               ExitCode.INVALID_USAGE
             ),
             fmt

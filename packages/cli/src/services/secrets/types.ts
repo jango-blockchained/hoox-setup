@@ -32,7 +32,7 @@ export interface SecretStatus {
 }
 
 export interface SecretCheckResult {
-  /** Worker name as it appears in workers.jsonc. */
+  /** Worker name as it appears in wrangler.jsonc. */
   worker: string;
   /** Per-secret status entries. */
   secrets: SecretStatus[];
@@ -43,7 +43,7 @@ export interface SecretCheckResult {
 }
 
 // ---------------------------------------------------------------------------
-// Internal config shape (subset of workers.jsonc used by SecretsService)
+// Internal config shape (subset of wrangler.jsonc used by SecretsService)
 // ---------------------------------------------------------------------------
 
 export interface WorkerSecretConfig {

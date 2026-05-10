@@ -60,13 +60,13 @@ hoox workers deploy     # deploy all workers to Cloudflare
 - **No Node.js built-ins** in workers — Edge compatibility required
 - **No hardcoded secrets** — use `wrangler secret` or `hoox secrets` commands
 - **No public APIs for internal workers** — `trade-worker`, `d1-worker` only accessible via service bindings
-- Worker config: `workers.jsonc` (central) + per-worker `wrangler.jsonc`
+- Worker config: `wrangler.jsonc` (central) + per-worker `wrangler.jsonc`
 - Infrastructure: D1 (SQLite), R2 (storage), KV (config), Durable Objects (idempotency), Queues (failover)
 - Use `bun` for all scripting, testing, and package management
 
 ## Secret Management
 
-Secrets stored in `workers.jsonc` under each worker's `secrets` array. Deploy with:
+Secrets stored in `wrangler.jsonc` under each worker's `secrets` array. Deploy with:
 
 ```bash
 hoox secrets update-cf    # push secrets to Cloudflare

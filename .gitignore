@@ -80,7 +80,7 @@ workers/*
 skills-lock.json
 
 # Configs
-workers.jsonc
+wrangler.jsonc
 pages.jsonc
 
 .worktrees/

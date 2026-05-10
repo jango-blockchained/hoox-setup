@@ -57,13 +57,13 @@ This wizard will:
 
 1. Check dependencies (bun, wrangler)
 2. Prompt for Cloudflare® credentials
-3. Enable workers in workers.jsonc
+3. Enable workers in wrangler.jsonc
 4. Create required secrets
 5. Deploy workers
 
 ### Option B: Manual Configuration
 
-Create `workers.jsonc`:
+Create `wrangler.jsonc`:
 
 ````jsonc
 {

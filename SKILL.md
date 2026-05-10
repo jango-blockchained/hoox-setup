@@ -118,7 +118,7 @@ bun test:watch               # Watch mode
 
 ### 7. Configuration
 
-- Global: `workers.jsonc`
+- Global: `wrangler.jsonc`
 - Worker: `workers/*/wrangler.jsonc`
 - Secrets: `wrangler secret put <name> --worker <worker>`
 - Pages: `pages/dashboard/wrangler.jsonc` (Cloudflare Workers, NOT Pages)

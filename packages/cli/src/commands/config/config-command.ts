@@ -2,8 +2,8 @@
  * `hoox config` command group — configuration and secrets management.
  *
  * Subcommands:
- *   show          Display current workers.jsonc config
- *   set <k> <v>   Update a config value in workers.jsonc
+ *   show          Display current wrangler.jsonc config
+ *   set <k> <v>   Update a config value in wrangler.jsonc
  *   secrets ...   Manage Cloudflare secrets (list, set, delete, sync)
  *   keys ...      Manage internal auth keys (generate, list)
  */
@@ -45,10 +45,10 @@ function keyToPath(key: string): (string | number)[] {
 }
 
 /**
- * Read the raw content of workers.jsonc.
+ * Read the raw content of wrangler.jsonc.
  */
 async function readConfigRaw(configPath?: string): Promise<string> {
-  const path = configPath ?? "workers.jsonc";
+  const path = configPath ?? "wrangler.jsonc";
   const file = Bun.file(path);
   if (!(await file.exists())) {
     throw new CLIError(
@@ -60,13 +60,13 @@ async function readConfigRaw(configPath?: string): Promise<string> {
 }
 
 /**
- * Write content back to workers.jsonc.
+ * Write content back to wrangler.jsonc.
  */
 async function writeConfigRaw(
   content: string,
   configPath?: string
 ): Promise<void> {
-  const path = configPath ?? "workers.jsonc";
+  const path = configPath ?? "wrangler.jsonc";
   await Bun.write(path, content);
 }
 
@@ -188,7 +188,7 @@ export function registerConfigCommand(program: Command): void {
   // ──────────────────────────────────────────────────────────────────────
   configCmd
     .command("show")
-    .description("Display current workers.jsonc configuration")
+    .description("Display current wrangler.jsonc configuration")
     .action(async () => {
       const opts = formatOpts(program);
 
@@ -247,7 +247,7 @@ export function registerConfigCommand(program: Command): void {
   // ──────────────────────────────────────────────────────────────────────
   configCmd
     .command("set <key> <value>")
-    .description("Update a config value in workers.jsonc")
+    .description("Update a config value in wrangler.jsonc")
     .action(async (key: string, value: string) => {
       const opts = formatOpts(program);
 
@@ -272,7 +272,7 @@ export function registerConfigCommand(program: Command): void {
         const updated = applyEdits(raw, edits);
         await writeConfigRaw(updated);
 
-        formatSuccess(`Updated "${key}" = "${value}" in workers.jsonc`, opts);
+        formatSuccess(`Updated "${key}" = "${value}" in wrangler.jsonc`, opts);
       } catch (err: unknown) {
         if (err instanceof CLIError) {
           formatError(err, opts);

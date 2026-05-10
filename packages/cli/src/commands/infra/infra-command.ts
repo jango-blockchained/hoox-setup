@@ -303,7 +303,7 @@ async function doProvision(
   if (enabledWorkers.length === 0) {
     if (!opts.quiet) {
       process.stdout.write(
-        theme.dim("No enabled workers found in workers.jsonc.\n")
+        theme.dim("No enabled workers found in wrangler.jsonc.\n")
       );
     }
     return {

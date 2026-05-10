@@ -41,4 +41,4 @@ WEBHOOK_API_KEY_BINDING=external_key_here
 ## 📂 Codebase References
 
 **Example**: `workers/hoox/wrangler.jsonc`
-**Central config**: `workers.jsonc`
+**Central config**: `wrangler.jsonc`

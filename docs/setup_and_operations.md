@@ -210,7 +210,7 @@ DASHBOARD_USER=admin
 DASHBOARD_PASS=admin
 ```
 
-#### `workers.jsonc` (Central Configuration)
+#### `wrangler.jsonc` (Central Configuration)
 
 ```jsonc
 {
@@ -476,7 +476,7 @@ See Section 6 for detailed commands.
 cp .env.example .env.local
 # Set all required values
 
-# Update workers.jsonc
+# Update wrangler.jsonc
 # - Set your account_id
 # - Set your secret_store_id
 # - Set your subdomain_prefix
@@ -807,7 +807,7 @@ wrangler secret put <SECRET_NAME> --config workers/<worker>/wrangler.jsonc
 # Set secret via hoox CLI
 hoox secrets update-cf <SECRET_NAME> <WORKER_NAME>
 
-# Set all secrets from workers.jsonc
+# Set all secrets from wrangler.jsonc
 hoox secrets update-cf
 ```
 
@@ -1031,7 +1031,7 @@ wrangler d1 execute trade-data-db --command="SELECT name FROM sqlite_master WHER
 ### 11.4 Secret Repair
 
 ```bash
-# If secrets are missing, re-upload all from workers.jsonc
+# If secrets are missing, re-upload all from wrangler.jsonc
 hoox secrets update-cf
 
 # Or set individual secrets
@@ -1181,7 +1181,7 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 | File               | Purpose                      | Required |
 | ------------------ | ---------------------------- | -------- |
-| `workers.jsonc`    | Central worker configuration | **Yes**  |
+| `wrangler.jsonc`    | Central worker configuration | **Yes**  |
 | `.env.local`       | Local environment variables  | **Yes**  |
 | `package.json`     | Root workspace manifest      | **Yes**  |
 | `bunfig.toml`      | Bun test configuration       | **Yes**  |
@@ -1320,7 +1320,7 @@ curl https://<worker>.<prefix>.workers.dev/health
 hoox-setup/
 ├── .env.local                    # Local environment (gitignored)
 ├── .env.example                  # Environment template
-├── workers.jsonc                 # Central worker config
+├── wrangler.jsonc                 # Central worker config
 ├── package.json                  # Root workspace manifest
 ├── bunfig.toml                   # Bun config
 ├── tsconfig.json                 # TypeScript config

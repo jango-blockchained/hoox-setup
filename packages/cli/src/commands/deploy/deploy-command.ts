@@ -48,7 +48,7 @@ async function deploySingle(
     return {
       worker: workerName,
       success: false,
-      error: `Worker "${workerName}" not found in workers.jsonc`,
+      error: `Worker "${workerName}" not found in wrangler.jsonc`,
     };
   }
 

@@ -2,10 +2,11 @@
  * `hoox dev` command group — local development for workers and dashboard.
  *
  * Subcommands:
- *   start     — Launch all workers via Hoox TUI
+ *   start     — Launch all workers with wrangler dev
  *   worker    — Start a single worker with wrangler dev
  *   dashboard — Start the Next.js dashboard dev server
  */
+
 import { Command } from "commander";
 import path from "node:path";
 import { ConfigService } from "../../services/config/index.js";
@@ -44,7 +45,7 @@ export function registerDevCommand(program: Command): void {
   // -- dev start ------------------------------------------------------------
   devCmd
     .command("start")
-    .description("Launch all workers locally via the Hoox TUI")
+    .description("Start all enabled workers with wrangler dev")
     .action(async () => {
       const fmt = getFormatOptions(program);
       try {
@@ -65,11 +66,11 @@ export function registerDevCommand(program: Command): void {
           return;
         }
 
-        const enabledCount = configService.listEnabledWorkers().length;
-        if (enabledCount === 0) {
+        const enabledWorkers = configService.listEnabledWorkers();
+        if (enabledWorkers.length === 0) {
           formatError(
             new CLIError(
-              "No enabled workers found in workers.jsonc. Enable at least one worker.",
+              "No enabled workers found in wrangler.jsonc. Enable at least one worker.",
               ExitCode.INVALID_USAGE
             ),
             fmt
@@ -78,32 +79,59 @@ export function registerDevCommand(program: Command): void {
           return;
         }
 
-        formatSuccess(
-          `Launching Hoox TUI for ${enabledCount} enabled worker(s)...`,
-          fmt
-        );
+        // Port assignments for known workers (from local-dev.md)
+        const LOCAL_PORTS: Record<string, number> = {
+          hoox: 8787,
+          "trade-worker": 8788,
+          "d1-worker": 8789,
+          "telegram-worker": 8790,
+          "web3-wallet-worker": 8792,
+        };
 
-        // Try the local script first, fall back to bunx package
-        const tuiPath = path.resolve(process.cwd(), "hoox-tui");
-        const tuiFile = Bun.file(tuiPath);
+        let nextFallbackPort = 8800;
+        const cf = new CloudflareService();
+        let started = 0;
+        let failed = 0;
 
-        if (await tuiFile.exists()) {
-          // Fire-and-forget: TUI manages its own child processes
-          Bun.spawn(["bun", "run", "./hoox-tui"], {
-            cwd: process.cwd(),
-            stdout: "inherit",
-            stderr: "inherit",
-          });
-        } else {
-          // Fallback: run via bunx
-          Bun.spawn(["bunx", "hoox-tui"], {
-            cwd: process.cwd(),
-            stdout: "inherit",
-            stderr: "inherit",
-          });
+        for (const name of enabledWorkers) {
+          const worker = configService.getWorker(name);
+          if (!worker) {
+            formatError(`Worker "${name}" not found in config, skipping.`, fmt);
+            failed++;
+            continue;
+          }
+
+          const port = LOCAL_PORTS[name] ?? nextFallbackPort++;
+          formatSuccess(
+            `Starting worker "${name}" (${worker.path}) on port ${port}...`,
+            fmt
+          );
+
+          const result = await cf.dev(worker.path, port);
+          if (!result.ok) {
+            formatError(
+              `Failed to start worker "${name}": ${result.error}`,
+              fmt
+            );
+            failed++;
+          } else {
+            formatSuccess(
+              `Worker "${name}" running on http://localhost:${result.data.port}`,
+              fmt
+            );
+            started++;
+          }
         }
 
-        formatSuccess("Hoox TUI started.", fmt);
+        if (started > 0) {
+          formatSuccess(
+            `Started ${started} worker(s) — http://localhost:8787 (and adjacent ports)`,
+            fmt
+          );
+        }
+        if (failed > 0) {
+          process.exitCode = ExitCode.ERROR;
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(message, fmt);
@@ -129,7 +157,7 @@ export function registerDevCommand(program: Command): void {
         if (!worker) {
           formatError(
             new CLIError(
-              `Worker "${name}" not found in workers.jsonc.\n` +
+              `Worker "${name}" not found in wrangler.jsonc.\n` +
                 `Available workers: ${configService.listWorkers().join(", ")}`,
               ExitCode.INVALID_USAGE
             ),

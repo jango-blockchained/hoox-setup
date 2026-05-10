@@ -73,10 +73,10 @@ async function runConfigChecks(
 ): Promise<CheckCategory> {
   const checks: CheckResult[] = [];
 
-  // Validate workers.jsonc structure
+  // Validate wrangler.jsonc structure
   const validation = configService.validate();
   checks.push({
-    name: "workers.jsonc validation",
+    name: "wrangler.jsonc validation",
     success: validation.valid,
     errors: validation.errors,
     warnings: [],

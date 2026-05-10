@@ -2,7 +2,7 @@
 /**
  * Unit tests for the clone command.
  *
- * Uses temp directories with real workers.jsonc and .git directories so
+ * Uses temp directories with real wrangler.jsonc and .git directories so
  * ConfigService operates normally.  Only Bun.spawn (git subcommands) is
  * mocked to keep tests fast and side-effect free.
  */
@@ -71,7 +71,7 @@ function installSpawnMock(): void {
 
 let tmpDir: string;
 
-/** Write a minimal workers.jsonc into tmpDir for ConfigService to load. */
+/** Write a minimal wrangler.jsonc into tmpDir for ConfigService to load. */
 async function writeTestConfig(
   workers: Record<string, { enabled: boolean; path: string }>
 ): Promise<string> {
@@ -79,8 +79,8 @@ async function writeTestConfig(
     global: { cloudflare_account_id: "test-account" },
     workers,
   });
-  await Bun.write(join(tmpDir, "workers.jsonc"), content);
-  return join(tmpDir, "workers.jsonc");
+  await Bun.write(join(tmpDir, "wrangler.jsonc"), content);
+  return join(tmpDir, "wrangler.jsonc");
 }
 
 /** Create a real .git file to simulate an already-cloned git submodule. */
@@ -418,7 +418,7 @@ describe("registerCloneCommand", () => {
   // -- Error handling --------------------------------------------------------
 
   describe("error handling", () => {
-    it("handles missing workers.jsonc gracefully", async () => {
+    it("handles missing wrangler.jsonc gracefully", async () => {
       // Don't write a config file — ConfigService.load() will fail
       const program = buildProgram();
       const output = await captureStdout(program, ["clone"]);

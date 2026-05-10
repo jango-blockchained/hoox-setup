@@ -1,7 +1,7 @@
 /**
- * ConfigService types — strongly-typed interfaces for workers.jsonc.
+ * ConfigService types — strongly-typed interfaces for wrangler.jsonc.
  *
- * The shape mirrors the actual workers.jsonc at the project root:
+ * The shape mirrors the actual wrangler.jsonc at the project root:
  *   global: { cloudflare_api_token, cloudflare_account_id, cloudflare_secret_store_id, subdomain_prefix }
  *   workers: { name: { enabled, path, vars?, secrets? } }
  */
@@ -20,7 +20,7 @@ export interface WorkerVars {
 }
 
 /**
- * Per-worker configuration as defined in workers.jsonc.
+ * Per-worker configuration as defined in wrangler.jsonc.
  */
 export interface WorkerConfig {
   /** Whether the worker is deployed and managed by the CLI. */
@@ -48,7 +48,7 @@ export interface GlobalConfig {
 }
 
 /**
- * Top-level Hoox configuration — the root shape of workers.jsonc.
+ * Top-level Hoox configuration — the root shape of wrangler.jsonc.
  */
 export interface HooxConfig {
   global: GlobalConfig;

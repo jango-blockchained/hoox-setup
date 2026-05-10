@@ -22,7 +22,7 @@ export interface IntegrationConfig {
   key: string;
   /** Display label shown in the multiselect prompt. */
   label: string;
-  /** Which worker this integration maps to in workers.jsonc. */
+  /** Which worker this integration maps to in wrangler.jsonc. */
   workerName: string;
   /** Secrets that must be collected for this integration (name → prompt label). */
   secrets: Record<string, string>;
@@ -30,7 +30,7 @@ export interface IntegrationConfig {
   vars?: Record<string, string>;
 }
 
-/** Shape of a single worker entry in workers.jsonc. */
+/** Shape of a single worker entry in wrangler.jsonc. */
 export interface WorkerConfig {
   enabled: boolean;
   path: string;
@@ -38,7 +38,7 @@ export interface WorkerConfig {
   secrets: string[];
 }
 
-/** Shape of the workers.jsonc file. */
+/** Shape of the wrangler.jsonc file. */
 export interface WorkersJsonConfig {
   global: {
     cloudflare_api_token: string;

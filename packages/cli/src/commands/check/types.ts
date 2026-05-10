@@ -53,7 +53,7 @@ export interface CheckReport {
  * Status of a single worker after a health probe.
  */
 export interface HealthCheckResult {
-  /** Worker name as defined in workers.jsonc. */
+  /** Worker name as defined in wrangler.jsonc. */
   worker: string;
   /** Categorised health status. */
   status: "healthy" | "degraded" | "down";

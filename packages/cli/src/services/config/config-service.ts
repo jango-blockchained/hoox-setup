@@ -3,7 +3,7 @@ import type { ParseError } from "jsonc-parser";
 import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
 
 /**
- * Loads, parses, and validates the central workers.jsonc configuration.
+ * Loads, parses, and validates the central wrangler.jsonc configuration.
  *
  * Uses jsonc-parser for fault-tolerant JSONC parsing with native comment
  * support (both line and block comments). Provides typed accessors for the
@@ -21,15 +21,15 @@ export class ConfigService {
   private configPath: string;
 
   /**
-   * @param configPath - Absolute or relative path to workers.jsonc.
-   *   Defaults to `workers.jsonc` in the current working directory.
+   * @param configPath - Absolute or relative path to wrangler.jsonc.
+   *   Defaults to `wrangler.jsonc` in the current working directory.
    */
   constructor(configPath?: string) {
-    this.configPath = configPath ?? "workers.jsonc";
+    this.configPath = configPath ?? "wrangler.jsonc";
   }
 
   /**
-   * Read and parse workers.jsonc from disk.
+   * Read and parse wrangler.jsonc from disk.
    *
    * Strips JSONC comments via jsonc-parser's native `parse()`.
    * Throws on file-not-found, invalid JSONC, or missing root object.
@@ -70,7 +70,7 @@ export class ConfigService {
   /**
    * Get the configuration for a specific worker by name.
    *
-   * @param name - The worker key as defined in workers.jsonc (e.g. "d1-worker").
+   * @param name - The worker key as defined in wrangler.jsonc (e.g. "d1-worker").
    * @returns The worker config, or undefined if not found.
    */
   getWorker(name: string): WorkerConfig | undefined {
@@ -87,7 +87,7 @@ export class ConfigService {
   }
 
   /**
-   * List all worker names defined in workers.jsonc (enabled + disabled).
+   * List all worker names defined in wrangler.jsonc (enabled + disabled).
    */
   listWorkers(): string[] {
     const config = this.ensureLoaded();
@@ -126,13 +126,13 @@ export class ConfigService {
     // Global required fields
     if (!this.config.global?.cloudflare_account_id) {
       errors.push(
-        "Required field missing: global.cloudflare_account_id — must be set in workers.jsonc"
+        "Required field missing: global.cloudflare_account_id — must be set in wrangler.jsonc"
       );
     }
 
     // Worker required fields
     if (!this.config.workers || Object.keys(this.config.workers).length === 0) {
-      errors.push("No workers defined in workers.jsonc");
+      errors.push("No workers defined in wrangler.jsonc");
     } else {
       for (const [name, worker] of Object.entries(this.config.workers)) {
         if (!worker.path) {

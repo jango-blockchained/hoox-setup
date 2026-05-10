@@ -156,7 +156,7 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli`. By utilizing Bun Workspaces, the core management commands are available via the `hoox` binary.
 
 - **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox deploy workers` or `hoox init`.
-- **Strict Configuration**: Configuration is split between `workers.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
+- **Strict Configuration**: Configuration is split between `wrangler.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
 - **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets and updating WAF rules through the Cloudflare API directly.
 
 ---
