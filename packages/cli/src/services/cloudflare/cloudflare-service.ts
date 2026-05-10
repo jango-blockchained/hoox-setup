@@ -201,22 +201,22 @@ export class CloudflareService {
   }
 
   // ---------------------------------------------------------------------------
-  // KV
+  // KV (wrangler v4+: use `kv namespace` instead of deprecated `kv:namespace`)
   // ---------------------------------------------------------------------------
 
-  /** Lists all KV namespaces (`wrangler kv:namespace list`). */
+  /** Lists all KV namespaces (`wrangler kv namespace list`). */
   async kvList(): Promise<WranglerResult<string>> {
-    return this.runWrangler(["kv:namespace", "list"]);
+    return this.runWrangler(["kv", "namespace", "list"]);
   }
 
-  /** Creates a KV namespace (`wrangler kv:namespace create <name>`). */
+  /** Creates a KV namespace (`wrangler kv namespace create <name>`). */
   async kvCreate(name: string): Promise<WranglerResult<string>> {
-    return this.runWrangler(["kv:namespace", "create", name]);
+    return this.runWrangler(["kv", "namespace", "create", name]);
   }
 
-  /** Deletes a KV namespace (`wrangler kv:namespace delete --namespace-id <id>`). */
+  /** Deletes a KV namespace (`wrangler kv namespace delete --namespace-id <id>`). */
   async kvDelete(id: string): Promise<WranglerResult<string>> {
-    return this.runWrangler(["kv:namespace", "delete", "--namespace-id", id]);
+    return this.runWrangler(["kv", "namespace", "delete", "--namespace-id", id]);
   }
 
   // ---------------------------------------------------------------------------

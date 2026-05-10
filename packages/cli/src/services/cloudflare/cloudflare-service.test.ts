@@ -268,17 +268,17 @@ describe("CloudflareService", () => {
   // -- KV -------------------------------------------------------------------
 
   describe("kv operations", () => {
-    it("kvList calls wrangler kv:namespace list", async () => {
+    it("kvList calls wrangler kv namespace list", async () => {
       mockSpawnWithCapture(successSpawn("[]"));
 
       const service = new CloudflareService();
       const result = await service.kvList();
 
       expect(result.ok).toBe(true);
-      expect(lastSpawnCmd).toEqual(["wrangler", "kv:namespace", "list"]);
+      expect(lastSpawnCmd).toEqual(["wrangler", "kv", "namespace", "list"]);
     });
 
-    it("kvCreate calls wrangler kv:namespace create", async () => {
+    it("kvCreate calls wrangler kv namespace create", async () => {
       mockSpawnWithCapture(successSpawn("Created namespace my-kv"));
 
       const service = new CloudflareService();
@@ -287,13 +287,14 @@ describe("CloudflareService", () => {
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual([
         "wrangler",
-        "kv:namespace",
+        "kv",
+        "namespace",
         "create",
         "my-kv",
       ]);
     });
 
-    it("kvDelete calls wrangler kv:namespace delete", async () => {
+    it("kvDelete calls wrangler kv namespace delete", async () => {
       mockSpawnWithCapture(successSpawn("Deleted namespace"));
 
       const service = new CloudflareService();
@@ -302,7 +303,8 @@ describe("CloudflareService", () => {
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual([
         "wrangler",
-        "kv:namespace",
+        "kv",
+        "namespace",
         "delete",
         "--namespace-id",
         "abc123",
