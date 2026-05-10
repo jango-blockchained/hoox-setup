@@ -2,11 +2,14 @@
  * `hoox check` command group — validation, health checks, and auto-repair.
  *
  * Subcommands:
- *   setup [--json]  — Full system validation (Config, Infrastructure, Secrets, Database)
- *   health [--fix]  — Worker connectivity and responsiveness checks
- *   fix [--dry-run] — Repair known common issues
+ *   setup [--json]           — Full system validation (Config, Infrastructure, Secrets, Database)
+ *   health [--fix]           — Worker connectivity and responsiveness checks
+ *   fix [--dry-run]          — Repair known common issues
+ *   submodule-gitignore (sg)  — Validate and fix worker submodule .gitignore files
  */
 import { Command } from "commander";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
 import { spinner } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
@@ -27,6 +30,48 @@ import type {
   FixAction,
   FixReport,
 } from "./types.js";
+
+// ---------------------------------------------------------------------------
+// Submodule Gitignore Constants
+// ---------------------------------------------------------------------------
+
+/** Standard .gitignore template for worker submodules */
+const WORKER_GITIGNORE_TEMPLATE = `# Environment and secrets (keep example, exclude actual)
+.dev.vars
+!.dev.vars.example
+
+# Wrangler config (keep example, exclude actual)
+wrangler.jsonc
+!wrangler.jsonc.example
+
+# Wrangler cache and build artifacts
+.wrangler/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+`;
+
+/** Critical entries that must be present in a valid worker .gitignore */
+const CRITICAL_GITIGNORE_ENTRIES = [
+  "wrangler.jsonc",
+  ".dev.vars",
+  ".wrangler/",
+  "node_modules/",
+  "!.dev.vars.example",
+  "!wrangler.jsonc.example",
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,6 +107,68 @@ function buildReport(categories: CheckCategory[]): CheckReport {
  */
 function checkIcon(success: boolean): string {
   return success ? icons.success : icons.error;
+}
+
+// ---------------------------------------------------------------------------
+// Submodule Gitignore Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Get all worker directories from the workers/ folder.
+ */
+async function getWorkerDirs(): Promise<string[]> {
+  const workersDir = path.resolve(process.cwd(), "workers");
+  try {
+    await Bun.file(workersDir).exists();
+  } catch {
+    return [];
+  }
+
+  try {
+    const entries = await readdir(workersDir, { withFileTypes: true });
+    return entries
+      .filter((e) => e.isDirectory() && e.name !== "node_modules")
+      .map((e) => path.join(workersDir, e.name));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Check if a file or directory is tracked by git in a given directory.
+ */
+async function isGitTracked(
+  dir: string,
+  filename: string
+): Promise<boolean> {
+  try {
+    const proc = Bun.spawn(["git", "ls-files", "--error-unmatch", filename], {
+      cwd: dir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const exitCode = await proc.exited;
+    return exitCode === 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Run git rm --cached to untrack a file while keeping it locally.
+ */
+async function gitUntrackFile(dir: string, filename: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const proc = Bun.spawn(["git", "rm", "--cached", filename], {
+      cwd: dir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    proc.exited.then((code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`git rm --cached failed with code ${code}`));
+    }).catch(reject);
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -686,12 +793,157 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Subcommand: check submodule-gitignore
+// ---------------------------------------------------------------------------
+
+/**
+ * Result of the submodule gitignore check.
+ */
+interface SubmoduleGitignoreResult {
+  valid: boolean;
+  issues: string[];
+  fixed: string[];
+  workersChecked: number;
+}
+
+/**
+ * Check and fix submodule .gitignore files for all workers.
+ *
+ * - Ensures each worker has a proper .gitignore
+ * - Verifies critical entries exist (wrangler.jsonc, .dev.vars, etc.)
+ * - Untracks wrangler.jsonc if it's mistakenly tracked by git
+ */
+async function checkSubmoduleGitignore(
+  opts: FormatOptions
+): Promise<SubmoduleGitignoreResult> {
+  const workerDirs = await getWorkerDirs();
+  const issues: string[] = [];
+  const fixed: string[] = [];
+
+  for (const workerDir of workerDirs) {
+    const workerName = path.basename(workerDir);
+    const gitignorePath = path.join(workerDir, ".gitignore");
+
+    // 1. Check if .gitignore exists
+    const gitignoreFile = Bun.file(gitignorePath);
+    if (!(await gitignoreFile.exists())) {
+      // Create standard .gitignore
+      await Bun.write(gitignorePath, WORKER_GITIGNORE_TEMPLATE);
+      fixed.push(`${workerName}: created .gitignore`);
+      continue;
+    }
+
+    // 2. Read and check critical entries
+    const content = await gitignoreFile.text();
+    const lines = content.split("\n").map((l) => l.trim());
+
+    for (const entry of CRITICAL_GITIGNORE_ENTRIES) {
+      if (!lines.includes(entry)) {
+        issues.push(
+          `${workerName}: missing "${entry}" in .gitignore`
+        );
+      }
+    }
+
+    // 3. Check if wrangler.jsonc is tracked by git (it shouldn't be)
+    const wranglerPath = path.join(workerDir, "wrangler.jsonc");
+    const wranglerFile = Bun.file(wranglerPath);
+    if (await wranglerFile.exists()) {
+      try {
+        const tracked = await isGitTracked(workerDir, "wrangler.jsonc");
+        if (tracked) {
+          await gitUntrackFile(workerDir, "wrangler.jsonc");
+          fixed.push(
+            `${workerName}: removed wrangler.jsonc from git tracking (git rm --cached)`
+          );
+        }
+      } catch {
+        // git ls-files may fail if not in a git repo or other issues
+        // Skip this check gracefully
+      }
+    }
+  }
+
+  return {
+    valid: issues.length === 0,
+    issues,
+    fixed,
+    workersChecked: workerDirs.length,
+  };
+}
+
+/**
+ * Handle the `hoox check submodule-gitignore` subcommand.
+ */
+async function handleSubmoduleGitignore(opts: FormatOptions): Promise<void> {
+  const s = spinner();
+
+  try {
+    s.start("Checking submodule .gitignore files...");
+    const result = await checkSubmoduleGitignore(opts);
+    s.stop("Gitignore check complete");
+
+    if (opts.json) {
+      process.stdout.write(
+        JSON.stringify(
+          {
+            valid: result.valid,
+            issues: result.issues,
+            fixed: result.fixed,
+            workersChecked: result.workersChecked,
+          },
+          null,
+          2
+        ) + "\n"
+      );
+    } else {
+      if (result.issues.length > 0) {
+        process.stdout.write(`\n${theme.error(icons.error)} Issues found:\n`);
+        for (const issue of result.issues) {
+          process.stdout.write(`  ${theme.error(icons.error)} ${issue}\n`);
+        }
+      }
+
+      if (result.fixed.length > 0) {
+        process.stdout.write(
+          `\n${theme.success(icons.success)} Fixed:\n`
+        );
+        for (const fix of result.fixed) {
+          process.stdout.write(
+            `  ${theme.success(icons.success)} ${fix}\n`
+          );
+        }
+      }
+
+      if (result.issues.length === 0 && result.fixed.length === 0) {
+        process.stdout.write(
+          `${theme.success(icons.success)} All workers have valid .gitignore files\n`
+        );
+      }
+
+      process.stdout.write(
+        `\n${theme.dim(`Checked ${result.workersChecked} worker(s)`)}\n`
+      );
+    }
+
+    if (!result.valid) {
+      process.exitCode = ExitCode.ERROR;
+    }
+  } catch (err) {
+    s.stop("Gitignore check failed");
+    const message = err instanceof Error ? err.message : String(err);
+    formatError(message, opts);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command registration
 // ---------------------------------------------------------------------------
 
 /**
  * Register the `hoox check` command group with subcommands:
- * setup, health, fix.
+ * setup, health, fix, submodule-gitignore.
  */
 export function registerCheckCommand(program: Command): void {
   const checkCmd = program
@@ -741,5 +993,21 @@ export function registerCheckCommand(program: Command): void {
         quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
       };
       await handleFix(opts, Boolean(options.dryRun));
+    });
+
+  // -- check submodule-gitignore ---------------------------------------------
+  checkCmd
+    .command("submodule-gitignore")
+    .alias("sg")
+    .description(
+      "Validate and fix worker submodule .gitignore files (wrangler.jsonc, .dev.vars, etc.)"
+    )
+    .action(async (_, cmd: Command) => {
+      const rootCmd = cmd.parent?.parent as Command | undefined;
+      const opts: FormatOptions = {
+        json: Boolean(rootCmd?.optsWithGlobals()?.json),
+        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
+      };
+      await handleSubmoduleGitignore(opts);
     });
 }
