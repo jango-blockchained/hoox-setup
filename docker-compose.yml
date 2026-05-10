@@ -82,6 +82,9 @@ services:
     depends_on:
       - hoox
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   web3-wallet-worker:
     build:
