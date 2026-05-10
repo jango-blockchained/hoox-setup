@@ -141,10 +141,15 @@ registerCloneCommand(program);
 registerDashboardCommand(program);
 
 // ---------------------------------------------------------------------------
-// Parse and run (only when hoox is the entry point, not when imported)
+// Main entry — exported so bin/hoox.js can invoke it explicitly
+// (import.meta.main is false when loaded as a dependency)
 // ---------------------------------------------------------------------------
 
-if (import.meta.main) {
+/**
+ * Main CLI entry point.
+ * Parses args or launches the interactive TUI if no args are given.
+ */
+export async function main(): Promise<void> {
   const hasArgs = process.argv.slice(2).length > 0;
 
   if (hasArgs) {
@@ -154,6 +159,10 @@ if (import.meta.main) {
     await runInteractiveTUI(program);
     process.exit(ExitCode.SUCCESS);
   }
+}
+
+if (import.meta.main) {
+  await main();
 }
 
 // ---------------------------------------------------------------------------

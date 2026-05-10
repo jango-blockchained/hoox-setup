@@ -136,73 +136,84 @@ async function deploySingle(
 }
 
 /**
- * Deploy all enabled workers sequentially with interactive progress UI.
- * Shows checkbox list with real-time updates as each worker deploys.
- * Excludes 'dashboard' since it's handled separately.
+ * Deploy all enabled workers + dashboard with interactive progress UI.
+ * Uses a single list that updates in place with spinner and details.
  */
-async function deployWorkers(
+async function deployAll(
   configService: ConfigService,
   cf: CloudflareService,
-  env?: string
+  env?: string,
+  forceRebuildDashboard: boolean = false
 ): Promise<DeployResult[]> {
-  // Filter out dashboard - it's handled separately in deployDashboard
-  const enabledWorkers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
+  // Get workers + dashboard
+  const workers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
+  const allItems = [...workers, "dashboard"];
   const results: DeployResult[] = [];
 
-  if (enabledWorkers.length === 0) {
+  if (allItems.length === 0) {
     return results;
   }
 
-  // Print header with worker list (unchecked boxes)
-  process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
-  process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
+  // Print header with all items (pending state)
+  process.stdout.write(`\n${theme.heading("Deploying")}\n`);
+  process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
 
-  for (let i = 0; i < enabledWorkers.length; i++) {
-    const name = enabledWorkers[i];
-    // Show unchecked box for pending workers
-    process.stdout.write(`${theme.dim("○")} ${name}\n`);
+  for (const name of allItems) {
+    process.stdout.write(`${theme.dim("○")} ${name.padEnd(25)} pending\n`);
   }
-  process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
+  process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
 
-  // Deploy each worker with spinner and update checkbox
-  for (let i = 0; i < enabledWorkers.length; i++) {
-    const name = enabledWorkers[i];
+  // Deploy each item
+  for (let i = 0; i < allItems.length; i++) {
+    const name = allItems[i];
+    const isDashboard = name === "dashboard";
 
-    // Update the line to show current worker being deployed
-    process.stdout.write(`${theme.dim("▶")} Deploying ${name}... `);
-
-    // Show spinner
+    // Update current line with spinner
     const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
     let spinIdx = 0;
     const spinInterval = setInterval(() => {
-      process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} Deploying ${name}... `);
+      process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} ${name.padEnd(25)} deploying...`);
       spinIdx = (spinIdx + 1) % spinChars.length;
     }, 80);
 
-    const result = await deploySingle(configService, cf, name, env);
+    let result: DeployResult;
+
+    if (isDashboard) {
+      // Deploy dashboard
+      result = await deployDashboard(cf, forceRebuildDashboard);
+    } else {
+      // Deploy worker
+      result = await deploySingle(configService, cf, name, env);
+    }
+
     clearInterval(spinInterval);
 
-    // Clear the spinner line and show result
-    process.stdout.write(`\r${" ".repeat(40)}\r`);
+    // Clear spinner line
+    process.stdout.write(`\r${" ".repeat(50)}\r`);
 
     if (result.success) {
-      // Show checked box with success
-      process.stdout.write(`${theme.success("✓")} ${name} deployed\n`);
+      // Green dot for success
+      process.stdout.write(`${theme.success("●")} ${name.padEnd(25)} deployed\n`);
 
-      // Show details (indented)
+      // Show details (URL, size, startup, version)
       if (result.url) {
-        process.stdout.write(`   ${theme.dim("URL:")} ${result.url}\n`);
+        process.stdout.write(`   ${theme.dim("URL:")}     ${result.url}\n`);
       }
       if (result.size) {
-        process.stdout.write(`   ${theme.dim("Size:")} ${result.size}\n`);
+        process.stdout.write(`   ${theme.dim("Size:")}     ${result.size}\n`);
       }
       if (result.startupTime) {
         process.stdout.write(`   ${theme.dim("Startup:")} ${result.startupTime}\n`);
       }
+      if (result.versionId) {
+        process.stdout.write(`   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`);
+      }
     } else {
-      // Show error
-      process.stdout.write(`${theme.error("✗")} ${name} failed\n`);
-      process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);
+      // Red dot for failure
+      process.stdout.write(`${theme.error("●")} ${name.padEnd(25)} failed\n`);
+      if (result.error) {
+        process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);
+      }
     }
 
     results.push(result);
@@ -212,11 +223,11 @@ async function deployWorkers(
   const succeeded = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
 
-  process.stdout.write(`\n${theme.heading("Workers Deployed:")} ${succeeded}/${enabledWorkers.length}`);
+  process.stdout.write(`\n${theme.heading("Summary:")} ${succeeded}/${allItems.length} deployed`);
   if (failed > 0) {
     process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
   } else {
-    process.stdout.write(` ${theme.success("(all success)")}\n`);
+    process.stdout.write(` ${theme.success(" ✓")}\n`);
   }
   process.stdout.write("\n");
 
@@ -491,18 +502,8 @@ EXAMPLES:
         await configService.load();
         const cf = new CloudflareService();
 
-        // Phase 1: deploy workers
-        const workerResults = await deployWorkers(
-          configService,
-          cf,
-          options.env
-        );
-
-        // Phase 2: deploy dashboard
-        const dashboardResult = await deployDashboard(cf, options.rebuild);
-        const allResults = [...workerResults, dashboardResult];
-
-        printSummary(allResults, fmt);
+        // Deploy all (workers + dashboard) in one go
+        await deployAll(configService, cf, options.env, options.rebuild);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(message, fmt);
@@ -528,23 +529,63 @@ EXAMPLES:
     )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .action(async (options: { env?: string }) => {
-      const fmt = getFormatOptions(program);
       try {
         const configService = new ConfigService();
         await configService.load();
         const cf = new CloudflareService();
 
-        const results = await deployWorkers(configService, cf, options.env);
+        // Deploy only workers (no dashboard)
+        const workers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
+        const results: DeployResult[] = [];
 
-        if (results.length === 0) {
-          formatSuccess("No enabled workers to deploy", fmt);
+        if (workers.length === 0) {
+          process.stdout.write(`${theme.dim("No enabled workers to deploy\n")}`);
           return;
         }
 
-        printSummary(results, fmt);
+        // Print header
+        process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
+        process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
+
+        for (const name of workers) {
+          process.stdout.write(`${theme.dim("○")} ${name.padEnd(25)} pending\n`);
+        }
+        process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
+
+        // Deploy each worker
+        for (const name of workers) {
+          const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+          let spinIdx = 0;
+          const spinInterval = setInterval(() => {
+            process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} ${name.padEnd(25)} deploying...`);
+            spinIdx = (spinIdx + 1) % spinChars.length;
+          }, 80);
+
+          const result = await deploySingle(configService, cf, name, options.env);
+          clearInterval(spinInterval);
+          process.stdout.write(`\r${" ".repeat(50)}\r`);
+
+          if (result.success) {
+            process.stdout.write(`${theme.success("●")} ${name.padEnd(25)} deployed\n`);
+            if (result.url) process.stdout.write(`   ${theme.dim("URL:")}     ${result.url}\n`);
+            if (result.size) process.stdout.write(`   ${theme.dim("Size:")}     ${result.size}\n`);
+            if (result.startupTime) process.stdout.write(`   ${theme.dim("Startup:")} ${result.startupTime}\n`);
+            if (result.versionId) process.stdout.write(`   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`);
+          } else {
+            process.stdout.write(`${theme.error("●")} ${name.padEnd(25)} failed\n`);
+            if (result.error) process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);
+          }
+          results.push(result);
+        }
+
+        const succeeded = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
+        process.stdout.write(`\n${theme.heading("Summary:")} ${succeeded}/${workers.length} deployed`);
+        if (failed > 0) process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
+        else process.stdout.write(` ${theme.success(" ✓")}\n\n`);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
+        process.stdout.write(`${theme.error(`Error: ${message}`)}\n`);
         process.exitCode = ExitCode.ERROR;
       }
     });

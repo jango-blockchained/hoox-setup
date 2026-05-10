@@ -13,6 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Command } from "commander";
 import { ConfigService } from "../../services/config/config-service.js";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
+import { PrerequisitesService } from "../../services/prerequisites/index.js";
+import { DockerService } from "../../services/docker/index.js";
 
 // ---------------------------------------------------------------------------
 // Stub variables — reassigned in beforeEach
@@ -24,6 +26,10 @@ let listWorkersMock: ReturnType<typeof mock>;
 let listEnabledWorkersMock: ReturnType<typeof mock>;
 let getWorkerMock: ReturnType<typeof mock>;
 let validateMock: ReturnType<typeof mock>;
+let getDevRuntimeMock: ReturnType<typeof mock>;
+let checkWranglerMock: ReturnType<typeof mock>;
+let dockerCheckMock: ReturnType<typeof mock>;
+let composeExistsMock: ReturnType<typeof mock>;
 
 // Preserve originals so we can restore them after tests
 const origLoad = ConfigService.prototype
@@ -36,8 +42,16 @@ const origGetWorker = ConfigService.prototype
   .getWorker as typeof ConfigService.prototype.getWorker;
 const origValidate = ConfigService.prototype
   .validate as typeof ConfigService.prototype.validate;
+const origGetDevRuntime = ConfigService.prototype
+  .getDevRuntime as typeof ConfigService.prototype.getDevRuntime;
 const origDev = CloudflareService.prototype
   .dev as typeof CloudflareService.prototype.dev;
+const origCheckWrangler = PrerequisitesService.prototype
+  .checkWranglerVersion as typeof PrerequisitesService.prototype.checkWranglerVersion;
+const origDockerCheck = DockerService.prototype
+  .checkAvailability as typeof DockerService.prototype.checkAvailability;
+const origComposeExists = DockerService.prototype
+  .composeFileExists as typeof DockerService.prototype.composeFileExists;
 
 // Preserve original Bun globals
 const origBunSpawn = Bun.spawn;
@@ -80,7 +94,11 @@ beforeEach(() => {
     data: { port: _port ?? 8787 },
   }));
 
-  loadMock = mock(async () => ({}));
+  loadMock = mock(async function () {
+    // Use a regular function so `this` refers to the ConfigService instance
+    (this as Record<string, unknown>).config = {};
+    return {} as Record<string, unknown>;
+  });
   listWorkersMock = mock(() => ["hoox", "trade-worker", "d1-worker"]);
   listEnabledWorkersMock = mock(() => ["hoox", "trade-worker", "d1-worker"]);
   getWorkerMock = mock((_name: string) => ({
@@ -88,6 +106,12 @@ beforeEach(() => {
     path: "workers/test-worker",
   }));
   validateMock = mock(() => ({ valid: true, errors: [] }));
+  getDevRuntimeMock = mock(() => "native");
+  checkWranglerMock = mock(async () => ({
+    outdated: false,
+  }));
+  dockerCheckMock = mock(async () => ({ docker: false, compose: false }));
+  composeExistsMock = mock(async () => false);
 
   // Install mocks on prototypes
   (ConfigService.prototype as Record<string, unknown>).load = loadMock;
@@ -98,7 +122,15 @@ beforeEach(() => {
   (ConfigService.prototype as Record<string, unknown>).getWorker =
     getWorkerMock;
   (ConfigService.prototype as Record<string, unknown>).validate = validateMock;
+  (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
+    getDevRuntimeMock;
   (CloudflareService.prototype as Record<string, unknown>).dev = devMock;
+  (PrerequisitesService.prototype as Record<string, unknown>).checkWranglerVersion =
+    checkWranglerMock;
+  (DockerService.prototype as Record<string, unknown>).checkAvailability =
+    dockerCheckMock;
+  (DockerService.prototype as Record<string, unknown>).composeFileExists =
+    composeExistsMock;
 });
 
 afterEach(() => {
@@ -113,7 +145,15 @@ afterEach(() => {
   (ConfigService.prototype as Record<string, unknown>).getWorker =
     origGetWorker;
   (ConfigService.prototype as Record<string, unknown>).validate = origValidate;
+  (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
+    origGetDevRuntime;
   (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
+  (PrerequisitesService.prototype as Record<string, unknown>).checkWranglerVersion =
+    origCheckWrangler;
+  (DockerService.prototype as Record<string, unknown>).checkAvailability =
+    origDockerCheck;
+  (DockerService.prototype as Record<string, unknown>).composeFileExists =
+    origComposeExists;
 
   // Restore Bun globals (individual property restore)
   (Bun as unknown as Record<string, unknown>).spawn = origBunSpawn;
