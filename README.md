@@ -87,7 +87,7 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 | 📊 **Command Center**  | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration. |
 | 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 8 workers simultaneously with one command.                                                          |
 | 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI. Interactive setup wizard (`hoox init`), health checks, infrastructure provisioning, secret management, and WAF rule configuration.       |
-| 🐳 **Docker Support**  | Full local dev environment with Docker Compose. Hot-reload mode for development, optimized production images for testing.                                                               |
+| 🐳 **Docker Support**  | Full local dev environment with Docker Compose. `hoox dev start` prompts for Native vs Docker runtime, offers `--runtime` flag override. Profiles: `workers`, `dashboard`, `full`.                   |
 
 ### Security
 
@@ -128,7 +128,7 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 hoox workers deploy
 ```
 
-> **Local Development:** Want to test before going live? Run `./hoox-tui` to launch the beautiful Terminal UI and run all workers simultaneously on your local machine!
+> **Local Development:** Want to test before going live? Run `hoox dev start` to launch all workers — choose between Native (wrangler) or Docker (compose) runtime. Use `./hoox-tui` for the interactive terminal UI!
 
 ---
 

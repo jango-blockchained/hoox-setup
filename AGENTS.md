@@ -16,6 +16,7 @@ Monorepo using Bun workspaces: `packages/*`, `workers/*`, `pages/*`.
 | `workers/web3-wallet-worker` | DeFi/on-chain execution                              |
 | `workers/email-worker`       | Email signal parsing                                 |
 | `pages/dashboard`            | Next.js 16 dashboard (Cloudflare Workers + OpenNext) |
+| `workers/dashboard`          | Next.js 16 dashboard (same as pages/dashboard) |
 
 ## Commands
 
@@ -34,6 +35,33 @@ hoox workers deploy     # deploy all workers to Cloudflare
 ## CI Pipeline Order
 
 `bun run lint` → `bun run typecheck` → `bun test packages/cli --coverage` → `bun run build`
+
+## Local Development
+
+```bash
+hoox dev start                # start all workers (interactive: Native vs Docker)
+hoox dev start --runtime native   # force native (wrangler dev)
+hoox dev start --runtime docker   # force docker (docker compose)
+hoox dev worker <name>        # single worker via wrangler dev
+hoox dev dashboard            # Next.js dashboard dev server
+```
+
+**Dev runtime selection:**
+- `hoox dev start` checks wrangler version (advisory warning if outdated)
+- Detects Docker + Docker Compose availability
+- If Docker is available and `docker-compose.yml` exists: prompts user to choose runtime
+- Runtime preference saved to `wrangler.jsonc.dev.runtime` — subsequent runs don't re-prompt
+- Override with `--runtime native|docker` flag
+
+**Docker Compose profiles** (in `docker-compose.yml`):
+- `workers` — all worker services
+- `dashboard` — dashboard only
+- `full` — workers + dashboard
+
+```bash
+docker compose --profile workers --profile dashboard up  # full stack
+docker compose --profile workers up                        # workers only
+```
 
 ## Testing
 
@@ -54,6 +82,7 @@ hoox workers deploy     # deploy all workers to Cloudflare
 - Configuration: `wrangler.jsonc` with `main: ".open-next/worker.js"` and `assets.directory: ".open-next/assets"`
 - Runtime: Node.js runtime via OpenNext adapter (full Next.js feature support)
 - Static assets served via `ASSETS` binding from `.open-next/assets/`
+- Note: dashboard also exists at `workers/dashboard/` (same content, symlink or copy)
 
 ## Edge/Cloudflare Constraints
 

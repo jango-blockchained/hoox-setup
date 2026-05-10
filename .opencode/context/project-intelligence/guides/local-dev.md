@@ -1,16 +1,25 @@
-<!-- Context: project-intelligence/guides | Priority: high | Version: 1.0 | Updated: 2026-05-03 -->
+<!-- Context: project-intelligence/guides | Priority: high | Version: 2.0 | Updated: 2026-05-10 -->
 
 # Local Development
 
-**Concept**: Run workers locally with `hoox workers dev <name>` or `bunx wrangler dev` on assigned ports.
+**Concept**: Run workers locally with `hoox dev start` (Native vs Docker runtime selection).
 
 ## Quick Start
 
 ```bash
 bun install
 cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
-hoox workers dev hoox          # port 8787
+hoox dev start              # interactive: choose Native or Docker
+hoox dev start --runtime native   # force wrangler dev
+hoox dev start --runtime docker   # force docker compose
 ```
+
+## Dev Runtime Modes
+
+| Mode | Command | Use Case |
+|------|---------|----------|
+| **Native** | `wrangler dev` per worker | Direct debugging, fast iteration |
+| **Docker** | `docker compose up` | Full stack in containers, consistent env |
 
 ## Local Ports
 
@@ -20,25 +29,42 @@ hoox workers dev hoox          # port 8787
 | trade-worker    | 8788 |
 | d1-worker       | 8789 |
 | telegram-worker | 8790 |
+| agent-worker    | 8795 |
+| email-worker    | 8796 |
 | web3-wallet     | 8792 |
 | dashboard       | 3000 |
+
+## Docker Compose Profiles
+
+```bash
+docker compose --profile workers up         # workers only
+docker compose --profile full up          # workers + dashboard
+docker compose down
+```
+
+| Profile | Services |
+|---------|----------|
+| `workers` | hoox, trade-worker, telegram-worker, d1-worker, web3-wallet-worker, agent-worker, email-worker |
+| `dashboard` | dashboard |
+| `full` | all services |
+
+## Wrangler Version Check
+
+`hoox dev start` checks wrangler version on every run. Advisory warning if outdated, offers `bunx wrangler update`.
 
 ## Commands
 
 ```bash
-hoox workers dev dashboard    # Next.js dashboard
-bun run dev                  # Single worker (in worker dir)
-./hoox-tui                  # TUI for all workers
-```
-
-## Dashboard (Next.js)
-
-```bash
-cd pages/dashboard && bun run dev
-# Uses @opennextjs/cloudflare, runtime: "edge"
+hoox dev start [--runtime native|docker]  # all workers
+hoox dev worker <name> [--runtime]         # single worker
+hoox dev dashboard                          # Next.js dashboard
 ```
 
 ## 📂 Codebase References
 
 **Local dev doc**: `docs/development/local-dev.md`
-**CLI**: `packages/cli/` - `hoox workers dev` command
+**CLI**: `packages/cli/src/commands/dev/dev-command.ts`
+**Prerequisites**: `packages/cli/src/services/prerequisites/`
+**Docker**: `packages/cli/src/services/docker/`
+**Docker Compose**: `docker-compose.yml` (profiles: workers, dashboard, full)
+**Central config**: `wrangler.jsonc` (dev.runtime preference)

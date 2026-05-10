@@ -277,6 +277,9 @@ DASHBOARD_PASS=admin
       "secrets": ["CLOUDFLARE_API_TOKEN"],
     },
   },
+  "dev": {
+    "runtime": "native" // "native" (wrangler) or "docker" (compose) — hoox dev start preference
+  },
 }
 ```
 
@@ -413,32 +416,37 @@ bun run migrate:tracking
 ### 4.8 Step 8: Start Development
 
 ```bash
-# Start all workers via TUI
-./hoox-tui
-# OR
-bun run dev
+# Start all workers (prompts for runtime: Native or Docker)
+hoox dev start
+
+# Or force a specific runtime
+hoox dev start --runtime docker   # docker compose
+hoox dev start --runtime native   # wrangler dev
+
+# Docker Compose directly (with profiles)
+docker compose --profile workers up        # workers only
+docker compose --profile full up           # workers + dashboard
+docker compose --profile dashboard up      # dashboard only
 
 # Or start individual workers
-hoox workers dev hoox
-hoox workers dev trade-worker
-hoox workers dev agent-worker
+hoox dev worker <name> [--runtime native|docker]
+hoox dev dashboard                         # dashboard only
+
+# TUI (interactive terminal UI)
+./hoox-tui
 ```
 
 ### 4.9 Step 9: Dashboard Local Dev
 
 ```bash
-cd pages/dashboard
+# Start dashboard dev server
+hoox dev dashboard
 
-# Set local credentials
-cp .env.local.example .env.local
-# Edit .env.local: DASHBOARD_USER, DASHBOARD_PASS
-
-# Start Next.js dev server
-bun run dev
-
-# Or simulate Cloudflare Worker environment
-# Create .dev.vars with same credentials
+# Or manually
+cd workers/dashboard && bun run dev
 ```
+
+The dashboard runs at `http://localhost:3000`.
 
 ---
 
@@ -1274,11 +1282,12 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 # Setup
 bun install
 hoox init
-hoox workers setup
 hoox secrets update-cf
 
 # Development
-./hoox-tui                    # Start TUI
+hoox dev start               # Start all workers (choose runtime)
+hoox dev dashboard           # Dashboard only
+./hoox-tui                   # Interactive TUI
 hoox workers dev <name>       # Dev single worker
 bun run dev                   # Dashboard dev
 

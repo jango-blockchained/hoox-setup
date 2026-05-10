@@ -5,71 +5,121 @@
 ## Prerequisites
 
 - Bun ≥1.2
-- Wrangler CLI (`bunx wrangler` or `npm install -g wrangler`)
+- Wrangler CLI (`bunx wrangler` or `npm install -g wrangler`) — checked on every `hoox dev start`
 - Cloned repository with initialized configuration
 
-## Environment Setup
+## Dev Runtime Selection
 
-Each worker relies on environment variables for local development. These are stored in `.dev.vars` files inside each worker directory.
+`hoox dev start` supports two runtime modes:
 
-1. Copy the example vars file:
-   ```bash
-   cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
-   ```
-2. Fill in the required variables (e.g., `WEBHOOK_API_KEY_BINDING`).
+| Runtime | Command | Description |
+|---------|---------|-------------|
+| **Native** | `wrangler dev` per worker | Runs each worker directly via wrangler on local ports |
+| **Docker** | `docker compose up` | Runs all workers via Docker Compose |
+
+### Choosing a Runtime
+
+When you run `hoox dev start`:
+
+1. **Wrangler version check** — shows advisory warning if wrangler is outdated, offers `bunx wrangler update`
+2. **Docker detection** — checks if Docker + Docker Compose are installed
+3. **Prompt** — if Docker is available, asks which runtime to use (Native or Docker)
+4. **Saved preference** — choice persists to `wrangler.jsonc`, subsequent runs don't re-prompt
+
+### Overriding the Runtime
+
+```bash
+hoox dev start --runtime native   # force wrangler dev
+hoox dev start --runtime docker   # force docker compose
+```
 
 ## Running the Dev Server
 
-You can run individual workers or multiple workers simultaneously for local testing.
+### Start All Workers
+
+```bash
+hoox dev start
+```
+
+This loads workers from `wrangler.jsonc` and starts each enabled worker.
+
+### Docker Compose (Alternative)
+
+You can also run Docker Compose directly with profiles:
+
+```bash
+# Workers only
+docker compose --profile workers up
+
+# Workers + dashboard
+docker compose --profile workers --profile dashboard up
+
+# Everything (full stack)
+docker compose --profile full up
+
+# Stop
+docker compose down
+```
+
+| Profile | Services |
+|---------|----------|
+| `workers` | hoox, trade-worker, telegram-worker, d1-worker, web3-wallet-worker, agent-worker, email-worker |
+| `dashboard` | dashboard |
+| `full` | all services |
 
 ### Run a Single Worker
 
-Use the management script to start a worker in dev mode:
+```bash
+hoox dev worker <name> [--port <port>] [--runtime native|docker]
+```
+
+Example:
 
 ```bash
-hoox workers dev hoox
+hoox dev worker hoox --port 8787
+hoox dev worker trade-worker --port 8788
 ```
 
-This uses Wrangler under the hood with bunx:
+### Dashboard
 
 ```bash
-# Direct command
-bunx wrangler dev --port 8787
+hoox dev dashboard
 ```
 
-### Local Service Bindings
+Starts the Next.js dashboard at `http://localhost:3000`.
 
-When running locally, Cloudflare® Workers can communicate with each other using local service bindings. The ports for local development are mapped as follows:
+## Local Ports
 
-| Service         | Local Port |
-| --------------- | ---------- |
-| hoox            | 8787       |
-| trade-worker    | 8788       |
-| d1-worker       | 8789       |
-| telegram-worker | 8790       |
+| Service         | Port |
+| --------------- | ---- |
+| hoox            | 8787 |
+| trade-worker    | 8788 |
+| d1-worker       | 8789 |
+| telegram-worker | 8790 |
+| agent-worker    | 8795 |
+| email-worker    | 8796 |
+| web3-wallet     | 8792 |
+| dashboard       | 3000 |
 
-| web3-wallet | 8792 |
-| dashboard (Pages) | 8783 |
+## Environment Setup
 
-### Cloudflare Pages (dashboard)
+Each worker relies on environment variables for local development stored in `.dev.vars`:
 
-The dashboard uses Cloudflare Pages with Next.js. To run locally:
-
-```
-hoox workers dev dashboard
-```
-
-Or directly:
-
-```
-cd pages/dashboard && bun run dev
+```bash
+cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
+# Edit .dev.vars with your API keys
 ```
 
+## Wrangler Version Check
+
+On every `hoox dev start`, the CLI checks if wrangler is up to date:
+
+```
+⚠️  wrangler is outdated (3.87.0 < 3.88.0)
+   Run `bunx wrangler update` to update, or press Enter to continue anyway.
 ```
 
-This runs the Next.js dev server, which can be accessed at `http://localhost:3000`.
-
-To test local bindings, you must have all dependent workers running in separate terminal windows.
+This is advisory — you can continue even with an outdated version.
 
 ## Next Steps
 
@@ -79,4 +129,3 @@ To test local bindings, you must have all dependent workers running in separate 
 ---
 
 *Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.*
-```

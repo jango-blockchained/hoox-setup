@@ -12,17 +12,18 @@ The `hoox` CLI is the central management tool for the Hoox Trading System. This 
 
 ### Worker Management
 
-- `hoox workers clone`: Clones all or specific sub-worker repositories as submodules.
-- `hoox workers setup`: Binds secrets and provisions the local environment for enabled workers.
-- `hoox workers dev <workerName>`: Starts the local Wrangler development server for a specific worker.
-- `hoox workers deploy [workerName]`: Deploys specific or all enabled workers to Cloudflare.
-- `hoox workers status`: Launches the interactive TUI to monitor worker health and status.
-- `hoox workers test`: Runs the Vitest integration suite across workers.
+- `hoox init`: Runs the interactive setup wizard.
+- `hoox check-setup`: Validates the environment, bindings, and configurations without modifying state.
+- `hoox clone [destination]`: Clones the core `hoox-setup` repository.
+- `hoox dev start [--runtime native|docker]`: Start all workers locally. Prompts for runtime (Native via wrangler or Docker via compose). Saves preference to `wrangler.jsonc`. Use `--runtime` flag to override.
+- `hoox dev worker <name> [--runtime native|docker]`: Start a single worker.
+- `hoox dev dashboard [--runtime native|docker]`: Start the Next.js dashboard.
 
 ### Configurations & Secrets
 
 - `hoox secrets update-cf <secretName> <workerName> [value]`: Updates a Cloudflare Secret Store value and syncs it locally.
 - `hoox secrets check <workerName> [secretName]`: Verifies secret bindings.
+- `hoox config show|set`: Display or update `wrangler.jsonc` config.
 - `hoox keys generate/get/list`: Manages local `.keys/*.env` cryptographic keys.
 
 ### Utility & Logs

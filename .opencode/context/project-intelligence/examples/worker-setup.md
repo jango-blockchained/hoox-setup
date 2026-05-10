@@ -19,6 +19,9 @@
   "durable_objects": {
     "bindings": [{ "name": "STORE", "class_name": "Store" }],
   },
+  "dev": {
+    "runtime": "native" // or "docker" — persisted via hoox dev start
+  }
 }
 ```
 

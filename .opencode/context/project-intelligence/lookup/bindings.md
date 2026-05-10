@@ -38,5 +38,5 @@
 
 ## 📂 Codebase References
 
-**Central config**: `wrangler.jsonc` - `secrets` and `bindings` per worker
+**Central config**: `wrangler.jsonc` - `secrets`, `dev`, and `bindings` per worker
 **Example**: `workers/hoox/wrangler.jsonc:35-70`
