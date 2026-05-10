@@ -8,9 +8,12 @@
  */
 
 import { Command } from "commander";
+import { select } from "@clack/prompts";
 import path from "node:path";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
+import { PrerequisitesService } from "../../services/prerequisites/index.js";
+import { DockerService } from "../../services/docker/index.js";
 import { formatSuccess, formatError } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
@@ -46,11 +49,66 @@ export function registerDevCommand(program: Command): void {
   devCmd
     .command("start")
     .description("Start all enabled workers with wrangler dev")
-    .action(async () => {
+    .option(
+      "--runtime <native|docker>",
+      "Choose dev runtime (overrides saved preference)"
+    )
+    .action(async (options: { runtime?: string }) => {
       const fmt = getFormatOptions(program);
       try {
         const configService = new ConfigService();
+        const prereqs = new PrerequisitesService();
+        const docker = new DockerService();
+
+        // Load config early so we can read saved runtime preference
         await configService.load();
+
+        // === Prerequisite checks ===
+
+        // 1. Wrangler version check (advisory)
+        const wranglerCheck = await prereqs.checkWranglerVersion();
+        if (wranglerCheck.outdated) {
+          process.stdout.write(
+            `\n⚠️  wrangler is outdated (${wranglerCheck.current} < ${wranglerCheck.minimum})\n` +
+              `   Run \`bunx wrangler update\` to update.\n` +
+              `   Press Enter to continue or Ctrl+C to abort.\n\n`
+          );
+          // Wait briefly — user can proceed with Enter or Ctrl+C
+        }
+
+        // 2. Check Docker availability
+        const dockerStatus = await docker.checkAvailability();
+        const dockerViable = dockerStatus.docker && dockerStatus.compose;
+        const composeExists = await docker.composeFileExists();
+
+        // 3. Determine runtime
+        let runtime: "native" | "docker" = "native";
+        if (options.runtime === "native" || options.runtime === "docker") {
+          runtime = options.runtime;
+        } else {
+          const savedRuntime = configService.getDevRuntime();
+          if (savedRuntime) {
+            runtime = savedRuntime;
+          } else if (dockerViable && composeExists) {
+            const choice = await select({
+              message: "Which runtime would you like to use?",
+              options: [
+                {
+                  value: "native",
+                  label: "Native (wrangler dev)",
+                  hint: "run locally with wrangler",
+                },
+                {
+                  value: "docker",
+                  label: "Docker",
+                  hint: "run via docker compose",
+                },
+              ],
+            });
+            runtime = choice;
+            await configService.setDevRuntime(runtime);
+          }
+        }
 
         // Validate configuration
         const validation = configService.validate();
@@ -65,6 +123,27 @@ export function registerDevCommand(program: Command): void {
           process.exitCode = ExitCode.INVALID_USAGE;
           return;
         }
+
+        // === Runtime branching ===
+
+        if (runtime === "docker") {
+          const profiles = ["workers"];
+          formatSuccess(
+            `Starting workers via Docker Compose (profiles: ${profiles.join(", ")})...`,
+            fmt
+          );
+          const result = await docker.composeUp(profiles, false);
+          if (!result.ok) {
+            formatError(
+              new CLIError(result.error ?? "Docker compose failed", ExitCode.ERROR),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+          }
+          return;
+        }
+
+        // === Native runtime (wrangler dev) ===
 
         const enabledWorkers = configService.listEnabledWorkers();
         if (enabledWorkers.length === 0) {
@@ -146,7 +225,11 @@ export function registerDevCommand(program: Command): void {
     .option("--port <port>", "Dev server port (default: 8787)", (v: string) =>
       parseInt(v, 10)
     )
-    .action(async (name: string, options: { port?: number }) => {
+    .option(
+      "--runtime <native|docker>",
+      "Choose dev runtime (overrides saved preference)"
+    )
+    .action(async (name: string, options: { port?: number; runtime?: string }) => {
       const fmt = getFormatOptions(program);
       try {
         const configService = new ConfigService();
@@ -216,6 +299,10 @@ export function registerDevCommand(program: Command): void {
   devCmd
     .command("dashboard")
     .description("Start the Next.js dashboard dev server (workers/dashboard)")
+    .option(
+      "--runtime <native|docker>",
+      "Choose dev runtime (overrides saved preference)"
+    )
     .action(async () => {
       const fmt = getFormatOptions(program);
       try {

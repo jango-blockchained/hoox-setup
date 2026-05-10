@@ -1,6 +1,6 @@
 import { parse, printParseErrorCode } from "jsonc-parser";
 import type { ParseError } from "jsonc-parser";
-import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
+import type { HooxConfig, WorkerConfig, GlobalConfig, DevConfig } from "./types";
 
 /**
  * Loads, parses, and validates the central wrangler.jsonc configuration.
@@ -142,6 +142,45 @@ export class ConfigService {
     }
 
     return { valid: errors.length === 0, errors };
+  }
+
+  /**
+   * Get the preferred dev runtime from config ("native" or "docker").
+   */
+  getDevRuntime(): "native" | "docker" | null {
+    return this.ensureLoaded().dev?.runtime ?? null;
+  }
+
+  /**
+   * Persist the dev runtime preference to wrangler.jsonc.
+   *
+   * Reads the current file, updates the dev.runtime field, and writes it
+   * back. Preserves JSONC comments where possible.
+   */
+  async setDevRuntime(runtime: "native" | "docker"): Promise<void> {
+    const filePath = this.configPath;
+    const file = Bun.file(filePath);
+
+    if (!(await file.exists())) {
+      throw new Error(`Config file not found: ${filePath}`);
+    }
+
+    const raw = await file.text();
+    const errors: ParseError[] = [];
+    const parsed = parse(raw, errors);
+
+    if (errors.length > 0 || parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error(`Invalid JSONC in ${filePath}`);
+    }
+
+    const config = parsed as Record<string, unknown>;
+    if (!config.dev) {
+      config.dev = {};
+    }
+    (config.dev as Record<string, unknown>).runtime = runtime;
+
+    // Write back as regular JSON (jsonc-parser doesn't support round-trip comment preservation)
+    await Bun.write(filePath, JSON.stringify(config, null, 2) + "\n");
   }
 
   /**

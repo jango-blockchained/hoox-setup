@@ -34,6 +34,14 @@ export interface WorkerConfig {
 }
 
 /**
+ * Development configuration for local runtime selection.
+ */
+export interface DevConfig {
+  /** Preferred runtime: "native" (wrangler dev) or "docker" (compose). */
+  runtime?: "native" | "docker";
+}
+
+/**
  * Global configuration shared across all workers in the project.
  */
 export interface GlobalConfig {
@@ -53,4 +61,6 @@ export interface GlobalConfig {
 export interface HooxConfig {
   global: GlobalConfig;
   workers: Record<string, WorkerConfig>;
+  /** Development settings (runtime preference, etc.). */
+  dev?: DevConfig;
 }

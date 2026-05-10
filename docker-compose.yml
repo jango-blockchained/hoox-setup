@@ -16,6 +16,9 @@ services:
     networks:
       - hoox-net
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   trade-worker:
     build:
@@ -37,6 +40,9 @@ services:
     depends_on:
       - hoox
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   telegram-worker:
     build:
@@ -56,6 +62,9 @@ services:
     depends_on:
       - hoox
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   d1-worker:
     build:
@@ -92,6 +101,9 @@ services:
     depends_on:
       - hoox
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   dashboard:
     build:
@@ -111,6 +123,9 @@ services:
       - hoox
       - d1-worker
     restart: unless-stopped
+    profiles:
+      - dashboard
+      - full
 
   agent-worker:
     build:
@@ -132,6 +147,9 @@ services:
       - d1-worker
       - trade-worker
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
   email-worker:
     build:
@@ -151,6 +169,9 @@ services:
     depends_on:
       - hoox
     restart: unless-stopped
+    profiles:
+      - workers
+      - full
 
 networks:
   hoox-net:

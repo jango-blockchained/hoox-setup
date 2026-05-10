@@ -5,4 +5,5 @@ export type {
   WorkerConfig,
   WorkerSecret,
   WorkerVars,
+  DevConfig,
 } from "./types";
