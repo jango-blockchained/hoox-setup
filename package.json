@@ -15,7 +15,7 @@
     "dev": "./hoox-tui",
     "manage": "hoox",
     "hoox": "hoox",
-    "lint": "eslint packages/ workers/*/src workers/*/test pages/dashboard/src --no-error-on-unmatched-pattern",
+    "lint": "eslint packages/ workers/*/src workers/*/test workers/dashboard/src --no-error-on-unmatched-pattern",
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --write .",
     "build": "tsc --noEmit",

@@ -187,11 +187,11 @@ export function registerDevCommand(program: Command): void {
   // -- dev dashboard --------------------------------------------------------
   devCmd
     .command("dashboard")
-    .description("Start the Next.js dashboard dev server (pages/dashboard)")
+    .description("Start the Next.js dashboard dev server (workers/dashboard)")
     .action(async () => {
       const fmt = getFormatOptions(program);
       try {
-        const dashboardPath = path.resolve(process.cwd(), "pages/dashboard");
+        const dashboardPath = path.resolve(process.cwd(), "workers/dashboard");
         const dashboardDir = Bun.file(dashboardPath);
 
         if (!(await dashboardDir.exists())) {

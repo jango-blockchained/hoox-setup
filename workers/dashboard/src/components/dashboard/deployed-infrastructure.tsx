@@ -82,7 +82,7 @@ const DEPLOYED_PAGES = [
   {
     name: "dashboard",
     role: "Command Center UI",
-    url: "https://hoox-dashboard.pages.dev",
+    url: "https://dashboard.cryptolinx.workers.dev",
     status: "active",
   },
 ];

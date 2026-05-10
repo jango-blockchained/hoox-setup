@@ -98,11 +98,11 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-dashboard
-    command: bun run dev --prefix pages/dashboard
+    command: bun run dev --prefix workers/dashboard
     ports:
       - "8794:8794"
     volumes:
-      - ./pages/dashboard:/app/pages/dashboard
+      - ./workers/dashboard:/app/workers/dashboard
     env_file:
       - .env.local
     networks:

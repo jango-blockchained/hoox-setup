@@ -119,11 +119,11 @@ async function deployWorkers(
 }
 
 /**
- * Build and deploy the dashboard (pages/dashboard) via OpenNext + wrangler.
+ * Build and deploy the dashboard (workers/dashboard) via OpenNext + wrangler.
  * Uses Bun.spawn directly for the build step, then CloudflareService for deploy.
  */
 async function deployDashboard(cf: CloudflareService): Promise<DeployResult> {
-  const dashboardPath = "pages/dashboard";
+  const dashboardPath = "workers/dashboard";
 
   const s = spinner();
   s.start("Building dashboard (opennextjs-cloudflare)...");

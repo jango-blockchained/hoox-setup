@@ -64,6 +64,13 @@
       "path": "workers/analytics-worker",
       "vars": {},
       "secrets": ["CLOUDFLARE_API_TOKEN"]
+    },
+
+    "dashboard": {
+      "enabled": true,
+      "path": "workers/dashboard",
+      "vars": {},
+      "secrets": []
     }
   }
 }

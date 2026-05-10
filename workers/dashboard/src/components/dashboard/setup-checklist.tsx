@@ -335,9 +335,8 @@ export function SetupChecklist() {
                   The dashboard requires Next.js to be built and deployed via
                   Cloudflare Pages. Run{" "}
                   <code className="font-mono bg-secondary px-1.5 py-0.5 rounded text-[10px]">
-                    cd pages/dashboard && bunx opennextjs-cloudflare build &&
-                    bunx wrangler pages deploy .open-next --project-name
-                    hoox-dashboard
+                    cd workers/dashboard && bunx opennextjs-cloudflare build &&
+                    bunx wrangler deploy
                   </code>{" "}
                   to deploy changes.
                 </AccordionContent>

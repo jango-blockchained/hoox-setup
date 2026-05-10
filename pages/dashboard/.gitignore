@@ -1,7 +1,0 @@
-.env
-.env.local
-.env.prod
-
-# Cloudflare Wrangler
-wrangler.jsonc
-!wrangler.jsonc.example
