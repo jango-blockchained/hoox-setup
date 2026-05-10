@@ -41,14 +41,49 @@ function getFormatOptions(cmd: Command) {
 export function registerDevCommand(program: Command): void {
   const devCmd = program
     .command("dev")
+    .summary("Local development commands for workers and dashboard")
     .description(
-      "Local development commands for running workers and dashboard"
+      `Start local development servers for your Hoox workers and dashboard.
+
+RUNTIME OPTIONS:
+  native  - Uses wrangler dev (default, recommended for most cases)
+  docker  - Uses Docker Compose (requires Docker + docker-compose)
+
+The CLI will prompt you to choose a runtime if Docker is available and no preference is saved. Your choice is saved to wrangler.jsonc for future runs.
+
+EXAMPLES:
+  hoox dev start                    Start all workers (prompts for runtime)
+  hoox dev start --runtime native  Force native runtime (wrangler dev)
+  hoox dev start --runtime docker  Force Docker runtime
+  hoox dev worker trade-worker      Start single worker
+  hoox dev dashboard                Start dashboard dev server`
     );
 
   // -- dev start ------------------------------------------------------------
   devCmd
     .command("start")
-    .description("Start all enabled workers with wrangler dev")
+    .summary("Start all enabled workers for local development")
+    .description(
+      `Start all enabled workers using either wrangler dev (native) or Docker Compose.
+
+The command checks for prerequisites (wrangler version, Docker availability) and starts workers on sequential ports starting at 8787.
+
+PORT ASSIGNMENTS:
+  hoox               → 8787
+  trade-worker       → 8788
+  d1-worker          → 8789
+  telegram-worker    → 8790
+  web3-wallet-worker → 8792
+  (other workers)    → 8800+
+
+OPTIONS:
+  --runtime <native|docker>  Choose dev runtime (overrides saved preference)
+
+EXAMPLES:
+  hoox dev start
+  hoox dev start --runtime native
+  hoox dev start --runtime docker`
+    )
     .option(
       "--runtime <native|docker>",
       "Choose dev runtime (overrides saved preference)"
@@ -221,7 +256,22 @@ export function registerDevCommand(program: Command): void {
   // -- dev worker <name> [--port] -------------------------------------------
   devCmd
     .command("worker <name>")
-    .description("Start a single worker with wrangler dev")
+    .summary("Start a single worker for local development")
+    .description(
+      `Start a specific worker using wrangler dev.
+
+ARGUMENTS:
+  name          Worker name (e.g., trade-worker, agent-worker, hoox)
+
+OPTIONS:
+  --port <port>           Dev server port (default: 8787)
+  --runtime <native|docker>  Choose dev runtime (overrides saved preference)
+
+EXAMPLES:
+  hoox dev worker trade-worker
+  hoox dev worker agent-worker --port 8788
+  hoox dev worker hoox --runtime docker`
+    )
     .option("--port <port>", "Dev server port (default: 8787)", (v: string) =>
       parseInt(v, 10)
     )
@@ -298,7 +348,19 @@ export function registerDevCommand(program: Command): void {
   // -- dev dashboard --------------------------------------------------------
   devCmd
     .command("dashboard")
-    .description("Start the Next.js dashboard dev server (workers/dashboard)")
+    .summary("Start the Next.js dashboard dev server")
+    .description(
+      `Start the Hoox dashboard development server using Next.js.
+
+The dashboard runs on http://localhost:3000 with hot-reloading enabled.
+
+OPTIONS:
+  --runtime <native|docker>  Choose dev runtime (overrides saved preference)
+
+EXAMPLES:
+  hoox dev dashboard
+  hoox dev dashboard --runtime docker`
+    )
     .option(
       "--runtime <native|docker>",
       "Choose dev runtime (overrides saved preference)"

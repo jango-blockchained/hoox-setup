@@ -948,13 +948,44 @@ async function handleSubmoduleGitignore(opts: FormatOptions): Promise<void> {
 export function registerCheckCommand(program: Command): void {
   const checkCmd = program
     .command("check")
-    .description("Validate, health-check, and repair your Hoox setup");
+    .summary("Validate, health-check, and repair your Hoox setup")
+    .description(
+      `Validate your Hoox setup and check for common issues.
+
+CHECK CATEGORIES:
+  Config        - wrangler.jsonc structure, global settings, worker paths
+  Infrastructure - D1 databases, KV namespaces, R2 buckets, Queues
+  Secrets       - Local and remote secret configuration
+  Database      - Database existence and table schema
+
+EXAMPLES:
+  hoox check setup                    Full system validation
+  hoox check health                   Check worker connectivity
+  hoox check fix                       Auto-repair common issues
+  hoox check submodule-gitignore       Fix worker .gitignore files
+  hoox check sg                       Alias for submodule-gitignore`
+    );
 
   // -- check setup -----------------------------------------------------------
   checkCmd
     .command("setup")
+    .summary("Full system validation")
     .description(
-      "Full system validation (Config, Infrastructure, Secrets, Database)"
+      `Run a comprehensive validation of your entire Hoox setup.
+
+Checks performed:
+  1. Config       - wrangler.jsonc validation, global settings, worker paths
+  2. Infrastructure - D1 databases, KV namespaces, R2 buckets, Queues
+  3. Secrets      - Local (.dev.vars) and remote (Cloudflare) secrets
+  4. Database     - Database existence and required tables
+
+OUTPUT:
+  Returns a detailed report with pass/fail status for each check.
+  Use --json for machine-readable output.
+
+EXAMPLES:
+  hoox check setup
+  hoox check setup --json`
     )
     .action(async (_, cmd: Command) => {
       const rootCmd = cmd.parent?.parent as Command | undefined;
@@ -968,7 +999,26 @@ export function registerCheckCommand(program: Command): void {
   // -- check health ----------------------------------------------------------
   checkCmd
     .command("health")
-    .description("Run connectivity and responsiveness health checks")
+    .summary("Check worker connectivity and responsiveness")
+    .description(
+      `Run health checks on all enabled workers to verify they are running and responsive.
+
+Each worker is probed to verify:
+  - Worker is deployed to Cloudflare
+  - Worker is responding to requests
+  - No critical errors in recent logs
+
+OPTIONS:
+  --fix    Attempt automatic repair for detected issues (informational)
+
+OUTPUT:
+  Returns a table showing each worker's status: healthy, degraded, or down.
+
+EXAMPLES:
+  hoox check health
+  hoox check health --json
+  hoox check health --fix`
+    )
     .option("--fix", "Attempt automatic repair for detected issues")
     .action(async (options: { fix?: boolean }, cmd: Command) => {
       const rootCmd = cmd.parent?.parent as Command | undefined;
@@ -982,8 +1032,21 @@ export function registerCheckCommand(program: Command): void {
   // -- check fix -------------------------------------------------------------
   checkCmd
     .command("fix")
+    .summary("Auto-repair common issues")
     .description(
-      "Repair known common issues (.dev.vars, compatibility_flags, wrangler.jsonc)"
+      `Automatically repair known common issues in your Hoox setup.
+
+Repairs performed:
+  1. Missing .dev.vars files - Creates placeholder files for local development
+  2. Missing nodejs_compat flag - Adds compatibility_flags to wrangler.jsonc
+  3. Missing name field - Ensures each worker has a name in wrangler.jsonc
+
+OPTIONS:
+  --dry-run    Preview changes without applying them
+
+EXAMPLES:
+  hoox check fix                Apply fixes automatically
+  hoox check fix --dry-run     Preview what would be fixed`
     )
     .option("--dry-run", "Preview changes without applying them")
     .action(async (options: { dryRun?: boolean }, cmd: Command) => {
@@ -999,8 +1062,22 @@ export function registerCheckCommand(program: Command): void {
   checkCmd
     .command("submodule-gitignore")
     .alias("sg")
+    .summary("Validate and fix worker submodule .gitignore files")
     .description(
-      "Validate and fix worker submodule .gitignore files (wrangler.jsonc, .dev.vars, etc.)"
+      `Validate and fix .gitignore files in worker submodules.
+
+Ensures each worker has a proper .gitignore that excludes:
+  - .dev.vars (local secrets)
+  - wrangler.jsonc (worker config)
+  - .wrangler/ (wrangler cache)
+  - node_modules/ (dependencies)
+  - IDE and OS files
+
+Also removes wrangler.jsonc from git tracking if mistakenly tracked.
+
+EXAMPLES:
+  hoox check submodule-gitignore
+  hoox check sg  # alias`
     )
     .action(async (_, cmd: Command) => {
       const rootCmd = cmd.parent?.parent as Command | undefined;

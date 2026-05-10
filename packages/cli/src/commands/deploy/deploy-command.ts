@@ -305,12 +305,44 @@ function printSummary(
 export function registerDeployCommand(program: Command): void {
   const deployCmd = program
     .command("deploy")
-    .description("Deploy workers and/or dashboard to Cloudflare");
+    .summary("Deploy workers and/or dashboard to Cloudflare Workers")
+    .description(
+      `Deploy your Hoox trading system to Cloudflare's edge network.
+
+The deploy command handles building and uploading your workers and dashboard to Cloudflare Workers.
+
+DEPLOYMENT ORDER:
+Workers are deployed in the correct order based on their dependencies (e.g., d1-worker before trade-worker).
+
+DASHBOARD:
+The dashboard uses OpenNext to convert Next.js to Cloudflare Workers format. Before deploying, the CLI checks for an existing build and prompts you to rebuild or use the existing build.
+
+EXAMPLES:
+  hoox deploy all                    Deploy everything (workers + dashboard)
+  hoox deploy all --rebuild          Force rebuild dashboard before deploying
+  hoox deploy workers                Deploy workers only (skip dashboard)
+  hoox deploy worker trade-worker    Deploy a specific worker
+  hoox deploy dashboard             Deploy dashboard only`
+    );
 
   // -- deploy all ----------------------------------------------------------
   deployCmd
     .command("all")
-    .description("Deploy all enabled workers, then the dashboard")
+    .summary("Deploy all enabled workers, then the dashboard")
+    .description(
+      `Deploy all enabled workers to Cloudflare Workers, then build and deploy the Next.js dashboard.
+
+This is the recommended command for production deployments as it ensures all components are deployed in the correct order.
+
+OPTIONS:
+  --env <env>     Target environment (production, staging, etc.)
+  --rebuild       Force rebuild of dashboard before deploying (skip prompt)
+
+EXAMPLES:
+  hoox deploy all
+  hoox deploy all --env production
+  hoox deploy all --rebuild`
+    )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .option("--rebuild", "Force rebuild of dashboard before deploying")
     .action(async (options: { env?: string; rebuild?: boolean }) => {
@@ -342,7 +374,19 @@ export function registerDeployCommand(program: Command): void {
   // -- deploy workers ------------------------------------------------------
   deployCmd
     .command("workers")
-    .description("Deploy all enabled workers")
+    .summary("Deploy all enabled workers to Cloudflare")
+    .description(
+      `Deploy all enabled workers to Cloudflare Workers.
+
+Workers are deployed in the correct order based on their dependencies. This command skips the dashboard deployment.
+
+OPTIONS:
+  --env <env>     Target environment (production, staging, etc.)
+
+EXAMPLES:
+  hoox deploy workers
+  hoox deploy workers --env staging`
+    )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .action(async (options: { env?: string }) => {
       const fmt = getFormatOptions(program);
@@ -369,7 +413,20 @@ export function registerDeployCommand(program: Command): void {
   // -- deploy worker <name> ------------------------------------------------
   deployCmd
     .command("worker <name>")
-    .description("Deploy a single worker")
+    .summary("Deploy a single worker by name")
+    .description(
+      `Deploy a specific worker to Cloudflare Workers.
+
+ARGUMENTS:
+  name          Worker name (e.g., trade-worker, agent-worker, hoox)
+
+OPTIONS:
+  --env <env>   Target environment (production, staging, etc.)
+
+EXAMPLES:
+  hoox deploy worker trade-worker
+  hoox deploy worker agent-worker --env production`
+    )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .action(async (name: string, options: { env?: string }) => {
       const fmt = getFormatOptions(program);
@@ -403,7 +460,19 @@ export function registerDeployCommand(program: Command): void {
   // -- deploy dashboard ----------------------------------------------------
   deployCmd
     .command("dashboard")
-    .description("Build and deploy the Hoox dashboard")
+    .summary("Build and deploy the Next.js dashboard")
+    .description(
+      `Build and deploy the Hoox dashboard to Cloudflare Workers.
+
+The dashboard is built using OpenNext which converts Next.js to Cloudflare Workers format. Before deploying, the CLI checks for an existing build and prompts you to rebuild or use the existing build.
+
+OPTIONS:
+  --rebuild       Force rebuild of dashboard before deploying (skip prompt)
+
+EXAMPLES:
+  hoox deploy dashboard              Interactive: choose to rebuild or use existing
+  hoox deploy dashboard --rebuild    Force rebuild before deploying`
+    )
     .option("--rebuild", "Force rebuild of dashboard before deploying")
     .action(async (options: { rebuild?: boolean }) => {
       const fmt = getFormatOptions(program);
