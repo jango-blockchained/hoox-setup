@@ -138,13 +138,15 @@ async function deploySingle(
 /**
  * Deploy all enabled workers sequentially with interactive progress UI.
  * Shows checkbox list with real-time updates as each worker deploys.
+ * Excludes 'dashboard' since it's handled separately.
  */
 async function deployWorkers(
   configService: ConfigService,
   cf: CloudflareService,
   env?: string
 ): Promise<DeployResult[]> {
-  const enabledWorkers = configService.listEnabledWorkers();
+  // Filter out dashboard - it's handled separately in deployDashboard
+  const enabledWorkers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
   const results: DeployResult[] = [];
 
   if (enabledWorkers.length === 0) {
