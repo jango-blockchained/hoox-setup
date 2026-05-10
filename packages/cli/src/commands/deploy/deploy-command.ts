@@ -136,8 +136,8 @@ async function deploySingle(
 }
 
 /**
- * Deploy all enabled workers sequentially, returning an array of DeployResult.
- * Shows a @clack/prompts spinner with per-worker progress updates.
+ * Deploy all enabled workers sequentially with interactive progress UI.
+ * Shows checkbox list with real-time updates as each worker deploys.
  */
 async function deployWorkers(
   configService: ConfigService,
@@ -151,35 +151,72 @@ async function deployWorkers(
     return results;
   }
 
-  const s = spinner();
-  s.start(`Deploying ${enabledWorkers.length} worker(s)...`);
+  // Print header with worker list (unchecked boxes)
+  process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
+  process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
 
   for (let i = 0; i < enabledWorkers.length; i++) {
     const name = enabledWorkers[i];
-    s.message(`[${i + 1}/${enabledWorkers.length}] Deploying ${name}...`);
+    // Show unchecked box for pending workers
+    process.stdout.write(`${theme.dim("○")} ${name}\n`);
+  }
+  process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
+
+  // Deploy each worker with spinner and update checkbox
+  for (let i = 0; i < enabledWorkers.length; i++) {
+    const name = enabledWorkers[i];
+
+    // Update the line to show current worker being deployed
+    process.stdout.write(`${theme.dim("▶")} Deploying ${name}... `);
+
+    // Show spinner
+    const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    let spinIdx = 0;
+    const spinInterval = setInterval(() => {
+      process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} Deploying ${name}... `);
+      spinIdx = (spinIdx + 1) % spinChars.length;
+    }, 80);
 
     const result = await deploySingle(configService, cf, name, env);
-    results.push(result);
+    clearInterval(spinInterval);
+
+    // Clear the spinner line and show result
+    process.stdout.write(`\r${" ".repeat(40)}\r`);
 
     if (result.success) {
-      s.message(
-        `[${i + 1}/${enabledWorkers.length}] ${icons.success} ${name} deployed`
-      );
+      // Show checked box with success
+      process.stdout.write(`${theme.success("✓")} ${name} deployed\n`);
+
+      // Show details (indented)
+      if (result.url) {
+        process.stdout.write(`   ${theme.dim("URL:")} ${result.url}\n`);
+      }
+      if (result.size) {
+        process.stdout.write(`   ${theme.dim("Size:")} ${result.size}\n`);
+      }
+      if (result.startupTime) {
+        process.stdout.write(`   ${theme.dim("Startup:")} ${result.startupTime}\n`);
+      }
     } else {
-      s.message(
-        `[${i + 1}/${enabledWorkers.length}] ${icons.error} ${name} failed: ${result.error}`
-      );
+      // Show error
+      process.stdout.write(`${theme.error("✗")} ${name} failed\n`);
+      process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);
     }
+
+    results.push(result);
   }
 
+  // Summary
   const succeeded = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
 
+  process.stdout.write(`\n${theme.heading("Workers Deployed:")} ${succeeded}/${enabledWorkers.length}`);
   if (failed > 0) {
-    s.stop(`Deploy complete: ${succeeded} succeeded, ${failed} failed`);
+    process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
   } else {
-    s.stop(`All ${succeeded} worker(s) deployed successfully`);
+    process.stdout.write(` ${theme.success("(all success)")}\n`);
   }
+  process.stdout.write("\n");
 
   return results;
 }
@@ -211,24 +248,40 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
     };
   }
 
-  const s = spinner();
+  // Show dashboard header
+  process.stdout.write(`\n${theme.heading("Deploying Dashboard")}\n`);
+  process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
+  process.stdout.write(`${theme.dim("○")} dashboard\n`);
+  process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
+
+  // Show spinner while deploying
+  const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  let spinIdx = 0;
+  const actionText = action === "rebuild" ? "Building & deploying" : "Deploying";
+  const spinInterval = setInterval(() => {
+    process.stdout.write(`\r${theme.dim(spinChars[spinIdx])} ${actionText} dashboard... `);
+    spinIdx = (spinIdx + 1) % spinChars.length;
+  }, 80);
 
   try {
     if (action === "rebuild") {
       // Build + Deploy: bun run deploy (runs opennext:build && opennext:deploy)
-      s.start("Building dashboard (opennextjs-cloudflare)...");
-      s.message("Building and deploying dashboard...");
-
       const buildProc = Bun.spawn(["bun", "run", "opennext:deploy"], {
         cwd: dashboardPath,
-        stdout: "inherit",
-        stderr: "inherit",
+        stdout: "pipe",
+        stderr: "pipe",
       });
 
       const buildExit = await buildProc.exited;
+      const output = await new Response(buildProc.stdout).text();
+
+      clearInterval(spinInterval);
+      process.stdout.write(`\r${" ".repeat(40)}\r`);
 
       if (buildExit !== 0) {
-        s.stop("Dashboard deploy failed");
+        const error = await new Response(buildProc.stderr).text();
+        process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+        process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
         return {
           worker: "dashboard",
           success: false,
@@ -236,22 +289,47 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
         };
       }
 
-      s.stop("Dashboard deployed successfully");
+      // Parse output for metrics
+      const sizeMatch = output.match(/Total Upload:\s*([\d.]+)\s*([KMGT]?i?B)/i);
+      const startupMatch = output.match(/Worker Startup Time:\s*(\d+)\s*ms/i);
+      const urlMatch = output.match(/https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/);
+
+      process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
+      if (urlMatch) {
+        process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
+      }
+      if (sizeMatch) {
+        process.stdout.write(`   ${theme.dim("Size:")} ${sizeMatch[1]} ${sizeMatch[2]}\n`);
+      }
+      if (startupMatch) {
+        process.stdout.write(`   ${theme.dim("Startup:")} ${startupMatch[1]} ms\n`);
+      }
+
+      return {
+        worker: "dashboard",
+        url: urlMatch?.[0] || "https://dashboard.cryptolinx.workers.dev",
+        success: true,
+        size: sizeMatch ? `${sizeMatch[1]} ${sizeMatch[2]}` : undefined,
+        startupTime: startupMatch ? `${startupMatch[1]} ms` : undefined,
+      };
     } else {
       // Deploy only (no build)
-      s.start("Deploying existing dashboard build...");
-      s.message("Deploying to Cloudflare...");
-
       const deployProc = Bun.spawn(["bun", "run", "opennext:deploy"], {
         cwd: dashboardPath,
-        stdout: "inherit",
-        stderr: "inherit",
+        stdout: "pipe",
+        stderr: "pipe",
       });
 
       const deployExit = await deployProc.exited;
+      const output = await new Response(deployProc.stdout).text();
+
+      clearInterval(spinInterval);
+      process.stdout.write(`\r${" ".repeat(40)}\r`);
 
       if (deployExit !== 0) {
-        s.stop("Dashboard deploy failed");
+        const error = await new Response(deployProc.stderr).text();
+        process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+        process.stdout.write(`   ${theme.error("Error:")} ${error.split("\n")[0]}\n`);
         return {
           worker: "dashboard",
           success: false,
@@ -259,17 +337,25 @@ async function deployDashboard(cf: CloudflareService, forceRebuild: boolean = fa
         };
       }
 
-      s.stop("Dashboard deployed successfully");
-    }
+      const urlMatch = output.match(/https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/);
 
-    return {
-      worker: "dashboard",
-      url: "https://dashboard.cryptolinx.workers.dev",
-      success: true,
-    };
+      process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
+      if (urlMatch) {
+        process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
+      }
+
+      return {
+        worker: "dashboard",
+        url: urlMatch?.[0] || "https://dashboard.cryptolinx.workers.dev",
+        success: true,
+      };
+    }
   } catch (err) {
+    clearInterval(spinInterval);
     const message = err instanceof Error ? err.message : String(err);
-    s.stop("Dashboard deploy failed");
+    process.stdout.write(`\r${" ".repeat(40)}\r`);
+    process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
+    process.stdout.write(`   ${theme.error("Error:")} ${message}\n`);
     return {
       worker: "dashboard",
       success: false,
