@@ -129,44 +129,31 @@ async function deployDashboard(cf: CloudflareService): Promise<DeployResult> {
   s.start("Building dashboard (opennextjs-cloudflare)...");
 
   try {
-    // 1. Build: bunx opennextjs-cloudflare build
-    const buildProc = Bun.spawn(["bunx", "opennextjs-cloudflare", "build"], {
+    // 1. Build + Deploy: bun run deploy (runs opennext:build && opennext:deploy)
+    s.message("Building and deploying dashboard...");
+
+    const buildProc = Bun.spawn(["bun", "run", "opennext:deploy"], {
       cwd: dashboardPath,
-      stdout: "pipe",
-      stderr: "pipe",
+      stdout: "inherit",
+      stderr: "inherit",
     });
 
     const buildExit = await buildProc.exited;
 
     if (buildExit !== 0) {
-      const buildStderr = await new Response(buildProc.stderr).text();
-      s.stop("Dashboard build failed");
+      s.stop("Dashboard deploy failed");
       return {
         worker: "dashboard",
         success: false,
-        error: buildStderr.trim() || `Build exited with code ${buildExit}`,
+        error: `Dashboard deploy exited with code ${buildExit}`,
       };
     }
 
-    s.message("Build complete — deploying...");
-
-    // 2. Deploy: bunx wrangler deploy
-    const deployResult = await cf.deploy(dashboardPath);
-
-    if (deployResult.ok) {
-      s.stop("Dashboard deployed successfully");
-      return {
-        worker: "dashboard",
-        url: deployResult.data.url,
-        success: true,
-      };
-    }
-
-    s.stop("Dashboard deploy failed");
+    s.stop("Dashboard deployed successfully");
     return {
       worker: "dashboard",
-      success: false,
-      error: deployResult.error,
+      url: "https://dashboard.cryptolinx.workers.dev",
+      success: true,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
