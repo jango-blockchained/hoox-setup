@@ -85,7 +85,16 @@
       "enabled": true,
       "path": "workers/dashboard",
       "vars": {},
-      "secrets": []
+      "secrets": [
+        "DASHBOARD_USER",
+        "DASHBOARD_PASS",
+        "SESSION_SECRET",
+        "D1_INTERNAL_KEY",
+        "AGENT_INTERNAL_KEY",
+        "TRADE_INTERNAL_KEY",
+        "TELEGRAM_INTERNAL_KEY",
+        "API_SERVICE_KEY"
+      ]
     }
   },
   "dev": {
