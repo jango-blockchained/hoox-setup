@@ -343,7 +343,8 @@ export class CloudflareService {
    */
   private extractUrl(stdout: string): string | undefined {
     // Match worker URLs (workers.dev or cloudflareworkers.com domains)
-    const match = stdout.match(/https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*\.(workers\.dev|cloudflareworkers\.com)/);
+    // Handles both direct (name.workers.dev) and subdomain (name.acme.workers.dev) patterns
+    const match = stdout.match(/https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*\.[-a-zA-Z0-9]+\.(workers\.dev|cloudflareworkers\.com)/);
     return match ? match[0] : undefined;
   }
 }

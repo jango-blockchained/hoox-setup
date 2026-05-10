@@ -1,0 +1,241 @@
+# Agent Worker Dashboard Configuration Update Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Update `workers/agent-worker/dashboard.jsonc` to include all possible settings available for the agent-worker, with proper options and descriptions, following the pattern used by trade-worker and hoox.
+
+**Architecture:** Add new dashboard sections for AI configuration, risk management, trailing stops, and take profit settings. Include `options` arrays for selectable fields and `descriptions` for all settings. Map all KV keys from kvKeys.ts that agent-worker uses.
+
+**Tech Stack:** JSONC (JSON with Comments), Cloudflare KV Namespaces
+
+---
+
+## File Structure
+
+- **Modify:** `workers/agent-worker/dashboard.jsonc` - Add all available settings
+
+---
+
+## Task Decomposition
+
+### Task 1: Update agent-worker dashboard.jsonc with all settings
+
+**Files:**
+- Modify: `workers/agent-worker/dashboard.jsonc`
+
+- [ ] **Step 1: Read current dashboard.jsonc**
+
+```jsonc
+{
+  "display_name": "Agent Worker",
+  "description": "AI risk manager and autonomous agent",
+  "sections": {
+    "cron": { ... },
+    "behavior": { ... },
+    "agent": { ... }
+  }
+}
+```
+
+- [ ] **Step 2: Write updated dashboard.jsonc with all settings**
+
+```jsonc
+{
+  "display_name": "Agent Worker",
+  "description": "AI risk manager and autonomous agent - runs every 5 minutes to monitor positions, enforce risk limits, and optimize position exits",
+  "sections": {
+    "agent": {
+      "title": "AI Configuration",
+      "description": "Configure the AI Agent's execution parameters and provider settings.",
+      "icon": "brain",
+      "priority": 10,
+      "fields": {
+        "config": "{ \"defaultProvider\": \"workers-ai\", \"fallbackChain\": [\"workers-ai\", \"openai\"], \"modelMap\": { \"workers-ai\": \"@cf/meta/llama-3.1-8b-instruct\", \"openai\": \"gpt-4o-mini-2024-07-18\", \"anthropic\": \"claude-3-haiku-20240307\", \"google\": \"gemini-1.5-flash-002\" }, \"timeoutMs\": 30000, \"retryCount\": 3, \"maxDailyDrawdownPercent\": -5, \"trailingStopPercent\": 0.05, \"takeProfitPercent\": 0.1 }",
+        "openai_key": "Requires CLI Setup",
+        "anthropic_key": "Requires CLI Setup",
+        "google_key": "Requires CLI Setup"
+      },
+      "descriptions": {
+        "config": "JSON configuration string for AI provider settings, model selection, fallback chain, timeouts, and risk parameters. See README for full schema.",
+        "openai_key": "OpenAI API Key (Secret). DO NOT save plaintext via Dashboard. Manually execute: 'hoox secrets update-cf openai_key agent-worker'",
+        "anthropic_key": "Anthropic API Key (Secret). DO NOT save plaintext via Dashboard. Manually execute: 'hoox secrets update-cf anthropic_key agent-worker'",
+        "google_key": "Google Gemini API Key (Secret). DO NOT save plaintext via Dashboard. Manually execute: 'hoox secrets update-cf google_key agent-worker'"
+      }
+    },
+    "cron": {
+      "title": "Schedule",
+      "description": "Cron and automation settings",
+      "icon": "clock",
+      "priority": 20,
+      "fields": {
+        "enabled": true,
+        "interval_minutes": 5,
+        "housekeeping_enabled": true
+      },
+      "descriptions": {
+        "enabled": "Enable or disable the agent-worker's cron trigger. When disabled, the worker will not run on schedule.",
+        "interval_minutes": "Cron interval in minutes. Default is 5 minutes (*/5 * * * *).",
+        "housekeeping_enabled": "Enable housekeeping tasks like health checks, AI health summaries, and system log analysis."
+      },
+      "options": {
+        "interval_minutes": [1, 5, 10, 15, 30, 60]
+      }
+    },
+    "risk": {
+      "title": "Risk Management",
+      "description": "Risk limits and kill switch configuration",
+      "icon": "shield",
+      "priority": 30,
+      "fields": {
+        "max_daily_drawdown_percent": -5,
+        "kill_switch": false,
+        "trailing_stop_percent": 0.05,
+        "take_profit_percent": 0.1
+      },
+      "descriptions": {
+        "max_daily_drawdown_percent": "Account PnL percentage that triggers the global kill switch. If daily PnL drops below this threshold, all new trades are halted.",
+        "kill_switch": "Manual kill switch override. When true, halts all new trade signals from the gateway.",
+        "trailing_stop_percent": "Percentage below the watermark price at which trailing stop triggers. Default 5% (0.05).",
+        "take_profit_percent": "Profit percentage at which scale-out take profit triggers. Default 10% (0.1)."
+      },
+      "options": {
+        "max_daily_drawdown_percent": [-1, -2, -3, -5, -10, -15, -20],
+        "trailing_stop_percent": [0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15],
+        "take_profit_percent": [0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3]
+      }
+    },
+    "behavior": {
+      "title": "Behavior",
+      "description": "Autonomous behavior settings",
+      "icon": "activity",
+      "priority": 40,
+      "fields": {
+        "auto_trailing_stop": true,
+        "auto_rebalance": false,
+        "risk_override_enabled": true,
+        "ai_summaries_enabled": true
+      },
+      "descriptions": {
+        "auto_trailing_stop": "Automatically monitor positions and trigger trailing stops when price reverses from watermark.",
+        "auto_rebalance": "Enable automatic portfolio rebalancing based on AI recommendations.",
+        "risk_override_enabled": "Allow AI to override risk limits in certain conditions.",
+        "ai_summaries_enabled": "Enable periodic AI-generated system health summaries sent to Telegram."
+      }
+    },
+    "providers": {
+      "title": "AI Providers",
+      "description": "Configure AI provider fallback chain and models",
+      "icon": "server",
+      "priority": 50,
+      "fields": {
+        "default_provider": "workers-ai",
+        "fallback_chain": "[\"workers-ai\", \"openai\"]",
+        "timeout_ms": 30000,
+        "retry_count": 3
+      },
+      "descriptions": {
+        "default_provider": "Primary AI provider to use for all requests.",
+        "fallback_chain": "JSON array of providers to try in order if the primary fails.",
+        "timeout_ms": "Timeout in milliseconds for AI requests.",
+        "retry_count": "Number of retries for failed AI requests."
+      },
+      "options": {
+        "default_provider": ["workers-ai", "openai", "anthropic", "google"],
+        "timeout_ms": [5000, 10000, 20000, 30000, 60000],
+        "retry_count": [1, 2, 3, 5]
+      }
+    },
+    "models": {
+      "title": "Model Selection",
+      "description": "Configure AI models for different tasks",
+      "icon": "cpu",
+      "priority": 60,
+      "fields": {
+        "workers_ai_model": "@cf/meta/llama-3.1-8b-instruct",
+        "openai_model": "gpt-4o-mini-2024-07-18",
+        "anthropic_model": "claude-3-haiku-20240307",
+        "google_model": "gemini-1.5-flash-002"
+      },
+      "descriptions": {
+        "workers_ai_model": "Default model for Cloudflare Workers AI (LLaMA 3.1 8B Instruct).",
+        "openai_model": "Default model for OpenAI (GPT-4o Mini).",
+        "anthropic_model": "Default model for Anthropic (Claude 3 Haiku).",
+        "google_model": "Default model for Google AI (Gemini 1.5 Flash)."
+      },
+      "options": {
+        "workers_ai_model": [
+          "@cf/meta/llama-3.1-8b-instruct",
+          "@cf/meta/llama-3.2-11b-vision-instruct",
+          "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
+          "@cf/qwen/qwen2.5-coder-32b-instruct",
+          "@cf/baai/bge-base-en-v1.5",
+          "@cf/facebook/bart-large-cnn"
+        ],
+        "openai_model": [
+          "gpt-4o-mini-2024-07-18",
+          "gpt-4o-2024-08-06",
+          "gpt-4-turbo-2024-04-09"
+        ],
+        "anthropic_model": [
+          "claude-3-haiku-20240307",
+          "claude-3-sonnet-20240229",
+          "claude-3-opus-20240229"
+        ],
+        "google_model": [
+          "gemini-1.5-flash-002",
+          "gemini-1.5-pro-002"
+        ]
+      }
+    }
+  }
+}
+```
+
+- [ ] **Step 3: Validate JSONC syntax**
+
+Run: `bun run typecheck` or check JSON validity
+Expected: No syntax errors
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add workers/agent-worker/dashboard.jsonc
+git commit -m "feat(dashboard): add all possible settings to agent-worker dashboard.jsonc"
+```
+
+---
+
+## KV Keys Mapped to Dashboard
+
+| Dashboard Field | KV Key | Default |
+|-----------------|--------|---------|
+| `config` | `agent:config` | JSON object |
+| `openai_key` | `agent:openai_key` | - |
+| `anthropic_key` | `agent:anthropic_key` | - |
+| `google_key` | `agent:google_key` | - |
+| `max_daily_drawdown_percent` | `trade:max_daily_drawdown_percent` | -5 |
+| `kill_switch` | `trade:kill_switch` | false |
+| `trailing_stop_percent` | `trade:trailing_stop_percent` | 0.05 |
+| `take_profit_percent` | `trade:take_profit_percent` | 0.1 |
+
+---
+
+## Exit Criteria
+
+- [ ] All agent-worker settings available in dashboard.jsonc
+- [ ] Each setting has a description
+- [ ] Selectable fields have options arrays
+- [ ] JSONC syntax is valid
+- [ ] TypeScript/build passes
+
+---
+
+## Execution Choice
+
+**Plan complete and saved to `docs/superpowers/plans/2026-05-10-agent-worker-dashboard-update.md`. Two execution options:**
+
+**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+
+**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+
+**Which approach?**

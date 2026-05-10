@@ -136,6 +136,23 @@ async function deploySingle(
 }
 
 /**
+ * Published deployment order. Follows the dependency chain documented in
+ * docs/setup_and_operations.md so that service bindings are available
+ * before dependent workers are deployed.
+ */
+const DEPLOY_ORDER: string[] = [
+  "analytics-worker",
+  "d1-worker",
+  "telegram-worker",
+  "web3-wallet-worker",
+  "email-worker",
+  "trade-worker",
+  "agent-worker",
+  "hoox",
+  "dashboard",
+];
+
+/**
  * Deploy all enabled workers + dashboard with interactive progress UI.
  * Uses a single list that updates in place with spinner and details.
  */
@@ -145,9 +162,12 @@ async function deployAll(
   env?: string,
   forceRebuildDashboard: boolean = false
 ): Promise<DeployResult[]> {
-  // Get workers + dashboard
-  const workers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
-  const allItems = [...workers, "dashboard"];
+  // Get enabled workers and sort by deployment order
+  const enabled = configService.listEnabledWorkers();
+  const workers = DEPLOY_ORDER.filter(w => w !== "dashboard" && enabled.includes(w));
+  // Append any unknown workers (not in DEPLOY_ORDER) at the end
+  const unknown = enabled.filter(w => w !== "dashboard" && !DEPLOY_ORDER.includes(w));
+  const allItems = [...workers, ...unknown, "dashboard"];
   const results: DeployResult[] = [];
 
   if (allItems.length === 0) {
@@ -548,11 +568,14 @@ EXAMPLES:
         await configService.load();
         const cf = new CloudflareService();
 
-        // Deploy only workers (no dashboard)
-        const workers = configService.listEnabledWorkers().filter(w => w !== "dashboard");
+        // Deploy only workers (no dashboard), sorted by dependency order
+        const enabled = configService.listEnabledWorkers();
+        const workers = DEPLOY_ORDER.filter(w => w !== "dashboard" && enabled.includes(w));
+        const unknown = enabled.filter(w => w !== "dashboard" && !DEPLOY_ORDER.includes(w));
+        const ordered = [...workers, ...unknown];
         const results: DeployResult[] = [];
 
-        if (workers.length === 0) {
+        if (ordered.length === 0) {
           process.stdout.write(`${theme.dim("No enabled workers to deploy\n")}`);
           return;
         }
@@ -561,13 +584,13 @@ EXAMPLES:
         process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
         process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
 
-        for (const name of workers) {
+        for (const name of ordered) {
           process.stdout.write(`${theme.dim("○")} ${name.padEnd(25)} pending\n`);
         }
         process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
 
         // Deploy each worker
-        for (const name of workers) {
+        for (const name of ordered) {
           const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
           let spinIdx = 0;
           const spinInterval = setInterval(() => {
@@ -594,7 +617,7 @@ EXAMPLES:
 
         const succeeded = results.filter(r => r.success).length;
         const failed = results.filter(r => !r.success).length;
-        process.stdout.write(`\n${theme.heading("Summary:")} ${succeeded}/${workers.length} deployed`);
+        process.stdout.write(`\n${theme.heading("Summary:")} ${succeeded}/${ordered.length} deployed`);
         if (failed > 0) process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
         else process.stdout.write(` ${theme.success(" ✓")}\n\n`);
       } catch (err) {
