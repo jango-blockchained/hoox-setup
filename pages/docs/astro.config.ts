@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import tailwind from "@tailwindcss/vite";
+import react from "@astrojs/react";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -9,6 +10,7 @@ export default defineConfig({
   site: "https://jango-blockchained.github.io",
   base: "/hoox-setup",
   output: "static",
+  integrations: [react()],
   vite: {
     plugins: [tailwind()],
     resolve: {
