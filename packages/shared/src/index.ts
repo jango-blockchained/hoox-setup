@@ -16,10 +16,14 @@ export type {
 } from "./types.js";
 export { KVKeys } from "./kvKeys.js";
 export {
+  toError,
+  Errors,
   createJsonResponse,
   createSuccessResponse,
   createErrorResponse,
-} from "./json-response.js";
+} from "./errors.js";
+
+// json-response.ts re-exports from errors.ts, keeping the file for backward compatibility
 export { BaseExchangeClient } from "./exchange-client.js";
 export type {
   ExchangeName,

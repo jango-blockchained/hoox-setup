@@ -11,6 +11,7 @@ import type {
   TradeSignalRecord,
   D1QueryResult,
 } from "./schemas";
+import { toError } from "../errors.js";
 
 export interface BatchStatement {
   query: string;
@@ -43,7 +44,7 @@ export class D1Repository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: toError(error),
       };
     }
   }
@@ -67,7 +68,7 @@ export class D1Repository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: toError(error),
       };
     }
   }
@@ -93,7 +94,7 @@ export class D1Repository {
     } catch (error) {
       return statements.map(() => ({
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: toError(error),
       }));
     }
   }
