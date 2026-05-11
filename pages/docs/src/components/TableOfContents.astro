@@ -1,0 +1,31 @@
+---
+export interface Props {
+  headings: Array<{ depth: number; text: string; slug: string }>;
+}
+const { headings } = Astro.props;
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{
+  filtered.length > 0 && (
+    <aside class="hidden xl:block w-56 shrink-0">
+      <div class="sticky top-14 pt-8 pr-4 h-[calc(100vh-3.5rem)] overflow-y-auto">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          On this page
+        </p>
+        <nav class="flex flex-col gap-1">
+          {filtered.map((h) => (
+            <a
+              href={`#${h.slug}`}
+              class={`block text-sm transition-colors hover:text-foreground ${
+                h.depth === 3 ? "pl-4 text-muted-foreground/80" : "text-muted-foreground"
+              }`}
+            >
+              {h.text}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </aside>
+  )
+}

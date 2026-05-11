@@ -1,0 +1,56 @@
+---
+import "@/styles/globals.css";
+import Header from "@/components/Header.astro";
+import Sidebar from "@/components/Sidebar.astro";
+import MobileNav from "@/components/MobileNav.astro";
+import Footer from "@/components/Footer.astro";
+import TableOfContents from "@/components/TableOfContents.astro";
+import { buildNavigation } from "@/lib/navigation";
+import { getCollection } from "astro:content";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  currentSlug?: string;
+  headings?: Array<{ depth: number; text: string; slug: string }>;
+}
+
+const { title, description, currentSlug, headings = [] } = Astro.props;
+const allDocs = await getCollection("docs");
+const sections = buildNavigation(
+  allDocs.map((doc) => ({
+    id: doc.id,
+    title: doc.data.title,
+  }))
+);
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title ? `${title} — Hoox Docs` : "Hoox Docs"}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" type="image/svg+xml" href="/hoox-setup/favicon.svg" />
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <Header searchOpen={false} />
+    <MobileNav sections={sections} currentSlug={currentSlug} />
+
+    <div class="flex">
+      <Sidebar sections={sections} currentSlug={currentSlug} />
+
+      <main class="flex-1 min-w-0">
+        <div class="flex">
+          <article class="flex-1 px-6 py-8 lg:px-10 max-w-3xl prose">
+            <slot />
+          </article>
+          <TableOfContents headings={headings} />
+        </div>
+      </main>
+    </div>
+
+    <Footer />
+  </body>
+</html>
