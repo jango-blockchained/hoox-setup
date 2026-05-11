@@ -12,6 +12,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { Command } from "commander";
 import { modify, applyEdits } from "jsonc-parser";
 import type { FormattingOptions } from "jsonc-parser";
+import { spinner } from "@clack/prompts";
 
 import { ConfigService } from "../../services/config/index.js";
 import { SecretsService } from "../../services/secrets/index.js";
@@ -483,14 +484,16 @@ EXAMPLES:
 
         formatSuccess(`Secret "${secretName}" updated in ${devVarsPath}`, opts);
 
-        // Sync to Cloudflare
-        process.stdout.write(
-          `${theme.info(icons.info)} Syncing to Cloudflare...\n`
-        );
+        // Sync to Cloudflare with spinner
+        const syncSpin = spinner();
+        syncSpin.start("Syncing to Cloudflare...");
         const result = await svc.syncToCloudflare(workerName);
         if (result.success) {
-          formatSuccess(`Secret "${secretName}" synced to Cloudflare`, opts);
+          syncSpin.stop(`Secret "${secretName}" synced to Cloudflare`);
         } else {
+          syncSpin.stop(
+            `Sync partial: ${result.error ?? "unknown error"}`
+          );
           formatError(
             new CLIError(
               `Sync partial: ${result.error ?? "unknown error"}`,
@@ -611,16 +614,17 @@ EXAMPLES:
         const svc = await SecretsService.create();
 
         if (workerName) {
-          process.stdout.write(
-            `${theme.info(icons.info)} Syncing secrets for "${workerName}"...\n`
-          );
+          const syncSpin = spinner();
+          syncSpin.start(`Syncing secrets for "${workerName}"...`);
           const result = await svc.syncToCloudflare(workerName);
           if (result.success) {
-            formatSuccess(
-              `Synced ${result.data?.length ?? 0} secrets for "${workerName}"`,
-              opts
+            syncSpin.stop(
+              `Synced ${result.data?.length ?? 0} secrets for "${workerName}"`
             );
           } else {
+            syncSpin.stop(
+              `Sync failed: ${result.error ?? "unknown error"}`
+            );
             formatError(
               new CLIError(
                 `Sync failed: ${result.error ?? "unknown error"}`,
@@ -640,17 +644,18 @@ EXAMPLES:
 
           let synced = 0;
           let failed = 0;
+          const syncSpin = spinner();
 
           for (const name of workers) {
-            process.stdout.write(`  ${theme.info(icons.arrow)} ${name}... `);
+            syncSpin.start(`Syncing ${name}...`);
             const result = await svc.syncToCloudflare(name);
             if (result.success) {
-              process.stdout.write(
-                `${theme.success(`synced ${result.data?.length ?? 0}`)}\n`
+              syncSpin.stop(
+                `${theme.success("synced")} ${result.data?.length ?? 0} for ${name}`
               );
               synced++;
             } else {
-              process.stdout.write(`${theme.error("failed")}\n`);
+              syncSpin.stop(`${theme.error("failed")} ${name}`);
               failed++;
             }
           }

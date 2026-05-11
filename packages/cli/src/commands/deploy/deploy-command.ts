@@ -8,14 +8,13 @@
  *   dashboard — Build and deploy the Next.js dashboard via OpenNext
  */
 import { Command } from "commander";
-import { spinner, confirm, select } from "@clack/prompts";
+import { spinner, log, select } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { theme, icons } from "../../utils/theme.js";
 import {
   formatSuccess,
   formatError,
-  formatTable,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { DeployResult } from "./types.js";
@@ -199,69 +198,47 @@ async function deployAll(
     return results;
   }
 
-  // Print header with all items (pending state)
-  process.stdout.write(`\n${theme.heading("Deploying")}\n`);
-  process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
+  // Use clack spinner for each worker
+  const s = spinner();
+  s.start(`Deploying ${allItems.length} item(s)...`);
 
-  for (const name of allItems) {
-    process.stdout.write(`${theme.dim("○")} ${name.padEnd(25)} pending\n`);
-  }
-  process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
-
-  // Deploy each item
   for (let i = 0; i < allItems.length; i++) {
     const name = allItems[i];
     const isDashboard = name === "dashboard";
 
-    // Update current line with spinner
-    const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-    let spinIdx = 0;
-    const spinInterval = setInterval(() => {
-      process.stdout.write(
-        `\r${theme.dim(spinChars[spinIdx])} ${name.padEnd(25)} deploying...`
-      );
-      spinIdx = (spinIdx + 1) % spinChars.length;
-    }, 80);
+    s.message(`[${i + 1}/${allItems.length}] ${name}...`);
 
     let result: DeployResult;
 
     if (isDashboard) {
-      // Deploy dashboard silently (deployAll handles the UI)
+      // Use the silent mode in deployAll since we manage our own UI
       result = await deployDashboard(cf, forceRebuildDashboard, true);
     } else {
-      // Deploy worker
       result = await deploySingle(configService, cf, name, env);
     }
 
-    clearInterval(spinInterval);
-
-    // Clear spinner line
-    process.stdout.write(`\r${" ".repeat(50)}\r`);
+    results.push(result);
 
     if (result.success) {
-      // Green dot for success
-      process.stdout.write(
-        `${theme.success("●")} ${name.padEnd(25)} deployed\n`
-      );
+      s.stop(`${theme.success(icons.success)} ${name} deployed`);
+    } else {
+      s.stop(`${theme.error(icons.error)} ${name} failed`);
+    }
 
-      // Show details (URL, size, startup, version)
+    // Output details below the spinner line
+    if (result.success) {
       if (result.url) {
-        process.stdout.write(`   ${theme.dim("URL:")}     ${result.url}\n`);
+        log.step(`  ${theme.dim("URL:")}     ${result.url}`);
       }
       if (result.size) {
-        process.stdout.write(`   ${theme.dim("Size:")}     ${result.size}\n`);
+        log.step(`  ${theme.dim("Size:")}     ${result.size}`);
       }
       if (result.startupTime) {
-        process.stdout.write(
-          `   ${theme.dim("Startup:")} ${result.startupTime}\n`
-        );
+        log.step(`  ${theme.dim("Startup:")} ${result.startupTime}`);
       }
       if (result.versionId) {
-        process.stdout.write(
-          `   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`
-        );
+        log.step(`  ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...`);
       }
-      // If no details at all, show raw output first line for debugging
       if (
         !result.url &&
         !result.size &&
@@ -269,34 +246,24 @@ async function deployAll(
         !result.versionId &&
         result.rawOutput
       ) {
-        process.stdout.write(
-          `   ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}\n`
-        );
+        log.step(`  ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}`);
       }
-    } else {
-      // Red dot for failure
-      process.stdout.write(`${theme.error("●")} ${name.padEnd(25)} failed\n`);
-      if (result.error) {
-        process.stdout.write(`   ${theme.error("Error:")} ${result.error}\n`);
-      }
+    } else if (result.error) {
+      log.warn(`  ${theme.error("Error:")} ${result.error}`);
     }
 
-    results.push(result);
+    // Start spinner for next worker
+    if (i < allItems.length - 1) {
+      s.start(`Deploying ${allItems.length} item(s)...`);
+    }
   }
 
-  // Summary
+  // Summary line
   const succeeded = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
-
-  process.stdout.write(
-    `\n${theme.heading("Summary:")} ${succeeded}/${allItems.length} deployed`
-  );
   if (failed > 0) {
-    process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
-  } else {
-    process.stdout.write(` ${theme.success(" ✓")}\n`);
+    log.warn(`Summary: ${succeeded}/${allItems.length} deployed (${failed} failed)`);
   }
-  process.stdout.write("\n");
 
   return results;
 }
@@ -340,21 +307,14 @@ async function deployDashboard(
     process.stdout.write(`${theme.dim("─".repeat(50))}\n\n`);
   }
 
-  // Show spinner while deploying
-  const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-  let spinIdx = 0;
+  // Use clack spinner
   const actionText =
     action === "rebuild" ? "Building & deploying" : "Deploying";
-  const spinInterval = setInterval(() => {
-    if (!silentMode) {
-      process.stdout.write(
-        `\r${theme.dim(spinChars[spinIdx])} ${actionText} dashboard... `
-      );
-    }
-    spinIdx = (spinIdx + 1) % spinChars.length;
-  }, 80);
+  const s = spinner();
 
   try {
+    s.start(`${actionText} dashboard...`);
+
     if (action === "rebuild") {
       // Build + Deploy: bun run deploy (runs opennext:build && opennext:deploy)
       const buildProc = Bun.spawn(["bun", "run", "opennext:deploy"], {
@@ -366,15 +326,12 @@ async function deployDashboard(
       const buildExit = await buildProc.exited;
       const output = await new Response(buildProc.stdout).text();
 
-      clearInterval(spinInterval);
-      process.stdout.write(`\r${" ".repeat(40)}\r`);
-
       if (buildExit !== 0) {
         const error = await new Response(buildProc.stderr).text();
+        s.stop(`${theme.error(icons.error)} dashboard failed`);
         if (!silentMode) {
-          process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
           process.stdout.write(
-            `   ${theme.error("Error:")} ${error.split("\n")[0]}\n`
+            `   ${theme.dim("Error:")} ${error.split("\n")[0]}\n`
           );
         }
         return {
@@ -393,8 +350,9 @@ async function deployDashboard(
         /https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/
       );
 
+      s.stop(`${theme.success(icons.success)} dashboard deployed`);
+
       if (!silentMode) {
-        process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
         if (urlMatch) {
           process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
         }
@@ -428,15 +386,12 @@ async function deployDashboard(
       const deployExit = await deployProc.exited;
       const output = await new Response(deployProc.stdout).text();
 
-      clearInterval(spinInterval);
-      process.stdout.write(`\r${" ".repeat(40)}\r`);
-
       if (deployExit !== 0) {
         const error = await new Response(deployProc.stderr).text();
+        s.stop(`${theme.error(icons.error)} dashboard failed`);
         if (!silentMode) {
-          process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
           process.stdout.write(
-            `   ${theme.error("Error:")} ${error.split("\n")[0]}\n`
+            `   ${theme.dim("Error:")} ${error.split("\n")[0]}\n`
           );
         }
         return {
@@ -450,8 +405,9 @@ async function deployDashboard(
         /https?:\/\/dashboard\.[a-zA-Z0-9-]+\.workers\.dev/
       );
 
+      s.stop(`${theme.success(icons.success)} dashboard deployed`);
+
       if (!silentMode) {
-        process.stdout.write(`${theme.success("✓")} dashboard deployed\n`);
         if (urlMatch) {
           process.stdout.write(`   ${theme.dim("URL:")} ${urlMatch[0]}\n`);
         }
@@ -464,12 +420,10 @@ async function deployDashboard(
       };
     }
   } catch (err) {
-    clearInterval(spinInterval);
     const message = err instanceof Error ? err.message : String(err);
-    process.stdout.write(`\r${" ".repeat(40)}\r`);
+    s.stop(`${theme.error(icons.error)} dashboard failed`);
     if (!silentMode) {
-      process.stdout.write(`${theme.error("✗")} dashboard failed\n`);
-      process.stdout.write(`   ${theme.error("Error:")} ${message}\n`);
+      process.stdout.write(`   ${theme.dim("Error:")} ${message}\n`);
     }
     return {
       worker: "dashboard",
@@ -679,16 +633,10 @@ EXAMPLES:
         }
         process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
 
-        // Deploy each worker
+        // Deploy each worker with clack spinner
         for (const name of ordered) {
-          const spinChars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-          let spinIdx = 0;
-          const spinInterval = setInterval(() => {
-            process.stdout.write(
-              `\r${theme.dim(spinChars[spinIdx])} ${name.padEnd(25)} deploying...`
-            );
-            spinIdx = (spinIdx + 1) % spinChars.length;
-          }, 80);
+          const s = spinner();
+          s.start(`Deploying ${name}...`);
 
           const result = await deploySingle(
             configService,
@@ -696,13 +644,10 @@ EXAMPLES:
             name,
             options.env
           );
-          clearInterval(spinInterval);
-          process.stdout.write(`\r${" ".repeat(50)}\r`);
+          results.push(result);
 
           if (result.success) {
-            process.stdout.write(
-              `${theme.success("●")} ${name.padEnd(25)} deployed\n`
-            );
+            s.stop(`${theme.success(icons.success)} ${name} deployed`);
             if (result.url)
               process.stdout.write(
                 `   ${theme.dim("URL:")}     ${result.url}\n`
@@ -731,15 +676,12 @@ EXAMPLES:
               );
             }
           } else {
-            process.stdout.write(
-              `${theme.error("●")} ${name.padEnd(25)} failed\n`
-            );
+            s.stop(`${theme.error(icons.error)} ${name} failed`);
             if (result.error)
               process.stdout.write(
                 `   ${theme.error("Error:")} ${result.error}\n`
               );
           }
-          results.push(result);
         }
 
         const succeeded = results.filter((r) => r.success).length;

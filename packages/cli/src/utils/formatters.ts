@@ -5,12 +5,64 @@
  */
 
 import { CLIError, ExitCode } from "./errors.js";
-import { theme, icons } from "./theme.js";
+import { theme, icons, stripAnsi, hr } from "./theme.js";
 
 export interface FormatOptions {
   json?: boolean;
   quiet?: boolean;
 }
+
+// ── Progress bar ──────────────────────────────────────────────────
+
+const PROGRESS_BAR_WIDTH = 30;
+
+/**
+ * Render an inline progress bar string.
+ * @param current  Current step (0-based)
+ * @param total    Total steps
+ * @param opts     Width override
+ */
+export function renderProgressBar(
+  current: number,
+  total: number,
+  opts?: { width?: number }
+): string {
+  const width = opts?.width ?? PROGRESS_BAR_WIDTH;
+  const ratio = total > 0 ? Math.min(current / total, 1) : 0;
+  const filled = Math.round(width * ratio);
+  const empty = width - filled;
+  const pct = Math.round(ratio * 100);
+
+  const bar =
+    theme.accent("[") +
+    theme.success("█".repeat(filled)) +
+    theme.dim("░".repeat(empty)) +
+    theme.accent("]") +
+    ` ${pct}%`;
+
+  return bar;
+}
+
+/**
+ * Render a multi-line progress display for sequential steps.
+ * Returns lines suitable for overwriting via \r or manual clear.
+ */
+export function renderStepProgress(
+  steps: Array<{ name: string; status: "pending" | "running" | "done" | "failed" }>
+): string {
+  const iconMap: Record<string, string> = {
+    pending: theme.dim("○"),
+    running: theme.info("◌"),
+    done: theme.success("●"),
+    failed: theme.error("✗"),
+  };
+
+  return steps
+    .map((s) => `  ${iconMap[s.status]} ${theme.bold(s.name)}`)
+    .join("\n");
+}
+
+// ── Basic output ──────────────────────────────────────────────────
 
 /**
  * Output a success message.
@@ -65,10 +117,10 @@ export function formatError(error: Error | string, opts?: FormatOptions): void {
 }
 
 /**
- * Output tabular data.
+ * Output tabular data with enhanced box-drawing borders.
  * - JSON mode:  JSON array of objects
  * - Quiet mode: prints nothing
- * - Human mode: box-drawn table with column headers
+ * - Human mode: themed box-drawn table with column headers
  */
 export function formatTable(
   rows: Record<string, string>[],
@@ -92,21 +144,24 @@ export function formatTable(
   // Calculate column widths
   const widths: Record<string, number> = {};
   for (const key of keys) {
-    widths[key] = key.length;
+    widths[key] = stripAnsi(key).length;
     for (const row of rows) {
       const value = row[key] ?? "";
-      widths[key] = Math.max(widths[key], value.length);
+      const stripped = stripAnsi(value).length;
+      widths[key] = Math.max(widths[key], stripped);
     }
   }
 
-  // Build top border
+  // Build border segments
   const topParts = keys.map((k) => "─".repeat(widths[k] + 2));
   const topBorder = `┌${topParts.join("┬")}┐`;
   const sepBorder = `├${topParts.join("┼")}┤`;
   const botBorder = `└${topParts.join("┴")}┘`;
 
-  // Header
-  const headerCells = keys.map((k) => theme.bold(k.padEnd(widths[k])));
+  // Header row with themed styling
+  const headerCells = keys.map((k) =>
+    theme.bold(k.padEnd(widths[k])).toString()
+  );
   const headerRow = `│ ${headerCells.join(" │ ")} │`;
 
   // Data rows
@@ -119,7 +174,11 @@ export function formatTable(
   });
 
   process.stdout.write(
-    `${theme.dim(topBorder)}\n${headerRow}\n${theme.dim(sepBorder)}\n${dataRows.join("\n")}\n${theme.dim(botBorder)}\n`
+    `${theme.dim(topBorder)}\n` +
+      `${headerRow}\n` +
+      `${theme.dim(sepBorder)}\n` +
+      `${dataRows.join("\n")}\n` +
+      `${theme.dim(botBorder)}\n`
   );
 }
 
@@ -140,7 +199,7 @@ export function formatJson(data: unknown, opts?: FormatOptions): void {
  * Output key-value pairs.
  * - JSON mode:  JSON object
  * - Quiet mode: prints nothing
- * - Human mode: "label: value" with dimmed labels
+ * - Human mode: "label: value" with themed labels
  */
 export function formatKeyValue(
   pairs: Record<string, string>,
@@ -153,10 +212,41 @@ export function formatKeyValue(
     return;
   }
 
-  const maxKeyLen = Math.max(...Object.keys(pairs).map((k) => k.length));
+  const maxKeyLen = Math.max(...Object.keys(pairs).map((k) => stripAnsi(k).length));
 
   for (const [key, value] of Object.entries(pairs)) {
     const paddedKey = key.padEnd(maxKeyLen);
-    process.stdout.write(`  ${theme.label(paddedKey)} ${value}\n`);
+    process.stdout.write(`  ${theme.key(paddedKey)} ${theme.dim(":")} ${value}\n`);
+  }
+}
+
+/**
+ * Output a section header with decorative separator.
+ */
+export function formatHeader(text: string, opts?: FormatOptions): void {
+  if (opts?.quiet) return;
+  if (opts?.json) return;
+
+  process.stdout.write(`\n${theme.heading(text)}\n`);
+  process.stdout.write(`${hr()}\n`);
+}
+
+/**
+ * Output a bullet-point list with optional icon per item.
+ */
+export function formatList(
+  items: string[],
+  opts?: { icon?: string; json?: boolean; quiet?: boolean }
+): void {
+  if (opts?.quiet) return;
+
+  if (opts?.json) {
+    process.stdout.write(JSON.stringify(items, null, 2) + "\n");
+    return;
+  }
+
+  const icon = opts?.icon ?? icons.arrow;
+  for (const item of items) {
+    process.stdout.write(`  ${icon} ${item}\n`);
   }
 }

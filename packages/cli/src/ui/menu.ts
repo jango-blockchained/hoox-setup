@@ -34,7 +34,7 @@ import { CLIError } from "../utils/errors.js";
  */
 export async function runInteractiveTUI(program: Command): Promise<void> {
   // Print banner directly, then start clack prompt session
-  process.stdout.write(renderBanner());
+  process.stdout.write(renderBanner() + "\n");
   intro("hoox");
 
   while (true) {
@@ -54,19 +54,19 @@ export async function runInteractiveTUI(program: Command): Promise<void> {
 // ---------------------------------------------------------------------------
 
 const MAIN_CATEGORIES = [
-  { value: "deploy", label: "Deploy", hint: "workers, dashboard" },
-  { value: "develop", label: "Develop", hint: "dev server, init project" },
+  { value: "deploy", label: "🚀 Deploy", hint: "workers, dashboard" },
+  { value: "develop", label: "⚙️  Develop", hint: "dev server, init project" },
   {
     value: "manage",
-    label: "Manage",
+    label: "🔧 Manage",
     hint: "infrastructure, config, secrets",
   },
   {
     value: "monitor",
-    label: "Monitor",
+    label: "📊 Monitor",
     hint: "diagnostics, health, logs, tests",
   },
-  { value: "tools", label: "Tools", hint: "WAF, clone worker, dashboard UI" },
+  { value: "tools", label: "🛠  Tools", hint: "WAF, clone worker, dashboard UI" },
   { value: "__exit", label: "Exit" },
 ] as const;
 
@@ -126,7 +126,7 @@ async function showDeployMenu(
         { value: "workers", label: "Workers only" },
         { value: "single", label: "Single worker..." },
         { value: "dashboard", label: "Dashboard only" },
-        { value: "__back", label: "Back to main menu" },
+        { value: "__back", label: "◀ Back to main menu" },
       ],
     });
 
@@ -154,6 +154,7 @@ async function showDeployMenu(
 
 // ---------------------------------------------------------------------------
 // Develop sub-menu
+// ---------------------------------------------------------------------------
 
 async function showDevelopMenu(
   program: Command
@@ -168,7 +169,7 @@ async function showDevelopMenu(
           hint: "runs all workers locally",
         },
         { value: "init", label: "Init project", hint: "bootstrap new project" },
-        { value: "__back", label: "Back to main menu" },
+        { value: "__back", label: "◀ Back to main menu" },
       ],
     });
 
@@ -181,6 +182,7 @@ async function showDevelopMenu(
 
 // ---------------------------------------------------------------------------
 // Manage sub-menu
+// ---------------------------------------------------------------------------
 
 async function showManageMenu(
   program: Command
@@ -198,7 +200,7 @@ async function showManageMenu(
         { value: "secrets", label: "Secrets", hint: "list, set, sync" },
         { value: "keys", label: "Auth keys", hint: "generate, list" },
         { value: "waf", label: "WAF rules" },
-        { value: "__back", label: "Back to main menu" },
+        { value: "__back", label: "◀ Back to main menu" },
       ],
     });
 
@@ -235,7 +237,7 @@ async function showConfigSubMenu(program: Command): Promise<void> {
     options: [
       { value: "show", label: "Show config", hint: "display wrangler.jsonc" },
       { value: "set", label: "Set a value..." },
-      { value: "__back", label: "Back to Manage" },
+      { value: "__back", label: "◀ Back to Manage" },
     ],
   });
 
@@ -273,7 +275,7 @@ async function showSecretsSubMenu(program: Command): Promise<void> {
       { value: "list", label: "List secrets" },
       { value: "set", label: "Set a secret..." },
       { value: "sync", label: "Sync to Cloudflare" },
-      { value: "__back", label: "Back to Manage" },
+      { value: "__back", label: "◀ Back to Manage" },
     ],
   });
 
@@ -304,7 +306,6 @@ async function showSecretsSubMenu(program: Command): Promise<void> {
       });
       if (isCancel(secretName) || !secretName) return;
 
-      // Use the command's built-in promptSecret which handles masking
       await runCommand(program, `config secrets set ${worker} ${secretName}`);
       break;
     }
@@ -324,7 +325,7 @@ async function showKeysSubMenu(program: Command): Promise<void> {
     options: [
       { value: "generate", label: "Generate new keys" },
       { value: "list", label: "List existing keys" },
-      { value: "__back", label: "Back to Manage" },
+      { value: "__back", label: "◀ Back to Manage" },
     ],
   });
 
@@ -366,7 +367,7 @@ async function showMonitorMenu(
         { value: "check fix", label: "Auto-repair", hint: "fix common issues" },
         { value: "logs", label: "View logs", hint: "real-time log tailing" },
         { value: "test", label: "Run tests" },
-        { value: "__back", label: "Back to main menu" },
+        { value: "__back", label: "◀ Back to main menu" },
       ],
     });
 
@@ -398,7 +399,7 @@ async function showToolsMenu(
           label: "Dashboard UI",
           hint: "manage dashboard URLs",
         },
-        { value: "__back", label: "Back to main menu" },
+        { value: "__back", label: "◀ Back to main menu" },
       ],
     });
 
