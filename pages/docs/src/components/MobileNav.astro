@@ -1,0 +1,82 @@
+---
+import type { NavSection } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
+
+export interface Props {
+  sections: NavSection[];
+  currentSlug?: string;
+}
+const { sections, currentSlug } = Astro.props;
+---
+
+<div
+  id="mobile-nav"
+  class="hidden fixed inset-0 z-50 md:hidden"
+  role="dialog"
+  aria-label="Navigation"
+>
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/50"
+    onclick="document.getElementById('mobile-nav').classList.add('hidden')"
+  ></div>
+
+  <!-- Panel -->
+  <div class="fixed left-0 top-0 bottom-0 w-72 bg-background border-r border-border overflow-y-auto z-10 shadow-2xl">
+    <div class="flex items-center justify-between p-4 border-b border-border">
+      <span class="font-semibold">Navigation</span>
+      <button
+        onclick="document.getElementById('mobile-nav').classList.add('hidden')"
+        class="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent"
+        aria-label="Close"
+      >
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <nav class="p-4 flex flex-col gap-1">
+      <a
+        href="/hoox-setup/"
+        onclick="document.getElementById('mobile-nav').classList.add('hidden')"
+        class={cn(
+          "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+          (!currentSlug || currentSlug === "home")
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:bg-accent"
+        )}
+      >
+        <span>📄</span>
+        <span>Home</span>
+      </a>
+
+      {
+        sections.map((section) => (
+          <div class="mt-2">
+            <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <span>{section.icon}</span>
+              <span>{section.title}</span>
+            </div>
+            <div class="ml-1 flex flex-col gap-0.5 mt-1">
+              {section.items.map((item) => (
+                <a
+                  href={`/hoox-setup/${item.slug}/`}
+                  onclick="document.getElementById('mobile-nav').classList.add('hidden')"
+                  class={cn(
+                    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm",
+                    currentSlug === item.slug
+                      ? "bg-accent text-accent-foreground font-medium"
+                      : "text-muted-foreground hover:bg-accent"
+                  )}
+                >
+                  <span class="truncate">{item.title}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </nav>
+  </div>
+</div>
