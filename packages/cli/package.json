@@ -1,6 +1,6 @@
 {
   "name": "@jango-blockchained/hoox-cli",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments (@jango-blockchained/hoox-cli)",
   "type": "module",
   "main": "./bin/hoox.js",

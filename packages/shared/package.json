@@ -1,6 +1,6 @@
 {
   "name": "@jango-blockchained/hoox-shared",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared utilities for hoox workers",
   "type": "module",
   "main": "./src/index.ts",
