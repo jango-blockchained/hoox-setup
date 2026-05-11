@@ -92,5 +92,9 @@ pages.jsonc
 # docs/superpowers/ - commented out to allow design specs
 # docs/superpowers/
 
+# Coverage output
+coverage/
+*/coverage/
+
 # npm config
 .npmrc
