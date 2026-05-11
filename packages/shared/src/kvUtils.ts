@@ -3,6 +3,7 @@
  * Shared across workers that need KV timestamp logging
  */
 import type { KVNamespace } from "@cloudflare/workers-types";
+import { toError } from "./errors.js";
 
 /**
  * Interface for environments with a KVNamespace binding
@@ -28,8 +29,9 @@ export async function logKvTimestamp(
     await env.REPORT_KV.put(key, timestamp);
     console.log(`Logged timestamp ${timestamp} to KV with key ${key}`);
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Failed to log timestamp to KV: ${errorMsg}`);
+    console.error(
+      `Failed to log timestamp to KV: ${toError(error, "Unknown error")}`
+    );
   }
 }
 
@@ -50,8 +52,9 @@ export function headersToObject(
       result[key] = value;
     });
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
-    console.error(`Error converting headers to object: ${errorMsg}`);
+    console.error(
+      `Error converting headers to object: ${toError(error, "Unknown error")}`
+    );
   }
 
   return result;

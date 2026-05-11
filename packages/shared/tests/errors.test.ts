@@ -7,6 +7,7 @@ import { describe, test, expect } from "bun:test";
 import {
   createErrorResponse,
   Errors,
+  toError,
   type AppError,
   type ErrorResponse,
 } from "../src/errors";
@@ -41,7 +42,69 @@ describe("Error Handling Utilities", () => {
     });
   });
 
-  describe("Errors factory", () => {
+  describe("toError", () => {
+	test("should extract message from Error instance", () => {
+		const result = toError(new Error("Something broke"));
+		expect(result).toBe("Something broke");
+	});
+
+	test("should return the string itself when given a string", () => {
+		const result = toError("direct error string");
+		expect(result).toBe("direct error string");
+	});
+
+	test("should extract message from object with message property", () => {
+		const result = toError({ message: "object error" });
+		expect(result).toBe("object error");
+	});
+
+	test("should return fallback for null", () => {
+		const result = toError(null);
+		expect(result).toBe("Unknown error");
+	});
+
+	test("should return fallback for undefined", () => {
+		const result = toError(undefined);
+		expect(result).toBe("Unknown error");
+	});
+
+	test("should stringify a number", () => {
+		const result = toError(42);
+		expect(result).toBe("42");
+	});
+
+	test("should use custom fallback when provided", () => {
+		const result = toError(null, "Custom fallback");
+		expect(result).toBe("Custom fallback");
+	});
+
+	test("should handle Error subclass instances", () => {
+		class CustomError extends Error {
+			constructor() {
+				super("Custom subclass error");
+			}
+		}
+		const result = toError(new CustomError());
+		expect(result).toBe("Custom subclass error");
+	});
+
+	test("should handle object with non-string message property", () => {
+		const result = toError({ message: 123 });
+		expect(result).toBe('{"message":123}');
+	});
+
+	test("should handle empty string", () => {
+		const result = toError("");
+		expect(result).toBe("");
+	});
+
+	test("should handle array as error", () => {
+		const result = toError(["error1", "error2"]);
+		expect(result).toBe('["error1","error2"]');
+	});
+});
+
+describe("Errors factory", () => {
     test("should create bad request error", () => {
       const res = Errors.badRequest("Invalid input");
       expect(res.status).toBe(400);

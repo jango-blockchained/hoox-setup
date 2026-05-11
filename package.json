@@ -32,7 +32,7 @@
     "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.15.2",
+    "@cloudflare/vitest-pool-workers": "^0.16.3",
     "@cloudflare/workers-types": "^4.20260506.1",
     "@eslint/js": "^10.0.1",
     "@hono/zod-validator": "^0.2.2",

@@ -6,6 +6,36 @@
 import type { AppError, ErrorResponse } from "./types/errors";
 
 /**
+ * Safely extract an error message from any caught value.
+ * Eliminates the duplicated `error instanceof Error ? error.message : String(error)`
+ * pattern that appears ~40+ times across the codebase.
+ *
+ * @example
+ * try { ... } catch (err) {
+ *   console.error(toError(err));
+ * }
+ */
+export function toError(err: unknown, fallback = "Unknown error"): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  if (
+    err &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as Record<string, unknown>).message === "string"
+  ) {
+    return (err as Record<string, string>).message;
+  }
+  // null/undefined should use fallback, not be stringified to "null"/"undefined"
+  if (err === null || err === undefined) return fallback;
+  try {
+    return JSON.stringify(err) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Create a successful JSON response
  */
 export function createJsonResponse(data: unknown, status = 200): Response {
@@ -67,6 +97,14 @@ export const Errors = {
     if (retryAfter) res.headers.set("Retry-After", String(retryAfter));
     return res;
   },
-  internal: (message = "Internal server error") =>
-    createErrorResponse({ message, status: 500, code: "INTERNAL_ERROR" }),
+  internal: (err?: unknown) => {
+    const message = err
+      ? toError(err, "Internal server error")
+      : "Internal server error";
+    return createErrorResponse({
+      message,
+      status: 500,
+      code: "INTERNAL_ERROR",
+    });
+  },
 };
