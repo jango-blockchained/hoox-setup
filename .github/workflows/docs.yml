@@ -31,7 +31,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build docs site
-        run: bun --cwd pages/docs run build
+        run: cd pages/docs && bun run build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
