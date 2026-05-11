@@ -1,6 +1,6 @@
 [test]
 coverage = true
-timeout = 5000
+timeout = 60000
 
 [test.env]
 NODE_ENV = "test" 

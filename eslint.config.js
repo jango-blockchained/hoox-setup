@@ -19,6 +19,7 @@ export default [
       "worker-configuration.d.ts",
       ".opencode/",
       ".tmp/",
+      "**/dist.bak/",
       ".agents/",
       ".worktrees/",
     ],
