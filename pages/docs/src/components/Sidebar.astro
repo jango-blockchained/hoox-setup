@@ -1,0 +1,53 @@
+---
+import type { NavSection } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
+
+export interface Props {
+  sections: NavSection[];
+  currentSlug?: string;
+}
+const { sections, currentSlug } = Astro.props;
+---
+
+<aside class="hidden md:block w-64 shrink-0 border-r border-border bg-background h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto scrollbar-hide">
+  <nav class="flex flex-col gap-1 p-4">
+    <a
+      href="/hoox-setup/"
+      class={cn(
+        "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        (!currentSlug || currentSlug === "home")
+          ? "bg-accent text-accent-foreground"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      <span>📄</span>
+      <span>Home</span>
+    </a>
+
+    {
+      sections.map((section) => (
+        <div class="mt-2">
+          <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span>{section.icon}</span>
+            <span>{section.title}</span>
+          </div>
+          <div class="ml-1 flex flex-col gap-0.5 mt-1">
+            {section.items.map((item) => (
+              <a
+                href={`/hoox-setup/${item.slug}/`}
+                class={cn(
+                  "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
+                  currentSlug === item.slug
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <span class="truncate">{item.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </nav>
+</aside>
