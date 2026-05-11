@@ -6,7 +6,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": [],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["src"]
 }
