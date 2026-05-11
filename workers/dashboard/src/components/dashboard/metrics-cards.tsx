@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Activity,
@@ -79,6 +79,7 @@ function AnimatedNumber({
     const endValue = value;
     const duration = 500;
     const startTime = Date.now();
+    let rafId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -89,11 +90,13 @@ function AnimatedNumber({
       setDisplayValue(current);
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(rafId);
   }, [value]);
 
   const display = (() => {
@@ -126,13 +129,17 @@ function SparkLine({ data, positive }: { data: number[]; positive: boolean }) {
   const min = Math.min(...data);
   const range = max - min || 1;
 
-  const points = data
-    .map((value, index) => {
-      const x = (index / (data.length - 1)) * 60;
-      const y = 20 - ((value - min) / range) * 16;
-      return `${x},${y}`;
-    })
-    .join(" ");
+  const points = useMemo(
+    () =>
+      data
+        .map((value, index) => {
+          const x = (index / (data.length - 1)) * 60;
+          const y = 20 - ((value - min) / range) * 16;
+          return `${x},${y}`;
+        })
+        .join(" "),
+    [data, min, range]
+  );
 
   return (
     <svg className="h-5 w-15" viewBox="0 0 60 24">
@@ -193,8 +200,8 @@ export function MetricsCards() {
             })
           );
         }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
+      } catch {
+        // Silently fail — metrics stay at initial values
       }
     }
 

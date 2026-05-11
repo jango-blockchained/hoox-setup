@@ -6,6 +6,7 @@
  */
 
 import { Command } from "commander";
+import { toError } from "@jango-blockchained/hoox-shared";
 import { CLIError, ExitCode } from "./utils/errors.js";
 import { formatError } from "./utils/formatters.js";
 import { theme } from "./utils/theme.js";
@@ -105,7 +106,7 @@ process.on("unhandledRejection", (reason) => {
   const err =
     reason instanceof Error
       ? reason
-      : new Error(`Unhandled rejection: ${String(reason)}`);
+      : new Error(`Unhandled rejection: ${toError(reason)}`);
 
   formatError(new CLIError(err.message, ExitCode.ERROR, err.stack, false));
   process.exit(ExitCode.ERROR);

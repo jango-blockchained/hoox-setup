@@ -3,6 +3,8 @@
  * Adapted from workers/agent-worker/src/middleware/logger.ts
  */
 
+import { toError } from "../errors.js";
+
 export interface LogContext {
   service: string;
   module?: string;
@@ -51,15 +53,15 @@ export function createLogger(ctx: LogContext): Logger {
   };
 }
 
-export function withRequestLog(
+export function withRequestLog<E extends Record<string, unknown>>(
   handler: (
     request: Request,
-    env: any,
+    env: E,
     ctx: ExecutionContext
   ) => Promise<Response>,
   logCtx: LogContext
-): (request: Request, env: any, ctx: ExecutionContext) => Promise<Response> {
-  return async (request: Request, env: any, ctx: ExecutionContext) => {
+): (request: Request, env: E, ctx: ExecutionContext) => Promise<Response> {
+  return async (request: Request, env: E, ctx: ExecutionContext) => {
     const start = Date.now();
     const logger = createLogger(logCtx);
 
@@ -80,7 +82,7 @@ export function withRequestLog(
         method: request.method,
         path: new URL(request.url).pathname,
         durationMs: duration,
-        error: error instanceof Error ? error.message : String(error),
+        error: toError(error),
       });
       throw error;
     }
