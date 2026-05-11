@@ -484,6 +484,33 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id
 
 ---
 
+## 🗺️ Enterprise Roadmap — Powered by Cloudflare Paid Services
+
+Hoox's enterprise growth is mapped to Cloudflare's paid/enterprise service tiers. The full spec is at [`.superpowers/specs/2026-05-12-enterprise-roadmap.md`](.superpowers/specs/2026-05-12-enterprise-roadmap.md).
+
+| Phase | Theme | Key CF Services | Est. Cost/mo |
+|-------|-------|----------------|-------------|
+| **I** | Operational Excellence | Smart Placement, Tail Workers, Analytics Engine, Durable Objects, Rate Limiting | **~$15** |
+| **II** | Intelligent Trading | Workers AI, Vectorize (RAG), Browser Rendering, AI Gateway, Hyperdrive | **~$50–130** |
+| **III** | Enterprise Scale | Enterprise Plan, Advanced DDoS + WAF, Load Balancing, Argo Smart Routing | **~$275** |
+| **IV** | Multi-Tenant SaaS | Workers for Platforms, SSL for SaaS, Tenant Isolation, Compliance | **~$500+** |
+
+**Phase I highlights:**
+- **Smart Placement** — 30–60% lower trade execution latency via optimal edge deployment
+- **Durable Objects** — Exactly-once trade execution with strongly consistent order locks
+- **Tail Workers + Analytics Engine** — Real-time trade observability (p50/p95/p99 latency, error rates)
+- **Rate Limiting** — Tiered API access (free/pro/enterprise)
+
+**Phase II highlights:**
+- **Workers AI** — Real-time LLaMA 3 risk analysis on every trade signal
+- **Vectorize** — Semantic trade search and RAG-enhanced AI reasoning
+- **AI Gateway** — Multi-provider fallback (OpenAI → Anthropic → Workers AI) with cost tracking
+- **Browser Rendering** — Automated PDF portfolio/performance reports
+
+> **Full details:** See [`.superpowers/specs/2026-05-12-enterprise-roadmap.md`](.superpowers/specs/2026-05-12-enterprise-roadmap.md) for architecture diagrams, implementation code, cost breakdowns, and the complete 4-phase rollout plan.
+
+---
+
 ## 🤝 Contribute
 
 Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this.
@@ -506,11 +533,12 @@ Our long-term vision includes native, edge-based execution of trading logic. **P
 
 > ⚠️ **Status:** This project is not yet started. Track progress in our [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues).
 
-### Future Features
+### Enterprise Growth (see [`enterprise-roadmap`](.superpowers/specs/2026-05-12-enterprise-roadmap.md))
 
-- **Enhanced AI Analytics:** Automated reporting and personalized risk-management insights via LLaMA 3.
-- **Deeper DeFi Integration:** Expanded on-chain capabilities via the `web3-wallet-worker`.
-- **Advanced Dashboard:** More intuitive UI for deeper historical trade analysis.
+- **Phase I** — Smart Placement, Durable Object trade locks, Tail Workers analytics, Rate Limiting (~$15/mo)
+- **Phase II** — Workers AI risk analysis, Vectorize semantic search, AI Gateway, Browser Rendering reports (~$50–130/mo)
+- **Phase III** — Enterprise Workers SLA, Advanced DDoS + WAF, Load Balancing, Argo Smart Routing (~$275/mo)
+- **Phase IV** — Workers for Platforms multi-tenant SaaS, per-tenant D1, billing integration (~$500+/mo)
 
 ---
 
