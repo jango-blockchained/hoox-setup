@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
+import { Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -35,6 +36,6 @@ export async function POST() {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return Errors.internal(String(err));
   }
 }

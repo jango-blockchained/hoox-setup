@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ENV_KEYS, getEnvVar } from "@/lib/config";
+import { Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -53,13 +54,7 @@ export async function GET() {
     const storeId = await getCloudflareSecretStoreId();
 
     if (!apiToken || !accountId || !storeId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Cloudflare Secret Store is not configured",
-        },
-        { status: 500 }
-      );
+      return Errors.internal("Cloudflare Secret Store is not configured");
     }
 
     let fetchedSecrets: { name: string }[] = [];
@@ -107,10 +102,7 @@ export async function GET() {
       })),
     });
   } catch (err) {
-    return NextResponse.json(
-      { success: false, error: String(err) },
-      { status: 500 }
-    );
+    return Errors.internal(String(err));
   }
 }
 
@@ -129,14 +121,8 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json(
-      { success: false, error: "Unknown action" },
-      { status: 400 }
-    );
+    return Errors.badRequest("Unknown action");
   } catch (err) {
-    return NextResponse.json(
-      { success: false, error: String(err) },
-      { status: 500 }
-    );
+    return Errors.internal(String(err));
   }
 }

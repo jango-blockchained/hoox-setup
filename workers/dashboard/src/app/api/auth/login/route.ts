@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
+import { Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -47,10 +48,7 @@ export async function POST(
 
     return response;
   } catch (err) {
-    return NextResponse.json(
-      { error: "Invalid request", details: String(err) },
-      { status: 400 }
-    );
+    return Errors.badRequest(`Invalid request: ${err}`);
   }
 }
 

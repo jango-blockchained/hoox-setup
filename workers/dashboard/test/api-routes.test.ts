@@ -119,7 +119,8 @@ describe("Login API Route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.error).toBe("Invalid request");
+    expect(body.success).toBe(false);
+    expect(body.error).toContain("Invalid request");
   });
 
   test("DELETE clears session cookie", async () => {

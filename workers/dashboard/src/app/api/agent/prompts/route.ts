@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -15,6 +16,6 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ success: true, prompts: templates });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return Errors.internal(String(e));
   }
 }
