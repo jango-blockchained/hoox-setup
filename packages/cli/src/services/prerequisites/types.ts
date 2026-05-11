@@ -45,6 +45,4 @@ export type DockerCheckResult =
   | { ok: false; error: string };
 
 /** Result of a wrangler update operation. */
-export type UpdateWranglerResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type UpdateWranglerResult = { ok: true } | { ok: false; error: string };

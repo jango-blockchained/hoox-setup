@@ -1,6 +1,11 @@
 import { parse, printParseErrorCode } from "jsonc-parser";
 import type { ParseError } from "jsonc-parser";
-import type { HooxConfig, WorkerConfig, GlobalConfig, DevConfig } from "./types";
+import type {
+  HooxConfig,
+  WorkerConfig,
+  GlobalConfig,
+  DevConfig,
+} from "./types";
 
 /**
  * Loads, parses, and validates the central wrangler.jsonc configuration.
@@ -169,7 +174,12 @@ export class ConfigService {
     const errors: ParseError[] = [];
     const parsed = parse(raw, errors);
 
-    if (errors.length > 0 || parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    if (
+      errors.length > 0 ||
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
       throw new Error(`Invalid JSONC in ${filePath}`);
     }
 

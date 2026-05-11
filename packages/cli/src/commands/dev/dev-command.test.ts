@@ -125,8 +125,9 @@ beforeEach(() => {
   (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
     getDevRuntimeMock;
   (CloudflareService.prototype as Record<string, unknown>).dev = devMock;
-  (PrerequisitesService.prototype as Record<string, unknown>).checkWranglerVersion =
-    checkWranglerMock;
+  (
+    PrerequisitesService.prototype as Record<string, unknown>
+  ).checkWranglerVersion = checkWranglerMock;
   (DockerService.prototype as Record<string, unknown>).checkAvailability =
     dockerCheckMock;
   (DockerService.prototype as Record<string, unknown>).composeFileExists =
@@ -148,8 +149,9 @@ afterEach(() => {
   (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
     origGetDevRuntime;
   (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
-  (PrerequisitesService.prototype as Record<string, unknown>).checkWranglerVersion =
-    origCheckWrangler;
+  (
+    PrerequisitesService.prototype as Record<string, unknown>
+  ).checkWranglerVersion = origCheckWrangler;
   (DockerService.prototype as Record<string, unknown>).checkAvailability =
     origDockerCheck;
   (DockerService.prototype as Record<string, unknown>).composeFileExists =

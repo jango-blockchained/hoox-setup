@@ -128,7 +128,9 @@ export class CloudflareService {
     }
 
     // Extract version ID (e.g., "Current Version ID: 6a6efd9b-64cf-422b-8b10-84d9c2c6b2d3")
-    const versionMatch = output.match(/Current Version ID:\s*([a-f0-9-]{36,})/i);
+    const versionMatch = output.match(
+      /Current Version ID:\s*([a-f0-9-]{36,})/i
+    );
     if (versionMatch) {
       deployResult.versionId = versionMatch[1];
     }
@@ -227,7 +229,13 @@ export class CloudflareService {
 
   /** Deletes a KV namespace (`wrangler kv namespace delete --namespace-id <id>`). */
   async kvDelete(id: string): Promise<WranglerResult<string>> {
-    return this.runWrangler(["kv", "namespace", "delete", "--namespace-id", id]);
+    return this.runWrangler([
+      "kv",
+      "namespace",
+      "delete",
+      "--namespace-id",
+      id,
+    ]);
   }
 
   // ---------------------------------------------------------------------------
@@ -361,7 +369,9 @@ export class CloudflareService {
       const trimmed = line.trim();
       // wrangler v4+ outputs URLs like: https://name.subdomain.workers.dev
       // Possibly preceded by "Published" or "Uploaded"
-      const match = trimmed.match(/(https?:\/\/[^\s]+(?:workers\.dev|cloudflareworkers\.com)[^\s]*)/);
+      const match = trimmed.match(
+        /(https?:\/\/[^\s]+(?:workers\.dev|cloudflareworkers\.com)[^\s]*)/
+      );
       if (match) return match[1];
     }
     return undefined;

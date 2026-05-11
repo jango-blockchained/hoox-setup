@@ -170,7 +170,10 @@ EXAMPLES:
           const result = await docker.composeUp(profiles, false);
           if (!result.ok) {
             formatError(
-              new CLIError(result.error ?? "Docker compose failed", ExitCode.ERROR),
+              new CLIError(
+                result.error ?? "Docker compose failed",
+                ExitCode.ERROR
+              ),
               fmt
             );
             process.exitCode = ExitCode.ERROR;
@@ -279,71 +282,73 @@ EXAMPLES:
       "--runtime <native|docker>",
       "Choose dev runtime (overrides saved preference)"
     )
-    .action(async (name: string, options: { port?: number; runtime?: string }) => {
-      const fmt = getFormatOptions(program);
-      try {
-        const configService = new ConfigService();
-        await configService.load();
+    .action(
+      async (name: string, options: { port?: number; runtime?: string }) => {
+        const fmt = getFormatOptions(program);
+        try {
+          const configService = new ConfigService();
+          await configService.load();
 
-        // Validate the worker exists in config
-        const worker = configService.getWorker(name);
-        if (!worker) {
-          formatError(
-            new CLIError(
-              `Worker "${name}" not found in wrangler.jsonc.\n` +
-                `Available workers: ${configService.listWorkers().join(", ")}`,
-              ExitCode.INVALID_USAGE
-            ),
+          // Validate the worker exists in config
+          const worker = configService.getWorker(name);
+          if (!worker) {
+            formatError(
+              new CLIError(
+                `Worker "${name}" not found in wrangler.jsonc.\n` +
+                  `Available workers: ${configService.listWorkers().join(", ")}`,
+                ExitCode.INVALID_USAGE
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
+
+          if (!worker.enabled) {
+            formatError(
+              new CLIError(
+                `Worker "${name}" is disabled. Enable it with the config command first.`,
+                ExitCode.INVALID_USAGE
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
+
+          const port = options.port ?? 8787;
+
+          formatSuccess(
+            `Starting worker "${name}" (${worker.path}) on port ${port}...`,
             fmt
           );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
 
-        if (!worker.enabled) {
-          formatError(
-            new CLIError(
-              `Worker "${name}" is disabled. Enable it with the config command first.`,
-              ExitCode.INVALID_USAGE
-            ),
+          const cf = new CloudflareService();
+          const result = await cf.dev(worker.path, port);
+
+          if (!result.ok) {
+            formatError(
+              new CLIError(
+                `Failed to start worker "${name}": ${result.error}`,
+                ExitCode.ERROR
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+            return;
+          }
+
+          formatSuccess(
+            `Worker "${name}" running on http://localhost:${result.data.port}`,
             fmt
           );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
-
-        const port = options.port ?? 8787;
-
-        formatSuccess(
-          `Starting worker "${name}" (${worker.path}) on port ${port}...`,
-          fmt
-        );
-
-        const cf = new CloudflareService();
-        const result = await cf.dev(worker.path, port);
-
-        if (!result.ok) {
-          formatError(
-            new CLIError(
-              `Failed to start worker "${name}": ${result.error}`,
-              ExitCode.ERROR
-            ),
-            fmt
-          );
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          formatError(message, fmt);
           process.exitCode = ExitCode.ERROR;
-          return;
         }
-
-        formatSuccess(
-          `Worker "${name}" running on http://localhost:${result.data.port}`,
-          fmt
-        );
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
       }
-    });
+    );
 
   // -- dev dashboard --------------------------------------------------------
   devCmd

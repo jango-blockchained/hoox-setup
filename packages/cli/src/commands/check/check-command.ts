@@ -137,10 +137,7 @@ async function getWorkerDirs(): Promise<string[]> {
 /**
  * Check if a file or directory is tracked by git in a given directory.
  */
-async function isGitTracked(
-  dir: string,
-  filename: string
-): Promise<boolean> {
+async function isGitTracked(dir: string, filename: string): Promise<boolean> {
   try {
     const proc = Bun.spawn(["git", "ls-files", "--error-unmatch", filename], {
       cwd: dir,
@@ -164,10 +161,12 @@ async function gitUntrackFile(dir: string, filename: string): Promise<void> {
       stdout: "pipe",
       stderr: "pipe",
     });
-    proc.exited.then((code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`git rm --cached failed with code ${code}`));
-    }).catch(reject);
+    proc.exited
+      .then((code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`git rm --cached failed with code ${code}`));
+      })
+      .catch(reject);
   });
 }
 
@@ -895,9 +894,7 @@ async function checkSubmoduleGitignore(
 
     for (const entry of CRITICAL_GITIGNORE_ENTRIES) {
       if (!lines.includes(entry)) {
-        issues.push(
-          `${workerName}: missing "${entry}" in .gitignore`
-        );
+        issues.push(`${workerName}: missing "${entry}" in .gitignore`);
       }
     }
 
@@ -961,13 +958,9 @@ async function handleSubmoduleGitignore(opts: FormatOptions): Promise<void> {
       }
 
       if (result.fixed.length > 0) {
-        process.stdout.write(
-          `\n${theme.success(icons.success)} Fixed:\n`
-        );
+        process.stdout.write(`\n${theme.success(icons.success)} Fixed:\n`);
         for (const fix of result.fixed) {
-          process.stdout.write(
-            `  ${theme.success(icons.success)} ${fix}\n`
-          );
+          process.stdout.write(`  ${theme.success(icons.success)} ${fix}\n`);
         }
       }
 

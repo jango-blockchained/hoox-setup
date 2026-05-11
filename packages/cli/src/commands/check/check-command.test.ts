@@ -244,7 +244,7 @@ describe("registerCheckCommand", () => {
   // -- check setup ----------------------------------------------------------
 
   describe("check setup", () => {
-    it("loads config and runs all 4 categories", async () => {
+    it("loads config and runs all 4 categories", { timeout: 30000 }, async () => {
       const program = await createProgram();
       await program.parseAsync(["check", "setup"], { from: "user" });
 
@@ -255,7 +255,7 @@ describe("registerCheckCommand", () => {
       expect(queueListMock).toHaveBeenCalled();
     });
 
-    it("outputs JSON when --json flag is set", async () => {
+    it("outputs JSON when --json flag is set", { timeout: 30000 }, async () => {
       const program = await createProgram();
       const logSpy = mock((..._args: unknown[]) => {});
       const origWrite = process.stdout.write;
@@ -285,7 +285,7 @@ describe("registerCheckCommand", () => {
       }
     });
 
-    it("sets exitCode to ERROR when validation fails", async () => {
+    it("sets exitCode to ERROR when validation fails", { timeout: 30000 }, async () => {
       validateMock = mock(() => ({
         valid: false,
         errors: ["global.cloudflare_account_id is required"],

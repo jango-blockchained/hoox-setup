@@ -147,7 +147,7 @@ describe("registerConfigCommand", () => {
 
     const cmd = program.commands.find((c) => c.name() === "config");
     expect(cmd).toBeDefined();
-    expect(cmd?.description()).toContain("Manage configuration");
+    expect(cmd?.summary()).toContain("Manage configuration");
   });
 
   it("registers the `show` subcommand", () => {

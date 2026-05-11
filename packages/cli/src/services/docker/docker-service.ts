@@ -43,7 +43,9 @@ export class DockerService {
    */
   async composeFileExists(): Promise<boolean> {
     const file = Bun.file(
-      this.cwd.endsWith("/") ? `${this.cwd}${COMPOSE_FILE}` : `${this.cwd}/${COMPOSE_FILE}`
+      this.cwd.endsWith("/")
+        ? `${this.cwd}${COMPOSE_FILE}`
+        : `${this.cwd}/${COMPOSE_FILE}`
     );
     return file.exists();
   }
@@ -81,7 +83,10 @@ export class DockerService {
         if (exitCode === 0) {
           return { ok: true };
         }
-        return { ok: false, error: `docker compose exited with code ${exitCode}` };
+        return {
+          ok: false,
+          error: `docker compose exited with code ${exitCode}`,
+        };
       }
 
       // Detached mode: capture output
@@ -120,11 +125,15 @@ export class DockerService {
       }
       return {
         ok: false,
-        error: stderr.trim() || `docker compose down exited with code ${exitCode}`,
+        error:
+          stderr.trim() || `docker compose down exited with code ${exitCode}`,
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return { ok: false, error: `Failed to run docker compose down: ${message}` };
+      return {
+        ok: false,
+        error: `Failed to run docker compose down: ${message}`,
+      };
     }
   }
 
@@ -138,7 +147,9 @@ export class DockerService {
         stderr: "pipe",
       });
 
-      proc.exited.then((code) => resolve(code === 0)).catch(() => resolve(false));
+      proc.exited
+        .then((code) => resolve(code === 0))
+        .catch(() => resolve(false));
     });
   }
 }
