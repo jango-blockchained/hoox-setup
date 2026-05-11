@@ -1,3 +1,6 @@
+import { toError } from "@jango-blockchained/hoox-shared";
+import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared";
+
 function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
   const envUrl = process.env[envKey];
@@ -94,22 +97,18 @@ class ApiClient {
     stats: DashboardStats;
     recentActivity: unknown[];
   }> {
-    const data = await this.fetchWithAuth(
-      `${getApiUrl("d1Service")}/api/dashboard/stats`
-    );
-    return data as {
+    return this.fetchWithAuth<{
       success: boolean;
       stats: DashboardStats;
       recentActivity: unknown[];
-    };
+    }>(`${getApiUrl("d1Service")}/api/dashboard/stats`);
   }
 
   // Positions
   async getPositions(): Promise<{ success: boolean; positions: Position[] }> {
-    const data = await this.fetchWithAuth(
+    return this.fetchWithAuth<{ success: boolean; positions: Position[] }>(
       `${getApiUrl("d1Service")}/api/dashboard/positions`
     );
-    return data as { success: boolean; positions: Position[] };
   }
 
   async closePosition(
@@ -118,15 +117,18 @@ class ApiClient {
     side: string,
     size: number
   ): Promise<{ success: boolean; error?: string }> {
-    return this.fetchWithAuth(`${getApiUrl("tradeService")}/webhook`, {
-      method: "POST",
-      body: JSON.stringify({
-        exchange,
-        symbol,
-        action: side === "LONG" ? "CLOSE_LONG" : "CLOSE_SHORT",
-        quantity: size,
-      }),
-    }) as Promise<{ success: boolean; error?: string }>;
+    return this.fetchWithAuth<{ success: boolean; error?: string }>(
+      `${getApiUrl("tradeService")}/webhook`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          exchange,
+          symbol,
+          action: side === "LONG" ? "CLOSE_LONG" : "CLOSE_SHORT",
+          quantity: size,
+        }),
+      }
+    );
   }
 
   // Logs
@@ -220,17 +222,16 @@ class ApiClient {
       if (!response.ok) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      const data = (await response.json()) as unknown;
-      const payload = this.asObject(data);
+      const data = (await response.json()) as Record<string, unknown>;
       if (
-        typeof payload.timestamp === "string" &&
-        Array.isArray(payload.issues)
+        typeof data.timestamp === "string" &&
+        Array.isArray(data.issues)
       ) {
-        return payload as HousekeepingPayload;
+        return data as unknown as HousekeepingPayload;
       }
       return { error: "Invalid housekeeping payload" };
-    } catch (e: unknown) {
-      return { error: e instanceof Error ? e.message : "Unknown error" };
+    } catch (e) {
+      return { error: toError(e) };
     }
   }
 
@@ -239,29 +240,29 @@ class ApiClient {
     secrets: { name: string; synced: boolean }[];
     error?: string;
   }> {
-    const data = await this.fetchWithAuth("/api/secrets");
-    return data as {
+    return this.fetchWithAuth<{
       success: boolean;
       secrets: { name: string; synced: boolean }[];
       error?: string;
-    };
+    }>("/api/secrets");
   }
 
   async syncSecretToPages(
     secretName: string,
     secretValue: string
   ): Promise<{ success: boolean; message?: string; error?: string }> {
-    const data = await this.fetchWithAuth("/api/secrets", {
-      method: "POST",
-      body: JSON.stringify({
-        action: "sync-to-pages",
-        secretName,
-        secretValue,
-      }),
-    });
-    return data as { success: boolean; message?: string; error?: string };
+    return this.fetchWithAuth<{ success: boolean; message?: string; error?: string }>(
+      "/api/secrets",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "sync-to-pages",
+          secretName,
+          secretValue,
+        }),
+      }
+    );
   }
 }
 
 export const api = new ApiClient();
-import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared";
