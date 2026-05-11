@@ -64,10 +64,27 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
 
       const route = matchRoute(path, method);
       if (!route) {
-        return new Response(JSON.stringify({ error: "Not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        });
+        // Check if this path exists with a different method → 405
+        const pathExists = routes.some((r) => r.path === path);
+        if (pathExists) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: `Method ${method} not allowed for ${path}`,
+            }),
+            {
+              status: 405,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        return new Response(
+          JSON.stringify({ success: false, error: "Not found" }),
+          {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
       }
 
       // Apply middleware if any

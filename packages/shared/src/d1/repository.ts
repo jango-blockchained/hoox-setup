@@ -1,4 +1,8 @@
-import type { D1Database, D1Result, D1PreparedStatement } from "@cloudflare/workers-types";
+import type {
+  D1Database,
+  D1Result,
+  D1PreparedStatement,
+} from "@cloudflare/workers-types";
 import type {
   TradeRecord,
   PositionRecord,
@@ -47,10 +51,7 @@ export class D1Repository {
   /**
    * Execute a write query (INSERT, UPDATE, DELETE, REPLACE)
    */
-  async execute(
-    sql: string,
-    params: unknown[] = []
-  ): Promise<D1QueryResult> {
+  async execute(sql: string, params: unknown[] = []): Promise<D1QueryResult> {
     try {
       const stmt = this.db.prepare(sql).bind(...params);
       const result = await stmt.run();
@@ -215,7 +216,9 @@ export class D1Repository {
   /**
    * Retrieve recent system logs
    */
-  async getSystemLogs(limit: number = 50): Promise<D1QueryResult<SystemLogRecord>> {
+  async getSystemLogs(
+    limit: number = 50
+  ): Promise<D1QueryResult<SystemLogRecord>> {
     return this.query<SystemLogRecord>(
       "SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT ?",
       [limit]
