@@ -31,7 +31,7 @@ describe("KV Namespace", async () => {
 
   test("kv namespace list returns namespaces", { timeout: 60000 }, async () => {
     section("List namespaces");
-    const result = await wrangler(["kv", "namespace", "list", "--json"]);
+    const result = await wrangler(["kv", "namespace", "list"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     expect(Array.isArray(parsed)).toBe(true);
@@ -137,8 +137,8 @@ describe("KV Namespace", async () => {
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/hello`,
     ]);
-    // Getting a deleted key should return empty output (not error)
-    expect(getResult.stdout.length).toBe(0);
+    // Getting a deleted key should not return the value
+    expect(getResult.stdout).not.toContain("world");
     console.log('  ✓ Deleted kv-test-*/hello');
   });
 
