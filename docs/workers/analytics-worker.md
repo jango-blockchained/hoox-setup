@@ -1,3 +1,7 @@
+---
+title: "📊 analytics-worker"
+description: "Time-series analytics collection for the entire hoox platform"
+---
 # 📊 analytics-worker
 
 > Time-series analytics collection for the entire hoox platform

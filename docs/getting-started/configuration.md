@@ -1,3 +1,7 @@
+---
+title: "⚙️ Configuration Guide"
+description: "How to configure Hoox workers"
+---
 # ⚙️ Configuration Guide
 
 > How to configure Hoox workers

@@ -1,3 +1,7 @@
+---
+title: "🔄 CI/CD"
+description: "Automating the deployment pipeline"
+---
 # 🔄 CI/CD
 
 > Automating the deployment pipeline

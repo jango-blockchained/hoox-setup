@@ -1,3 +1,7 @@
+---
+title: "🔗 Worker Communication"
+description: "How workers communicate with each other"
+---
 # 🔗 Worker Communication
 
 > How workers communicate with each other

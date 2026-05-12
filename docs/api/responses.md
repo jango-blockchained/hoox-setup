@@ -1,3 +1,7 @@
+---
+title: "📨 API Responses"
+description: "Standardized response formats for inter-worker communication"
+---
 # 📨 API Responses
 
 > Standardized response formats for inter-worker communication

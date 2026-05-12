@@ -1,3 +1,7 @@
+---
+title: "🏗️ Architecture Overview"
+description: "Understanding the Hoox system design — 9 workers, 12+ Cloudflare services, all on Free plan"
+---
 # 🏗️ Architecture Overview
 
 > Understanding the Hoox system design — 9 workers, 12+ Cloudflare services, all on Free plan

@@ -1,3 +1,7 @@
+---
+title: "🐛 Debugging"
+description: "Tools and techniques for debugging Hoox workers"
+---
 # 🐛 Debugging
 
 > Tools and techniques for debugging Hoox workers

@@ -1,3 +1,6 @@
+---
+title: "Hoox Dashboard Zero Trust Setup"
+---
 # Hoox Dashboard Zero Trust Setup
 
 While the Hoox dashboard currently uses custom cookie-based authentication, Cloudflare Zero Trust (Access) provides a more robust, enterprise-grade security layer for accessing your trading command center.

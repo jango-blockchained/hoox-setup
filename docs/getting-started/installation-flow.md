@@ -1,3 +1,7 @@
+---
+title: "Cloudflare® Workers Installation Flow"
+description: "**Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations."
+---
 # Cloudflare® Workers Installation Flow
 
 This document outlines the installation and setup process for the Cloudflare® Workers in this project.

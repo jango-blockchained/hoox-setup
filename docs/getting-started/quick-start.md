@@ -1,3 +1,7 @@
+---
+title: "🎯 Quick Start Guide"
+description: "Get up and running with Hoox in 5 minutes"
+---
 # 🎯 Quick Start Guide
 
 > Get up and running with Hoox in 5 minutes

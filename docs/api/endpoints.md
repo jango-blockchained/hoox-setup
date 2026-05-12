@@ -1,3 +1,6 @@
+---
+title: "ENDPOINTS Documentation"
+---
 # ENDPOINTS Documentation
 
 ## Overview

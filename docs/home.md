@@ -1,3 +1,7 @@
+---
+title: "📚 Hoox Documentation"
+description: "Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform"
+---
 # 📚 Hoox Documentation
 
 > Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform
@@ -55,6 +59,7 @@ Each worker has its own documentation file:
 
 - [Live Demo](https://hoox.cryptolinx.workers.dev)
 - [GitHub Repository](https://github.com/jango-blockchained/hoox-setup)
+- [Docs Site (GitHub Pages)](https://jango-blockchained.github.io/hoox-setup/)
 - [Report Issues](https://github.com/jango-blockchained/hoox-setup/issues)
 
 ## 📊 Feature Matrix

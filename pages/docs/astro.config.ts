@@ -11,6 +11,12 @@ export default defineConfig({
   base: "/hoox-setup",
   output: "static",
   integrations: [react()],
+  markdown: {
+    shikiConfig: {
+      theme: "github-dark",
+      wrap: false,
+    },
+  },
   vite: {
     plugins: [tailwind()],
     resolve: {

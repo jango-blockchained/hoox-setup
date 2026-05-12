@@ -1,3 +1,6 @@
+---
+title: "Hoox CLI Features & Background Processes"
+---
 # Hoox CLI Features & Background Processes
 
 The `hoox` CLI is the central management tool for the Hoox Trading System. This document outlines all user-facing commands and automated background tasks.

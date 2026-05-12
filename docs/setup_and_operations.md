@@ -1,3 +1,7 @@
+---
+title: "Hoox Trading System — Complete Setup & Operations Guide"
+description: "**Version:** 2.0.0"
+---
 # Hoox Trading System — Complete Setup & Operations Guide
 
 > **Version:** 2.0.0  

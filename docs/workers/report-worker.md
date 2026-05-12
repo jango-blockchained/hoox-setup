@@ -1,3 +1,7 @@
+---
+title: "📄 report-worker"
+description: "Automated PDF portfolio reports via Cloudflare Browser Rendering"
+---
 # 📄 report-worker
 
 > Automated PDF portfolio reports via Cloudflare Browser Rendering

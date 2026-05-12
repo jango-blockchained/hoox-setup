@@ -1,3 +1,7 @@
+---
+title: "📊 Monitoring"
+description: "Keeping an eye on system health and performance across all 9 workers"
+---
 # 📊 Monitoring
 
 > Keeping an eye on system health and performance across all 9 workers

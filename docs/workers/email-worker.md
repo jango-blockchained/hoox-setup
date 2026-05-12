@@ -1,3 +1,6 @@
+---
+title: "Email Worker"
+---
 # Email Worker
 
 **Last Updated:** April 2026

@@ -1,3 +1,6 @@
+---
+title: "Cloudflare® Workers Bindings & Environment Variables"
+---
 # Cloudflare® Workers Bindings & Environment Variables
 
 This document provides a comprehensive reference for all bindings, environment variables, and secrets used in the Cloudflare® Workers project.

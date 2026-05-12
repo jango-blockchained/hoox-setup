@@ -1,3 +1,7 @@
+---
+title: "🚀 Production Deployment"
+description: "Taking your Hoox setup live"
+---
 # 🚀 Production Deployment
 
 > Taking your Hoox setup live

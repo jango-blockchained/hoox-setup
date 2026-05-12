@@ -1,3 +1,6 @@
+---
+title: "D1 Worker"
+---
 # D1 Worker
 
 **Last Updated:** April 2026

@@ -1,3 +1,6 @@
+---
+title: "Dashboard - Hoox UI & Settings Manager"
+---
 # Dashboard - Hoox UI & Settings Manager
 
 **Last Updated:** April 2026

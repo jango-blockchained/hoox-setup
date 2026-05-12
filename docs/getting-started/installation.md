@@ -1,3 +1,7 @@
+---
+title: "🚀 Installation Guide"
+description: "How to set up Hoox on your local machine"
+---
 # 🚀 Installation Guide
 
 > How to set up Hoox on your local machine

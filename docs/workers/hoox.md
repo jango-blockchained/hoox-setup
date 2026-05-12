@@ -1,3 +1,6 @@
+---
+title: "Hoox Gateway Worker"
+---
 # Hoox Gateway Worker
 
 **Last Updated:** April 2026

@@ -1,3 +1,6 @@
+---
+title: "Web3 Wallet Worker"
+---
 # Web3 Wallet Worker
 
 **Last Updated:** April 2026

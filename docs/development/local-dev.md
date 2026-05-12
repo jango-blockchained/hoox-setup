@@ -1,3 +1,7 @@
+---
+title: "💻 Local Development"
+description: "How to run and test Hoox workers locally"
+---
 # 💻 Local Development
 
 > How to run and test Hoox workers locally

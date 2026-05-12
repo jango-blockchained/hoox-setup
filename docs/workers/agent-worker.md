@@ -1,3 +1,6 @@
+---
+title: "Agent Worker - Hoox Autonomous AI & Risk Manager"
+---
 # Agent Worker - Hoox Autonomous AI & Risk Manager
 
 **Last Updated:** May 2026 (Post-Enhancement)

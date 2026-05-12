@@ -1,3 +1,6 @@
+---
+title: "Trade Worker"
+---
 # Trade Worker
 
 **Last Updated:** April 2026

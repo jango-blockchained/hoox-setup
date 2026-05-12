@@ -3,13 +3,17 @@ import DocLayout from "@/layouts/DocLayout.astro";
 import { getCollection, render } from "astro:content";
 
 const allDocs = await getCollection("docs");
-const homeDoc = allDocs.find((d) => d.id === "home.md" || d.id === "index.md");
+const homeDoc = allDocs.find((d: { id: string }) => d.id === "home" || d.id.endsWith("/home"));
 let Content: any = null;
 const headings: Array<{ depth: number; text: string; slug: string }> = [];
 
 if (homeDoc) {
   const result = await render(homeDoc);
   Content = result.Content;
+  const h = result.headings || [];
+  for (const heading of h) {
+    headings.push({ depth: heading.depth, text: heading.text, slug: heading.slug });
+  }
 }
 ---
 

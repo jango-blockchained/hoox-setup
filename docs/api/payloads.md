@@ -1,3 +1,7 @@
+---
+title: "📦 API Payloads"
+description: "Standardized request payloads for inter-worker communication"
+---
 # 📦 API Payloads
 
 > Standardized request payloads for inter-worker communication

@@ -1,3 +1,6 @@
+---
+title: "Hoox Storage Architecture"
+---
 # Hoox Storage Architecture
 
 The Hoox Trading System leverages three primary Cloudflare storage primitives to ensure high performance, security, and low operational latency at the edge.
