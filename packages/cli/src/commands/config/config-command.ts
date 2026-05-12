@@ -750,7 +750,7 @@ EXAMPLES:
 
         if (!opts.quiet && !opts.json) {
           process.stdout.write(
-            `${theme.warning("⚠")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`
+            `${theme.warning("!")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`
           );
           formatKeyValue(keys, opts);
         }

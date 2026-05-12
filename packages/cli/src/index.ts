@@ -25,7 +25,7 @@ program
   .version("0.2.0")
   .addHelpText(
     "beforeAll",
-    theme.heading("\n🦊  Hoox CLI — Cloudflare Workers Platform\n")
+    theme.heading("\nHoox CLI — Cloudflare Workers Platform\n")
   )
   .configureHelp({
     styleTitle: (str: string) => theme.heading(str),

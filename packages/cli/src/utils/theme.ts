@@ -62,25 +62,13 @@ export const theme = {
 export const icons = {
   success: "✓",
   error: "✗",
-  warning: "⚠",
-  info: "ℹ",
-  arrow: "→",
-  spinner: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  warning: "!",
+  info: "i",
+  arrow: "->",
+  spinner: ["-", "\\", "|", "/"],
   dot: "●",
-  check: "✔",
-  cross: "✘",
-  rocket: "🚀",
-  lock: "🔒",
-  gear: "⚙",
-  cloud: "☁",
-  database: "🗄",
-  key: "🔑",
-  shield: "🛡",
-  wifi: "📡",
-  folder: "📁",
-  file: "📄",
-  lightning: "⚡",
-  fire: "🔥",
+  check: "v",
+  cross: "x",
 };
 
 // ── Display helpers ───────────────────────────────────────────────
@@ -100,7 +88,7 @@ export function kv(key: string, value: string): string {
   return `${theme.key(key)} ${theme.dim(":")} ${theme.value(value)}`;
 }
 
-/** Format a labeled value with an icon prefix. */
-export function tagged(icon: string, label: string, value: string): string {
-  return `${icon} ${theme.key(label)} ${theme.dim("→")} ${theme.value(value)}`;
+/** Format a labeled value. */
+export function tagged(label: string, value: string): string {
+  return `${theme.key(label)} ${theme.dim(":")} ${theme.value(value)}`;
 }

@@ -104,7 +104,7 @@ EXAMPLES:
         const wranglerCheck = await prereqs.checkWranglerVersion();
         if (wranglerCheck.outdated) {
           process.stdout.write(
-            `\n⚠️  wrangler is outdated (${wranglerCheck.current} < ${wranglerCheck.minimum})\n` +
+            `\n! wrangler is outdated (${wranglerCheck.current} < ${wranglerCheck.minimum})\n` +
               `   Run \`bunx wrangler update\` to update.\n` +
               `   Press Enter to continue or Ctrl+C to abort.\n\n`
           );

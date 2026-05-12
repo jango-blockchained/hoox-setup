@@ -48,5 +48,5 @@ export function renderBanner(): string {
  * Render a compact one-line banner for inline display.
  */
 export function renderCompactBanner(): string {
-  return `${theme.heading("🦊 Hoox CLI")} ${theme.dim(`${TAGLINE} ${VERSION}`)}`;
+  return `${theme.heading("Hoox CLI")} ${theme.dim(`${TAGLINE} ${VERSION}`)}`;
 }

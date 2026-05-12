@@ -46,7 +46,7 @@ export async function runInteractiveTUI(program: Command): Promise<void> {
     // "back" or "continue" → loop back to main menu
   }
 
-  outro("See you later! 🦊");
+  outro("See you later!");
 }
 
 // ---------------------------------------------------------------------------
@@ -54,19 +54,19 @@ export async function runInteractiveTUI(program: Command): Promise<void> {
 // ---------------------------------------------------------------------------
 
 const MAIN_CATEGORIES = [
-  { value: "deploy", label: "🚀 Deploy", hint: "workers, dashboard" },
-  { value: "develop", label: "⚙️  Develop", hint: "dev server, init project" },
+  { value: "deploy", label: "Deploy", hint: "workers, dashboard" },
+  { value: "develop", label: "Develop", hint: "dev server, init project" },
   {
     value: "manage",
-    label: "🔧 Manage",
+    label: "Manage",
     hint: "infrastructure, config, secrets",
   },
   {
     value: "monitor",
-    label: "📊 Monitor",
+    label: "Monitor",
     hint: "diagnostics, health, logs, tests",
   },
-  { value: "tools", label: "🛠  Tools", hint: "WAF, clone worker, dashboard UI" },
+  { value: "tools", label: "Tools", hint: "WAF, clone worker, dashboard UI" },
   { value: "__exit", label: "Exit" },
 ] as const;
 
