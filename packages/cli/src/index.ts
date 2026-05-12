@@ -51,6 +51,15 @@ program.exitOverride((err) => {
     process.exit(ExitCode.SUCCESS);
   }
 
+  // Parent command without subcommand — already displayed help, clean exit
+  if (
+    err.code === "commander.missingArgument" ||
+    err.message === "(outputHelp)" ||
+    err.message?.includes("outputHelp")
+  ) {
+    process.exit(ExitCode.SUCCESS);
+  }
+
   // Unknown command / option: exit code 2 (invalid usage)
   if (
     err.code === "commander.unknownCommand" ||

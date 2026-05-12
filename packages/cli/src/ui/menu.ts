@@ -365,7 +365,7 @@ async function showMonitorMenu(
           hint: "worker connectivity",
         },
         { value: "check fix", label: "Auto-repair", hint: "fix common issues" },
-        { value: "logs", label: "View logs", hint: "real-time log tailing" },
+        { value: "__logs", label: "View logs", hint: "real-time log tailing" },
         { value: "test", label: "Run tests" },
         { value: "__back", label: "◀ Back to main menu" },
       ],
@@ -373,6 +373,29 @@ async function showMonitorMenu(
 
     if (isCancel(choice)) return "back";
     if (choice === "__back") return "continue";
+
+    if (choice === "__logs") {
+      const target = await select({
+        message: "Tail logs for",
+        options: [
+          { value: "all", label: "All workers" },
+          { value: "single", label: "A specific worker..." },
+          { value: "__back", label: "◀ Back" },
+        ],
+      });
+      if (isCancel(target) || target === "__back") continue;
+      if (target === "single") {
+        const name = await text({
+          message: "Worker name",
+          placeholder: "e.g. hoox, trade-worker, d1-worker",
+        });
+        if (isCancel(name) || !name) continue;
+        await runCommand(program, `logs worker ${name}`);
+      } else {
+        await runCommand(program, "logs all");
+      }
+      continue;
+    }
 
     await runCommand(program, choice);
   }
