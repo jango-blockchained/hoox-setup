@@ -34,7 +34,7 @@ describe("Durable Objects", () => {
   // Deploy test worker with DO
   // -----------------------------------------------------------------------
 
-  test("Deploy test worker with DO binding", () => {
+  test("Deploy test worker with DO binding", { timeout: 120000 }, async () => {
     section("Deploy test worker");
     // Create a temporary directory for the test worker
     const workerDir = `/tmp/${TEST_WORKER}`;
