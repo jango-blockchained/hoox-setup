@@ -1,7 +1,7 @@
 # Hoox Trading System — Complete Setup & Operations Guide
 
-> **Version:** 1.0.0  
-> **Last Updated:** 2026-05-05  
+> **Version:** 2.0.0  
+> **Last Updated:** 2026-05-12  
 > **Classification:** Internal Operations Manual  
 > **Audience:** DevOps Engineers, Senior TypeScript Developers, System Administrators
 
@@ -32,17 +32,18 @@
 
 Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Workers. It consists of:
 
-| Layer             | Components                                                              |
-| ----------------- | ----------------------------------------------------------------------- |
-| **Gateway**       | `hoox` (webhook entrypoint, idempotency, rate limiting)                 |
-| **Execution**     | `trade-worker` (multi-exchange trading), `web3-wallet-worker` (DeFi)    |
-| **Intelligence**  | `agent-worker` (AI risk manager, 5min cron)                             |
-| **Data**          | `d1-worker` (centralized D1 database service)                           |
-| **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing) |
-| **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine)                        |
-| **Dashboard**     | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)         |
-| **CLI**           | `packages/cli` (management tool)                                        |
-| **Shared**        | `packages/shared` (types, router, middleware, utilities)                |
+| Layer             | Components                                                                        |
+| ----------------- | --------------------------------------------------------------------------------- |
+| **Gateway**       | `hoox` (webhook entrypoint, DO idempotency, KV-backed rate limiting)              |
+| **Execution**     | `trade-worker` (multi-exchange), `web3-wallet-worker` (DeFi)                      |
+| **Intelligence**  | `agent-worker` (AI risk manager, 5min cron, multi-provider AI gateway)            |
+| **Data**          | `d1-worker` (centralized D1 database service)                                     |
+| **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing)           |
+| **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine, cross-worker observability)       |
+| **Reporting**     | `report-worker` (Automated PDF reports via Browser Rendering, 2x daily cron)      |
+| **Dashboard**     | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)                   |
+| **CLI**           | `packages/cli` (management tool)                                                  |
+| **Shared**        | `packages/shared` (types, router, middleware, utilities)                          |
 
 ### 1.2 Communication Flow
 
@@ -61,18 +62,19 @@ email-worker (cron) → trade-worker
 
 | Service              | Instance Name      | Binding              | Used By                                           |
 | -------------------- | ------------------ | -------------------- | ------------------------------------------------- |
-| **D1 Database**      | `trade-data-db`    | `DB`                 | trade-worker, d1-worker                           |
-| **KV Namespace**     | `CONFIG_KV`        | `CONFIG_KV`          | ALL workers + dashboard                           |
+| **D1 Database**      | `trade-data-db`    | `DB`                 | trade-worker, d1-worker, agent-worker             |
+| **KV Namespace**     | `CONFIG_KV`        | `CONFIG_KV`          | ALL workers + dashboard (config + rate limiter)   |
 | **KV Namespace**     | `SESSIONS_KV`      | `SESSIONS_KV`        | hoox                                              |
-| **R2 Bucket**        | `trade-reports`    | `REPORTS_BUCKET`     | trade-worker                                      |
+| **R2 Bucket**        | `trade-reports`    | `REPORTS_BUCKET`     | trade-worker, report-worker                       |
 | **R2 Bucket**        | `hoox-system-logs` | `SYSTEM_LOGS_BUCKET` | trade-worker                                      |
 | **R2 Bucket**        | `user-uploads`     | `UPLOADS_BUCKET`     | telegram-worker                                   |
 | **Queue**            | `trade-execution`  | `TRADE_QUEUE`        | hoox (producer), trade-worker (consumer)          |
-| **Vectorize**        | `my-rag-index`     | `VECTORIZE_INDEX`    | hoox, trade-worker, telegram-worker, agent-worker |
-| **Analytics Engine** | `hoox-analytics`   | `ANALYTICS_ENGINE`   | analytics-worker                                  |
-| **Durable Objects**  | `IdempotencyStore` | `IDEMPOTENCY_STORE`  | hoox                                              |
-| **Browser**          | —                  | `BROWSER`            | trade-worker, web3-wallet-worker                  |
+| **Vectorize**        | `my-rag-index`     | `VECTORIZE_INDEX`    | hoox, trade-worker, telegram-worker               |
+| **Analytics Engine** | `hoox-analytics`   | (REST API)           | analytics-worker (cross-worker data collection)   |
+| **Durable Objects**  | `IdempotencyStore` | `IDEMPOTENCY_STORE`  | hoox (SQLite-backed, TTL+alarm cleanup)           |
+| **Browser Rendering**| —                  | (REST API)           | report-worker (PDF generation via CF API)         |
 | **AI**               | —                  | `AI`                 | hoox, trade-worker, telegram-worker, agent-worker |
+| **Smart Placement**  | —                  | (wrangler config)    | hoox, trade, agent, d1, telegram, report          |
 
 ---
 

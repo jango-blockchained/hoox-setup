@@ -1,13 +1,13 @@
 # 🏗️ Architecture Overview
 
-> Understanding the Hoox system design
+> Understanding the Hoox system design — 9 workers, 12+ Cloudflare services, all on Free plan
 
 ## High-Level Architecture
 
 Hoox is a **service-oriented** platform where multiple Cloudflare® Workers communicate via:
-
-1. **Service Bindings** - Direct worker-to-worker calls
-2. **Shared Resources** - KV, D1, R2, Vectorize
+1. **Service Bindings** — Direct worker-to-worker calls (microsecond latency)
+2. **Shared Resources** — KV, D1, R2, Vectorize, Durable Objects, Queues
+3. **Smart Placement** — Workers auto-deploy to edge node closest to exchange APIs
 
 ## System Diagram
 
@@ -16,158 +16,124 @@ graph TB
     subgraph "External World"
         TV["📊 TradingView"]
         TG["💬 Telegram"]
-        USER["👤 User"]
+        EM["📧 Email"]
     end
 
-    subgraph "hoox (Gateway)"
-        hoox[hoox worker]
+    subgraph "Edge Workers (9)"
+        hoox["🔐 hoox<br/>Gateway"]
+        trade["📈 trade-worker<br/>Execution"]
+        agent["🧠 agent-worker<br/>AI Risk"]
+        telegram["💬 telegram-worker<br/>Notifications"]
+        d1["🗄️ d1-worker<br/>SQL"]
+        web3["🌐 web3-wallet<br/>DeFi"]
+        email["📧 email-worker<br/>Parser"]
+        analytics["📊 analytics-worker<br/>Metrics"]
+        report["📄 report-worker<br/>PDF Reports"]
     end
 
-    subgraph "Internal Workers"
-        trade["📈 trade-worker"]
-        telegram["💬 telegram-worker"]
-        d1["🗄️ d1-worker"]
-    end
-
-    subgraph "Cloudflare®"
-        KV[(KV Namespace)]
-        R2[(R2 Bucket)]
-        AI[AI]
+    subgraph "Cloudflare® Services"
+        KV[(KV Config)]
+        DB[(D1 Database)]
+        R2[(R2 Storage)]
+        Q[Queue]
+        DO[Durable Objects]
+        AI[Workers AI]
         VEC[Vectorize]
-        D1[D1]
+        BR[Browser Rendering]
+        AE[Analytics Engine]
     end
 
-    TV -->|"POST /webhook"| hoox
-    TG -->|"Webhook"| telegram
-    hoox -->|"TRADE_SERVICE"| trade
-    hoox -->|"TELEGRAM_SERVICE"| telegram
-    trade -->|"D1_SERVICE"| d1
+    TV -->|Webhook| hoox
+    TG -->|Bot| telegram
+    EM -->|SMTP| email
 
-    hoox -.-> KV
-    trade -.-> R2
-    trade -.-> D1
-    trade -.-> AI
-    telegram -.-> VEC
-    telegram -.-> AI
+    hoox -->|TRADE_SERVICE| trade
+    hoox -->|TELEGRAM| telegram
+    hoox -->|Queue| Q
+    hoox -->|DO| DO
+    hoox -->|Analytics| analytics
+    hoox --> KV
+    hoox --> AI
+
+    trade -->|D1_SERVICE| d1
+    trade -->|TELEGRAM| telegram
+    trade -->|Analytics| analytics
+    trade --> DB
+    trade --> R2
+    trade --> AI
+
+    agent -->|Cron */5| trade
+    agent -->|D1_SERVICE| d1
+    agent -->|TELEGRAM| telegram
+    agent --> AI
+
+    telegram -->|Analytics| analytics
+    telegram --> AI
+    telegram --> VEC
+
+    report -->|Cron 06+18| R2
+    report -->|TELEGRAM| telegram
+    report -.->|REST API| BR
 ```
 
-## Data Flow
+## Worker Map
 
-### 1. Trading Signal Flow
-
-```
-TradingView → hoox → trade-worker → Exchange API
-                      ↓
-                   d1-worker (log)
-                   ↓
-                   telegram-worker (notify)
-```
-
-### 2. Notification Flow
-
-```
-hoox → telegram-worker → Telegram API
-         ↓
-      Vectorize (RAG)
-```
+| Worker | Role | Cron | Public | Smart Placement | Observability |
+|--------|------|------|--------|-----------------|---------------|
+| hoox | Gateway entry point | No | ✅ | ✅ | ✅ |
+| trade-worker | Multi-exchange execution | No | ❌ | ✅ | ✅ |
+| agent-worker | AI risk manager | ✅ */5 | ❌ | ✅ | ✅ |
+| telegram-worker | Notifications | No | ❌ | ✅ | ✅ |
+| d1-worker | Database operations | No | ❌ | ✅ | ✅ |
+| web3-wallet-worker | DeFi/on-chain | No | ❌ | — | — |
+| email-worker | Email parsing | No | ❌ | — | — |
+| analytics-worker | Time-series analytics | No | ❌ | — | — |
+| report-worker | PDF reports | ✅ 06+18 | ❌ | ✅ | ✅ |
 
 ## Component Responsibilities
 
 ### hoox (Gateway)
-
-- Validates incoming API keys
-- IP allow-listing check
-- Session management (KV)
-- Routes to internal workers via service bindings
-- Returns standardized responses
+- Validates API keys + IP allowlist + KV-backed rate limiting
+- Real DO idempotency (SQLite-backed, alarm cleanup)
+- Routes to internal workers via Service Bindings
+- Analytics tracking on every API call
 
 ### trade-worker
+- Executes trades on Binance, Bybit, MEXC
+- Dynamic exchange routing via CONFIG_KV (no redeploy)
+- R2 log offloading to preserve D1 write limits
+- Smart Placement deploys closest to exchange servers
 
-- Executes trades on exchanges
-- Manages positions & leverage
-- Logs to D1 database
-- Saves trade reports to R2
+### agent-worker
+- 5-min cron: trailing stops, kill switch, health summaries
+- Multi-provider AI gateway (5 providers, fallback chain)
+- Vision analysis, reasoning models, SSE streaming
 
 ### telegram-worker
-
-- Sends Telegram notifications
-- Processes incoming commands (/start, /status)
-- RAG with Vectorize embeddings
-- File uploads to R2
+- Notifications + command processing
+- RAG via Vectorize embeddings
+- File uploads to R2, AI-powered responses
 
 ### d1-worker
+- Centralized SQLite database service
+- Signal storage, trade history, position tracking
 
-- Stores trading signals
-- Logs trade responses
-- Query historical data
+### report-worker
+- Twice-daily PDF reports via Browser Rendering REST API
+- HTML→PDF conversion, R2 storage, Telegram delivery
 
 ## Security Layers
 
 ```
-┌─────────────────────────────────────┐
-│ Layer 1: IP Allow-list (KV config)  │
-├─────────────────────────────────────┤
-Layer 2: API Key Validation           │
-├─────────────────────────────────────┤
-Layer 3: Service Binding Auth        │
-├─────────────────────────────────────┤
-Layer 4: Internal Key Validation      │
-└─────────────────────────────────────┘
+Layer 1: WAF — IP allowlist + rate limiting (edge-level)
+Layer 2: API Key Validation — Secret binding comparison
+Layer 3: Service Binding Auth — Internal workers zero public endpoints
+Layer 4: Internal Key Validation — Worker-to-worker auth header
+Layer 5: Idempotency — DO prevents duplicate trades on retry
 ```
-
-## Shared Resources
-
-| Resource        | Purpose           | Workers   |
-| --------------- | ----------------- | --------- |
-| CONFIG_KV       | Routing, IP lists | All       |
-| SESSIONS_KV     | Session tracking  | hoox      |
-| REPORTS_BUCKET  | Trade reports     | trade     |
-| VECTORIZE_INDEX | Embeddings        | telegram  |
-| D1 Database     | Signal storage    | trade, d1 |
-
-## Worker Communication
-
-### Service Bindings
-
-```typescript
-// hoox to trade-worker
-const response = await env.TRADE_SERVICE.fetch(url, {
-  method: "POST",
-  body: JSON.stringify(tradePayload),
-});
-```
-
-### Environment Bindings
-
-```jsonc
-// wrangler.jsonc
-{
-  "kv_namespaces": [{ "binding": "CONFIG_KV", "id": "..." }],
-  "d1_databases": [{ "binding": "D1_SERVICE", "id": "..." }],
-}
-```
-
-## Scaling Considerations
-
-- **Service Bindings**: Max 100ms latency per call
-- **KV**: 1ms typical read
-- **D1**: ~5ms query time
-- **R2**: ~10ms for large objects
-
-## Performance & Tooling: Powered by Bun 🥟
-
-Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bun is designed as a drop-in replacement for Node.js, providing significantly faster execution, immediate startup times, and built-in tooling for testing, running scripts, and managing dependencies.
-
-- **Super Fast Execution**: Native implementations and the JavaScriptCore engine make script execution near instantaneous.
-- **Lightning Fast Installs**: Dependency resolution and installation are optimized for speed, caching, and concurrent fetching.
-- **Built-in Test Runner**: Hoox uses `bun test`, giving you natively integrated testing without heavy additional dependencies like Jest or Mocha.
-- **TypeScript Out-of-the-Box**: Bun compiles TypeScript on the fly, eliminating the need for slow build steps during development.
 
 ## Next Steps
 
 - [Worker Communication](communication.md)
 - [Data Flow](data-flow.md)
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+- [Bindings Reference](bindings.md)

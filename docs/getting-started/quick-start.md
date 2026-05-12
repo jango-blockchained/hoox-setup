@@ -10,30 +10,21 @@
 
 ## Step 1: Clone & Install
 
-### Option A: Install via CLI (Recommended)
+All 9 workers are managed as Git submodules. Clone with `--recursive` to get everything:
 
 ```bash
-# 1. Install the CLI globally
-bun add -g @jango-blockchained/hoox-cli
-
-# 2. Bootstrap the complete repository
-hoox clone hoox-setup
+# Clone with all submodules
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
 cd hoox-setup
 
-# 3. Install dependencies
+# Install dependencies
 bun install
+
+# If you already cloned without --recursive:
+git submodule update --init --recursive
 ```
 
-### Option B: Install from Source
-
-```bash
-# 1. Clone the repository
-git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-setup
-cd hoox-setup
-
-# 2. Install dependencies
-bun install
-```
+> **Tip:** Run `bun run typecheck` after install to verify everything compiles.
 
 ## Step 2: Initialize
 

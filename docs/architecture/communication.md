@@ -10,6 +10,7 @@ Service bindings allow direct HTTP calls between workers without network latency
 // In hoox/wrangler.jsonc
 {
   "services": [
+    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" },
     { "binding": "TRADE_SERVICE", "service": "trade-worker" },
     { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" }
   ]
@@ -44,13 +45,22 @@ export default {
 
 ## Communication Table
 
-| From → To                | Binding          | Method        | Purpose           |
-| ------------------------ | ---------------- | ------------- | ----------------- |
-| hoox → trade-worker      | TRADE_SERVICE    | POST /webhook | Execute trade     |
-| hoox → telegram-worker   | TELEGRAM_SERVICE | POST /process | Send notification |
-| trade-worker → d1-worker | D1_SERVICE       | SQL queries   | Log signals       |
-| trade-worker → web3      | WEB3_WALLET      | POST          | Web3 ops          |
-| telegram → trade-worker  | TRADE_SERVICE    | POST          | Status check      |
+| From → To                  | Binding          | Method        | Purpose                     |
+| -------------------------- | ---------------- | ------------- | --------------------------- |
+| hoox → analytics-worker    | ANALYTICS_SERVICE | POST /track   | Track API call metrics      |
+| hoox → trade-worker        | TRADE_SERVICE    | POST /webhook | Execute trade               |
+| hoox → telegram-worker     | TELEGRAM_SERVICE | POST /process | Send notification           |
+| trade-worker → d1-worker   | D1_SERVICE       | SQL queries   | Log signals                 |
+| trade-worker → web3        | WEB3_WALLET      | POST          | Web3 ops                    |
+| trade-worker → telegram    | TELEGRAM_SERVICE | POST          | Trade notification          |
+| trade-worker → analytics   | ANALYTICS_SERVICE | POST /track   | Track execution metrics     |
+| telegram → analytics       | ANALYTICS_SERVICE | POST /track   | Track message processing    |
+| telegram → trade-worker    | TRADE_SERVICE    | POST          | Status check                |
+| report → telegram-worker   | TELEGRAM_SERVICE | POST /process | Send PDF report link        |
+| agent → trade-worker       | TRADE_SERVICE    | POST          | Risk management actions     |
+| agent → d1-worker          | D1_SERVICE       | SQL queries   | Portfolio queries           |
+| agent → telegram-worker    | TELEGRAM_SERVICE | POST          | Health summary delivery     |
+| email → analytics-worker   | ANALYTICS_SERVICE | POST /track   | Track email parsing metrics |
 
 ## Request/Response Format
 

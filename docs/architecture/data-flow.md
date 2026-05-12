@@ -1,10 +1,10 @@
 # 🌊 Data Flow
 
-> Deep dive into the data flow across Hoox workers
+> Deep dive into the data flow across 9 Hoox workers
 
 ## 1. Webhook to Trading Flow
 
-The primary data flow starts with an external webhook (e.g., from TradingView) and results in a trade execution and notification.
+Primary flow: TradingView webhook → trade execution → notification → analytics.
 
 ```mermaid
 sequenceDiagram
@@ -13,47 +13,89 @@ sequenceDiagram
     participant Trade as trade-worker
     participant D1 as d1-worker
     participant TG as telegram-worker
+    participant AE as analytics-worker
 
-    TV->>Hoox: POST / (Trading Signal)
-    Hoox->>Hoox: Validate API Key & IP
+    TV->>Hoox: POST /webhook (Trading Signal)
+    Hoox->>Hoox: Validate API Key
+    Hoox->>Hoox: KV rate limiter check
+    Hoox->>Hoox: DO idempotency check
     Hoox->>Trade: TRADE_SERVICE.fetch()
-    Trade->>Trade: Parse Signal & Calculate Size
-    Trade->>Trade: Execute on Exchange (MEXC, etc.)
+    Trade->>Trade: Parse Signal & Execute on Exchange
     Trade->>D1: D1_SERVICE.fetch() (Log Trade)
     Trade-->>Hoox: Return Trade Result
-    Hoox->>TG: TELEGRAM_SERVICE.fetch() (Send notification)
+    Hoox->>TG: TELEGRAM_SERVICE.fetch() (Notification)
     TG-->>Hoox: Return Notification Result
-    Hoox-->>TV: 200 OK (Summary Response)
+    Hoox->>AE: ANALYTICS_SERVICE (Track API Call)
+    Hoox-->>TV: 200 OK (Summary)
 ```
 
-## 2. Notification & AI Flow
+## 2. AI Risk Management Flow
 
-When a user interacts with the Telegram bot or an internal system sends an alert.
+Agent-worker runs every 5 minutes to monitor positions and manage risk.
 
 ```mermaid
 sequenceDiagram
-    participant User as Telegram User
+    participant Agent as agent-worker
+    participant Trade as trade-worker
+    participant D1 as d1-worker
     participant TG as telegram-worker
     participant AI as Workers AI
-    participant Vec as Vectorize (RAG)
 
-    User->>TG: Send Message
-    TG->>TG: Parse Command
-    TG->>Vec: Query Embeddings (if needed)
-    Vec-->>TG: Return Context
-    TG->>AI: Generate Response (with context)
-    AI-->>TG: Return Generated Text
-    TG-->>User: Send Telegram Message
+    Agent->>Agent: Cron: */5 * * * *
+    Agent->>D1: Query open positions
+    D1-->>Agent: Position data
+    Agent->>AI: Analyze risk (LLaMA 3)
+    AI-->>Agent: Risk assessment
+    Agent->>Trade: Adjust stops / scale out
+    Agent->>TG: Send health summary
 ```
 
-## 3. Data Persistence Flow
+## 3. PDF Report Flow
 
-Hoox uses multiple storage mechanisms:
+Report-worker generates PDFs twice daily via Browser Rendering.
 
-- **D1 Database**: Relational data (Trade logs, System logs, Positions)
-- **KV Store**: Key-Value data (Configurations, Allow-lists, Session data)
-- **R2 Storage**: Object storage (Trade reports, User uploads)
-- **Vectorize**: Vector embeddings for RAG and AI search.
+```mermaid
+sequenceDiagram
+    participant Report as report-worker
+    participant BR as Browser Rendering API
+    participant R2 as R2 Bucket
+    participant TG as telegram-worker
+
+    Report->>Report: Cron: 06:00 + 18:00 UTC
+    Report->>Report: Build HTML report
+    Report->>BR: POST /browser-rendering/pdf
+    BR-->>Report: PDF Buffer
+    Report->>R2: Store PDF (reports/daily-*.pdf)
+    Report->>TG: Send report link
+```
+
+## 4. Analytics Flow
+
+Every API call across all workers is tracked for observability.
+
+```mermaid
+sequenceDiagram
+    participant W as Any Worker
+    participant AE as analytics-worker
+    participant EE as Analytics Engine
+
+    W->>AE: POST /track/api-call {worker, endpoint, latencyMs, success}
+    AE->>AE: Validate payload
+    AE->>EE: writeDataPoint({blobs, doubles, indexes})
+```
+
+## 5. Data Persistence
+
+| Storage | Data | Workers |
+|---------|------|---------|
+| D1 Database | Trade logs, positions, signals | d1-worker, trade-worker, agent-worker |
+| KV (CONFIG_KV) | Routing rules, IP lists, rate limiter state | All workers |
+| KV (SESSIONS_KV) | Webhook sessions | hoox |
+| R2 (trade-reports) | Trade reports, PDFs | trade-worker, report-worker |
+| R2 (user-uploads) | User file uploads | telegram-worker |
+| R2 (hoox-system-logs) | Verbose exchange logs | trade-worker |
+| Vectorize | AI embeddings for RAG | telegram-worker, hoox |
+| Analytics Engine | Time-series API metrics | analytics-worker |
 
 ## Next Steps
 
