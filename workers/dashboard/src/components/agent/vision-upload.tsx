@@ -131,7 +131,7 @@ export function VisionUpload() {
               className="cursor-pointer"
             />
           </div>
-          {previewUrl && (
+          {previewUrl && previewUrl.startsWith("data:") && (
             <div className="rounded-lg border overflow-hidden">
               <img
                 src={previewUrl}
