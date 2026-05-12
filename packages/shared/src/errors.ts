@@ -38,8 +38,33 @@ export function toError(err: unknown, fallback = "Unknown error"): string {
 /**
  * Create a successful JSON response
  */
+/**
+ * Strip stack traces and potentially sensitive fields from output data
+ * before sending to clients. Prevents information exposure.
+ */
+function sanitizeOutput(data: unknown): unknown {
+  if (data instanceof Error) {
+    return { name: data.name, message: data.message };
+  }
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const sanitized: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
+      // Never expose stack traces, cause chains, or raw error objects
+      if (k === "stack" || k === "cause") continue;
+      sanitized[k] = v instanceof Error
+        ? { name: v.name, message: v.message }
+        : sanitizeOutput(v);
+    }
+    return sanitized;
+  }
+  if (Array.isArray(data)) {
+    return data.map(sanitizeOutput);
+  }
+  return data;
+}
+
 export function createJsonResponse(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(sanitizeOutput(data)), {
     status,
     headers: { "Content-Type": "application/json" },
   });
