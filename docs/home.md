@@ -30,6 +30,8 @@ Each worker has its own documentation file:
 - [dashboard](workers/dashboard.md) - UI & Settings Manager
 - [web3-wallet-worker](workers/web3-wallet-worker.md) - Web3 interactions (83% line coverage)
 - [email-worker](workers/email-worker.md) - Email processing (97% line coverage)
+- [analytics-worker](workers/analytics-worker.md) - Analytics collection
+- [report-worker](workers/report-worker.md) - Automated PDF reports via Browser Rendering
 
 ### API Reference
 
@@ -57,17 +59,20 @@ Each worker has its own documentation file:
 
 ## 📊 Feature Matrix
 
-| Feature          | hoox | trade | telegram | agent | dash | d1  | web3 | pages |
-| ---------------- | ---- | ----- | -------- | ----- | ---- | --- | ---- | ----- |
-| API Key Auth     | ✅   | ✅    | ✅       | -     | -    | -   | ✅   | -     |
-| IP Allow-list    | ✅   | -     | -        | -     | -    | -   | -    | -     |
-| Service Binding  | -    | ✅    | ✅       | ✅    | -    | -   | -    | -     |
-| D1 Storage       | -    | ✅    | -        | ✅    | -    | ✅  | -    | -     |
-| R2 Storage       | -    | ✅    | ✅       | -     | -    | -   | ✅   | -     |
-| KV Storage       | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    | ✅    |
-| AI/Vectorize     | -    | -     | ✅       | ✅    | -    | -   | -    | -     |
-| Cron Triggers    | -    | -     | -        | ✅    | -    | -   | -    | -     |
-| Cloudflare Pages | -    | -     | -        | -     | ✅   | -   | -    | ✅    |
+| Feature              | hoox | trade | telegram | agent | dash | d1  | web3 | email | analytics | report |
+| -------------------- | ---- | ----- | -------- | ----- | ---- | --- | ---- | ----- | --------- | ------ |
+| API Key Auth         | ✅   | ✅    | ✅       | -     | -    | -   | ✅   | -     | -         | -      |
+| IP Allow-list        | ✅   | -     | -        | -     | -    | -   | -    | -     | -         | -      |
+| Service Binding      | -    | ✅    | ✅       | ✅    | -    | -   | -    | ✅    | -         | ✅     |
+| D1 Storage           | -    | ✅    | -        | ✅    | -    | ✅  | -    | -     | -         | -      |
+| R2 Storage           | -    | ✅    | ✅       | -     | -    | -   | ✅   | -     | -         | ✅     |
+| KV Storage           | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    | ✅    | -         | -      |
+| AI/Vectorize         | -    | -     | ✅       | ✅    | -    | -   | -    | -     | -         | -      |
+| Cron Triggers        | -    | -     | -        | ✅    | -    | -   | -    | -     | -         | ✅     |
+| Smart Placement      | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | -         | ✅     |
+| Browser Rendering    | -    | -     | -        | -     | -    | -   | -    | -     | -         | ✅     |
+| Observability        | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | ✅        | ✅     |
+| Cloudflare Pages     | -    | -     | -        | -     | ✅   | -   | -    | -     | -         | -      |
 
 ---
 
