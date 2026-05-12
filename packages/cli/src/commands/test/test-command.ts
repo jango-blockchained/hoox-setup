@@ -6,6 +6,7 @@
  *   unit        — Run bun test (unit tests)
  *   integration — Run vitest integration tests
  *   worker      — Run tests for a specific worker directory
+ *   live        — Run live Cloudflare service tests (no mocks)
  */
 import { Command } from "commander";
 import { spinner } from "@clack/prompts";
@@ -198,7 +199,7 @@ const PIPELINE_STEPS: { label: string; args: string[] }[] = [
 
 /**
  * Register the `hoox test` command group with subcommands:
- * all, unit, integration, worker.
+ * all, unit, integration, worker, live.
  */
 export function registerTestCommand(program: Command): void {
   const testCmd = program
@@ -367,6 +368,42 @@ export function registerTestCommand(program: Command): void {
           process.exitCode = ExitCode.ERROR;
         }
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        formatError(message, fmt);
+        process.exitCode = ExitCode.ERROR;
+      }
+    });
+
+  // -- test live ---------------------------------------------------------
+  testCmd
+    .command("live")
+    .description("Run live Cloudflare service integration tests (no mocks)")
+    .option(
+      "--service <name>",
+      "Test a specific service: d1, kv, r2, queues, ai, api, secrets, durable-objects"
+    )
+    .action(async (options: { service?: string }) => {
+      const fmt = getFormatOptions(program);
+      const s = spinner();
+
+      try {
+        let filePattern = options.service
+          ? `tests/live/${options.service}.test.ts`
+          : "tests/live/";
+
+        s.start(`Running live tests${options.service ? ` for ${options.service}` : ""}...`);
+
+        const args = ["bun", "test", filePattern, "--jobs", "1"];
+        const result = await runWithInherit(args, process.cwd());
+
+        if (result.success) {
+          s.stop("Live tests complete");
+        } else {
+          s.stop(`Live tests: some failures (exit code ${result.exitCode})`);
+          process.exitCode = ExitCode.ERROR;
+        }
+      } catch (err) {
+        s.stop("Live tests aborted");
         const message = err instanceof Error ? err.message : String(err);
         formatError(message, fmt);
         process.exitCode = ExitCode.ERROR;

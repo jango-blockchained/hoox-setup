@@ -12,6 +12,7 @@
     "test": "bun test",
     "test:cli": "bun test --cwd packages/cli",
     "test:live": "bun test tests/live/ --jobs 1",
+    "test:all": "bun run lint && bun run typecheck && bun test && bun test:integration && bun test:live",
     "tui": "./hoox-tui",
     "dev": "./hoox-tui",
     "manage": "hoox",
