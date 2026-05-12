@@ -511,22 +511,22 @@ Hoox's enterprise growth is mapped to Cloudflare's paid/enterprise service tiers
 
 | Phase | Theme | Key CF Services | Est. Cost/mo |
 |-------|-------|----------------|-------------|
-| **I** | Operational Excellence | Smart Placement, Tail Workers, Analytics Engine, Durable Objects, Rate Limiting | **~$15** |
-| **II** | Intelligent Trading | Workers AI, Vectorize (RAG), Browser Rendering, AI Gateway, Hyperdrive | **~$50–130** |
-| **III** | Enterprise Scale | Enterprise Plan, Advanced DDoS + WAF, Load Balancing, Argo Smart Routing | **~$275** |
-| **IV** | Multi-Tenant SaaS | Workers for Platforms, SSL for SaaS, Tenant Isolation, Compliance | **~$500+** |
+| **I** | Operational Baseline | Smart Placement, Durable Objects, WAF, Rate Limiting, Analytics Engine | **~$5** |
+| **II** | Intelligent Trading | Workers AI, Vectorize RAG, Browser Rendering, AI Gateway, Hyperdrive | **~$5–50** |
+| **III** | Enterprise Scale | Enterprise Plan, Advanced DDoS, Load Balancing, Argo Smart Routing | **~$210–250** |
+| **IV** | Multi-Tenant SaaS | Workers for Platforms, SSL for SaaS, Tenant Isolation, Compliance | **~$350+** |
 
-**Phase I highlights:**
-- **Smart Placement** — 30–60% lower trade execution latency via optimal edge deployment
-- **Durable Objects** — Exactly-once trade execution with strongly consistent order locks
-- **Tail Workers + Analytics Engine** — Real-time trade observability (p50/p95/p99 latency, error rates)
-- **Rate Limiting** — Tiered API access (free/pro/enterprise)
+**Phase I highlights (mostly FREE today — just upgrade to Workers Paid for $5/mo):**
+- **Smart Placement** — 30–60% lower trade execution latency via optimal edge deployment (free on all plans)
+- **Durable Objects** — Exactly-once trade execution with strongly consistent order locks (free SQLite storage)
+- **WAF + Rate Limiting** — Free managed ruleset + 1 free rate limiting rule for API protection
+- **Tail Workers + Analytics Engine** — Real-time trade observability (Tail Workers requires $5/mo Paid)
 
-**Phase II highlights:**
-- **Workers AI** — Real-time LLaMA 3 risk analysis on every trade signal
-- **Vectorize** — Semantic trade search and RAG-enhanced AI reasoning
-- **AI Gateway** — Multi-provider fallback (OpenAI → Anthropic → Workers AI) with cost tracking
-- **Browser Rendering** — Automated PDF portfolio/performance reports
+**Phase II highlights (mostly free with generous limits):**
+- **Workers AI** — 10K free neurons/day for real-time LLaMA 3 risk analysis
+- **Vectorize** — 100 free indexes for semantic trade search and RAG-enhanced AI reasoning
+- **Browser Rendering** — 10 min/day free for automated PDF portfolio/performance reports
+- **AI Gateway** — Core features free for multi-provider AI orchestration
 
 > **Full details:** See [`.superpowers/specs/2026-05-12-enterprise-roadmap.md`](.superpowers/specs/2026-05-12-enterprise-roadmap.md) for architecture diagrams, implementation code, cost breakdowns, and the complete 4-phase rollout plan.
 
@@ -556,10 +556,12 @@ Our long-term vision includes native, edge-based execution of trading logic. **P
 
 ### Enterprise Growth (see [`enterprise-roadmap`](.superpowers/specs/2026-05-12-enterprise-roadmap.md))
 
-- **Phase I** — Smart Placement, Durable Object trade locks, Tail Workers analytics, Rate Limiting (~$15/mo)
-- **Phase II** — Workers AI risk analysis, Vectorize semantic search, AI Gateway, Browser Rendering reports (~$50–130/mo)
-- **Phase III** — Enterprise Workers SLA, Advanced DDoS + WAF, Load Balancing, Argo Smart Routing (~$275/mo)
-- **Phase IV** — Workers for Platforms multi-tenant SaaS, per-tenant D1, billing integration (~$500+/mo)
+- **Phase I** — Smart Placement, Durable Object trade locks, Tail Workers, WAF, Rate Limiting (~$5/mo — Workers Paid)
+- **Phase II** — Workers AI risk analysis, Vectorize semantic search, AI Gateway, Browser Rendering (~$5–50/mo — mostly free with limits)
+- **Phase III** — Enterprise Workers SLA, Advanced DDoS, Load Balancing, Argo Smart Routing (~$210–250/mo)
+- **Phase IV** — Workers for Platforms multi-tenant SaaS, per-tenant D1, billing integration (~$350+/mo)
+
+> ⚠️ **Corrected 2026-05-12**: Many services (Durable Objects, Vectorize, Analytics Engine, WAF, Smart Placement, Browser Rendering, AI Gateway) are now **included on Cloudflare's Free plan**. Phase I costs dropped from ~$15 to ~$5. See docs for current limits.
 
 ---
 
