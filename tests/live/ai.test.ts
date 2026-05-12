@@ -21,7 +21,7 @@ import { getConfig, cfApi, section } from "./helpers";
 describe("Workers AI", () => {
   let config: ReturnType<typeof getConfig>;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -29,7 +29,7 @@ describe("Workers AI", () => {
   // Text generation
   // -----------------------------------------------------------------------
 
-  test("LLaMA 3 text generation returns a response", async () => {
+  test("LLaMA 3 text generation returns a response", { timeout: 60000 }, async () => {
     section("Text generation");
     try {
       const result = await cfApi<{ response: string }>(
@@ -61,7 +61,7 @@ describe("Workers AI", () => {
     }
   });
 
-  test("AI model returns deterministic outputs", async () => {
+  test("AI model returns deterministic outputs", { timeout: 60000 }, async () => {
     try {
       // Test with a simpler deterministic model
       const result = await cfApi<{ response: string }>(
@@ -90,7 +90,7 @@ describe("Workers AI", () => {
   // Embeddings
   // -----------------------------------------------------------------------
 
-  test("BGE text embeddings return vector", async () => {
+  test("BGE text embeddings return vector", { timeout: 60000 }, async () => {
     section("Embeddings");
     try {
       const result = await cfApi<{ data: Array<number[]> }>(
@@ -112,7 +112,7 @@ describe("Workers AI", () => {
     }
   });
 
-  test("Embeddings are deterministic for same input", async () => {
+  test("Embeddings are deterministic for same input", { timeout: 60000 }, async () => {
     try {
       const input = "Edge computing is the future";
       const result1 = await cfApi<{ data: Array<number[]> }>(
@@ -144,7 +144,7 @@ describe("Workers AI", () => {
   // Text classification
   // -----------------------------------------------------------------------
 
-  test("Text classification model returns labels", async () => {
+  test("Text classification model returns labels", { timeout: 60000 }, async () => {
     section("Classification");
     try {
       const result = await cfApi<{ result: Array<{ label: string; score: number }> }>(
@@ -170,7 +170,7 @@ describe("Workers AI", () => {
   // List available models
   // -----------------------------------------------------------------------
 
-  test("List available AI models", async () => {
+  test("List available AI models", { timeout: 60000 }, async () => {
     section("Available models");
     try {
       const result = await cfApi<Array<{ name: string; description?: string }>>(
@@ -192,7 +192,7 @@ describe("Workers AI", () => {
   // Multi-turn conversation
   // -----------------------------------------------------------------------
 
-  test("Multi-turn conversation maintains context", async () => {
+  test("Multi-turn conversation maintains context", { timeout: 60000 }, async () => {
     section("Conversation");
     try {
       const result = await cfApi<{ response: string }>(

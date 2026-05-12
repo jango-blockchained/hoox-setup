@@ -24,8 +24,6 @@
  * development/staging account, NOT production.
  */
 
-import { execSync } from "node:child_process";
-
 // =========================================================================
 // Configuration (from environment)
 // =========================================================================
@@ -56,8 +54,8 @@ export function getConfig(): LiveTestConfig {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(", ")}\n` +
-        "Set them in tests/live/.env or export them before running.\n" +
-        "See tests/live/.env.example for the full list."
+        "Set them in tests/live/env or export them before running.\n" +
+        "See tests/live/env.template for the full list."
     );
   }
 
@@ -84,33 +82,52 @@ export interface WranglerResult {
 }
 
 /**
- * Execute a wrangler CLI command and return the full result.
- * Throws if wrangler is not installed.
+ * Execute a wrangler CLI command using Bun.spawn and return the full result.
+ * Uses timeout to prevent hanging tests.
  */
-export function wrangler(args: string[], cwd?: string): WranglerResult {
+export async function wrangler(
+  args: string[],
+  cwd?: string,
+  stdin?: string
+): Promise<WranglerResult> {
   try {
-    const output = execSync(
-      `wrangler ${args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(" ")}`,
-      {
-        cwd: cwd ?? process.cwd(),
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-        timeout: 60_000,
-      }
-    );
-    return { ok: true, stdout: output.trim(), stderr: "", exitCode: 0 };
-  } catch (err: unknown) {
-    const error = err as {
-      status?: number;
-      stdout?: string;
-      stderr?: string;
-      message?: string;
+    const proc = Bun.spawn(["wrangler", ...args], {
+      cwd: cwd ?? process.cwd(),
+      stdout: "pipe",
+      stderr: "pipe",
+      stdin: "pipe",
+    });
+
+    if (stdin) {
+      proc.stdin.write(stdin + "\n");
+    }
+    // Always close stdin to prevent wrangler from hanging on non-interactive
+    // commands that try to read from stdin for confirmation prompts
+    proc.stdin.end();
+
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const exitCode = await proc.exited;
+
+    // Strip wrangler banner/upgrade notices from stdout (everything before
+    // the first valid JSON token or first line of actual content)
+    const cleanStdout = stripWranglerBanner(stdout.trim());
+
+    return {
+      ok: exitCode === 0,
+      stdout: cleanStdout,
+      stderr: stderr.trim() || (exitCode !== 0 ? `wrangler exited with code ${exitCode}` : ""),
+      exitCode,
     };
+
+    return result;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return {
       ok: false,
-      stdout: (error.stdout ?? "").toString().trim(),
-      stderr: (error.stderr ?? error.message ?? "").toString().trim(),
-      exitCode: error.status ?? 1,
+      stdout: "",
+      stderr: `Failed to spawn wrangler: ${message}`,
+      exitCode: -1,
     };
   }
 }
@@ -118,13 +135,48 @@ export function wrangler(args: string[], cwd?: string): WranglerResult {
 /**
  * Check if wrangler CLI is available and authenticated.
  */
-export function isWranglerAvailable(): boolean {
+export async function isWranglerAvailable(): Promise<boolean> {
   try {
-    const result = wrangler(["whoami"]);
+    const result = await wrangler(["whoami"]);
     return result.ok;
   } catch {
     return false;
   }
+}
+
+/**
+ * Strip wrangler banner, upgrade notices, and ASCII art from the beginning
+ * of command output. These appear on stdout before the actual content.
+ */
+function stripWranglerBanner(output: string): string {
+  // Find the first line that looks like actual output (JSON array/object,
+  // or non-wrangler content)
+  const lines = output.split("\n");
+  const contentStart = lines.findIndex(
+    (line) =>
+      line.startsWith("[") ||
+      line.startsWith("{") ||
+      (line.trim().length > 0 &&
+        !line.includes("wrangler") &&
+        !line.startsWith("⛅") &&
+        !line.startsWith("│") &&
+        !line.startsWith("──") &&
+        !line.startsWith("There") &&
+        !line.startsWith("Download") &&
+        !line.startsWith("Use --remote") &&
+        !line.startsWith("Resource") &&
+        !line.startsWith("🌀") &&
+        !line.startsWith("🪵") &&
+        !line.startsWith("If you") &&
+        !line.trim().startsWith(">") &&
+        !line.includes("update available") &&
+        !line.includes("────────────────") &&
+        !line.includes("╭─") &&
+        !line.includes("├─"))
+  );
+
+  if (contentStart === -1) return output;
+  return lines.slice(contentStart).join("\n").trim();
 }
 
 // =========================================================================
@@ -175,11 +227,11 @@ export async function cfApi<T = unknown>(
 // Test resource lifecycle
 // =========================================================================
 
-const TEST_ID = `live-test-${Date.now()}`;
+const TEST_ID = `live_test_${Date.now()}`;
 
-/** Unique resource names scoped to this test run. */
+/** Unique resource names scoped to this test run (no hyphens for SQL compatibility). */
 export function testResourceName(base: string): string {
-  return `${base}-${TEST_ID}`;
+  return `${base}_${TEST_ID}`;
 }
 
 // =========================================================================

@@ -17,11 +17,11 @@ import { getConfig, wrangler, skipIfMissing, section, testResourceName } from ".
 
 const TEST_PREFIX = testResourceName("kv-test");
 
-describe("KV Namespace", () => {
+describe("KV Namespace", async () => {
   let config: ReturnType<typeof getConfig>;
   let namespaceId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -29,9 +29,9 @@ describe("KV Namespace", () => {
   // List namespaces
   // -----------------------------------------------------------------------
 
-  test("kv namespace list returns namespaces", () => {
+  test("kv namespace list returns namespaces", { timeout: 60000 }, async () => {
     section("List namespaces");
-    const result = wrangler(["kv", "namespace", "list"]);
+    const result = await wrangler(["kv", "namespace", "list", "--json"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     expect(Array.isArray(parsed)).toBe(true);
@@ -45,9 +45,9 @@ describe("KV Namespace", () => {
   // Key-value operations
   // -----------------------------------------------------------------------
 
-  test("kv key put stores a value", () => {
+  test("kv key put stores a value", { timeout: 60000 }, async () => {
     section("Key-value operations");
-    const result = wrangler([
+    const result = await wrangler([
       "kv", "key", "put",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/hello`, "world",
@@ -56,9 +56,9 @@ describe("KV Namespace", () => {
     console.log('  ✓ Stored kv-test-*/hello = "world"');
   });
 
-  test("kv key put supports JSON values and metadata", () => {
+  test("kv key put supports JSON values and metadata", { timeout: 60000 }, async () => {
     const jsonValue = JSON.stringify({ name: "test", count: 42 });
-    const result = wrangler([
+    const result = await wrangler([
       "kv", "key", "put",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/json`, jsonValue,
@@ -68,9 +68,9 @@ describe("KV Namespace", () => {
     console.log("  ✓ Stored JSON value with metadata");
   });
 
-  test("kv key put respects expiration", () => {
+  test("kv key put respects expiration", { timeout: 60000 }, async () => {
     // Set a key that expires in 2 hours
-    const result = wrangler([
+    const result = await wrangler([
       "kv", "key", "put",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/ephemeral`, "expires-soon",
@@ -80,8 +80,8 @@ describe("KV Namespace", () => {
     console.log("  ✓ Stored ephemeral key (2h TTL)");
   });
 
-  test("kv key get retrieves a value", () => {
-    const result = wrangler([
+  test("kv key get retrieves a value", { timeout: 60000 }, async () => {
+    const result = await wrangler([
       "kv", "key", "get",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/hello`,
@@ -91,8 +91,8 @@ describe("KV Namespace", () => {
     console.log('  ✓ Retrieved "world"');
   });
 
-  test("kv key get returns JSON when stored as JSON", () => {
-    const result = wrangler([
+  test("kv key get returns JSON when stored as JSON", { timeout: 60000 }, async () => {
+    const result = await wrangler([
       "kv", "key", "get",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/json`,
@@ -104,9 +104,9 @@ describe("KV Namespace", () => {
     console.log("  ✓ Retrieved JSON value");
   });
 
-  test("kv key list with prefix returns matching keys", () => {
+  test("kv key list with prefix returns matching keys", { timeout: 60000 }, async () => {
     section("List keys");
-    const result = wrangler([
+    const result = await wrangler([
       "kv", "key", "list",
       "--namespace-id", namespaceId,
       "--prefix", TEST_PREFIX,
@@ -122,9 +122,9 @@ describe("KV Namespace", () => {
     console.log(`  ✓ Listed ${parsed.length} keys with prefix "${TEST_PREFIX}"`);
   });
 
-  test("kv key delete removes a value", () => {
+  test("kv key delete removes a value", { timeout: 60000 }, async () => {
     section("Delete operations");
-    const result = wrangler([
+    const result = await wrangler([
       "kv", "key", "delete",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/hello`,
@@ -132,7 +132,7 @@ describe("KV Namespace", () => {
     expect(result.ok).toBe(true);
 
     // Verify deletion
-    const getResult = wrangler([
+    const getResult = await wrangler([
       "kv", "key", "get",
       "--namespace-id", namespaceId,
       `${TEST_PREFIX}/hello`,
@@ -146,7 +146,7 @@ describe("KV Namespace", () => {
   // Bulk operations
   // -----------------------------------------------------------------------
 
-  test("kv bulk put with multiple keys", () => {
+  test("kv bulk put with multiple keys", { timeout: 60000 }, async () => {
     section("Bulk operations");
     const entries = [
       { key: `${TEST_PREFIX}/bulk/a`, value: "1" },
@@ -155,7 +155,7 @@ describe("KV Namespace", () => {
     ];
 
     for (const entry of entries) {
-      const result = wrangler([
+      const result = await wrangler([
         "kv", "key", "put",
         "--namespace-id", namespaceId,
         entry.key, entry.value,
@@ -164,7 +164,7 @@ describe("KV Namespace", () => {
     }
 
     // Verify all three
-    const listResult = wrangler([
+    const listResult = await wrangler([
       "kv", "key", "list",
       "--namespace-id", namespaceId,
       "--prefix", `${TEST_PREFIX}/bulk`,
@@ -178,10 +178,10 @@ describe("KV Namespace", () => {
   // Cleanup
   // -----------------------------------------------------------------------
 
-  afterAll(() => {
+  afterAll(async () => {
     section("Cleanup");
     // List all our test keys
-    const listResult = wrangler([
+    const listResult = await wrangler([
       "kv", "key", "list",
       "--namespace-id", namespaceId,
       "--prefix", TEST_PREFIX,

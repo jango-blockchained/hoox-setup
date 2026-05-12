@@ -15,10 +15,10 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { getConfig, cfApi, section } from "./helpers";
 
-describe("Cloudflare REST API", () => {
+describe("Cloudflare REST API", async () => {
   let config: ReturnType<typeof getConfig>;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -26,7 +26,7 @@ describe("Cloudflare REST API", () => {
   // Authentication
   // -----------------------------------------------------------------------
 
-  test("API token authenticates successfully", async () => {
+  test("API token authenticates successfully", { timeout: 60000 }, async () => {
     section("Authentication");
     const result = await cfApi<{ id: string; email?: string; username?: string }>(
       "GET",
@@ -41,7 +41,7 @@ describe("Cloudflare REST API", () => {
   // User info
   // -----------------------------------------------------------------------
 
-  test("Get current user information", async () => {
+  test("Get current user information", { timeout: 60000 }, async () => {
     section("User info");
     const result = await cfApi<{ email?: string; username?: string; first_name?: string; last_name?: string }>(
       "GET",
@@ -59,7 +59,7 @@ describe("Cloudflare REST API", () => {
   // Account details
   // -----------------------------------------------------------------------
 
-  test("Get account details", async () => {
+  test("Get account details", { timeout: 60000 }, async () => {
     section("Account");
     const result = await cfApi<{ id: string; name: string }>(
       "GET",
@@ -74,7 +74,7 @@ describe("Cloudflare REST API", () => {
   // API token permissions
   // -----------------------------------------------------------------------
 
-  test("Get API token permissions", async () => {
+  test("Get API token permissions", { timeout: 60000 }, async () => {
     section("Token permissions");
     const result = await cfApi<{
       id: string;
@@ -97,7 +97,7 @@ describe("Cloudflare REST API", () => {
   // Zones (if zone ID configured)
   // -----------------------------------------------------------------------
 
-  test("List zones", async () => {
+  test("List zones", { timeout: 60000 }, async () => {
     section("Zones");
     if (!config.zoneId) {
       console.log("  ⚠ CLOUDFLARE_ZONE_ID not set — skipping");
@@ -120,7 +120,7 @@ describe("Cloudflare REST API", () => {
   // Account limits / usage
   // -----------------------------------------------------------------------
 
-  test("Get account subscription details", async () => {
+  test("Get account subscription details", { timeout: 60000 }, async () => {
     section("Subscriptions");
     try {
       const result = await cfApi<Array<{
@@ -145,7 +145,7 @@ describe("Cloudflare REST API", () => {
   // Workers limits
   // -----------------------------------------------------------------------
 
-  test("Get Workers account limits", async () => {
+  test("Get Workers account limits", { timeout: 60000 }, async () => {
     section("Workers limits");
     try {
       const result = await cfApi<{

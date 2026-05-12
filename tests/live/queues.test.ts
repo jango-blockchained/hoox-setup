@@ -24,10 +24,10 @@ import {
 
 const TEST_QUEUE = testResourceName("live-test-queue");
 
-describe("Queues", () => {
+describe("Queues", async () => {
   let config: ReturnType<typeof getConfig>;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -35,9 +35,9 @@ describe("Queues", () => {
   // List queues
   // -----------------------------------------------------------------------
 
-  test("queues list returns existing queues", () => {
+  test("queues list returns existing queues", { timeout: 60000 }, async () => {
     section("List queues");
-    const result = wrangler(["queues", "list"]);
+    const result = await wrangler(["queues", "list"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     expect(Array.isArray(parsed)).toBe(true);
@@ -51,15 +51,15 @@ describe("Queues", () => {
   // Queue lifecycle
   // -----------------------------------------------------------------------
 
-  test("Create a test queue", () => {
+  test("Create a test queue", { timeout: 60000 }, async () => {
     section("Queue lifecycle");
-    const result = wrangler(["queues", "create", TEST_QUEUE]);
+    const result = await wrangler(["queues", "create", TEST_QUEUE]);
     expect(result.ok).toBe(true);
     console.log(`  ✓ Created queue "${TEST_QUEUE}"`);
   });
 
-  test("List shows newly created queue", () => {
-    const result = wrangler(["queues", "list"]);
+  test("List shows newly created queue", { timeout: 60000 }, async () => {
+    const result = await wrangler(["queues", "list"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout) as Array<{ queue_name?: string; queue_id?: string }>;
     const found = parsed.find((q) => q.queue_name === TEST_QUEUE);
@@ -71,7 +71,7 @@ describe("Queues", () => {
   // Send message via REST API
   // -----------------------------------------------------------------------
 
-  test("Send a test message to the queue", async () => {
+  test("Send a test message to the queue", { timeout: 60000 }, async () => {
     section("Send message");
     try {
       const result = await cfApi<{ message_id?: string }>(
@@ -105,7 +105,7 @@ describe("Queues", () => {
   // Queue info via API
   // -----------------------------------------------------------------------
 
-  test("Get queue details via REST API", async () => {
+  test("Get queue details via REST API", { timeout: 60000 }, async () => {
     section("Queue details");
     try {
       const result = await cfApi<{
@@ -129,9 +129,9 @@ describe("Queues", () => {
   // Cleanup
   // -----------------------------------------------------------------------
 
-  afterAll(() => {
+  afterAll(async () => {
     section("Cleanup");
-    const result = wrangler(["queues", "delete", TEST_QUEUE]);
+    const result = await wrangler(["queues", "delete", TEST_QUEUE]);
     if (result.ok) {
       console.log(`  ✓ Deleted queue "${TEST_QUEUE}"`);
     } else {

@@ -17,14 +17,16 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, skipIfMissing, section, testResourceName } from "./helpers";
+import { getConfig, wrangler, section, testResourceName } from "./helpers";
+import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
+import { join } from "node:path";
 
 const TEST_WORKER = testResourceName("do-test-worker");
 
 describe("Durable Objects", () => {
   let config: ReturnType<typeof getConfig>;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -122,13 +124,11 @@ export default {
 `;
 
     // Write files and deploy
-    const fs = require("node:fs");
-    const path = require("node:path");
-    fs.mkdirSync(path.join(workerDir, "src"), { recursive: true });
-    fs.writeFileSync(path.join(workerDir, "wrangler.jsonc"), wranglerConfig);
-    fs.writeFileSync(path.join(workerDir, "src", "index.ts"), workerSrc);
+    mkdirSync(join(workerDir, "src"), { recursive: true });
+    writeFileSync(join(workerDir, "wrangler.jsonc"), wranglerConfig);
+    writeFileSync(join(workerDir, "src", "index.ts"), workerSrc);
 
-    const result = wrangler(["deploy"], workerDir);
+    const result = await wrangler(["deploy"], workerDir);
     expect(result.ok).toBe(true);
     console.log(`  ✓ Deployed test worker "${TEST_WORKER}" with DO`);
   });
@@ -137,9 +137,9 @@ export default {
   // DO counter operations
   // -----------------------------------------------------------------------
 
-  test("DO initial count is 0", async () => {
+  test("DO initial count is 0", { timeout: 60000 }, async () => {
     section("DO counter operations");
-    const result = wrangler([
+    const result = await wrangler([
       "wrangler", "tail", TEST_WORKER, "--format", "json",
     ]);
     // Verify the worker is deployed and reachable via its URL
@@ -157,7 +157,7 @@ export default {
     }
   });
 
-  test("DO increment increases count", async () => {
+  test("DO increment increases count", { timeout: 60000 }, async () => {
     const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/increment`;
     try {
       const response = await fetch(url);
@@ -171,7 +171,7 @@ export default {
     }
   });
 
-  test("DO state persists across calls", async () => {
+  test("DO state persists across calls", { timeout: 60000 }, async () => {
     const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/count`;
     try {
       // Increment twice
@@ -189,7 +189,7 @@ export default {
     }
   });
 
-  test("DO reset returns to 0", async () => {
+  test("DO reset returns to 0", { timeout: 60000 }, async () => {
     try {
       await fetch(`https://${TEST_WORKER}.cryptolinx.workers.dev/reset`);
       const response = await fetch(`https://${TEST_WORKER}.cryptolinx.workers.dev/count`);
@@ -206,7 +206,7 @@ export default {
   // Test existing IdempotencyStore (if hoox worker has it)
   // -----------------------------------------------------------------------
 
-  test("Existing hoox IdempotencyStore DO is reachable", async () => {
+  test("Existing hoox IdempotencyStore DO is reachable", { timeout: 60000 }, async () => {
     section("Existing DO (hoox IdempotencyStore)");
     const doWorkerName = process.env.HOOX_DO_WORKER ?? "hoox";
     try {
@@ -225,14 +225,19 @@ export default {
   // Cleanup
   // -----------------------------------------------------------------------
 
-  afterAll(() => {
+  afterAll(async () => {
     section("Cleanup");
     // Undeploy test worker
-    const result = wrangler(["deploy", "--delete"], `/tmp/${TEST_WORKER}`);
+    const workerDir = `/tmp/${TEST_WORKER}`;
+    const result = await wrangler(["deploy", "--delete"], workerDir);
     if (result.ok) {
       console.log(`  ✓ Undeployed test worker "${TEST_WORKER}"`);
     } else {
       console.log(`  ⚠ Cleanup: ${result.stderr}`);
+    }
+    // Remove temp worker directory
+    if (existsSync(workerDir)) {
+      rmSync(workerDir, { recursive: true, force: true });
     }
   });
 });

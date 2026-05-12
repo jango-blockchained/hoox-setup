@@ -24,7 +24,7 @@ describe("Secrets", () => {
   let config: ReturnType<typeof getConfig>;
   const testWorkers = ["hoox", "d1-worker", "trade-worker"];
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config = getConfig();
   });
 
@@ -32,10 +32,10 @@ describe("Secrets", () => {
   // List secrets for known workers
   // -----------------------------------------------------------------------
 
-  test("secret list returns secrets for hoox worker", () => {
+  test("secret list returns secrets for hoox worker", { timeout: 60000 }, async () => {
     section("List secrets");
     // Check our known hoox worker
-    const result = wrangler(["secret", "list", "--name", "hoox"]);
+    const result = await wrangler(["secret", "list", "--name", "hoox"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     expect(Array.isArray(parsed)).toBe(true);
@@ -45,15 +45,15 @@ describe("Secrets", () => {
     }
   });
 
-  test("secret list returns secrets for d1-worker", () => {
-    const result = wrangler(["secret", "list", "--name", "d1-worker"]);
+  test("secret list returns secrets for d1-worker", { timeout: 60000 }, async () => {
+    const result = await wrangler(["secret", "list", "--name", "d1-worker"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     console.log(`  ✓ d1-worker has ${parsed.length} secret(s)`);
   });
 
-  test("secret list returns secrets for trade-worker", () => {
-    const result = wrangler(["secret", "list", "--name", "trade-worker"]);
+  test("secret list returns secrets for trade-worker", { timeout: 60000 }, async () => {
+    const result = await wrangler(["secret", "list", "--name", "trade-worker"]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
     console.log(`  ✓ trade-worker has ${parsed.length} secret(s)`);
@@ -63,21 +63,32 @@ describe("Secrets", () => {
   // Put a test secret
   // -----------------------------------------------------------------------
 
-  test("secret put adds a new secret to hoox worker", () => {
+  test("secret put adds a new secret to hoox worker", { timeout: 60000 }, async () => {
     section("Put secret");
     try {
-      const { execSync } = require("node:child_process");
-      const result = execSync(
-        `echo "${TEST_SECRET_VALUE}" | wrangler secret put ${TEST_SECRET_NAME} --name hoox`,
-        { encoding: "utf-8", timeout: 30_000 }
+      const result = await wrangler(
+        ["secret", "put", TEST_SECRET_NAME, "--name", "hoox"],
+        undefined,
+        TEST_SECRET_VALUE
       );
-      expect(result).toBeTruthy();
+      expect(result.ok).toBe(true);
       console.log(`  ✓ Created secret "${TEST_SECRET_NAME}" on hoox`);
 
-      // Verify it appears in list
-      const listResult = wrangler(["secret", "list", "--name", "hoox"]);
-      const parsed = JSON.parse(listResult.stdout);
-      const found = parsed.find((s: { name: string }) => s.name === TEST_SECRET_NAME);
+      // Verify it appears in list (with retry for propagation delay)
+      let found = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const listResult = await wrangler(["secret", "list", "--name", "hoox"]);
+        if (listResult.ok && listResult.stdout.length > 0) {
+          try {
+            const parsed = JSON.parse(listResult.stdout);
+            found = parsed.find((s: { name: string }) => s.name === TEST_SECRET_NAME);
+            if (found) break;
+          } catch {
+            // retry
+          }
+        }
+      }
       expect(found).toBeDefined();
       console.log(`  ✓ "${TEST_SECRET_NAME}" confirmed in secret list`);
     } catch (err: unknown) {
@@ -91,21 +102,28 @@ describe("Secrets", () => {
   // Delete test secret
   // -----------------------------------------------------------------------
 
-  test("secret delete removes the test secret", () => {
+  test("secret delete removes the test secret", { timeout: 60000 }, async () => {
     section("Delete secret");
     try {
-      const { execSync } = require("node:child_process");
-      const result = execSync(
-        `wrangler secret delete ${TEST_SECRET_NAME} --name hoox`,
-        { encoding: "utf-8", timeout: 30_000 }
-      );
-      expect(result).toBeTruthy();
+      const result = await wrangler(["secret", "delete", TEST_SECRET_NAME, "--name", "hoox"]);
+      expect(result.ok).toBe(true);
       console.log(`  ✓ Deleted secret "${TEST_SECRET_NAME}" from hoox`);
 
-      // Verify it's gone
-      const listResult = wrangler(["secret", "list", "--name", "hoox"]);
-      const parsed = JSON.parse(listResult.stdout);
-      const found = parsed.find((s: { name: string }) => s.name === TEST_SECRET_NAME);
+      // Verify it's gone (with retry for propagation delay)
+      let found = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const listResult = await wrangler(["secret", "list", "--name", "hoox"]);
+        if (listResult.ok && listResult.stdout.length > 0) {
+          try {
+            const parsed = JSON.parse(listResult.stdout);
+            found = parsed.find((s: { name: string }) => s.name === TEST_SECRET_NAME);
+            if (!found) break;
+          } catch {
+            // retry
+          }
+        }
+      }
       expect(found).toBeUndefined();
       console.log('  ✓ Confirmed secret no longer in list');
     } catch (err: unknown) {
@@ -118,7 +136,7 @@ describe("Secrets", () => {
   // Cross-worker test
   // -----------------------------------------------------------------------
 
-  test("List secrets across multiple workers", () => {
+  test("List secrets across multiple workers", { timeout: 60000 }, async () => {
     section("Cross-worker secrets");
     const allWorkers = [
       "hoox",
@@ -130,7 +148,7 @@ describe("Secrets", () => {
     let totalSecrets = 0;
 
     for (const worker of allWorkers) {
-      const result = wrangler(["secret", "list", "--name", worker]);
+      const result = await wrangler(["secret", "list", "--name", worker]);
       if (result.ok) {
         try {
           const parsed = JSON.parse(result.stdout);
