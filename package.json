@@ -11,6 +11,7 @@
     "test:integration": "vitest run --config vitest.config.ts",
     "test": "bun test",
     "test:cli": "bun test --cwd packages/cli",
+    "test:live": "bun test tests/live/",
     "tui": "./hoox-tui",
     "dev": "./hoox-tui",
     "manage": "hoox",

@@ -423,6 +423,27 @@ Built natively on Bun, Hoox features TypeScript type safety with strict mode ena
 
 > **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/development/testing.md) for detailed coverage reports.
 
+### 🌐 Live Integration Tests
+
+A full live test suite against **real Cloudflare infrastructure** (no mocks) is available at [`tests/live/`](tests/live/). Covers all services used by hoox:
+
+```bash
+# Run all live tests (requires credentials in tests/live/.env)
+bun test:live
+
+# Run tests for a specific service
+bun test tests/live/d1.test.ts              # D1 SQL database
+bun test tests/live/kv.test.ts              # KV namespace
+bun test tests/live/r2.test.ts              # R2 object storage
+bun test tests/live/queues.test.ts          # Queue messaging
+bun test tests/live/ai.test.ts              # Workers AI inference
+bun test tests/live/api.test.ts             # Cloudflare REST API
+bun test tests/live/secrets.test.ts         # Secret management
+bun test tests/live/durable-objects.test.ts # Durable Objects
+```
+
+> ⚠ **Warning:** These tests create and destroy real resources. Use a development/staging account, NOT production. Copy [`tests/live/env.template`](tests/live/env.template) to `tests/live/.env` to configure.
+
 ---
 
 ## 🐳 Local Development (Docker)
