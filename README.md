@@ -536,35 +536,6 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id
 
 ---
 
-## 🗺️ Enterprise Roadmap — Powered by Cloudflare Services
-
-Hoox's enterprise growth is mapped to Cloudflare's service tiers. Many previously-paid services are now **included on the Free plan** (Durable Objects, Vectorize, Analytics Engine, Smart Placement, Browser Rendering, AI Gateway). Full details at [`.superpowers/specs/2026-05-12-enterprise-roadmap.md`](.superpowers/specs/2026-05-12-enterprise-roadmap.md).
-
-| Phase | Theme | Key CF Services | Est. Cost/mo |
-|-------|-------|----------------|-------------|
-| **I** | Operational Baseline | Smart Placement, Durable Objects, WAF, Rate Limiting, Analytics Engine | **~$5** |
-| **II** | Intelligent Trading | Workers AI, Vectorize RAG, Browser Rendering, AI Gateway, Hyperdrive | **~$5–50** |
-| **III** | Enterprise Scale | Enterprise Plan, Advanced DDoS, Load Balancing, Argo Smart Routing | **~$210–250** |
-| **IV** | Multi-Tenant SaaS | Workers for Platforms, SSL for SaaS, Tenant Isolation, Compliance | **~$350+** |
-
-**Phase I highlights (mostly FREE today — just Workers Paid at $5/mo for Tail Workers):**
-- **Smart Placement** — 30–60% lower trade execution latency via optimal edge deployment (free on all plans)
-- **Durable Objects** — Exactly-once trade execution with SQLite-backed state (free SQLite storage)
-- **WAF + Rate Limiting** — Free managed ruleset + 1 free rate limiting rule for API protection
-- **Analytics Engine** — Real-time API call observability across all workers (free on all plans)
-- **Tail Workers** — Deep observability pipeline (requires $5/mo Workers Paid)
-
-**Phase II highlights (mostly free with generous limits):**
-- **Workers AI** — 10K free neurons/day for real-time LLaMA 3 risk analysis
-- **Vectorize** — 100 free indexes for semantic trade search and RAG-enhanced AI reasoning
-- **Browser Rendering** — 10 min/day free for automated PDF portfolio/performance reports
-- **AI Gateway** — Core features free for multi-provider AI orchestration
-- **Hyperdrive** — Connection pooling for external DBs ($5/mo add-on)
-
-> **Full details:** See [`.superpowers/specs/2026-05-12-enterprise-roadmap.md`](.superpowers/specs/2026-05-12-enterprise-roadmap.md) for architecture diagrams, implementation code, cost breakdowns, and the complete 4-phase rollout plan.
-
----
-
 ## 🤝 Contribute
 
 Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this.
@@ -577,36 +548,22 @@ Traditional algorithmic trading is often complex and difficult to deploy. Hoox a
 
 ---
 
-## 🗺️ Roadmap & Future Plans
+## ✅ Integrated Cloudflare Services
 
-### ✅ Recently Completed
-
-The following Cloudflare service integrations are now **live** across all hoox workers (May 2026):
+All Cloudflare service integrations are **live** across hoox workers (May 2026):
 
 | Service | Integration | Workers | Cost |
 |---------|:-----------:|:-------:|:----:|
-| **Smart Placement** | `placement { mode: "smart" }` | hoox, trade, agent, d1, telegram | $0 |
-| **Durable Objects** | Real IdempotencyStore w/ SQLite + alarm cleanup | hoox | $0 |
-| **KV-backed Rate Limiting** | Survives cold starts, in-memory fallback | hoox | $0 |
-| **Browser Rendering** | Automated PDF portfolio reports | report-worker | $0 |
-| **Analytics Engine** | Time-series tracking via analytics-worker | all workers | $0 |
+| **Smart Placement** | `placement { mode: "smart" }` | hoox, trade, agent, d1, telegram | Free |
+| **Durable Objects** | Real IdempotencyStore w/ SQLite + alarm cleanup | hoox | Free |
+| **KV-backed Rate Limiting** | Survives cold starts, in-memory fallback | hoox | Free |
+| **Browser Rendering** | Automated PDF portfolio reports | report-worker | Free |
+| **Analytics Engine** | Time-series tracking via analytics-worker | all workers | Free |
+| **Workers AI** | LLaMA 3 risk analysis & summaries | agent, telegram, hoox | Free |
+| **Vectorize** | RAG-powered AI responses | telegram, hoox | Free |
+| **WAF + Rate Limiting** | CLI-managed IP allowlisting + rate rules | zone-level | Free |
 
-### Coming Soon: Pynescript - Native Pine Script™ Execution
-
-Currently, Hoox relies on external signal generation, and we acknowledge that **TradingView® offers the best backtesting engine** available today for retail and professional traders alike.
-
-Our long-term vision includes native, edge-based execution of trading logic. **Pynescript** is a planned **100% fully featured Pine Script™ parser, converter, and executor** that will allow you to run complex Pine Script™ strategies natively within the Cloudflare Workers ecosystem.
-
-> ⚠️ **Status:** This project is not yet started. Track progress in our [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues).
-
-### Future Enterprise Growth (see [`enterprise-roadmap`](.superpowers/specs/2026-05-12-enterprise-roadmap.md))
-
-- **Phase I** — ✅ Smart Placement ✅ Durable Objects ✅ Rate Limiting ✅ Analytics Engine
-  — ⬜ Tail Workers ($5/mo Workers Paid onramp)
-- **Phase II** — ✅ Workers AI ✅ Vectorize ✅ Browser Rendering ✅ AI Gateway
-  — ⬜ Hyperdrive ($5/mo add-on for external DB connection pooling)
-- **Phase III** — Enterprise Workers SLA, Advanced DDoS, Load Balancing, Argo Smart Routing (~$210–250/mo)
-- **Phase IV** — Workers for Platforms multi-tenant SaaS, per-tenant D1, billing integration (~$350+/mo)
+All services run on Cloudflare's **Free plan** — no monthly costs.
 
 ---
 
