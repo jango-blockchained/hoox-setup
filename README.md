@@ -235,90 +235,147 @@ Hoox is split into distinct, highly specialized micro-workers. If one fails, the
 
 ```mermaid
 graph TB
-    subgraph "External World"
-        TV["📊 TradingView<br/>Webhooks"]
-        TG["💬 Telegram<br/>Bot Commands"]
-        EM["📧 Email<br/>Signal Parsing"]
+    %% ── Styling ──────────────────────────────────────────────────────
+    classDef external fill:#f5f5f5,stroke:#999,stroke-width:2,color:#333
+    classDef waf fill:#fff8e1,stroke:#f9a825,stroke-width:2
+    classDef worker fill:#e8f5e9,stroke:#43a047,stroke-width:2,color:#1b5e20
+    classDef storage fill:#e3f2fd,stroke:#1e88e5,stroke-width:2,color:#0d47a1
+    classDef compute fill:#f3e5f5,stroke:#8e24aa,stroke-width:2,color:#4a148c
+    classDef cli fill:#fafafa,stroke:#bdbdbd,stroke-width:1,stroke-dasharray: 4
+    classDef dash fill:#fff3e0,stroke:#ef6c00,stroke-width:2,color:#bf360c
+
+    %% ── Layers ───────────────────────────────────────────────────────
+
+    subgraph "🌐 External World"
+        TV["📊 TradingView Webhooks"]
+        TG["💬 Telegram Bot Commands"]
+        EM["📧 Email Signals"]
     end
 
-    subgraph "Cloudflare® WAF"
-        WAF["🛡️ WAF<br/>IP Allowlist & Rate Limits"]
+    subgraph "🛡️ Cloudflare® WAF"
+        WAF["IP Allowlisting & Rate Limiting"]
     end
 
-    subgraph "Cloudflare® Edge Network"
-        hoox["🔐 hoox<br/>Gateway & Firewall"]
-        trade["📈 trade-worker<br/>Execution Engine"]
-        telegram["💬 telegram-worker<br/>Notifications"]
-        agent["🧠 agent-worker<br/>AI Risk Manager"]
-        dash["📊 dashboard<br/>Next.js Command Center"]
-        d1["🗄️ d1-worker<br/>SQL Operations"]
-        web3["🌐 web3-wallet<br/>DeFi Execution"]
-        email["📧 email-worker<br/>Email Parser"]
-        analytics["📈 analytics-worker<br/>Reporting"]
-        report["📄 report-worker<br/>PDF Reports"]
+    subgraph "⚡ Cloudflare® Edge Network — Workers"
+        GW["🔐 hoox<br/>Gateway & Firewall"]
+        TW["📈 trade-worker<br/>Execution Engine"]
+        AW["🧠 agent-worker<br/>AI Risk Manager"]
+        D1W["🗄️ d1-worker<br/>SQL Operations"]
+        TGW["💬 telegram-worker<br/>Notifications"]
+        W3W["🌐 web3-wallet<br/>DeFi Execution"]
+        EMW["📧 email-worker<br/>Email Parser"]
+        ANW["📊 analytics-worker<br/>Observability"]
+        RPW["📄 report-worker<br/>PDF Reports"]
+        DASH["🖥️ Dashboard<br/>Next.js Command Center"]:::dash
     end
 
-    subgraph "Cloudflare® Infrastructure"
-        KV[(🟠 KV<br/>Config & Kill-Switch)]
-        AI[(🟠 Workers AI<br/>LLaMA 3)]
-        DB[(🟠 D1<br/>Trade Database)]
-        Q[(🟠 Queue<br/>Trade Execution)]
-        DO[(🟠 Durable Objects<br/>Idempotency)]
-        R2[(🟠 R2<br/>Reports & Logs)]
-        VEC[(🟠 Vectorize<br/>RAG Index)]
-        BROWSER[(🟠 Browser<br/>PDF Rendering)]
-        AE[(📊 Analytics Engine<br/>Observability)]
+    subgraph "💾 Cloudflare® Storage Layer"
+        KV[("KV · Config & Kill-Switch<br/>Sub-millisecond reads")]
+        DB[("D1 · Trade Database<br/>Global SQLite")]
+        R2[("R2 · Object Storage<br/>Reports & Logs")]
+        VEC[("Vectorize · RAG Index<br/>AI Embeddings")]
     end
 
-    %% External inputs
-    TV -->|HTTPS + API Key| WAF
-    TG -->|HTTPS + Bot Token| telegram
-    EM -->|SMTP| email
+    subgraph "🧮 Cloudflare® Compute Layer"
+        AI{{"🤖 Workers AI<br/>LLaMA 3 Inference"}}
+        DO{{"🔒 Durable Objects<br/>Idempotency Locks"}}
+        Q{{"📨 Queues<br/>Async Delivery · Retry"}}
+        BROWSER{{"🌐 Browser Rendering<br/>PDF Generation"}}
+        AE{{"📈 Analytics Engine<br/>Time-Series Metrics"}}
+    end
 
-    WAF --> hoox
+    subgraph "🔧 Management Plane — hoox CLI"
+        CLI["hoox deploy · hoox infra · hoox config<br/>hoox db · hoox monitor · hoox repair<br/>hoox check · hoox logs · hoox waf"]
+    end
 
-    %% Dashboard connections
-    dash -->|Service Binding| hoox
-    dash --> KV
+    %% ── External → WAF → Gateway ─────────────────────────────────────
 
-    %% hoox gateway routing
-    hoox -->|Fast Path<br/>Service Binding| trade
-    hoox -->|Fallback<br/>Queue| Q
-    hoox -->|Idempotency<br/>Durable Object| DO
-    hoox -->|Notifications<br/>Service Binding| telegram
-    hoox --> KV
+    TV -->|"HTTPS + API Key"| WAF
+    TG -->|"HTTPS + Bot Token"| TGW
+    EM -->|"SMTP/IMAP"| EMW
+    WAF -->|"Validated Signals"| GW
 
-    %% agent-worker cron (every 5 min)
-    agent -->|Cron: */5<br/>Service Binding| trade
-    agent -->|Service Binding| telegram
-    agent -->|Service Binding| d1
-    agent --> AI
+    %% ── Dashboard ────────────────────────────────────────────────────
 
-    %% trade-worker execution
-    trade -->|Service Binding| d1
-    trade -->|Service Binding| web3
-    trade -->|Service Binding| telegram
-    trade -->|Service Binding| analytics
-    trade --> DB
-    trade -->|Logs| R2
-    trade --> Q
-    trade --> KV
-    trade --> VEC
-    trade --> BROWSER
-    trade --> AI
+    DASH -->|"Service Binding"| GW
+    DASH -.->|"Read Config"| KV
 
-    %% telegram-worker
-    telegram -->|Service Binding| analytics
-    telegram --> AI
+    %% ── hoox Gateway Routing ─────────────────────────────────────────
 
-    %% email-worker
-    email -->|Service Binding| analytics
-    email --> KV
+    GW -->|"⚡ Fast Path · Service Binding"| TW
+    GW -->|"📨 Fallback · Queue"| Q
+    GW -->|"🔒 Idempotency"| DO
+    GW -->|"💬 Notifications"| TGW
+    GW -.->|"Config + Rate Limit"| KV
+    GW -.->|"Track API Calls"| AE
 
-    %% report-worker
-    report -->|Cron: 06:00 + 18:00<br/>Service Binding| R2
-    report -->|Service Binding| telegram
-    report -.->|REST API| BROWSER
+    %% ── agent-worker (Cron: every 5 min) ─────────────────────────────
+
+    AW -->|"Cron */5 · Evaluate Positions"| TW
+    AW -->|"Send Summaries"| TGW
+    AW -->|"Query History"| D1W
+    AW -->|"Risk Analysis"| AI
+    AW -.->|"Portfolio State"| DB
+
+    %% ── trade-worker Execution ───────────────────────────────────────
+
+    TW -->|"Service Binding"| D1W
+    TW -->|"Service Binding"| TGW
+    TW -->|"Service Binding"| ANW
+    TW -->|"DeFi Execution"| W3W
+    TW -.->|"Read/Write Trades"| DB
+    TW -.->|"Read Config"| KV
+    TW -.->|"RAG Context"| VEC
+    TW -.->|"Offload Logs"| R2
+    TW -.->|"Enqueue Retry"| Q
+    TW -.->|"AI Analysis"| AI
+    TW -.->|"Render Reports"| BROWSER
+
+    %% ── telegram-worker ──────────────────────────────────────────────
+
+    TGW -->|"Track Events"| ANW
+    TGW -.->|"AI Chat Responses"| AI
+    TGW -.->|"Read Config"| KV
+
+    %% ── email-worker ─────────────────────────────────────────────────
+
+    EMW -->|"Track Events"| ANW
+    EMW -.->|"Read Config"| KV
+
+    %% ── report-worker (Cron: 06:00 + 18:00) ──────────────────────────
+
+    RPW -->|"Cron · Store PDFs"| R2
+    RPW -->|"Send Report Links"| TGW
+    RPW -.->|"REST · Render HTML→PDF"| BROWSER
+
+    %% ── CLI Management Plane (dashed to all managed resources) ───────
+
+    CLI -.->|"hoox deploy · hoox check"| GW
+    CLI -.->|"hoox deploy · hoox repair"| TW
+    CLI -.->|"hoox deploy · hoox repair"| AW
+    CLI -.->|"hoox deploy"| D1W
+    CLI -.->|"hoox deploy · telegram-webhook"| TGW
+    CLI -.->|"hoox deploy"| W3W
+    CLI -.->|"hoox deploy"| EMW
+    CLI -.->|"hoox deploy"| ANW
+    CLI -.->|"hoox deploy"| RPW
+    CLI -.->|"hoox deploy"| DASH
+    CLI -.->|"hoox db · hoox repair db"| DB
+    CLI -.->|"hoox config kv · hoox repair kv"| KV
+    CLI -.->|"hoox infra r2"| R2
+    CLI -.->|"hoox infra queues"| Q
+    CLI -.->|"hoox infra vectorize"| VEC
+    CLI -.->|"hoox infra analytics"| AE
+    CLI -.->|"hoox infra d1 · hoox repair"| DO
+
+    %% ── Apply styles ─────────────────────────────────────────────────
+
+    class TV,TG,EM external
+    class WAF waf
+    class GW,TW,AW,D1W,TGW,W3W,EMW,ANW,RPW worker
+    class KV,DB,R2,VEC storage
+    class AI,DO,Q,BROWSER,AE compute
+    class CLI cli
 ```
 
 ---
