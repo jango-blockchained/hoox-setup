@@ -41,6 +41,23 @@ function formatOpts(cmd: Command): FormatOptions {
 async function handleInit(opts: FormatOptions): Promise<void> {
   p.intro("Environment Setup");
 
+  // Warn if .env.local already exists
+  const existingEnv = Bun.file(".env.local");
+  if (await existingEnv.exists()) {
+    const overwrite = await p.confirm({
+      message: ".env.local already exists. Overwrite?",
+      initialValue: false,
+    });
+    if (p.isCancel(overwrite)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+    if (!overwrite) {
+      p.outro("Setup cancelled. Existing .env.local preserved.");
+      return;
+    }
+  }
+
   const collected: Record<string, string> = {};
   const sections = EnvService.getSections();
 
@@ -139,6 +156,9 @@ async function handleValidate(opts: FormatOptions): Promise<void> {
   if (opts.json) {
     formatJson(result, opts);
   } else if (!opts.quiet) {
+    if (!(await file.exists())) {
+      process.stdout.write(".env.local not found. Run `hoox config env init` first.\n\n");
+    }
     if (result.missing.length > 0) {
       process.stdout.write("Missing required variables:\n");
       for (const v of result.missing) {
