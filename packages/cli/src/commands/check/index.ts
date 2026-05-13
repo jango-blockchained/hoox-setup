@@ -1,4 +1,5 @@
 export { registerCheckCommand } from "./check-command.js";
+export { registerPrerequisitesCommand } from "./prerequisites-command.js";
 export type {
   CheckResult,
   CheckCategory,

@@ -14,6 +14,7 @@ import { spinner } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { SecretsService } from "../../services/secrets/index.js";
+import { registerPrerequisitesCommand } from "./prerequisites-command.js";
 import { theme, icons } from "../../utils/theme.js";
 import {
   formatSuccess,
@@ -1106,6 +1107,9 @@ EXAMPLES:
       };
       await handleFix(opts, Boolean(options.dryRun));
     });
+
+  // -- check prerequisites --------------------------------------------------
+  registerPrerequisitesCommand(checkCmd);
 
   // -- check submodule-gitignore ---------------------------------------------
   checkCmd
