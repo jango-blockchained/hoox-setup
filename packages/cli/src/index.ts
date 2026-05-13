@@ -137,6 +137,8 @@ import { registerWafCommand } from "./commands/waf/index.js";
 import { registerCloneCommand } from "./commands/clone/index.js";
 import { registerDashboardCommand } from "./commands/dashboard/index.js";
 import { registerDbCommand } from "./commands/db/index.js";
+import { registerMonitorCommand } from "./commands/monitor/index.js";
+import { registerRepairCommand } from "./commands/repair/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
 registerInitCommand(program);
@@ -151,6 +153,8 @@ registerWafCommand(program);
 registerCloneCommand(program);
 registerDashboardCommand(program);
 registerDbCommand(program);
+registerMonitorCommand(program);
+registerRepairCommand(program);
 
 // ---------------------------------------------------------------------------
 // Main entry — exported so bin/hoox.js can invoke it explicitly

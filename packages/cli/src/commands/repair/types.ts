@@ -1,0 +1,13 @@
+export interface RepairStepResult {
+  step: string;
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface RepairCheckResult {
+  steps: RepairStepResult[];
+  allPassed: boolean;
+  passedCount: number;
+  failedCount: number;
+}
