@@ -15,11 +15,15 @@ import { theme, icons } from "../../utils/theme.js";
 import {
   formatSuccess,
   formatError,
+  type FormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { DeployResult } from "./types.js";
-import { statSync, existsSync } from "node:fs";
+import { statSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { TelegramService } from "./telegram-service.js";
+import { EnvService } from "../../services/env/index.js";
+import * as jsonc from "jsonc-parser";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -180,7 +184,8 @@ async function deployAll(
   configService: ConfigService,
   cf: CloudflareService,
   env?: string,
-  forceRebuildDashboard: boolean = false
+  forceRebuildDashboard: boolean = false,
+  autoMode: boolean = false
 ): Promise<DeployResult[]> {
   // Get enabled workers and sort by deployment order
   const enabled = configService.listEnabledWorkers();
@@ -212,7 +217,7 @@ async function deployAll(
 
     if (isDashboard) {
       // Use the silent mode in deployAll since we manage our own UI
-      result = await deployDashboard(cf, forceRebuildDashboard, true);
+      result = await deployDashboard(cf, forceRebuildDashboard, true, autoMode);
     } else {
       result = await deploySingle(configService, cf, name, env);
     }
@@ -275,7 +280,8 @@ async function deployAll(
 async function deployDashboard(
   cf: CloudflareService,
   forceRebuild: boolean = false,
-  silentMode: boolean = false
+  silentMode: boolean = false,
+  autoMode: boolean = false
 ): Promise<DeployResult> {
   const dashboardPath = "workers/dashboard";
 
@@ -284,7 +290,11 @@ async function deployDashboard(
 
   // Determine action based on build status and user choice
   let action: "rebuild" | "deploy" | "cancel";
-  if (forceRebuild || silentMode) {
+  if (forceRebuild) {
+    action = "rebuild";
+  } else if (autoMode) {
+    action = buildInfo.exists ? "deploy" : "rebuild";
+  } else if (silentMode) {
     action = "rebuild";
   } else {
     action = await promptRebuildDecision(buildInfo);
@@ -515,12 +525,191 @@ function printSummary(
 }
 
 // ---------------------------------------------------------------------------
+// Telegram webhook handler
+// ---------------------------------------------------------------------------
+
+async function doTelegramWebhook(
+  fmt: FormatOptions,
+  token?: string,
+  secretToken?: string,
+  subdomain?: string,
+): Promise<void> {
+  try {
+    // Resolve subdomain from flag or config
+    let prefix = subdomain;
+    if (!prefix) {
+      const config = new ConfigService();
+      await config.load();
+      const global = config.getGlobal();
+      prefix = global.subdomain_prefix ?? "hoox";
+    }
+
+    // Resolve bot token from flag or .env.local
+    let botToken = token;
+    if (!botToken) {
+      const envVars = await EnvService.loadDotEnvAsync(".env.local");
+      botToken = envVars["TELEGRAM_BOT_TOKEN"];
+    }
+    if (!botToken) {
+      formatError(new CLIError("Telegram bot token not found. Provide --token or set TELEGRAM_BOT_TOKEN in .env.local", ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
+
+    // Resolve secret token from flag or .env.local
+    let webhookSecret = secretToken;
+    if (!webhookSecret) {
+      const envVars = await EnvService.loadDotEnvAsync(".env.local");
+      webhookSecret = envVars["TELEGRAM_SECRET_TOKEN"];
+    }
+    if (!webhookSecret) {
+      formatError(new CLIError("Telegram secret token not found. Provide --secret-token or set TELEGRAM_SECRET_TOKEN in .env.local", ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
+
+    // Check current webhook status
+    const telegram = new TelegramService();
+    const webhookUrl = `https://telegram-worker.${prefix}.workers.dev/webhook/${webhookSecret}`;
+
+    const info = await telegram.getWebhookInfo(botToken);
+    if (info.ok && info.url) {
+      process.stdout.write(`${theme.dim("Current webhook:")} ${info.url}\n`);
+      if (info.pending_update_count !== undefined) {
+        process.stdout.write(`${theme.dim("Pending updates:")} ${info.pending_update_count}\n`);
+      }
+    }
+
+    // Set webhook
+    process.stdout.write(`${theme.info("Setting webhook to:")} ${webhookUrl}\n`);
+    const result = await telegram.setWebhook(botToken, webhookUrl, webhookSecret);
+
+    if (result.ok) {
+      formatSuccess("Telegram webhook set successfully", fmt);
+      if (result.description) process.stdout.write(`  ${theme.dim(result.description)}\n`);
+    } else {
+      formatError(new CLIError(`Telegram webhook failed: ${result.error || result.description || "Unknown error"}`, ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+    }
+  } catch (err) {
+    formatError(err instanceof Error ? err.message : String(err), fmt);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Update internal URLs handler
+// ---------------------------------------------------------------------------
+
+async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
+  try {
+    const config = new ConfigService();
+    await config.load();
+    const global = config.getGlobal();
+    const prefix = global.subdomain_prefix ?? "hoox";
+    const workers = config.listEnabledWorkers();
+
+    // Try pages/dashboard first, fall back to workers/dashboard
+    let filePath = resolve(process.cwd(), "pages", "dashboard", "wrangler.jsonc");
+    if (!existsSync(filePath)) {
+      filePath = resolve(process.cwd(), "workers", "dashboard", "wrangler.jsonc");
+    }
+    if (!existsSync(filePath)) {
+      formatError(new CLIError("Dashboard wrangler.jsonc not found (checked pages/dashboard and workers/dashboard)", ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
+
+    const content = readFileSync(filePath, "utf-8");
+    const errors: jsonc.ParseError[] = [];
+    const parsed = jsonc.parse(content, errors) as Record<string, unknown>;
+    if (errors.length > 0) {
+      formatError(new CLIError("Invalid JSONC in dashboard wrangler.jsonc", ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
+
+    const vars = (parsed.vars as Record<string, string>) ?? {};
+    let changesCount = 0;
+
+    for (const name of workers) {
+      const key = `${name.toUpperCase().replace(/-/g, "_")}_URL`;
+      const newUrl = `https://${name}.${prefix}.workers.dev`;
+      if (vars[key] !== newUrl) {
+        if (!fmt.quiet) {
+          process.stdout.write(`  ${theme.info("→")} ${key}: ${vars[key] ?? "(not set)"} ${theme.dim("→")} ${newUrl}\n`);
+        }
+        vars[key] = newUrl;
+        changesCount++;
+      }
+    }
+
+    if (changesCount === 0) {
+      formatSuccess("All service URLs already up to date.", fmt);
+      return;
+    }
+
+    const edits = jsonc.modify(content, ["vars"], vars, {
+      formattingOptions: { tabSize: 2, insertSpaces: true },
+    });
+    writeFileSync(filePath, jsonc.applyEdits(content, edits), "utf-8");
+    formatSuccess(`Updated ${changesCount} service URL(s) in dashboard wrangler.jsonc`, fmt);
+  } catch (err) {
+    formatError(err instanceof Error ? err.message : String(err), fmt);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// KV config handler
+// ---------------------------------------------------------------------------
+
+async function doKvConfig(fmt: FormatOptions): Promise<void> {
+  try {
+    const { KvSyncService } = await import("../../services/kv/kv-sync-service.js");
+    const kvSync = new KvSyncService();
+
+    process.stdout.write(`${theme.info("Resolving CONFIG_KV namespace...")}\n`);
+    const namespaceId = await kvSync.resolveNamespaceId();
+    const manifest = KvSyncService.getManifest();
+    let setCount = 0;
+    let errorCount = 0;
+
+    for (const entry of manifest.keys) {
+      const value = entry.default;
+      if (!value || value === "") {
+        if (!fmt.quiet) {
+          process.stdout.write(`  ${theme.dim("·")} ${entry.key} ${theme.dim("(no default, skipping)")}\n`);
+        }
+        continue;
+      }
+      try {
+        await kvSync.set(namespaceId, entry.key, value);
+        if (!fmt.quiet) {
+          process.stdout.write(`  ${theme.success("✓")} ${entry.key}\n`);
+        }
+        setCount++;
+      } catch (err) {
+        process.stdout.write(`  ${theme.error("✗")} ${entry.key}: ${err instanceof Error ? err.message : String(err)}\n`);
+        errorCount++;
+      }
+    }
+
+    process.stdout.write(`\n${setCount} key(s) set, ${errorCount} error(s)\n`);
+    if (errorCount > 0) process.exitCode = ExitCode.ERROR;
+  } catch (err) {
+    formatError(err instanceof Error ? err.message : String(err), fmt);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command registration
 // ---------------------------------------------------------------------------
 
 /**
  * Register the `hoox deploy` command group with subcommands:
- * all, workers, worker <name>, dashboard.
+ * all, workers, worker <name>, dashboard, telegram-webhook, update-internal-urls, kv-config.
  */
 export function registerDeployCommand(program: Command): void {
   const deployCmd = program
@@ -557,15 +746,18 @@ This is the recommended command for production deployments as it ensures all com
 OPTIONS:
   --env <env>     Target environment (production, staging, etc.)
   --rebuild       Force rebuild of dashboard before deploying (skip prompt)
+  --auto          Skip dashboard rebuild prompt, use existing build if available
 
 EXAMPLES:
   hoox deploy all
   hoox deploy all --env production
-  hoox deploy all --rebuild`
+  hoox deploy all --rebuild
+  hoox deploy all --auto`
     )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .option("--rebuild", "Force rebuild of dashboard before deploying")
-    .action(async (options: { env?: string; rebuild?: boolean }) => {
+    .option("--auto", "Skip dashboard rebuild prompt, use existing build if available")
+    .action(async (options: { env?: string; rebuild?: boolean; auto?: boolean }) => {
       const fmt = getFormatOptions(program);
       try {
         const configService = new ConfigService();
@@ -573,7 +765,7 @@ EXAMPLES:
         const cf = new CloudflareService();
 
         // Deploy all (workers + dashboard) in one go
-        await deployAll(configService, cf, options.env, options.rebuild);
+        await deployAll(configService, cf, options.env, options.rebuild ?? false, options.auto ?? false);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         formatError(message, fmt);
@@ -788,5 +980,74 @@ EXAMPLES:
         formatError(message, fmt);
         process.exitCode = ExitCode.ERROR;
       }
+    });
+
+  // -- deploy telegram-webhook --------------------------------------------
+
+  deployCmd
+    .command("telegram-webhook")
+    .summary("Set Telegram bot webhook (post-deploy step)")
+    .description(
+      `Configure the Telegram bot webhook after deploying telegram-worker.
+
+Calls the Telegram Bot API to set the webhook URL.
+
+ARGUMENTS:
+  --token <token>           Telegram bot token (from @BotFather)
+  --secret-token <token>    Telegram webhook secret token
+  --subdomain <prefix>      Worker subdomain prefix (default: from config)
+
+By default, the bot token and secret are read from .env local.
+Use --token and --secret-token to override.
+
+EXAMPLES:
+  hoox deploy telegram-webhook
+  hoox deploy telegram-webhook --token 123456:ABC-DEF1234
+  hoox deploy telegram-webhook --subdomain myapp`
+    )
+    .option("--token <token>", "Telegram bot token (from @BotFather)")
+    .option("--secret-token <secret>", "Telegram webhook secret token")
+    .option("--subdomain <prefix>", "Worker subdomain prefix (default: from config)")
+    .action(async (options: { token?: string; secretToken?: string; subdomain?: string }) => {
+      const fmt = getFormatOptions(program);
+      await doTelegramWebhook(fmt, options.token, options.secretToken, options.subdomain);
+    });
+
+  // -- deploy update-internal-urls ---------------------------------------
+
+  deployCmd
+    .command("update-internal-urls")
+    .summary("Update dashboard wrangler.jsonc with current service URLs")
+    .description(
+      `Update the dashboard's wrangler.jsonc with the current service URLs.
+
+This is a post-deployment step that ensures the dashboard has correct
+service binding URLs for all workers.
+
+EXAMPLES:
+  hoox deploy update-internal-urls`
+    )
+    .action(async () => {
+      const fmt = getFormatOptions(program);
+      await doUpdateInternalUrls(fmt);
+    });
+
+  // -- deploy kv-config --------------------------------------------------
+
+  deployCmd
+    .command("kv-config")
+    .summary("Apply KV manifest keys post-deployment")
+    .description(
+      `Apply the KV manifest key-value pairs after deploying workers.
+
+Sets all KV keys from the manifest to their default values.
+This post-deployment step initializes the CONFIG_KV namespace.
+
+EXAMPLES:
+  hoox deploy kv-config`
+    )
+    .action(async () => {
+      const fmt = getFormatOptions(program);
+      await doKvConfig(fmt);
     });
 }
