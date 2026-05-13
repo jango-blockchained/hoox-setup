@@ -742,7 +742,7 @@ describe("init command", () => {
       expect(d1DevVars).toBeUndefined();
     });
 
-    it("creates .dev.vars for agent-worker when AI providers selected", async () => {
+    it("creates .dev.vars for agent-worker when an AI provider is selected", async () => {
       responses = {
         password: "valid-token",
         text: "test-account",
@@ -777,6 +777,7 @@ describe("init command", () => {
       const devVarsPath = "workers/hoox/.dev.vars";
       const devVars = captured.writes[devVarsPath];
       expect(devVars).toContain("HA_TOKEN_BINDING=ha-token-real-value");
+      expect(devVars).toContain("NEVER commit this file");
     });
   });
 
