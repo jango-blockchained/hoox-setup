@@ -604,6 +604,46 @@ describe("init command", () => {
       expect(workersJsonc).toContain('"TELEGRAM_BOT_TOKEN"');
     });
 
+    it("includes AI provider integrations when selected", async () => {
+      responses = {
+        password: "valid-token",
+        text: "test-account",
+        multiselect: ["openai", "anthropic", "google-ai"],
+        confirm: false,
+        group: {
+          AGENT_OPENAI_KEY: "sk-openai-123",
+          AGENT_ANTHROPIC_KEY: "sk-ant-123",
+          AGENT_GOOGLE_KEY: "google-ai-key-456",
+        },
+      };
+
+      await runInitCommand({}, { json: false, quiet: true }, false);
+
+      const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toContain('"agent-worker"');
+      expect(workersJsonc).toContain('"AGENT_OPENAI_KEY"');
+      expect(workersJsonc).toContain('"AGENT_ANTHROPIC_KEY"');
+      expect(workersJsonc).toContain('"AGENT_GOOGLE_KEY"');
+    });
+
+    it("includes Home Assistant integration when selected", async () => {
+      responses = {
+        password: "valid-token",
+        text: "test-account",
+        multiselect: ["home-assistant"],
+        confirm: false,
+        group: {
+          HA_TOKEN_BINDING: "ha-token-789",
+        },
+      };
+
+      await runInitCommand({}, { json: false, quiet: true }, false);
+
+      const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toContain('"hoox"');
+      expect(workersJsonc).toContain('"HA_TOKEN_BINDING"');
+    });
+
     it("merges exchange secrets into single trade-worker", async () => {
       responses = {
         password: "valid-token",
@@ -700,6 +740,43 @@ describe("init command", () => {
       // d1-worker has no user-collected secrets in interactive mode
       const d1DevVars = captured.writes["workers/d1-worker/.dev.vars"];
       expect(d1DevVars).toBeUndefined();
+    });
+
+    it("creates .dev.vars for agent-worker when AI providers selected", async () => {
+      responses = {
+        password: "valid-token",
+        text: "test-account",
+        multiselect: ["openai"],
+        confirm: false,
+        group: {
+          AGENT_OPENAI_KEY: "sk-openai-real-value",
+        },
+      };
+
+      await runInitCommand({}, { json: false, quiet: true }, false);
+
+      const devVarsPath = "workers/agent-worker/.dev.vars";
+      const devVars = captured.writes[devVarsPath];
+      expect(devVars).toContain("AGENT_OPENAI_KEY=sk-openai-real-value");
+      expect(devVars).toContain("NEVER commit this file");
+    });
+
+    it("creates .dev.vars for hoox when Home Assistant selected", async () => {
+      responses = {
+        password: "valid-token",
+        text: "test-account",
+        multiselect: ["home-assistant"],
+        confirm: false,
+        group: {
+          HA_TOKEN_BINDING: "ha-token-real-value",
+        },
+      };
+
+      await runInitCommand({}, { json: false, quiet: true }, false);
+
+      const devVarsPath = "workers/hoox/.dev.vars";
+      const devVars = captured.writes[devVarsPath];
+      expect(devVars).toContain("HA_TOKEN_BINDING=ha-token-real-value");
     });
   });
 
