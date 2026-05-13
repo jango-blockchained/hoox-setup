@@ -17,6 +17,7 @@ import { spinner } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { SecretsService } from "../../services/secrets/index.js";
 import { registerEnvCommand } from "./env-command.js";
+import { registerKvCommand } from "./kv-command.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import {
   formatSuccess,
@@ -690,6 +691,11 @@ EXAMPLES:
   // env subcommand group
   // ──────────────────────────────────────────────────────────────────────
   registerEnvCommand(configCmd);
+
+  // ──────────────────────────────────────────────────────────────────────
+  // kv subcommand group
+  // ──────────────────────────────────────────────────────────────────────
+  registerKvCommand(configCmd);
 
   // ──────────────────────────────────────────────────────────────────────
   // keys subcommand group
