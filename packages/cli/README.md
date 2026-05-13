@@ -2,17 +2,22 @@
 
 Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments.
 
+381 unit tests, 15 command groups, 50+ subcommands.
+
 ## Features
 
+- **Interactive Setup**: `hoox init` guides you through project initialization with AI provider support
+- **Infrastructure as Code**: Manage D1, KV, R2, Queues, Vectorize, and Analytics via `hoox infra`
+- **Environment Management**: Declarative 31-key env matrix via `hoox config env`
+- **KV Config Sync**: 16-key manifest with `apply-manifest` for CONFIG_KV
+- **Database Operations**: Schema apply, migrations, query, export, reset via `hoox db`
+- **Deploy Automation**: Workers + dashboard + telegram webhook + KV config in one flow
+- **Operational Monitoring**: Health checks, recent trades, kill switch, queue depth, backup
+- **Repair & Recovery**: Comprehensive system check, guided rebuild, per-component repair
+- **Prerequisites Checks**: 7 tool/account/repository validations
+- **Secret Management**: Sync, check, and rotate Cloudflare secrets
 - **Interactive TUI**: Launch an interactive terminal UI when running `hoox` with no arguments
 - **Worker Management**: Initialize, develop, and deploy Cloudflare Workers
-- **Infrastructure as Code**: Manage D1 databases, R2 storage, KV namespaces, and more
-- **Configuration**: Centralized config management via `wrangler.jsonc`
-- **Secret Management**: Securely manage and deploy secrets to Cloudflare
-- **Health Checks**: Verify setup and diagnose issues with `check-setup`
-- **Logging**: Stream and filter worker logs
-- **WAF Management**: Configure Cloudflare Web Application Firewall rules
-- **Dashboard**: Launch and manage the Next.js dashboard
 
 ## Installation
 
@@ -45,24 +50,27 @@ hoox --help
 hoox init
 hoox dev
 hoox deploy
+hoox monitor status
 ```
 
 ## Available Commands
 
-| Command          | Description                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| `hoox`           | Launch interactive TUI (when called with no arguments)      |
-| `hoox init`      | Initialize a new Hoox project with worker configuration     |
-| `hoox dev`       | Start local development environment for all workers         |
-| `hoox deploy`    | Deploy workers to Cloudflare                                |
-| `hoox infra`     | Manage infrastructure (D1, R2, KV, Durable Objects, Queues) |
-| `hoox config`    | View and modify `wrangler.jsonc` configuration               |
-| `hoox check`     | Verify project setup and diagnose issues                    |
-| `hoox logs`      | Stream and filter Cloudflare Worker logs                    |
-| `hoox test`      | Run tests for workers and packages                          |
-| `hoox waf`       | Manage Cloudflare WAF rules and policies                    |
-| `hoox clone`     | Clone and set up an existing Hoox project                   |
-| `hoox dashboard` | Launch or deploy the Next.js dashboard                      |
+| Command          | Description                                                |
+| ---------------- | ---------------------------------------------------------- |
+| `hoox init`      | Initialize a new Hoox project with worker configuration    |
+| `hoox clone`     | Clone worker repositories as git submodules                |
+| `hoox dev`       | Start local development environment for all workers        |
+| `hoox deploy`    | Deploy workers, dashboard, telegram webhook, and KV config |
+| `hoox infra`     | Manage infrastructure (D1, KV, R2, Queues, Vectorize, Analytics) |
+| `hoox config`    | Manage wrangler.jsonc, env vars, KV keys, and secrets      |
+| `hoox check`     | Validate setup, prerequisites, and worker health           |
+| `hoox db`        | Manage D1 databases (apply, migrate, query, export, reset) |
+| `hoox monitor`   | Monitor health, trades, logs, kill switch, queue, backup   |
+| `hoox repair`    | Diagnose and repair the system (check, rebuild, per-component) |
+| `hoox logs`      | Stream and filter Cloudflare Worker logs                   |
+| `hoox test`      | Run tests and CI pipeline                                  |
+| `hoox waf`       | Manage Cloudflare WAF rules and policies                   |
+| `hoox dashboard` | Launch or deploy the Next.js dashboard                     |
 
 ### Global Options
 
@@ -81,73 +89,179 @@ All commands support these global options:
 hoox init
 ```
 
-Interactive prompts will guide you through setting up your project with the necessary worker configurations.
+Interactive prompts guide you through AI provider setup, Cloudflare credentials, and exchange API keys.
 
-### Start Development Environment
+### Check Prerequisites
 
 ```bash
-hoox dev
+# Check all tools
+hoox check prerequisites
+
+# Check specific tool
+hoox check prerequisites --tool bun
 ```
 
-Starts all workers locally with hot-reload. Each worker runs on a dedicated port (see `wrangler.jsonc` for port assignments).
+Validates bun ≥1.2, git ≥2.40, wrangler, Docker, Cloudflare auth, and repository integrity.
+
+### Configure Environment
+
+```bash
+# Interactive env setup (all 31 vars across 8 sections)
+hoox config env init
+
+# Show current env (secrets redacted)
+hoox config env show
+
+# Validate required vars
+hoox config env validate
+
+# Generate per-worker .dev.vars
+hoox config env generate-dev-vars
+```
+
+### Manage KV Keys
+
+```bash
+# Apply manifest defaults (16 keys)
+hoox config kv apply-manifest
+
+# Show expected manifest
+hoox config kv manifest
+
+# Individual key operations
+hoox config kv list
+hoox config kv get trade:kill_switch
+hoox config kv set trade:kill_switch "false"
+hoox config kv delete trade:kill_switch
+```
 
 ### Deploy to Cloudflare
 
 ```bash
-# Deploy all workers
-hoox deploy
+# Deploy all workers then dashboard
+hoox deploy all
+
+# Deploy all — skip rebuild prompt, use existing build
+hoox deploy all --auto
+
+# Deploy with force rebuild
+hoox deploy all --rebuild
+
+# Post-deploy: set Telegram webhook
+hoox deploy telegram-webhook
+
+# Post-deploy: update dashboard service URLs
+hoox deploy update-internal-urls
+
+# Post-deploy: apply KV manifest
+hoox deploy kv-config
 
 # Deploy specific worker
-hoox deploy --worker hoox
+hoox deploy worker trade-worker
 ```
 
-### Check Project Setup
+### Manage Database
 
 ```bash
-hoox check
-```
+# Apply schema to local or remote
+hoox db apply
+hoox db apply --remote
 
-Verifies that all dependencies, configurations, and Cloudflare credentials are properly set up.
+# Run tracking migrations
+hoox db migrate --remote
+
+# List tables
+hoox db list --remote
+
+# Execute read-only queries
+hoox db query "SELECT COUNT(*) FROM trades" --remote
+
+# Export to timestamped .sql
+hoox db export
+
+# Reset D1 (DESTRUCTIVE)
+hoox db reset --confirm
+```
 
 ### Manage Infrastructure
 
 ```bash
-# List all infrastructure resources
-hoox infra list
+# Auto-provision from wrangler.jsonc
+hoox infra provision
 
-# Create a new D1 database
-hoox infra create d1 my-database
+# Individual resource management
+hoox infra d1 list
+hoox infra kv create my-namespace
+hoox infra r2 list
+hoox infra queues create my-queue
+hoox infra vectorize list
+hoox infra vectorize create my-index
+hoox infra analytics list
 ```
 
-### Manage Secrets
+### Monitor Operations
 
 ```bash
-# Update secrets in Cloudflare
-hoox config secrets update-cf
+# Check all worker health endpoints
+hoox monitor status
+
+# Show recent trades
+hoox monitor trades 20
+
+# Show system logs
+hoox monitor logs
+hoox monitor logs hoox
+
+# Kill switch operations
+hoox monitor kill-switch show
+hoox monitor kill-switch on     # Halt all trading
+hoox monitor kill-switch off    # Resume trading
+
+# Queue depth
+hoox monitor queue-depth
+
+# Backup D1 database
+hoox monitor backup
 ```
 
-### View Logs
+### Repair and Recovery
 
 ```bash
-# Stream logs from all workers
-hoox logs
+# Comprehensive system check (5 steps)
+hoox repair check
 
-# Filter logs by worker
-hoox logs --worker trade-worker
+# Redeploy a single worker
+hoox repair worker trade-worker
+
+# Verify infrastructure exists
+hoox repair infra
+
+# Re-upload all secrets
+hoox repair secrets
+
+# Reset KV keys to defaults
+hoox repair kv
+
+# Re-apply schema + migrations
+hoox repair db
+
+# Full guided rebuild (interactive, WARNING: destructive)
+hoox repair rebuild
 ```
 
 ### JSON Output for Scripting
 
 ```bash
-hoox check --json
-# Output: {"status": "ok", "checks": [...]}
+hoox check prerequisites --json
+hoox monitor status --json
+hoox infra d1 list --json
 ```
 
 ## Development Setup
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) >= 1.0
+- [Bun](https://bun.sh) >= 1.2
 - [Cloudflare account](https://dash.cloudflare.com/sign-up)
 - Wrangler CLI (installed automatically with dependencies)
 
@@ -172,7 +286,7 @@ bun run build
 # Run all tests
 bun test
 
-# Run tests with coverage
+# Run with coverage
 bun run test:coverage
 
 # Run specific test file
@@ -204,23 +318,32 @@ The CI pipeline runs in this order:
 packages/cli/
 ├── src/
 │   ├── index.ts              # Main entry point
-│   ├── commands/             # Command implementations
-│   │   ├── init/
-│   │   ├── dev/
-│   │   ├── deploy/
-│   │   ├── infra/
-│   │   ├── config/
-│   │   ├── check/
-│   │   ├── logs/
-│   │   ├── test/
-│   │   ├── waf/
-│   │   ├── clone/
-│   │   └── dashboard/
+│   ├── commands/
+│   │   ├── init/             # Interactive setup wizard
+│   │   ├── dev/              # Local development
+│   │   ├── deploy/           # Deploy, telegram-webhook, update-internal-urls
+│   │   ├── infra/            # D1, KV, R2, Queues, Vectorize, Analytics
+│   │   ├── config/           # Wrangler config, env, kv, secrets
+│   │   ├── check/            # Prerequisites, setup, health
+│   │   ├── db/               # Database operations
+│   │   ├── monitor/          # Health, trades, logs, kill-switch
+│   │   ├── repair/           # Check, worker, infra, secrets, rebuild
+│   │   ├── logs/             # Worker log tailing
+│   │   ├── test/             # CI pipeline
+│   │   ├── waf/              # WAF management
+│   │   ├── clone/            # Submodule cloning
+│   │   └── dashboard/        # Dashboard operations
+│   ├── services/
+│   │   ├── cloudflare/       # Wrangler CLI wrapper
+│   │   ├── config/           # wrangler.jsonc reader
+│   │   ├── db/               # D1 operations
+│   │   ├── docker/           # Docker compose wrapper
+│   │   ├── env/              # Environment definitions
+│   │   ├── kv/               # KV key management
+│   │   ├── prerequisites/    # Tool version checks
+│   │   └── secrets/          # Secret management
 │   ├── ui/                   # Interactive TUI
-│   └── utils/                # Shared utilities
-│       ├── errors.ts
-│       ├── formatters.ts
-│       └── theme.ts
+│   └── utils/                # Errors, formatters, theme
 ├── bin/
 │   └── hoox.js              # CLI binary entry point
 ├── package.json

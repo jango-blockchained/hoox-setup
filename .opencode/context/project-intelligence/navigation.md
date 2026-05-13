@@ -4,6 +4,8 @@
 | ------------------------ | ----------------------------------- | -------- |
 | concepts/architecture.md | Worker architecture & communication | critical |
 | concepts/tech-stack.md   | Tech stack & tools                  | critical |
+| guides/cli-commands.md   | Complete CLI command reference      | critical |
+| guides/cli-services.md   | CLI service architecture            | high     |
 | examples/worker-setup.md | Worker config & setup examples      | high     |
 | examples/api-patterns.md | API endpoint patterns               | high     |
 | guides/local-dev.md      | Local development workflow          | high     |
