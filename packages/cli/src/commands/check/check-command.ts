@@ -2,6 +2,7 @@
  * `hoox check` command group — validation, health checks, and auto-repair.
  *
  * Subcommands:
+ *   prerequisites [--tool]   — Validate toolchain and account prerequisites
  *   setup [--json]           — Full system validation (Config, Infrastructure, Secrets, Database)
  *   health [--fix]           — Worker connectivity and responsiveness checks
  *   fix [--dry-run]          — Repair known common issues
