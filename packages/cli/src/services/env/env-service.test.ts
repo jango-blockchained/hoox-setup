@@ -5,7 +5,7 @@ describe("EnvService", () => {
   describe("getDefinitions", () => {
     it("returns all known env var definitions", () => {
       const defs = EnvService.getDefinitions();
-      expect(defs.length).toBe(20);
+      expect(defs.length).toBe(31);
       expect(defs.some(d => d.name === "CLOUDFLARE_API_TOKEN")).toBe(true);
     });
 
@@ -22,7 +22,7 @@ describe("EnvService", () => {
   describe("getSections", () => {
     it("returns unique sections in order", () => {
       const sections = EnvService.getSections();
-      expect(sections.length).toBeGreaterThanOrEqual(5);
+      expect(sections.length).toBeGreaterThanOrEqual(7);
       expect(sections[0]).toBe("Cloudflare Account");
     });
   });
@@ -68,6 +68,31 @@ describe("EnvService", () => {
       const result = EnvService.getWorkerDevVars({ D1_INTERNAL_KEY: "" });
       expect(Object.keys(result).length).toBe(0);
     });
+
+    it("maps all newly added vars to correct workers", () => {
+      const vars = {
+        WEBHOOK_API_KEY_BINDING: "webhook-key",
+        HA_TOKEN_BINDING: "ha-token",
+        API_SERVICE_KEY: "api-key",
+        TELEGRAM_SECRET_TOKEN: "tg-secret",
+        WALLET_MNEMONIC_SECRET: "mnemonic",
+        WALLET_PK_SECRET: "pk",
+        EMAIL_HOST: "imap.example.com",
+        EMAIL_USER: "user",
+        EMAIL_PASS: "pass",
+        INTERNAL_KEY: "int-key",
+      };
+      const result = EnvService.getWorkerDevVars(vars);
+      expect(result["workers/hoox"]).toBeDefined();
+      expect(result["workers/hoox"].WEBHOOK_API_KEY_BINDING).toBe("webhook-key");
+      expect(result["workers/hoox"].HA_TOKEN_BINDING).toBe("ha-token");
+      expect(result["workers/trade-worker"].API_SERVICE_KEY).toBe("api-key");
+      expect(result["workers/telegram-worker"].TELEGRAM_SECRET_TOKEN).toBe("tg-secret");
+      expect(result["workers/web3-wallet-worker"]).toBeDefined();
+      expect(result["workers/web3-wallet-worker"].WALLET_MNEMONIC_SECRET).toBe("mnemonic");
+      expect(result["workers/email-worker"]).toBeDefined();
+      expect(result["workers/email-worker"].EMAIL_HOST).toBe("imap.example.com");
+    });
   });
 
   describe("validate", () => {
@@ -77,9 +102,14 @@ describe("EnvService", () => {
       expect(result.missing).toContain("CLOUDFLARE_API_TOKEN");
     });
 
-    it("flags placeholder values as missing", () => {
+    it("flags 'your_' placeholder values as missing", () => {
       const result = EnvService.validate({ CLOUDFLARE_API_TOKEN: "your_cloudflare_api_token" });
       expect(result.missing).toContain("CLOUDFLARE_API_TOKEN");
+    });
+
+    it("flags 'generate_' placeholder values as missing", () => {
+      const result = EnvService.validate({ SESSION_SECRET: "generate_a_32_character_secure_random_string" });
+      expect(result.missing).toContain("SESSION_SECRET");
     });
 
     it("passes when all required vars are set with real values", () => {
@@ -90,6 +120,9 @@ describe("EnvService", () => {
         D1_INTERNAL_KEY: "d1-key",
         TRADE_INTERNAL_KEY: "trade-key",
         AGENT_INTERNAL_KEY: "agent-key",
+        WEBHOOK_API_KEY_BINDING: "webhook-key",
+        INTERNAL_KEY_BINDING: "int-key",
+        API_SERVICE_KEY: "api-key",
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass123",
         SESSION_SECRET: "a".repeat(32),
@@ -106,6 +139,9 @@ describe("EnvService", () => {
         D1_INTERNAL_KEY: "k",
         TRADE_INTERNAL_KEY: "k",
         AGENT_INTERNAL_KEY: "k",
+        WEBHOOK_API_KEY_BINDING: "wk",
+        INTERNAL_KEY_BINDING: "ik",
+        API_SERVICE_KEY: "ak",
         DASHBOARD_USER: "u",
         DASHBOARD_PASS: "p",
         SESSION_SECRET: "short",
