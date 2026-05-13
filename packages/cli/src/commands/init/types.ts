@@ -132,7 +132,7 @@ export const INTEGRATIONS: IntegrationConfig[] = [
   },
   {
     key: "google-ai",
-    label: "Google AI (Agent)",
+    label: "Google AI (AI Agent)",
     workerName: "agent-worker",
     secrets: {
       AGENT_GOOGLE_KEY: "Google AI API Key",
