@@ -483,6 +483,46 @@ async function doProvision(
 }
 
 // ---------------------------------------------------------------------------
+// Vectorize handlers
+// ---------------------------------------------------------------------------
+
+async function doVectorizeList(opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+  const cloudflare = cf ?? new CloudflareService();
+  const result = await cloudflare.vectorizeList();
+  displayListResult(result, opts, ["name", "id", "dimensions", "metric"]);
+}
+
+async function doVectorizeCreate(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+  const cloudflare = cf ?? new CloudflareService();
+  await handleCreate(name, "Vectorize index", (n) => cloudflare.vectorizeCreate(n), opts);
+}
+
+async function doVectorizeDelete(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+  const cloudflare = cf ?? new CloudflareService();
+  await handleDelete(name, "Vectorize index", (n) => cloudflare.vectorizeDelete(n), opts);
+}
+
+// ---------------------------------------------------------------------------
+// Analytics handlers
+// ---------------------------------------------------------------------------
+
+async function doAnalyticsList(opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+  const cloudflare = cf ?? new CloudflareService();
+  const result = await cloudflare.analyticsList();
+  displayListResult(result, opts);
+}
+
+async function doAnalyticsCreate(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+  const cloudflare = cf ?? new CloudflareService();
+  const result = await cloudflare.analyticsCreate(name);
+  if (result.ok) {
+    formatSuccess(`Analytics dataset "${name}" created`, opts);
+  } else {
+    process.stdout.write(`${result.error}\n`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Registration
 // ---------------------------------------------------------------------------
 
@@ -501,23 +541,28 @@ async function doProvision(
 export function registerInfraCommand(program: Command): void {
   const infraCmd = program
     .command("infra")
-    .summary("Manage Cloudflare infrastructure (D1, KV, R2, Queues)")
+    .summary("Manage Cloudflare infrastructure (D1, KV, R2, Queues, Vectorize, Analytics)")
     .description(
       `Provision and manage Cloudflare infrastructure resources.
 
 INFRASTRUCTURE TYPES:
-  D1      - SQL databases for persistent storage
-  KV      - Key-value stores for configuration and caching
-  R2      - S3-compatible object storage
-  Queues  - Message queues for async processing
+  D1        - SQL databases for persistent storage
+  KV        - Key-value stores for configuration and caching
+  R2        - S3-compatible object storage
+  Queues    - Message queues for async processing
+  Vectorize - Vector database for AI-powered search
+  Analytics - Time-series analytics engine
 
 EXAMPLES:
-  hoox infra provision                 Auto-provision from wrangler.jsonc
-  hoox infra d1 list                   List D1 databases
-  hoox infra d1 create my-db           Create a D1 database
-  hoox infra kv list                   List KV namespaces
-  hoox infra r2 list                   List R2 buckets
-  hoox infra queues list               List queues`
+  hoox infra provision                          Auto-provision from wrangler.jsonc
+  hoox infra d1 list                            List D1 databases
+  hoox infra d1 create my-db                    Create a D1 database
+  hoox infra kv list                            List KV namespaces
+  hoox infra r2 list                            List R2 buckets
+  hoox infra queues list                        List queues
+  hoox infra vectorize list                     List Vectorize indexes
+  hoox infra vectorize create my-rag-index      Create a Vectorize index
+  hoox infra analytics list                     List Analytics datasets`
     );
 
   // -- provision ---------------------------------------------------------
@@ -789,6 +834,81 @@ EXAMPLES:
       const opts = getOptions(this);
       await doQueueDelete(name, opts);
     });
+
+  // -- vectorize ---------------------------------------------------------
+
+  const vectorizeCmd = infraCmd
+    .command("vectorize")
+    .summary("Manage Vectorize indexes")
+    .description(
+      `Vectorize is Cloudflare's vector database for AI-powered search.
+
+EXAMPLES:
+  hoox infra vectorize list
+  hoox infra vectorize create my-rag-index
+  hoox infra vectorize delete my-rag-index`
+    );
+
+  vectorizeCmd
+    .command("list")
+    .summary("List all Vectorize indexes")
+    .description("List all Vectorize indexes in your Cloudflare account.")
+    .action(async function (this: Command) {
+      const opts = getOptions(this);
+      await doVectorizeList(opts);
+    });
+
+  vectorizeCmd
+    .command("create <name>")
+    .summary("Create a new Vectorize index")
+    .description("Create a new Vectorize index with default dimensions (768) and cosine metric.")
+    .action(async function (this: Command, name: string) {
+      const opts = getOptions(this);
+      await doVectorizeCreate(name, opts);
+    });
+
+  vectorizeCmd
+    .command("delete <name>")
+    .summary("Delete a Vectorize index")
+    .description("Delete a Vectorize index (WARNING: destructive operation).")
+    .action(async function (this: Command, name: string) {
+      const opts = getOptions(this);
+      await doVectorizeDelete(name, opts);
+    });
+
+  // -- analytics ---------------------------------------------------------
+
+  const analyticsCmd = infraCmd
+    .command("analytics")
+    .summary("Manage Analytics Engine datasets")
+    .description(
+      `Analytics Engine for storing and querying time-series data.
+
+NOTE: Analytics Engine datasets must be created via Cloudflare Dashboard.
+The CLI provides creation instructions.
+
+EXAMPLES:
+  hoox infra analytics list
+  hoox infra analytics create hoox-analytics`
+    );
+
+  analyticsCmd
+    .command("list")
+    .summary("List all Analytics Engine datasets")
+    .description("List all Analytics Engine datasets in your account.")
+    .action(async function (this: Command) {
+      const opts = getOptions(this);
+      await doAnalyticsList(opts);
+    });
+
+  analyticsCmd
+    .command("create <name>")
+    .summary("Show instructions for creating an Analytics Engine dataset")
+    .description("Analytics Engine datasets must be created via Cloudflare Dashboard.")
+    .action(async function (this: Command, name: string) {
+      const opts = getOptions(this);
+      await doAnalyticsCreate(name, opts);
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -808,6 +928,11 @@ export {
   doQueueList,
   doQueueCreate,
   doQueueDelete,
+  doVectorizeList,
+  doVectorizeCreate,
+  doVectorizeDelete,
+  doAnalyticsList,
+  doAnalyticsCreate,
   doProvision,
   displayListResult,
   handleCreate,
