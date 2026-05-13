@@ -93,6 +93,10 @@ export class PrerequisitesService {
     return true;
   }
 
+  /**
+   * Check Bun version (minimum 1.2).
+   * Runs `bun --version` and parses the output.
+   */
   async checkBun(): Promise<PrerequisiteCheck> {
     const base = { name: "Bun", category: "tool" as const, required: ">=1.2" };
     try {
@@ -107,6 +111,10 @@ export class PrerequisitesService {
     }
   }
 
+  /**
+   * Check Git version (minimum 2.40).
+   * Runs `git --version` and parses the output.
+   */
   async checkGit(): Promise<PrerequisiteCheck> {
     const base = { name: "Git", category: "tool" as const, required: ">=2.40" };
     try {
@@ -122,6 +130,10 @@ export class PrerequisitesService {
     }
   }
 
+  /**
+   * Check Node.js version — advisory only (minimum 18).
+   * Runs `node --version` if available, skips gracefully if not installed.
+   */
   async checkNode(): Promise<PrerequisiteCheck> {
     const base = { name: "Node.js", category: "tool" as const, required: ">=18 (optional)" };
     try {
@@ -136,6 +148,10 @@ export class PrerequisitesService {
     }
   }
 
+  /**
+   * Check wrangler CLI version using existing checkWranglerVersion().
+   * Delegates to the existing method to avoid duplicating semver logic.
+   */
   async checkWrangler(): Promise<PrerequisiteCheck> {
     const base = { name: "Wrangler CLI", category: "tool" as const, required: `>=${this.MINIMUM_WRANGLER}` };
     const result = await this.checkWranglerVersion();
@@ -150,6 +166,10 @@ export class PrerequisitesService {
     };
   }
 
+  /**
+   * Check Cloudflare authentication via wrangler whoami.
+   * Verifies the CLI is authenticated and extracts the user email.
+   */
   async checkCloudflareAuth(): Promise<PrerequisiteCheck> {
     const base = { name: "Cloudflare Auth", category: "account" as const, required: "wrangler whoami" };
     try {
@@ -169,6 +189,10 @@ export class PrerequisitesService {
     }
   }
 
+  /**
+   * Check Docker availability (optional — always passes even if not found).
+   * Also checks `docker compose` availability separately.
+   */
   async checkDocker(): Promise<PrerequisiteCheck> {
     const base = { name: "Docker", category: "tool" as const, required: "optional" };
     try {
@@ -190,6 +214,9 @@ export class PrerequisitesService {
     }
   }
 
+  /**
+   * Check repository integrity: wrangler.jsonc exists, .env file present, submodules initialized.
+   */
   async checkRepository(): Promise<PrerequisiteCheck> {
     const base = { name: "Repository", category: "repository" as const, required: "valid" };
     try {
@@ -231,7 +258,7 @@ export class PrerequisitesService {
 
     if (filterTool) {
       const lower = filterTool.toLowerCase();
-      checks = checks.filter((c) => c.name.toLowerCase().includes(lower));
+      checks = checks.filter((c) => c.name.toLowerCase() === lower);
     }
 
     return {

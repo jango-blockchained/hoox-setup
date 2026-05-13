@@ -79,7 +79,7 @@ describe("PrerequisitesService", () => {
       expect(report.checks.length).toBe(7);
     }, 30000);
 
-    it("filters by tool name (case-insensitive partial match)", async () => {
+    it("filters by tool name (case-insensitive exact match)", async () => {
       const svc = new PrerequisitesService();
       const report = await svc.runAll("bun");
       expect(report.checks.length).toBe(1);
