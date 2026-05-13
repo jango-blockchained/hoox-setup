@@ -10,6 +10,28 @@ interface WranglerVersionCheck {
   minimum?: string;
 }
 
+/** Result of a single tool/account prerequisite check. */
+export interface PrerequisiteCheck {
+  /** Display name (e.g. "Bun", "Git", "Wrangler CLI"). */
+  name: string;
+  /** Whether the check passed. */
+  passed: boolean;
+  /** Tool category for grouping: "tool", "account", "repository". */
+  category: "tool" | "account" | "repository";
+  /** The installed version (or "not found"). */
+  version: string;
+  /** The minimum required version (or "-" if not versioned). */
+  required: string;
+  /** How to install/fix if the check failed. */
+  hint?: string;
+}
+
+/** Aggregated result from running all checks. */
+export interface PrerequisitesReport {
+  checks: PrerequisiteCheck[];
+  allPassed: boolean;
+}
+
 export class PrerequisitesService {
   private readonly MINIMUM_WRANGLER = "3.88.0";
 
@@ -69,5 +91,152 @@ export class PrerequisitesService {
       if ((a[i] ?? 0) < (b[i] ?? 0)) return false;
     }
     return true;
+  }
+
+  async checkBun(): Promise<PrerequisiteCheck> {
+    const base = { name: "Bun", category: "tool" as const, required: ">=1.2" };
+    try {
+      const proc = Bun.spawn(["bun", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const stdout = await new Response(proc.stdout).text();
+      const version = stdout.trim();
+      const [major, minor] = version.split(".").map(Number);
+      const passed = (major ?? 0) >= 1 && (minor ?? 0) >= 2;
+      return { ...base, passed, version: version || "not found", hint: passed ? undefined : "Install: curl -fsSL https://bun.sh | bash" };
+    } catch {
+      return { ...base, passed: false, version: "not found", hint: "Install: curl -fsSL https://bun.sh | bash" };
+    }
+  }
+
+  async checkGit(): Promise<PrerequisiteCheck> {
+    const base = { name: "Git", category: "tool" as const, required: ">=2.40" };
+    try {
+      const proc = Bun.spawn(["git", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const stdout = await new Response(proc.stdout).text();
+      const match = stdout.match(/(\d+\.\d+)/);
+      const version = match ? match[1] : "unknown";
+      const [major, minor] = version.split(".").map(Number);
+      const passed = (major ?? 0) >= 2 && (minor ?? 0) >= 40;
+      return { ...base, passed, version, hint: passed ? undefined : "Install: apt install git" };
+    } catch {
+      return { ...base, passed: false, version: "not found", hint: "Install: apt install git" };
+    }
+  }
+
+  async checkNode(): Promise<PrerequisiteCheck> {
+    const base = { name: "Node.js", category: "tool" as const, required: ">=18 (optional)" };
+    try {
+      const proc = Bun.spawn(["node", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const stdout = await new Response(proc.stdout).text();
+      const version = stdout.trim().replace(/^v/, "");
+      const [major] = version.split(".").map(Number);
+      const passed = (major ?? 0) >= 18;
+      return { ...base, passed, version: version || "not found", hint: passed ? undefined : "Install: nvm or https://nodejs.org" };
+    } catch {
+      return { ...base, passed: true, version: "not installed", hint: "Optional — not required when using Bun" };
+    }
+  }
+
+  async checkWrangler(): Promise<PrerequisiteCheck> {
+    const base = { name: "Wrangler CLI", category: "tool" as const, required: `>=${this.MINIMUM_WRANGLER}` };
+    const result = await this.checkWranglerVersion();
+    if (!result.current) {
+      return { ...base, passed: false, version: "not found", hint: "Install: bun add -g wrangler" };
+    }
+    return {
+      ...base,
+      passed: !result.outdated,
+      version: result.current,
+      hint: result.outdated ? `Update: bun add -g wrangler@latest (${result.current} < ${result.minimum})` : undefined,
+    };
+  }
+
+  async checkCloudflareAuth(): Promise<PrerequisiteCheck> {
+    const base = { name: "Cloudflare Auth", category: "account" as const, required: "wrangler whoami" };
+    try {
+      const proc = Bun.spawn(["wrangler", "whoami"], { stdout: "pipe", stderr: "pipe" });
+      const stdout = await new Response(proc.stdout).text();
+      const exitCode = await proc.exited;
+      const passed = exitCode === 0 && !stdout.includes("not authenticated");
+      const email = stdout.match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0];
+      return {
+        ...base,
+        passed,
+        version: email ? `Authenticated as ${email}` : "not authenticated",
+        hint: passed ? undefined : "Run: wrangler login",
+      };
+    } catch {
+      return { ...base, passed: false, version: "not authenticated", hint: "Run: wrangler login" };
+    }
+  }
+
+  async checkDocker(): Promise<PrerequisiteCheck> {
+    const base = { name: "Docker", category: "tool" as const, required: "optional" };
+    try {
+      const proc = Bun.spawn(["docker", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const stdout = await new Response(proc.stdout).text();
+      const version = stdout.trim().replace(/^Docker version /, "").replace(/,.*$/, "");
+      let composeVersion = "";
+      try {
+        const composeProc = Bun.spawn(["docker", "compose", "version"], { stdout: "pipe", stderr: "pipe" });
+        composeVersion = (await new Response(composeProc.stdout).text()).trim();
+      } catch { /* compose optional */ }
+      return {
+        ...base,
+        passed: true,
+        version: version + (composeVersion ? ` (compose: yes)` : " (compose: no)"),
+      };
+    } catch {
+      return { ...base, passed: true, version: "not installed", hint: "Optional — used for Docker dev runtime" };
+    }
+  }
+
+  async checkRepository(): Promise<PrerequisiteCheck> {
+    const base = { name: "Repository", category: "repository" as const, required: "valid" };
+    try {
+      const wranglerExists = await Bun.file("wrangler.jsonc").exists();
+      const envExists = await Bun.file(".env.local").exists() || await Bun.file(".env.example").exists();
+      const issues: string[] = [];
+      if (!wranglerExists) issues.push("wrangler.jsonc not found");
+      if (!envExists) issues.push("no .env.local or .env.example found");
+      let submoduleOk = false;
+      try {
+        const proc = Bun.spawn(["git", "submodule", "status"], { stdout: "pipe", stderr: "pipe" });
+        const stdout = await new Response(proc.stdout).text();
+        submoduleOk = !stdout.startsWith("-");
+      } catch { /* not a git repo */ }
+      const passed = wranglerExists && issues.length === 0;
+      return {
+        ...base,
+        passed,
+        version: issues.length > 0 ? issues.join("; ") : (submoduleOk ? "OK" : "submodules may need init"),
+        hint: passed ? undefined : "Run: hoox init or hoox clone --all",
+      };
+    } catch {
+      return { ...base, passed: false, version: "check failed", hint: "Check repository structure" };
+    }
+  }
+
+  async runAll(filterTool?: string): Promise<PrerequisitesReport> {
+    const allChecks: Promise<PrerequisiteCheck>[] = [
+      this.checkBun(),
+      this.checkGit(),
+      this.checkNode(),
+      this.checkWrangler(),
+      this.checkCloudflareAuth(),
+      this.checkDocker(),
+      this.checkRepository(),
+    ];
+
+    let checks = await Promise.all(allChecks);
+
+    if (filterTool) {
+      const lower = filterTool.toLowerCase();
+      checks = checks.filter((c) => c.name.toLowerCase().includes(lower));
+    }
+
+    return {
+      checks,
+      allPassed: checks.every((c) => c.passed),
+    };
   }
 }
