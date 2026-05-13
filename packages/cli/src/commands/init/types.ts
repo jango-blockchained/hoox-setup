@@ -114,6 +114,38 @@ export const INTEGRATIONS: IntegrationConfig[] = [
       TELEGRAM_BOT_TOKEN: "Telegram Bot Token",
     },
   },
+  {
+    key: "openai",
+    label: "OpenAI (AI Agent)",
+    workerName: "agent-worker",
+    secrets: {
+      AGENT_OPENAI_KEY: "OpenAI API Key",
+    },
+  },
+  {
+    key: "anthropic",
+    label: "Anthropic (AI Agent)",
+    workerName: "agent-worker",
+    secrets: {
+      AGENT_ANTHROPIC_KEY: "Anthropic API Key",
+    },
+  },
+  {
+    key: "google-ai",
+    label: "Google AI (Agent)",
+    workerName: "agent-worker",
+    secrets: {
+      AGENT_GOOGLE_KEY: "Google AI API Key",
+    },
+  },
+  {
+    key: "home-assistant",
+    label: "Home Assistant (Smart Home)",
+    workerName: "hoox",
+    secrets: {
+      HA_TOKEN_BINDING: "Home Assistant Token",
+    },
+  },
 ];
 
 /**
