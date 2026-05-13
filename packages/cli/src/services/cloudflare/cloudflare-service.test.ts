@@ -402,6 +402,103 @@ describe("CloudflareService", () => {
     });
   });
 
+  // -- Vectorize ------------------------------------------------------------
+
+  describe("vectorize operations", () => {
+    it("vectorizeList calls wrangler vectorize list --json", async () => {
+      mockSpawnWithCapture(successSpawn("[]"));
+
+      const service = new CloudflareService();
+      const result = await service.vectorizeList();
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCmd).toEqual(["wrangler", "vectorize", "list", "--json"]);
+    });
+
+    it("vectorizeCreate calls wrangler vectorize create with defaults", async () => {
+      mockSpawnWithCapture(successSpawn("Created index my-index"));
+
+      const service = new CloudflareService();
+      const result = await service.vectorizeCreate("my-index");
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCmd).toEqual([
+        "wrangler",
+        "vectorize",
+        "create",
+        "my-index",
+        "--dimensions",
+        "768",
+        "--metric",
+        "cosine",
+      ]);
+    });
+
+    it("vectorizeCreate passes custom dimensions and metric", async () => {
+      mockSpawnWithCapture(successSpawn("Created index my-index"));
+
+      const service = new CloudflareService();
+      const result = await service.vectorizeCreate("my-index", 384, "euclidean");
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCmd).toEqual([
+        "wrangler",
+        "vectorize",
+        "create",
+        "my-index",
+        "--dimensions",
+        "384",
+        "--metric",
+        "euclidean",
+      ]);
+    });
+
+    it("vectorizeDelete calls wrangler vectorize delete", async () => {
+      mockSpawnWithCapture(successSpawn("Deleted index"));
+
+      const service = new CloudflareService();
+      const result = await service.vectorizeDelete("old-index");
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCmd).toEqual([
+        "wrangler",
+        "vectorize",
+        "delete",
+        "old-index",
+      ]);
+    });
+  });
+
+  // -- Analytics ------------------------------------------------------------
+
+  describe("analytics operations", () => {
+    it("analyticsList calls wrangler analytics dataset list", async () => {
+      mockSpawnWithCapture(successSpawn("[]"));
+
+      const service = new CloudflareService();
+      const result = await service.analyticsList();
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCmd).toEqual([
+        "wrangler",
+        "analytics",
+        "dataset",
+        "list",
+      ]);
+    });
+
+    it("analyticsCreate returns error with Dashboard URL instructions", async () => {
+      const service = new CloudflareService();
+      const result = await service.analyticsCreate("my-dataset");
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toContain("cannot be created via wrangler");
+        expect(result.error).toContain("dash.cloudflare.com");
+      }
+    });
+  });
+
   // -- Secrets --------------------------------------------------------------
 
   describe("secret operations", () => {

@@ -277,6 +277,62 @@ export class CloudflareService {
   }
 
   // ---------------------------------------------------------------------------
+  // Vectorize
+  // ---------------------------------------------------------------------------
+
+  /** Lists all vectorize indexes (`wrangler vectorize list --json`). */
+  async vectorizeList(): Promise<WranglerResult<string>> {
+    return this.runWrangler(["vectorize", "list", "--json"]);
+  }
+
+  /** Creates a vectorize index (`wrangler vectorize create <name> --dimensions=768 --metric=cosine`). */
+  async vectorizeCreate(
+    name: string,
+    dimensions: number = 768,
+    metric: string = "cosine"
+  ): Promise<WranglerResult<string>> {
+    return this.runWrangler([
+      "vectorize",
+      "create",
+      name,
+      "--dimensions",
+      String(dimensions),
+      "--metric",
+      metric,
+    ]);
+  }
+
+  /** Deletes a vectorize index (`wrangler vectorize delete <name>`). */
+  async vectorizeDelete(name: string): Promise<WranglerResult<string>> {
+    return this.runWrangler(["vectorize", "delete", name]);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Analytics
+  // ---------------------------------------------------------------------------
+
+  /** Lists all analytics datasets (`wrangler analytics dataset list`). */
+  async analyticsList(): Promise<WranglerResult<string>> {
+    return this.runWrangler(["analytics", "dataset", "list"]);
+  }
+
+  /**
+   * Returns a helpful error — wrangler does not support creating analytics
+   * datasets from the CLI. Users must create them via the Cloudflare Dashboard.
+   */
+  async analyticsCreate(
+    _name: string
+  ): Promise<WranglerResult<string>> {
+    return {
+      ok: false,
+      error:
+        `Analytics datasets cannot be created via wrangler. ` +
+        `Please use the Cloudflare Dashboard: ` +
+        `https://dash.cloudflare.com/?to=/:account/analytics`,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
   // Secrets
   // ---------------------------------------------------------------------------
 
