@@ -250,11 +250,7 @@ graph TB
         TV["📊 TradingView Webhooks"]
         TG["💬 Telegram Bot Commands"]
         EM["📧 Email Signals"]
-        subgraph "💱 Exchanges"
-            BINANCE["Binance API"]
-            BYBIT["Bybit API"]
-            MEXC["MEXC API"]
-        end
+        EXCHANGE["💱 Exchange APIs<br/>Binance · Bybit · MEXC"]
     end
 
     subgraph "🛡️ Cloudflare® WAF"
@@ -321,9 +317,7 @@ graph TB
     AW -->|"Query History"| D1W
     AW -->|"Risk Analysis"| AI
     AW -.->|"Portfolio State"| DB
-    AW -.->|"Market Data<br/>Price Checks"| BINANCE
-    AW -.->|"Market Data<br/>Price Checks"| BYBIT
-    AW -.->|"Market Data<br/>Price Checks"| MEXC
+    AW -.->|"Market Data · Risk Checks"| EXCHANGE
 
     %% ── trade-worker Execution ───────────────────────────────────────
 
@@ -338,9 +332,7 @@ graph TB
     TW -.->|"Enqueue Retry"| Q
     TW -.->|"AI Analysis"| AI
     TW -.->|"Render Reports"| BROWSER
-    TW ==>|"REST · REST<br/>Signed Requests"| BINANCE
-    TW ==>|"REST · WebSocket<br/>Signed Requests"| BYBIT
-    TW ==>|"REST<br/>Signed Requests"| MEXC
+    TW ==>|"REST · WebSocket<br/>Signed Requests"| EXCHANGE
 
     %% ── telegram-worker ──────────────────────────────────────────────
 
@@ -381,7 +373,7 @@ graph TB
 
     %% ── Apply styles ─────────────────────────────────────────────────
 
-    class TV,TG,EM,BINANCE,BYBIT,MEXC external
+    class TV,TG,EM,EXCHANGE external
     class WAF waf
     class GW,TW,AW,D1W,TGW,W3W,EMW,ANW,RPW worker
     class KV,DB,R2,VEC storage
