@@ -1,11 +1,36 @@
 /**
  * Validation middleware for Cloudflare Workers
- * Adapted from workers/agent-worker/src/middleware/validate.ts
+ * Uses Zod for runtime schema validation.
  */
 
+import { z } from "zod";
 import type { Result } from "../types";
 
-export async function validateJson(
+/**
+ * Validate unknown data against a Zod schema, returning a Result type.
+ * Provides structured error messages from Zod issue paths.
+ */
+export function validateJson<T extends z.ZodTypeAny>(
+  schema: T,
+  data: unknown
+): Result<z.infer<T>> {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    return {
+      ok: false as const,
+      error: result.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; "),
+    };
+  }
+  return { ok: true as const, value: result.data };
+}
+
+/**
+ * Legacy signature: parse request body as JSON object.
+ * Kept for backward compatibility with existing workers.
+ */
+export async function validateJsonLegacy(
   request: Request
 ): Promise<Result<Record<string, unknown>>> {
   try {

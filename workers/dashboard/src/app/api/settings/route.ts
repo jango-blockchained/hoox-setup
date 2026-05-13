@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
+import type { DashboardEnv } from "@/lib/env";
+import { z } from "zod";
+
+const settingsValueSchema = z.unknown();
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -85,11 +89,9 @@ export async function GET(
   _context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       const settings: Record<string, any> = {};
       const prefixes = [
         "global:",
@@ -112,7 +114,9 @@ export async function GET(
           const value = await env.CONFIG_KV.get(kv.name);
           if (value !== null) {
             try {
-              settings[kv.name] = JSON.parse(value);
+              const raw = JSON.parse(value);
+              const parsed = settingsValueSchema.safeParse(raw);
+              settings[kv.name] = parsed.success ? parsed.data : raw;
             } catch {
               settings[kv.name] = value;
             }
@@ -195,11 +199,9 @@ export async function POST(
     }
 
     const kvKey = getKVKey(worker, key);
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       await env.CONFIG_KV.put(kvKey, JSON.stringify(value));
       return NextResponse.json({ success: true, worker, key, value, kvKey });
     } else {

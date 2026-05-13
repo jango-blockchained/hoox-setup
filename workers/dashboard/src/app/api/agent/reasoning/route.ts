@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createErrorResponse, Errors } from "@shared/errors";
+import type { DashboardEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -19,10 +20,7 @@ export async function POST(request: NextRequest) {
       return Errors.badRequest("Prompt is required");
     }
 
-    const env = getCloudflareContext().env as unknown as {
-      AI?: any;
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
 
     if (env.AI && model.includes("deepseek")) {
       const result = await env.AI.run(model, {

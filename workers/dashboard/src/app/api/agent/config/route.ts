@@ -1,20 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createErrorResponse, Errors } from "@shared/errors";
+import type { DashboardEnv } from "@/lib/env";
+import { z } from "zod";
+
+const agentConfigSchema = z.object({
+  defaultProvider: z.string().optional(),
+  fallbackChain: z.array(z.string()).optional(),
+  modelMap: z.record(z.string(), z.string()).optional(),
+  timeoutMs: z.number().optional(),
+  retryCount: z.number().optional(),
+  maxDailyDrawdownPercent: z.number().optional(),
+  trailingStopPercent: z.number().optional(),
+  takeProfitPercent: z.number().optional(),
+});
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 export async function GET(_request: NextRequest) {
   try {
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       const configData = await env.CONFIG_KV.get("agent:config");
       if (configData) {
-        const config = JSON.parse(configData);
+        const raw = JSON.parse(configData);
+        const parsed = agentConfigSchema.safeParse(raw);
+        const config = parsed.success ? parsed.data : raw;
+        if (!parsed.success) {
+          console.warn("agent/config: Invalid agent config schema");
+        }
         return NextResponse.json({ success: true, config });
       }
       return NextResponse.json({ success: true, config: null });
@@ -42,13 +58,16 @@ export async function POST(request: NextRequest) {
       takeProfitPercent?: number;
     };
 
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       const existing = await env.CONFIG_KV.get("agent:config");
-      const config = existing ? JSON.parse(existing) : {};
+      const raw = existing ? JSON.parse(existing) : {};
+      const parsed = agentConfigSchema.safeParse(raw);
+      const config = parsed.success ? parsed.data : raw;
+      if (!parsed.success) {
+        console.warn("agent/config POST: Invalid existing config schema");
+      }
 
       if (body.defaultProvider !== undefined)
         config.defaultProvider = body.defaultProvider;

@@ -1,3 +1,53 @@
+import { z } from "zod";
+
+// --- Zod Schemas (runtime-validated) ---
+
+export const TradeActionSchema = z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]);
+
+export const WebhookPayloadSchema = z.object({
+  exchange: z.string().min(1),
+  action: TradeActionSchema,
+  symbol: z.string().min(1).max(20),
+  quantity: z.number().positive().finite(),
+  price: z.number().positive().finite().optional(),
+  orderType: z.string().optional(),
+  leverage: z.number().int().positive().optional(),
+}).strict();
+
+export const TradeSignalSchema = z.object({
+  id: z.number().int().positive().optional(),
+  source: z.string().min(1),
+  symbol: z.string().min(1),
+  action: TradeActionSchema,
+  price: z.number().positive().finite().optional(),
+  quantity: z.number().positive().finite(),
+  leverage: z.number().int().positive().optional(),
+  status: z.enum(["pending", "executed", "failed", "skipped"]).optional(),
+  createdAt: z.string().optional(),
+  executedAt: z.string().optional(),
+  error: z.string().optional(),
+}).strict();
+
+export const PositionSchema = z.object({
+  id: z.string(),
+  symbol: z.string().min(1),
+  side: TradeActionSchema,
+  quantity: z.number().positive(),
+  entry_price: z.number().positive(),
+  current_price: z.number().positive(),
+  unrealized_pnl: z.number(),
+  timestamp: z.number().int().positive(),
+}).strict();
+
+export const BalanceSchema = z.object({
+  asset: z.string().min(1),
+  free: z.number().min(0),
+  locked: z.number().min(0),
+  timestamp: z.number().int().positive(),
+}).strict();
+
+// --- Existing types (backward compatible) ---
+
 export interface StandardResponse {
   success: boolean;
   result?: unknown;
@@ -105,31 +155,11 @@ export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 // --- Trade and webhook types (consolidated) ---
 
-export type TradeAction = "LONG" | "SHORT" | "CLOSE_LONG" | "CLOSE_SHORT";
+export type TradeAction = z.infer<typeof TradeActionSchema>;
 
-export interface WebhookPayload {
-  exchange: string;
-  action: TradeAction;
-  symbol: string;
-  quantity: number;
-  price?: number;
-  orderType?: string;
-  leverage?: number;
-}
+export type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
 
-export interface TradeSignal {
-  id?: number;
-  source: string;
-  symbol: string;
-  action: TradeAction;
-  price?: number;
-  quantity: number;
-  leverage?: number;
-  status?: "pending" | "executed" | "failed" | "skipped";
-  createdAt?: string;
-  executedAt?: string;
-  error?: string;
-}
+export type TradeSignal = z.infer<typeof TradeSignalSchema>;
 
 export interface QueryPayload {
   query: string;

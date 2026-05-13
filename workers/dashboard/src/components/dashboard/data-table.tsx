@@ -103,14 +103,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 
 export const schema = z.object({
-  id: z.number(),
-  symbol: z.string(),
-  side: z.string(),
-  exchange: z.string(),
-  status: z.string(),
+  id: z.number().positive().int(),
+  symbol: z.string().min(1),
+  side: z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]),
+  exchange: z.string().min(1),
+  status: z.enum(["OPEN", "CLOSED", "PENDING", "CANCELLED"]),
   pnl: z.number(),
-  timestamp: z.string(),
-});
+  timestamp: z.string().min(1),
+}).strict();
 
 // Mock data - replace with API call
 const data: z.infer<typeof schema>[] = [
@@ -119,7 +119,7 @@ const data: z.infer<typeof schema>[] = [
     symbol: "BTC/USDT",
     side: "LONG",
     exchange: "binance",
-    status: "filled",
+    status: "CLOSED",
     pnl: 245.5,
     timestamp: "2024-04-15 14:32:00",
   },
@@ -128,7 +128,7 @@ const data: z.infer<typeof schema>[] = [
     symbol: "ETH/USDT",
     side: "SHORT",
     exchange: "mexc",
-    status: "open",
+    status: "OPEN",
     pnl: 0,
     timestamp: "2024-04-15 12:15:00",
   },
@@ -137,7 +137,7 @@ const data: z.infer<typeof schema>[] = [
     symbol: "SOL/USDT",
     side: "LONG",
     exchange: "bybit",
-    status: "closed",
+    status: "CLOSED",
     pnl: 89.2,
     timestamp: "2024-04-14 09:45:00",
   },
@@ -146,7 +146,7 @@ const data: z.infer<typeof schema>[] = [
     symbol: "DOGE/USDT",
     side: "LONG",
     exchange: "binance",
-    status: "closed",
+    status: "CLOSED",
     pnl: -23.8,
     timestamp: "2024-04-13 16:20:00",
   },

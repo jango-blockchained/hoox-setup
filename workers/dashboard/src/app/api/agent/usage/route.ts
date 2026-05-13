@@ -1,21 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Errors } from "@shared/errors";
+import type { DashboardEnv } from "@/lib/env";
+import { z } from "zod";
+
+const usageSchema = z.record(
+  z.string(),
+  z.object({
+    requests: z.number(),
+    tokens: z.number(),
+    cost: z.number(),
+  })
+);
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
 
 export async function GET(_request: NextRequest) {
   try {
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       const usageData = await env.CONFIG_KV.get("agent:usage");
 
       if (usageData) {
-        const usage = JSON.parse(usageData);
+        const raw = JSON.parse(usageData);
+        const parsed = usageSchema.safeParse(raw);
+        const usage = parsed.success ? parsed.data : raw;
+        if (!parsed.success) {
+          console.warn("agent/usage: Invalid usage data schema");
+        }
         return NextResponse.json({ success: true, usage });
       }
 

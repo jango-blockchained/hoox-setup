@@ -8,3 +8,10 @@ export type {
   TradeSignalRecord,
   D1QueryResult,
 } from "./schemas";
+export {
+  TradeRecordSchema,
+  PositionRecordSchema,
+  BalanceRecordSchema,
+  SystemLogRecordSchema,
+  TradeSignalRecordSchema,
+} from "./schemas";

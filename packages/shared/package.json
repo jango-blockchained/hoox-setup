@@ -1,6 +1,6 @@
 {
   "name": "@jango-blockchained/hoox-shared",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Shared utilities for hoox workers",
   "type": "module",
   "main": "./src/index.ts",
@@ -46,9 +46,6 @@
   ],
   "author": "Hoox Team",
   "license": "MIT",
-  "dependencies": {
-    "hono": "^4.12.17"
-  },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@cloudflare/workers-types": "^4.20260506.0",

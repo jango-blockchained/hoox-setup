@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Errors } from "@shared/errors";
+import type { DashboardEnv } from "@/lib/env";
+import { z } from "zod";
+
+const agentConfigSchema = z.object({
+  defaultProvider: z.string().optional(),
+  fallbackChain: z.array(z.string()).optional(),
+  modelMap: z.record(z.string(), z.string()).optional(),
+  timeoutMs: z.number().optional(),
+  retryCount: z.number().optional(),
+  maxDailyDrawdownPercent: z.number().optional(),
+  trailingStopPercent: z.number().optional(),
+  takeProfitPercent: z.number().optional(),
+});
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -14,11 +27,9 @@ export async function POST(request: NextRequest) {
 
     const { action, trailingStopPercent } = body;
 
-    const env = getCloudflareContext().env as unknown as {
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv;
 
-    if (env?.CONFIG_KV) {
+    if (env.CONFIG_KV) {
       if (action === "engage_kill_switch") {
         await env.CONFIG_KV.put("trade:kill_switch", "true");
         return NextResponse.json({
@@ -37,7 +48,12 @@ export async function POST(request: NextRequest) {
 
       if (trailingStopPercent !== undefined) {
         const configData = await env.CONFIG_KV.get("agent:config");
-        const config = configData ? JSON.parse(configData) : {};
+        const raw = configData ? JSON.parse(configData) : {};
+        const parsed = agentConfigSchema.safeParse(raw);
+        const config = parsed.success ? parsed.data : raw;
+        if (!parsed.success) {
+          console.warn("agent/risk-override: Invalid agent config schema");
+        }
         config.trailingStopPercent = trailingStopPercent;
         await env.CONFIG_KV.put("agent:config", JSON.stringify(config));
         return NextResponse.json({

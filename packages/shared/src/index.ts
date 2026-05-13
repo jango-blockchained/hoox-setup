@@ -14,6 +14,18 @@ export type {
   ProcessRequestBody,
   BaseEnv,
 } from "./types.js";
+export {
+  TradeActionSchema,
+  WebhookPayloadSchema,
+  TradeSignalSchema,
+  PositionSchema,
+  BalanceSchema,
+} from "./types.js";
+export type {
+  TradeAction,
+  WebhookPayload,
+  TradeSignal,
+} from "./types.js";
 export { KVKeys } from "./kvKeys.js";
 export {
   toError,

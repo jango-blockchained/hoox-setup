@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createErrorResponse, Errors } from "@shared/errors";
+import type { DashboardEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -15,10 +16,7 @@ export async function POST(request: NextRequest) {
 
     const { provider = "workers-ai", model, prompt = "Say hello" } = body;
 
-    const env = getCloudflareContext().env as unknown as {
-      AI?: any;
-      CONFIG_KV?: KVNamespace;
-    };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
 
     const start = Date.now();
 

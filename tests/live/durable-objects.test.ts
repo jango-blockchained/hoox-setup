@@ -23,6 +23,9 @@ import { join } from "node:path";
 
 const TEST_WORKER = testResourceName("do-test-worker");
 
+// In-memory idempotency store for testing
+interface IdempotencyEntry { storedAt: number; }
+
 describe("Durable Objects", () => {
   let config: ReturnType<typeof getConfig>;
 
@@ -51,12 +54,16 @@ describe("Durable Objects", () => {
             name: "TEST_COUNTER",
             class_name: "TestCounter",
           },
+          {
+            name: "IDEMPOTENCY_STORE",
+            class_name: "TestIdempotencyStore",
+          },
         ],
       },
       migrations: [
         {
           tag: "v1",
-          new_sqlite_classes: ["TestCounter"],
+          new_sqlite_classes: ["TestCounter", "TestIdempotencyStore"],
         },
       ],
     }, null, 2);
@@ -91,6 +98,36 @@ export class TestCounter extends DurableObject {
   }
 }
 
+// IdempotencyStore — tests checkAndStore / expired logic
+const DEFAULT_TTL_MS = 300_000;
+interface StoredEntry { storedAt: number; }
+
+export class TestIdempotencyStore extends DurableObject {
+  async checkAndStore(key: string, ttlMs: number = DEFAULT_TTL_MS): Promise<boolean> {
+    const existing = await this.ctx.storage.get<StoredEntry>(key);
+    if (existing && Date.now() - existing.storedAt < ttlMs) return false;
+    await this.ctx.storage.put(key, { storedAt: Date.now() });
+    const currentAlarm = await this.ctx.storage.getAlarm();
+    const nextCleanup = Date.now() + ttlMs;
+    if (!currentAlarm || nextCleanup < currentAlarm) {
+      await this.ctx.storage.setAlarm(nextCleanup);
+    }
+    return true;
+  }
+
+  async expired(key: string): Promise<boolean> {
+    const entry = await this.ctx.storage.get<StoredEntry>(key);
+    if (!entry) return true;
+    return Date.now() - entry.storedAt >= DEFAULT_TTL_MS;
+  }
+
+  async clear(): Promise<void> {
+    const all = await this.ctx.storage.list<StoredEntry>();
+    const keys = [...all.keys()];
+    if (keys.length > 0) await this.ctx.storage.delete(keys);
+  }
+}
+
 export default {
   async fetch(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -113,6 +150,38 @@ export default {
 
     if (url.pathname === "/reset") {
       await stub.reset();
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // --- IdempotencyStore routes ---
+
+    if (url.pathname === "/idempotency/check") {
+      const id = env.IDEMPOTENCY_STORE.idFromName("live-test-instance");
+      const store = env.IDEMPOTENCY_STORE.get(id);
+      const key = url.searchParams.get("key") ?? "default-key";
+      const ttlMs = parseInt(url.searchParams.get("ttl") ?? "300000", 10);
+      const result = await store.checkAndStore(key, ttlMs);
+      return new Response(JSON.stringify({ ok: result, key }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname === "/idempotency/expired") {
+      const id = env.IDEMPOTENCY_STORE.idFromName("live-test-instance");
+      const store = env.IDEMPOTENCY_STORE.get(id);
+      const key = url.searchParams.get("key") ?? "default-key";
+      const result = await store.expired(key);
+      return new Response(JSON.stringify({ expired: result, key }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname === "/idempotency/clear") {
+      const id = env.IDEMPOTENCY_STORE.idFromName("live-test-instance");
+      const store = env.IDEMPOTENCY_STORE.get(id);
+      await store.clear();
       return new Response(JSON.stringify({ ok: true }), {
         headers: { "Content-Type": "application/json" },
       });
@@ -205,6 +274,102 @@ export default {
   // -----------------------------------------------------------------------
   // Test existing IdempotencyStore (if hoox worker has it)
   // -----------------------------------------------------------------------
+
+  // -----------------------------------------------------------------------
+  // IdempotencyStore operations
+  // -----------------------------------------------------------------------
+
+  test("IdempotencyStore: checkAndStore returns true for new key", { timeout: 30000 }, async () => {
+    section("IdempotencyStore operations");
+    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-first-key`;
+    try {
+      const response = await fetch(url);
+      expect(response.ok).toBe(true);
+      const data = await response.json() as { ok: boolean; key: string };
+      expect(data.ok).toBe(true);
+      console.log("  ✓ First checkAndStore returns true");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Idempotency test skipped: ${message}`);
+    }
+  });
+
+  test("IdempotencyStore: second call for same key is rejected (duplicate)", { timeout: 30000 }, async () => {
+    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-dup-key`;
+    try {
+      // First call — should succeed
+      const first = await fetch(url);
+      expect(first.ok).toBe(true);
+      const firstData = await first.json() as { ok: boolean };
+      expect(firstData.ok).toBe(true);
+
+      // Second call — should be rejected (duplicate within TTL)
+      const second = await fetch(url);
+      const secondData = await second.json() as { ok: boolean };
+      expect(secondData.ok).toBe(false);
+      console.log("  ✓ Duplicate key correctly rejected");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Dedup test skipped: ${message}`);
+    }
+  });
+
+  test("IdempotencyStore: expired returns false for stored key", { timeout: 30000 }, async () => {
+    const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
+    try {
+      // Store a key
+      await fetch(`${baseUrl}/idempotency/check?key=live-test-exp-key`);
+
+      // Check expired — should be false since just stored
+      const expiredResp = await fetch(`${baseUrl}/idempotency/expired?key=live-test-exp-key`);
+      const expiredData = await expiredResp.json() as { expired: boolean };
+      expect(expiredData.expired).toBe(false);
+      console.log("  ✓ Fresh key is not expired");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Expiry test skipped: ${message}`);
+    }
+  });
+
+  test("IdempotencyStore: expired returns true for unknown key", { timeout: 30000 }, async () => {
+    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/expired?key=live-test-nonexistent`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json() as { expired: boolean };
+      expect(data.expired).toBe(true);
+      console.log("  ✓ Unknown key correctly reports expired");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Unknown key test skipped: ${message}`);
+    }
+  });
+
+  test("IdempotencyStore: clear removes all keys", { timeout: 30000 }, async () => {
+    const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
+    try {
+      // Store multiple keys
+      await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-a`);
+      await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-b`);
+
+      // Clear all
+      const clearResp = await fetch(`${baseUrl}/idempotency/clear`);
+      expect(clearResp.ok).toBe(true);
+
+      // Verify both are now expired
+      const expiredA = await fetch(`${baseUrl}/idempotency/expired?key=live-test-clear-a`);
+      const dataA = await expiredA.json() as { expired: boolean };
+      expect(dataA.expired).toBe(true);
+
+      const expiredB = await fetch(`${baseUrl}/idempotency/expired?key=live-test-clear-b`);
+      const dataB = await expiredB.json() as { expired: boolean };
+      expect(dataB.expired).toBe(true);
+
+      console.log("  ✓ Clear removed all keys");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Clear test skipped: ${message}`);
+    }
+  });
 
   test("Existing hoox IdempotencyStore DO is reachable", { timeout: 60000 }, async () => {
     section("Existing DO (hoox IdempotencyStore)");

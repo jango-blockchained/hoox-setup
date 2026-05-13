@@ -4,6 +4,10 @@
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
   "compatibility_date": "2026-04-17",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
@@ -18,8 +22,15 @@
       "id": "e899951fcf724f75aa4316b3a8a01cb0",
     },
   ],
-  "vars": {
-    "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev",
-    "AGENT_SERVICE_URL": "https://agent-worker.cryptolinx.workers.dev",
-  },
+  "services": [
+    {
+      "binding": "D1_SERVICE",
+      "service": "d1-worker"
+    },
+    {
+      "binding": "AGENT_SERVICE",
+      "service": "agent-worker"
+    }
+  ],
+  "vars": {},
 }
