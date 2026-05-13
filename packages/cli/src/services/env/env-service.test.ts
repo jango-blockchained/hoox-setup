@@ -169,5 +169,42 @@ describe("EnvService", () => {
       const result = await EnvService.loadDotEnvAsync("/tmp/nonexistent-file-12345.env");
       expect(Object.keys(result).length).toBe(0);
     });
+
+    it("parses simple key=value lines", async () => {
+      const filePath = "/tmp/test-simple-12345.env";
+      await Bun.write(filePath, 'KEY=value\nFOO=bar\n');
+      const result = await EnvService.loadDotEnvAsync(filePath);
+      expect(result.KEY).toBe("value");
+      expect(result.FOO).toBe("bar");
+      await Bun.write(filePath, ""); // cleanup
+    });
+
+    it("strips double quotes from values", async () => {
+      const filePath = "/tmp/test-quotes-12345.env";
+      await Bun.write(filePath, 'KEY="quoted value"\nNESTED="val with \\"quote\\""\n');
+      const result = await EnvService.loadDotEnvAsync(filePath);
+      // First quote-stripped value
+      expect(result.KEY).toBe("quoted value");
+      await Bun.write(filePath, "");
+    });
+
+    it("skips comments and blank lines", async () => {
+      const filePath = "/tmp/test-comments-12345.env";
+      await Bun.write(filePath, '# this is a comment\n\nKEY=val\n# another comment\nFOO=bar\n');
+      const result = await EnvService.loadDotEnvAsync(filePath);
+      expect(result.KEY).toBe("val");
+      expect(result.FOO).toBe("bar");
+      expect(Object.keys(result).length).toBe(2);
+      await Bun.write(filePath, "");
+    });
+
+    it("handles empty values", async () => {
+      const filePath = "/tmp/test-empty-12345.env";
+      await Bun.write(filePath, 'EMPTY=\nKEY=val\n');
+      const result = await EnvService.loadDotEnvAsync(filePath);
+      expect(result.EMPTY).toBe("");
+      expect(result.KEY).toBe("val");
+      await Bun.write(filePath, "");
+    });
   });
 });

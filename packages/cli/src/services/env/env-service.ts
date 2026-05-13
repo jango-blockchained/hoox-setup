@@ -7,6 +7,12 @@ export interface EnvVarDefinition {
   hint?: string;
 }
 
+/** A .env file with its path and parsed variables. */
+export interface EnvFile {
+  path: string;
+  vars: Record<string, string>;
+}
+
 export interface EnvValidationResult {
   missing: string[];
   warnings: string[];
