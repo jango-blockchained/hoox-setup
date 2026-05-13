@@ -90,7 +90,7 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📊 **Command Center**  | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration. |
 | 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 9 workers simultaneously with one command.                                                          |
-| 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI. Interactive setup wizard (`hoox init`), health checks, infrastructure provisioning, secret management, and WAF rule configuration.       |
+| 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI (15 command groups, 50+ subcommands, 381 tests). Interactive setup wizard, env config, KV sync, D1 ops, health monitoring, repair, and more.       |
 | 🐳 **Docker Support**  | Full local dev environment with Docker Compose. `hoox dev start` prompts for Native vs Docker runtime, offers `--runtime` flag override. Profiles: `workers`, `dashboard`, `full`.                   |
 
 ### Security
@@ -120,8 +120,7 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 
    ```bash
    bun install
-   bun run hoox config setup
-   bun run hoox init
+   hoox init
    ```
 
 ### Deploy
@@ -129,7 +128,17 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 **Deploy your entire trading empire to the Cloudflare® Edge!**
 
 ```bash
-hoox workers deploy
+# Deploy all workers + dashboard (correct dependency order)
+hoox deploy all --auto
+
+# Post-deploy: set Telegram webhook
+hoox deploy telegram-webhook
+
+# Post-deploy: update dashboard service URLs
+hoox deploy update-internal-urls
+
+# Post-deploy: apply KV manifest defaults
+hoox deploy kv-config
 ```
 
 > **Local Development:** Want to test before going live? Run `hoox dev start` to launch all workers — choose between Native (wrangler) or Docker (compose) runtime. Use `./hoox-tui` for the interactive terminal UI!
@@ -158,11 +167,54 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli`. By utilizing Bun Workspaces, the core management commands are available via the `hoox` binary.
+The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, 381 tests). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
 
-- **Frictionless DX**: Manage your entire infrastructure natively using commands like `hoox deploy workers` or `hoox init`.
-- **Strict Configuration**: Configuration is split between `wrangler.jsonc` (backend worker settings) and `pages/dashboard/wrangler.jsonc` (dashboard Workers settings), ensuring type-safe and validated deployments.
-- **Automated Infrastructure**: The CLI handles complex tasks like provisioning Cloudflare R2 buckets and updating WAF rules through the Cloudflare API directly.
+### Complete Command Tree
+
+```
+hoox                                 Interactive TUI (no args)
+├── init                             Setup wizard with AI provider support
+├── clone                            Clone worker repos as submodules
+├── dev                              Local development (native/docker)
+├── deploy                           Deploy workers, dashboard, webhook, KV
+├── infra                            Manage D1, KV, R2, Queues, Vectorize, Analytics
+├── config                           Config, env vars, KV keys, secrets
+│   ├── env                          Declarative 31-key env matrix
+│   └── kv                           16-key manifest + apply-manifest
+├── check                            Prerequisites, setup, health
+├── db                               D1 schema, migrate, query, export, reset
+├── monitor                          Health, trades, logs, kill-switch, backup
+├── repair                           System check, repair, guided rebuild
+├── logs                             Tail worker logs
+├── test                             CI pipeline
+├── waf                              WAF rules
+└── dashboard                        Dashboard operations
+```
+
+### Key Workflows
+
+| Workflow | Commands |
+|----------|----------|
+| **Setup** | `hoox init` → `hoox check prerequisites` → `hoox config env init` → `hoox config kv apply-manifest` |
+| **Deploy** | `hoox deploy all --auto` → `hoox deploy telegram-webhook` → `hoox deploy update-internal-urls` |
+| **Operate** | `hoox monitor status` → `hoox monitor trades` → `hoox monitor kill-switch` |
+| **Repair** | `hoox repair check` → `hoox repair infra` → `hoox repair secrets` → `hoox repair rebuild` |
+| **Infra** | `hoox infra d1 list` → `hoox infra vectorize list` → `hoox infra queues list` |
+
+### Features
+
+- **Interactive Setup**: Guided wizard with AI provider integration (OpenAI, Anthropic, Google AI, Home Assistant)
+- **Toolchain Validation**: 7 prerequisites checks (bun, git, node, wrangler, Cloudflare auth, Docker, repository)
+- **Declarative Env Config**: 31 environment variables across 8 sections with init/show/validate/generate-dev-vars
+- **KV Manifest Sync**: 16-key manifest with one-command apply for CONFIG_KV namespace
+- **Database Operations**: Schema apply, tracking migrations, read-only queries, export, reset with --remote support
+- **Infrastructure as Code**: Provision D1, KV, R2, Queues, Vectorize, Analytics via `hoox infra`
+- **Post-Deploy Automation**: Telegram webhook setup, internal URL updates, KV config sync
+- **Operational Monitoring**: Worker health probes, recent trades, system logs, queue depth, D1 backup, kill switch
+- **Guided Repair**: 5-step system check, per-component repair, interactive full rebuild
+- **Health Checks**: Worker /health endpoint probing for all enabled workers
+- **Secret Management**: Sync, check, and rotate Cloudflare secrets
+- **All commands** support `--json` (machine output) and `--quiet` (minimal output) global flags
 
 ---
 
@@ -444,7 +496,7 @@ bun test --coverage
 
 **Current Test Coverage:**
 
-- **packages/cli**: ~88% function coverage, ~82% line coverage
+- **packages/cli**: 381 tests across 26 files — 0 failures (100% pass rate)
 - **workers/hoox**: test suite in progress
 - **workers/trade-worker**: test suite in progress
 - **workers/agent-worker**: test suite in progress
@@ -552,16 +604,20 @@ Traditional algorithmic trading is often complex and difficult to deploy. Hoox a
 
 All Cloudflare service integrations are **live** across hoox workers (May 2026):
 
-| Service | Integration | Workers | Cost |
-|---------|:-----------:|:-------:|:----:|
-| **Smart Placement** | `placement { mode: "smart" }` | hoox, trade, agent, d1, telegram | Free |
-| **Durable Objects** | Real IdempotencyStore w/ SQLite + alarm cleanup | hoox | Free |
-| **KV-backed Rate Limiting** | Survives cold starts, in-memory fallback | hoox | Free |
-| **Browser Rendering** | Automated PDF portfolio reports | report-worker | Free |
-| **Analytics Engine** | Time-series tracking via analytics-worker | all workers | Free |
-| **Workers AI** | LLaMA 3 risk analysis & summaries | agent, telegram, hoox | Free |
-| **Vectorize** | RAG-powered AI responses | telegram, hoox | Free |
-| **WAF + Rate Limiting** | CLI-managed IP allowlisting + rate rules | zone-level | Free |
+| Service | Integration | CLI Mgmt | Workers | Cost |
+|---------|:-----------:|:--------:|:-------:|:----:|
+| **Smart Placement** | `placement { mode: "smart" }` | — | hoox, trade, agent, d1, telegram | Free |
+| **Durable Objects** | Real IdempotencyStore w/ SQLite + alarm cleanup | — | hoox | Free |
+| **KV-backed Rate Limiting** | Survives cold starts, in-memory fallback | `hoox config kv` | hoox | Free |
+| **Browser Rendering** | Automated PDF portfolio reports | — | report-worker | Free |
+| **Analytics Engine** | Time-series tracking via analytics-worker | `hoox infra analytics` | all workers | Free |
+| **Workers AI** | LLaMA 3 risk analysis & summaries | — | agent, telegram, hoox | Free |
+| **Vectorize** | RAG-powered AI responses | `hoox infra vectorize` | telegram, hoox | Free |
+| **D1 Database** | Global SQLite at the edge | `hoox db` | trade, d1, agent | Free |
+| **KV Config** | Sub-millisecond config store | `hoox config kv` | all workers | Free |
+| **Queues** | Async message delivery | `hoox infra queues` | hoox, trade | Free |
+| **R2 Storage** | Zero-egress object storage | `hoox infra r2` | trade, report | Free |
+| **WAF + Rate Limiting** | CLI-managed IP allowlisting + rate rules | `hoox waf` | zone-level | Free |
 
 All services run on Cloudflare's **Free plan** — no monthly costs.
 
