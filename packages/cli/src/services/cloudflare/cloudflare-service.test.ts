@@ -438,7 +438,11 @@ describe("CloudflareService", () => {
       mockSpawnWithCapture(successSpawn("Created index my-index"));
 
       const service = new CloudflareService();
-      const result = await service.vectorizeCreate("my-index", 384, "euclidean");
+      const result = await service.vectorizeCreate(
+        "my-index",
+        384,
+        "euclidean"
+      );
 
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual([

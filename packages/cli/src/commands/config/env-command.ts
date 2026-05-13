@@ -63,7 +63,7 @@ async function handleInit(opts: FormatOptions): Promise<void> {
 
   for (const section of sections) {
     const sectionDefs = EnvService.getDefinitions().filter(
-      (d) => d.section === section,
+      (d) => d.section === section
     );
     if (sectionDefs.length === 0) continue;
 
@@ -111,8 +111,7 @@ async function handleInit(opts: FormatOptions): Promise<void> {
       "",
     ].join("\n");
     await Bun.write(`${workerPath}/.dev.vars`, content);
-    if (!opts.quiet)
-      formatSuccess(`Created ${workerPath}/.dev.vars`, opts);
+    if (!opts.quiet) formatSuccess(`Created ${workerPath}/.dev.vars`, opts);
   }
 
   p.outro("Environment setup complete!");
@@ -127,7 +126,7 @@ async function handleShow(opts: FormatOptions): Promise<void> {
   if (!(await file.exists())) {
     throw new CLIError(
       ".env.local not found. Run `hoox config env init`.",
-      ExitCode.INVALID_USAGE,
+      ExitCode.INVALID_USAGE
     );
   }
 
@@ -157,7 +156,9 @@ async function handleValidate(opts: FormatOptions): Promise<void> {
     formatJson(result, opts);
   } else if (!opts.quiet) {
     if (!(await file.exists())) {
-      process.stdout.write(".env.local not found. Run `hoox config env init` first.\n\n");
+      process.stdout.write(
+        ".env.local not found. Run `hoox config env init` first.\n\n"
+      );
     }
     if (result.missing.length > 0) {
       process.stdout.write("Missing required variables:\n");
@@ -190,7 +191,7 @@ async function handleGenerateDevVars(opts: FormatOptions): Promise<void> {
   if (!(await file.exists())) {
     throw new CLIError(
       ".env.local not found. Run `hoox config env init`.",
-      ExitCode.INVALID_USAGE,
+      ExitCode.INVALID_USAGE
     );
   }
 
@@ -237,7 +238,7 @@ EXAMPLES:
   hoox config env init
   hoox config env show
   hoox config env validate
-  hoox config env generate-dev-vars`,
+  hoox config env generate-dev-vars`
     );
 
   envCmd
@@ -248,13 +249,8 @@ EXAMPLES:
       try {
         await handleInit(opts);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -266,13 +262,8 @@ EXAMPLES:
       try {
         await handleShow(opts);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -284,13 +275,8 @@ EXAMPLES:
       try {
         await handleValidate(opts);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -302,13 +288,8 @@ EXAMPLES:
       try {
         await handleGenerateDevVars(opts);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 }

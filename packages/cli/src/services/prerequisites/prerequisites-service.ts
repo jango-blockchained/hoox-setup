@@ -100,14 +100,27 @@ export class PrerequisitesService {
   async checkBun(): Promise<PrerequisiteCheck> {
     const base = { name: "Bun", category: "tool" as const, required: ">=1.2" };
     try {
-      const proc = Bun.spawn(["bun", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const proc = Bun.spawn(["bun", "--version"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
       const stdout = await new Response(proc.stdout).text();
       const version = stdout.trim();
       const [major, minor] = version.split(".").map(Number);
       const passed = (major ?? 0) >= 1 && (minor ?? 0) >= 2;
-      return { ...base, passed, version: version || "not found", hint: passed ? undefined : "Install: curl -fsSL https://bun.sh | bash" };
+      return {
+        ...base,
+        passed,
+        version: version || "not found",
+        hint: passed ? undefined : "Install: curl -fsSL https://bun.sh | bash",
+      };
     } catch {
-      return { ...base, passed: false, version: "not found", hint: "Install: curl -fsSL https://bun.sh | bash" };
+      return {
+        ...base,
+        passed: false,
+        version: "not found",
+        hint: "Install: curl -fsSL https://bun.sh | bash",
+      };
     }
   }
 
@@ -118,15 +131,28 @@ export class PrerequisitesService {
   async checkGit(): Promise<PrerequisiteCheck> {
     const base = { name: "Git", category: "tool" as const, required: ">=2.40" };
     try {
-      const proc = Bun.spawn(["git", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const proc = Bun.spawn(["git", "--version"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
       const stdout = await new Response(proc.stdout).text();
       const match = stdout.match(/(\d+\.\d+)/);
       const version = match ? match[1] : "unknown";
       const [major, minor] = version.split(".").map(Number);
       const passed = (major ?? 0) >= 2 && (minor ?? 0) >= 40;
-      return { ...base, passed, version, hint: passed ? undefined : "Install: apt install git" };
+      return {
+        ...base,
+        passed,
+        version,
+        hint: passed ? undefined : "Install: apt install git",
+      };
     } catch {
-      return { ...base, passed: false, version: "not found", hint: "Install: apt install git" };
+      return {
+        ...base,
+        passed: false,
+        version: "not found",
+        hint: "Install: apt install git",
+      };
     }
   }
 
@@ -135,16 +161,33 @@ export class PrerequisitesService {
    * Runs `node --version` if available, skips gracefully if not installed.
    */
   async checkNode(): Promise<PrerequisiteCheck> {
-    const base = { name: "Node.js", category: "tool" as const, required: ">=18 (optional)" };
+    const base = {
+      name: "Node.js",
+      category: "tool" as const,
+      required: ">=18 (optional)",
+    };
     try {
-      const proc = Bun.spawn(["node", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const proc = Bun.spawn(["node", "--version"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
       const stdout = await new Response(proc.stdout).text();
       const version = stdout.trim().replace(/^v/, "");
       const [major] = version.split(".").map(Number);
       const passed = (major ?? 0) >= 18;
-      return { ...base, passed, version: version || "not found", hint: passed ? undefined : "Install: nvm or https://nodejs.org" };
+      return {
+        ...base,
+        passed,
+        version: version || "not found",
+        hint: passed ? undefined : "Install: nvm or https://nodejs.org",
+      };
     } catch {
-      return { ...base, passed: true, version: "not installed", hint: "Optional — not required when using Bun" };
+      return {
+        ...base,
+        passed: true,
+        version: "not installed",
+        hint: "Optional — not required when using Bun",
+      };
     }
   }
 
@@ -153,16 +196,27 @@ export class PrerequisitesService {
    * Delegates to the existing method to avoid duplicating semver logic.
    */
   async checkWrangler(): Promise<PrerequisiteCheck> {
-    const base = { name: "Wrangler CLI", category: "tool" as const, required: `>=${this.MINIMUM_WRANGLER}` };
+    const base = {
+      name: "Wrangler CLI",
+      category: "tool" as const,
+      required: `>=${this.MINIMUM_WRANGLER}`,
+    };
     const result = await this.checkWranglerVersion();
     if (!result.current) {
-      return { ...base, passed: false, version: "not found", hint: "Install: bun add -g wrangler" };
+      return {
+        ...base,
+        passed: false,
+        version: "not found",
+        hint: "Install: bun add -g wrangler",
+      };
     }
     return {
       ...base,
       passed: !result.outdated,
       version: result.current,
-      hint: result.outdated ? `Update: bun add -g wrangler@latest (${result.current} < ${result.minimum})` : undefined,
+      hint: result.outdated
+        ? `Update: bun add -g wrangler@latest (${result.current} < ${result.minimum})`
+        : undefined,
     };
   }
 
@@ -171,9 +225,16 @@ export class PrerequisitesService {
    * Verifies the CLI is authenticated and extracts the user email.
    */
   async checkCloudflareAuth(): Promise<PrerequisiteCheck> {
-    const base = { name: "Cloudflare Auth", category: "account" as const, required: "wrangler whoami" };
+    const base = {
+      name: "Cloudflare Auth",
+      category: "account" as const,
+      required: "wrangler whoami",
+    };
     try {
-      const proc = Bun.spawn(["wrangler", "whoami"], { stdout: "pipe", stderr: "pipe" });
+      const proc = Bun.spawn(["wrangler", "whoami"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
       const stdout = await new Response(proc.stdout).text();
       const exitCode = await proc.exited;
       const passed = exitCode === 0 && !stdout.includes("not authenticated");
@@ -185,7 +246,12 @@ export class PrerequisitesService {
         hint: passed ? undefined : "Run: wrangler login",
       };
     } catch {
-      return { ...base, passed: false, version: "not authenticated", hint: "Run: wrangler login" };
+      return {
+        ...base,
+        passed: false,
+        version: "not authenticated",
+        hint: "Run: wrangler login",
+      };
     }
   }
 
@@ -194,23 +260,44 @@ export class PrerequisitesService {
    * Also checks `docker compose` availability separately.
    */
   async checkDocker(): Promise<PrerequisiteCheck> {
-    const base = { name: "Docker", category: "tool" as const, required: "optional" };
+    const base = {
+      name: "Docker",
+      category: "tool" as const,
+      required: "optional",
+    };
     try {
-      const proc = Bun.spawn(["docker", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const proc = Bun.spawn(["docker", "--version"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
       const stdout = await new Response(proc.stdout).text();
-      const version = stdout.trim().replace(/^Docker version /, "").replace(/,.*$/, "");
+      const version = stdout
+        .trim()
+        .replace(/^Docker version /, "")
+        .replace(/,.*$/, "");
       let composeVersion = "";
       try {
-        const composeProc = Bun.spawn(["docker", "compose", "version"], { stdout: "pipe", stderr: "pipe" });
+        const composeProc = Bun.spawn(["docker", "compose", "version"], {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
         composeVersion = (await new Response(composeProc.stdout).text()).trim();
-      } catch { /* compose optional */ }
+      } catch {
+        /* compose optional */
+      }
       return {
         ...base,
         passed: true,
-        version: version + (composeVersion ? ` (compose: yes)` : " (compose: no)"),
+        version:
+          version + (composeVersion ? ` (compose: yes)` : " (compose: no)"),
       };
     } catch {
-      return { ...base, passed: true, version: "not installed", hint: "Optional — used for Docker dev runtime" };
+      return {
+        ...base,
+        passed: true,
+        version: "not installed",
+        hint: "Optional — used for Docker dev runtime",
+      };
     }
   }
 
@@ -218,28 +305,49 @@ export class PrerequisitesService {
    * Check repository integrity: wrangler.jsonc exists, .env file present, submodules initialized.
    */
   async checkRepository(): Promise<PrerequisiteCheck> {
-    const base = { name: "Repository", category: "repository" as const, required: "valid" };
+    const base = {
+      name: "Repository",
+      category: "repository" as const,
+      required: "valid",
+    };
     try {
       const wranglerExists = await Bun.file("wrangler.jsonc").exists();
-      const envExists = await Bun.file(".env.local").exists() || await Bun.file(".env.example").exists();
+      const envExists =
+        (await Bun.file(".env.local").exists()) ||
+        (await Bun.file(".env.example").exists());
       const issues: string[] = [];
       if (!wranglerExists) issues.push("wrangler.jsonc not found");
       if (!envExists) issues.push("no .env.local or .env.example found");
       let submoduleOk = false;
       try {
-        const proc = Bun.spawn(["git", "submodule", "status"], { stdout: "pipe", stderr: "pipe" });
+        const proc = Bun.spawn(["git", "submodule", "status"], {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
         const stdout = await new Response(proc.stdout).text();
         submoduleOk = !stdout.startsWith("-");
-      } catch { /* not a git repo */ }
+      } catch {
+        /* not a git repo */
+      }
       const passed = wranglerExists && issues.length === 0;
       return {
         ...base,
         passed,
-        version: issues.length > 0 ? issues.join("; ") : (submoduleOk ? "OK" : "submodules may need init"),
+        version:
+          issues.length > 0
+            ? issues.join("; ")
+            : submoduleOk
+              ? "OK"
+              : "submodules may need init",
         hint: passed ? undefined : "Run: hoox init or hoox clone --all",
       };
     } catch {
-      return { ...base, passed: false, version: "check failed", hint: "Check repository structure" };
+      return {
+        ...base,
+        passed: false,
+        version: "check failed",
+        hint: "Check repository structure",
+      };
     }
   }
 

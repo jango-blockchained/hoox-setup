@@ -47,130 +47,69 @@ describe("Zod Validation", () => {
       compatibility_flags: ["nodejs_compat"],
     }, null, 2);
 
-    const workerSrc = `
-import { z } from "zod";
-
-// --- Schemas (mirrors shared package) ---
-
-const TradeActionSchema = z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]);
-
-const WebhookPayloadSchema = z.object({
-  apiKey: z.string().min(1, "apiKey is required"),
-  symbol: z.string().min(1).max(20),
-  action: TradeActionSchema,
-  quantity: z.number().positive("quantity must be positive").finite(),
-  price: z.number().positive("price must be positive").finite().optional(),
-  exchange: z.string().optional(),
-  type: z.enum(["market", "limit"]).optional(),
-}).strict();
-
-// --- Logger (mirrors shared createLogger) ---
-
-function createLogger(service: string) {
-  return {
-    info: (msg: string, ctx?: Record<string, unknown>) =>
-      console.log(JSON.stringify({ level: "info", service, message: msg, context: ctx ?? {} })),
-    warn: (msg: string, ctx?: Record<string, unknown>) =>
-      console.warn(JSON.stringify({ level: "warn", service, message: msg, context: ctx ?? {} })),
-    error: (msg: string, ctx?: Record<string, unknown>) =>
-      console.error(JSON.stringify({ level: "error", service, message: msg, context: ctx ?? {} })),
-  };
-}
-
-const logger = createLogger("validation-test-worker");
-
-// --- Validation helper (mirrors shared validateJson) ---
-
-function validateJson<T extends z.ZodTypeAny>(schema: T, data: unknown) {
-  const result = schema.safeParse(data);
-  if (!result.success) {
-    return {
-      ok: false as const,
-      error: result.error.issues.map((i: any) => \`\${i.path.join(".")}: \${i.message}\`).join("; "),
-    };
-  }
-  return { ok: true as const, value: result.data as z.infer<T> };
-}
-
-// --- Structured logger test endpoint ---
-
-function testLoggerOutput(): Record<string, unknown>[] {
-  const logs: Record<string, unknown>[] = [];
-  const mockConsole = {
-    log: (msg: string) => logs.push(JSON.parse(msg)),
-  };
-
-  const testLogger = createLogger("test-service");
-  // Capture output by temporarily overriding console.log
-  const origLog = console.log.bind(console);
-  console.log = (msg: string) => {
-    try { logs.push(JSON.parse(msg)); } catch { /* not JSON */ }
-  };
-  testLogger.info("test info message", { key: "value" });
-  testLogger.warn("test warn message");
-  testLogger.error("test error message", { err: "something failed" });
-  console.log = origLog;
-
-  return logs;
-}
-
-// --- Request handler ---
-
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    // Logger test endpoint
-    if (path === "/logger") {
-      try {
-        const logs = testLoggerOutput();
-        return new Response(JSON.stringify({ success: true, logs }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (err: unknown) {
-        return new Response(JSON.stringify({ success: false, error: String(err) }), {
-          status: 500, headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
-
-    // Validation test endpoint
-    if (path === "/validate" && request.method === "POST") {
-      try {
-        const body = await request.json() as Record<string, unknown>;
-        const result = validateJson(WebhookPayloadSchema, body);
-
-        const status = result.ok ? 200 : 400;
-        return new Response(JSON.stringify(result), {
-          status,
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (err: unknown) {
-        return new Response(JSON.stringify({
-          ok: false,
-          error: err instanceof Error ? err.message : "Unknown error",
-        }), { status: 400, headers: { "Content-Type": "application/json" } });
-      }
-    }
-
-    // Health check
-    if (path === "/health") {
-      return new Response(JSON.stringify({ status: "ok" }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response("Not found", { status: 404 });
-  },
-};
-`;
+    const workerSrc = [
+      'const VALID_ACTIONS = new Set(["LONG","SHORT","CLOSE_LONG","CLOSE_SHORT"]);',
+      'function validateWebhookPayload(data) {',
+      '  const errors = [];',
+      '  if (typeof data.apiKey !== "string" || data.apiKey.length === 0) errors.push("apiKey: apiKey is required");',
+      '  if (typeof data.symbol !== "string" || data.symbol.length === 0) errors.push("symbol: required string");',
+      '  if (data.symbol && typeof data.symbol === "string" && data.symbol.length > 20) errors.push("symbol: max 20 chars");',
+      '  if (!VALID_ACTIONS.has(data.action)) errors.push("action: must be LONG/SHORT/CLOSE_LONG/CLOSE_SHORT");',
+      '  if (typeof data.quantity !== "number" || data.quantity <= 0 || !isFinite(data.quantity)) errors.push("quantity: must be positive finite number");',
+      '  if (data.price !== undefined && (typeof data.price !== "number" || data.price <= 0)) errors.push("price: must be positive number");',
+      '  return errors.length > 0 ? { ok: false, error: errors.join("; ") } : { ok: true, value: data };',
+      '}',
+      'function createLogger(svc) {',
+      '  return {',
+      '    info: (msg, ctx) => console.log(JSON.stringify({level:"info",service:svc,message:msg,context:ctx||{}})),',
+      '    warn: (msg, ctx) => console.warn(JSON.stringify({level:"warn",service:svc,message:msg,context:ctx||{}})),',
+      '    error: (msg, ctx) => console.error(JSON.stringify({level:"error",service:svc,message:msg,context:ctx||{}})),',
+      '  };',
+      '}',
+      'function testLoggerOutput() {',
+      '  const logs = [];',
+      '  const L = createLogger("test-service");',
+      '  const orig = console.log.bind(console);',
+      '  console.log = (m) => { try { logs.push(JSON.parse(m)); } catch {} };',
+      '  L.info("test info message", {key:"value"});',
+      '  L.warn("test warn message");',
+      '  L.error("test error message", {err:"something failed"});',
+      '  console.log = orig;',
+      '  return logs;',
+      '}',
+      'export default {',
+      '  async fetch(request) {',
+      '    const url = new URL(request.url);',
+      '    if (url.pathname === "/logger") {',
+      '      try { const logs = testLoggerOutput(); return Response.json({success:true,logs}); }',
+      '      catch(e) { return Response.json({success:false,error:String(e)},{status:500}); }',
+      '    }',
+      '    if (url.pathname === "/validate" && request.method === "POST") {',
+      '      try {',
+      '        const body = await request.json();',
+      '        const r = validateWebhookPayload(body);',
+      '        return Response.json(r, {status: r.ok ? 200 : 400});',
+      '      } catch(e) { return Response.json({ok:false,error:"Bad request"},{status:400}); }',
+      '    }',
+      '    if (url.pathname === "/health") return Response.json({status:"ok"});',
+      '    return new Response("Not found", {status:404});',
+      '  }',
+      '};',
+    ].join("\n");
 
     mkdirSync(join(workerDir, "src"), { recursive: true });
     writeFileSync(join(workerDir, "wrangler.jsonc"), wranglerConfig);
     writeFileSync(join(workerDir, "src", "index.ts"), workerSrc);
+    writeFileSync(join(workerDir, "package.json"), JSON.stringify({
+      name: TEST_WORKER,
+      private: true,
+      dependencies: { zod: "^4.4.3" },
+    }, null, 2));
 
     const result = await wrangler(["deploy"], workerDir);
+    if (!result.ok) {
+      console.log(`  ✗ Deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+    }
     expect(result.ok).toBe(true);
     console.log(`  ✓ Deployed test worker "${TEST_WORKER}"`);
   });

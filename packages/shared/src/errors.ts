@@ -51,9 +51,10 @@ function sanitizeOutput(data: unknown): unknown {
     for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
       // Never expose stack traces, cause chains, or raw error objects
       if (k === "stack" || k === "cause") continue;
-      sanitized[k] = v instanceof Error
-        ? { name: v.name, message: v.message }
-        : sanitizeOutput(v);
+      sanitized[k] =
+        v instanceof Error
+          ? { name: v.name, message: v.message }
+          : sanitizeOutput(v);
     }
     return sanitized;
   }

@@ -25,7 +25,10 @@ export class KvSyncService {
 
       if (exitCode === 0) {
         try {
-          const namespaces = JSON.parse(stdout) as Array<{ id: string; title: string }>;
+          const namespaces = JSON.parse(stdout) as Array<{
+            id: string;
+            title: string;
+          }>;
           const configKv = namespaces.find((n) => n.title === "CONFIG_KV");
           if (configKv) return configKv.id;
         } catch {
@@ -37,23 +40,21 @@ export class KvSyncService {
     }
 
     throw new Error(
-      "Could not resolve CONFIG_KV namespace ID. Provide --namespace-id flag.",
+      "Could not resolve CONFIG_KV namespace ID. Provide --namespace-id flag."
     );
   }
 
-  async list(
-    namespaceId: string,
-  ): Promise<Array<{ name: string }>> {
+  async list(namespaceId: string): Promise<Array<{ name: string }>> {
     const proc = Bun.spawn(
       ["wrangler", "kv:key", "list", "--namespace-id", namespaceId],
-      { stdout: "pipe", stderr: "pipe" },
+      { stdout: "pipe", stderr: "pipe" }
     );
     const stdout = await new Response(proc.stdout).text();
     const exitCode = await proc.exited;
 
     if (exitCode !== 0) {
       throw new Error(
-        `Failed to list KV keys: ${stdout.trim() || `exit ${exitCode}`}`,
+        `Failed to list KV keys: ${stdout.trim() || `exit ${exitCode}`}`
       );
     }
 
@@ -71,7 +72,7 @@ export class KvSyncService {
   async get(namespaceId: string, key: string): Promise<string | null> {
     const proc = Bun.spawn(
       ["wrangler", "kv:key", "get", "--namespace-id", namespaceId, key],
-      { stdout: "pipe", stderr: "pipe" },
+      { stdout: "pipe", stderr: "pipe" }
     );
     const stdout = await new Response(proc.stdout).text();
     const stderr = await new Response(proc.stderr).text();
@@ -80,28 +81,24 @@ export class KvSyncService {
     if (exitCode !== 0) {
       if (stderr.includes("not found")) return null;
       throw new Error(
-        `Failed to get key "${key}": ${stderr.trim() || `exit ${exitCode}`}`,
+        `Failed to get key "${key}": ${stderr.trim() || `exit ${exitCode}`}`
       );
     }
 
     return stdout.trim() || null;
   }
 
-  async set(
-    namespaceId: string,
-    key: string,
-    value: string,
-  ): Promise<void> {
+  async set(namespaceId: string, key: string, value: string): Promise<void> {
     const proc = Bun.spawn(
       ["wrangler", "kv:key", "put", "--namespace-id", namespaceId, key, value],
-      { stdout: "pipe", stderr: "pipe" },
+      { stdout: "pipe", stderr: "pipe" }
     );
     const exitCode = await proc.exited;
     const stderr = await new Response(proc.stderr).text();
 
     if (exitCode !== 0) {
       throw new Error(
-        `Failed to set key "${key}": ${stderr.trim() || `exit ${exitCode}`}`,
+        `Failed to set key "${key}": ${stderr.trim() || `exit ${exitCode}`}`
       );
     }
   }
@@ -109,14 +106,14 @@ export class KvSyncService {
   async delete(namespaceId: string, key: string): Promise<void> {
     const proc = Bun.spawn(
       ["wrangler", "kv:key", "delete", "--namespace-id", namespaceId, key],
-      { stdout: "pipe", stderr: "pipe" },
+      { stdout: "pipe", stderr: "pipe" }
     );
     const exitCode = await proc.exited;
     const stderr = await new Response(proc.stderr).text();
 
     if (exitCode !== 0) {
       throw new Error(
-        `Failed to delete key "${key}": ${stderr.trim() || `exit ${exitCode}`}`,
+        `Failed to delete key "${key}": ${stderr.trim() || `exit ${exitCode}`}`
       );
     }
   }
@@ -125,22 +122,108 @@ export class KvSyncService {
     return {
       namespace: "CONFIG_KV",
       keys: [
-        { key: "webhook:tradingview:ip_check_enabled", type: "boolean", default: "false", description: "Enable TradingView IP allowlist check" },
-        { key: "webhook:allowed_ips", type: "string", default: "", description: "Comma-separated allowed IPs for webhook" },
-        { key: "routing:dynamic:enabled", type: "boolean", default: "false", description: "Enable dynamic routing" },
-        { key: "trade:max_daily_drawdown_percent", type: "number", default: "10", description: "Max daily loss percentage before halt" },
-        { key: "trade:kill_switch", type: "boolean", default: "false", description: "Emergency stop all trading" },
-        { key: "trade:watermark:{exchange}:{symbol}:{side}", type: "number", default: "", description: "Per-market watermark (template key)", secret: true },
-        { key: "agent:openai_key", type: "string", default: "", description: "OpenAI API key for AI agent", secret: true },
-        { key: "agent:anthropic_key", type: "string", default: "", description: "Anthropic API key for AI agent", secret: true },
-        { key: "agent:google_key", type: "string", default: "", description: "Google AI API key for agent", secret: true },
-        { key: "agent:azure_api_key", type: "string", default: "", description: "Azure OpenAI API key", secret: true },
-        { key: "agent:azure_endpoint", type: "string", default: "", description: "Azure OpenAI endpoint", secret: true },
-        { key: "email:scan_subject", type: "string", default: "", description: "Email subject filter for signal scanning" },
-        { key: "email:coin_pattern", type: "string", default: "", description: "Regex pattern to extract coin from email" },
-        { key: "email:action_pattern", type: "string", default: "", description: "Regex pattern to extract action from email" },
-        { key: "email:quantity_multiplier", type: "number", default: "1", description: "Multiplier for email signal quantity" },
-        { key: "email:use_imap", type: "boolean", default: "false", description: "Use IMAP for email scanning" },
+        {
+          key: "webhook:tradingview:ip_check_enabled",
+          type: "boolean",
+          default: "false",
+          description: "Enable TradingView IP allowlist check",
+        },
+        {
+          key: "webhook:allowed_ips",
+          type: "string",
+          default: "",
+          description: "Comma-separated allowed IPs for webhook",
+        },
+        {
+          key: "routing:dynamic:enabled",
+          type: "boolean",
+          default: "false",
+          description: "Enable dynamic routing",
+        },
+        {
+          key: "trade:max_daily_drawdown_percent",
+          type: "number",
+          default: "10",
+          description: "Max daily loss percentage before halt",
+        },
+        {
+          key: "trade:kill_switch",
+          type: "boolean",
+          default: "false",
+          description: "Emergency stop all trading",
+        },
+        {
+          key: "trade:watermark:{exchange}:{symbol}:{side}",
+          type: "number",
+          default: "",
+          description: "Per-market watermark (template key)",
+          secret: true,
+        },
+        {
+          key: "agent:openai_key",
+          type: "string",
+          default: "",
+          description: "OpenAI API key for AI agent",
+          secret: true,
+        },
+        {
+          key: "agent:anthropic_key",
+          type: "string",
+          default: "",
+          description: "Anthropic API key for AI agent",
+          secret: true,
+        },
+        {
+          key: "agent:google_key",
+          type: "string",
+          default: "",
+          description: "Google AI API key for agent",
+          secret: true,
+        },
+        {
+          key: "agent:azure_api_key",
+          type: "string",
+          default: "",
+          description: "Azure OpenAI API key",
+          secret: true,
+        },
+        {
+          key: "agent:azure_endpoint",
+          type: "string",
+          default: "",
+          description: "Azure OpenAI endpoint",
+          secret: true,
+        },
+        {
+          key: "email:scan_subject",
+          type: "string",
+          default: "",
+          description: "Email subject filter for signal scanning",
+        },
+        {
+          key: "email:coin_pattern",
+          type: "string",
+          default: "",
+          description: "Regex pattern to extract coin from email",
+        },
+        {
+          key: "email:action_pattern",
+          type: "string",
+          default: "",
+          description: "Regex pattern to extract action from email",
+        },
+        {
+          key: "email:quantity_multiplier",
+          type: "number",
+          default: "1",
+          description: "Multiplier for email signal quantity",
+        },
+        {
+          key: "email:use_imap",
+          type: "boolean",
+          default: "false",
+          description: "Use IMAP for email scanning",
+        },
       ],
     };
   }

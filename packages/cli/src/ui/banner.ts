@@ -25,12 +25,12 @@ export function renderBanner(): string {
   const top = ` ${theme.corner.charAt(0)}${theme.separator.repeat(bannerWidth - 2)}${theme.corner.charAt(2)}`;
   const bottom = ` ${theme.corner.charAt(3)}${theme.separator.repeat(bannerWidth - 2)}${theme.corner.charAt(1)}`;
 
-  const lines = BANNER_LINES.map((line) =>
-    ` ${theme.heading(line)}`
-  );
+  const lines = BANNER_LINES.map((line) => ` ${theme.heading(line)}`);
 
   // Center the tagline
-  const taglineLeft = Math.floor((bannerWidth - TAGLINE.length - VERSION.length - 2) / 2);
+  const taglineLeft = Math.floor(
+    (bannerWidth - TAGLINE.length - VERSION.length - 2) / 2
+  );
   const tagline = ` ${" ".repeat(taglineLeft)}${theme.dim(TAGLINE)} ${theme.dim(VERSION)}`;
 
   const result = [

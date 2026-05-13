@@ -36,7 +36,7 @@ describe("healthCheck", () => {
     // Timestamp should be a valid ISO string
     expect(() => new Date(body.result.timestamp)).not.toThrow();
     expect(new Date(body.result.timestamp).toISOString()).toBe(
-      body.result.timestamp,
+      body.result.timestamp
     );
   });
 

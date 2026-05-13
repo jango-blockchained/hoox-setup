@@ -33,10 +33,7 @@ function getFormatOptions(cmd: Command): FormatOptions {
 /**
  * Resolve database name from config or --database flag.
  */
-async function resolveDb(
-  cmd: Command,
-  svc: DbService,
-): Promise<string> {
+async function resolveDb(cmd: Command, svc: DbService): Promise<string> {
   const opts = cmd.optsWithGlobals<{ database?: string }>();
   return await svc.resolveDbName(opts.database);
 }
@@ -49,13 +46,13 @@ async function handleApply(
   opts: FormatOptions,
   dbName: string,
   remote: boolean,
-  file?: string,
+  file?: string
 ): Promise<void> {
   const svc = new DbService();
   const output = await svc.apply(dbName, remote, file);
   formatSuccess(
     `Schema applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
-    opts,
+    opts
   );
   if (!opts.quiet && output) {
     process.stdout.write(`${output}\n`);
@@ -69,13 +66,13 @@ async function handleApply(
 async function handleMigrate(
   opts: FormatOptions,
   dbName: string,
-  remote: boolean,
+  remote: boolean
 ): Promise<void> {
   const svc = new DbService();
   const output = await svc.migrate(dbName, remote);
   formatSuccess(
     `Migrations applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
-    opts,
+    opts
   );
   if (!opts.quiet && output) {
     process.stdout.write(`${output}\n`);
@@ -89,7 +86,7 @@ async function handleMigrate(
 async function handleList(
   opts: FormatOptions,
   dbName: string,
-  remote: boolean,
+  remote: boolean
 ): Promise<void> {
   const svc = new DbService();
   const tables = await svc.listTables(dbName, remote);
@@ -114,7 +111,7 @@ async function handleQuery(
   opts: FormatOptions,
   dbName: string,
   sql: string,
-  remote: boolean,
+  remote: boolean
 ): Promise<void> {
   const svc = new DbService();
   const output = await svc.query(dbName, sql, remote);
@@ -139,7 +136,7 @@ async function handleQuery(
 async function handleExport(
   opts: FormatOptions,
   dbName: string,
-  outputPath?: string,
+  outputPath?: string
 ): Promise<void> {
   const svc = new DbService();
   const path = await svc.export(dbName, outputPath);
@@ -153,7 +150,7 @@ async function handleExport(
 async function handleReset(
   opts: FormatOptions,
   dbName: string,
-  confirmed: boolean,
+  confirmed: boolean
 ): Promise<void> {
   if (!confirmed) {
     const answer = await p.confirm({
@@ -204,7 +201,7 @@ EXAMPLES:
   hoox db list
   hoox db query "SELECT * FROM trade_signals LIMIT 5"
   hoox db export
-  hoox db reset`,
+  hoox db reset`
     )
     .option("--database <name>", "Database name (auto-detected if omitted)")
     .option("--remote", "Operate on production (remote) database");
@@ -219,7 +216,9 @@ EXAMPLES:
       try {
         const svc = new DbService();
         const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(cmd.optsWithGlobals<{ remote?: boolean }>().remote);
+        const remote = Boolean(
+          cmd.optsWithGlobals<{ remote?: boolean }>().remote
+        );
         await handleApply(opts, dbName, remote, options.file);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
@@ -236,7 +235,9 @@ EXAMPLES:
       try {
         const svc = new DbService();
         const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(cmd.optsWithGlobals<{ remote?: boolean }>().remote);
+        const remote = Boolean(
+          cmd.optsWithGlobals<{ remote?: boolean }>().remote
+        );
         await handleMigrate(opts, dbName, remote);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
@@ -253,7 +254,9 @@ EXAMPLES:
       try {
         const svc = new DbService();
         const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(cmd.optsWithGlobals<{ remote?: boolean }>().remote);
+        const remote = Boolean(
+          cmd.optsWithGlobals<{ remote?: boolean }>().remote
+        );
         await handleList(opts, dbName, remote);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);
@@ -270,7 +273,9 @@ EXAMPLES:
       try {
         const svc = new DbService();
         const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(cmd.optsWithGlobals<{ remote?: boolean }>().remote);
+        const remote = Boolean(
+          cmd.optsWithGlobals<{ remote?: boolean }>().remote
+        );
         await handleQuery(opts, dbName, sql, remote);
       } catch (err) {
         formatError(err instanceof Error ? err : String(err), opts);

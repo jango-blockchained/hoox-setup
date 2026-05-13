@@ -17,11 +17,9 @@ function createMockEnv(withService: boolean): AnalyticsEnv {
     return {};
   }
 
-  const fetchFn = mock(
-    (request: Request): Promise<Response> => {
-      return Promise.resolve(new Response(null, { status: 200 }));
-    },
-  );
+  const fetchFn = mock((request: Request): Promise<Response> => {
+    return Promise.resolve(new Response(null, { status: 200 }));
+  });
 
   return {
     ANALYTICS_SERVICE: { fetch: fetchFn } as Fetcher,
@@ -88,11 +86,9 @@ describe("trackAnalytics", () => {
   });
 
   test("handles fetch errors gracefully (never throws)", async () => {
-    const fetchFn = mock(
-      (_request: Request): Promise<Response> => {
-        return Promise.reject(new Error("Network failure"));
-      },
-    );
+    const fetchFn = mock((_request: Request): Promise<Response> => {
+      return Promise.reject(new Error("Network failure"));
+    });
 
     const env = {
       ANALYTICS_SERVICE: { fetch: fetchFn } as Fetcher,

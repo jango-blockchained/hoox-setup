@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
 import type { DashboardEnv } from "@/lib/env";
 import { z } from "zod";
 
@@ -137,18 +136,19 @@ export async function GET(
 
       return NextResponse.json({ settings: normalized });
     } else {
-      // Fallback to D1 worker if KV binding isn't available
-      const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
-      if (configErrors.length > 0) {
+      // Fallback to D1 worker via service binding if KV binding isn't available
+      if (!env.D1_SERVICE) {
         return NextResponse.json(
-          { error: "Configuration error", missing: configErrors },
+          { error: "D1 service binding not available" },
           { status: 500 }
         );
       }
 
-      const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {
-        headers: { "X-Internal-Auth-Key": getConfig().internalAuth.d1 || "" },
-      });
+      const res = await env.D1_SERVICE.fetch(
+        new Request("http://d1-worker.internal/api/settings", {
+          method: "GET",
+        })
+      );
 
       if (res.ok) {
         const data = (await res.json()) as { settings?: AllSettings };
@@ -205,23 +205,23 @@ export async function POST(
       await env.CONFIG_KV.put(kvKey, JSON.stringify(value));
       return NextResponse.json({ success: true, worker, key, value, kvKey });
     } else {
-      // Fallback to D1 worker
-      const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.d1]);
-      if (configErrors.length > 0) {
+      // Fallback to D1 worker via service binding
+      if (!env.D1_SERVICE) {
         return NextResponse.json(
-          { error: "Configuration error", missing: configErrors },
+          { error: "D1 service binding not available" },
           { status: 500 }
         );
       }
 
-      const res = await fetch(`${getConfig().api.d1Service}/api/settings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-Auth-Key": getConfig().internalAuth.d1 || "",
-        },
-        body: JSON.stringify({ worker, key: kvKey, value }),
-      });
+      const res = await env.D1_SERVICE.fetch(
+        new Request("http://d1-worker.internal/api/settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ worker, key: kvKey, value }),
+        })
+      );
 
       if (!res.ok) {
         const error = (await res.json()) as { error?: string };

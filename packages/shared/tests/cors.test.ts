@@ -23,15 +23,13 @@ describe("corsHeaders", () => {
   test("includes Access-Control-Allow-Methods", () => {
     const headers = corsHeaders();
     expect(headers["Access-Control-Allow-Methods"]).toBe(
-      "GET, POST, OPTIONS, PUT, DELETE",
+      "GET, POST, OPTIONS, PUT, DELETE"
     );
   });
 
   test("includes Access-Control-Allow-Headers", () => {
     const headers = corsHeaders();
-    expect(headers["Access-Control-Allow-Headers"]).toContain(
-      "Content-Type",
-    );
+    expect(headers["Access-Control-Allow-Headers"]).toContain("Content-Type");
     expect(headers["Access-Control-Allow-Headers"]).toContain("Authorization");
   });
 
@@ -55,13 +53,11 @@ describe("corsHeaders", () => {
       allowOrigin: "https://app.hoox.com",
       maxAge: 3600,
     });
-    expect(headers["Access-Control-Allow-Origin"]).toBe(
-      "https://app.hoox.com",
-    );
+    expect(headers["Access-Control-Allow-Origin"]).toBe("https://app.hoox.com");
     expect(headers["Access-Control-Max-Age"]).toBe("3600");
     // Defaults still apply
     expect(headers["Access-Control-Allow-Methods"]).toBe(
-      "GET, POST, OPTIONS, PUT, DELETE",
+      "GET, POST, OPTIONS, PUT, DELETE"
     );
   });
 });
@@ -76,10 +72,10 @@ describe("handleCorsPreflightRequest", () => {
     expect(response).toBeInstanceOf(Response);
     expect(response!.headers.get("Access-Control-Allow-Origin")).toBe("*");
     expect(response!.headers.get("Access-Control-Allow-Methods")).toBe(
-      "GET, POST, OPTIONS, PUT, DELETE",
+      "GET, POST, OPTIONS, PUT, DELETE"
     );
     expect(response!.headers.get("Access-Control-Allow-Headers")).toContain(
-      "Authorization",
+      "Authorization"
     );
     expect(response!.headers.get("Access-Control-Max-Age")).toBe("86400");
   });
@@ -111,8 +107,8 @@ describe("handleCorsPreflightRequest", () => {
     const response = handleCorsPreflightRequest(request, {
       allowOrigin: "https://dashboard.hoox.com",
     });
-    expect(
-      response!.headers.get("Access-Control-Allow-Origin"),
-    ).toBe("https://dashboard.hoox.com");
+    expect(response!.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://dashboard.hoox.com"
+    );
   });
 });

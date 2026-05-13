@@ -7,7 +7,7 @@ import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 export async function runPrerequisitesCheck(
-  service?: PrerequisitesService,
+  service?: PrerequisitesService
 ): Promise<PrerequisitesReport> {
   const svc = service ?? new PrerequisitesService();
   return await svc.runAll();
@@ -15,12 +15,16 @@ export async function runPrerequisitesCheck(
 
 function renderReport(report: PrerequisitesReport): void {
   for (const check of report.checks) {
-    const icon = check.passed ? theme.success(icons.success) : theme.error(icons.error);
+    const icon = check.passed
+      ? theme.success(icons.success)
+      : theme.error(icons.error);
     process.stdout.write(`${icon} ${check.name}\n`);
     process.stdout.write(`   ${theme.dim("Version:")} ${check.version}\n`);
     process.stdout.write(`   ${theme.dim("Required:")} ${check.required}\n`);
     if (check.hint) {
-      process.stdout.write(`   ${theme.warning(`${icons.warning} ${check.hint}`)}\n`);
+      process.stdout.write(
+        `   ${theme.warning(`${icons.warning} ${check.hint}`)}\n`
+      );
     }
     process.stdout.write("\n");
   }
@@ -33,7 +37,7 @@ function renderReport(report: PrerequisitesReport): void {
 
 async function handlePrerequisites(
   opts: FormatOptions,
-  tool?: string,
+  tool?: string
 ): Promise<void> {
   try {
     const svc = new PrerequisitesService();
@@ -78,7 +82,7 @@ OPTIONS:
 EXAMPLES:
   hoox check prerequisites
   hoox check prerequisites --tool bun
-  hoox check prerequisites --json`,
+  hoox check prerequisites --json`
     )
     .option("--tool <name>", "Only check a specific tool")
     .action(async (options: { tool?: string }, cmd: Command) => {

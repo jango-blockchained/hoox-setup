@@ -48,7 +48,10 @@ export function renderProgressBar(
  * Returns lines suitable for overwriting via \r or manual clear.
  */
 export function renderStepProgress(
-  steps: Array<{ name: string; status: "pending" | "running" | "done" | "failed" }>
+  steps: Array<{
+    name: string;
+    status: "pending" | "running" | "done" | "failed";
+  }>
 ): string {
   const iconMap: Record<string, string> = {
     pending: theme.dim("○"),
@@ -212,11 +215,15 @@ export function formatKeyValue(
     return;
   }
 
-  const maxKeyLen = Math.max(...Object.keys(pairs).map((k) => stripAnsi(k).length));
+  const maxKeyLen = Math.max(
+    ...Object.keys(pairs).map((k) => stripAnsi(k).length)
+  );
 
   for (const [key, value] of Object.entries(pairs)) {
     const paddedKey = key.padEnd(maxKeyLen);
-    process.stdout.write(`  ${theme.key(paddedKey)} ${theme.dim(":")} ${value}\n`);
+    process.stdout.write(
+      `  ${theme.key(paddedKey)} ${theme.dim(":")} ${value}\n`
+    );
   }
 }
 

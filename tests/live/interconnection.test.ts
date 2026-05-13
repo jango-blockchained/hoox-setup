@@ -94,6 +94,9 @@ export default {
     writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
     writeFileSync(join(dir, "src", "index.ts"), workerSrc);
     const result = await wrangler(["deploy"], dir);
+    if (!result.ok) {
+      console.log(`  ✗ Backend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+    }
     expect(result.ok).toBe(true);
     console.log("  ✓ Deployed backend worker");
   });
@@ -184,6 +187,9 @@ export default {
     writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
     writeFileSync(join(dir, "src", "index.ts"), workerSrc);
     const result = await wrangler(["deploy"], dir);
+    if (!result.ok) {
+      console.log(`  ✗ Middle deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+    }
     expect(result.ok).toBe(true);
     console.log("  ✓ Deployed middle worker with backend binding");
   });
@@ -261,6 +267,9 @@ export default {
     writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
     writeFileSync(join(dir, "src", "index.ts"), workerSrc);
     const result = await wrangler(["deploy"], dir);
+    if (!result.ok) {
+      console.log(`  ✗ Frontend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+    }
     expect(result.ok).toBe(true);
     console.log("  ✓ Deployed frontend worker with middle binding");
   });
@@ -377,15 +386,16 @@ export default {
 
   afterAll(async () => {
     section("Cleanup");
-    for (const name of [FRONTEND_WORKER, MIDDLE_WORKER, BACKEND_WORKER]) {
-      const dir = `/tmp/${name}`;
-      const result = await wrangler(["deploy", "--delete"], dir);
-      if (result.ok) {
-        console.log(`  ✓ Undeployed "${name}"`);
-      }
-      if (existsSync(dir)) {
-        rmSync(dir, { recursive: true, force: true });
-      }
+    const results = await Promise.all(
+      [FRONTEND_WORKER, MIDDLE_WORKER, BACKEND_WORKER].map(async (name) => {
+        const dir = `/tmp/${name}`;
+        const result = await wrangler(["deploy", "--delete"], dir);
+        if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
+        return { name, ok: result.ok };
+      })
+    );
+    for (const { name, ok } of results) {
+      console.log(`  ${ok ? "✓" : "✗"} Undeployed "${name}"`);
     }
   });
 });

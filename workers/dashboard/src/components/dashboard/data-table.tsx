@@ -102,15 +102,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 
-export const schema = z.object({
-  id: z.number().positive().int(),
-  symbol: z.string().min(1),
-  side: z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]),
-  exchange: z.string().min(1),
-  status: z.enum(["OPEN", "CLOSED", "PENDING", "CANCELLED"]),
-  pnl: z.number(),
-  timestamp: z.string().min(1),
-}).strict();
+export const schema = z
+  .object({
+    id: z.number().positive().int(),
+    symbol: z.string().min(1),
+    side: z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]),
+    exchange: z.string().min(1),
+    status: z.enum(["OPEN", "CLOSED", "PENDING", "CANCELLED"]),
+    pnl: z.number(),
+    timestamp: z.string().min(1),
+  })
+  .strict();
 
 // Mock data - replace with API call
 const data: z.infer<typeof schema>[] = [

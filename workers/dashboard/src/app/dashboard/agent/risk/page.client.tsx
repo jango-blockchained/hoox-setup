@@ -85,17 +85,29 @@ export default function RiskClient() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
-            <Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-muted" />}>
+            <Suspense
+              fallback={
+                <div className="h-32 animate-pulse rounded-lg bg-muted" />
+              }
+            >
               <KillSwitch
                 active={killSwitchActive}
                 onToggle={handleToggleKillSwitch}
               />
             </Suspense>
-            <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" />}>
+            <Suspense
+              fallback={
+                <div className="h-64 animate-pulse rounded-lg bg-muted" />
+              }
+            >
               <RiskParameters />
             </Suspense>
           </div>
-          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse rounded-lg bg-muted" />
+            }
+          >
             <TrailingStops />
           </Suspense>
         </div>

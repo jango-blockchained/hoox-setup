@@ -40,18 +40,22 @@ beforeEach(() => {
   process.exitCode = 0;
 
   // Restore originals
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck = origRunSystemCheck;
+  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
+    origRunSystemCheck;
   (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
   (CloudflareService.prototype as Record<string, unknown>).d1List = origD1List;
   (CloudflareService.prototype as Record<string, unknown>).kvList = origKvList;
   (CloudflareService.prototype as Record<string, unknown>).r2List = origR2List;
-  (CloudflareService.prototype as Record<string, unknown>).queueList = origQueueList;
-  (DbService.prototype as Record<string, unknown>).resolveDbName = origResolveDbName;
+  (CloudflareService.prototype as Record<string, unknown>).queueList =
+    origQueueList;
+  (DbService.prototype as Record<string, unknown>).resolveDbName =
+    origResolveDbName;
   (DbService.prototype as Record<string, unknown>).apply = origApply;
   (DbService.prototype as Record<string, unknown>).migrate = origMigrate;
   (DbService.prototype as Record<string, unknown>).export = origExport;
   (DbService.prototype as Record<string, unknown>).reset = origReset;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
+    origResolveNs;
   (KvSyncService.prototype as Record<string, unknown>).set = origKvSet;
 
   // Fresh mocks
@@ -73,24 +77,29 @@ beforeEach(() => {
     data: { url: "https://test-worker.cryptolinx.workers.dev" },
   }));
 
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck = runSystemCheckMock;
+  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
+    runSystemCheckMock;
   (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
 });
 
 afterEach(() => {
   mock.restore();
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck = origRunSystemCheck;
+  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
+    origRunSystemCheck;
   (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
   (CloudflareService.prototype as Record<string, unknown>).d1List = origD1List;
   (CloudflareService.prototype as Record<string, unknown>).kvList = origKvList;
   (CloudflareService.prototype as Record<string, unknown>).r2List = origR2List;
-  (CloudflareService.prototype as Record<string, unknown>).queueList = origQueueList;
-  (DbService.prototype as Record<string, unknown>).resolveDbName = origResolveDbName;
+  (CloudflareService.prototype as Record<string, unknown>).queueList =
+    origQueueList;
+  (DbService.prototype as Record<string, unknown>).resolveDbName =
+    origResolveDbName;
   (DbService.prototype as Record<string, unknown>).apply = origApply;
   (DbService.prototype as Record<string, unknown>).migrate = origMigrate;
   (DbService.prototype as Record<string, unknown>).export = origExport;
   (DbService.prototype as Record<string, unknown>).reset = origReset;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
+    origResolveNs;
   (KvSyncService.prototype as Record<string, unknown>).set = origKvSet;
 });
 
@@ -127,7 +136,9 @@ describe("registerRepairCommand", () => {
     const repairCmd = program.commands.find((c) => c.name() === "repair")!;
     const workerCmd = repairCmd.commands.find((c) => c.name() === "worker");
     expect(workerCmd).toBeDefined();
-    expect(workerCmd!.registeredArguments.some((a) => a.name() === "name")).toBe(true);
+    expect(
+      workerCmd!.registeredArguments.some((a) => a.name() === "name")
+    ).toBe(true);
   });
 
   it("registers 'repair infra' subcommand", async () => {
@@ -139,7 +150,9 @@ describe("registerRepairCommand", () => {
   it("registers 'repair secrets' subcommand", async () => {
     const program = await createProgram();
     const repairCmd = program.commands.find((c) => c.name() === "repair")!;
-    expect(repairCmd.commands.find((c) => c.name() === "secrets")).toBeDefined();
+    expect(
+      repairCmd.commands.find((c) => c.name() === "secrets")
+    ).toBeDefined();
   });
 
   it("registers 'repair kv' subcommand", async () => {
@@ -157,7 +170,9 @@ describe("registerRepairCommand", () => {
   it("registers 'repair rebuild' subcommand", async () => {
     const program = await createProgram();
     const repairCmd = program.commands.find((c) => c.name() === "repair")!;
-    expect(repairCmd.commands.find((c) => c.name() === "rebuild")).toBeDefined();
+    expect(
+      repairCmd.commands.find((c) => c.name() === "rebuild")
+    ).toBeDefined();
   });
 
   // -- repair check ---------------------------------------------------------
@@ -176,8 +191,11 @@ describe("registerRepairCommand", () => {
     });
 
     it("sets exitCode on failure", async () => {
-      runSystemCheckMock = mock(async () => { throw new Error("Check failed"); });
-      (RepairService.prototype as Record<string, unknown>).runSystemCheck = runSystemCheckMock;
+      runSystemCheckMock = mock(async () => {
+        throw new Error("Check failed");
+      });
+      (RepairService.prototype as Record<string, unknown>).runSystemCheck =
+        runSystemCheckMock;
 
       const program = await createProgram();
       await program.parseAsync(["repair", "check"], { from: "user" });
@@ -197,7 +215,9 @@ describe("registerRepairCommand", () => {
     it("handles unknown worker name", async () => {
       // Mock getWorker to return undefined
       const program = await createProgram();
-      await program.parseAsync(["repair", "worker", "nonexistent"], { from: "user" });
+      await program.parseAsync(["repair", "worker", "nonexistent"], {
+        from: "user",
+      });
       expect(process.exitCode).toBe(1);
     });
   });

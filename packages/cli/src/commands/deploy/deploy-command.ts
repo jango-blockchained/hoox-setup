@@ -242,7 +242,9 @@ async function deployAll(
         log.step(`  ${theme.dim("Startup:")} ${result.startupTime}`);
       }
       if (result.versionId) {
-        log.step(`  ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...`);
+        log.step(
+          `  ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...`
+        );
       }
       if (
         !result.url &&
@@ -267,7 +269,9 @@ async function deployAll(
   const succeeded = results.filter((r) => r.success).length;
   const failed = results.filter((r) => !r.success).length;
   if (failed > 0) {
-    log.warn(`Summary: ${succeeded}/${allItems.length} deployed (${failed} failed)`);
+    log.warn(
+      `Summary: ${succeeded}/${allItems.length} deployed (${failed} failed)`
+    );
   }
 
   return results;
@@ -532,7 +536,7 @@ async function doTelegramWebhook(
   fmt: FormatOptions,
   token?: string,
   secretToken?: string,
-  subdomain?: string,
+  subdomain?: string
 ): Promise<void> {
   try {
     // Resolve subdomain from flag or config
@@ -551,7 +555,13 @@ async function doTelegramWebhook(
       botToken = envVars["TELEGRAM_BOT_TOKEN"];
     }
     if (!botToken) {
-      formatError(new CLIError("Telegram bot token not found. Provide --token or set TELEGRAM_BOT_TOKEN in .env.local", ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          "Telegram bot token not found. Provide --token or set TELEGRAM_BOT_TOKEN in .env.local",
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
       return;
     }
@@ -563,7 +573,13 @@ async function doTelegramWebhook(
       webhookSecret = envVars["TELEGRAM_SECRET_TOKEN"];
     }
     if (!webhookSecret) {
-      formatError(new CLIError("Telegram secret token not found. Provide --secret-token or set TELEGRAM_SECRET_TOKEN in .env.local", ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          "Telegram secret token not found. Provide --secret-token or set TELEGRAM_SECRET_TOKEN in .env.local",
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
       return;
     }
@@ -576,19 +592,34 @@ async function doTelegramWebhook(
     if (info.ok && info.url) {
       process.stdout.write(`${theme.dim("Current webhook:")} ${info.url}\n`);
       if (info.pending_update_count !== undefined) {
-        process.stdout.write(`${theme.dim("Pending updates:")} ${info.pending_update_count}\n`);
+        process.stdout.write(
+          `${theme.dim("Pending updates:")} ${info.pending_update_count}\n`
+        );
       }
     }
 
     // Set webhook
-    process.stdout.write(`${theme.info("Setting webhook to:")} ${webhookUrl}\n`);
-    const result = await telegram.setWebhook(botToken, webhookUrl, webhookSecret);
+    process.stdout.write(
+      `${theme.info("Setting webhook to:")} ${webhookUrl}\n`
+    );
+    const result = await telegram.setWebhook(
+      botToken,
+      webhookUrl,
+      webhookSecret
+    );
 
     if (result.ok) {
       formatSuccess("Telegram webhook set successfully", fmt);
-      if (result.description) process.stdout.write(`  ${theme.dim(result.description)}\n`);
+      if (result.description)
+        process.stdout.write(`  ${theme.dim(result.description)}\n`);
     } else {
-      formatError(new CLIError(`Telegram webhook failed: ${result.error || result.description || "Unknown error"}`, ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          `Telegram webhook failed: ${result.error || result.description || "Unknown error"}`,
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {
@@ -610,12 +641,28 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
     const workers = config.listEnabledWorkers();
 
     // Try pages/dashboard first, fall back to workers/dashboard
-    let filePath = resolve(process.cwd(), "pages", "dashboard", "wrangler.jsonc");
+    let filePath = resolve(
+      process.cwd(),
+      "pages",
+      "dashboard",
+      "wrangler.jsonc"
+    );
     if (!existsSync(filePath)) {
-      filePath = resolve(process.cwd(), "workers", "dashboard", "wrangler.jsonc");
+      filePath = resolve(
+        process.cwd(),
+        "workers",
+        "dashboard",
+        "wrangler.jsonc"
+      );
     }
     if (!existsSync(filePath)) {
-      formatError(new CLIError("Dashboard wrangler.jsonc not found (checked pages/dashboard and workers/dashboard)", ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          "Dashboard wrangler.jsonc not found (checked pages/dashboard and workers/dashboard)",
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
       return;
     }
@@ -624,7 +671,13 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
     const errors: jsonc.ParseError[] = [];
     const parsed = jsonc.parse(content, errors) as Record<string, unknown>;
     if (errors.length > 0) {
-      formatError(new CLIError("Invalid JSONC in dashboard wrangler.jsonc", ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          "Invalid JSONC in dashboard wrangler.jsonc",
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
       return;
     }
@@ -637,7 +690,9 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
       const newUrl = `https://${name}.${prefix}.workers.dev`;
       if (vars[key] !== newUrl) {
         if (!fmt.quiet) {
-          process.stdout.write(`  ${theme.info("→")} ${key}: ${vars[key] ?? "(not set)"} ${theme.dim("→")} ${newUrl}\n`);
+          process.stdout.write(
+            `  ${theme.info("→")} ${key}: ${vars[key] ?? "(not set)"} ${theme.dim("→")} ${newUrl}\n`
+          );
         }
         vars[key] = newUrl;
         changesCount++;
@@ -653,7 +708,10 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
       formattingOptions: { tabSize: 2, insertSpaces: true },
     });
     writeFileSync(filePath, jsonc.applyEdits(content, edits), "utf-8");
-    formatSuccess(`Updated ${changesCount} service URL(s) in dashboard wrangler.jsonc`, fmt);
+    formatSuccess(
+      `Updated ${changesCount} service URL(s) in dashboard wrangler.jsonc`,
+      fmt
+    );
   } catch (err) {
     formatError(err instanceof Error ? err.message : String(err), fmt);
     process.exitCode = ExitCode.ERROR;
@@ -666,7 +724,8 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
 
 async function doKvConfig(fmt: FormatOptions): Promise<void> {
   try {
-    const { KvSyncService } = await import("../../services/kv/kv-sync-service.js");
+    const { KvSyncService } =
+      await import("../../services/kv/kv-sync-service.js");
     const kvSync = new KvSyncService();
 
     process.stdout.write(`${theme.info("Resolving CONFIG_KV namespace...")}\n`);
@@ -679,7 +738,9 @@ async function doKvConfig(fmt: FormatOptions): Promise<void> {
       const value = entry.default;
       if (!value || value === "") {
         if (!fmt.quiet) {
-          process.stdout.write(`  ${theme.dim("·")} ${entry.key} ${theme.dim("(no default, skipping)")}\n`);
+          process.stdout.write(
+            `  ${theme.dim("·")} ${entry.key} ${theme.dim("(no default, skipping)")}\n`
+          );
         }
         continue;
       }
@@ -690,7 +751,9 @@ async function doKvConfig(fmt: FormatOptions): Promise<void> {
         }
         setCount++;
       } catch (err) {
-        process.stdout.write(`  ${theme.error("✗")} ${entry.key}: ${err instanceof Error ? err.message : String(err)}\n`);
+        process.stdout.write(
+          `  ${theme.error("✗")} ${entry.key}: ${err instanceof Error ? err.message : String(err)}\n`
+        );
         errorCount++;
       }
     }
@@ -756,22 +819,33 @@ EXAMPLES:
     )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .option("--rebuild", "Force rebuild of dashboard before deploying")
-    .option("--auto", "Skip dashboard rebuild prompt, use existing build if available")
-    .action(async (options: { env?: string; rebuild?: boolean; auto?: boolean }) => {
-      const fmt = getFormatOptions(program);
-      try {
-        const configService = new ConfigService();
-        await configService.load();
-        const cf = new CloudflareService();
+    .option(
+      "--auto",
+      "Skip dashboard rebuild prompt, use existing build if available"
+    )
+    .action(
+      async (options: { env?: string; rebuild?: boolean; auto?: boolean }) => {
+        const fmt = getFormatOptions(program);
+        try {
+          const configService = new ConfigService();
+          await configService.load();
+          const cf = new CloudflareService();
 
-        // Deploy all (workers + dashboard) in one go
-        await deployAll(configService, cf, options.env, options.rebuild ?? false, options.auto ?? false);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
+          // Deploy all (workers + dashboard) in one go
+          await deployAll(
+            configService,
+            cf,
+            options.env,
+            options.rebuild ?? false,
+            options.auto ?? false
+          );
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          formatError(message, fmt);
+          process.exitCode = ExitCode.ERROR;
+        }
       }
-    });
+    );
 
   // -- deploy workers ------------------------------------------------------
   deployCmd
@@ -1007,11 +1081,25 @@ EXAMPLES:
     )
     .option("--token <token>", "Telegram bot token (from @BotFather)")
     .option("--secret-token <secret>", "Telegram webhook secret token")
-    .option("--subdomain <prefix>", "Worker subdomain prefix (default: from config)")
-    .action(async (options: { token?: string; secretToken?: string; subdomain?: string }) => {
-      const fmt = getFormatOptions(program);
-      await doTelegramWebhook(fmt, options.token, options.secretToken, options.subdomain);
-    });
+    .option(
+      "--subdomain <prefix>",
+      "Worker subdomain prefix (default: from config)"
+    )
+    .action(
+      async (options: {
+        token?: string;
+        secretToken?: string;
+        subdomain?: string;
+      }) => {
+        const fmt = getFormatOptions(program);
+        await doTelegramWebhook(
+          fmt,
+          options.token,
+          options.secretToken,
+          options.subdomain
+        );
+      }
+    );
 
   // -- deploy update-internal-urls ---------------------------------------
 

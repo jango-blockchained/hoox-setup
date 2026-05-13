@@ -47,16 +47,24 @@ export default function DashboardClient() {
         </div>
       </motion.div>
 
-      <Suspense fallback={<div className="h-32 animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={<div className="h-32 animate-pulse rounded-lg bg-muted" />}
+      >
         <MetricsCards />
       </Suspense>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Suspense fallback={<div className="h-80 animate-pulse rounded-lg bg-muted" />}>
+        <Suspense
+          fallback={<div className="h-80 animate-pulse rounded-lg bg-muted" />}
+        >
           <PnlChart />
         </Suspense>
         <div className="space-y-6">
-          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse rounded-lg bg-muted" />
+            }
+          >
             <DistributionChart
               data={exchangeDistribution}
               title="Exchange Distribution"
@@ -64,7 +72,11 @@ export default function DashboardClient() {
               type="donut"
             />
           </Suspense>
-          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse rounded-lg bg-muted" />
+            }
+          >
             <DistributionChart
               data={sideDistribution}
               title="Position Sides"
@@ -76,10 +88,14 @@ export default function DashboardClient() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+        <Suspense
+          fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+        >
           <AiHealthCard />
         </Suspense>
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+        <Suspense
+          fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+        >
           <WorkersOverview />
         </Suspense>
       </div>

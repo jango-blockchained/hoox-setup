@@ -11,7 +11,7 @@ export class TelegramService {
   async setWebhook(
     botToken: string,
     webhookUrl: string,
-    secretToken: string,
+    secretToken: string
   ): Promise<{ ok: boolean; description?: string; error?: string }> {
     try {
       const url = `https://api.telegram.org/bot${botToken}/setWebhook`;
@@ -20,10 +20,16 @@ export class TelegramService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: webhookUrl, secret_token: secretToken }),
       });
-      const data = (await response.json()) as { ok: boolean; description?: string };
+      const data = (await response.json()) as {
+        ok: boolean;
+        description?: string;
+      };
       return { ok: data.ok, description: data.description };
     } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 
@@ -39,10 +45,16 @@ export class TelegramService {
     error?: string;
   }> {
     try {
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+      const response = await fetch(
+        `https://api.telegram.org/bot${botToken}/getWebhookInfo`
+      );
       const data = (await response.json()) as {
         ok: boolean;
-        result?: { url: string; has_custom_certificate: boolean; pending_update_count: number };
+        result?: {
+          url: string;
+          has_custom_certificate: boolean;
+          pending_update_count: number;
+        };
         description?: string;
       };
       if (data.ok && data.result) {
@@ -55,7 +67,10 @@ export class TelegramService {
       }
       return { ok: false, error: data.description };
     } catch (err) {
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 }

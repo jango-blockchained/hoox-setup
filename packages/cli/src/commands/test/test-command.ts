@@ -391,7 +391,9 @@ export function registerTestCommand(program: Command): void {
           ? `tests/live/${options.service}.test.ts`
           : "tests/live/";
 
-        s.start(`Running live tests${options.service ? ` for ${options.service}` : ""}...`);
+        s.start(
+          `Running live tests${options.service ? ` for ${options.service}` : ""}...`
+        );
 
         const args = ["bun", "test", filePattern, "--jobs", "1"];
         const result = await runWithInherit(args, process.cwd());

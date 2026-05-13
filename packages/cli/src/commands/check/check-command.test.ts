@@ -244,16 +244,20 @@ describe("registerCheckCommand", () => {
   // -- check setup ----------------------------------------------------------
 
   describe("check setup", () => {
-    it("loads config and runs all 4 categories", { timeout: 30000 }, async () => {
-      const program = await createProgram();
-      await program.parseAsync(["check", "setup"], { from: "user" });
+    it(
+      "loads config and runs all 4 categories",
+      { timeout: 30000 },
+      async () => {
+        const program = await createProgram();
+        await program.parseAsync(["check", "setup"], { from: "user" });
 
-      expect(loadMock).toHaveBeenCalled();
-      expect(d1ListMock).toHaveBeenCalled();
-      expect(kvListMock).toHaveBeenCalled();
-      expect(r2ListMock).toHaveBeenCalled();
-      expect(queueListMock).toHaveBeenCalled();
-    });
+        expect(loadMock).toHaveBeenCalled();
+        expect(d1ListMock).toHaveBeenCalled();
+        expect(kvListMock).toHaveBeenCalled();
+        expect(r2ListMock).toHaveBeenCalled();
+        expect(queueListMock).toHaveBeenCalled();
+      }
+    );
 
     it("outputs JSON when --json flag is set", { timeout: 30000 }, async () => {
       const program = await createProgram();
@@ -285,18 +289,22 @@ describe("registerCheckCommand", () => {
       }
     });
 
-    it("sets exitCode to ERROR when validation fails", { timeout: 30000 }, async () => {
-      validateMock = mock(() => ({
-        valid: false,
-        errors: ["global.cloudflare_account_id is required"],
-      }));
-      ConfigService.prototype.validate = validateMock;
+    it(
+      "sets exitCode to ERROR when validation fails",
+      { timeout: 30000 },
+      async () => {
+        validateMock = mock(() => ({
+          valid: false,
+          errors: ["global.cloudflare_account_id is required"],
+        }));
+        ConfigService.prototype.validate = validateMock;
 
-      const program = await createProgram();
-      await program.parseAsync(["check", "setup"], { from: "user" });
+        const program = await createProgram();
+        await program.parseAsync(["check", "setup"], { from: "user" });
 
-      expect(process.exitCode).toBe(ExitCode.ERROR);
-    });
+        expect(process.exitCode).toBe(ExitCode.ERROR);
+      }
+    );
 
     it("sets exitCode to ERROR when infra check fails", async () => {
       d1ListMock = mock(async () => ({

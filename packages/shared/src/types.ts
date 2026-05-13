@@ -2,49 +2,62 @@ import { z } from "zod";
 
 // --- Zod Schemas (runtime-validated) ---
 
-export const TradeActionSchema = z.enum(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]);
+export const TradeActionSchema = z.enum([
+  "LONG",
+  "SHORT",
+  "CLOSE_LONG",
+  "CLOSE_SHORT",
+]);
 
-export const WebhookPayloadSchema = z.object({
-  exchange: z.string().min(1),
-  action: TradeActionSchema,
-  symbol: z.string().min(1).max(20),
-  quantity: z.number().positive().finite(),
-  price: z.number().positive().finite().optional(),
-  orderType: z.string().optional(),
-  leverage: z.number().int().positive().optional(),
-}).strict();
+export const WebhookPayloadSchema = z
+  .object({
+    exchange: z.string().min(1),
+    action: TradeActionSchema,
+    symbol: z.string().min(1).max(20),
+    quantity: z.number().positive().finite(),
+    price: z.number().positive().finite().optional(),
+    orderType: z.string().optional(),
+    leverage: z.number().int().positive().optional(),
+  })
+  .strict();
 
-export const TradeSignalSchema = z.object({
-  id: z.number().int().positive().optional(),
-  source: z.string().min(1),
-  symbol: z.string().min(1),
-  action: TradeActionSchema,
-  price: z.number().positive().finite().optional(),
-  quantity: z.number().positive().finite(),
-  leverage: z.number().int().positive().optional(),
-  status: z.enum(["pending", "executed", "failed", "skipped"]).optional(),
-  createdAt: z.string().optional(),
-  executedAt: z.string().optional(),
-  error: z.string().optional(),
-}).strict();
+export const TradeSignalSchema = z
+  .object({
+    id: z.number().int().positive().optional(),
+    source: z.string().min(1),
+    symbol: z.string().min(1),
+    action: TradeActionSchema,
+    price: z.number().positive().finite().optional(),
+    quantity: z.number().positive().finite(),
+    leverage: z.number().int().positive().optional(),
+    status: z.enum(["pending", "executed", "failed", "skipped"]).optional(),
+    createdAt: z.string().optional(),
+    executedAt: z.string().optional(),
+    error: z.string().optional(),
+  })
+  .strict();
 
-export const PositionSchema = z.object({
-  id: z.string(),
-  symbol: z.string().min(1),
-  side: TradeActionSchema,
-  quantity: z.number().positive(),
-  entry_price: z.number().positive(),
-  current_price: z.number().positive(),
-  unrealized_pnl: z.number(),
-  timestamp: z.number().int().positive(),
-}).strict();
+export const PositionSchema = z
+  .object({
+    id: z.string(),
+    symbol: z.string().min(1),
+    side: TradeActionSchema,
+    quantity: z.number().positive(),
+    entry_price: z.number().positive(),
+    current_price: z.number().positive(),
+    unrealized_pnl: z.number(),
+    timestamp: z.number().int().positive(),
+  })
+  .strict();
 
-export const BalanceSchema = z.object({
-  asset: z.string().min(1),
-  free: z.number().min(0),
-  locked: z.number().min(0),
-  timestamp: z.number().int().positive(),
-}).strict();
+export const BalanceSchema = z
+  .object({
+    asset: z.string().min(1),
+    free: z.number().min(0),
+    locked: z.number().min(0),
+    timestamp: z.number().int().positive(),
+  })
+  .strict();
 
 // --- Existing types (backward compatible) ---
 

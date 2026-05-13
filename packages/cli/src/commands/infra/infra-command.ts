@@ -486,33 +486,61 @@ async function doProvision(
 // Vectorize handlers
 // ---------------------------------------------------------------------------
 
-async function doVectorizeList(opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+async function doVectorizeList(
+  opts: InfraOptions,
+  cf?: CloudflareService
+): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.vectorizeList();
   displayListResult(result, opts, ["name", "id", "dimensions", "metric"]);
 }
 
-async function doVectorizeCreate(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+async function doVectorizeCreate(
+  name: string,
+  opts: InfraOptions,
+  cf?: CloudflareService
+): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
-  await handleCreate(name, "Vectorize index", (n) => cloudflare.vectorizeCreate(n), opts);
+  await handleCreate(
+    name,
+    "Vectorize index",
+    (n) => cloudflare.vectorizeCreate(n),
+    opts
+  );
 }
 
-async function doVectorizeDelete(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+async function doVectorizeDelete(
+  name: string,
+  opts: InfraOptions,
+  cf?: CloudflareService
+): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
-  await handleDelete(name, "Vectorize index", (n) => cloudflare.vectorizeDelete(n), opts);
+  await handleDelete(
+    name,
+    "Vectorize index",
+    (n) => cloudflare.vectorizeDelete(n),
+    opts
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Analytics handlers
 // ---------------------------------------------------------------------------
 
-async function doAnalyticsList(opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+async function doAnalyticsList(
+  opts: InfraOptions,
+  cf?: CloudflareService
+): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.analyticsList();
   displayListResult(result, opts);
 }
 
-async function doAnalyticsCreate(name: string, opts: InfraOptions, cf?: CloudflareService): Promise<void> {
+async function doAnalyticsCreate(
+  name: string,
+  opts: InfraOptions,
+  cf?: CloudflareService
+): Promise<void> {
   const cloudflare = cf ?? new CloudflareService();
   const result = await cloudflare.analyticsCreate(name);
   if (result.ok) {
@@ -541,7 +569,9 @@ async function doAnalyticsCreate(name: string, opts: InfraOptions, cf?: Cloudfla
 export function registerInfraCommand(program: Command): void {
   const infraCmd = program
     .command("infra")
-    .summary("Manage Cloudflare infrastructure (D1, KV, R2, Queues, Vectorize, Analytics)")
+    .summary(
+      "Manage Cloudflare infrastructure (D1, KV, R2, Queues, Vectorize, Analytics)"
+    )
     .description(
       `Provision and manage Cloudflare infrastructure resources.
 
@@ -861,7 +891,9 @@ EXAMPLES:
   vectorizeCmd
     .command("create <name>")
     .summary("Create a new Vectorize index")
-    .description("Create a new Vectorize index with default dimensions (768) and cosine metric.")
+    .description(
+      "Create a new Vectorize index with default dimensions (768) and cosine metric."
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doVectorizeCreate(name, opts);
@@ -904,7 +936,9 @@ EXAMPLES:
   analyticsCmd
     .command("create <name>")
     .summary("Show instructions for creating an Analytics Engine dataset")
-    .description("Analytics Engine datasets must be created via Cloudflare Dashboard.")
+    .description(
+      "Analytics Engine datasets must be created via Cloudflare Dashboard."
+    )
     .action(async function (this: Command, name: string) {
       const opts = getOptions(this);
       await doAnalyticsCreate(name, opts);

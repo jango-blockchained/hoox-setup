@@ -4,7 +4,11 @@ import { CloudflareService } from "../../services/cloudflare/index.js";
 import { DbService } from "../../services/db/index.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
 import { SecretsService } from "../../services/secrets/index.js";
-import { formatError, formatSuccess, type FormatOptions } from "../../utils/formatters.js";
+import {
+  formatError,
+  formatSuccess,
+  type FormatOptions,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
 function getFormatOptions(cmd: Command): FormatOptions {
@@ -22,7 +26,10 @@ async function handleCheck(fmt: FormatOptions): Promise<void> {
     if (result.allPassed) {
       formatSuccess("All checks passed", fmt);
     } else {
-      formatError(new CLIError(`${result.failedCount} check(s) failed`, ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(`${result.failedCount} check(s) failed`, ExitCode.ERROR),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {
@@ -38,7 +45,10 @@ async function handleWorker(name: string, fmt: FormatOptions): Promise<void> {
     await config.load();
     const workerConfig = config.getWorker(name);
     if (!workerConfig) {
-      formatError(new CLIError(`Worker "${name}" not found`, ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(`Worker "${name}" not found`, ExitCode.ERROR),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
       return;
     }
@@ -47,7 +57,13 @@ async function handleWorker(name: string, fmt: FormatOptions): Promise<void> {
     if (result.ok) {
       formatSuccess(`Worker "${name}" deployed — ${result.data.url}`, fmt);
     } else {
-      formatError(new CLIError(`Failed to deploy "${name}": ${result.error}`, ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(
+          `Failed to deploy "${name}": ${result.error}`,
+          ExitCode.ERROR
+        ),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {
@@ -63,7 +79,10 @@ async function handleInfra(fmt: FormatOptions): Promise<void> {
     const kv = await cf.kvList();
     const r2 = await cf.r2List();
     const q = await cf.queueList();
-    formatSuccess(`D1: ${d1.ok ? "ok" : "fail"}, KV: ${kv.ok ? "ok" : "fail"}, R2: ${r2.ok ? "ok" : "fail"}, Queues: ${q.ok ? "ok" : "fail"}`, fmt);
+    formatSuccess(
+      `D1: ${d1.ok ? "ok" : "fail"}, KV: ${kv.ok ? "ok" : "fail"}, R2: ${r2.ok ? "ok" : "fail"}, Queues: ${q.ok ? "ok" : "fail"}`,
+      fmt
+    );
   } catch (err) {
     formatError(err instanceof Error ? err : String(err), fmt);
     process.exitCode = ExitCode.ERROR;
@@ -80,7 +99,10 @@ async function handleSecrets(fmt: FormatOptions): Promise<void> {
       missing += check.missing.length;
     }
     if (missing > 0) {
-      formatError(new CLIError(`${missing} secret(s) missing`, ExitCode.ERROR), fmt);
+      formatError(
+        new CLIError(`${missing} secret(s) missing`, ExitCode.ERROR),
+        fmt
+      );
       process.exitCode = ExitCode.ERROR;
     } else {
       formatSuccess("All secrets present", fmt);
@@ -139,11 +161,15 @@ export function registerRepairCommand(program: Command): void {
   const repairCmd = program
     .command("repair")
     .summary("Diagnose and repair the Hoox system")
-    .description("Run checks, deploy workers, or fix infrastructure, secrets, KV, and DB issues.");
+    .description(
+      "Run checks, deploy workers, or fix infrastructure, secrets, KV, and DB issues."
+    );
 
   repairCmd
     .command("check")
-    .description("Run system diagnostics (workers, deps, types, infra, secrets)")
+    .description(
+      "Run system diagnostics (workers, deps, types, infra, secrets)"
+    )
     .action(async () => {
       const fmt = getFormatOptions(repairCmd);
       await handleCheck(fmt);
@@ -191,7 +217,9 @@ export function registerRepairCommand(program: Command): void {
 
   repairCmd
     .command("rebuild")
-    .description("Full rebuild: check, deploy all workers, fix infra/secrets/db")
+    .description(
+      "Full rebuild: check, deploy all workers, fix infra/secrets/db"
+    )
     .action(async () => {
       const fmt = getFormatOptions(repairCmd);
       await handleRebuild(fmt);

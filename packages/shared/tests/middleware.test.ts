@@ -5,7 +5,11 @@
 
 import { describe, test, expect } from "bun:test";
 import { createLogger, withRequestLog } from "../src/middleware/logger";
-import { requireAuth, requireInternalAuth, checkInternalAuth } from "../src/middleware/auth";
+import {
+  requireAuth,
+  requireInternalAuth,
+  checkInternalAuth,
+} from "../src/middleware/auth";
 import { createRateLimiter } from "../src/middleware/rate-limit";
 import { z } from "zod";
 import {

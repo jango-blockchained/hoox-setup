@@ -27,12 +27,22 @@ export class MonitorService {
     for (const name of enabled) {
       const url = `https://${name}.${prefix}.workers.dev/health`;
       try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(5000),
+        });
         if (response.ok) {
-          results.push({ worker: name, status: "healthy", statusCode: response.status });
+          results.push({
+            worker: name,
+            status: "healthy",
+            statusCode: response.status,
+          });
           healthy++;
         } else {
-          results.push({ worker: name, status: "degraded", statusCode: response.status });
+          results.push({
+            worker: name,
+            status: "degraded",
+            statusCode: response.status,
+          });
           degraded++;
         }
       } catch (err) {
@@ -45,6 +55,11 @@ export class MonitorService {
       }
     }
 
-    return { workers: results, healthyCount: healthy, degradedCount: degraded, unreachableCount: unreachable };
+    return {
+      workers: results,
+      healthyCount: healthy,
+      degradedCount: degraded,
+      unreachableCount: unreachable,
+    };
   }
 }

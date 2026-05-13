@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { DashboardEnv } from "@/lib/env";
 import { Errors } from "@shared/errors";
 
 export const dynamic = "force-dynamic";
@@ -7,23 +8,22 @@ export const runtime = "edge";
 
 export async function POST() {
   try {
-    const configErrors = validateRequiredEnv([ENV_KEYS.internalAuth.agent]);
-    if (configErrors.length > 0) {
+    const env = getCloudflareContext().env as DashboardEnv;
+
+    if (!env.AGENT_SERVICE) {
       return NextResponse.json(
-        { error: "Configuration error", missing: configErrors },
+        { error: "Agent service binding not available" },
         { status: 500 }
       );
     }
 
-    const res = await fetch(
-      `${getConfig().api.agentService}/agent/housekeeping`,
-      {
+    const res = await env.AGENT_SERVICE.fetch(
+      new Request("http://agent-worker.internal/agent/housekeeping", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Internal-Auth-Key": getConfig().internalAuth.agent || "",
         },
-      }
+      })
     );
 
     if (!res.ok) {

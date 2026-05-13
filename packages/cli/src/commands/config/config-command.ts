@@ -493,9 +493,7 @@ EXAMPLES:
         if (result.success) {
           syncSpin.stop(`Secret "${secretName}" synced to Cloudflare`);
         } else {
-          syncSpin.stop(
-            `Sync partial: ${result.error ?? "unknown error"}`
-          );
+          syncSpin.stop(`Sync partial: ${result.error ?? "unknown error"}`);
           formatError(
             new CLIError(
               `Sync partial: ${result.error ?? "unknown error"}`,
@@ -624,9 +622,7 @@ EXAMPLES:
               `Synced ${result.data?.length ?? 0} secrets for "${workerName}"`
             );
           } else {
-            syncSpin.stop(
-              `Sync failed: ${result.error ?? "unknown error"}`
-            );
+            syncSpin.stop(`Sync failed: ${result.error ?? "unknown error"}`);
             formatError(
               new CLIError(
                 `Sync failed: ${result.error ?? "unknown error"}`,

@@ -223,10 +223,7 @@ class ApiClient {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
       const data = (await response.json()) as Record<string, unknown>;
-      if (
-        typeof data.timestamp === "string" &&
-        Array.isArray(data.issues)
-      ) {
+      if (typeof data.timestamp === "string" && Array.isArray(data.issues)) {
         return data as unknown as HousekeepingPayload;
       }
       return { error: "Invalid housekeeping payload" };
@@ -251,17 +248,18 @@ class ApiClient {
     secretName: string,
     secretValue: string
   ): Promise<{ success: boolean; message?: string; error?: string }> {
-    return this.fetchWithAuth<{ success: boolean; message?: string; error?: string }>(
-      "/api/secrets",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          action: "sync-to-pages",
-          secretName,
-          secretValue,
-        }),
-      }
-    );
+    return this.fetchWithAuth<{
+      success: boolean;
+      message?: string;
+      error?: string;
+    }>("/api/secrets", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "sync-to-pages",
+        secretName,
+        secretValue,
+      }),
+    });
   }
 }
 

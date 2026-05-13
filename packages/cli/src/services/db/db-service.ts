@@ -28,7 +28,7 @@ export class DbService {
   async apply(
     dbName: string,
     remote: boolean,
-    schemaPath?: string,
+    schemaPath?: string
   ): Promise<string> {
     const path = schemaPath ?? "workers/trade-worker/schema.sql";
     const args = ["d1", "execute", dbName, "--file", path];
@@ -58,20 +58,13 @@ export class DbService {
     return DbService.parseTableNames(output);
   }
 
-  async query(
-    dbName: string,
-    sql: string,
-    remote: boolean,
-  ): Promise<string> {
+  async query(dbName: string, sql: string, remote: boolean): Promise<string> {
     const args = ["d1", "execute", dbName, "--command", sql, "--json"];
     if (remote) args.push("--remote");
     return await this.runWrangler(args);
   }
 
-  async export(
-    dbName: string,
-    outputPath?: string,
-  ): Promise<string> {
+  async export(dbName: string, outputPath?: string): Promise<string> {
     const outPath =
       outputPath ?? `backup-${new Date().toISOString().slice(0, 10)}.sql`;
     const args = ["d1", "export", dbName, "--output", outPath, "--remote"];
@@ -90,9 +83,9 @@ export class DbService {
       if (Array.isArray(parsed) && parsed.length > 0) {
         const first = parsed[0];
         if (first.results && Array.isArray(first.results)) {
-          return first.results.map(
-            (r: Record<string, unknown>) => String(r.name ?? ""),
-          ).filter(Boolean);
+          return first.results
+            .map((r: Record<string, unknown>) => String(r.name ?? ""))
+            .filter(Boolean);
         }
       }
     } catch {
@@ -114,9 +107,7 @@ export class DbService {
     const exitCode = await proc.exited;
 
     if (exitCode !== 0) {
-      throw new Error(
-        stderr.trim() || `wrangler exited with code ${exitCode}`,
-      );
+      throw new Error(stderr.trim() || `wrangler exited with code ${exitCode}`);
     }
 
     return stdout.trim();
@@ -128,7 +119,7 @@ export class DbService {
       if (await file.exists()) {
         const content = await file.text();
         const match = content.match(
-          /d1\s+execute\s+\S+\s+--command=["'](.+?)["']/s,
+          /d1\s+execute\s+\S+\s+--command=["'](.+?)["']/s
         );
         if (match) return match[1];
       }

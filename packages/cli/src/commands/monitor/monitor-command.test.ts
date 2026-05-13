@@ -35,11 +35,14 @@ beforeEach(() => {
   process.exitCode = 0;
 
   // Restore originals
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth = origCheckAll;
-  (DbService.prototype as Record<string, unknown>).resolveDbName = origResolveDbName;
+  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
+    origCheckAll;
+  (DbService.prototype as Record<string, unknown>).resolveDbName =
+    origResolveDbName;
   (DbService.prototype as Record<string, unknown>).query = origQuery;
   (DbService.prototype as Record<string, unknown>).export = origExport;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
+    origResolveNs;
   (KvSyncService.prototype as Record<string, unknown>).get = origGet;
   (KvSyncService.prototype as Record<string, unknown>).set = origSet;
 
@@ -55,29 +58,38 @@ beforeEach(() => {
   }));
 
   resolveDbNameMock = mock(async () => "trade-data-db");
-  queryMock = mock(async (_dbName: string, _sql: string, _remote: boolean) => "[mock query result]");
+  queryMock = mock(
+    async (_dbName: string, _sql: string, _remote: boolean) =>
+      "[mock query result]"
+  );
   exportMock = mock(async (_dbName: string) => "backup-2026-05-13.sql");
   resolveNamespaceIdMock = mock(async () => "ns-id-123");
   getMock = mock(async (_nsId: string, _key: string) => "false");
   setMock = mock(async (_nsId: string, _key: string, _value: string) => {});
 
   // Install mocks on prototypes
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth = checkAllWorkerHealthMock;
-  (DbService.prototype as Record<string, unknown>).resolveDbName = resolveDbNameMock;
+  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
+    checkAllWorkerHealthMock;
+  (DbService.prototype as Record<string, unknown>).resolveDbName =
+    resolveDbNameMock;
   (DbService.prototype as Record<string, unknown>).query = queryMock;
   (DbService.prototype as Record<string, unknown>).export = exportMock;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId = resolveNamespaceIdMock;
+  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
+    resolveNamespaceIdMock;
   (KvSyncService.prototype as Record<string, unknown>).get = getMock;
   (KvSyncService.prototype as Record<string, unknown>).set = setMock;
 });
 
 afterEach(() => {
   mock.restore();
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth = origCheckAll;
-  (DbService.prototype as Record<string, unknown>).resolveDbName = origResolveDbName;
+  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
+    origCheckAll;
+  (DbService.prototype as Record<string, unknown>).resolveDbName =
+    origResolveDbName;
   (DbService.prototype as Record<string, unknown>).query = origQuery;
   (DbService.prototype as Record<string, unknown>).export = origExport;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
+    origResolveNs;
   (KvSyncService.prototype as Record<string, unknown>).get = origGet;
   (KvSyncService.prototype as Record<string, unknown>).set = origSet;
 });
@@ -172,7 +184,9 @@ describe("registerMonitorCommand", () => {
       checkAllWorkerHealthMock = mock(async () => {
         throw new Error("Connection failed");
       });
-      (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth = checkAllWorkerHealthMock;
+      (
+        MonitorService.prototype as Record<string, unknown>
+      ).checkAllWorkerHealth = checkAllWorkerHealthMock;
 
       const program = await createProgram();
       await program.parseAsync(["monitor", "status"], { from: "user" });
@@ -206,20 +220,34 @@ describe("registerMonitorCommand", () => {
   describe("monitor kill-switch", () => {
     it("shows kill switch status", async () => {
       const program = await createProgram();
-      await program.parseAsync(["monitor", "kill-switch", "show"], { from: "user" });
+      await program.parseAsync(["monitor", "kill-switch", "show"], {
+        from: "user",
+      });
       expect(getMock).toHaveBeenCalledWith("ns-id-123", "trade:kill_switch");
     });
 
     it("turns kill switch on", async () => {
       const program = await createProgram();
-      await program.parseAsync(["monitor", "kill-switch", "on"], { from: "user" });
-      expect(setMock).toHaveBeenCalledWith("ns-id-123", "trade:kill_switch", "true");
+      await program.parseAsync(["monitor", "kill-switch", "on"], {
+        from: "user",
+      });
+      expect(setMock).toHaveBeenCalledWith(
+        "ns-id-123",
+        "trade:kill_switch",
+        "true"
+      );
     });
 
     it("turns kill switch off", async () => {
       const program = await createProgram();
-      await program.parseAsync(["monitor", "kill-switch", "off"], { from: "user" });
-      expect(setMock).toHaveBeenCalledWith("ns-id-123", "trade:kill_switch", "false");
+      await program.parseAsync(["monitor", "kill-switch", "off"], {
+        from: "user",
+      });
+      expect(setMock).toHaveBeenCalledWith(
+        "ns-id-123",
+        "trade:kill_switch",
+        "false"
+      );
     });
   });
 

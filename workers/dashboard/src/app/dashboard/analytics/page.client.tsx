@@ -34,21 +34,31 @@ export default function AnalyticsClient() {
       </motion.div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+        <Suspense
+          fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+        >
           <SuccessRateCard />
         </Suspense>
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+        <Suspense
+          fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+        >
           <TradeMetricsChart />
         </Suspense>
       </div>
 
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" />}
+      >
         <WorkerPerformance />
       </Suspense>
-      <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+      >
         <ApiStats />
       </Suspense>
-      <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}
+      >
         <SignalOutcomes />
       </Suspense>
     </div>

@@ -21,47 +21,238 @@ export interface EnvValidationResult {
 export class EnvService {
   static getDefinitions(): EnvVarDefinition[] {
     return [
-      { name: "CLOUDFLARE_API_TOKEN", required: true, secret: true, section: "Cloudflare Account", hint: "API token with Workers/KV/D1/R2 permissions" },
-      { name: "CLOUDFLARE_ACCOUNT_ID", required: true, secret: false, section: "Cloudflare Account", hint: "From Cloudflare dashboard URL" },
-      { name: "CLOUDFLARE_SECRET_STORE_ID", required: false, secret: false, section: "Cloudflare Account", default: "", hint: "Optional" },
-      { name: "SUBDOMAIN_PREFIX", required: true, secret: false, section: "Cloudflare Account", default: "cryptolinx", hint: "Prefix for worker URLs" },
-      { name: "D1_INTERNAL_KEY", required: true, secret: true, section: "Internal Auth", hint: "Internal key for D1 worker auth" },
-      { name: "TRADE_INTERNAL_KEY", required: true, secret: true, section: "Internal Auth", hint: "Internal key for trade worker auth" },
-      { name: "AGENT_INTERNAL_KEY", required: true, secret: true, section: "Internal Auth", hint: "Internal key for agent worker auth" },
-      { name: "WEBHOOK_API_KEY_BINDING", required: true, secret: true, section: "Internal Auth", hint: "Webhook auth key for hoox gateway" },
-      { name: "INTERNAL_KEY_BINDING", required: true, secret: true, section: "Internal Auth", hint: "Shared internal auth key for inter-worker communication" },
-      { name: "API_SERVICE_KEY", required: true, secret: true, section: "Internal Auth", hint: "API service key for trade-worker" },
-      { name: "HA_TOKEN_BINDING", required: false, secret: true, section: "Internal Auth", hint: "Home Assistant token for hoox" },
-      { name: "TELEGRAM_BOT_TOKEN", required: false, secret: true, section: "Telegram", hint: "From @BotFather" },
-      { name: "TELEGRAM_SECRET_TOKEN", required: false, secret: true, section: "Telegram", hint: "Telegram webhook secret token" },
-      { name: "AGENT_OPENAI_KEY", required: false, secret: true, section: "AI Providers", hint: "OpenAI API key" },
-      { name: "AGENT_ANTHROPIC_KEY", required: false, secret: true, section: "AI Providers", hint: "Anthropic API key" },
-      { name: "AGENT_GOOGLE_KEY", required: false, secret: true, section: "AI Providers", hint: "Google AI API key" },
-      { name: "BINANCE_API_KEY", required: false, secret: true, section: "Exchanges", hint: "Binance API key" },
-      { name: "BINANCE_API_SECRET", required: false, secret: true, section: "Exchanges", hint: "Binance API secret" },
-      { name: "MEXC_API_KEY", required: false, secret: true, section: "Exchanges", hint: "MEXC API key" },
-      { name: "MEXC_API_SECRET", required: false, secret: true, section: "Exchanges", hint: "MEXC API secret" },
-      { name: "BYBIT_API_KEY", required: false, secret: true, section: "Exchanges", hint: "Bybit API key" },
-      { name: "BYBIT_API_SECRET", required: false, secret: true, section: "Exchanges", hint: "Bybit API secret" },
+      {
+        name: "CLOUDFLARE_API_TOKEN",
+        required: true,
+        secret: true,
+        section: "Cloudflare Account",
+        hint: "API token with Workers/KV/D1/R2 permissions",
+      },
+      {
+        name: "CLOUDFLARE_ACCOUNT_ID",
+        required: true,
+        secret: false,
+        section: "Cloudflare Account",
+        hint: "From Cloudflare dashboard URL",
+      },
+      {
+        name: "CLOUDFLARE_SECRET_STORE_ID",
+        required: false,
+        secret: false,
+        section: "Cloudflare Account",
+        default: "",
+        hint: "Optional",
+      },
+      {
+        name: "SUBDOMAIN_PREFIX",
+        required: true,
+        secret: false,
+        section: "Cloudflare Account",
+        default: "cryptolinx",
+        hint: "Prefix for worker URLs",
+      },
+      {
+        name: "D1_INTERNAL_KEY",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Internal key for D1 worker auth",
+      },
+      {
+        name: "TRADE_INTERNAL_KEY",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Internal key for trade worker auth",
+      },
+      {
+        name: "AGENT_INTERNAL_KEY",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Internal key for agent worker auth",
+      },
+      {
+        name: "WEBHOOK_API_KEY_BINDING",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Webhook auth key for hoox gateway",
+      },
+      {
+        name: "INTERNAL_KEY_BINDING",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Shared internal auth key for inter-worker communication",
+      },
+      {
+        name: "API_SERVICE_KEY",
+        required: true,
+        secret: true,
+        section: "Internal Auth",
+        hint: "API service key for trade-worker",
+      },
+      {
+        name: "HA_TOKEN_BINDING",
+        required: false,
+        secret: true,
+        section: "Internal Auth",
+        hint: "Home Assistant token for hoox",
+      },
+      {
+        name: "TELEGRAM_BOT_TOKEN",
+        required: false,
+        secret: true,
+        section: "Telegram",
+        hint: "From @BotFather",
+      },
+      {
+        name: "TELEGRAM_SECRET_TOKEN",
+        required: false,
+        secret: true,
+        section: "Telegram",
+        hint: "Telegram webhook secret token",
+      },
+      {
+        name: "AGENT_OPENAI_KEY",
+        required: false,
+        secret: true,
+        section: "AI Providers",
+        hint: "OpenAI API key",
+      },
+      {
+        name: "AGENT_ANTHROPIC_KEY",
+        required: false,
+        secret: true,
+        section: "AI Providers",
+        hint: "Anthropic API key",
+      },
+      {
+        name: "AGENT_GOOGLE_KEY",
+        required: false,
+        secret: true,
+        section: "AI Providers",
+        hint: "Google AI API key",
+      },
+      {
+        name: "BINANCE_API_KEY",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "Binance API key",
+      },
+      {
+        name: "BINANCE_API_SECRET",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "Binance API secret",
+      },
+      {
+        name: "MEXC_API_KEY",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "MEXC API key",
+      },
+      {
+        name: "MEXC_API_SECRET",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "MEXC API secret",
+      },
+      {
+        name: "BYBIT_API_KEY",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "Bybit API key",
+      },
+      {
+        name: "BYBIT_API_SECRET",
+        required: false,
+        secret: true,
+        section: "Exchanges",
+        hint: "Bybit API secret",
+      },
       // Email
-      { name: "EMAIL_HOST", required: false, secret: true, section: "Email", hint: "Email IMAP server host" },
-      { name: "EMAIL_USER", required: false, secret: true, section: "Email", hint: "Email IMAP username" },
-      { name: "EMAIL_PASS", required: false, secret: true, section: "Email", hint: "Email IMAP password" },
-      { name: "INTERNAL_KEY", required: false, secret: true, section: "Email", hint: "Internal auth key for email-worker" },
+      {
+        name: "EMAIL_HOST",
+        required: false,
+        secret: true,
+        section: "Email",
+        hint: "Email IMAP server host",
+      },
+      {
+        name: "EMAIL_USER",
+        required: false,
+        secret: true,
+        section: "Email",
+        hint: "Email IMAP username",
+      },
+      {
+        name: "EMAIL_PASS",
+        required: false,
+        secret: true,
+        section: "Email",
+        hint: "Email IMAP password",
+      },
+      {
+        name: "INTERNAL_KEY",
+        required: false,
+        secret: true,
+        section: "Email",
+        hint: "Internal auth key for email-worker",
+      },
       // Wallet
-      { name: "WALLET_MNEMONIC_SECRET", required: false, secret: true, section: "Wallet", hint: "Wallet mnemonic phrase for web3-wallet-worker" },
-      { name: "WALLET_PK_SECRET", required: false, secret: true, section: "Wallet", hint: "Wallet private key for web3-wallet-worker" },
-      { name: "DASHBOARD_USER", required: true, secret: false, section: "Dashboard", default: "admin", hint: "Dashboard login username" },
-      { name: "DASHBOARD_PASS", required: true, secret: true, section: "Dashboard", hint: "Dashboard login password" },
-      { name: "SESSION_SECRET", required: true, secret: true, section: "Dashboard", hint: "32+ char random string for session signing" },
+      {
+        name: "WALLET_MNEMONIC_SECRET",
+        required: false,
+        secret: true,
+        section: "Wallet",
+        hint: "Wallet mnemonic phrase for web3-wallet-worker",
+      },
+      {
+        name: "WALLET_PK_SECRET",
+        required: false,
+        secret: true,
+        section: "Wallet",
+        hint: "Wallet private key for web3-wallet-worker",
+      },
+      {
+        name: "DASHBOARD_USER",
+        required: true,
+        secret: false,
+        section: "Dashboard",
+        default: "admin",
+        hint: "Dashboard login username",
+      },
+      {
+        name: "DASHBOARD_PASS",
+        required: true,
+        secret: true,
+        section: "Dashboard",
+        hint: "Dashboard login password",
+      },
+      {
+        name: "SESSION_SECRET",
+        required: true,
+        secret: true,
+        section: "Dashboard",
+        hint: "32+ char random string for session signing",
+      },
     ];
   }
 
   static getSections(): string[] {
-    return [...new Set(EnvService.getDefinitions().map(d => d.section))];
+    return [...new Set(EnvService.getDefinitions().map((d) => d.section))];
   }
 
-  static async loadDotEnvAsync(filePath: string): Promise<Record<string, string>> {
+  static async loadDotEnvAsync(
+    filePath: string
+  ): Promise<Record<string, string>> {
     const file = Bun.file(filePath);
     if (!(await file.exists())) return {};
     const text = await file.text();
@@ -73,7 +264,10 @@ export class EnvService {
       if (eqIdx < 1) continue;
       const key = trimmed.substring(0, eqIdx).trim();
       let value = trimmed.substring(eqIdx + 1).trim();
-      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
         value = value.slice(1, -1);
       }
       vars[key] = value;
@@ -102,11 +296,15 @@ export class EnvService {
     const v = vars ?? {};
     const defs = EnvService.getDefinitions();
     const sections = EnvService.getSections();
-    let output = "# Hoox Local Environment Configuration\n# Generated by `hoox config env init`.\n# NEVER commit this file.\n\n";
+    let output =
+      "# Hoox Local Environment Configuration\n# Generated by `hoox config env init`.\n# NEVER commit this file.\n\n";
     for (const section of sections) {
       output += `# --- ${section.toUpperCase()} ---\n`;
-      for (const def of defs.filter(d => d.section === section)) {
-        const val = v[def.name] !== undefined ? v[def.name] : (def.default ?? `your_${def.name.toLowerCase()}`);
+      for (const def of defs.filter((d) => d.section === section)) {
+        const val =
+          v[def.name] !== undefined
+            ? v[def.name]
+            : (def.default ?? `your_${def.name.toLowerCase()}`);
         output += `${def.name}="${val}"\n`;
       }
       output += "\n";
@@ -114,15 +312,46 @@ export class EnvService {
     return output;
   }
 
-  static getWorkerDevVars(vars: Record<string, string>): Record<string, Record<string, string>> {
+  static getWorkerDevVars(
+    vars: Record<string, string>
+  ): Record<string, Record<string, string>> {
     const workerMap: Record<string, string[]> = {
-      "workers/hoox": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING", "HA_TOKEN_BINDING"],
-      "workers/trade-worker": ["API_SERVICE_KEY", "INTERNAL_KEY_BINDING", "BINANCE_API_KEY", "BINANCE_API_SECRET", "MEXC_API_KEY", "MEXC_API_SECRET", "BYBIT_API_KEY", "BYBIT_API_SECRET"],
-      "workers/agent-worker": ["AGENT_INTERNAL_KEY", "AGENT_OPENAI_KEY", "AGENT_ANTHROPIC_KEY", "AGENT_GOOGLE_KEY"],
+      "workers/hoox": [
+        "WEBHOOK_API_KEY_BINDING",
+        "INTERNAL_KEY_BINDING",
+        "HA_TOKEN_BINDING",
+      ],
+      "workers/trade-worker": [
+        "API_SERVICE_KEY",
+        "INTERNAL_KEY_BINDING",
+        "BINANCE_API_KEY",
+        "BINANCE_API_SECRET",
+        "MEXC_API_KEY",
+        "MEXC_API_SECRET",
+        "BYBIT_API_KEY",
+        "BYBIT_API_SECRET",
+      ],
+      "workers/agent-worker": [
+        "AGENT_INTERNAL_KEY",
+        "AGENT_OPENAI_KEY",
+        "AGENT_ANTHROPIC_KEY",
+        "AGENT_GOOGLE_KEY",
+      ],
       "workers/d1-worker": ["D1_INTERNAL_KEY"],
-      "workers/telegram-worker": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_SECRET_TOKEN"],
-      "workers/web3-wallet-worker": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"],
-      "workers/email-worker": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"],
+      "workers/telegram-worker": [
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_SECRET_TOKEN",
+      ],
+      "workers/web3-wallet-worker": [
+        "WALLET_MNEMONIC_SECRET",
+        "WALLET_PK_SECRET",
+      ],
+      "workers/email-worker": [
+        "EMAIL_HOST",
+        "EMAIL_USER",
+        "EMAIL_PASS",
+        "INTERNAL_KEY",
+      ],
       "workers/analytics-worker": ["CLOUDFLARE_API_TOKEN"],
     };
     const result: Record<string, Record<string, string>> = {};
@@ -144,9 +373,10 @@ export class EnvService {
     let output = "";
     for (const section of sections) {
       output += `\n${section}:\n`;
-      for (const def of defs.filter(d => d.section === section)) {
+      for (const def of defs.filter((d) => d.section === section)) {
         const val = vars[def.name];
-        const displayVal = def.secret && val ? "********" : (val ?? "(not set)");
+        const displayVal =
+          def.secret && val ? "********" : (val ?? "(not set)");
         const status = val ? " [set]" : " [missing]";
         output += `  ${def.name}=${displayVal}${def.secret ? " (secret)" : ""}${status}\n`;
       }

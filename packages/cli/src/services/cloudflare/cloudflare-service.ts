@@ -320,9 +320,7 @@ export class CloudflareService {
    * Returns a helpful error — wrangler does not support creating analytics
    * datasets from the CLI. Users must create them via the Cloudflare Dashboard.
    */
-  async analyticsCreate(
-    _name: string
-  ): Promise<WranglerResult<string>> {
+  async analyticsCreate(_name: string): Promise<WranglerResult<string>> {
     return {
       ok: false,
       error:

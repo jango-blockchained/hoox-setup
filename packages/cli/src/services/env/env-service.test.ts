@@ -6,7 +6,7 @@ describe("EnvService", () => {
     it("returns all known env var definitions", () => {
       const defs = EnvService.getDefinitions();
       expect(defs.length).toBe(31);
-      expect(defs.some(d => d.name === "CLOUDFLARE_API_TOKEN")).toBe(true);
+      expect(defs.some((d) => d.name === "CLOUDFLARE_API_TOKEN")).toBe(true);
     });
 
     it("each definition has required fields", () => {
@@ -35,7 +35,9 @@ describe("EnvService", () => {
     });
 
     it("includes provided values", () => {
-      const content = EnvService.generateEnvLocal({ SUBDOMAIN_PREFIX: "myapp" });
+      const content = EnvService.generateEnvLocal({
+        SUBDOMAIN_PREFIX: "myapp",
+      });
       expect(content).toContain('SUBDOMAIN_PREFIX="myapp"');
     });
 
@@ -56,7 +58,9 @@ describe("EnvService", () => {
       expect(result["workers/agent-worker"]).toBeDefined();
       expect(result["workers/agent-worker"].AGENT_OPENAI_KEY).toBe("sk-123");
       expect(result["workers/telegram-worker"]).toBeDefined();
-      expect(result["workers/telegram-worker"].TELEGRAM_BOT_TOKEN).toBe("tg-456");
+      expect(result["workers/telegram-worker"].TELEGRAM_BOT_TOKEN).toBe(
+        "tg-456"
+      );
     });
 
     it("omits workers with no matching vars", () => {
@@ -84,14 +88,22 @@ describe("EnvService", () => {
       };
       const result = EnvService.getWorkerDevVars(vars);
       expect(result["workers/hoox"]).toBeDefined();
-      expect(result["workers/hoox"].WEBHOOK_API_KEY_BINDING).toBe("webhook-key");
+      expect(result["workers/hoox"].WEBHOOK_API_KEY_BINDING).toBe(
+        "webhook-key"
+      );
       expect(result["workers/hoox"].HA_TOKEN_BINDING).toBe("ha-token");
       expect(result["workers/trade-worker"].API_SERVICE_KEY).toBe("api-key");
-      expect(result["workers/telegram-worker"].TELEGRAM_SECRET_TOKEN).toBe("tg-secret");
+      expect(result["workers/telegram-worker"].TELEGRAM_SECRET_TOKEN).toBe(
+        "tg-secret"
+      );
       expect(result["workers/web3-wallet-worker"]).toBeDefined();
-      expect(result["workers/web3-wallet-worker"].WALLET_MNEMONIC_SECRET).toBe("mnemonic");
+      expect(result["workers/web3-wallet-worker"].WALLET_MNEMONIC_SECRET).toBe(
+        "mnemonic"
+      );
       expect(result["workers/email-worker"]).toBeDefined();
-      expect(result["workers/email-worker"].EMAIL_HOST).toBe("imap.example.com");
+      expect(result["workers/email-worker"].EMAIL_HOST).toBe(
+        "imap.example.com"
+      );
     });
   });
 
@@ -103,12 +115,16 @@ describe("EnvService", () => {
     });
 
     it("flags 'your_' placeholder values as missing", () => {
-      const result = EnvService.validate({ CLOUDFLARE_API_TOKEN: "your_cloudflare_api_token" });
+      const result = EnvService.validate({
+        CLOUDFLARE_API_TOKEN: "your_cloudflare_api_token",
+      });
       expect(result.missing).toContain("CLOUDFLARE_API_TOKEN");
     });
 
     it("flags 'generate_' placeholder values as missing", () => {
-      const result = EnvService.validate({ SESSION_SECRET: "generate_a_32_character_secure_random_string" });
+      const result = EnvService.validate({
+        SESSION_SECRET: "generate_a_32_character_secure_random_string",
+      });
       expect(result.missing).toContain("SESSION_SECRET");
     });
 
@@ -147,7 +163,9 @@ describe("EnvService", () => {
         SESSION_SECRET: "short",
       };
       const result = EnvService.validate(vars);
-      expect(result.warnings).toContain("SESSION_SECRET should be at least 32 characters");
+      expect(result.warnings).toContain(
+        "SESSION_SECRET should be at least 32 characters"
+      );
     });
   });
 
@@ -166,13 +184,15 @@ describe("EnvService", () => {
 
   describe("loadDotEnvAsync", () => {
     it("returns empty object for missing file", async () => {
-      const result = await EnvService.loadDotEnvAsync("/tmp/nonexistent-file-12345.env");
+      const result = await EnvService.loadDotEnvAsync(
+        "/tmp/nonexistent-file-12345.env"
+      );
       expect(Object.keys(result).length).toBe(0);
     });
 
     it("parses simple key=value lines", async () => {
       const filePath = "/tmp/test-simple-12345.env";
-      await Bun.write(filePath, 'KEY=value\nFOO=bar\n');
+      await Bun.write(filePath, "KEY=value\nFOO=bar\n");
       const result = await EnvService.loadDotEnvAsync(filePath);
       expect(result.KEY).toBe("value");
       expect(result.FOO).toBe("bar");
@@ -181,7 +201,10 @@ describe("EnvService", () => {
 
     it("strips double quotes from values", async () => {
       const filePath = "/tmp/test-quotes-12345.env";
-      await Bun.write(filePath, 'KEY="quoted value"\nNESTED="val with \\"quote\\""\n');
+      await Bun.write(
+        filePath,
+        'KEY="quoted value"\nNESTED="val with \\"quote\\""\n'
+      );
       const result = await EnvService.loadDotEnvAsync(filePath);
       // First quote-stripped value
       expect(result.KEY).toBe("quoted value");
@@ -190,7 +213,10 @@ describe("EnvService", () => {
 
     it("skips comments and blank lines", async () => {
       const filePath = "/tmp/test-comments-12345.env";
-      await Bun.write(filePath, '# this is a comment\n\nKEY=val\n# another comment\nFOO=bar\n');
+      await Bun.write(
+        filePath,
+        "# this is a comment\n\nKEY=val\n# another comment\nFOO=bar\n"
+      );
       const result = await EnvService.loadDotEnvAsync(filePath);
       expect(result.KEY).toBe("val");
       expect(result.FOO).toBe("bar");
@@ -200,7 +226,7 @@ describe("EnvService", () => {
 
     it("handles empty values", async () => {
       const filePath = "/tmp/test-empty-12345.env";
-      await Bun.write(filePath, 'EMPTY=\nKEY=val\n');
+      await Bun.write(filePath, "EMPTY=\nKEY=val\n");
       const result = await EnvService.loadDotEnvAsync(filePath);
       expect(result.EMPTY).toBe("");
       expect(result.KEY).toBe("val");

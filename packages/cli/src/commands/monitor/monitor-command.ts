@@ -2,7 +2,11 @@ import { Command } from "commander";
 import { DbService } from "../../services/db/index.js";
 import { MonitorService } from "./monitor-service.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
-import { formatSuccess, formatError, formatTable } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatError,
+  formatTable,
+} from "../../utils/formatters.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
@@ -39,7 +43,10 @@ async function doMonitorStatus(fmt: FormatOptions): Promise<void> {
   }
 }
 
-async function doMonitorTrades(limit: number, fmt: FormatOptions): Promise<void> {
+async function doMonitorTrades(
+  limit: number,
+  fmt: FormatOptions
+): Promise<void> {
   try {
     const db = new DbService();
     const dbName = await db.resolveDbName();
@@ -52,7 +59,10 @@ async function doMonitorTrades(limit: number, fmt: FormatOptions): Promise<void>
   }
 }
 
-async function doMonitorLogs(workerName: string | undefined, fmt: FormatOptions): Promise<void> {
+async function doMonitorLogs(
+  workerName: string | undefined,
+  fmt: FormatOptions
+): Promise<void> {
   try {
     const db = new DbService();
     const dbName = await db.resolveDbName();
@@ -72,7 +82,7 @@ async function doMonitorLogs(workerName: string | undefined, fmt: FormatOptions)
 
 async function doMonitorKillSwitch(
   action: "show" | "on" | "off",
-  fmt: FormatOptions,
+  fmt: FormatOptions
 ): Promise<void> {
   try {
     const kv = new KvSyncService();
@@ -81,16 +91,20 @@ async function doMonitorKillSwitch(
 
     if (action === "show") {
       const value = await kv.get(namespaceId, key);
-      const status = value === "true"
-        ? "KILL SWITCH IS ON (trading halted)"
-        : value === "false"
-          ? "Kill switch is off (trading active)"
-          : `Kill switch value: ${value ?? "(not set)"}`;
+      const status =
+        value === "true"
+          ? "KILL SWITCH IS ON (trading halted)"
+          : value === "false"
+            ? "Kill switch is off (trading active)"
+            : `Kill switch value: ${value ?? "(not set)"}`;
       process.stdout.write(`${theme.info(status)}\n`);
     } else {
       const newValue = action === "on" ? "true" : "false";
       await kv.set(namespaceId, key, newValue);
-      formatSuccess(`Kill switch turned ${action === "on" ? "ON" : "OFF"}`, fmt);
+      formatSuccess(
+        `Kill switch turned ${action === "on" ? "ON" : "OFF"}`,
+        fmt
+      );
     }
   } catch (err) {
     formatError(err instanceof Error ? err.message : String(err), fmt);
@@ -170,7 +184,11 @@ EXAMPLES:
     .command("trades")
     .summary("Show recent trades from D1")
     .description("Query the trades table for the most recent entries.")
-    .argument("[limit]", "Number of trades to show (default: 10, max: 100)", "10")
+    .argument(
+      "[limit]",
+      "Number of trades to show (default: 10, max: 100)",
+      "10"
+    )
     .action(async function (this: Command, limit: string) {
       const fmt = getFormatOptions(this);
       await doMonitorTrades(parseInt(limit, 10) || 10, fmt);
@@ -179,7 +197,9 @@ EXAMPLES:
   monitorCmd
     .command("logs")
     .summary("Show recent system logs from D1")
-    .description("Query the system_logs table. Optionally filter by worker name.")
+    .description(
+      "Query the system_logs table. Optionally filter by worker name."
+    )
     .argument("[worker]", "Worker name to filter (optional)")
     .action(async function (this: Command, worker?: string) {
       const fmt = getFormatOptions(this);
@@ -210,7 +230,9 @@ Commands:
   ksCmd
     .command("on")
     .summary("Halt all trading")
-    .description("Set trade:kill_switch=true to stop all trading operations. WARNING: This halts ALL trading activity immediately.")
+    .description(
+      "Set trade:kill_switch=true to stop all trading operations. WARNING: This halts ALL trading activity immediately."
+    )
     .action(async function (this: Command) {
       const fmt = getFormatOptions(this);
       await doMonitorKillSwitch("on", fmt);
@@ -219,7 +241,9 @@ Commands:
   ksCmd
     .command("off")
     .summary("Resume trading")
-    .description("Set trade:kill_switch=false to resume normal trading operations.")
+    .description(
+      "Set trade:kill_switch=false to resume normal trading operations."
+    )
     .action(async function (this: Command) {
       const fmt = getFormatOptions(this);
       await doMonitorKillSwitch("off", fmt);
@@ -228,7 +252,9 @@ Commands:
   monitorCmd
     .command("queue-depth")
     .summary("Show queue details")
-    .description("List queues via wrangler queues list to show configured queues.")
+    .description(
+      "List queues via wrangler queues list to show configured queues."
+    )
     .action(async function (this: Command) {
       const fmt = getFormatOptions(this);
       await doMonitorQueueDepth(fmt);
@@ -237,7 +263,9 @@ Commands:
   monitorCmd
     .command("backup")
     .summary("Export D1 database to .sql file")
-    .description("Export the D1 database to a timestamped .sql backup file via wrangler d1 export.")
+    .description(
+      "Export the D1 database to a timestamped .sql backup file via wrangler d1 export."
+    )
     .action(async function (this: Command) {
       const fmt = getFormatOptions(this);
       await doMonitorBackup(fmt);

@@ -27,9 +27,7 @@ function formatOpts(cmd: Command): FormatOptions {
   return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }
 
-async function resolveNs(
-  cmd: Command,
-): Promise<string> {
+async function resolveNs(cmd: Command): Promise<string> {
   const svc = new KvSyncService();
   const opts = cmd.optsWithGlobals<{ namespaceId?: string }>();
   return await svc.resolveNamespaceId(opts.namespaceId);
@@ -39,10 +37,7 @@ async function resolveNs(
 // kv list
 // ---------------------------------------------------------------------------
 
-async function handleList(
-  opts: FormatOptions,
-  nsId: string,
-): Promise<void> {
+async function handleList(opts: FormatOptions, nsId: string): Promise<void> {
   const svc = new KvSyncService();
   const keys = await svc.list(nsId);
 
@@ -65,7 +60,7 @@ async function handleList(
 async function handleGet(
   opts: FormatOptions,
   nsId: string,
-  key: string,
+  key: string
 ): Promise<void> {
   const svc = new KvSyncService();
   const value = await svc.get(nsId, key);
@@ -73,7 +68,7 @@ async function handleGet(
   if (value === null) {
     throw new CLIError(
       `Key "${key}" not found in KV namespace`,
-      ExitCode.ERROR,
+      ExitCode.ERROR
     );
   }
 
@@ -92,7 +87,7 @@ async function handleSet(
   opts: FormatOptions,
   nsId: string,
   key: string,
-  value: string,
+  value: string
 ): Promise<void> {
   const svc = new KvSyncService();
   await svc.set(nsId, key, value);
@@ -106,7 +101,7 @@ async function handleSet(
 async function handleDelete(
   opts: FormatOptions,
   nsId: string,
-  key: string,
+  key: string
 ): Promise<void> {
   const svc = new KvSyncService();
   await svc.delete(nsId, key);
@@ -119,7 +114,7 @@ async function handleDelete(
 
 async function handleApplyManifest(
   opts: FormatOptions,
-  nsId: string,
+  nsId: string
 ): Promise<void> {
   const svc = new KvSyncService();
   const manifest = KvSyncService.getManifest();
@@ -133,7 +128,7 @@ async function handleApplyManifest(
         setCount++;
       } catch (err) {
         errors.push(
-          `${keyDef.key}: ${err instanceof Error ? err.message : String(err)}`,
+          `${keyDef.key}: ${err instanceof Error ? err.message : String(err)}`
         );
       }
     }
@@ -141,7 +136,7 @@ async function handleApplyManifest(
 
   formatSuccess(
     `Applied ${setCount}/${manifest.keys.length} manifest keys (${errors.length} errors)`,
-    opts,
+    opts
   );
 }
 
@@ -156,7 +151,7 @@ async function handleManifest(opts: FormatOptions): Promise<void> {
     formatJson(manifest, opts);
   } else if (!opts.quiet) {
     process.stdout.write(
-      `${theme.heading(`KV Manifest: ${manifest.namespace}`)}\n\n`,
+      `${theme.heading(`KV Manifest: ${manifest.namespace}`)}\n\n`
     );
     const rows = manifest.keys.map((k) => ({
       Key: k.key,
@@ -197,11 +192,11 @@ EXAMPLES:
   hoox config kv get trade:kill_switch
   hoox config kv delete trade:kill_switch
   hoox config kv apply-manifest
-  hoox config kv manifest`,
+  hoox config kv manifest`
     )
     .option(
       "--namespace-id <id>",
-      "KV namespace ID (auto-detected if omitted)",
+      "KV namespace ID (auto-detected if omitted)"
     );
 
   // -- list
@@ -214,13 +209,8 @@ EXAMPLES:
         const nsId = await resolveNs(cmd);
         await handleList(opts, nsId);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -234,13 +224,8 @@ EXAMPLES:
         const nsId = await resolveNs(cmd);
         await handleGet(opts, nsId, key);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -248,23 +233,16 @@ EXAMPLES:
   kvCmd
     .command("set <key> <value>")
     .description("Set a key's value in the KV namespace")
-    .action(
-      async (key: string, value: string, _, cmd: Command) => {
-        const opts = formatOpts(cmd);
-        try {
-          const nsId = await resolveNs(cmd);
-          await handleSet(opts, nsId, key, value);
-        } catch (err) {
-          formatError(
-            err instanceof Error ? err : String(err),
-            opts,
-          );
-          process.exit(
-            err instanceof CLIError ? err.code : ExitCode.ERROR,
-          );
-        }
-      },
-    );
+    .action(async (key: string, value: string, _, cmd: Command) => {
+      const opts = formatOpts(cmd);
+      try {
+        const nsId = await resolveNs(cmd);
+        await handleSet(opts, nsId, key, value);
+      } catch (err) {
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
+      }
+    });
 
   // -- delete
   kvCmd
@@ -276,35 +254,23 @@ EXAMPLES:
         const nsId = await resolveNs(cmd);
         await handleDelete(opts, nsId, key);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
   // -- apply-manifest
   kvCmd
     .command("apply-manifest")
-    .description(
-      "Apply manifest key defaults to the KV namespace",
-    )
+    .description("Apply manifest key defaults to the KV namespace")
     .action(async (_, cmd: Command) => {
       const opts = formatOpts(cmd);
       try {
         const nsId = await resolveNs(cmd);
         await handleApplyManifest(opts, nsId);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 
@@ -317,13 +283,8 @@ EXAMPLES:
       try {
         await handleManifest(opts);
       } catch (err) {
-        formatError(
-          err instanceof Error ? err : String(err),
-          opts,
-        );
-        process.exit(
-          err instanceof CLIError ? err.code : ExitCode.ERROR,
-        );
+        formatError(err instanceof Error ? err : String(err), opts);
+        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
       }
     });
 }
