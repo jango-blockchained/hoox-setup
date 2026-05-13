@@ -99,3 +99,4 @@ coverage/
 # npm config
 .npmrc
 r2-test-object_*
+wrangler.jsonc.save
