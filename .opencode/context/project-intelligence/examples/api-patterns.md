@@ -135,7 +135,7 @@ Response format:
 ## 📂 Codebase References
 
 **Gateway**: `workers/hoox/src/index.ts` - fetch handler
-**Endpoints doc**: `docs/api/endpoints.md`
+**Endpoints doc**: `docs/devops/api/endpoints.md`
 **Shared Router**: `packages/shared/src/router.ts`
 **Health Check**: `packages/shared/src/health.ts`
 **Logger Middleware**: `packages/shared/src/middleware/logger.ts`

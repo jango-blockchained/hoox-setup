@@ -66,6 +66,6 @@ Every worker exposes `GET /health` returning `{ success: true, result: { status:
 
 ## 📂 Codebase References
 
-**Full docs**: `docs/api/endpoints.md`
+**Full docs**: `docs/devops/api/endpoints.md`
 **Gateway routing**: `workers/hoox/src/index.ts`
 **Agent routes**: `workers/agent-worker/src/index.ts:30-90`
