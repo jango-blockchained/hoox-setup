@@ -11,6 +11,24 @@ const { sections, currentSlug } = Astro.props;
 
 <aside class="hidden md:block w-64 shrink-0 border-r border-border bg-background h-[calc(100vh-3.5rem)] sticky top-14 overflow-y-auto scrollbar-hide">
   <nav class="flex flex-col gap-1 p-4">
+    <!-- Audience Toggle -->
+    <div class="flex rounded-lg border border-border p-0.5 mb-2 bg-muted/50" role="tablist" aria-label="Documentation audience">
+      <button
+        class="audience-toggle flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm text-muted-foreground hover:text-foreground"
+        data-audience="user"
+        onclick="switchAudience('user')"
+      >
+        End User
+      </button>
+      <button
+        class="audience-toggle flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm text-muted-foreground hover:text-foreground"
+        data-audience="devops"
+        onclick="switchAudience('devops')"
+      >
+        DevOps
+      </button>
+    </div>
+
     <a
       href="/hoox-setup/"
       class={cn(
@@ -26,7 +44,7 @@ const { sections, currentSlug } = Astro.props;
 
     {
       sections.map((section) => (
-        <div class="mt-2">
+        <div class="mt-2 audience-section" data-audience={section.audience}>
           <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <span>{section.icon}</span>
             <span>{section.title}</span>
@@ -51,3 +69,5 @@ const { sections, currentSlug } = Astro.props;
     }
   </nav>
 </aside>
+
+

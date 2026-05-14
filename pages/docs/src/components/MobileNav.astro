@@ -37,6 +37,24 @@ const { sections, currentSlug } = Astro.props;
     </div>
 
     <nav class="p-4 flex flex-col gap-1">
+      <!-- Audience Toggle -->
+      <div class="flex rounded-lg border border-border p-0.5 mb-2 bg-muted/50" role="tablist" aria-label="Documentation audience">
+        <button
+          class="mobile-audience-toggle flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm text-muted-foreground hover:text-foreground"
+          data-audience="user"
+          onclick="switchAudience('user')"
+        >
+          End User
+        </button>
+        <button
+          class="mobile-audience-toggle flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all data-active:bg-background data-active:text-foreground data-active:shadow-sm text-muted-foreground hover:text-foreground"
+          data-audience="devops"
+          onclick="switchAudience('devops')"
+        >
+          DevOps
+        </button>
+      </div>
+
       <a
         href="/hoox-setup/"
         onclick="document.getElementById('mobile-nav').classList.add('hidden')"
@@ -53,7 +71,7 @@ const { sections, currentSlug } = Astro.props;
 
       {
         sections.map((section) => (
-          <div class="mt-2">
+          <div class="mt-2 mobile-audience-section" data-audience={section.audience}>
             <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span>{section.icon}</span>
               <span>{section.title}</span>
@@ -80,3 +98,72 @@ const { sections, currentSlug } = Astro.props;
     </nav>
   </div>
 </div>
+
+<script>
+  // Mobile nav uses the same switchAudience function, but targets mobile elements
+  var originalSwitch = window.switchAudience;
+
+  window.switchAudience = function (audience) {
+    // Update desktop toggle buttons
+    document.querySelectorAll(".audience-toggle").forEach(function (btn) {
+      var isActive = btn.getAttribute("data-audience") === audience;
+      btn.toggleAttribute("data-active", isActive);
+    });
+
+    // Update mobile toggle buttons
+    document.querySelectorAll(".mobile-audience-toggle").forEach(function (btn) {
+      var isActive = btn.getAttribute("data-audience") === audience;
+      btn.toggleAttribute("data-active", isActive);
+    });
+
+    // Show/hide desktop sections
+    document.querySelectorAll(".audience-section").forEach(function (section) {
+      var sectionAudience = section.getAttribute("data-audience");
+      if (sectionAudience === audience) {
+        section.classList.remove("hidden");
+      } else {
+        section.classList.add("hidden");
+      }
+    });
+
+    // Show/hide mobile sections
+    document.querySelectorAll(".mobile-audience-section").forEach(function (section) {
+      var sectionAudience = section.getAttribute("data-audience");
+      if (sectionAudience === audience) {
+        section.classList.remove("hidden");
+      } else {
+        section.classList.add("hidden");
+      }
+    });
+
+    // Store preference
+    try {
+      localStorage.setItem("docs-audience", audience);
+    } catch (e) {}
+  };
+
+  // Init: default to user
+  document.addEventListener("DOMContentLoaded", function () {
+    // Activate "user" button by default on both
+    document.querySelectorAll(".audience-toggle, .mobile-audience-toggle").forEach(function (btn) {
+      if (btn.getAttribute("data-audience") === "user") {
+        btn.toggleAttribute("data-active", true);
+      }
+    });
+
+    // Hide devops sections initially
+    document.querySelectorAll(".audience-section, .mobile-audience-section").forEach(function (section) {
+      if (section.getAttribute("data-audience") !== "user") {
+        section.classList.add("hidden");
+      }
+    });
+
+    // Restore saved preference
+    try {
+      var saved = localStorage.getItem("docs-audience");
+      if (saved === "user" || saved === "devops") {
+        window.switchAudience(saved);
+      }
+    } catch (e) {}
+  });
+</script>
