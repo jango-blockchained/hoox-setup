@@ -1,0 +1,13 @@
+# Redirect old URL paths to new docs/devops/ locations
+# Format: source destination status
+
+/architecture/*       /devops/architecture/:splat  301
+/workers/*            /devops/workers/:splat       301
+/deployment/*         /devops/deployment/:splat    301
+/development/*        /devops/development/:splat   301
+/api/*                /devops/api/:splat            301
+/bindings             /devops/bindings              301
+/storages             /devops/storages              301
+/endpoints            /devops/endpoints             301
+/cli_features         /reference/cli-commands        301
+/zero_trust_setup     /devops/zero_trust_setup      301

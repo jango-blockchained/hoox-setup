@@ -37,11 +37,11 @@ export function buildNavigation(
   const sectionIcons: Record<string, string> = {
     root: "📄",
     "getting-started": "🚀",
-    architecture: "🏗️",
-    workers: "⚙️",
-    api: "🔌",
-    development: "💻",
-    deployment: "🚢",
+    guides: "📘",
+    concepts: "🧠",
+    reference: "📖",
+    tutorials: "🎯",
+    devops: "⚙️",
   };
 
   for (const [key, items] of Object.entries(tree)) {
