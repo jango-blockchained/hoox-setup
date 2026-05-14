@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/examples | Priority: high | Version: 2.1 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/examples | Priority: high | Version: 2.2 | Updated: 2026-05-14 -->
 
 # Worker Setup Example
 
@@ -38,10 +38,13 @@
 2. Create `wrangler.jsonc` + `wrangler.jsonc.example` with bindings
 3. Enable Smart Placement + observability in config
 4. Add service bindings for internal worker communication
-5. Create `src/index.ts` with `createRouter<Env>()` pattern
-6. Add `.dev.vars` for local secrets
-7. Register secrets via `wrangler secret put`
-8. Deploy: `wrangler deploy`
+5. Create `src/index.ts` with `createRouter<Env>()` + `withRequestLog()` pattern
+6. Use `requireInternalAuth()` for protected endpoints (from `@jango-blockchained/hoox-shared/middleware`)
+7. Use `serviceFetch()` for inter-worker calls (from `@jango-blockchained/hoox-shared/service-bindings`)
+8. Use `Errors.*` factories for error responses (from `@jango-blockchained/hoox-shared/errors`)
+9. Add `.dev.vars` for local secrets
+10. Register secrets via `wrangler secret put`
+11. Deploy: `wrangler deploy`
 
 ## Best Practices Reference
 

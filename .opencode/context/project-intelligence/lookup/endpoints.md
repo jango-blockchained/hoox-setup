@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/lookup | Priority: medium | Version: 3.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/lookup | Priority: medium | Version: 3.1 | Updated: 2026-05-14 -->
 
 # Endpoint Lookup
 
@@ -61,6 +61,8 @@ Every worker exposes `GET /health` returning `{ success: true, result: { status:
 | analytics-worker   | `/track/notification`        | POST     | Track notification |
 | report-worker      | `/report`                    | GET      | Trigger PDF report |
 | report-worker      | `/health`                    | GET      | Health check       |
+
+**Note**: report-worker fetches portfolio data from d1-worker via `D1_SERVICE` service binding (`/api/balances`, `/api/positions`).
 
 ## 📂 Codebase References
 

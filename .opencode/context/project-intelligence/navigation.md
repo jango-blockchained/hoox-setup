@@ -4,7 +4,6 @@ The `.opencode/` directory is the central project-knowledge hub. This doc set in
 
 | File                     | Description                         | Priority |
 | ------------------------ | ----------------------------------- | -------- |
-| .opencode/tasks.md       | Active 4-phase refactoring plan     | critical |
 | concepts/architecture.md | Worker architecture & communication | critical |
 | concepts/tech-stack.md   | Tech stack & tools                  | critical |
 | guides/cli-commands.md   | Complete CLI command reference      | critical |

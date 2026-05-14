@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/lookup | Priority: medium | Version: 3.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/lookup | Priority: medium | Version: 3.1 | Updated: 2026-05-14 -->
 
 # Bindings Reference
 
@@ -31,7 +31,7 @@
 | web3-wallet-worker | `TELEGRAM_SERVICE`, `ANALYTICS_SERVICE`                   | — (manual/API triggered)                    |
 | email-worker       | `TRADE_SERVICE`, `ANALYTICS_SERVICE`                      | — (cron/email triggered)                    |
 | analytics-worker   | (none — pure Analytics Engine)                            | hoox, trade, telegram, d1, web3, email      |
-| report-worker      | `TELEGRAM_SERVICE`                                        | — (cron triggered)                          |
+| report-worker      | `D1_SERVICE`, `TELEGRAM_SERVICE`                          | — (cron triggered)                          |
 | dashboard          | `D1_SERVICE`, `AGENT_SERVICE`                             | — (public UI via OpenNext)                  |
 
 ## Common Patterns
@@ -67,7 +67,7 @@
 | Feature         | hoox | trade | telegram | agent | d1 | web3 | email | analytics | report | dashboard |
 | --------------- | ---- | ----- | -------- | ----- | -- | ---- | ----- | --------- | ------ | --------- |
 | Service Binding | ✅   | ✅    | ✅       | ✅    | ✅ | ✅   | ✅    | —         | ✅     | ✅        |
-| D1 Storage      | —    | ✅    | —        | ✅    | ✅ | —    | —     | —         | —      | —         |
+| D1 Storage      | —    | ✅    | —        | ✅    | ✅ | —    | —     | —         | ✅     | —         |
 | R2 Storage      | —    | ✅    | ✅       | —     | —  | —    | —     | —         | ✅     | —         |
 | KV Storage      | ✅   | ✅    | ✅       | ✅    | ✅ | —    | ✅    | —         | —      | ✅        |
 | Queue           | ✅ P | ✅ C  | —        | —     | —  | —    | —     | —         | —      | —         |

@@ -1,8 +1,8 @@
-<!-- Context: project-intelligence/examples | Priority: high | Version: 2.0 | Updated: 2026-05-10 -->
+<!-- Context: project-intelligence/examples | Priority: high | Version: 3.0 | Updated: 2026-05-14 -->
 
 # API Patterns
 
-**Concept**: External requests hit `hoox` gateway (POST `/`), internal workers use `createRouter<Env>()` with `withRequestLog` wrapper. Standardized health checks across all workers.
+**Concept**: External requests hit `hoox` gateway (POST `/`), internal workers use `createRouter<Env>()` with `withRequestLog` wrapper. Standardized health checks, auth, and service binding calls across all workers.
 
 ## External Request (hoox gateway)
 
@@ -29,11 +29,10 @@ router.get("/health", async (req, env, ctx) => {
   return healthCheck({ worker: "my-worker" });
 });
 
-// Protected endpoint with inline auth
+// Protected endpoint with requireInternalAuth
 router.post("/process", async (req, env, ctx) => {
-  const auth = req.headers.get("X-Internal-Auth-Key");
-  if (auth !== env.INTERNAL_KEY_BINDING)
-    return new Response("Unauthorized", { status: 401 });
+  const authError = requireInternalAuth(req, env, "INTERNAL_KEY");
+  if (authError) return authError;
   // ... handler logic
 });
 
@@ -44,6 +43,39 @@ export default {
   ),
 };
 ```
+
+## Auth Pattern: `requireInternalAuth()`
+
+All internal workers use the shared `requireInternalAuth()` middleware:
+
+```typescript
+import { requireInternalAuth } from "@jango-blockchained/hoox-shared/middleware";
+
+// Returns Response (401) if unauthorized, null if authorized
+const authError = requireInternalAuth(request, env, "INTERNAL_KEY");
+if (authError) return authError;
+```
+
+## Service Binding Call Pattern: `serviceFetch()`
+
+All inter-worker calls use the shared `serviceFetch()` helper:
+
+```typescript
+import { serviceFetch } from "@jango-blockchained/hoox-shared/service-bindings";
+
+// POST with JSON body (default)
+const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", payload);
+
+// POST with extra headers
+const response = await serviceFetch(env.D1_SERVICE, "/query", { query, params }, {
+  headers: { "X-Request-ID": requestId },
+});
+
+// GET request (no body)
+const response = await serviceFetch(env.D1_SERVICE, "/api/balances", undefined, { method: "GET" });
+```
+
+Convention: URL path matches the target worker's route. Uses `http://internal{path}` URL scheme.
 
 ## Health Check Pattern
 

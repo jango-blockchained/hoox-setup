@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/concepts | Priority: critical | Version: 4.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/concepts | Priority: critical | Version: 4.1 | Updated: 2026-05-14 -->
 
 # Architecture
 
@@ -52,7 +52,7 @@ telegram-worker ──→ analytics-worker
 d1-worker ──→ analytics-worker
 web3-wallet-worker ──→ telegram-worker, analytics-worker
 email-worker ──→ trade-worker, analytics-worker
-report-worker ──→ telegram-worker
+report-worker ──→ d1-worker, telegram-worker
 dashboard ──→ d1-worker, agent-worker
 analytics-worker → (no service bindings, called by 6 workers)
 ```

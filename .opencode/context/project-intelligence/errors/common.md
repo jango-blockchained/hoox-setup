@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/errors | Priority: medium | Version: 2.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/errors | Priority: medium | Version: 3.0 | Updated: 2026-05-14 -->
 
 # Common Errors
 
@@ -58,6 +58,47 @@ Property 'DB' does not exist on type 'Env'
 **Cause**: Having both `@cloudflare/workers-types` and generated `worker-configuration.d.ts` causes type conflicts for binding names.
 
 **Fix**: Remove `@cloudflare/workers-types` from `tsconfig.json` `types` array. Use generated `worker-configuration.d.ts` exclusively, which provides accurate per-worker binding types.
+
+## Error: Live test workers not cleaned up
+
+```
+⚠ Cleanup: ✘ [ERROR] Unknown argument: delete
+```
+
+**Cause**: Test cleanup code used `wrangler ["deploy", "--delete"]` which is not a valid wrangler command. `--delete` is not a flag for `wrangler deploy`.
+
+**Fix**: Use the Cloudflare REST API directly via `cfApi("DELETE", /accounts/{id}/workers/scripts/{name})` in test `afterAll()` hooks. For interconnection tests, delete workers in reverse dependency order (frontend → middle → backend) to avoid service binding conflicts.
+
+## Error: Service binding URL scheme mismatch
+
+```
+TypeError: fetch failed or returned unexpected URL
+```
+
+**Cause**: Inconsistent URL schemes in service binding calls (`http://trade-service/webhook`, `http://localhost/query`, `https://internal/webhook`).
+
+**Fix**: Use the shared `serviceFetch()` helper which normalizes to `http://internal{path}`:
+
+```typescript
+import { serviceFetch } from "@jango-blockchained/hoox-shared/service-bindings";
+const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", payload);
+```
+
+## Error: Auth header mismatch between workers
+
+```
+401 Unauthorized between workers
+```
+
+**Cause**: Inline auth checks using different header names or comparison logic across workers.
+
+**Fix**: Use the shared `requireInternalAuth()` middleware:
+
+```typescript
+import { requireInternalAuth } from "@jango-blockchained/hoox-shared/middleware";
+const authError = requireInternalAuth(request, env, "INTERNAL_KEY");
+if (authError) return authError;
+```
 
 ## 📂 Codebase References
 
