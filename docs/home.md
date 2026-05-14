@@ -14,6 +14,7 @@ description: "Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform"
 - [Installation Flow](getting-started/installation-flow.md)
 - [Quick Start Guide](getting-started/quick-start.md)
 - [Configuration](getting-started/configuration.md)
+- [Complete Setup & Operations Guide](setup_and_operations.md)
 
 ### Architecture
 
@@ -21,6 +22,8 @@ description: "Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform"
 - [Worker Communication](architecture/communication.md)
 - [Data Flow](architecture/data-flow.md)
 - [Bindings & Environment](architecture/bindings.md)
+- [Bindings Reference](bindings.md)
+- [Storage Architecture](storages.md)
 
 ### Workers
 
@@ -31,17 +34,22 @@ Each worker has its own documentation file:
 - [telegram-worker](workers/telegram-worker.md) - Telegram bot & notifications (94% line coverage)
 - [d1-worker](workers/d1-worker.md) - Database operations (94% line coverage)
 - [agent-worker](workers/agent-worker.md) - Autonomous AI & Risk Manager (68% line coverage)
-- [dashboard](workers/dashboard.md) - UI & Settings Manager
+- [dashboard](workers/dashboard.md) - UI & Settings Manager (Workers + OpenNext at `workers/dashboard/`)
 - [web3-wallet-worker](workers/web3-wallet-worker.md) - Web3 interactions (83% line coverage)
 - [email-worker](workers/email-worker.md) - Email processing (97% line coverage)
 - [analytics-worker](workers/analytics-worker.md) - Analytics collection
 - [report-worker](workers/report-worker.md) - Automated PDF reports via Browser Rendering
+
+### CLI Reference
+
+- [CLI Features & Commands](cli_features.md)
 
 ### API Reference
 
 - [Endpoints](api/endpoints.md)
 - [Payloads](api/payloads.md)
 - [Responses](api/responses.md)
+- [Endpoints Reference](endpoints.md)
 
 ### Development
 
@@ -54,6 +62,15 @@ Each worker has its own documentation file:
 - [Production Setup](deployment/production.md)
 - [CI/CD](deployment/cicd.md)
 - [Monitoring](deployment/monitoring.md)
+
+### `.opencode/` — Project Intelligence Hub
+
+- [Project Intelligence Context](/.opencode/context/project-intelligence/navigation.md) — architecture, tech stack, CLI reference, endpoint lookups, common errors, examples, guides
+- [Implementation Plans](/.opencode/plans/) — 19+ plans for features & refactoring
+- [Design Specs](/.opencode/specs/) — 7 design documents
+- [Task Management](/.opencode/tasks.md) — active 4-phase refactoring plan
+- [Task Breakdowns](/.opencode/tasks/) — JSON task definitions
+- [Agent Skills](/.opencode/skills/) — project-specific agent skills (shadcn, nextjs-build, task-management)
 
 ## 🔗 Quick Links
 
@@ -77,7 +94,7 @@ Each worker has its own documentation file:
 | Smart Placement      | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | -         | ✅     |
 | Browser Rendering    | -    | -     | -        | -     | -    | -   | -    | -     | -         | ✅     |
 | Observability        | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | ✅        | ✅     |
-| Cloudflare Pages     | -    | -     | -        | -     | ✅   | -   | -    | -     | -         | -      |
+| Cloudflare Workers   | -    | -     | -        | -     | ✅   | -   | -    | -     | -         | -      |
 
 ---
 

@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/guides | Priority: high | Version: 2.0 | Updated: 2026-05-10 -->
+<!-- Context: project-intelligence/guides | Priority: high | Version: 2.1 | Updated: 2026-05-14 -->
 
 # Local Development
 
@@ -23,16 +23,18 @@ hoox dev start --runtime docker   # force docker compose
 
 ## Local Ports
 
-| Service         | Port |
-| --------------- | ---- |
-| hoox            | 8787 |
-| trade-worker    | 8788 |
-| d1-worker       | 8789 |
-| telegram-worker | 8790 |
-| agent-worker    | 8795 |
-| email-worker    | 8796 |
-| web3-wallet     | 8792 |
-| dashboard       | 3000 |
+| Service           | Port |
+| ----------------- | ---- |
+| hoox              | 8787 |
+| trade-worker      | 8788 |
+| d1-worker         | 8789 |
+| telegram-worker   | 8790 |
+| web3-wallet       | 8792 |
+| agent-worker      | 8795 |
+| email-worker      | 8796 |
+| analytics-worker  | 8797 |
+| report-worker     | 8798 |
+| dashboard         | 3000 |
 
 ## Docker Compose Profiles
 
@@ -44,7 +46,7 @@ docker compose down
 
 | Profile | Services |
 |---------|----------|
-| `workers` | hoox, trade-worker, telegram-worker, d1-worker, web3-wallet-worker, agent-worker, email-worker |
+| `workers` | hoox, trade-worker, telegram-worker, d1-worker, web3-wallet-worker, agent-worker, email-worker, analytics-worker, report-worker |
 | `dashboard` | dashboard |
 | `full` | all services |
 

@@ -45,7 +45,7 @@ Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Worke
 | **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing)           |
 | **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine, cross-worker observability)       |
 | **Reporting**     | `report-worker` (Automated PDF reports via Browser Rendering, 2x daily cron)      |
-| **Dashboard**     | `pages/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)                   |
+| **Dashboard**     | `workers/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)                 |
 | **CLI**           | `packages/cli` (management tool)                                                  |
 | **Shared**        | `packages/shared` (types, router, middleware, utilities)                          |
 
@@ -202,14 +202,14 @@ DASHBOARD_PASS="<secure-password>"
 SESSION_SECRET="<32-character-secure-random-string>"
 ```
 
-#### `pages/dashboard/.env.local` (Dashboard Local Dev)
+#### `workers/dashboard/.env.local` (Dashboard Local Dev)
 
 ```bash
 DASHBOARD_USER=admin
 DASHBOARD_PASS=admin
 ```
 
-#### `pages/dashboard/.dev.vars` (Wrangler Dev Mode)
+#### `workers/dashboard/.dev.vars` (Wrangler Dev Mode)
 
 ```bash
 DASHBOARD_USER=admin
@@ -346,6 +346,7 @@ bun run check:worker-submodules
 # workers/web3-wallet-worker
 # workers/email-worker
 # workers/analytics-worker
+# workers/report-worker
 ```
 
 ### 4.3 Step 3: Install Dependencies
@@ -541,7 +542,7 @@ See Section 7 for the exact sequence.
 ### 5.9 Phase 9: Dashboard Deployment
 
 ```bash
-cd pages/dashboard
+cd workers/dashboard
 
 # Build with OpenNext
 bun run opennext:build
@@ -664,14 +665,15 @@ This is automatically applied on first deploy.
 
 ```
 1. analytics-worker    (no dependencies)
-2. d1-worker           (depends on: analytics-worker)
-3. telegram-worker     (depends on: trade-worker, hoox, analytics-worker)
-4. web3-wallet-worker  (depends on: telegram-worker, analytics-worker)
-5. email-worker        (depends on: trade-worker, analytics-worker)
-6. trade-worker        (depends on: d1-worker, telegram-worker, analytics-worker)
-7. agent-worker        (depends on: d1-worker, trade-worker, telegram-worker, analytics-worker)
-8. hoox                (depends on: trade-worker, telegram-worker, analytics-worker)
-9. dashboard           (depends on: all services being live)
+2. report-worker       (depends on: analytics-worker)
+3. d1-worker           (depends on: analytics-worker)
+4. telegram-worker     (depends on: trade-worker, hoox, analytics-worker)
+5. web3-wallet-worker  (depends on: telegram-worker, analytics-worker)
+6. email-worker        (depends on: trade-worker, analytics-worker)
+7. trade-worker        (depends on: d1-worker, telegram-worker, analytics-worker)
+8. agent-worker        (depends on: d1-worker, trade-worker, telegram-worker, analytics-worker)
+9. hoox                (depends on: trade-worker, telegram-worker, analytics-worker)
+10. dashboard          (depends on: all services being live)
 ```
 
 ### 7.2 Deployment Commands
@@ -679,6 +681,7 @@ This is automatically applied on first deploy.
 ```bash
 # Deploy all workers in correct order
 hoox workers deploy analytics-worker
+hoox workers deploy report-worker
 hoox workers deploy d1-worker
 hoox workers deploy telegram-worker
 hoox workers deploy web3-wallet-worker
@@ -716,18 +719,18 @@ hoox workers update-internal-urls
 
 ### 8.1 Configuration Files
 
-| File                                  | Purpose                        |
-| ------------------------------------- | ------------------------------ |
-| `pages/dashboard/next.config.ts`      | Next.js config (OpenNext init) |
-| `pages/dashboard/wrangler.jsonc`      | Worker deployment config       |
-| `pages/dashboard/open-next.config.ts` | OpenNext adapter config        |
-| `pages/dashboard/.env.local`          | Local dev credentials          |
-| `pages/dashboard/.dev.vars`           | Wrangler dev credentials       |
+| File                                   | Purpose                        |
+| -------------------------------------- | ------------------------------ |
+| `workers/dashboard/next.config.ts`      | Next.js config (OpenNext init) |
+| `workers/dashboard/wrangler.jsonc`      | Worker deployment config       |
+| `workers/dashboard/open-next.config.ts` | OpenNext adapter config        |
+| `workers/dashboard/.env.local`          | Local dev credentials          |
+| `workers/dashboard/.dev.vars`           | Wrangler dev credentials       |
 
 ### 8.2 Wrangler Configuration
 
 ```jsonc
-// pages/dashboard/wrangler.jsonc
+// workers/dashboard/wrangler.jsonc
 {
   "name": "hoox-dashboard",
   "main": ".open-next/worker.js",
@@ -756,7 +759,7 @@ hoox workers update-internal-urls
 ### 8.3 Local Development
 
 ```bash
-cd pages/dashboard
+cd workers/dashboard
 
 # Install dashboard dependencies (if not done at root)
 bun install
@@ -773,7 +776,7 @@ bun run dev
 ### 8.4 Production Build & Deploy
 
 ```bash
-cd pages/dashboard
+cd workers/dashboard
 
 # Install dependencies
 bun install
@@ -1064,7 +1067,7 @@ wrangler kv:key put --namespace-id=c5917667a21745e390ff969f32b1847d "trade:max_d
 ### 11.6 Dashboard Repair
 
 ```bash
-cd pages/dashboard
+cd workers/dashboard
 
 # Rebuild
 bun run opennext:build
@@ -1100,7 +1103,7 @@ wrangler d1 execute trade-data-db --file=workers/trade-worker/schema.sql --remot
 # (see Section 7.3)
 
 # 8. Redeploy dashboard
-cd pages/dashboard && bun run opennext:build && bun run opennext:deploy
+cd workers/dashboard && bun run opennext:build && bun run opennext:deploy
 ```
 
 ---
@@ -1214,17 +1217,18 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 | `web3-wallet-worker` | `workers/web3-wallet-worker/wrangler.jsonc` | `workers/web3-wallet-worker/src/index.ts` | —                                 |
 | `email-worker`       | `workers/email-worker/wrangler.jsonc`       | `workers/email-worker/src/index.ts`       | —                                 |
 | `analytics-worker`   | `workers/analytics-worker/wrangler.jsonc`   | `workers/analytics-worker/src/index.ts`   | —                                 |
+| `report-worker`      | `workers/report-worker/wrangler.jsonc`      | `workers/report-worker/src/index.ts`      | —                                 |
 
 ### 13.3 Dashboard Files
 
-| File                                  | Purpose                              |
-| ------------------------------------- | ------------------------------------ |
-| `pages/dashboard/next.config.ts`      | Next.js configuration                |
-| `pages/dashboard/wrangler.jsonc`      | Cloudflare Workers deployment config |
-| `pages/dashboard/open-next.config.ts` | OpenNext adapter configuration       |
-| `pages/dashboard/src/middleware.ts`   | Edge middleware (auth)               |
-| `pages/dashboard/.env.local`          | Local dev credentials                |
-| `pages/dashboard/.dev.vars`           | Wrangler dev credentials             |
+| File                                   | Purpose                              |
+| -------------------------------------- | ------------------------------------ |
+| `workers/dashboard/next.config.ts`      | Next.js configuration                |
+| `workers/dashboard/wrangler.jsonc`      | Cloudflare Workers deployment config |
+| `workers/dashboard/open-next.config.ts` | OpenNext adapter configuration       |
+| `workers/dashboard/src/middleware.ts`   | Edge middleware (auth)               |
+| `workers/dashboard/.env.local`          | Local dev credentials                |
+| `workers/dashboard/.dev.vars`           | Wrangler dev credentials             |
 
 ### 13.4 Package Files
 
@@ -1333,6 +1337,7 @@ curl https://<worker>.<prefix>.workers.dev/health
 
 ```
 hoox-setup/
+├── .opencode/                    # Project intelligence hub
 ├── .env.local                    # Local environment (gitignored)
 ├── .env.example                  # Environment template
 ├── wrangler.jsonc                 # Central worker config
@@ -1366,9 +1371,8 @@ hoox-setup/
 │   ├── telegram-worker/          # Telegram notifications
 │   ├── web3-wallet-worker/       # DeFi operations
 │   ├── email-worker/             # Email signal parsing
-│   └── analytics-worker/         # Analytics collection
-│
-├── pages/
+│   ├── analytics-worker/         # Analytics collection
+│   ├── report-worker/            # PDF reports
 │   └── dashboard/                # Next.js 16 dashboard
 │       ├── next.config.ts
 │       ├── wrangler.jsonc

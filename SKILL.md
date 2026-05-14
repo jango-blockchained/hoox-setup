@@ -7,7 +7,7 @@ description: Use when working on the Hoox trading system - developing workers, d
 
 ## Overview
 
-Specialized skills for AI agents working on the Hoox trading system - a Cloudflare Workers-based trading platform with multi-exchange execution.
+Specialized skills for AI agents working on the Hoox trading system — a Cloudflare Workers-based trading platform with 10 workers, multi-exchange execution, and a Next.js 16 dashboard.
 
 ## When to Use
 
@@ -20,6 +20,32 @@ Specialized skills for AI agents working on the Hoox trading system - a Cloudfla
 - Security modifications → Use security skill
 - Running tests → Use testing skill
 - Configuration changes → Use configuration skill
+
+## Agent Context Files
+
+The `.opencode/` directory is the central project-knowledge hub:
+
+| Path | Description | Priority |
+|------|-------------|----------|
+| `.opencode/context/project-intelligence/` | Architecture, tech stack, CLI, endpoints, bindings, errors, examples | critical |
+| `.opencode/context/project-intelligence/concepts/architecture.md` | Worker architecture, service binding mesh, worker map | critical |
+| `.opencode/context/project-intelligence/concepts/tech-stack.md` | Tech stack, versions, tooling | critical |
+| `.opencode/context/project-intelligence/guides/cli-commands.md` | CLI command reference | critical |
+| `.opencode/context/project-intelligence/guides/cli-services.md` | CLI service architecture | high |
+| `.opencode/context/project-intelligence/guides/docs-site.md` | Astro docs site setup | high |
+| `.opencode/context/project-intelligence/guides/local-dev.md` | Local dev workflow | high |
+| `.opencode/context/project-intelligence/examples/worker-setup.md` | Worker config examples | high |
+| `.opencode/context/project-intelligence/examples/api-patterns.md` | API endpoint patterns | high |
+| `.opencode/context/project-intelligence/lookup/endpoints.md` | Endpoint quick reference | medium |
+| `.opencode/context/project-intelligence/lookup/bindings.md` | Service bindings reference | medium |
+| `.opencode/context/project-intelligence/errors/common.md` | Common errors & fixes | medium |
+| `.opencode/plans/` | Implementation plans (19+) | high |
+| `.opencode/specs/` | Design documents (7) | high |
+| `.opencode/tasks.md` | Active 4-phase refactoring plan | critical |
+| `.opencode/tasks/` | Task breakdown JSONs | medium |
+| `.opencode/skills/` | Project-specific agent skills | medium |
+| `.opencode/external-context/` | Fetched Cloudflare docs | medium |
+| `.opencode/sessions/` | Session history | low |
 
 ## Core Skills
 
@@ -40,7 +66,22 @@ hoox workers status
 
 - Workers: `workers/*/src/index.ts`
 - Config: `workers/*/wrangler.jsonc`
-- Dashboard: `pages/dashboard/` (Cloudflare Workers + OpenNext, NOT Pages)
+- Dashboard: `workers/dashboard/` (Next.js 16 + OpenNext on Cloudflare Workers)
+
+**10 workers:**
+
+| Worker | Role | Cron | Public | Smart Placement |
+|--------|------|------|--------|-----------------|
+| hoox | Gateway entry point | No | ✅ | ✅ |
+| trade-worker | Multi-exchange execution | No | ❌ | ✅ |
+| agent-worker | AI risk manager | ✅ (\*/5) | ❌ | ✅ |
+| telegram-worker | Notifications | No | ❌ | ✅ |
+| d1-worker | Database operations | No | ❌ | ✅ |
+| web3-wallet-worker | DeFi/on-chain | No | ❌ | ✅ |
+| email-worker | Email parsing | ✅ (\*/5) | ❌ | ✅ |
+| analytics-worker | Analytics & reporting | No | ❌ | ✅ |
+| report-worker | PDF reports | ✅ 06+18UTC | ❌ | ✅ |
+| dashboard | Next.js 16 UI | No | ✅ | — |
 
 ### 2. Deployment
 
@@ -95,7 +136,7 @@ hoox housekeeping
 
 ### 5. Security
 
-- All inter-worker communication: `X-Internal-Auth-Key` header
+- All inter-worker communication via Cloudflare Service Bindings (no public URLs)
 - Dashboard: httpOnly cookie sessions (24hr expiry)
 - hoox: validates `apiKey` in webhook payloads
 - Secrets: Cloudflare Secret Store
@@ -121,7 +162,92 @@ bun test:watch               # Watch mode
 - Global: `wrangler.jsonc`
 - Worker: `workers/*/wrangler.jsonc`
 - Secrets: `wrangler secret put <name> --worker <worker>`
-- Pages: `pages/dashboard/wrangler.jsonc` (Cloudflare Workers, NOT Pages)
+- Dashboard: `workers/dashboard/wrangler.jsonc` (Cloudflare Workers + OpenNext, NOT Pages)
+
+## Architecture
+
+### Service Binding Mesh
+
+Internal workers communicate via Cloudflare Service Bindings (not public URLs). The hoox gateway is the only user-facing entry point. The dashboard has its own public URL but uses service bindings to reach internal workers.
+
+```
+hoox ──→ analytics-worker, trade-worker, telegram-worker
+trade-worker ──→ d1-worker, telegram-worker, analytics-worker
+agent-worker ──→ d1-worker, trade-worker, telegram-worker
+telegram-worker ──→ analytics-worker
+d1-worker ──→ analytics-worker
+web3-wallet-worker ──→ telegram-worker, analytics-worker
+email-worker ──→ trade-worker, analytics-worker
+report-worker ──→ telegram-worker
+dashboard ──→ d1-worker, agent-worker
+analytics-worker → (called by 6 workers, no outbound bindings)
+```
+
+### Communication Pattern
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Email     │────▶│                  │     │   Agent Worker   │
+│   Worker    │     │   Hoox Gateway   │────▶│  (AI Risk Mgr)   │
+└─────────────┘     │   (Webhook)      │     └────────┬────────┘
+                    │                  │              │
+┌─────────────┐     │  Auth/CORS/      │     ┌────────▼────────┐
+│  Telegram   │────▶│  Validation/     │     │   Trade Worker   │
+│  Worker     │     │  Rate-Limit      │     │  (Multi-Exchange)│
+└─────────────┘     │  Middleware      │     └────────┬────────┘
+                    │                  │              │
+┌─────────────┐     └────────┬─────────┘              │
+│   Web3      │              │                        │
+│ Wallet Wkr  │              │                        │
+└─────────────┘              ▼                        │
+                    ┌──────────────────┐              │
+                    │   D1 Worker      │◄─────────────┘
+                    │  (Data Access)   │
+                    └────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐     ┌─────────────────┐
+                    │   Analytics      │     │  Report Worker   │
+                    │   Worker         │────▶│  (PDF Reports)   │
+                    └──────────────────┘     └─────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│              Dashboard (workers/dashboard)               │
+│  Next.js 16 · OpenNext/Cloudflare · Service Bindings     │
+│  Connects to D1 Worker + Agent Worker via bindings        │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Infrastructure Bindings
+
+| Binding | Type | Used By |
+|---------|------|---------|
+| `*_SERVICE` | Service Binding | hoox, trade, agent, telegram, d1, web3, email, report, dashboard |
+| `CONFIG_KV` | KV Namespace | hoox, trade, agent, telegram, d1, email, dashboard |
+| `*_BUCKET` | R2 Bucket | trade, telegram, report |
+| `TRADE_QUEUE` | Queue | hoox (producer), trade (consumer) |
+| `IDEMPOTENCY_STORE` | Durable Object | hoox |
+| `DB` | D1 Database | trade, agent, d1 |
+| `AI` | Workers AI | hoox, agent, telegram |
+| `*_INDEX` | Vectorize | hoox, telegram |
+| `ANALYTICS_ENGINE` | Analytics Engine | analytics-worker |
+| `BROWSER` | Browser Rendering (REST API) | report-worker |
+
+**Common config pattern:**
+
+```jsonc
+{
+  "services": [{ "binding": "TRADE_SERVICE", "service": "trade-worker" }],
+  "kv_namespaces": [{ "binding": "CONFIG_KV", "id": "<id>" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "hoox-db", "database_id": "<id>" }],
+  "queues": { "producers": [{ "queue": "trade-execution", "binding": "TRADE_QUEUE" }] },
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE_INDEX", "index_name": "my-rag-index" }],
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS_ENGINE", "dataset": "hoox-analytics" }],
+  "durable_objects": { "bindings": [{ "name": "IDEMPOTENCY_STORE", "class_name": "IdempotencyStore" }] },
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}
+```
 
 ## Quick Reference
 
@@ -146,3 +272,4 @@ bun test:watch               # Watch mode
 - `workers/*/src/index.ts` - Worker entry points
 - `workers/*/wrangler.jsonc` - Worker configuration
 - `workers/trade-worker/schema.sql` - Database schema
+- `.opencode/` - Central project-knowledge hub (context, plans, specs, tasks, skills, sessions)

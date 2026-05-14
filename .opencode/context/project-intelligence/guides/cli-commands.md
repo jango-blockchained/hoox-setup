@@ -74,7 +74,15 @@ hoox
 │   └── rebuild                   Full guided rebuild (interactive)
 ├── logs                          Tail and view worker logs
 ├── test                          Run tests and CI pipeline
-├── waf                           Manage WAF rules
+├── waf                           Cloudflare WAF management
+│   ├── status                    Show WAF status for the zone
+│   ├── rules                     Manage WAF firewall rules
+│   │   ├── list                  List all active firewall rules
+│   │   ├── add <type> <value>    Add a WAF rule (ip-allowlist, ip-blocklist, rate-limit, custom)
+│   │   └── remove <ruleId>       Remove a WAF rule by ID
+│   └── mode                      Enable or disable WAF protection
+│       ├── enable                Enable WAF protection
+│       └── disable               Disable WAF protection
 └── dashboard                     Dashboard operations (update-urls)
 ```
 

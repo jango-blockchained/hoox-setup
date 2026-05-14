@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/examples | Priority: high | Version: 2.0 | Updated: 2026-05-12 -->
+<!-- Context: project-intelligence/examples | Priority: high | Version: 2.1 | Updated: 2026-05-14 -->
 
 # Worker Setup Example
 
@@ -43,7 +43,12 @@
 7. Register secrets via `wrangler secret put`
 8. Deploy: `wrangler deploy`
 
+## Best Practices Reference
+
+See `.opencode/external-context/cloudflare-workers/` for fetched Cloudflare Workers best practices documentation used during code review and setup.
+
 ## 📂 Codebase References
 
 **Examples**: `workers/*/wrangler.jsonc.example`
 **Templates**: `workers/*/package.json`, `workers/*/tsconfig.json`
+**External context**: `.opencode/external-context/cloudflare-workers/`

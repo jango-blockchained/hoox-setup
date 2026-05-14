@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/lookup | Priority: medium | Version: 2.0 | Updated: 2026-05-10 -->
+<!-- Context: project-intelligence/lookup | Priority: medium | Version: 3.0 | Updated: 2026-05-14 -->
 
 # Endpoint Lookup
 
@@ -23,6 +23,9 @@ Every worker exposes `GET /health` returning `{ success: true, result: { status:
 | d1-worker          | `/health` | Also verifies DB connectivity with `SELECT 1` |
 | web3-wallet-worker | `/health` | |
 | email-worker       | `/health` | Inline in fetch handler (content-type routing) |
+| analytics-worker   | `/health` | No dedicated health handler (uses fetch pattern) |
+| report-worker      | `/health` | Returns `{ status: "ok", worker: "report-worker" }` |
+| dashboard          | `/api/health` | Next.js API route |
 
 ## Internal Endpoints (Service Bindings)
 
@@ -51,6 +54,13 @@ Every worker exposes `GET /health` returning `{ success: true, result: { status:
 | d1-worker          | `/api/logs`                  | GET      | System logs        |
 | web3-wallet-worker | `/`                          | GET      | Wallet address     |
 | email-worker       | `*` (any path)               | POST     | Email/JSON parsing |
+| analytics-worker   | `/track/trade`               | POST     | Track trade event  |
+| analytics-worker   | `/track/api-call`            | POST     | Track API call     |
+| analytics-worker   | `/track/worker-perf`         | POST     | Track worker perf  |
+| analytics-worker   | `/track/signal`              | POST     | Track signal       |
+| analytics-worker   | `/track/notification`        | POST     | Track notification |
+| report-worker      | `/report`                    | GET      | Trigger PDF report |
+| report-worker      | `/health`                    | GET      | Health check       |
 
 ## 📂 Codebase References
 
