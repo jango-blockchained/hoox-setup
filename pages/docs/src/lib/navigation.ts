@@ -9,6 +9,14 @@ export interface NavSection {
   title: string;
   icon: string;
   items: NavItem[];
+  audience: "user" | "devops";
+}
+
+export function filterNavigation(
+  sections: NavSection[],
+  audience: "user" | "devops"
+): NavSection[] {
+  return sections.filter((s) => s.audience === audience);
 }
 
 export function buildNavigation(
@@ -44,6 +52,15 @@ export function buildNavigation(
     devops: "⚙️",
   };
 
+  const audienceMap: Record<string, "user" | "devops"> = {
+    "getting-started": "user",
+    guides: "user",
+    concepts: "user",
+    reference: "user",
+    tutorials: "user",
+    devops: "devops",
+  };
+
   for (const [key, items] of Object.entries(tree)) {
     if (key === "root") continue;
     const title = key
@@ -53,6 +70,7 @@ export function buildNavigation(
     sections.push({
       title,
       icon: sectionIcons[key] || "📋",
+      audience: audienceMap[key] || "user",
       items: items.sort((a, b) => a.title.localeCompare(b.title)),
     });
   }
