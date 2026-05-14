@@ -64,7 +64,7 @@ hoox dev dashboard                          # Next.js dashboard
 
 ## 📂 Codebase References
 
-**Local dev doc**: `docs/development/local-dev.md`
+**Local dev doc**: `docs/devops/development/local-dev.md`
 **CLI**: `packages/cli/src/commands/dev/dev-command.ts`
 **Prerequisites**: `packages/cli/src/services/prerequisites/`
 **Docker**: `packages/cli/src/services/docker/`
