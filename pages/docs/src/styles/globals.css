@@ -156,21 +156,43 @@
   display: none;
 }
 
-/* Custom scrollbar */
+/* Custom thin scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--secondary);
-  border-radius: 3px;
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 3px;
+  background: var(--border);
+  border-radius: 2px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
+  background: var(--muted-foreground);
+}
+
+/* ── Full-width prose ──
+ *
+ * Removes the traditional max-w-3xl constraint.
+ * Content fills the available space between sidebar and ToC.
+ * At very wide viewports, a comfortable max-width is applied
+ * to prevent line-length issues.
+ */
+
+article.prose {
+  /* Comfortable max reading width at ultra-wide viewports,
+     but still lets code blocks and tables use the full space */
+  max-width: 80ch;
+}
+
+/* Allow wide elements (code blocks, tables, mermaid) to overflow
+   the prose container on narrower viewports */
+article.prose pre,
+article.prose table,
+article.prose .mermaid-wrapper,
+article.prose .code-block-wrapper {
+  max-width: 100vw;
 }
 
 /* ── Code blocks: Shiki syntax highlighting ── */
@@ -194,6 +216,26 @@ article.prose pre > code {
 article.prose :not(pre) > code {
   @apply rounded-md border border-border bg-muted/60 px-1.5 py-0.5 text-sm font-medium;
   color: var(--foreground);
+}
+
+/* ── Component integration styles ──
+ *
+ * These styles ensure shadcn/ui components look great
+ * when used inside docs prose content.
+ */
+
+/* ── shadcn/ui components inside prose ──
+ *
+ * Prose styles apply typographic defaults to raw HTML elements.
+ * shadcn/ui components are React components rendered inside Astro content.
+ * We add spacing but the components handle their own internal styling.
+ */
+
+article.prose [data-slot="alert"],
+article.prose [data-slot="card"],
+article.prose [data-slot="accordion"],
+article.prose [data-slot="badge"] {
+  @apply my-5;
 }
 
 /* Copy button wrapper */
@@ -223,22 +265,22 @@ article.prose :not(pre) > code {
 /* ── Blockquotes ── */
 
 article.prose blockquote {
-  @apply my-4 border-l-4 border-primary/30 bg-muted/30 py-2 pl-4 pr-4 italic text-muted-foreground;
+  @apply my-6 border-l-4 border-primary/30 bg-muted/30 py-3 pl-5 pr-5 italic text-muted-foreground rounded-r-lg;
   border-image: linear-gradient(to bottom, var(--primary), var(--ring)) 1;
 }
 
 /* ── Tables ── */
 
 article.prose table {
-  @apply my-4 w-full border-collapse rounded-xl text-sm;
+  @apply my-5 w-full border-collapse rounded-xl text-sm overflow-hidden;
 }
 
 article.prose th {
-  @apply border-b-2 border-border bg-muted/50 px-3 py-2 text-left font-semibold text-foreground;
+  @apply border-b-2 border-border bg-muted/50 px-4 py-2.5 text-left font-semibold text-foreground;
 }
 
 article.prose td {
-  @apply border-b border-border px-3 py-2 text-muted-foreground;
+  @apply border-b border-border px-4 py-2.5 text-muted-foreground;
 }
 
 article.prose tr:last-child td {
@@ -251,43 +293,69 @@ article.prose a {
   @apply font-medium text-primary no-underline transition-colors hover:text-ring;
 }
 
-/* ── Headings ── */
+/* ── Headings (full-width optimized) ──
+ *
+ * Slightly larger at wider viewports for better readability.
+ */
 
 article.prose h1 {
-  @apply mb-2 mt-8 text-3xl font-bold tracking-tight text-foreground;
+  @apply mb-3 mt-10 text-3xl font-bold tracking-tight text-foreground;
+  @apply xl:text-4xl;
 }
 
 article.prose h2 {
-  @apply mb-2 mt-6 text-xl font-semibold tracking-tight text-foreground;
+  @apply mb-3 mt-8 text-xl font-semibold tracking-tight text-foreground;
+  @apply xl:text-2xl;
 }
 
 article.prose h3 {
-  @apply mb-1 mt-5 text-lg font-medium text-foreground;
+  @apply mb-2 mt-6 text-lg font-medium text-foreground;
+  @apply xl:text-xl;
+}
+
+article.prose h4 {
+  @apply mb-1 mt-4 text-base font-medium text-foreground;
 }
 
 article.prose p {
-  @apply my-3 leading-relaxed text-muted-foreground;
+  @apply my-4 leading-relaxed text-muted-foreground;
+  @apply xl:text-[1.0625rem] xl:leading-relaxed;
 }
 
 /* ── Lists ── */
 
 article.prose ul,
 article.prose ol {
-  @apply my-3 pl-6 text-muted-foreground;
+  @apply my-4 pl-6 text-muted-foreground;
+  @apply xl:text-[1.0625rem];
 }
 
 article.prose li {
-  @apply my-1 leading-relaxed;
+  @apply my-1.5 leading-relaxed;
 }
 
 /* ── Horizontal rules ── */
 
 article.prose hr {
-  @apply my-8 border-border;
+  @apply my-10 border-border;
 }
 
 /* ── Images ── */
 
 article.prose img {
-  @apply my-4 rounded-xl border border-border;
+  @apply my-6 rounded-xl border border-border;
+}
+
+/* ── Definition lists (API docs) ── */
+
+article.prose dl {
+  @apply my-4 grid grid-cols-1 gap-2;
+}
+
+article.prose dt {
+  @apply font-semibold text-foreground;
+}
+
+article.prose dd {
+  @apply text-muted-foreground pl-4 border-l-2 border-border;
 }
