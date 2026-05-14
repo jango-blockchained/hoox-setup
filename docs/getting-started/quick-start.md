@@ -1,75 +1,54 @@
 ---
-title: "🎯 Quick Start Guide"
-description: "Get up and running with Hoox in 5 minutes"
+title: "Quick Start"
+description: "Send your first trade in 5 minutes"
 ---
-# 🎯 Quick Start Guide
 
-> Get up and running with Hoox in 5 minutes
+# Quick Start
+
+> Get from zero to a deployed trading system in 5 minutes.
 
 ## Prerequisites
 
-- Bun ≥1.2
-- Cloudflare® account
-- Wrangler CLI (`npm install -g wrangler`)
+- Hoox CLI installed ([Installation](installation.md))
+- Cloudflare account
+- Exchange API keys (Binance, Bybit, or MEXC)
 
-## Step 1: Clone & Install
-
-All 9 workers are managed as Git submodules. Clone with `--recursive` to get everything:
+## Step 1: Initialize
 
 ```bash
-# Clone with all submodules
-git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
-cd hoox-setup
-
-# Install dependencies
-bun install
-
-# If you already cloned without --recursive:
-git submodule update --init --recursive
-```
-
-> **Tip:** Run `bun run typecheck` after install to verify everything compiles.
-
-## Step 2: Initialize
-
-```bash
-hoox config setup
 hoox init
 ```
 
-Follow the wizard prompts:
+Follow the prompts:
+- Enter your Cloudflare Account ID
+- Paste your API Token
+- Choose a subdomain prefix (e.g., `mytrading`)
+- Select which workers to enable
 
-1. ✅ Check dependencies
-2. 👤 Enter Cloudflare® Account ID
-3. 🔑 Enter API Token
-4. 🔤 Enter subdomain prefix (e.g., `myapp`)
-5. 📦 Select workers to enable
-
-## Step 3: Configure API Key
+## Step 2: Set Up Exchange Keys
 
 ```bash
-# Generate or use your own key
-echo "YOUR_API_KEY" > .keys/local_keys.env
-
-# Upload to Cloudflare®
-hoox secrets update-cf WEBHOOK_API_KEY_BINDING hoox
+hoox secrets update-cf BINANCE_API_KEY trade-worker
+hoox secrets update-cf BINANCE_API_SECRET trade-worker
 ```
 
-## Step 4: Deploy
+(Repeat for MEXC or Bybit keys as needed.)
+
+## Step 3: Deploy
 
 ```bash
-hoox workers deploy
+hoox deploy all
 ```
 
-## Step 5: Test
+This deploys all enabled workers to Cloudflare in the correct dependency order.
 
-Send a test webhook:
+## Step 4: Send a Test Trade
 
 ```bash
-curl -X POST https://hoox.cryptolinx.workers.dev \
+curl -X POST https://hoox.your-prefix.workers.dev \
   -H "Content-Type: application/json" \
   -d '{
-    "apiKey": "YOUR_API_KEY",
+    "apiKey": "your-api-key",
     "exchange": "mexc",
     "action": "LONG",
     "symbol": "BTC_USDT",
@@ -89,12 +68,8 @@ curl -X POST https://hoox.cryptolinx.workers.dev \
 }
 ```
 
-## What's Next?
+## Next Steps
 
-- [Architecture Overview](../architecture/overview.md)
-- [Worker Details](../workers/hoox.md)
-- [API Reference](../api/endpoints.md)
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+- [How Hoox Works](../concepts/how-hoox-works.md) — Understand the architecture
+- [Configuration](configuration.md) — Customize your setup
+- [Monitoring Guide](../guides/monitor-trading.md) — Watch your trades

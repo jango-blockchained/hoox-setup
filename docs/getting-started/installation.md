@@ -1,147 +1,60 @@
 ---
-title: "🚀 Installation Guide"
-description: "How to set up Hoox on your local machine"
+title: "Installation"
+description: "Install the Hoox CLI and bootstrap your trading project"
 ---
-# 🚀 Installation Guide
 
-> How to set up Hoox on your local machine
+# Installation
 
 ## Prerequisites
 
-| Tool                | Version | Installation                            |
-| ------------------- | ------- | --------------------------------------- | ----- |
-| Bun                 | ≥1.2    | `curl -fsSL https://bun.sh              | bash` |
-| Git                 | ≥2.40   | `apt install git`                       |
-| Cloudflare® Account | -       | [Sign up](https://dash.cloudflare.com/) |
+- **Bun** ≥1.2: `curl -fsSL https://bun.sh | bash`
+- **Cloudflare account**: [Sign up free](https://dash.cloudflare.com/)
 
-## Step 1: Bootstrap Repository
-
-### Option A: Install via CLI (Recommended)
-
-Use the `hoox` CLI to bootstrap your environment without dealing with git submodules manually:
+## Option A: Install via Package Manager (Recommended)
 
 ```bash
-# 1. Install the CLI globally
 bun add -g @jango-blockchained/hoox-cli
-
-# Alternative: Build from source
-cd packages/cli && bun run build && cd ..
-
-# 2. Download the repo and properly initialize all submodules
-hoox clone my-hoox-app
-cd my-hoox-app
 ```
 
-### Option B: Install from Source
-
-If you prefer a traditional git workflow, you can clone the repository directly. Be sure to use the `--recursive` flag to fetch all submodules:
+## Option B: Build from Source
 
 ```bash
-# 1. Clone the repository with all submodules
-git clone --recursive https://github.com/jango-blockchained/hoox-setup.git my-hoox-app
-cd my-hoox-app
-```
-
-## Step 2: Install Dependencies & Configs
-
-```bash
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
+cd hoox-setup
 bun install
-hoox config setup
+# CLI is available at packages/cli/bin/hoox.js
 ```
 
-## Step 3: Configure Cloudflare®
+## Bootstrap Your Project
 
-### Option A: Interactive Wizard
+```bash
+hoox clone my-trading-app
+cd my-trading-app
+```
+
+This clones all worker repositories as git submodules and sets up the workspace.
+
+## Initialize Configuration
 
 ```bash
 hoox init
 ```
 
-This wizard will:
-
-1. Check dependencies (bun, wrangler)
-2. Prompt for Cloudflare® credentials
-3. Enable workers in wrangler.jsonc
+The interactive wizard will:
+1. Check dependencies (bun, wrangler, git)
+2. Prompt for Cloudflare credentials
+3. Configure which workers to enable
 4. Create required secrets
-5. Deploy workers
 
-### Option B: Manual Configuration
-
-Create `wrangler.jsonc`:
-
-````jsonc
-{
-  "global": {
-    "cloudflare_api_token": "cfut_...",
-    "cloudflare_account_id": "your-account-id",
-    "cloudflare_secret_store_id": "your-secret-store-id",
-    "subdomain_prefix": "your-prefix"
-  },
-  "workers": {
-    "hoox": {
-      "enabled": true,
-      "path": "workers/hoox",
-      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"]
-    }
-  }
-}
-
-## Step 4: Create Secrets
+## Verify Installation
 
 ```bash
-# Generate a secure API key
-hoox keys generate WEBHOOK_API_KEY_BINDING
-
-# Upload to Cloudflare®
-hoox secrets update-cf WEBHOOK_API_KEY_BINDING hoox
-````
-
-## Step 5: Deploy Workers
-
-```bash
-# Deploy all enabled workers
-hoox workers deploy
-
-# Or deploy specific worker
-hoox workers deploy hoox
-```
-
-## Verification
-
-```bash
-# Run tests
-bun test
-
-# Check worker status
-hoox workers status
-```
-
-## 🆘 Troubleshooting
-
-### Submodules Not Cloned
-
-```bash
-git submodule update --init --recursive
-```
-
-### Wrangler Not Authenticated
-
-```bash
-wrangler login
-```
-
-### Missing Secrets
-
-```bash
-hoox workers setup
+hoox check prerequisites
+hoox --version
+hoox --help
 ```
 
 ## Next Steps
 
-- [Quick Start Guide](quick-start.md)
-- [Configuration](configuration.md)
-- [Architecture Overview](../architecture/overview.md)
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+- [Quick Start](quick-start.md) — Send your first trade in 5 minutes
+- [Configuration](configuration.md) — Environment variables and settings

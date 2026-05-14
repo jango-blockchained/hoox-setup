@@ -1,124 +1,73 @@
 ---
-title: "⚙️ Configuration Guide"
-description: "How to configure Hoox workers"
+title: "Configuration"
+description: "Environment variables, secrets, and settings reference"
 ---
-# ⚙️ Configuration Guide
 
-> How to configure Hoox workers
-
-## wrangler.jsonc
-
-The central configuration file is `wrangler.jsonc`. Here's a complete example:
-
-```jsonc
-{
-  // ============================================
-  // GLOBAL SETTINGS
-  // ============================================
-  "global": {
-    // Required: Cloudflare® API Token
-    "cloudflare_api_token": "cfut_...",
-
-    // Required: Your Cloudflare® Account ID
-    "cloudflare_account_id": "abc123...",
-
-    // Required: Cloudflare® Secret Store ID
-    "cloudflare_secret_store_id": "your-secret-store-id",
-
-    // Optional: Subdomain prefix (used for worker names)
-    "subdomain_prefix": "cryptolinx",
-  },
-  // ============================================
-  // WORKER CONFIGURATIONS
-  // ============================================
-  "workers": {
-    // hoox - Gateway Worker
-    "hoox": {
-      "enabled": true,
-      "path": "workers/hoox",
-      "description": "Central webhook processing",
-      "secrets": ["WEBHOOK_API_KEY", "INTERNAL_KEY"],
-    },
-    // trade-worker - Trading Engine
-    "trade-worker": {
-      "enabled": true,
-      "path": "workers/trade-worker",
-      "description": "Multi-exchange trading",
-      "secrets": ["INTERNAL_KEY", "MEXC_API_KEY", "MEXC_API_SECRET"],
-      "vars": { "DEFAULT_LEVERAGE": "20" },
-    },
-    // telegram-worker - Notifications
-    "telegram-worker": {
-      "enabled": true,
-      "path": "workers/telegram-worker",
-      "description": "Telegram bot & notifications",
-      "secrets": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID_DEFAULT"],
-    },
-    // d1-worker - Database
-    "d1-worker": {
-      "enabled": false,
-      "path": "workers/d1-worker",
-      "description": "D1 database operations",
-      "secrets": [],
-    },
-  },
-}
-```
+# Configuration
 
 ## Environment Variables
 
-### In `.keys/local_keys.env`
+Hoox uses a `.env.local` file at the project root for local configuration. Copy the template to get started:
 
 ```bash
-# For local development
-WEBHOOK_API_KEY_BINDING=your-generated-key
-INTERNAL_KEY=internal-shared-key
-TELEGRAM_BOT_TOKEN=your-bot-token
+cp .env.example .env.local
 ```
 
-### In Worker `.dev.vars`
+### Required Variables
+
+| Variable | Description |
+|----------|-------------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Worker/Account permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+| `SUBDOMAIN_PREFIX` | Prefix for worker subdomains (e.g., `mytrading`) |
+
+### Optional Variables
+
+See `.env.example` for the full list of optional variables: Telegram bot tokens, AI provider keys, exchange API keys, dashboard credentials.
+
+## Managing Configuration via CLI
 
 ```bash
-# For wrangler dev
-WEBHOOK_API_KEY_BINDING=dev-key
+# Interactive env setup
+hoox config env init
+
+# View current config (secrets redacted)
+hoox config env show
+
+# Validate required variables
+hoox config env validate
+
+# Generate per-worker dev vaults
+hoox config env generate-dev-vars
 ```
 
-## Worker Secrets
+## Worker Configuration (`wrangler.jsonc`)
 
-Each worker can define required secrets in `wrangler.jsonc`. These are prompted for during setup.
+The central `wrangler.jsonc` file controls which workers are enabled and their settings:
 
-```jsonc
-{
-  "workers": {
-    "hoox": {
-      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
-    },
-  },
-}
+```bash
+# Show current config
+hoox config show
+
+# Update configuration
+hoox config set workers.hoox.enabled true
 ```
 
-Available secret types:
+## KV Configuration (Runtime Settings)
 
-- `WEBHOOK_API_KEY_BINDING` - External API key for webhook validation
-- `INTERNAL_KEY_BINDING` - Internal service authentication
-- Exchange keys (MEXC_API_KEY, etc.)
-- Telegram tokens
+Some settings can be changed without redeploying:
 
-## KV Configuration
+```bash
+# Check kill switch status
+hoox config kv get trade:kill_switch
 
-Configure KV settings via the `/admin/ui` or directly in KV:
+# Set maximum daily drawdown
+hoox config kv set trade:max_daily_drawdown_percent 10
 
-| Key                                    | Type   | Description             |
-| -------------------------------------- | ------ | ----------------------- |
-| `webhook:tradingview:ip_check_enabled` | string | Enable IP allow-listing |
-| `webhook:allowed_ips`                  | string | Comma-separated IPs     |
-| `routing:dynamic:enabled`              | string | Enable dynamic routing  |
+# Apply all default settings
+hoox config kv apply-manifest
+```
 
 ## Next Steps
 
-- [Architecture Overview](../architecture/overview.md)
-- [Worker Details](../workers/hoox.md)
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+- [Deploy Workers](../guides/deploy-workers.md) — Deploy your configured system

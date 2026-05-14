@@ -1,101 +1,50 @@
 ---
 title: "📚 Hoox Documentation"
-description: "Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform"
+description: "User guide for the Hoox algorithmic trading CLI"
 ---
+
 # 📚 Hoox Documentation
 
-> Comprehensive guide to the Hoox Cloudflare® Edge Worker Platform
+> User guide for the Hoox algorithmic trading CLI platform.
 
-## 📖 Table of Contents
+## 👋 New to Hoox? Start Here
 
-### Getting Started
+- [Installation](getting-started/installation.md) — Install the CLI and bootstrap your project
+- [Quick Start](getting-started/quick-start.md) — Send your first trade in 5 minutes
+- [How Hoox Works](concepts/how-hoox-works.md) — High-level overview of signals, trades, and notifications
 
-- [Installation](getting-started/installation.md)
-- [Installation Flow](getting-started/installation-flow.md)
-- [Quick Start Guide](getting-started/quick-start.md)
-- [Configuration](getting-started/configuration.md)
-- [Complete Setup & Operations Guide](setup_and_operations.md)
+## 📘 Guides
 
-### Architecture
+- [Deploy Workers](guides/deploy-workers.md) — Deploy and update your trading infrastructure
+- [Manage Infrastructure](guides/manage-infra.md) — D1, KV, R2, Queues via hoox infra
+- [Monitor Trading](guides/monitor-trading.md) — Health checks, kill switch, logs, and metrics
+- [Database Operations](guides/database-ops.md) — Schema, migrations, queries, and backups
+- [Repair & Recovery](guides/repair.md) — Diagnose and fix system issues
+- [Secrets & Security](guides/secrets-security.md) — Manage API keys and secrets
+- [Local Development](guides/local-development.md) — Develop with hot-reload, TUI, or Docker
 
-- [System Overview](architecture/overview.md)
-- [Worker Communication](architecture/communication.md)
-- [Data Flow](architecture/data-flow.md)
-- [Bindings & Environment](architecture/bindings.md)
-- [Bindings Reference](bindings.md)
-- [Storage Architecture](storages.md)
+## 🧠 Concepts
 
-### Workers
+- [Cloudflare Services Explained](concepts/cloudflare-services.md) — D1, KV, R2, Queues, Vectorize in plain English
+- [Edge Architecture](concepts/edge-architecture.md) — What Cloudflare Workers means for latency
+- [Idempotency](concepts/idempotency.md) — How Durable Objects prevent duplicate trades
+- [Signals & Trades](concepts/signals-and-trades.md) — How a TradingView alert becomes an order
+- [AI Risk Manager](concepts/ai-risk-manager.md) — Automated portfolio monitoring and protection
 
-Each worker has its own documentation file:
+## 📖 Reference
 
-- [hoox Gateway](workers/hoox.md) - Main gateway worker (65% line coverage)
-- [trade-worker](workers/trade-worker.md) - Trading engine (80% line coverage)
-- [telegram-worker](workers/telegram-worker.md) - Telegram bot & notifications (94% line coverage)
-- [d1-worker](workers/d1-worker.md) - Database operations (94% line coverage)
-- [agent-worker](workers/agent-worker.md) - Autonomous AI & Risk Manager (68% line coverage)
-- [dashboard](workers/dashboard.md) - UI & Settings Manager (Workers + OpenNext at `workers/dashboard/`)
-- [web3-wallet-worker](workers/web3-wallet-worker.md) - Web3 interactions (83% line coverage)
-- [email-worker](workers/email-worker.md) - Email processing (97% line coverage)
-- [analytics-worker](workers/analytics-worker.md) - Analytics collection
-- [report-worker](workers/report-worker.md) - Automated PDF reports via Browser Rendering
+- [CLI Commands](reference/cli-commands.md) — Full command tree and flags
+- [API Endpoints](reference/api-endpoints.md) — Webhook HTTP API reference
+- [Configuration](getting-started/configuration.md) — Environment variables, secrets, and settings
 
-### CLI Reference
+## 🎯 Tutorials
 
-- [CLI Features & Commands](cli_features.md)
-
-### API Reference
-
-- [Endpoints](api/endpoints.md)
-- [Payloads](api/payloads.md)
-- [Responses](api/responses.md)
-- [Endpoints Reference](endpoints.md)
-
-### Development
-
-- [Local Development](development/local-dev.md)
-- [Testing](development/testing.md)
-- [Debugging](development/debugging.md)
-
-### Deployment
-
-- [Production Setup](deployment/production.md)
-- [CI/CD](deployment/cicd.md)
-- [Monitoring](deployment/monitoring.md)
-
-### `.opencode/` — Project Intelligence Hub
-
-- [Project Intelligence Context](/.opencode/context/project-intelligence/navigation.md) — architecture, tech stack, CLI reference, endpoint lookups, common errors, examples, guides
-- [Implementation Plans](/.opencode/plans/) — 19+ plans for features & refactoring
-- [Design Specs](/.opencode/specs/) — 7 design documents
-- [Task Management](/.opencode/tasks.md) — active 4-phase refactoring plan
-- [Task Breakdowns](/.opencode/tasks/) — JSON task definitions
-- [Agent Skills](/.opencode/skills/) — project-specific agent skills (shadcn, nextjs-build, task-management)
+- [TradingView Webhook](tutorials/tradingview-webhook.md) — Connect TradingView alerts to Hoox
+- [Telegram Bot](tutorials/telegram-bot.md) — Set up notifications and commands
+- [Email Signals](tutorials/email-signals.md) — Configure email parsing for trade signals
 
 ## 🔗 Quick Links
 
-- [Live Demo](https://hoox.cryptolinx.workers.dev)
 - [GitHub Repository](https://github.com/jango-blockchained/hoox-setup)
-- [Docs Site (GitHub Pages)](https://jango-blockchained.github.io/hoox-setup/)
 - [Report Issues](https://github.com/jango-blockchained/hoox-setup/issues)
-
-## 📊 Feature Matrix
-
-| Feature              | hoox | trade | telegram | agent | dash | d1  | web3 | email | analytics | report |
-| -------------------- | ---- | ----- | -------- | ----- | ---- | --- | ---- | ----- | --------- | ------ |
-| API Key Auth         | ✅   | ✅    | ✅       | -     | -    | -   | ✅   | -     | -         | -      |
-| IP Allow-list        | ✅   | -     | -        | -     | -    | -   | -    | -     | -         | -      |
-| Service Binding      | -    | ✅    | ✅       | ✅    | -    | -   | -    | ✅    | -         | ✅     |
-| D1 Storage           | -    | ✅    | -        | ✅    | -    | ✅  | -    | -     | -         | -      |
-| R2 Storage           | -    | ✅    | ✅       | -     | -    | -   | ✅   | -     | -         | ✅     |
-| KV Storage           | ✅   | ✅    | ✅       | ✅    | ✅   | -   | -    | ✅    | -         | -      |
-| AI/Vectorize         | -    | -     | ✅       | ✅    | -    | -   | -    | -     | -         | -      |
-| Cron Triggers        | -    | -     | -        | ✅    | -    | -   | -    | -     | -         | ✅     |
-| Smart Placement      | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | -         | ✅     |
-| Browser Rendering    | -    | -     | -        | -     | -    | -   | -    | -     | -         | ✅     |
-| Observability        | ✅   | ✅    | ✅       | ✅    | -    | ✅  | -    | -     | ✅        | ✅     |
-| Cloudflare Workers   | -    | -     | -        | -     | ✅   | -   | -    | -     | -         | -      |
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+- [DevOps Manual](devops/home.md) — For operators and infrastructure engineers
