@@ -37,6 +37,7 @@ program
 // Global options — accessible by all commands via program.opts()
 program.option("--json", "Output in JSON format");
 program.option("--quiet", "Minimal output");
+program.option("-y, --yes", "Skip confirmation prompts");
 
 // ---------------------------------------------------------------------------
 // Error handling — map CommanderError and CLIError to proper exit codes
@@ -139,6 +140,7 @@ import { registerDashboardCommand } from "./commands/dashboard/index.js";
 import { registerDbCommand } from "./commands/db/index.js";
 import { registerMonitorCommand } from "./commands/monitor/index.js";
 import { registerRepairCommand } from "./commands/repair/index.js";
+import { registerUpdateCommand } from "./commands/update/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
 registerInitCommand(program);
@@ -155,6 +157,38 @@ registerDashboardCommand(program);
 registerDbCommand(program);
 registerMonitorCommand(program);
 registerRepairCommand(program);
+registerUpdateCommand(program);
+
+// ---------------------------------------------------------------------------
+// preAction hooks — auto-check wrangler version before dev/deploy
+// ---------------------------------------------------------------------------
+
+import { UpdateService } from "./services/update/index.js";
+
+const devCmd = program.commands.find(c => c.name() === "dev");
+if (devCmd) {
+  const devStartCmd = devCmd.commands.find(c => c.name() === "start");
+  if (devStartCmd) {
+    devStartCmd.hook("preAction", async () => {
+      const service = new UpdateService();
+      await service.checkAndPromptUpdate({ yes: program.opts().yes });
+    });
+  }
+}
+
+const deployCmd = program.commands.find(c => c.name() === "deploy");
+if (deployCmd) {
+  const deploySubs = ["all", "workers", "worker", "dashboard"];
+  for (const sub of deploySubs) {
+    const cmd = deployCmd.commands.find(c => c.name() === sub);
+    if (cmd) {
+      cmd.hook("preAction", async () => {
+        const service = new UpdateService();
+        await service.checkAndPromptUpdate({ yes: program.opts().yes });
+      });
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Main entry — exported so bin/hoox.js can invoke it explicitly
