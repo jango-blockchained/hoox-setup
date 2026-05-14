@@ -194,3 +194,106 @@ export interface ProcessRequestBody<T = unknown> {
   internalAuthKey?: string;
   payload: T;
 }
+
+// --- TUI / Dashboard display types ---
+
+/**
+ * Information about a Cloudflare Worker for the TUI dashboard.
+ * Mirrors the data surfaced from the hoox-setup REST API.
+ */
+export interface WorkerInfo {
+  id: string;
+  name: string;
+  status: "operational" | "degraded" | "down";
+  /** Uptime in seconds */
+  uptime: number;
+  /** Average CPU time in milliseconds */
+  cpuAvgMs: number;
+  /** P99 CPU time in milliseconds */
+  cpuP99Ms: number;
+  /** Current memory usage in MB */
+  memoryMB: number;
+  /** Memory limit in MB */
+  memoryLimitMB: number;
+  /** Requests in the last 24 hours */
+  requests24h: number;
+  /** Errors in the last 24 hours */
+  errors24h: number;
+  /** Number of Durable Object instances */
+  durableObjects: number;
+  /** ISO 8601 timestamp of last deployment */
+  lastDeployed: string;
+}
+
+/**
+ * A single trade event for the TUI trade monitor.
+ */
+export interface Trade {
+  id: string;
+  /** Unix timestamp in milliseconds */
+  timestamp: number;
+  exchange: "binance" | "bybit" | "mexc";
+  side: "buy" | "sell";
+  symbol: string;
+  quantity: number;
+  price: number;
+  status: "filled" | "pending" | "rejected";
+  /** Latency in milliseconds */
+  latencyMs: number;
+}
+
+/**
+ * A system alert surfaced in the TUI dashboard.
+ */
+export interface Alert {
+  id: string;
+  severity: "critical" | "warning" | "info";
+  /** Optional linked worker ID */
+  workerId?: string;
+  message: string;
+  /** Unix timestamp in milliseconds */
+  timestamp: number;
+  acknowledged: boolean;
+}
+
+/**
+ * A single log entry for the TUI logs viewer.
+ */
+export interface LogEntry {
+  id: string;
+  /** Unix timestamp in milliseconds */
+  timestamp: number;
+  level: "debug" | "info" | "warn" | "error";
+  workerId?: string;
+  message: string;
+  /** Optional structured metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Aggregate system-level metrics for the TUI dashboard overview.
+ */
+export interface SystemMetrics {
+  /** Total number of configured workers */
+  totalWorkers: number;
+  /** Workers currently operational */
+  operationalWorkers: number;
+  /** Workers in degraded state */
+  degradedWorkers: number;
+  /** Workers currently down */
+  downWorkers: number;
+  /** Total trades in the last 24 hours */
+  trades24h: number;
+  /** Total errors in the last 24 hours */
+  errors24h: number;
+  /** Average latency across all workers (ms) */
+  avgLatencyMs: number;
+  /** Total P&L in USD */
+  totalPnl: number;
+  /** Active trading strategies count */
+  activeStrategies: number;
+  /** AI agent calls in the last 24 hours */
+  aiCalls24h: number;
+  /** Unix timestamp in milliseconds */
+  timestamp: number;
+}
