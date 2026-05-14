@@ -1,5 +1,7 @@
 # @jango-blockchained/hoox-cli
 
+> **See also:** [Hoox User Guide](../docs/home.md) · [CLI Command Reference](../docs/reference/cli-commands.md)
+
 Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments.
 
 381 unit tests, 15 command groups, 50+ subcommands.

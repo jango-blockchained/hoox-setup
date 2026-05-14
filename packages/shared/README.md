@@ -1,39 +1,21 @@
-# @jango-blockchained/hoox-shared
+# @hoox/shared
 
-**Last Updated:** May 2026
+Shared types, custom router, middleware (auth, CORS, rate-limit, logger), error factories, and utilities.
 
-A shared utility library used across the Hoox Trading System workers. It provides common types, response helpers, and utility functions.
+## For CLI Users
 
-> **Part of the [Hoox Trading System](https://github.com/jango-blockchained/hoox-setup)** - A zero-latency edge trading ecosystem.
+This is an internal package — installed automatically as a workspace dependency. No CLI commands needed.
 
-## Contents
+→ [Architecture Overview](../../docs/devops/architecture/overview.md)
 
-### 1. `exchange-client.ts`
+## For Operators
 
-Base classes and utilities for implementing exchange clients (Binance, MEXC, Bybit).
+This package provides the shared foundation for all Hoox workers. It includes standardized JSON response helpers, KV utility functions, exchange client base classes, common TypeScript types, and middleware components used by the hoox gateway.
 
-### 2. `json-response.ts`
+→ [Architecture Overview](../../docs/devops/architecture/overview.md)
 
-Standardized JSON response formats for all API endpoints.
+## Development
 
-### 3. `kvUtils.ts`
-
-Helpers for interacting with Cloudflare KV storage (fetching, parsing configurations).
-
-### 4. `types.ts`
-
-Common TypeScript interfaces used across components (e.g., configurations, secrets).
-
-## Usage
-
-This package is installed locally in the mono-repo and shared across workers.
-
-```json
-"dependencies": {
-  "@jango-blockchained/hoox-shared": "workspace:*"
-}
+```bash
+bun test packages/shared
 ```
-
----
-
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
