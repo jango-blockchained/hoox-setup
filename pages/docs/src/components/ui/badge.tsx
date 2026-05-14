@@ -19,6 +19,14 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        /** Docs: marks new/added features */
+        new: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/10 [a]:hover:bg-emerald-500/20",
+        /** Docs: marks deprecated features */
+        deprecated:
+          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/10 [a]:hover:bg-amber-500/20 line-through decoration-amber-500/50",
+        /** Docs: marks experimental/beta features */
+        experimental:
+          "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400 dark:bg-violet-500/10 [a]:hover:bg-violet-500/20",
       },
     },
     defaultVariants: {
@@ -27,6 +35,21 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * Badge — status indicators for docs pages.
+ *
+ * **Astro docs usage:**
+ * - API status: `<Badge variant="new">New</Badge>`
+ * - Deprecation: `<Badge variant="deprecated">Deprecated</Badge>`
+ * - Experimental: `<Badge variant="experimental">Beta</Badge>`
+ *
+ * @example
+ * ```tsx
+ * <Badge variant="new">v2.0</Badge>
+ * <Badge variant="deprecated">Will be removed</Badge>
+ * <Badge variant="experimental">Experimental</Badge>
+ * ```
+ */
 function Badge({
   className,
   variant = "default",

@@ -5,6 +5,28 @@ import { useRender } from "@base-ui/react/use-render"
 import { cn } from "@/lib/utils"
 import { ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 
+/**
+ * Breadcrumb — hierarchical navigation trail for docs pages.
+ *
+ * **Astro docs usage:**
+ * Displayed at the top of every doc page showing the path from home.
+ *
+ * @example
+ * ```tsx
+ * <Breadcrumb>
+ *   <BreadcrumbList>
+ *     <BreadcrumbItem>
+ *       <BreadcrumbLink href="/">Home</BreadcrumbLink>
+ *     </BreadcrumbItem>
+ *     <BreadcrumbSeparator />
+ *     <BreadcrumbItem>
+ *       <BreadcrumbPage>Getting Started</BreadcrumbPage>
+ *     </BreadcrumbItem>
+ *   </BreadcrumbList>
+ * </Breadcrumb>
+ * ```
+ */
+
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
@@ -22,6 +44,7 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
       data-slot="breadcrumb-list"
       className={cn(
         "flex flex-wrap items-center gap-1.5 text-sm wrap-break-word text-muted-foreground",
+        "md:gap-2",
         className
       )}
       {...props}
@@ -33,7 +56,7 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
       data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1", className)}
+      className={cn("inline-flex items-center gap-1.5", className)}
       {...props}
     />
   )
@@ -48,7 +71,12 @@ function BreadcrumbLink({
     defaultTagName: "a",
     props: mergeProps<"a">(
       {
-        className: cn("transition-colors hover:text-foreground", className),
+        className: cn(
+          "transition-colors hover:text-foreground",
+          // Docs: truncated breadcrumb links for deeply nested pages
+          "max-w-[12ch] truncate md:max-w-[20ch]",
+          className
+        ),
       },
       props
     ),
@@ -66,7 +94,12 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
       role="link"
       aria-disabled="true"
       aria-current="page"
-      className={cn("font-normal text-foreground", className)}
+      className={cn(
+        "font-normal text-foreground",
+        // Docs: current page shouldn't truncate
+        "max-w-none truncate",
+        className
+      )}
       {...props}
     />
   )
@@ -85,9 +118,7 @@ function BreadcrumbSeparator({
       className={cn("[&>svg]:size-3.5", className)}
       {...props}
     >
-      {children ?? (
-        <ChevronRightIcon />
-      )}
+      {children ?? <ChevronRightIcon />}
     </li>
   )
 }
@@ -107,8 +138,7 @@ function BreadcrumbEllipsis({
       )}
       {...props}
     >
-      <MoreHorizontalIcon
-      />
+      <MoreHorizontalIcon />
       <span className="sr-only">More</span>
     </span>
   )
