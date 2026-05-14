@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createErrorResponse, Errors } from "@shared/errors";
+import { Errors } from "@shared/errors";
 import type { DashboardEnv } from "@/lib/env";
-import { z } from "zod";
-
-const agentConfigSchema = z.object({
-  defaultProvider: z.string().optional(),
-  fallbackChain: z.array(z.string()).optional(),
-  modelMap: z.record(z.string(), z.string()).optional(),
-  timeoutMs: z.number().optional(),
-  retryCount: z.number().optional(),
-  maxDailyDrawdownPercent: z.number().optional(),
-  trailingStopPercent: z.number().optional(),
-  takeProfitPercent: z.number().optional(),
-});
+import { agentConfigSchema } from "@/lib/agent-config-schema";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";

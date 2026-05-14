@@ -2,11 +2,30 @@ import { describe, it, expect, mock } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Result } from "./types.js";
 import { SecretsService } from "./secrets-service.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Narrow a discriminated union Result<T> after checking ok.
+ * Calling expect(result.ok).toBe(true) does not narrow the type,
+ * so we use this to unwrap the value after asserting ok.
+ */
+function expectOk<T>(result: Result<T>): T {
+  expect(result.ok).toBe(true);
+  return (result as { ok: true; value: T }).value;
+}
+
+/**
+ * Assert a Result<T> is an error and return the error message.
+ */
+function expectErr<T>(result: Result<T>): string {
+  expect(result.ok).toBe(false);
+  return (result as { ok: false; error: string }).error;
+}
 
 const WORKERS_JSONC = JSON.stringify({
   global: {},
@@ -256,8 +275,7 @@ describe("SecretsService", () => {
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         const result = await svc.generateDevVars("telegram-worker");
-        expect(result.success).toBe(true);
-        expect(result.data).toBe(join(dir, ".dev.vars"));
+        expect(expectOk(result)).toBe(join(dir, ".dev.vars"));
 
         // Verify file content
         const content = await Bun.file(join(dir, ".dev.vars")).text();
@@ -277,8 +295,7 @@ describe("SecretsService", () => {
         (svc as any).config.workers["no-secrets-worker"].path = dir;
 
         const result = await svc.generateDevVars("no-secrets-worker");
-        expect(result.success).toBe(true);
-        expect(result.data).toBe(join(dir, ".dev.vars"));
+        expect(expectOk(result)).toBe(join(dir, ".dev.vars"));
 
         const content = await Bun.file(join(dir, ".dev.vars")).text();
         expect(content).toBe("");
@@ -290,8 +307,7 @@ describe("SecretsService", () => {
     it("returns error for unknown worker", async () => {
       const svc = await createService();
       const result = await svc.generateDevVars("unknown-worker");
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("not found in config");
+      expect(expectErr(result)).toContain("not found in config");
     });
 
     it("overwrites existing .dev.vars", async () => {
@@ -341,8 +357,7 @@ describe("SecretsService", () => {
         );
 
         const result = await svc.syncToCloudflare("telegram-worker");
-        expect(result.success).toBe(true);
-        expect(result.data).toEqual(["TELEGRAM_BOT_TOKEN"]);
+        expect(expectOk(result)).toEqual(["TELEGRAM_BOT_TOKEN"]);
         expect(called).toEqual([["TELEGRAM_BOT_TOKEN", "my-real-token"]]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -370,11 +385,10 @@ describe("SecretsService", () => {
         );
 
         const result = await svc.syncToCloudflare("trade-worker");
-        // Only BINANCE_API_KEY was synced
-        expect(result.success).toBe(false); // partial success = false
-        expect(result.data).toEqual(["BINANCE_API_KEY"]);
-        expect(result.error).toContain("API_SERVICE_KEY");
-        expect(result.error).toContain("BINANCE_API_SECRET");
+        const errMsg = expectErr(result);
+        // Only BINANCE_API_KEY was synced — but errors exist, so overall result is error
+        expect(errMsg).toContain("API_SERVICE_KEY");
+        expect(errMsg).toContain("BINANCE_API_SECRET");
         expect(called).toEqual([["BINANCE_API_KEY", "real-binance-key"]]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -397,11 +411,10 @@ describe("SecretsService", () => {
         );
 
         const result = await svc.syncToCloudflare("trade-worker");
-        expect(result.success).toBe(false);
-        expect(result.data).toBeUndefined();
-        expect(result.error).toContain("API_SERVICE_KEY");
-        expect(result.error).toContain("BINANCE_API_KEY");
-        expect(result.error).toContain("BINANCE_API_SECRET");
+        const errMsg = expectErr(result);
+        expect(errMsg).toContain("API_SERVICE_KEY");
+        expect(errMsg).toContain("BINANCE_API_KEY");
+        expect(errMsg).toContain("BINANCE_API_SECRET");
         expect(called).toHaveLength(0);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -411,8 +424,7 @@ describe("SecretsService", () => {
     it("returns error for unknown worker", async () => {
       const svc = await createService();
       const result = await svc.syncToCloudflare("unknown-worker");
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("not found in config");
+      expect(expectErr(result)).toContain("not found in config");
     });
 
     it("handles wrangler failures gracefully", async () => {
@@ -431,9 +443,7 @@ describe("SecretsService", () => {
         });
 
         const result = await svc.syncToCloudflare("telegram-worker");
-        expect(result.success).toBe(false);
-        expect(result.data).toBeUndefined();
-        expect(result.error).toContain("wrangler command failed");
+        expect(expectErr(result)).toContain("wrangler command failed");
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -447,8 +457,7 @@ describe("SecretsService", () => {
         (svc as any).config.workers["no-secrets-worker"].path = dir;
 
         const result = await svc.syncToCloudflare("no-secrets-worker");
-        expect(result.success).toBe(true);
-        expect(result.data).toEqual([]);
+        expect(expectOk(result)).toEqual([]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

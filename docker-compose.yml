@@ -32,9 +32,8 @@ services:
     volumes:
       - ./workers/trade-worker:/app/workers/trade-worker
       - ./.wrangler/state:/app/.wrangler/state
-    environment:
-      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
-      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    env_file:
+      - .env.local
     networks:
       - hoox-net
     depends_on:
@@ -77,6 +76,8 @@ services:
     volumes:
       - ./workers/d1-worker:/app/workers/d1-worker
       - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
     networks:
       - hoox-net
     depends_on:
@@ -164,6 +165,51 @@ services:
       - "8796:8796"
     volumes:
       - ./workers/email-worker:/app/workers/email-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+    restart: unless-stopped
+    profiles:
+      - workers
+      - full
+
+  report-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-report
+    command: bunx wrangler dev -c workers/report-worker/wrangler.jsonc --local --port 8797
+    ports:
+      - "8797:8797"
+    volumes:
+      - ./workers/report-worker:/app/workers/report-worker
+      - ./.wrangler/state:/app/.wrangler/state
+    env_file:
+      - .env.local
+    networks:
+      - hoox-net
+    depends_on:
+      - hoox
+      - d1-worker
+    restart: unless-stopped
+    profiles:
+      - workers
+      - full
+
+  analytics-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: hoox-analytics
+    command: bunx wrangler dev -c workers/analytics-worker/wrangler.jsonc --local --port 8798
+    ports:
+      - "8798:8798"
+    volumes:
+      - ./workers/analytics-worker:/app/workers/analytics-worker
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local

@@ -20,7 +20,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { FieldGroup } from "@/components/ui/field";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useState } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export function TestModel() {
   const [provider, setProvider] = useState("workers-ai");

@@ -1,10 +1,11 @@
+import type { Result } from "@jango-blockchained/hoox-shared";
+
 /**
- * WranglerResult<T> — discriminated union for all wrangler CLI operations.
- * Pattern: never throws; callers match on `ok` to handle success/error.
+ * WranglerResult<T> — alias for the shared Result<T> type, used for all
+ * wrangler CLI operations. Pattern: never throws; callers match on `ok`
+ * to handle success/error.
  */
-export type WranglerResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+export type WranglerResult<T> = Result<T>;
 
 /** Result of a wrangler deploy operation. */
 export interface DeployResult {

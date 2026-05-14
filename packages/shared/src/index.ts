@@ -13,6 +13,7 @@ export type {
   SettingsPayload,
   ProcessRequestBody,
   BaseEnv,
+  Result,
 } from "./types.js";
 export {
   TradeActionSchema,
@@ -51,6 +52,7 @@ export type { AnalyticsEnv } from "./analytics.js";
 export { healthCheck } from "./health.js";
 export type { HealthCheckOptions } from "./health.js";
 export { D1Repository } from "./d1/index.js";
+export { serviceFetch } from "./service-bindings.js";
 export type {
   TradeRecord,
   PositionRecord,

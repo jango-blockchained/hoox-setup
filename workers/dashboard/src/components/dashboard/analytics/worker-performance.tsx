@@ -46,6 +46,7 @@ export function WorkerPerformance() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
@@ -54,18 +55,20 @@ export function WorkerPerformance() {
           window.location.origin
         );
         url.searchParams.set("worker", selectedWorker);
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: controller.signal });
         const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
           setData(json.data || []);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch worker performance:", error);
       } finally {
         setLoading(false);
       }
     }
     if (mounted) fetchData();
+    return () => controller.abort();
   }, [selectedWorker, mounted]);
 
   if (!mounted) return null;

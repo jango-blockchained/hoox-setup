@@ -3,23 +3,24 @@
 import { KillSwitch } from "@/components/agent/kill-switch";
 import { RiskParameters } from "@/components/agent/risk-parameters";
 import { TrailingStops } from "@/components/agent/trailing-stops";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Shield } from "lucide-react";
-import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export default function RiskClient() {
   const [killSwitchActive, setKillSwitchActive] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchStatus = async () => {
+  const fetchStatus = async (signal?: AbortSignal) => {
     try {
-      const res = await fetch("/api/agent/status");
+      const res = await fetch("/api/agent/status", { signal });
       const data = await res.json();
       if (data.success) {
         setKillSwitchActive(data.status?.killSwitch || false);
       }
     } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
       toast.error("Failed to fetch status");
     } finally {
       setLoading(false);
@@ -27,7 +28,9 @@ export default function RiskClient() {
   };
 
   useEffect(() => {
-    fetchStatus();
+    const controller = new AbortController();
+    fetchStatus(controller.signal);
+    return () => controller.abort();
   }, []);
 
   const handleToggleKillSwitch = async (
@@ -53,28 +56,11 @@ export default function RiskClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex items-center gap-3"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
-        >
-          <Shield className="h-8 w-8 text-primary" />
-        </motion.div>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Risk Management
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Parameters & overrides
-          </p>
-        </div>
-      </motion.div>
+      <PageHeader
+        icon={<Shield className="h-8 w-8 text-primary" />}
+        title="Risk Management"
+        description="Parameters & overrides"
+      />
 
       {loading ? (
         <div className="flex flex-col gap-4">

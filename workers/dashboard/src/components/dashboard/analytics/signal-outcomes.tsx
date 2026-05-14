@@ -38,6 +38,7 @@ export function SignalOutcomes() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
@@ -49,18 +50,20 @@ export function SignalOutcomes() {
             new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
           );
         }
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: controller.signal });
         const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
           setData(json.data || []);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch signal outcomes:", error);
       } finally {
         setLoading(false);
       }
     }
     if (mounted) fetchData();
+    return () => controller.abort();
   }, [timeRange, mounted]);
 
   if (!mounted) return null;

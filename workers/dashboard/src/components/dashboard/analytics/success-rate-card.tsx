@@ -34,6 +34,7 @@ export function SuccessRateCard() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
@@ -48,18 +49,20 @@ export function SuccessRateCard() {
           window.location.origin
         );
         if (timeRangeParam) url.searchParams.set("timeRange", timeRangeParam);
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: controller.signal });
         const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success && json.data && json.data.length > 0) {
           setData(json.data[0]);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch success rate:", error);
       } finally {
         setLoading(false);
       }
     }
     if (mounted) fetchData();
+    return () => controller.abort();
   }, [timeRange, mounted]);
 
   if (!mounted) return null;

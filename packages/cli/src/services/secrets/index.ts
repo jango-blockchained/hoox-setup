@@ -4,7 +4,6 @@ export {
 } from "./secrets-service.js";
 export type {
   Result,
-  WranglerResult,
   SecretStatus,
   SecretCheckResult,
   WorkerSecretConfig,

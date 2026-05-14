@@ -6,6 +6,7 @@
 
 import { CLIError, ExitCode } from "./errors.js";
 import { theme, icons, stripAnsi, hr } from "./theme.js";
+import { Command } from "commander";
 
 export interface FormatOptions {
   json?: boolean;
@@ -256,4 +257,13 @@ export function formatList(
   for (const item of items) {
     process.stdout.write(`  ${icon} ${item}\n`);
   }
+}
+
+/**
+ * Build the format options for output, reading global --json / --quiet flags.
+ * Uses `optsWithGlobals()` to include options inherited from the top-level program.
+ */
+export function getFormatOptions(cmd: Command): FormatOptions {
+  const opts = cmd.optsWithGlobals();
+  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }

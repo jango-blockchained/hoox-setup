@@ -55,8 +55,8 @@ function captureStdout(): { output: () => string; restore: () => void } {
 // ---------------------------------------------------------------------------
 
 /** Successful wrangler result with data. */
-function okResult<T>(data: T): WranglerResult<T> {
-  return { ok: true, data } as WranglerResult<T>;
+function okResult<T>(value: T): WranglerResult<T> {
+  return { ok: true, value } as WranglerResult<T>;
 }
 
 /** Failed wrangler result with error message. */

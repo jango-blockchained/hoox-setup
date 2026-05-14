@@ -1,8 +1,8 @@
 import { parse as parseJsonc } from "jsonc-parser";
 import type {
+  Result,
   SecretCheckResult,
   SecretStatus,
-  WranglerResult,
   WorkersJsonc,
 } from "./types.js";
 
@@ -140,11 +140,11 @@ export class SecretsService {
    * Creates (or overwrites) a `.dev.vars` template file for a worker
    * with placeholder values for every secret declared in `wrangler.jsonc`.
    */
-  async generateDevVars(workerName: string): Promise<WranglerResult<string>> {
+  async generateDevVars(workerName: string): Promise<Result<string>> {
     const worker = this.config.workers[workerName];
     if (!worker) {
       return {
-        success: false,
+        ok: false,
         error: `Worker "${workerName}" not found in config`,
       };
     }
@@ -159,10 +159,10 @@ export class SecretsService {
 
     try {
       await Bun.write(devVarsPath, content);
-      return { success: true, data: devVarsPath };
+      return { ok: true, value: devVarsPath };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      return { success: false, error: `Failed to write .dev.vars: ${message}` };
+      return { ok: false, error: `Failed to write .dev.vars: ${message}` };
     }
   }
 
@@ -175,11 +175,11 @@ export class SecretsService {
    */
   async syncToCloudflare(
     workerName: string
-  ): Promise<WranglerResult<string[]>> {
+  ): Promise<Result<string[]>> {
     const worker = this.config.workers[workerName];
     if (!worker) {
       return {
-        success: false,
+        ok: false,
         error: `Worker "${workerName}" not found in config`,
       };
     }
@@ -215,15 +215,11 @@ export class SecretsService {
       }
     }
 
-    if (synced.length === 0 && errors.length > 0) {
-      return { success: false, error: errors.join("; ") };
+    if (errors.length > 0) {
+      return { ok: false, error: errors.join("; ") };
     }
 
-    return {
-      success: errors.length === 0,
-      data: synced,
-      error: errors.length > 0 ? errors.join("; ") : undefined,
-    };
+    return { ok: true, value: synced };
   }
 
   // -----------------------------------------------------------------------

@@ -2,6 +2,8 @@
 
 This document serves as the Single Source of Truth for the Hoox Trading System. It outlines the product overview, technical architecture, data models, workflows, UI/UX guidelines, and explicit instructions for AI agents modifying the codebase. All project context lives in `.opencode/context/project-intelligence/`.
 
+> **See [AGENTS.md](AGENTS.md) for AI agent setup instructions, project structure, commands, CI pipeline, testing modes, and local development workflows.**
+
 ## 1. Product Overview & Goal
 
 Hoox is a 100% free, open-source, Zero Latency, Edge-executed trading system. It operates as a Gateway and Execution Engine that ingests trading signals (via TradingView webhooks, emails, or Telegram), validates them using Cloudflare's WAF and Zero Trust architecture, and executes trades across multiple exchanges (Binance, MEXC, Bybit) using smart placement. It features an autonomous AI Risk Manager that monitors portfolios 24/7.

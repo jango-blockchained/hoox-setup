@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface ProviderHealth {
   name: string;
@@ -33,10 +33,10 @@ export function HealthCheck() {
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
 
-  const fetchHealth = async () => {
+  const fetchHealth = async (signal?: AbortSignal) => {
     setChecking(true);
     try {
-      const res = await fetch("/api/agent/health");
+      const res = await fetch("/api/agent/health", { signal });
       const data = await res.json();
       if (data.success) {
         setProviders(
@@ -49,6 +49,7 @@ export function HealthCheck() {
         );
       }
     } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
       toast.error("Failed to fetch health status");
     } finally {
       setLoading(false);
@@ -57,7 +58,9 @@ export function HealthCheck() {
   };
 
   useEffect(() => {
-    fetchHealth();
+    const controller = new AbortController();
+    fetchHealth(controller.signal);
+    return () => controller.abort();
   }, []);
 
   return (
@@ -70,7 +73,7 @@ export function HealthCheck() {
         <Button
           variant="outline"
           size="sm"
-          onClick={fetchHealth}
+          onClick={() => fetchHealth()}
           disabled={checking}
         >
           <RefreshCw

@@ -29,7 +29,7 @@ The `.opencode/` directory is the central project-intelligence knowledge hub:
 - `.opencode/tasks.md` — active refactoring plan (Phases 1-4)
 - `.opencode/sessions/` — session context files
 - `.opencode/external-context/` — fetched external documentation (Cloudflare Workers, etc.)
-- `.opencode/skills/` — project-specific agent skills (shadcn, nextjs-build, task-management)
+- `.opencode/skills/` — project-specific agent skills (shadcn, nextjs-build, task-management, bun-runtime)
 
 ## Commands
 
@@ -136,7 +136,7 @@ The `.opencode/` directory contains all project intelligence for AI agents:
 | `.opencode/tasks/`                    | Task breakdown JSONs (deep-review, refactor-trade-d1) |
 | `.opencode/sessions/`                 | Session context files                         |
 | `.opencode/external-context/`         | Fetched external docs (Cloudflare Workers, etc.) |
-| `.opencode/skills/`                   | Project-specific skills (shadcn, nextjs-build, task-management) |
+| `.opencode/skills/`                   | Project-specific skills (shadcn, nextjs-build, task-management, bun-runtime) |
 
 ## Architecture
 
@@ -173,3 +173,5 @@ The `.opencode/` directory contains all project intelligence for AI agents:
 ```
 
 **Communication pattern:** Internal workers communicate via Cloudflare Service Bindings (not public URLs). The Hoox Gateway is the only user-facing entry point. The Dashboard has its own public URL but uses service bindings to reach internal workers.
+
+> **See [DESIGN.md](DESIGN.md) for detailed architecture diagrams, data models (DDL), infrastructure bindings, service binding maps, and UI/UX design rules.**

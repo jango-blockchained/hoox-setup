@@ -17,7 +17,7 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, section, testResourceName } from "./helpers";
+import { getConfig, wrangler, cfApi, section, testResourceName } from "./helpers";
 import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
@@ -392,15 +392,16 @@ export default {
 
   afterAll(async () => {
     section("Cleanup");
-    // Undeploy test worker
-    const workerDir = `/tmp/${TEST_WORKER}`;
-    const result = await wrangler(["deploy", "--delete"], workerDir);
-    if (result.ok) {
+    // Delete test worker via Cloudflare REST API (wrangler deploy --delete is invalid)
+    try {
+      await cfApi("DELETE", `/accounts/${getConfig().accountId}/workers/scripts/${TEST_WORKER}`);
       console.log(`  ✓ Undeployed test worker "${TEST_WORKER}"`);
-    } else {
-      console.log(`  ⚠ Cleanup: ${result.stderr}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(`  ⚠ Cleanup: ${message}`);
     }
     // Remove temp worker directory
+    const workerDir = `/tmp/${TEST_WORKER}`;
     if (existsSync(workerDir)) {
       rmSync(workerDir, { recursive: true, force: true });
     }

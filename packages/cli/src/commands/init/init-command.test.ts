@@ -120,10 +120,10 @@ const origWhoami = CloudflareService.prototype.whoami;
 
 const mockWhoami = mock(
   async (): Promise<
-    { ok: true; data: string } | { ok: false; error: string }
+    { ok: true; value: string } | { ok: false; error: string }
   > => ({
     ok: true,
-    data: "user@example.com",
+    value: "user@example.com",
   })
 );
 

@@ -6,15 +6,11 @@ import {
   formatSuccess,
   formatError,
   formatTable,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
-
-function getFormatOptions(cmd: Command): FormatOptions {
-  const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
-}
 
 async function doMonitorStatus(fmt: FormatOptions): Promise<void> {
   try {

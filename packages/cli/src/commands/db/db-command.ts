@@ -18,17 +18,10 @@ import {
   formatError,
   formatTable,
   formatJson,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { FormatOptions } from "../../utils/formatters.js";
-
-function getFormatOptions(cmd: Command): FormatOptions {
-  const rootCmd = cmd.parent?.parent as Command | undefined;
-  return {
-    json: Boolean(rootCmd?.optsWithGlobals()?.json),
-    quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-  };
-}
 
 /**
  * Resolve database name from config or --database flag.

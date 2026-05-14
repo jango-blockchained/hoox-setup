@@ -52,7 +52,7 @@ function displayListResult(
     return;
   }
 
-  const data = result.data;
+  const data = result.value;
 
   // Try JSON parse for structured output
   try {

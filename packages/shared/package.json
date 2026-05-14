@@ -24,7 +24,8 @@
     "./exchange-client": "./src/exchange-client.ts",
     "./analytics": "./src/analytics.ts",
     "./health": "./src/health.ts",
-    "./d1": "./src/d1/index.ts"
+    "./d1": "./src/d1/index.ts",
+    "./service-bindings": "./src/service-bindings.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

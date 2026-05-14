@@ -40,6 +40,7 @@ export function ApiStats() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
@@ -47,18 +48,20 @@ export function ApiStats() {
         if (selectedExchange !== "all") {
           url.searchParams.set("exchange", selectedExchange);
         }
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), { signal: controller.signal });
         const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
           setData(json.data || []);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch API stats:", error);
       } finally {
         setLoading(false);
       }
     }
     if (mounted) fetchData();
+    return () => controller.abort();
   }, [selectedExchange, mounted]);
 
   if (!mounted) return null;

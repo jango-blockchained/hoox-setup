@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { FieldGroup } from "@/components/ui/field";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { useState } from "react";
 
 const PROVIDERS = ["workers-ai", "openai", "anthropic", "google", "azure"];

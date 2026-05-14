@@ -2,6 +2,7 @@
 
 import { PositionsTable } from "@/components/dashboard/positions-table";
 import { CandlestickChart } from "@/components/dashboard/candlestick-chart";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -22,36 +23,19 @@ export default function PositionsClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex items-center justify-between"
-      >
-        <div className="flex items-center gap-3">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          >
-            <TrendingUp className="h-8 w-8 text-primary" />
-          </motion.div>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Positions
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your active trading positions
-            </p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between">
+        <PageHeader
+          icon={<TrendingUp className="h-8 w-8 text-primary" />}
+          title="Positions"
+          description="Manage your active trading positions"
+        />
         <button
           onClick={() => setShowChart(!showChart)}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           {showChart ? "Hide Chart" : "Show Chart"}
         </button>
-      </motion.div>
+      </div>
 
       {showChart && (
         <motion.div

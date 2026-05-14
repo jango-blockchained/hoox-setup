@@ -116,7 +116,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data).toBe("user@example.com");
+        expect(result.value).toBe("user@example.com");
       }
       expect(lastSpawnCmd).toEqual(["wrangler", "whoami"]);
     });
@@ -147,7 +147,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data.url).toBe(
+        expect(result.value.url).toBe(
           "https://test-worker.cryptolinx.workers.dev"
         );
       }
@@ -164,7 +164,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data.url).toBe(
+        expect(result.value.url).toBe(
           "https://test-worker.cryptolinx.workers.dev"
         );
       }
@@ -184,7 +184,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data.url).toBeUndefined();
+        expect(result.value.url).toBeUndefined();
       }
     });
 
@@ -212,7 +212,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data.port).toBe(8787);
+        expect(result.value.port).toBe(8787);
       }
       expect(lastSpawnCmd).toEqual(["wrangler", "dev", "--port", "8787"]);
     });
@@ -225,7 +225,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data.port).toBe(3000);
+        expect(result.value.port).toBe(3000);
       }
       expect(lastSpawnCmd).toEqual(["wrangler", "dev", "--port", "3000"]);
     });
@@ -651,7 +651,7 @@ describe("CloudflareService", () => {
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data).toBe("hello world");
+        expect(result.value).toBe("hello world");
       }
     });
   });

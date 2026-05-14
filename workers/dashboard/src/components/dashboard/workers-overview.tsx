@@ -115,9 +115,13 @@ export function WorkersOverview() {
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchAgentData = async () => {
       try {
-        const res = await fetch("/api/agent/status");
+        const res = await fetch("/api/agent/status", {
+          signal: controller.signal,
+        });
         const data = await res.json();
         if (data.success && data.status) {
           setWorkers((prev) =>
@@ -141,6 +145,7 @@ export function WorkersOverview() {
           );
         }
       } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
         console.error("Failed to fetch agent data", e);
       }
     };
@@ -180,7 +185,10 @@ export function WorkersOverview() {
       );
     }, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
   }, []);
 
   const handleRefresh = () => {

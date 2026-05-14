@@ -14,21 +14,8 @@ import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { PrerequisitesService } from "../../services/prerequisites/index.js";
 import { DockerService } from "../../services/docker/index.js";
-import { formatSuccess, formatError } from "../../utils/formatters.js";
+import { formatSuccess, formatError, getFormatOptions } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Build the format options for output, reading global --json / --quiet flags.
- * Uses `optsWithGlobals()` to include options inherited from the top-level program.
- */
-function getFormatOptions(cmd: Command) {
-  const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
-}
 
 // ---------------------------------------------------------------------------
 // Command registration
@@ -233,7 +220,7 @@ EXAMPLES:
             failed++;
           } else {
             formatSuccess(
-              `Worker "${name}" running on http://localhost:${result.data.port}`,
+              `Worker "${name}" running on http://localhost:${result.value.port}`,
               fmt
             );
             started++;
@@ -339,7 +326,7 @@ EXAMPLES:
           }
 
           formatSuccess(
-            `Worker "${name}" running on http://localhost:${result.data.port}`,
+            `Worker "${name}" running on http://localhost:${result.value.port}`,
             fmt
           );
         } catch (err) {

@@ -1,22 +1,15 @@
 /**
  * SecretsService types — secret management for Cloudflare Workers.
- *
- * The `Result<T>` discriminated-union mirrors the pattern used in
- * @jango-blockchained/hoox-shared (see packages/shared/src/types.ts:92) but is defined
- * locally to avoid adding a public export to the shared package.
  */
 
 // ---------------------------------------------------------------------------
-// Result / Wrangler
+// Result
 // ---------------------------------------------------------------------------
 
-export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
+import type { Result } from "@jango-blockchained/hoox-shared";
 
-export interface WranglerResult<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+// Re-export the shared Result<T> for convenience
+export type { Result };
 
 // ---------------------------------------------------------------------------
 // Domain types

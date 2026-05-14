@@ -16,7 +16,7 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, section, testResourceName } from "./helpers";
+import { getConfig, wrangler, cfApi, section, testResourceName } from "./helpers";
 import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
@@ -386,16 +386,20 @@ export default {
 
   afterAll(async () => {
     section("Cleanup");
-    const results = await Promise.all(
-      [FRONTEND_WORKER, MIDDLE_WORKER, BACKEND_WORKER].map(async (name) => {
-        const dir = `/tmp/${name}`;
-        const result = await wrangler(["deploy", "--delete"], dir);
-        if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
-        return { name, ok: result.ok };
-      })
-    );
-    for (const { name, ok } of results) {
-      console.log(`  ${ok ? "✓" : "✗"} Undeployed "${name}"`);
+    // Delete workers in reverse dependency order via Cloudflare REST API:
+    // frontend → middle → backend (backend is referenced by middle, so must be deleted last)
+    const accountId = getConfig().accountId;
+    for (const name of [FRONTEND_WORKER, MIDDLE_WORKER, BACKEND_WORKER]) {
+      try {
+        await cfApi("DELETE", `/accounts/${accountId}/workers/scripts/${name}`);
+        console.log(`  ✓ Undeployed "${name}"`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Could not delete "${name}": ${message}`);
+      }
+      // Remove temp worker directory
+      const dir = `/tmp/${name}`;
+      if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
     }
   });
 });

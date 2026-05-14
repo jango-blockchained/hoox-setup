@@ -10,6 +10,8 @@ const routes = {
   "d1-worker": "./dist/d1-worker/index.js",
   "agent-worker": "./dist/agent-worker/index.js",
   "web3-wallet-worker": "./dist/web3-wallet-worker/index.js",
+  "analytics-worker": "./dist/analytics-worker/index.js",
+  "report-worker": "./dist/report-worker/index.js",
 };
 
 const modules = {};
@@ -111,6 +113,22 @@ async function start() {
       } else if (url.pathname.startsWith("/api/dashboard")) {
         response =
           modules["d1-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
+      } else if (url.pathname.startsWith("/wallet")) {
+        response =
+          modules["web3-wallet-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
+      } else if (url.pathname.startsWith("/agent")) {
+        response =
+          modules["agent-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
+      } else if (url.pathname.startsWith("/analytics")) {
+        response =
+          modules["analytics-worker"]?.fetch(req) ||
+          new Response("Worker not loaded", { status: 500 });
+      } else if (url.pathname.startsWith("/report")) {
+        response =
+          modules["report-worker"]?.fetch(req) ||
           new Response("Worker not loaded", { status: 500 });
       } else {
         // Default to hoox gateway

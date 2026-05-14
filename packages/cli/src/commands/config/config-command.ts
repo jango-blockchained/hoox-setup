@@ -490,7 +490,7 @@ EXAMPLES:
         const syncSpin = spinner();
         syncSpin.start("Syncing to Cloudflare...");
         const result = await svc.syncToCloudflare(workerName);
-        if (result.success) {
+        if (result.ok) {
           syncSpin.stop(`Secret "${secretName}" synced to Cloudflare`);
         } else {
           syncSpin.stop(`Sync partial: ${result.error ?? "unknown error"}`);
@@ -617,9 +617,9 @@ EXAMPLES:
           const syncSpin = spinner();
           syncSpin.start(`Syncing secrets for "${workerName}"...`);
           const result = await svc.syncToCloudflare(workerName);
-          if (result.success) {
+          if (result.ok) {
             syncSpin.stop(
-              `Synced ${result.data?.length ?? 0} secrets for "${workerName}"`
+              `Synced ${result.value?.length ?? 0} secrets for "${workerName}"`
             );
           } else {
             syncSpin.stop(`Sync failed: ${result.error ?? "unknown error"}`);
@@ -647,9 +647,9 @@ EXAMPLES:
           for (const name of workers) {
             syncSpin.start(`Syncing ${name}...`);
             const result = await svc.syncToCloudflare(name);
-            if (result.success) {
+            if (result.ok) {
               syncSpin.stop(
-                `${theme.success("synced")} ${result.data?.length ?? 0} for ${name}`
+                `${theme.success("synced")} ${result.value?.length ?? 0} for ${name}`
               );
               synced++;
             } else {

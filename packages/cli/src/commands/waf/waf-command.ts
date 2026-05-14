@@ -86,7 +86,7 @@ async function cfApi<T>(
       return { ok: false, error: errorMsg };
     }
 
-    return { ok: true, data: json.result };
+    return { ok: true, value: json.result };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: `Cloudflare API request failed: ${message}` };
@@ -176,7 +176,7 @@ async function resolveZone(
   }
 
   // wrangler zones list outputs lines like "zone-name (zone-id)"
-  const lines = result.data.split("\n").filter(Boolean);
+  const lines = result.value.split("\n").filter(Boolean);
   if (lines.length === 0) {
     throw new CLIError(
       "No zones found. Set CLOUDFLARE_ZONE_ID environment variable.",
@@ -220,7 +220,7 @@ async function handleStatus(opts: FormatOptions): Promise<void> {
     "GET",
     `/zones/${zone.id}/firewall/rules?per_page=50`
   );
-  const activeRulesCount = rulesResult.ok ? rulesResult.data.length : 0;
+  const activeRulesCount = rulesResult.ok ? rulesResult.value.length : 0;
 
   // Fetch recent blocks (last 24h analytics overview)
   let recentBlocks = 0;
@@ -230,12 +230,12 @@ async function handleStatus(opts: FormatOptions): Promise<void> {
     `/zones/${zone.id}/analytics/dashboard?since=${encodeURIComponent(since)}&continuous=true`
   );
   if (analyticsResult.ok) {
-    recentBlocks = analyticsResult.data.totals?.threats ?? 0;
+    recentBlocks = analyticsResult.value.totals?.threats ?? 0;
   }
 
   const status: WafStatus = {
-    enabled: wafResult.data.value === "on",
-    mode: wafResult.data.value,
+    enabled: wafResult.value.value === "on",
+    mode: wafResult.value.value,
     activeRulesCount,
     recentBlocks,
     zoneId: zone.id,
@@ -278,7 +278,7 @@ async function handleRulesList(opts: FormatOptions): Promise<void> {
     );
   }
 
-  const rules: WafRule[] = result.data.map((r) => ({
+  const rules: WafRule[] = result.value.map((r) => ({
     id: r.id,
     description: r.description,
     mode: r.action,
@@ -364,7 +364,7 @@ async function handleRulesAdd(
   const ruleBody = {
     description: body.description,
     action,
-    filter: { id: filterResult.data.id },
+    filter: { id: filterResult.value.id },
   };
 
   const ruleResult = await cfApi<CfFirewallRule>(
@@ -380,9 +380,9 @@ async function handleRulesAdd(
   }
 
   // Cloudflare returns an array of created rules
-  const created = Array.isArray(ruleResult.data)
-    ? (ruleResult.data[0] as unknown as CfFirewallRule)
-    : (ruleResult.data as unknown as CfFirewallRule);
+  const created = Array.isArray(ruleResult.value)
+    ? (ruleResult.value[0] as unknown as CfFirewallRule)
+    : (ruleResult.value as unknown as CfFirewallRule);
 
   formatSuccess(
     `WAF rule added (${created.id}) — ${created.action} for "${value}"`,

@@ -16,6 +16,7 @@ import {
   formatSuccess,
   formatError,
   type FormatOptions,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { DeployResult } from "./types.js";
@@ -107,14 +108,6 @@ async function promptRebuildDecision(buildInfo: {
 }
 
 /**
- * Build the format options for output, reading global --json / --quiet flags.
- */
-function getFormatOptions(cmd: Command) {
-  const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
-}
-
-/**
  * Deploy a single worker via CloudflareService.deploy().
  * Returns a DeployResult summarizing the outcome.
  */
@@ -137,17 +130,17 @@ async function deploySingle(
   const result = await cf.deploy(workerConfig.path, env);
 
   if (result.ok) {
-    const rawLine = result.data.rawOutput
+    const rawLine = result.value.rawOutput
       ?.split("\n")
       .find((l) => l.trim())
       ?.trim();
     return {
       worker: workerName,
-      url: result.data.url,
+      url: result.value.url,
       success: true,
-      size: result.data.size,
-      startupTime: result.data.startupTime,
-      versionId: result.data.versionId,
+      size: result.value.size,
+      startupTime: result.value.startupTime,
+      versionId: result.value.versionId,
       rawOutput: rawLine,
     };
   }

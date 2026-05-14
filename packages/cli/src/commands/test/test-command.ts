@@ -17,6 +17,7 @@ import {
   formatError,
   formatTable,
   formatJson,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
@@ -48,15 +49,6 @@ export interface TestSummary {
   passed: number;
   failed: number;
   results: TestStepResult[];
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function getFormatOptions(cmd: Command) {
-  const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }
 
 /**

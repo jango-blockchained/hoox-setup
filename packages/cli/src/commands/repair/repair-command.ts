@@ -8,16 +8,9 @@ import {
   formatError,
   formatSuccess,
   type FormatOptions,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-
-function getFormatOptions(cmd: Command): FormatOptions {
-  const rootCmd = cmd.parent?.parent as Command | undefined;
-  return {
-    json: Boolean(rootCmd?.optsWithGlobals()?.json),
-    quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-  };
-}
 
 async function handleCheck(fmt: FormatOptions): Promise<void> {
   try {
@@ -55,7 +48,7 @@ async function handleWorker(name: string, fmt: FormatOptions): Promise<void> {
     const cf = new CloudflareService();
     const result = await cf.deploy(workerConfig.path);
     if (result.ok) {
-      formatSuccess(`Worker "${name}" deployed — ${result.data.url}`, fmt);
+      formatSuccess(`Worker "${name}" deployed — ${result.value.url}`, fmt);
     } else {
       formatError(
         new CLIError(

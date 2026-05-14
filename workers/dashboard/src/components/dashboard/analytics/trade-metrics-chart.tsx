@@ -55,6 +55,7 @@ export function TradeMetricsChart() {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
@@ -68,19 +69,22 @@ export function TradeMetricsChart() {
               1000
         ).toISOString();
         const res = await fetch(
-          `/api/analytics/trade-metrics?start=${start}&end=${end}`
+          `/api/analytics/trade-metrics?start=${start}&end=${end}`,
+          { signal: controller.signal }
         );
         const json = (await res.json()) as { success: boolean; data?: any[] };
         if (json.success) {
           setData(json.data || []);
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
         console.error("Failed to fetch trade metrics:", error);
       } finally {
         setLoading(false);
       }
     }
     if (mounted) fetchData();
+    return () => controller.abort();
   }, [timeRange, mounted]);
 
   if (!mounted) return null;

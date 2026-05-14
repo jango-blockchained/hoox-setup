@@ -30,7 +30,7 @@ const realEnv = { ...process.env };
 /** Mock CloudflareService.zonesList to return a known zone. */
 function mockZonesList(output: string, ok = true, error?: string): void {
   const result: WranglerResult<string> = ok
-    ? { ok: true, data: output }
+    ? { ok: true, value: output }
     : { ok: false, error: error ?? "zone list failed" };
 
   spyOn(CloudflareService.prototype, "zonesList").mockImplementation(() =>

@@ -13,7 +13,7 @@ import type { WranglerResult, DeployResult, DevResult } from "./types.js";
  * const cf = new CloudflareService();
  * const result = await cf.whoami();
  * if (result.ok) {
- *   console.log(result.data);
+ *   console.log(result.value);
  * } else {
  *   console.error(result.error);
  * }
@@ -53,7 +53,7 @@ export class CloudflareService {
       const exitCode = await proc.exited;
 
       if (exitCode === 0) {
-        return { ok: true, data: stdout.trim() };
+        return { ok: true, value: stdout.trim() };
       }
 
       return {
@@ -105,10 +105,10 @@ export class CloudflareService {
 
     // Extract the worker URL from deploy output.
     // wrangler prints lines like:  https://name.subdomain.workers.dev
-    const url = this.extractUrl(result.data);
+    const url = this.extractUrl(result.value);
 
     // Parse verbose output for metrics
-    const output = result.data;
+    const output = result.value;
     const deployResult: DeployResult = { url, rawOutput: output };
 
     // Extract worker name from path
@@ -135,7 +135,7 @@ export class CloudflareService {
       deployResult.versionId = versionMatch[1];
     }
 
-    return { ok: true, data: deployResult };
+    return { ok: true, value: deployResult };
   }
 
   // ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ export class CloudflareService {
       });
 
       // Dev runs indefinitely — return immediately with the known port.
-      return { ok: true, data: { port: devPort } };
+      return { ok: true, value: { port: devPort } };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { ok: false, error: `Failed to start dev server: ${message}` };
@@ -370,7 +370,7 @@ export class CloudflareService {
       const exitCode = await proc.exited;
 
       if (exitCode === 0) {
-        return { ok: true, data: stdout.trim() };
+        return { ok: true, value: stdout.trim() };
       }
 
       return {

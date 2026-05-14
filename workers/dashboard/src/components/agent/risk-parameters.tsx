@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { FieldGroup } from "@/components/ui/field";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { useState } from "react";
 
 export function RiskParameters() {

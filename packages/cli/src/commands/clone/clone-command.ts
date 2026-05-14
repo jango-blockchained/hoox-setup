@@ -20,6 +20,7 @@ import {
   formatError,
   formatTable,
   formatJson,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
@@ -34,16 +35,6 @@ interface CloneStatus {
   cloned: boolean;
   repo?: string;
   error?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Extract --json / --quiet from the global program options. */
-function getFormatOptions(cmd: Command) {
-  const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }
 
 /**
