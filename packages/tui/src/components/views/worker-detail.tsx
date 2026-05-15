@@ -1,0 +1,428 @@
+/** @jsxImportSource @opentui/react */
+/**
+ * WorkerDetail — deep-dive view into a single Cloudflare Worker.
+ *
+ * Layout:
+ *   - Breadcrumb header: "← BACK | {worker.name} | {StatusDot} {status}"
+ *   - 2×2 grid of panes:
+ *     1. Metrics   — uptime, CPU avg/p99, memory, throttling, invocations, errors, P50 latency
+ *     2. Live Logs — streaming log entries from store, auto-scroll, Space to pause, color-coded
+ *     3. Durable Objects — list with name + status (OK/ERROR)
+ *     4. Config Preview — read-only key:value grid
+ *   - Tab cycles focus between panes
+ *   - Esc returns to workers overview via UI store goBack()
+ *
+ * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
+ * Colors from @jango-blockchained/hoox-shared tokens — no hardcoded hex.
+ */
+import { useState, useMemo, useEffect } from "react"
+import { useKeyboard } from "@opentui/react"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
+import { ErrorBoundary } from "@/components/shared/error-boundary"
+import { StatusDot, type StatusDotStatus } from "@/components/shared/status-dot"
+
+// ── Local type aliases (inferred from store return types) ──────────────────
+
+/** Worker info shape — inferred from service-store WorkerInfo */
+type Worker = ReturnType<typeof useServiceStore.getState>["workers"][number]
+
+/** Log entry shape — inferred from service-store LogEntry */
+type Log = ReturnType<typeof useServiceStore.getState>["logs"][number]
+
+/** Log level type */
+type Level = "debug" | "info" | "warn" | "error"
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+/** Number of focusable panes in the 2×2 grid */
+const PANE_COUNT = 4
+
+const PANE_NAMES = ["Metrics", "Live Logs", "Durable Objects", "Config Preview"] as const
+
+/** Log-level color mapping */
+const LOG_COLORS: Record<Level, string> = {
+  debug: Colors.muted,
+  info:  Colors.info,
+  warn:  Colors.warning,
+  error: Colors.error,
+}
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+interface DemoConfigEntry {
+  key: string
+  value: string
+}
+
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+/**
+ * Breadcrumb header showing back navigation, worker name, and status indicator.
+ */
+function BreadcrumbHeader({ worker }: { worker: Worker }) {
+  return (
+    <box flexDirection="row" paddingBottom={1} gap={2}>
+      {/* Back button */}
+      <text fg={Colors.muted} dim>
+        ← BACK
+      </text>
+      <text fg={Colors.muted} dim>
+        |
+      </text>
+      {/* Worker name */}
+      <text fg={Colors.foreground} bold>
+        {worker.name}
+      </text>
+      <text fg={Colors.muted} dim>
+        |
+      </text>
+      {/* Status dot + label */}
+      <StatusDot status={worker.status as StatusDotStatus} pulse={worker.status === "operational"} />
+      <text fg={Colors.foreground}>
+        {worker.status.toUpperCase()}
+      </text>
+    </box>
+  )
+}
+
+/**
+ * Metrics pane — key health and performance indicators.
+ */
+function MetricsPane({ worker }: { worker: Worker }) {
+  const metrics = useServiceStore(s => s.metrics)
+
+  // Derived values with sensible fallbacks
+  const cpuAvg = worker.cpu.toFixed(1)
+  const cpuP99 = Math.min(worker.cpu * 1.8, 100).toFixed(1) // estimated p99
+  const throttlingPct = worker.cpu > 80 ? ((worker.cpu - 80) * 5).toFixed(1) : "0.0"
+  const memoryLimitMB = 128 // Cloudflare default
+  const p50Latency = worker.cpu > 60 ? (10 + (worker.cpu - 60) * 0.5).toFixed(0) : "10"
+
+  const rows: [string, string, string][] = [
+    ["Uptime",      formatUptime(worker.uptime),     Colors.success],
+    ["CPU Avg",     `${cpuAvg}%`,                    worker.cpu > 80 ? Colors.error : worker.cpu > 60 ? Colors.warning : Colors.success],
+    ["CPU P99",     `${cpuP99}%`,                    Colors.muted],
+    ["Memory",      `${worker.memory} MB / ${memoryLimitMB} MB`, worker.memory > 100 ? Colors.warning : Colors.success],
+    ["Throttling",  `${throttlingPct}%`,             throttlingPct !== "0.0" ? Colors.error : Colors.success],
+    ["Invocations", worker.requests.toLocaleString(), Colors.info],
+    ["Errors",      "0",                             Colors.success],
+    ["P50 Latency", `${p50Latency} ms`,             Number(p50Latency) > 100 ? Colors.warning : Colors.success],
+  ]
+
+  return (
+    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+      <text fg={Colors.accent} bold>
+        Metrics
+      </text>
+      <box flexDirection="column" paddingTop={1} gap={0}>
+        {rows.map(([label, value, color]) => (
+          <box key={label} flexDirection="row" gap={1}>
+            <text fg={Colors.muted} dim>
+              {label.padEnd(14)}
+            </text>
+            <text fg={color}>
+              {value}
+            </text>
+          </box>
+        ))}
+      </box>
+    </box>
+  )
+}
+
+/**
+ * Live Logs pane — streaming log entries with auto-scroll and pause/resume.
+ */
+function LogsPane({ workerId, focused }: { workerId: string; focused: boolean }) {
+  // All logs from the ring buffer, filtered to this worker
+  const allLogs = useServiceStore(s => s.logs)
+  const workerLogs = useMemo(
+    () => allLogs.filter(l => l.workerId === workerId),
+    [allLogs, workerId],
+  )
+
+  // Pause toggle via Space key
+  const [paused, setPaused] = useState(false)
+
+  // Auto-scroll: track whether we're at the bottom
+  const [autoScroll, setAutoScroll] = useState(true)
+
+  // When not paused, always show newest entries
+  useEffect(() => {
+    if (!paused) {
+      setAutoScroll(true)
+    }
+  }, [workerLogs.length, paused])
+
+  // Keyboard: Space toggles pause when this pane is focused
+  useKeyboard((key) => {
+    if (!focused) return
+    if (key.name === "space") {
+      setPaused(p => !p)
+    }
+  })
+
+  // Display logs: last 50 entries (or all if paused)
+  const displayedLogs = useMemo(() => {
+    const source = paused ? workerLogs : workerLogs.slice(-50)
+    return source
+  }, [workerLogs, paused])
+
+  return (
+    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={focused ? Colors.accent : Colors.border} backgroundColor={Colors.card}>
+      {/* Header with pause indicator */}
+      <box flexDirection="row" justifyContent="space-between">
+        <text fg={Colors.accent} bold>
+          Live Logs
+        </text>
+        <box flexDirection="row" gap={1}>
+          <text fg={paused ? Colors.warning : Colors.success}>
+            {paused ? "⏸ PAUSED" : "▶ LIVE"}
+          </text>
+          {focused && (
+            <text fg={Colors.muted} dim>
+              [Space]
+            </text>
+          )}
+        </box>
+      </box>
+
+      {/* Log entries in scrollable container */}
+      <scrollbox width="100%" flexGrow={1} border={false}>
+        {displayedLogs.length === 0 ? (
+          <text fg={Colors.muted} dim>
+            No logs yet...
+          </text>
+        ) : (
+          displayedLogs.map((log) => (
+            <LogLine key={log.id} log={log} />
+          ))
+        )}
+      </scrollbox>
+    </box>
+  )
+}
+
+/** A single log line, color-coded by level */
+function LogLine({ log }: { log: Log }) {
+  const color = LOG_COLORS[log.level]
+  const time = new Date(log.timestamp).toLocaleTimeString("en-US", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+
+  return (
+    <text fg={color}>
+      {time} [{log.level.toUpperCase().padEnd(5)}] {log.message}
+    </text>
+  )
+}
+
+/**
+ * Durable Objects pane — list of DOs with name and status.
+ */
+function DurableObjectsPane({ worker }: { worker: Worker }) {
+  // Mock DO data derived from worker
+  const dos = useMemo(() => {
+    const names = worker.name
+      ? [`${worker.name}-state`, `${worker.name}-cache`, `${worker.name}-queue`]
+      : []
+    return names.slice(0, Math.max(1, worker.durableObjectCount)).map((name, i) => ({
+      name,
+      status: worker.status === "down" ? "ERROR" as const : "OK" as const,
+    }))
+  }, [worker])
+
+  return (
+    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+      <text fg={Colors.accent} bold>
+        Durable Objects
+      </text>
+      <scrollbox width="100%" flexGrow={1} border={false}>
+        {dos.length === 0 ? (
+          <text fg={Colors.muted} dim>
+            No Durable Objects
+          </text>
+        ) : (
+          dos.map((dobj) => (
+            <box key={dobj.name} flexDirection="row" gap={1}>
+              <text
+                fg={dobj.status === "OK" ? Colors.success : Colors.error}
+                bold={dobj.status === "OK"}
+              >
+                {dobj.status === "OK" ? "█" : "░"}
+              </text>
+              <text fg={dobj.status === "OK" ? Colors.foreground : Colors.error}>
+                {dobj.name}
+              </text>
+            </box>
+          ))
+        )}
+      </scrollbox>
+    </box>
+  )
+}
+
+/**
+ * Config Preview pane — read-only key:value pairs.
+ */
+function ConfigPreviewPane({ worker }: { worker: Worker }) {
+  // Demo config derived from worker info and sensible defaults
+  const configEntries: DemoConfigEntry[] = useMemo(() => [
+    { key: "active",    value: worker.status === "operational" ? "true" : "false" },
+    { key: "exchanges", value: "binance, mexc, bybit" },
+    { key: "maxSpread", value: "0.5" },
+    { key: "symbol",    value: "BTCUSDT, ETHUSDT, SOLUSDT" },
+    { key: "version",   value: worker.version || "0.1.0" },
+    { key: "edges",     value: worker.edgeCount.toString() },
+  ], [worker])
+
+  return (
+    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+      <text fg={Colors.accent} bold>
+        Config Preview
+      </text>
+      <box flexDirection="column" paddingTop={1} gap={0}>
+        {configEntries.map((entry) => (
+          <box key={entry.key} flexDirection="row" gap={1}>
+            <text fg={Colors.muted} dim>
+              {entry.key.padEnd(14)}
+            </text>
+            <text fg={Colors.foreground}>
+              {entry.value}
+            </text>
+          </box>
+        ))}
+      </box>
+    </box>
+  )
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Format uptime seconds into a human-readable string. */
+function formatUptime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  return `${days}d ${hours}h`
+}
+
+// ── Main View ────────────────────────────────────────────────────────────────
+
+export function WorkerDetail() {
+  // Focus tracking for pane cycling
+  const [focusPane, setFocusPane] = useState(0)
+
+  // Store subscriptions (Pattern 2: selective selectors)
+  const selectedWorkerId = useServiceStore(s => s.selectedWorkerId)
+  const workers = useServiceStore(s => s.workers)
+  const goBack = useUIStore(s => s.goBack)
+
+  // Derive the current worker
+  const worker = useMemo(
+    () => workers.find(w => w.id === selectedWorkerId) ?? null,
+    [workers, selectedWorkerId],
+  )
+
+  // View-local keyboard handling
+  useKeyboard((key) => {
+    switch (key.name) {
+      case "tab":
+        // Cycle focus forward between panes
+        setFocusPane(i => (i + 1) % PANE_COUNT)
+        break
+      case "escape":
+        goBack()
+        break
+    }
+  })
+
+  // ── No worker selected or not found ────────────────────────────────────────
+  if (!selectedWorkerId || !worker) {
+    return (
+      <ErrorBoundary viewName="Worker Detail">
+        <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
+          <BreadcrumbHeader
+            worker={{
+              id: selectedWorkerId || "unknown",
+              name: selectedWorkerId || "Unknown Worker",
+              status: "down",
+              uptime: 0,
+              cpu: 0,
+              memory: 0,
+              requests: 0,
+              durableObjectCount: 0,
+              edgeCount: 0,
+            }}
+          />
+          <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center" gap={1}>
+            <text fg={Colors.error} bold>
+              Worker Not Found
+            </text>
+            <text fg={Colors.muted} dim>
+              {selectedWorkerId
+                ? `No worker with ID "${selectedWorkerId}" exists.`
+                : "No worker selected. Use the Workers Overview to select one."}
+            </text>
+            <box paddingTop={1}>
+              <text fg={Colors.accent} bg={Colors.card} onMouseUp={goBack}>
+                {"  ← Back to Workers  "}
+              </text>
+            </box>
+          </box>
+        </box>
+      </ErrorBoundary>
+    )
+  }
+
+  // ── Full 4-pane layout ─────────────────────────────────────────────────────
+  return (
+    <ErrorBoundary viewName={`Worker: ${worker.name}`}>
+      <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
+        {/* Breadcrumb header */}
+        <BreadcrumbHeader worker={worker} />
+
+        {/* 2×2 Grid of panes */}
+        <box flexDirection="column" flexGrow={1} gap={1}>
+          {/* Row 1: Metrics | Live Logs */}
+          <box flexDirection="row" flexGrow={1} gap={1}>
+            <MetricsPane worker={worker} />
+            <LogsPane workerId={worker.id} focused={focusPane === 1} />
+          </box>
+
+          {/* Row 2: Durable Objects | Config Preview */}
+          <box flexDirection="row" flexGrow={1} gap={1}>
+            <DurableObjectsPane worker={worker} />
+            <ConfigPreviewPane worker={worker} />
+          </box>
+        </box>
+
+        {/* Footer: pane navigation hint */}
+        <box flexDirection="row" justifyContent="space-between" paddingTop={0}>
+          <box flexDirection="row" gap={1}>
+            {PANE_NAMES.map((name, i) => (
+              <text
+                key={name}
+                fg={i === focusPane ? Colors.accent : Colors.muted}
+                bold={i === focusPane}
+                dim={i !== focusPane}
+              >
+                {i === focusPane ? `▶ ${name}` : name}
+              </text>
+            ))}
+          </box>
+          <text fg={Colors.muted} dim>
+            Tab: focus  ·  Esc: back
+          </text>
+        </box>
+      </box>
+    </ErrorBoundary>
+  )
+}

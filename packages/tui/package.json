@@ -1,0 +1,27 @@
+{
+  "name": "@hoox/tui",
+  "version": "0.1.0",
+  "description": "Hoox algorithmic trading terminal operations center — OpenTUI dashboard",
+  "type": "module",
+  "main": "src/main.tsx",
+  "scripts": {
+    "dev": "bun run src/main.tsx",
+    "build": "bun build src/main.tsx --outdir dist --target bun",
+    "start": "bun run dist/main.js",
+    "test": "bun test",
+    "test:e2e": "bun test test/e2e/"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.0",
+    "@opentui/react": "^0.1.0",
+    "zustand": "^5.0.0",
+    "immer": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "@jango-blockchained/hoox-shared": "workspace:*"
+  }
+}

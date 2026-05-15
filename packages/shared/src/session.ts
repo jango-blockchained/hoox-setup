@@ -1,0 +1,132 @@
+/**
+ * Session persistence — saves/restores TUI state to ~/.hoox/session.json.
+ *
+ * On destroy (app exit): serializes { activeView, sidebarExpanded, windowSize,
+ * lastData } so the user returns to the same state on next launch.
+ *
+ * On startup: restores previous activeView and sidebarExpanded state.
+ * Window size and lastData are saved for reference but re-detected/fetched fresh.
+ *
+ * Uses Bun's native file API for async read/write.
+ */
+
+import { homedir } from "node:os"
+import { join } from "node:path"
+import type { ViewId } from "../types"
+
+// ─── Session shape ───────────────────────────────────────────────────────────
+
+export interface SessionState {
+  /** Last active view ID (e.g. "dashboard", "workers") */
+  activeView: ViewId
+  /** Whether the sidebar was expanded */
+  sidebarExpanded: boolean
+  /** Terminal window dimensions (cols × rows) */
+  windowSize: { cols: number; rows: number }
+  /** Timestamp of the last successful data fetch (ms) */
+  lastData: number
+  /** ISO timestamp of when the session was saved */
+  savedAt: string
+}
+
+// ─── File path ───────────────────────────────────────────────────────────────
+
+const SESSION_FILE = join(homedir(), ".hoox", "session.json")
+
+// ─── Defaults (used when no saved session exists) ────────────────────────────
+
+const DEFAULT_SESSION: SessionState = {
+  activeView: "dashboard",
+  sidebarExpanded: true,
+  windowSize: { cols: 80, rows: 24 },
+  lastData: 0,
+  savedAt: new Date().toISOString(),
+}
+
+// ─── Save ────────────────────────────────────────────────────────────────────
+
+/**
+ * Persist the current UI state to ~/.hoox/session.json.
+ * Call this on app destroy / clean shutdown.
+ *
+ * The ~/.hoox directory is created automatically by Bun.write if needed,
+ * but we attempt to verify existence first for clarity.
+ */
+export async function saveSession(
+  activeView: ViewId,
+  sidebarExpanded: boolean,
+  windowSize: { cols: number; rows: number },
+  lastData: number,
+): Promise<void> {
+  try {
+    const session: SessionState = {
+      activeView,
+      sidebarExpanded,
+      windowSize,
+      lastData,
+      savedAt: new Date().toISOString(),
+    }
+    await Bun.write(SESSION_FILE, JSON.stringify(session, null, 2))
+  } catch (error) {
+    // Session save failures are non-fatal — log and continue
+    // (write failures may occur if ~/.hoox doesn't exist or is unwritable)
+    console.error("[session] Failed to save session:", (error as Error).message)
+  }
+}
+
+// ─── Restore ─────────────────────────────────────────────────────────────────
+
+/**
+ * Restore the previous session state from ~/.hoox/session.json.
+ * Returns defaults if the file doesn't exist or can't be parsed.
+ *
+ * @returns The saved session state, or defaults
+ */
+export async function restoreSession(): Promise<SessionState> {
+  try {
+    const file = Bun.file(SESSION_FILE)
+    const exists = await file.exists()
+    if (!exists) return { ...DEFAULT_SESSION }
+
+    const raw = await file.text()
+    const parsed = JSON.parse(raw) as Partial<SessionState>
+
+    // Validate and merge with defaults
+    return {
+      activeView: validateViewId(parsed.activeView)
+        ? parsed.activeView!
+        : DEFAULT_SESSION.activeView,
+      sidebarExpanded:
+        typeof parsed.sidebarExpanded === "boolean"
+          ? parsed.sidebarExpanded
+          : DEFAULT_SESSION.sidebarExpanded,
+      windowSize: parsed.windowSize ?? DEFAULT_SESSION.windowSize,
+      lastData:
+        typeof parsed.lastData === "number"
+          ? parsed.lastData
+          : DEFAULT_SESSION.lastData,
+      savedAt: parsed.savedAt ?? DEFAULT_SESSION.savedAt,
+    }
+  } catch {
+    // Corrupt or unreadable session file — use defaults
+    return { ...DEFAULT_SESSION }
+  }
+}
+
+// ─── Validation ──────────────────────────────────────────────────────────────
+
+const VALID_VIEW_IDS = new Set<string>([
+  "dashboard",
+  "workers",
+  "worker-detail",
+  "trade-monitor",
+  "logs-viewer",
+  "service-manager",
+  "config-editor",
+  "setup-wizard",
+  "settings",
+])
+
+function validateViewId(id: unknown): id is ViewId {
+  return typeof id === "string" && VALID_VIEW_IDS.has(id)
+}

@@ -1,3 +1,11 @@
+/**
+ * @hoox/shared — Shared module for HOOX CLI and TUI
+ *
+ * Barrel export: re-exports all shared utilities, types, stores, and TUI helpers.
+ */
+
+// ── Original shared exports (CLI + Workers) ──────────────────────────────
+
 export type {
   StandardResponse,
   ApiSuccessResponse,
@@ -32,7 +40,6 @@ export {
   createErrorResponse,
 } from "./errors.js";
 
-// json-response.ts re-exports from errors.ts, keeping the file for backward compatibility
 export { BaseExchangeClient } from "./exchange-client.js";
 export type {
   ExchangeName,
@@ -62,3 +69,46 @@ export type {
   D1QueryResult,
   BatchStatement,
 } from "./d1/index.js";
+
+// ── New TUI shared exports ────────────────────────────────────────────────
+
+export { Colors } from "./colors"
+export type { ColorKey } from "./colors"
+
+export {
+  formatNumber,
+  formatCurrency,
+  formatCompactCurrency,
+  formatDuration,
+  formatDurationCompact,
+  formatTimestamp,
+  formatRelativeTime,
+  formatPercent,
+  formatUptime,
+  formatLatency,
+  formatRequests,
+  formatMemory,
+  formatCpu,
+} from "./formatters"
+
+export { readConfigSync, readConfig, writeConfigSync, writeConfig, validateConfig } from "./config"
+export type { HooxConfig } from "./config"
+
+export { hooxFetch, WorkerAPIError } from "./api-client"
+export { subscribeSSE } from "./sse"
+export type { SSECallback, SSEStatusCallback } from "./sse"
+export { restoreSession, saveSession } from "./session"
+export type { SessionState } from "./session"
+export { formatRelativeTime as formatRelativeTimeFromTime } from "./format-time"
+
+// TUI-specific types
+export type {
+  WorkerInfo,
+  Trade,
+  Alert,
+  LogEntry,
+  SystemMetrics,
+  ConnectionStatus,
+  LogLevel,
+  LogFilter,
+} from "../../types"
