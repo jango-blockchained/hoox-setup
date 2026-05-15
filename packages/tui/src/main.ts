@@ -11,6 +11,7 @@ import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { App } from "./app"
 import { saveSession } from "@hoox/shared/src/session"
+import { setRendererRef } from "./hooks/renderer-ref"
 
 const RENDERER_CONFIG = {
   screenMode: "alternate-screen" as const,
@@ -41,7 +42,10 @@ async function main() {
     // Layout auto-adjusts via flexbox
   })
 
-  createRoot(renderer).render(<App renderer={renderer} />)
+  // Set renderer ref so hooks + components can access it via getRendererRef()
+  setRendererRef(renderer)
+
+  createRoot(renderer).render(<App />)
   renderer.start()
 }
 
