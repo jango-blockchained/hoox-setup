@@ -9,8 +9,8 @@
  */
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
-import { App } from "./app"
-import { saveSession } from "@jango-blockchained/hoox-shared/src/session"
+import { AppRoot } from "./app"
+import { saveSession } from "@jango-blockchained/hoox-shared"
 import { setRendererRef } from "./hooks/renderer-ref"
 
 const RENDERER_CONFIG = {
@@ -45,7 +45,7 @@ async function main() {
   // Set renderer ref so hooks + components can access it via getRendererRef()
   setRendererRef(renderer)
 
-  createRoot(renderer).render(<App />)
+  createRoot(renderer).render(<AppRoot />)
   renderer.start()
 }
 

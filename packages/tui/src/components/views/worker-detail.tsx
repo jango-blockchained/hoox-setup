@@ -18,8 +18,8 @@
 import { useState, useMemo, useEffect } from "react"
 import { useKeyboard } from "@opentui/react"
 import { Colors } from "@jango-blockchained/hoox-shared"
-import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
-import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
+import { useServiceStore } from "@jango-blockchained/hoox-shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "@/components/shared/error-boundary"
 import { StatusDot, type StatusDotStatus } from "@/components/shared/status-dot"
 

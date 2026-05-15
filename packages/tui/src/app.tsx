@@ -15,14 +15,12 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { useKeyboard } from '@opentui/react'
-import { Colors } from '@jango-blockchained/hoox-shared'
-import { useUIStore } from '@jango-blockchained/hoox-shared/stores/ui-store'
-import { useServiceStore } from '@jango-blockchained/hoox-shared/stores/service-store'
-import { useConfigStore } from '@jango-blockchained/hoox-shared/stores/config-store'
-import { restoreSession, saveSession, type SessionState } from '@jango-blockchained/hoox-shared/src/session'
-import { formatRelativeTime } from '@jango-blockchained/hoox-shared/src/format-time'
+import { Colors, useUIStore, useServiceStore, useConfigStore } from '@jango-blockchained/hoox-shared'
+import { restoreSession, saveSession, formatRelativeTimeFromTime as formatRelativeTime } from "@jango-blockchained/hoox-shared"
+import type { SessionState, ViewId } from "@jango-blockchained/hoox-shared"
 
-// Views
+// ─── View imports ────────────────────────────────────────────────────────────
+
 import { DashboardView } from './components/views/dashboard'
 import { WorkersOverview } from './components/views/workers-overview'
 import { WorkerDetail } from './components/views/worker-detail'
@@ -32,11 +30,8 @@ import { ServiceManager } from './components/views/service-manager'
 import { ConfigEditor } from './components/views/config-editor'
 import { SetupWizard } from './components/views/setup-wizard'
 import { SettingsView } from './components/views/settings'
-
-// Shared UI
 import { CrashScreen, type CrashAction } from './components/shared/crash-screen'
 import { CommandPalette } from './components/shared/command-palette'
-import type { ViewId } from '@jango-blockchained/hoox-shared'
 
 // ─── View registry ───────────────────────────────────────────────────────────
 

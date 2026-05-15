@@ -17,7 +17,7 @@
 import { useMemo, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { Colors } from "@jango-blockchained/hoox-shared"
-import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-store"
+import { useConfigStore } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "../shared/error-boundary"
 import type { ViewId, NotificationPreferences } from "@jango-blockchained/hoox-shared"
 

@@ -13,7 +13,7 @@
  * Uses Bun test runner.
  */
 import { describe, it, expect } from "bun:test"
-import { formatRelativeTime, formatDuration } from "@jango-blockchained/hoox-shared/src/format-time"
+import { formatRelativeTime, formatDuration } from "@jango-blockchained/hoox-shared"
 
 // ─── formatRelativeTime ──────────────────────────────────────────────────────
 

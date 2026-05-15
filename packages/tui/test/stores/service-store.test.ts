@@ -30,7 +30,7 @@ const hooxFetchMock = mock(async (_path: string) => {
 })
 
 // Setup mock for the dynamic import in fetchWorkers
-mock.module("@jango-blockchained/hoox-shared/src/api-client", () => ({
+mock.module("@jango-blockchained/hoox-shared", () => ({
   hooxFetch: hooxFetchMock,
 }))
 
@@ -41,7 +41,7 @@ const subscribeSSEMock = mock(async <T>(_path: string, callback: (data: T) => vo
   sseCallbacks.push(callback as (data: unknown) => void)
 })
 
-mock.module("@jango-blockchained/hoox-shared/src/sse", () => ({
+mock.module("@jango-blockchained/hoox-shared", () => ({
   subscribeSSE: subscribeSSEMock,
 }))
 

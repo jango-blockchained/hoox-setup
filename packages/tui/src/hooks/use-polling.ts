@@ -5,7 +5,7 @@
  * (up to 16s max). Resets on success. Pause/resume via enabled toggle.
  */
 import { useEffect, useRef } from "react"
-import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-store"
+import { useConfigStore } from "@jango-blockchained/hoox-shared"
 
 export interface UsePollingOptions {
   callback: () => Promise<void>

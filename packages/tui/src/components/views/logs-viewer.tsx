@@ -10,7 +10,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useKeyboard } from '@opentui/react'
 import { Colors } from '@jango-blockchained/hoox-shared'
-import { useServiceStore } from '@jango-blockchained/hoox-shared/stores/service-store'
+import { useServiceStore } from '@jango-blockchained/hoox-shared'
 import { ErrorBoundary } from '../shared/error-boundary'
 import type { LogEntry, LogLevel } from '@jango-blockchained/hoox-shared'
 

@@ -53,6 +53,8 @@
   },
   "dependencies": {
     "blessed": "^0.1.81",
+    "react": "^19.2.6",
+    "react-reconciler": "^0.33.0",
     "wrangler": "^4.90.1",
     "zod": "^4.4.3"
   }
