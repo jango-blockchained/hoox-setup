@@ -18,9 +18,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function resolveTUIEntry(): string {
   // Try monorepo-relative paths first
   const candidates = [
-    resolve(__dirname, "../../../../tui/src/main.ts"),       // packages/cli → packages/tui
-    resolve(process.cwd(), "packages/tui/src/main.ts"),      // CWD = repo root
-    resolve(process.cwd(), "../tui/src/main.ts"),            // CWD = packages/cli
+    resolve(__dirname, "../../../../tui/src/main.tsx"),       // packages/cli → packages/tui
+    resolve(process.cwd(), "packages/tui/src/main.tsx"),      // CWD = repo root
+    resolve(process.cwd(), "../tui/src/main.tsx"),            // CWD = packages/cli
   ];
 
   for (const path of candidates) {
@@ -28,7 +28,7 @@ function resolveTUIEntry(): string {
   }
 
   throw new CLIError(
-    "Could not find TUI entry point. Ensure packages/tui/src/main.ts exists.",
+    "Could not find TUI entry point. Ensure packages/tui/src/main.tsx exists.",
     ExitCode.ERROR
   );
 }

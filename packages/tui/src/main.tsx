@@ -45,7 +45,6 @@ async function main() {
   // Set renderer ref so hooks + components can access it via getRendererRef()
   setRendererRef(renderer)
 
-  // eslint-disable-next-line
   createRoot(renderer).render(<App />)
   renderer.start()
 }

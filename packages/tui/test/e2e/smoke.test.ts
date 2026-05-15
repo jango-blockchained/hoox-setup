@@ -11,7 +11,7 @@
  *   - Run with: bun test test/e2e/smoke.test.ts
  *
  * Design:
- *   - Spawns `bun run src/main.ts` as child process with pseudo-terminal
+ *   - Spawns `bun run src/main.tsx` as child process with pseudo-terminal
  *   - Waits for alternate-screen enter sequence (CSI ?1049h)
  *   - Captures rendered output for ~2 seconds
  *   - Asserts key text appears: "HOOX", "Dashboard", view names
@@ -97,7 +97,7 @@ async function captureOutput(
 async function canLaunch(): Promise<boolean> {
   try {
     // Check if the entry file exists
-    const file = Bun.file("src/main.ts")
+    const file = Bun.file("src/main.tsx")
     const exists = await file.exists()
     if (!exists) return false
 
@@ -141,7 +141,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     try {
       // Spawn the TUI process
       proc = spawn({
-        cmd: ["bun", "run", "src/main.ts"],
+        cmd: ["bun", "run", "src/main.tsx"],
         stdout: "pipe",
         stderr: "pipe",
         stdin: "pipe",
@@ -205,7 +205,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
     try {
       proc = spawn({
-        cmd: ["bun", "run", "src/main.ts"],
+        cmd: ["bun", "run", "src/main.tsx"],
         stdout: "pipe",
         stderr: "pipe",
         stdin: "pipe",
@@ -285,7 +285,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     }
 
     const proc = spawn({
-      cmd: ["bun", "run", "src/main.ts"],
+      cmd: ["bun", "run", "src/main.tsx"],
       stdout: "pipe",
       stderr: "pipe",
       stdin: "pipe",
@@ -343,7 +343,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     }
 
     const proc = spawn({
-      cmd: ["bun", "run", "src/main.ts"],
+      cmd: ["bun", "run", "src/main.tsx"],
       stdout: "pipe",
       stderr: "pipe",
       stdin: "pipe",
