@@ -12,7 +12,7 @@ import { useState } from "react"
 const mockUpdateConfig = mock(() => {})
 const mockSetView = mock(() => {})
 
-mock("@hoox/shared", () => ({
+mock("@jango-blockchained/hoox-shared", () => ({
   Colors: {
     background: "#0D1117",
     foreground: "#EEEEEE",

@@ -6,7 +6,7 @@
  * Format: " keys  label" — keys in dim/muted, label in foreground.
  * Used as a compact shortcut indicator throughout the TUI.
  */
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

@@ -12,9 +12,9 @@
  * expected rendering patterns without full TUI render.
  */
 import { describe, it, expect, beforeEach, vi } from "bun:test"
-import { useUIStore } from "@hoox/shared/stores/ui-store"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
-import type { ViewId } from "@hoox/shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import type { ViewId } from "@jango-blockchained/hoox-shared"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

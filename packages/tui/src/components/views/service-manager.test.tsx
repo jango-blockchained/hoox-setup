@@ -11,7 +11,7 @@ import { render, createRoot } from "@opentui/react"
 import { createCliRenderer } from "@opentui/core"
 import { ServiceManager } from "./service-manager"
 import type { DialogHandle } from "@/components/ui/dialog"
-import type { WorkerInfo } from "@hoox/shared/types"
+import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types"
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

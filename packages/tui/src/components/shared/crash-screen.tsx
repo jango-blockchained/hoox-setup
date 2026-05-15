@@ -9,9 +9,9 @@
  *
  * This component is a plain function (not a class) because it's meant to be
  * rendered in a degraded state — no hooks, no stores, no external state.
- * Colors use Hoox design tokens via @hoox/shared.
+ * Colors use Hoox design tokens via @jango-blockchained/hoox-shared.
  */
-import { Colors } from '@hoox/shared'
+import { Colors } from '@jango-blockchained/hoox-shared'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

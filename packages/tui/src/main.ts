@@ -10,7 +10,7 @@
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { App } from "./app"
-import { saveSession } from "@hoox/shared/src/session"
+import { saveSession } from "@jango-blockchained/hoox-shared/src/session"
 import { setRendererRef } from "./hooks/renderer-ref"
 
 const RENDERER_CONFIG = {

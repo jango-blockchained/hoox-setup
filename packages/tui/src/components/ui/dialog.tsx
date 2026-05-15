@@ -4,10 +4,10 @@
  * Provides ConfirmDialog, ChoiceDialog, and LoadingDialog helpers.
  *
  * All dialogs render centered with a dimmed backdrop (backdropOpacity 0.35)
- * and use Colors tokens from @hoox/shared for consistent Hoox branding.
+ * and use Colors tokens from @jango-blockchained/hoox-shared for consistent Hoox branding.
  */
 import { type ConfirmContext } from "@opentui-ui/dialog/react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

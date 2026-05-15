@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from "bun:test"
 import { render } from "@opentui/react"
 import { WorkersOverview } from "./workers-overview"
-import type { WorkerInfo } from "@hoox/shared"
+import type { WorkerInfo } from "@jango-blockchained/hoox-shared"
 
 // ── Mock worker factory ──────────────────────────────────────────────────────
 
@@ -59,7 +59,7 @@ function outputContains(output: string, ...substrings: string[]): boolean {
 // Mock the stores so we can control which workers are shown
 const mockWorkers: WorkerInfo[] = []
 
-vi.mock("@hoox/shared", () => ({
+vi.mock("@jango-blockchained/hoox-shared", () => ({
   Colors: {
     background: "#0D1117",
     foreground: "#EEEEEE",

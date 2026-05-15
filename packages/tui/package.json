@@ -22,6 +22,6 @@
     "typescript": "^5.7.0"
   },
   "peerDependencies": {
-    "@hoox/shared": "*"
+    "@jango-blockchained/hoox-shared": "workspace:*"
   }
 }

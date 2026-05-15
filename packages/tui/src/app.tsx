@@ -11,16 +11,16 @@
  *   6. Save session state on clean shutdown
  *
  * Follows TUI Pattern 1 (FrameBuffer full-screen root) and Pattern 4 (Keyboard).
- * Colors from design tokens via @hoox/shared. No CSS, no DOM.
+ * Colors from design tokens via @jango-blockchained/hoox-shared. No CSS, no DOM.
  */
 import { useState, useEffect, useCallback } from 'react'
 import { useKeyboard } from '@opentui/react'
-import { Colors } from '@hoox/shared'
-import { useUIStore } from '@hoox/shared/stores/ui-store'
-import { useServiceStore } from '@hoox/shared/stores/service-store'
-import { useConfigStore } from '@hoox/shared/stores/config-store'
-import { restoreSession, saveSession, type SessionState } from '@hoox/shared/src/session'
-import { formatRelativeTime } from '@hoox/shared/src/format-time'
+import { Colors } from '@jango-blockchained/hoox-shared'
+import { useUIStore } from '@jango-blockchained/hoox-shared/stores/ui-store'
+import { useServiceStore } from '@jango-blockchained/hoox-shared/stores/service-store'
+import { useConfigStore } from '@jango-blockchained/hoox-shared/stores/config-store'
+import { restoreSession, saveSession, type SessionState } from '@jango-blockchained/hoox-shared/src/session'
+import { formatRelativeTime } from '@jango-blockchained/hoox-shared/src/format-time'
 
 // Views
 import { DashboardView } from './components/views/dashboard'
@@ -36,7 +36,7 @@ import { SettingsView } from './components/views/settings'
 // Shared UI
 import { CrashScreen, type CrashAction } from './components/shared/crash-screen'
 import { CommandPalette } from './components/shared/command-palette'
-import type { ViewId } from '@hoox/shared'
+import type { ViewId } from '@jango-blockchained/hoox-shared'
 
 // ─── View registry ───────────────────────────────────────────────────────────
 

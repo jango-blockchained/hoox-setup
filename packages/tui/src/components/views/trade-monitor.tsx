@@ -14,14 +14,14 @@
  * Space toggles pause/resume of the live feed. Feed capped at 500 via store ring buffer.
  *
  * Follows Pattern 1 (View Composition), Pattern 2 (Store Subscription).
- * Colors from @hoox/shared design tokens. No CSS, no DOM.
+ * Colors from @jango-blockchained/hoox-shared design tokens. No CSS, no DOM.
  */
 import { useState, useMemo, useRef } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useServiceStore } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "../shared/error-boundary"
-import type { Trade, TradeSide } from "@hoox/shared"
+import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

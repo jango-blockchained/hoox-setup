@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test"
 // @ts-expect-error — render returns FrameBuffer string
 import { render } from "@opentui/react"
-import type { ViewId, NotificationPreferences } from "@hoox/shared"
+import type { ViewId, NotificationPreferences } from "@jango-blockchained/hoox-shared"
 
 // ─── Mock infrastructure ─────────────────────────────────────────────────────
 
@@ -93,7 +93,7 @@ function useConfigStore(selector: (s: typeof mockState) => unknown): unknown {
 
 // ─── Mock the config-store module ────────────────────────────────────────────
 
-mock.module("@hoox/shared/stores/config-store", () => ({
+mock.module("@jango-blockchained/hoox-shared/stores/config-store", () => ({
   useConfigStore,
 }))
 

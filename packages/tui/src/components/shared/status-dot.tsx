@@ -10,7 +10,7 @@
  * Optional `pulse` blinks the character for operational status
  * (uses the Text `blink` attribute to pulse).
  */
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

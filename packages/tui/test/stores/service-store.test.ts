@@ -11,10 +11,10 @@
  * Uses Bun test runner. Mocks the lazy imports for api-client and sse.
  */
 import { describe, it, expect, beforeEach, mock } from "bun:test"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
 import type {
   WorkerInfo, Trade, Alert, LogEntry, SystemMetrics, ConnectionStatus,
-} from "@hoox/shared"
+} from "@jango-blockchained/hoox-shared"
 
 // ─── Mock API client ──────────────────────────────────────────────────────────
 
@@ -30,7 +30,7 @@ const hooxFetchMock = mock(async (_path: string) => {
 })
 
 // Setup mock for the dynamic import in fetchWorkers
-mock.module("@hoox/shared/src/api-client", () => ({
+mock.module("@jango-blockchained/hoox-shared/src/api-client", () => ({
   hooxFetch: hooxFetchMock,
 }))
 
@@ -41,7 +41,7 @@ const subscribeSSEMock = mock(async <T>(_path: string, callback: (data: T) => vo
   sseCallbacks.push(callback as (data: unknown) => void)
 })
 
-mock.module("@hoox/shared/src/sse", () => ({
+mock.module("@jango-blockchained/hoox-shared/src/sse", () => ({
   subscribeSSE: subscribeSSEMock,
 }))
 

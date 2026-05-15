@@ -20,11 +20,11 @@
  *
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription),
  * 5 (Color Token Usage), 8 (ScrollBox).
- * Colors from @hoox/shared design tokens. No CSS, no DOM.
+ * Colors from @jango-blockchained/hoox-shared design tokens. No CSS, no DOM.
  */
 import { useState, useCallback, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "../shared/error-boundary"
 
 // ─── Types ────────────────────────────────────────────────────────────────────

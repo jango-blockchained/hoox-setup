@@ -9,11 +9,11 @@
  */
 import { describe, it, expect } from "bun:test"
 
-// ─── Hoox Design System Colors (mirrored from @hoox/shared) ──────────────────
+// ─── Hoox Design System Colors (mirrored from @jango-blockchained/hoox-shared) ──────────────────
 
 /**
  * These color tokens form the Hoox design system based on the
- * landing page DNA. They are used throughout the TUI via @hoox/shared.
+ * landing page DNA. They are used throughout the TUI via @jango-blockchained/hoox-shared.
  *
  * Palette:
  *   - Dark background: #0D1117 (GitHub-dark inspired)

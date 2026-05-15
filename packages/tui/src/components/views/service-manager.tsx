@@ -18,13 +18,13 @@
  * Uses Colors tokens, useServiceStore, StatusDot, and showConfirm dialog.
  */
 import { useState } from "react"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
-import { Colors } from "@hoox/shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import { Colors } from "@jango-blockchained/hoox-shared"
 import { StatusDot } from "@/components/shared/status-dot"
 import { ErrorBoundary } from "@/components/shared/error-boundary"
 import { showConfirm } from "@/components/ui/dialog"
 import type { DialogHandle } from "@/components/ui/dialog"
-import type { WorkerInfo } from "@hoox/shared/types"
+import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

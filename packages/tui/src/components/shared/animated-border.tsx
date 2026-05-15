@@ -10,7 +10,7 @@
  * Used to wrap interactive panels, selected rows, and focusable sections.
  */
 import { type ReactNode } from "react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

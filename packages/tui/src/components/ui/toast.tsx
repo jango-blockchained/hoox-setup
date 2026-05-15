@@ -8,7 +8,7 @@
  * these functions (see app.tsx).
  */
 import { toast, TOAST_DURATION } from "@opentui-ui/toast"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

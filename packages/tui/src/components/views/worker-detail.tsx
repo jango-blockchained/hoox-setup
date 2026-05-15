@@ -13,13 +13,13 @@
  *   - Esc returns to workers overview via UI store goBack()
  *
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
- * Colors from @hoox/shared tokens — no hardcoded hex.
+ * Colors from @jango-blockchained/hoox-shared tokens — no hardcoded hex.
  */
 import { useState, useMemo, useEffect } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
-import { useUIStore } from "@hoox/shared/stores/ui-store"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
 import { ErrorBoundary } from "@/components/shared/error-boundary"
 import { StatusDot, type StatusDotStatus } from "@/components/shared/status-dot"
 

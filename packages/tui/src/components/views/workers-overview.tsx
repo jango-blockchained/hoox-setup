@@ -21,12 +21,12 @@
  */
 import { useState, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useServiceStore } from "@hoox/shared"
-import { useUIStore } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "../shared/error-boundary"
 import { StatusDot } from "../shared/status-dot"
-import type { WorkerInfo } from "@hoox/shared"
+import type { WorkerInfo } from "@jango-blockchained/hoox-shared"
 
 // ── Grid Constants ────────────────────────────────────────────────────────────
 

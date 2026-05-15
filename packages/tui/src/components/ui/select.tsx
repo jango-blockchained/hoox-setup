@@ -8,14 +8,14 @@
  *   - Enter: confirm selection
  *   - Escape: dismiss
  *
- * All colors use Colors tokens from @hoox/shared (no hardcoded hex).
+ * All colors use Colors tokens from @jango-blockchained/hoox-shared (no hardcoded hex).
  */
 import { useState } from "react"
 import {
   type ConfirmContext,
   useDialogKeyboard,
 } from "@opentui-ui/dialog/react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

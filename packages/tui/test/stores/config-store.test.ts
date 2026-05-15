@@ -5,8 +5,8 @@
  * Uses Bun test runner.
  */
 import { describe, it, expect, beforeEach } from "bun:test"
-import { useConfigStore } from "@hoox/shared/stores/config-store"
-import type { ViewId, NotificationPreferences } from "@hoox/shared"
+import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-store"
+import type { ViewId, NotificationPreferences } from "@jango-blockchained/hoox-shared"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

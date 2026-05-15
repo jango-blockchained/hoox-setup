@@ -7,7 +7,7 @@
  * Colors use Hoox design tokens — no hardcoded hex.
  */
 import { Component, type ReactNode } from "react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

@@ -8,7 +8,7 @@
  *   3. KeyboardPanel — read-only shortcut reference table
  *   4. DataPanel     — cache/export/import actions + About info
  *
- * Reads/writes the Zustand config store (@hoox/shared/stores/config-store).
+ * Reads/writes the Zustand config store (@jango-blockchained/hoox-shared/stores/config-store).
  * Keyboard: Tab cycles panels, ↑↓ navigates items within panel,
  *           Space toggles, ←→ cycles selects, Enter activates buttons.
  *
@@ -16,10 +16,10 @@
  */
 import { useMemo, useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useConfigStore } from "@hoox/shared/stores/config-store"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-store"
 import { ErrorBoundary } from "../shared/error-boundary"
-import type { ViewId, NotificationPreferences } from "@hoox/shared"
+import type { ViewId, NotificationPreferences } from "@jango-blockchained/hoox-shared"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

@@ -12,9 +12,9 @@
  */
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useConfigStore } from "@hoox/shared"
-import { useUIStore } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useConfigStore } from "@jango-blockchained/hoox-shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared"
 import { ErrorBoundary } from "../shared/error-boundary"
 import { showConfirm } from "../ui/dialog"
 import type { DialogHandle } from "../ui/dialog"

@@ -5,8 +5,8 @@
  * Uses Bun test runner.
  */
 import { describe, it, expect, beforeEach } from "bun:test"
-import { useUIStore } from "@hoox/shared/stores/ui-store"
-import type { ViewId, ModalState } from "@hoox/shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
+import type { ViewId, ModalState } from "@jango-blockchained/hoox-shared"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -11,9 +11,9 @@
  * Uses Bun test runner. Pure store-level integration (no rendering).
  */
 import { describe, it, expect, beforeEach } from "bun:test"
-import { useUIStore } from "@hoox/shared/stores/ui-store"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
-import type { ViewId } from "@hoox/shared"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import type { ViewId } from "@jango-blockchained/hoox-shared"
 
 // ─── View shortcut mapping (mirrors app.tsx) ──────────────────────────────────
 

@@ -13,8 +13,8 @@
  * Not a full TUI render test (which requires a terminal).
  */
 import { describe, test, expect, beforeEach } from "bun:test"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
-import { useUIStore } from "@hoox/shared/stores/ui-store"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store"
 
 // ── Local type aliases (mirror the store's internal types) ──────────────────
 
@@ -282,7 +282,7 @@ describe("WorkerDetail", () => {
     const LOG_LEVELS = ["debug", "info", "warn", "error"] as const
 
     // Each level should map to a defined color string
-    // (Actual color values come from @hoox/shared at runtime)
+    // (Actual color values come from @jango-blockchained/hoox-shared at runtime)
     const colorMap: Record<string, string> = {
       debug: "muted",
       info: "info",

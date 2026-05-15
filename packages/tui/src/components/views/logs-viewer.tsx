@@ -9,10 +9,10 @@
  */
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useKeyboard } from '@opentui/react'
-import { Colors } from '@hoox/shared'
-import { useServiceStore } from '@hoox/shared/stores/service-store'
+import { Colors } from '@jango-blockchained/hoox-shared'
+import { useServiceStore } from '@jango-blockchained/hoox-shared/stores/service-store'
 import { ErrorBoundary } from '../shared/error-boundary'
-import type { LogEntry, LogLevel } from '@hoox/shared'
+import type { LogEntry, LogLevel } from '@jango-blockchained/hoox-shared'
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 

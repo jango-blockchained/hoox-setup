@@ -6,7 +6,7 @@
  * Imported and called from the app root or StatusBar when connection state changes.
  */
 import { toastSuccess, toastWarning, toastInfo } from './toast'
-import { formatDuration } from '@hoox/shared/src/format-time'
+import { formatDuration } from '@jango-blockchained/hoox-shared/src/format-time'
 
 // ─── Toast factory functions ─────────────────────────────────────────────────
 

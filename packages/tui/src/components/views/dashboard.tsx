@@ -9,15 +9,15 @@
  *   4. QuickStatsRow: 4 metric cards with large numbers
  *
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
- * Colors from design tokens via @hoox/shared. No CSS, no DOM.
+ * Colors from design tokens via @jango-blockchained/hoox-shared. No CSS, no DOM.
  */
 import { useMemo, useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
-import { useServiceStore } from "@hoox/shared/stores/service-store"
+import { Colors } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store"
 import { ErrorBoundary } from "../shared/error-boundary"
 import { StatusDot } from "../shared/status-dot"
-import type { Alert, AlertSeverity } from "@hoox/shared"
+import type { Alert, AlertSeverity } from "@jango-blockchained/hoox-shared"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

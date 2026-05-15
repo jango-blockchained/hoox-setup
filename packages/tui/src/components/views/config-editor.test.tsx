@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, mock } from "bun:test"
 // @ts-expect-error — render returns FrameBuffer string
 import { render } from "@opentui/react"
 
-// ─── Mock @hoox/shared (Colors) before importing ConfigEditor ────────────────
+// ─── Mock @jango-blockchained/hoox-shared (Colors) before importing ConfigEditor ────────────────
 
 const MOCK_COLORS = {
   background: { toHex: () => "#0D1117" },
@@ -26,7 +26,7 @@ const MOCK_COLORS = {
   info:       { toHex: () => "#4488FF" },
 }
 
-mock.module("@hoox/shared", () => ({ Colors: MOCK_COLORS }))
+mock.module("@jango-blockchained/hoox-shared", () => ({ Colors: MOCK_COLORS }))
 
 // ─── Mock ErrorBoundary (pass-through in tests) ──────────────────────────────
 

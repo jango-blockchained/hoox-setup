@@ -16,7 +16,7 @@
  */
 import { useState, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
-import { Colors } from "@hoox/shared"
+import { Colors } from "@jango-blockchained/hoox-shared"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

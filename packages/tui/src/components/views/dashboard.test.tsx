@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test"
 // @ts-expect-error — render returns FrameBuffer string
 import { render } from "@opentui/react"
-import type { WorkerInfo, Alert, SystemMetrics } from "@hoox/shared"
+import type { WorkerInfo, Alert, SystemMetrics } from "@jango-blockchained/hoox-shared"
 
 // ─── Mock infrastructure ─────────────────────────────────────────────────────
 
@@ -42,7 +42,7 @@ function useServiceStore(selector: (s: typeof mockState) => unknown): unknown {
 
 // ─── Mock the service-store module ───────────────────────────────────────────
 
-mock.module("@hoox/shared/stores/service-store", () => ({
+mock.module("@jango-blockchained/hoox-shared/stores/service-store", () => ({
   useServiceStore,
 }))
 
