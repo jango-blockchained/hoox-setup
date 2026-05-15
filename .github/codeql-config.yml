@@ -1,0 +1,20 @@
+# CodeQL Custom Configuration
+# See: https://docs.github.com/en/code-security/codeql-cli/codeql-cli-manual/config-file
+
+name: "CodeQL Custom Configuration"
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - packages
+  - workers
+  - pages
+  - scripts
+paths-ignore:
+  - "**/node_modules"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/dist"
+  - "**/.wrangler"

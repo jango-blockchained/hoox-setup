@@ -7,6 +7,10 @@
 
 import { Command } from "commander";
 import { toError } from "@jango-blockchained/hoox-shared";
+import {
+  FULL_LEGAL_NOTICE,
+  COPYRIGHT,
+} from "@jango-blockchained/hoox-shared/legal";
 import { CLIError, ExitCode } from "./utils/errors.js";
 import { formatError } from "./utils/formatters.js";
 import { theme } from "./utils/theme.js";
@@ -22,7 +26,7 @@ program
   .description(
     "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments"
   )
-  .version("0.2.0")
+  .version(`0.2.0\n\n${COPYRIGHT}`)
   .addHelpText(
     "beforeAll",
     theme.heading("\nHoox CLI — Cloudflare Workers Platform\n")
@@ -144,6 +148,17 @@ import { registerUpdateCommand } from "./commands/update/index.js";
 import { registerTUICommand } from "./commands/tui/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
+// ── Legal / Disclaimer command ──────────────────────────────────────────
+
+program
+  .command("disclaimer")
+  .description("Display legal disclaimers and trademark information")
+  .action(() => {
+    console.log(FULL_LEGAL_NOTICE);
+  });
+
+// ── Command registration ────────────────────────────────────────────────
+
 registerInitCommand(program);
 registerDevCommand(program);
 registerDeployCommand(program);
@@ -167,9 +182,9 @@ registerTUICommand(program);
 
 import { UpdateService } from "./services/update/index.js";
 
-const devCmd = program.commands.find(c => c.name() === "dev");
+const devCmd = program.commands.find((c) => c.name() === "dev");
 if (devCmd) {
-  const devStartCmd = devCmd.commands.find(c => c.name() === "start");
+  const devStartCmd = devCmd.commands.find((c) => c.name() === "start");
   if (devStartCmd) {
     devStartCmd.hook("preAction", async () => {
       const service = new UpdateService();
@@ -178,11 +193,11 @@ if (devCmd) {
   }
 }
 
-const deployCmd = program.commands.find(c => c.name() === "deploy");
+const deployCmd = program.commands.find((c) => c.name() === "deploy");
 if (deployCmd) {
   const deploySubs = ["all", "workers", "worker", "dashboard"];
   for (const sub of deploySubs) {
-    const cmd = deployCmd.commands.find(c => c.name() === sub);
+    const cmd = deployCmd.commands.find((c) => c.name() === sub);
     if (cmd) {
       cmd.hook("preAction", async () => {
         const service = new UpdateService();

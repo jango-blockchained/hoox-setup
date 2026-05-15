@@ -4,6 +4,17 @@
  * Barrel export: re-exports all shared utilities, types, stores, and TUI helpers.
  */
 
+// ── Legal boilerplate ─────────────────────────────────────────────────────
+
+export {
+  COPYRIGHT,
+  TRADEMARKS,
+  TRADEMARK_NOTICE,
+  DISCLAIMER,
+  FULL_LEGAL_NOTICE,
+  DISCLAIMER_HEADER,
+} from "./legal.js";
+
 // ── Original shared exports (CLI + Workers) ──────────────────────────────
 
 export type {
@@ -72,8 +83,8 @@ export type {
 
 // ── New TUI shared exports ────────────────────────────────────────────────
 
-export { Colors } from "./colors"
-export type { ColorKey } from "./colors"
+export { Colors } from "./colors";
+export type { ColorKey } from "./colors";
 
 export {
   formatNumber,
@@ -89,17 +100,23 @@ export {
   formatRequests,
   formatMemory,
   formatCpu,
-} from "./formatters"
+} from "./formatters";
 
-export { readConfigSync, readConfig, writeConfigSync, writeConfig, validateConfig } from "./config"
-export type { HooxConfig } from "./config"
+export {
+  readConfigSync,
+  readConfig,
+  writeConfigSync,
+  writeConfig,
+  validateConfig,
+} from "./config";
+export type { HooxConfig } from "./config";
 
-export { hooxFetch, WorkerAPIError } from "./api-client"
-export { subscribeSSE } from "./sse"
-export type { SSECallback, SSEStatusCallback } from "./sse"
-export { restoreSession, saveSession } from "./session"
-export type { SessionState } from "./session"
-export { formatRelativeTime as formatRelativeTimeFromTime } from "./format-time"
+export { hooxFetch, WorkerAPIError } from "./api-client";
+export { subscribeSSE } from "./sse";
+export type { SSECallback, SSEStatusCallback } from "./sse";
+export { restoreSession, saveSession } from "./session";
+export type { SessionState } from "./session";
+export { formatRelativeTime as formatRelativeTimeFromTime } from "./format-time";
 
 // TUI-specific types
 export type {
@@ -111,12 +128,12 @@ export type {
   ConnectionStatus,
   LogLevel,
   LogFilter,
-} from "../../types"
+} from "../../types";
 
 // Zustand stores
-export { useUIStore } from "../stores/ui-store"
-export { useServiceStore } from "../stores/service-store"
-export { useConfigStore } from "../stores/config-store"
-export type { UIState } from "../stores/ui-store"
-export type { ServiceState } from "../stores/service-store"
-export type { ConfigState } from "../stores/config-store"
+export { useUIStore } from "../stores/ui-store";
+export { useServiceStore } from "../stores/service-store";
+export { useConfigStore } from "../stores/config-store";
+export type { UIState } from "../stores/ui-store";
+export type { ServiceState } from "../stores/service-store";
+export type { ConfigState } from "../stores/config-store";

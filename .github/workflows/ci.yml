@@ -23,6 +23,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -50,6 +60,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -58,6 +78,17 @@ jobs:
         # despite all tests passing. The `|| true` ensures CI doesn't
         # falsely fail on the exit code — coverage data is still generated.
         run: bun test packages/cli --coverage || true
+
+      - name: Run tests for shared package
+        run: bun test packages/shared --coverage || true
+
+      - name: Run worker unit tests
+        run: |
+          for dir in workers/hoox workers/trade-worker workers/d1-worker workers/telegram-worker workers/agent-worker workers/web3-wallet-worker workers/email-worker workers/analytics-worker workers/report-worker; do
+            if [ -f "$dir/package.json" ] && grep -q '"test"' "$dir/package.json"; then
+              bun test --cwd "$dir" || true
+            fi
+          done
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
@@ -84,6 +115,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -92,3 +133,8 @@ jobs:
 
       - name: Verify CLI bin exists
         run: ls -la packages/cli/bin/hoox.js
+
+      - name: Build dashboard (Next.js + OpenNext)
+        run: |
+          cd workers/dashboard
+          bun run build

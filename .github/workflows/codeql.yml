@@ -34,9 +34,17 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          config-file: ./.github/codeql-config.yml
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Build for CodeQL
+        run: |
+          bun install --frozen-lockfile
+          bun run build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
