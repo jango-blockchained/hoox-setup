@@ -3,8 +3,6 @@
  *
  * Pure functions — no side effects, safe for NaN/Infinity/negative/zero.
  */
-import { Colors } from "./colors"
-
 /** Format large numbers with K/M/B suffixes */
 export function formatNumber(n: number): string {
   if (!isFinite(n)) return "—"

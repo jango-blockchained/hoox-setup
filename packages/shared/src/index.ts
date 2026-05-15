@@ -1,8 +1,77 @@
 /**
  * @hoox/shared — Shared module for HOOX CLI and TUI
  *
- * Barrel export: re-exports all shared utilities, types, and stores.
+ * Barrel export: re-exports all shared utilities, types, stores, and TUI helpers.
  */
+
+// ── Original shared exports (CLI + Workers) ──────────────────────────────
+
+export type {
+  StandardResponse,
+  ApiSuccessResponse,
+  ApiErrorResponse,
+  ApiResponse,
+  WorkerServiceBinding,
+  WorkerD1Binding,
+  WorkerSecretsStoreBinding,
+  WorkerQueueConfig,
+  HousekeepingCheck,
+  HousekeepingPayload,
+  HousekeepingSummary,
+  SettingsPayload,
+  ProcessRequestBody,
+  BaseEnv,
+  Result,
+} from "./types.js";
+export {
+  TradeActionSchema,
+  WebhookPayloadSchema,
+  TradeSignalSchema,
+  PositionSchema,
+  BalanceSchema,
+} from "./types.js";
+export type { TradeAction, WebhookPayload, TradeSignal } from "./types.js";
+export { KVKeys } from "./kvKeys.js";
+export {
+  toError,
+  Errors,
+  createJsonResponse,
+  createSuccessResponse,
+  createErrorResponse,
+} from "./errors.js";
+
+export { BaseExchangeClient } from "./exchange-client.js";
+export type {
+  ExchangeName,
+  ExchangeConfig,
+  TradeParams,
+  OrderResponse,
+  Position,
+} from "./exchange-client.js";
+export {
+  logKvTimestamp,
+  headersToObject,
+  kvTimestampMiddleware,
+} from "./kvUtils.js";
+export type { EnvWithKV } from "./kvUtils.js";
+export { trackAnalytics } from "./analytics.js";
+export type { AnalyticsEnv } from "./analytics.js";
+export { healthCheck } from "./health.js";
+export type { HealthCheckOptions } from "./health.js";
+export { D1Repository } from "./d1/index.js";
+export { serviceFetch } from "./service-bindings.js";
+export type {
+  TradeRecord,
+  PositionRecord,
+  BalanceRecord,
+  SystemLogRecord,
+  TradeSignalRecord,
+  D1QueryResult,
+  BatchStatement,
+} from "./d1/index.js";
+
+// ── New TUI shared exports ────────────────────────────────────────────────
+
 export { Colors } from "./colors"
 export type { ColorKey } from "./colors"
 
@@ -25,12 +94,14 @@ export {
 export { readConfigSync, readConfig, writeConfigSync, writeConfig, validateConfig } from "./config"
 export type { HooxConfig } from "./config"
 
-export { hooxFetch, type FetchOptions } from "./api-client"
-export { streamSSE, parseSSELines, type SSEEvent } from "./sse"
-export { restoreSession, saveSession, type SessionState } from "./session"
+export { hooxFetch, WorkerAPIError } from "./api-client"
+export { subscribeSSE } from "./sse"
+export type { SSECallback, SSEStatusCallback } from "./sse"
+export { restoreSession, saveSession } from "./session"
+export type { SessionState } from "./session"
 export { formatRelativeTime as formatRelativeTimeFromTime } from "./format-time"
 
-// Re-export shared types
+// TUI-specific types
 export type {
   WorkerInfo,
   Trade,
@@ -40,14 +111,4 @@ export type {
   ConnectionStatus,
   LogLevel,
   LogFilter,
-} from "../types"
-
-export type {
-  ViewId,
-  ModalState,
-  ModalType,
-  ALL_VIEWS,
-  VIEW_LABELS,
-  VIEW_ORDER,
-  viewIndex,
-} from "../../tui/src/types"
+} from "../../types"

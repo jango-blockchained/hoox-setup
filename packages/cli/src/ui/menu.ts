@@ -422,6 +422,11 @@ async function showToolsMenu(
           label: "Dashboard UI",
           hint: "manage dashboard URLs",
         },
+        {
+          value: "tui",
+          label: "Launch TUI Dashboard",
+          hint: "OpenTUI terminal operations center",
+        },
         { value: "__back", label: "◀ Back to main menu" },
       ],
     });
