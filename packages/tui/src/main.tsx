@@ -7,11 +7,11 @@
  * Usage: bun run packages/tui/src/main.ts
  *        or: HOOX_API_URL=http://localhost:8787 bun run packages/tui/src/main.ts
  */
-import { createCliRenderer } from "@opentui/core"
-import { createRoot } from "@opentui/react"
-import { AppRoot } from "./app"
-import { saveSession } from "@jango-blockchained/hoox-shared"
-import { setRendererRef } from "./hooks/renderer-ref"
+import { createCliRenderer } from "@opentui/core";
+import { createRoot } from "@opentui/react";
+import { CrashRecoveryApp } from "./app";
+import { saveSession } from "@jango-blockchained/hoox-shared";
+import { setRendererRef } from "./hooks";
 
 const RENDERER_CONFIG = {
   screenMode: "alternate-screen" as const,
@@ -25,31 +25,31 @@ const RENDERER_CONFIG = {
     alternateKeys: true,
     events: true,
   },
-}
+};
 
 async function main() {
-  const renderer = await createCliRenderer(RENDERER_CONFIG)
+  const renderer = await createCliRenderer(RENDERER_CONFIG);
 
   renderer.on("destroy", () => {
-    saveSession({
-      activeView: "dashboard",
-      sidebarExpanded: true,
-      windowSize: { width: 0, height: 0 },
-    })
-  })
+    saveSession("dashboard", true, { cols: 80, rows: 24 }, Date.now()).catch(
+      () => {
+        // Non-fatal: session save failures are silent
+      }
+    );
+  });
 
   renderer.on("resize", (_width: number, _height: number) => {
     // Layout auto-adjusts via flexbox
-  })
+  });
 
   // Set renderer ref so hooks + components can access it via getRendererRef()
-  setRendererRef(renderer)
+  setRendererRef(renderer);
 
-  createRoot(renderer).render(<AppRoot />)
-  renderer.start()
+  createRoot(renderer).render(<CrashRecoveryApp />);
+  renderer.start();
 }
 
 main().catch((err) => {
-  console.error("Fatal: Failed to start HOOX TUI:", err)
-  process.exit(1)
-})
+  console.error("Fatal: Failed to start HOOX TUI:", err);
+  process.exit(1);
+});

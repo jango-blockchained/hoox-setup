@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "bun run src/main.tsx",
     "build": "bun build src/main.tsx --outdir dist --target bun",
-    "start": "bun run dist/main.js",
+    "start": "bun run src/main.tsx",
     "test": "bun test",
     "test:e2e": "bun test test/e2e/"
   },
