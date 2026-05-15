@@ -135,6 +135,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     }
 
     let proc: Subprocess<"pipe", "pipe", "pipe"> | null = null
+    // eslint-disable-next-line no-useless-assignment
     let output = ""
 
     try {
@@ -199,6 +200,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     }
 
     let proc: Subprocess<"pipe", "pipe", "pipe"> | null = null
+    // eslint-disable-next-line no-useless-assignment
     let output = ""
 
     try {
@@ -365,6 +367,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     // Wait a bit and check process is still alive
     await new Promise((resolve) => setTimeout(resolve, 1_000))
 
+    // eslint-disable-next-line no-useless-assignment
     let stillAlive = false
     try {
       proc.kill("SIGTERM")
