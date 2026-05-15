@@ -263,7 +263,7 @@ export function tokenizeJsonLine(line: string): TokenSpan[] {
   }
 
   // Braces/brackets at start
-  if (/^[\{\}\[\]]/.test(trimmed)) {
+  if (/^[\]\[{}]/.test(trimmed)) {
     spans.push({ text: trimmed[0], color: JSON_COLORS.brace.fg, bold: true })
     const rest = tokenizeJsonLine(trimmed.slice(1))
     spans.push(...rest)
@@ -276,7 +276,7 @@ export function tokenizeJsonLine(line: string): TokenSpan[] {
     const prefix = trimmed.slice(0, -1)
     const prefixSpans = tokenizeJsonLine(prefix)
     spans.push(...prefixSpans)
-    spans.push({ text: last, color: /[\{\}\[\]]/.test(last) ? JSON_COLORS.brace.fg : JSON_COLORS.comma.fg, bold: /[\{\}\[\]]/.test(last) })
+    spans.push({ text: last, color: /[\]\[{}]/.test(last) ? JSON_COLORS.brace.fg : JSON_COLORS.comma.fg, bold: /[\]\[{}]/.test(last) })
     return spans
   }
 

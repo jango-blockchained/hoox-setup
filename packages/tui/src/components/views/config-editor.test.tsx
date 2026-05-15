@@ -393,7 +393,7 @@ describe("ConfigEditor", () => {
     it("trims trailing whitespace in TOML", () => {
       const withSpaces = "key = value   \n  [section]   \n"
       const formatted = formatContent(withSpaces, "toml")
-      expect(formatted).not.toMatch(/  \n/)
+      expect(formatted).not.toMatch(/ {2}\n/)
       expect(formatted.endsWith("\n")).toBe(true)
     })
   })
