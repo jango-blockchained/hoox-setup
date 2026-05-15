@@ -259,7 +259,7 @@ export function AppRoot() {
     return () => {
       cancelled = true
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Session save on unmount ─────────────────────────────────────────────
   useEffect(() => {
