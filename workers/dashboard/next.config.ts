@@ -3,10 +3,6 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 initOpenNextCloudflareForDev();
 
-const nextConfig: NextConfig = {
-  turbopack: {
-    root: new URL("../..", import.meta.url).pathname,
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
