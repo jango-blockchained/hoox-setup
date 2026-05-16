@@ -5,7 +5,7 @@ initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: process.cwd() + "/../..",
+    root: new URL("../..", import.meta.url).pathname,
   },
 };
 
