@@ -3,10 +3,13 @@
  * Compatible with Cloudflare Workers edge runtime
  */
 
+export type RouteParams = Record<string, string>;
+
 export type Handler<TEnv = Record<string, unknown>> = (
   request: Request,
   env: TEnv,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
+  params?: RouteParams
 ) => Promise<Response>;
 
 export interface RouteDefinition<TEnv = Record<string, unknown>> {
@@ -14,6 +17,7 @@ export interface RouteDefinition<TEnv = Record<string, unknown>> {
   method: string;
   handler: Handler<TEnv>;
   middleware?: Handler<TEnv>[];
+  params?: string[];
 }
 
 export interface Router<TEnv = Record<string, unknown>> {

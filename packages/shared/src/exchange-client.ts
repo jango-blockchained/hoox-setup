@@ -33,6 +33,62 @@ export interface Position {
   unrealizedPnl?: number;
 }
 
+// ── Exchange Provider Router (generic, cross-worker) ────────────────
+
+/**
+ * Generic exchange provider interface.
+ * Workers implement this to provide exchange-specific client creation and credential validation.
+ *
+ * @typeParam TClient - The exchange client type (e.g., IExchangeClient)
+ * @typeParam TEnv - The worker's environment/bindings type (e.g., Env)
+ */
+export interface IExchangeProvider<TClient, TEnv> {
+  readonly name: string;
+  createClient(env: TEnv): TClient;
+  hasCredentials(env: TEnv): boolean;
+}
+
+/**
+ * Generic exchange router that maps exchange names to providers.
+ * Workers extend or compose this to add worker-specific routing logic.
+ *
+ * @typeParam TClient - The exchange client type
+ * @typeParam TEnv - The worker's environment type
+ *
+ * @example
+ * ```ts
+ * const router = new ExchangeRouter<IExchangeClient, Env>();
+ * router.registerProvider(new BinanceProvider());
+ * const { client } = router.route("binance", env);
+ * ```
+ */
+export class ExchangeRouter<TClient, TEnv> {
+  private readonly providers = new Map<
+    string,
+    IExchangeProvider<TClient, TEnv>
+  >();
+
+  registerProvider(provider: IExchangeProvider<TClient, TEnv>): void {
+    this.providers.set(provider.name.toLowerCase(), provider);
+  }
+
+  route(exchange: string, env: TEnv): { exchange: string; client: TClient } {
+    const key = exchange.toLowerCase();
+    const provider = this.providers.get(key);
+    if (!provider) {
+      throw new Error(`Unsupported exchange: ${exchange}`);
+    }
+    if (!provider.hasCredentials(env)) {
+      throw new Error(
+        `API secret bindings not configured or accessible for ${exchange}`
+      );
+    }
+    return { exchange: key, client: provider.createClient(env) };
+  }
+}
+
+// ── Base Exchange Client ────────────────────────────────────────────
+
 export abstract class BaseExchangeClient {
   protected readonly apiKey: string;
   protected readonly apiSecret: string;

@@ -51,13 +51,14 @@ export {
   createErrorResponse,
 } from "./errors.js";
 
-export { BaseExchangeClient } from "./exchange-client.js";
+export { BaseExchangeClient, ExchangeRouter } from "./exchange-client.js";
 export type {
   ExchangeName,
   ExchangeConfig,
   TradeParams,
   OrderResponse,
   Position,
+  IExchangeProvider,
 } from "./exchange-client.js";
 export {
   logKvTimestamp,
