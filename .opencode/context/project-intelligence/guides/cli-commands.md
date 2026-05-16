@@ -2,6 +2,31 @@
 
 The `hoox` CLI is the central management tool for the Hoox Trading System. Built with commander.js and Bun.
 
+## TUI Command
+
+The TUI (Terminal User Interface) is launched separately from the main `hoox` CLI, though there is a `hoox tui` command that spawns it:
+
+```bash
+hoox tui              # Launch TUI (spawns as child process)
+hoox tui --fps 60     # Override frame rate
+hoox tui --no-mouse   # Disable mouse support
+```
+
+The `hoox tui` command:
+
+1. Resolves the TUI entry point (`packages/tui/src/main.tsx`)
+2. Spawns `bun run <entry>` as a child process with `stdio: 'inherit'`
+3. Passes `TUI_FPS` and `TUI_MOUSE` environment variables
+4. Waits for clean exit, logs status
+
+**Alternative launch methods:**
+
+- `./hoox-tui` — Shell launcher script from repo root
+- `cd packages/tui && bun run dev` — Direct development mode
+- `cd packages/tui && bun run start` — Run built bundle
+
+**Source:** `packages/cli/src/commands/tui/tui-command.ts`
+
 ## Complete Command Tree
 
 ```

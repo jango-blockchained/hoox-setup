@@ -22,6 +22,7 @@ description: "User guide for the Hoox algorithmic trading CLI"
 - [Repair & Recovery](guides/repair.md) — Diagnose and fix system issues
 - [Secrets & Security](guides/secrets-security.md) — Manage API keys and secrets
 - [Local Development](guides/local-development.md) — Develop with hot-reload, TUI, or Docker
+- [Terminal UI (TUI)](guides/tui.md) — Full-screen terminal operations center
 
 ## 🧠 Concepts
 

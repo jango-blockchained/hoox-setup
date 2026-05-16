@@ -2,6 +2,7 @@
 title: "Hoox Trading System — Complete Setup & Operations Guide"
 description: "**Version:** 2.0.0"
 ---
+
 # Hoox Trading System — Complete Setup & Operations Guide
 
 > **Version:** 2.0.0  
@@ -36,18 +37,19 @@ description: "**Version:** 2.0.0"
 
 Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Workers. It consists of:
 
-| Layer             | Components                                                                        |
-| ----------------- | --------------------------------------------------------------------------------- |
-| **Gateway**       | `hoox` (webhook entrypoint, DO idempotency, KV-backed rate limiting)              |
-| **Execution**     | `trade-worker` (multi-exchange), `web3-wallet-worker` (DeFi)                      |
-| **Intelligence**  | `agent-worker` (AI risk manager, 5min cron, multi-provider AI gateway)            |
-| **Data**          | `d1-worker` (centralized D1 database service)                                     |
-| **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing)           |
-| **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine, cross-worker observability)       |
-| **Reporting**     | `report-worker` (Automated PDF reports via Browser Rendering, 2x daily cron)      |
-| **Dashboard**     | `workers/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)                 |
-| **CLI**           | `packages/cli` (management tool)                                                  |
-| **Shared**        | `packages/shared` (types, router, middleware, utilities)                          |
+| Layer             | Components                                                                   |
+| ----------------- | ---------------------------------------------------------------------------- |
+| **Gateway**       | `hoox` (webhook entrypoint, DO idempotency, KV-backed rate limiting)         |
+| **Execution**     | `trade-worker` (multi-exchange), `web3-wallet-worker` (DeFi)                 |
+| **Intelligence**  | `agent-worker` (AI risk manager, 5min cron, multi-provider AI gateway)       |
+| **Data**          | `d1-worker` (centralized D1 database service)                                |
+| **Notifications** | `telegram-worker` (Telegram bot), `email-worker` (email signal parsing)      |
+| **Analytics**     | `analytics-worker` (Cloudflare Analytics Engine, cross-worker observability) |
+| **Reporting**     | `report-worker` (Automated PDF reports via Browser Rendering, 2x daily cron) |
+| **Dashboard**     | `workers/dashboard` (Next.js 16 + OpenNext on Cloudflare Workers)            |
+| **CLI**           | `packages/cli` (management tool)                                             |
+| **TUI**           | `packages/tui` (terminal operations center)                                  |
+| **Shared**        | `packages/shared` (types, router, middleware, utilities)                     |
 
 ### 1.2 Communication Flow
 
@@ -64,21 +66,21 @@ email-worker (cron) → trade-worker
 
 ### 1.3 Infrastructure Components
 
-| Service              | Instance Name      | Binding              | Used By                                           |
-| -------------------- | ------------------ | -------------------- | ------------------------------------------------- |
-| **D1 Database**      | `trade-data-db`    | `DB`                 | trade-worker, d1-worker, agent-worker             |
-| **KV Namespace**     | `CONFIG_KV`        | `CONFIG_KV`          | ALL workers + dashboard (config + rate limiter)   |
-| **KV Namespace**     | `SESSIONS_KV`      | `SESSIONS_KV`        | hoox                                              |
-| **R2 Bucket**        | `trade-reports`    | `REPORTS_BUCKET`     | trade-worker, report-worker                       |
-| **R2 Bucket**        | `hoox-system-logs` | `SYSTEM_LOGS_BUCKET` | trade-worker                                      |
-| **R2 Bucket**        | `user-uploads`     | `UPLOADS_BUCKET`     | telegram-worker                                   |
-| **Queue**            | `trade-execution`  | `TRADE_QUEUE`        | hoox (producer), trade-worker (consumer)          |
-| **Vectorize**        | `my-rag-index`     | `VECTORIZE_INDEX`    | hoox, trade-worker, telegram-worker               |
-| **Analytics Engine** | `hoox-analytics`   | (REST API)           | analytics-worker (cross-worker data collection)   |
-| **Durable Objects**  | `IdempotencyStore` | `IDEMPOTENCY_STORE`  | hoox (SQLite-backed, TTL+alarm cleanup)           |
-| **Browser Rendering**| —                  | (REST API)           | report-worker (PDF generation via CF API)         |
-| **AI**               | —                  | `AI`                 | hoox, trade-worker, telegram-worker, agent-worker |
-| **Smart Placement**  | —                  | (wrangler config)    | hoox, trade, agent, d1, telegram, report          |
+| Service               | Instance Name      | Binding              | Used By                                           |
+| --------------------- | ------------------ | -------------------- | ------------------------------------------------- |
+| **D1 Database**       | `trade-data-db`    | `DB`                 | trade-worker, d1-worker, agent-worker             |
+| **KV Namespace**      | `CONFIG_KV`        | `CONFIG_KV`          | ALL workers + dashboard (config + rate limiter)   |
+| **KV Namespace**      | `SESSIONS_KV`      | `SESSIONS_KV`        | hoox                                              |
+| **R2 Bucket**         | `trade-reports`    | `REPORTS_BUCKET`     | trade-worker, report-worker                       |
+| **R2 Bucket**         | `hoox-system-logs` | `SYSTEM_LOGS_BUCKET` | trade-worker                                      |
+| **R2 Bucket**         | `user-uploads`     | `UPLOADS_BUCKET`     | telegram-worker                                   |
+| **Queue**             | `trade-execution`  | `TRADE_QUEUE`        | hoox (producer), trade-worker (consumer)          |
+| **Vectorize**         | `my-rag-index`     | `VECTORIZE_INDEX`    | hoox, trade-worker, telegram-worker               |
+| **Analytics Engine**  | `hoox-analytics`   | (REST API)           | analytics-worker (cross-worker data collection)   |
+| **Durable Objects**   | `IdempotencyStore` | `IDEMPOTENCY_STORE`  | hoox (SQLite-backed, TTL+alarm cleanup)           |
+| **Browser Rendering** | —                  | (REST API)           | report-worker (PDF generation via CF API)         |
+| **AI**                | —                  | `AI`                 | hoox, trade-worker, telegram-worker, agent-worker |
+| **Smart Placement**   | —                  | (wrangler config)    | hoox, trade, agent, d1, telegram, report          |
 
 ---
 
@@ -284,7 +286,7 @@ DASHBOARD_PASS=admin
     },
   },
   "dev": {
-    "runtime": "native" // "native" (wrangler) or "docker" (compose) — hoox dev start preference
+    "runtime": "native", // "native" (wrangler) or "docker" (compose) — hoox dev start preference
   },
 }
 ```
@@ -719,8 +721,8 @@ hoox workers update-internal-urls
 
 ### 8.1 Configuration Files
 
-| File                                   | Purpose                        |
-| -------------------------------------- | ------------------------------ |
+| File                                    | Purpose                        |
+| --------------------------------------- | ------------------------------ |
 | `workers/dashboard/next.config.ts`      | Next.js config (OpenNext init) |
 | `workers/dashboard/wrangler.jsonc`      | Worker deployment config       |
 | `workers/dashboard/open-next.config.ts` | OpenNext adapter config        |
@@ -1198,7 +1200,7 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 | File               | Purpose                      | Required |
 | ------------------ | ---------------------------- | -------- |
-| `wrangler.jsonc`    | Central worker configuration | **Yes**  |
+| `wrangler.jsonc`   | Central worker configuration | **Yes**  |
 | `.env.local`       | Local environment variables  | **Yes**  |
 | `package.json`     | Root workspace manifest      | **Yes**  |
 | `bunfig.toml`      | Bun test configuration       | **Yes**  |
@@ -1221,8 +1223,8 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 ### 13.3 Dashboard Files
 
-| File                                   | Purpose                              |
-| -------------------------------------- | ------------------------------------ |
+| File                                    | Purpose                              |
+| --------------------------------------- | ------------------------------------ |
 | `workers/dashboard/next.config.ts`      | Next.js configuration                |
 | `workers/dashboard/wrangler.jsonc`      | Cloudflare Workers deployment config |
 | `workers/dashboard/open-next.config.ts` | OpenNext adapter configuration       |
@@ -1235,17 +1237,19 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 | Package           | Main Export    | Purpose                          |
 | ----------------- | -------------- | -------------------------------- |
 | `packages/cli`    | `bin/hoox.js`  | CLI management tool              |
+| `packages/tui`    | `src/main.tsx` | Terminal operations center       |
 | `packages/shared` | `src/index.ts` | Shared types, router, middleware |
 
 ### 13.5 Script Files
 
-| Script                               | Purpose                               |
-| ------------------------------------ | ------------------------------------- |
-| `scripts/migrate-tracking.sh`        | D1 tracking schema migration          |
-| `scripts/check-script-paths.ts`      | Validate script paths                 |
-| `scripts/check-worker-submodules.ts` | Verify worker directories exist       |
-| `scripts/purge-credentials.sh`       | Git history credential purge          |
-| `hoox-tui`                           | Terminal UI for local dev (if exists) |
+| Script                               | Purpose                              |
+| ------------------------------------ | ------------------------------------ |
+| `scripts/migrate-tracking.sh`        | D1 tracking schema migration         |
+| `scripts/check-script-paths.ts`      | Validate script paths                |
+| `scripts/check-worker-submodules.ts` | Verify worker directories exist      |
+| `scripts/purge-credentials.sh`       | Git history credential purge         |
+| `hoox-tui`                           | Terminal UI for local dev            |
+| `packages/tui/`                      | TUI source (OpenTUI, React, Zustand) |
 
 ### 13.6 Documentation Files
 
@@ -1297,9 +1301,10 @@ hoox secrets update-cf
 # Development
 hoox dev start               # Start all workers (choose runtime)
 hoox dev dashboard           # Dashboard only
-./hoox-tui                   # Interactive TUI
-hoox workers dev <name>       # Dev single worker
-bun run dev                   # Dashboard dev
+hoox tui                     # Interactive TUI (via CLI)
+./hoox-tui                   # Interactive TUI (shell script)
+hoox workers dev <name>      # Dev single worker
+bun run dev                  # Dashboard dev
 
 # Testing
 bun test                      # Unit tests
@@ -1355,6 +1360,11 @@ hoox-setup/
 │   │       ├── commands/         # CLI commands
 │   │       ├── adapters/         # Cloudflare/Bun adapters
 │   │       └── core/             # Engine, observer, types
+│   ├── tui/                      # Terminal UI (OpenTUI)
+│   │   ├── src/main.tsx          # TUI entry point
+│   │   ├── src/components/       # 9 views + layout + shared UI
+│   │   ├── src/hooks/            # Keyboard, polling, data hooks
+│   │   └── test/                 # E2E, integration, unit tests
 │   └── shared/                   # Shared types/utilities
 │       └── src/
 │           ├── types.ts          # Core types

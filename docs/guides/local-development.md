@@ -48,13 +48,35 @@ hoox dev dashboard
 
 Opens at `http://localhost:3000`.
 
-## Terminal UI
+## Terminal UI (TUI)
+
+The Hoox TUI is a full-screen terminal operations center for monitoring and managing your trading infrastructure. It provides 9 keyboard-driven views for real-time visibility into workers, trades, logs, and configuration.
 
 ```bash
+# Launch via shell script (repo root)
 ./hoox-tui
+
+# Launch via CLI
+hoox tui
+hoox tui --fps 60     # Override frame rate
+hoox tui --no-mouse   # Disable mouse support
+
+# Direct development mode
+cd packages/tui && bun run dev
+
+# Run built bundle
+cd packages/tui && bun run start
 ```
 
-Interactive process manager for all 9 workers with hot-reload.
+**Key features:**
+
+- **9 views**: Dashboard, Workers Overview, Worker Detail, Trade Monitor, Logs Viewer, Service Manager, Config Editor, Setup Wizard, Settings
+- **Keyboard navigation**: `Ctrl+1-9` to switch views, `Ctrl+P` command palette, `Ctrl+B` toggle sidebar
+- **Real-time data**: REST polling + SSE streaming for live trades and logs
+- **Built-in editor**: Syntax-highlighted TOML/JSON config editing
+- **Connection resilience**: Auto-reconnection with exponential backoff
+
+> **See the [TUI User Guide](tui.md)** for complete documentation, view descriptions, and troubleshooting.
 
 ## CI Pipeline
 

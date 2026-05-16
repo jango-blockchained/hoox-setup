@@ -14,6 +14,7 @@ description: "Infrastructure, deployment, and operations reference for Hoox oper
 ## 📋 Operations Guide
 
 - [Complete Setup & Operations](setup_and_operations.md) — Full system setup, environment matrix, deployment sequence, repair procedures, troubleshooting
+- [TUI Operations](tui.md) — Terminal UI for monitoring, service management, and configuration
 
 ## 🏗️ Architecture
 
