@@ -39,6 +39,12 @@ pages/dashboard/.open-next/
 .opencode/**
 !.opencode/context
 !.opencode/context/**
+!.opencode/plans
+!.opencode/plans/**
+!.opencode/specs
+!.opencode/specs/**
+!.opencode/tasks
+!.opencode/tasks/**
 .agents/
 .agents/*
 .ai/
