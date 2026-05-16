@@ -10,6 +10,7 @@ RUN bun install
 
 # Copy shared package
 COPY packages/shared/ packages/shared/
+RUN bun install
 
 # Copy worker source code
 COPY workers/ workers/
