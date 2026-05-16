@@ -16,18 +16,16 @@ COPY workers/ workers/
 COPY pages/ pages/
 COPY packages/ packages/
 
-# Compile workers to standalone JS (we do this for each worker)
-# Note: In a real setup, you would build each worker individually into separate dist/ folders
-# Dashboard (Pages) is built separately with next build
+# Compile workers to standalone JS
 RUN mkdir -p dist && \
-    bun build workers/hoox/src/index.ts --outdir=dist/hoox --target=bun && \
-    bun build workers/trade-worker/src/index.ts --outdir=dist/trade-worker --target=bun && \
-    bun build workers/d1-worker/src/index.ts --outdir=dist/d1-worker --target=bun && \
-    bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun && \
-    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun && \
-    bun build workers/web3-wallet-worker/src/index.ts --outdir=dist/web3-wallet-worker --target=bun && \
-    bun build workers/analytics-worker/src/index.ts --outdir=dist/analytics-worker --target=bun && \
-    bun build workers/report-worker/src/index.ts --outdir=dist/report-worker --target=bun
+    bun build workers/hoox/src/index.ts --outdir=dist/hoox --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/trade-worker/src/index.ts --outdir=dist/trade-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/d1-worker/src/index.ts --outdir=dist/d1-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/web3-wallet-worker/src/index.ts --outdir=dist/web3-wallet-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/analytics-worker/src/index.ts --outdir=dist/analytics-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
+    bun build workers/report-worker/src/index.ts --outdir=dist/report-worker --target=bun --external "@jango-blockchained/hoox-shared"
 
 # Final Runtime
 FROM oven/bun:1.3-alpine

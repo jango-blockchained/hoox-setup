@@ -1,6 +1,6 @@
 {
   "name": "@hoox/tui",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Hoox algorithmic trading terminal operations center — OpenTUI dashboard",
   "type": "module",
   "main": "src/main.tsx",
