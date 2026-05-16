@@ -6,57 +6,136 @@
  * All dialogs render centered with a dimmed backdrop (backdropOpacity 0.35)
  * and use Colors tokens from @jango-blockchained/hoox-shared for consistent Hoox branding.
  */
-import { type ConfirmContext } from "@opentui-ui/dialog/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
+import { useState } from "react";
+import {
+  type ConfirmContext,
+  useDialogKeyboard,
+} from "@opentui-ui/dialog/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 /** Options for confirm dialogs (Yes/No, Confirm/Cancel) */
 export interface ConfirmDialogOptions {
   /** Dialog title (bold, accent-colored) */
-  title: string
+  title: string;
   /** Explanatory message below the title */
-  message: string
+  message: string;
   /** Label for the affirmative button (default: "Confirm") */
-  confirmLabel?: string
+  confirmLabel?: string;
   /** Label for the dismiss button (default: "Cancel") */
-  cancelLabel?: string
+  cancelLabel?: string;
   /** Whether clicking outside the dialog dismisses it (default: true) */
-  closeOnClickOutside?: boolean
+  closeOnClickOutside?: boolean;
 }
 
 /** A single choice item in a choice dialog */
 export interface ChoiceOption<K extends string = string> {
-  key: K
-  label: string
-  description?: string
+  key: K;
+  label: string;
+  description?: string;
 }
 
 /** Options for choice dialogs */
 export interface ChoiceDialogOptions<K extends string = string> {
   /** Dialog title */
-  title: string
+  title: string;
   /** Array of selectable options */
-  choices: ChoiceOption<K>[]
+  choices: ChoiceOption<K>[];
   /** Value returned when dialog is dismissed via ESC/backdrop (default: undefined) */
-  fallback?: K
+  fallback?: K;
   /** Whether clicking outside dismisses (default: true) */
-  closeOnClickOutside?: boolean
+  closeOnClickOutside?: boolean;
 }
 
 /** Dialog manager interface — subset of what useDialog() returns */
 export interface DialogHandle {
   confirm(options: {
-    content: (ctx: ConfirmContext) => unknown
-    closeOnClickOutside?: boolean
-  }): Promise<boolean>
+    content: (ctx: ConfirmContext) => unknown;
+    closeOnClickOutside?: boolean;
+  }): Promise<boolean>;
   choice<K extends string>(options: {
-    content: (ctx: ConfirmContext) => unknown
-    fallback?: K
-    closeOnClickOutside?: boolean
-  }): Promise<K | undefined>
-  show(options: { content: () => unknown; id?: string | number }): string | number
-  close(id?: string | number): void
+    content: (ctx: ConfirmContext) => unknown;
+    fallback?: K;
+    closeOnClickOutside?: boolean;
+  }): Promise<K | undefined>;
+  show(options: {
+    content: () => unknown;
+    id?: string | number;
+  }): string | number;
+  close(id?: string | number): void;
+}
+
+// ── Internal: keyboard-navigable choice list ──────────────────────────────
+
+/** Props for the keyboard-navigable choice list rendered inside a dialog */
+interface ChoiceListProps extends ConfirmContext {
+  choices: ChoiceOption[];
+  accentColor: string;
+  foregroundColor: string;
+  mutedColor: string;
+  highlightColor: string;
+}
+
+/**
+ * Internal component that renders a keyboard-navigable choice list.
+ * Uses useDialogKeyboard scoped to the dialog so only the topmost
+ * dialog receives keyboard events.
+ */
+function ChoiceList({
+  choices,
+  accentColor,
+  foregroundColor,
+  mutedColor,
+  highlightColor,
+  resolve,
+  dismiss,
+  dialogId,
+}: ChoiceListProps) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useDialogKeyboard((key) => {
+    if (key.name === "down" || key.name === "j") {
+      setSelectedIndex((prev) => (prev < choices.length - 1 ? prev + 1 : 0));
+    }
+    if (key.name === "up" || key.name === "k") {
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : choices.length - 1));
+    }
+    if (key.name === "return") {
+      const selected = choices[selectedIndex];
+      if (selected) resolve(selected.key);
+    }
+    if (key.name === "escape") {
+      dismiss();
+    }
+  }, dialogId);
+
+  return (
+    <box flexDirection="column" gap={0}>
+      {choices.map((choice, idx) => (
+        <box flexDirection="row" gap={2} paddingLeft={1} paddingRight={1}>
+          {/* Selection indicator */}
+          <text fg={idx === selectedIndex ? accentColor : mutedColor}>
+            {idx === selectedIndex ? "▶" : " "}
+          </text>
+          {/* Choice label */}
+          <text
+            fg={idx === selectedIndex ? foregroundColor : mutedColor}
+            bg={idx === selectedIndex ? highlightColor : undefined}
+            onMouseUp={() => resolve(choice.key)}
+          >
+            {choice.label}
+          </text>
+          {/* Optional description */}
+          {choice.description && (
+            <text dim fg={mutedColor}>
+              — {choice.description}
+            </text>
+          )}
+        </box>
+      ))}
+    </box>
+  );
 }
 
 // ── Dialog wrapper functions ───────────────────────────────────────────────
@@ -75,7 +154,7 @@ export interface DialogHandle {
  */
 export async function showConfirm(
   dialog: DialogHandle,
-  options: ConfirmDialogOptions,
+  options: ConfirmDialogOptions
 ): Promise<boolean> {
   return dialog.confirm({
     content: (ctx: ConfirmContext) => (
@@ -86,20 +165,24 @@ export async function showConfirm(
         <text fg={Colors.muted}>{options.message}</text>
         <box flexDirection="row" gap={2} justifyContent="flex-end">
           <text fg={Colors.muted} onMouseUp={() => ctx.resolve(false)}>
-            {"  "}{options.cancelLabel ?? "Cancel"}{"  "}
+            {"  "}
+            {options.cancelLabel ?? "Cancel"}
+            {"  "}
           </text>
           <text
             fg={Colors.accent}
             bg={Colors.card}
             onMouseUp={() => ctx.resolve(true)}
           >
-            {"  "}{options.confirmLabel ?? "Confirm"}{"  "}
+            {"  "}
+            {options.confirmLabel ?? "Confirm"}
+            {"  "}
           </text>
         </box>
       </box>
     ),
     closeOnClickOutside: options.closeOnClickOutside ?? true,
-  })
+  });
 }
 
 /**
@@ -117,36 +200,35 @@ export async function showConfirm(
  */
 export async function showChoice<K extends string>(
   dialog: DialogHandle,
-  options: ChoiceDialogOptions<K>,
+  options: ChoiceDialogOptions<K>
 ): Promise<K | undefined> {
   return dialog.choice<K>({
     content: (ctx: ConfirmContext) => (
       <box flexDirection="column" padding={1} gap={1}>
+        {/* Header */}
         <text fg={Colors.accent}>
           <b>{options.title}</b>
         </text>
-        <box flexDirection="column" gap={0}>
-          {options.choices.map((choice) => (
-            <box
-              flexDirection="row"
-              gap={2}
-              paddingLeft={1}
-              paddingRight={1}
-            >
-              <text
-                fg={Colors.foreground}
-                onMouseUp={() => ctx.resolve(choice.key)}
-              >
-                {choice.label}
-              </text>
-              {choice.description && (
-                <text dim fg={Colors.muted}>
-                  {choice.description}
-                </text>
-              )}
-            </box>
-          ))}
-        </box>
+        <text dim fg={Colors.muted}>
+          Use ↑↓ to navigate, Enter to select, Esc to cancel
+        </text>
+
+        {/* Divider */}
+        <box height={1} />
+
+        {/* Keyboard-navigable choice list */}
+        <ChoiceList
+          choices={options.choices}
+          accentColor={Colors.accent}
+          foregroundColor={Colors.foreground}
+          mutedColor={Colors.muted}
+          highlightColor={Colors.card}
+          resolve={ctx.resolve}
+          dismiss={ctx.dismiss}
+          dialogId={ctx.dialogId}
+        />
+
+        {/* Footer actions */}
         <box flexDirection="row" justifyContent="flex-end" paddingTop={1}>
           <text fg={Colors.muted} onMouseUp={ctx.dismiss}>
             {"  Cancel  "}
@@ -156,7 +238,7 @@ export async function showChoice<K extends string>(
     ),
     fallback: options.fallback,
     closeOnClickOutside: options.closeOnClickOutside ?? true,
-  })
+  });
 }
 
 /**
@@ -168,10 +250,7 @@ export async function showChoice<K extends string>(
  * await deployAll()
  * close()
  */
-export function showLoading(
-  dialog: DialogHandle,
-  message: string,
-): () => void {
+export function showLoading(dialog: DialogHandle, message: string): () => void {
   const id = dialog.show({
     content: () => (
       <box
@@ -187,6 +266,6 @@ export function showLoading(
         </text>
       </box>
     ),
-  })
-  return () => dialog.close(id)
+  });
+  return () => dialog.close(id);
 }
