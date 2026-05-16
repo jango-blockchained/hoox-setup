@@ -7,8 +7,10 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./*",
-    "./stores/*": "./stores/*.ts"
+    "./stores/*": "./stores/*.ts",
+    "./middleware": "./src/middleware/index.ts",
+    "./d1": "./src/d1/index.ts",
+    "./*": "./src/*.ts"
   },
   "dependencies": {
     "zustand": "^5.0.0",
