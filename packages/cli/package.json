@@ -9,7 +9,8 @@
     ".": "./bin/hoox.js"
   },
   "bin": {
-    "hoox": "./bin/hoox.js"
+    "hoox": "./bin/hoox.js",
+    "hx": "./bin/hoox.js"
   },
   "scripts": {
     "test": "bun test",
