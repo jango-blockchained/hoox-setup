@@ -36,30 +36,30 @@
     "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.16.3",
-    "@cloudflare/workers-types": "^4.20260506.1",
+    "@cloudflare/vitest-pool-workers": "^0.16.6",
+    "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
     "@types/blessed": "^0.1.27",
     "@types/commander": "^2.12.5",
-    "@types/node": "^25.6.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
-    "bun-types": "^1.3.13",
-    "eslint": "^10.3.0",
+    "@types/node": "^25.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.3",
+    "@typescript-eslint/parser": "^8.59.3",
+    "bun-types": "^1.3.14",
+    "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.5.1",
+    "lint-staged": "^15.5.2",
     "prettier": "^3.8.3",
     "shadcn": "^4.7.0",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.6"
   },
   "dependencies": {
     "blessed": "^0.1.81",
     "react": "^19.2.6",
     "react-reconciler": "^0.33.0",
-    "wrangler": "^4.90.1",
+    "wrangler": "^4.92.0",
     "zod": "^4.4.3"
   }
 }
