@@ -12,6 +12,6 @@
   },
   "dependencies": {
     "zustand": "^5.0.0",
-    "immer": "^10.0.0"
+    "immer": "^11.1.8"
   }
 }

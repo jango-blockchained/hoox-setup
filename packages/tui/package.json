@@ -12,10 +12,10 @@
     "test:e2e": "bun test test/e2e/"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.0",
+    "@opentui/core": "^0.2.12",
     "@opentui/react": "^0.1.0",
     "zustand": "^5.0.0",
-    "immer": "^10.1.0"
+    "immer": "^11.1.8"
   },
   "devDependencies": {
     "@types/bun": "latest",
