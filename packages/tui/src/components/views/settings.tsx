@@ -14,22 +14,25 @@
  *
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
  */
-import { useMemo, useState } from "react"
-import { useKeyboard } from "@opentui/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
-import { useConfigStore } from "@jango-blockchained/hoox-shared"
-import { ErrorBoundary } from "../shared/error-boundary"
-import type { ViewId, NotificationPreferences } from "@jango-blockchained/hoox-shared"
+import { useMemo, useState } from "react";
+import { useKeyboard } from "@opentui/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useConfigStore } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import type {
+  ViewId,
+  NotificationPreferences,
+} from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Refresh rate options in milliseconds */
-const REFRESH_RATES = [250, 500, 1000, 2000, 5000] as const
+const REFRESH_RATES = [250, 500, 1000, 2000, 5000] as const;
 
 /** Refresh rate display labels */
 function formatRefreshRate(ms: number): string {
-  if (ms >= 1000) return `${ms / 1000}s`
-  return `${ms}ms`
+  if (ms >= 1000) return `${ms / 1000}s`;
+  return `${ms}ms`;
 }
 
 /** ViewId options for the default view selector */
@@ -43,7 +46,7 @@ const VIEW_OPTIONS: ViewId[] = [
   "config-editor",
   "setup-wizard",
   "settings",
-]
+];
 
 /** Human-readable labels for ViewId values */
 const VIEW_LABELS: Record<ViewId, string> = {
@@ -56,7 +59,7 @@ const VIEW_LABELS: Record<ViewId, string> = {
   "config-editor": "Config Editor",
   "setup-wizard": "Setup Wizard",
   settings: "Settings",
-}
+};
 
 /** Notification channel keys in display order */
 const NOTIFICATION_CHANNELS: (keyof NotificationPreferences)[] = [
@@ -64,7 +67,7 @@ const NOTIFICATION_CHANNELS: (keyof NotificationPreferences)[] = [
   "trades",
   "debug",
   "system",
-]
+];
 
 /** Human-readable labels for notification channels */
 const NOTIFICATION_LABELS: Record<keyof NotificationPreferences, string> = {
@@ -72,12 +75,12 @@ const NOTIFICATION_LABELS: Record<keyof NotificationPreferences, string> = {
   trades: "Trades",
   debug: "Debug",
   system: "System",
-}
+};
 
 /** System-level keyboard shortcuts shown in the reference panel */
 interface ShortcutEntry {
-  key: string
-  action: string
+  key: string;
+  action: string;
 }
 
 const SYSTEM_SHORTCUTS: ShortcutEntry[] = [
@@ -90,11 +93,11 @@ const SYSTEM_SHORTCUTS: ShortcutEntry[] = [
   { key: "Tab", action: "Next panel / field" },
   { key: "/", action: "Focus search" },
   { key: "Space", action: "Toggle checkbox" },
-]
+];
 
 // ─── Panel Count ──────────────────────────────────────────────────────────────
 
-const PANEL_COUNT = 4
+const PANEL_COUNT = 4;
 
 // ─── Sub-Components ────────────────────────────────────────────────────────────
 
@@ -108,10 +111,10 @@ function PanelBox({
   width,
   children,
 }: {
-  title: string
-  active: boolean
-  width: number
-  children: unknown
+  title: string;
+  active: boolean;
+  width: number;
+  children: unknown;
 }) {
   return (
     <box
@@ -132,7 +135,7 @@ function PanelBox({
         {children}
       </box>
     </box>
-  )
+  );
 }
 
 /**
@@ -145,12 +148,12 @@ function Checkbox({
   onToggle,
   active,
 }: {
-  label: string
-  checked: boolean
-  onToggle: () => void
-  active: boolean
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+  active: boolean;
 }) {
-  const marker = checked ? "x" : " "
+  const marker = checked ? "x" : " ";
   return (
     <text
       fg={checked ? Colors.success : Colors.muted}
@@ -161,7 +164,7 @@ function Checkbox({
     >
       [{marker}] {label}
     </text>
-  )
+  );
 }
 
 // ─── Column 1: ThemePanel ─────────────────────────────────────────────────────
@@ -174,19 +177,27 @@ function Checkbox({
  *   0 = theme dark, 1 = theme light, 2 = refresh rate,
  *   3 = default view, 4 = reset button
  */
-const THEME_ITEM_COUNT = 5
+const THEME_ITEM_COUNT = 5;
 
-function ThemePanel({ active, activeItem }: { active: boolean; activeItem: number }) {
-  const theme = useConfigStore((s) => s.theme)
-  const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs)
-  const defaultView = useConfigStore((s) => s.defaultView)
-  const updateConfig = useConfigStore((s) => s.updateConfig)
-  const resetDefaults = useConfigStore((s) => s.resetDefaults)
+function ThemePanel({
+  active,
+  activeItem,
+}: {
+  active: boolean;
+  activeItem: number;
+}) {
+  const theme = useConfigStore((s) => s.theme);
+  const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs);
+  const defaultView = useConfigStore((s) => s.defaultView);
+  const updateConfig = useConfigStore((s) => s.updateConfig);
+  const resetDefaults = useConfigStore((s) => s.resetDefaults);
 
-  const currentRateIndex = REFRESH_RATES.indexOf(refreshIntervalMs as (typeof REFRESH_RATES)[number])
-  const currentViewIndex = VIEW_OPTIONS.indexOf(defaultView)
+  const currentRateIndex = REFRESH_RATES.indexOf(
+    refreshIntervalMs as (typeof REFRESH_RATES)[number]
+  );
+  const currentViewIndex = VIEW_OPTIONS.indexOf(defaultView);
 
-  const isDark = theme === "dark"
+  const isDark = theme === "dark";
 
   return (
     <box flexDirection="column" gap={0}>
@@ -261,7 +272,7 @@ function ThemePanel({ active, activeItem }: { active: boolean; activeItem: numbe
         </text>
       </box>
     </box>
-  )
+  );
 }
 
 // ─── Column 2: NotificationsPanel ─────────────────────────────────────────────
@@ -273,13 +284,19 @@ function ThemePanel({ active, activeItem }: { active: boolean; activeItem: numbe
  * Local item indices:
  *   0-3 = notification channels, 4 = sound toggle
  */
-const NOTIF_ITEM_COUNT = 5
+const NOTIF_ITEM_COUNT = 5;
 
-function NotificationsPanel({ active, activeItem }: { active: boolean; activeItem: number }) {
-  const notifications = useConfigStore((s) => s.notifications)
-  const soundEnabled = useConfigStore((s) => s.soundEnabled)
-  const toggleNotification = useConfigStore((s) => s.toggleNotification)
-  const updateConfig = useConfigStore((s) => s.updateConfig)
+function NotificationsPanel({
+  active,
+  activeItem,
+}: {
+  active: boolean;
+  activeItem: number;
+}) {
+  const notifications = useConfigStore((s) => s.notifications);
+  const soundEnabled = useConfigStore((s) => s.soundEnabled);
+  const toggleNotification = useConfigStore((s) => s.toggleNotification);
+  const updateConfig = useConfigStore((s) => s.updateConfig);
 
   return (
     <box flexDirection="column" gap={0}>
@@ -307,7 +324,7 @@ function NotificationsPanel({ active, activeItem }: { active: boolean; activeIte
         />
       </box>
     </box>
-  )
+  );
 }
 
 // ─── Column 3: KeyboardPanel ──────────────────────────────────────────────────
@@ -343,7 +360,7 @@ function KeyboardPanel() {
         </text>
       </box>
     </box>
-  )
+  );
 }
 
 // ─── Column 4: DataPanel ──────────────────────────────────────────────────────
@@ -355,9 +372,15 @@ function KeyboardPanel() {
  * Local item indices:
  *   0 = Clear Cache, 1 = Export Data, 2 = Import Data
  */
-const DATA_ITEM_COUNT = 3
+const DATA_ITEM_COUNT = 3;
 
-function DataPanel({ active, activeItem }: { active: boolean; activeItem: number }) {
+function DataPanel({
+  active,
+  activeItem,
+}: {
+  active: boolean;
+  activeItem: number;
+}) {
   return (
     <box flexDirection="column" gap={0} flexGrow={1}>
       {/* Data management header */}
@@ -371,11 +394,9 @@ function DataPanel({ active, activeItem }: { active: boolean; activeItem: number
           fg={Colors.accent}
           bg={active && activeItem === 0 ? Colors.background : undefined}
           bold
-          onMouseUp={
-            () => {
-              /* Clear Cache — implemented when cache layer exists */
-            }
-          }
+          onMouseUp={() => {
+            /* Clear Cache — implemented when cache layer exists */
+          }}
         >
           [ Clear Cache ]
         </text>
@@ -383,11 +404,9 @@ function DataPanel({ active, activeItem }: { active: boolean; activeItem: number
           fg={Colors.accent}
           bg={active && activeItem === 1 ? Colors.background : undefined}
           bold
-          onMouseUp={
-            () => {
-              /* Export Data — triggers config/state export */
-            }
-          }
+          onMouseUp={() => {
+            /* Export Data — triggers config/state export */
+          }}
         >
           [ Export Data ]
         </text>
@@ -395,11 +414,9 @@ function DataPanel({ active, activeItem }: { active: boolean; activeItem: number
           fg={Colors.accent}
           bg={active && activeItem === 2 ? Colors.background : undefined}
           bold
-          onMouseUp={
-            () => {
-              /* Import Data — triggers config/state import */
-            }
-          }
+          onMouseUp={() => {
+            /* Import Data — triggers config/state import */
+          }}
         >
           [ Import Data ]
         </text>
@@ -423,7 +440,7 @@ function DataPanel({ active, activeItem }: { active: boolean; activeItem: number
         </text>
       </box>
     </box>
-  )
+  );
 }
 
 // ─── Main View ─────────────────────────────────────────────────────────────────
@@ -441,17 +458,17 @@ function DataPanel({ active, activeItem }: { active: boolean; activeItem: number
  * Wrapped in ErrorBoundary for crash recovery.
  */
 export function SettingsView() {
-  const [activePanel, setActivePanel] = useState(0)
-  const [activeItem, setActiveItem] = useState(0)
+  const [activePanel, setActivePanel] = useState(0);
+  const [activeItem, setActiveItem] = useState(0);
 
-  const updateConfig = useConfigStore((s) => s.updateConfig)
-  const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs)
-  const defaultView = useConfigStore((s) => s.defaultView)
-  const resetDefaults = useConfigStore((s) => s.resetDefaults)
-  const toggleNotification = useConfigStore((s) => s.toggleNotification)
-  const notifications = useConfigStore((s) => s.notifications)
-  const soundEnabled = useConfigStore((s) => s.soundEnabled)
-  const theme = useConfigStore((s) => s.theme)
+  const updateConfig = useConfigStore((s) => s.updateConfig);
+  const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs);
+  const defaultView = useConfigStore((s) => s.defaultView);
+  const resetDefaults = useConfigStore((s) => s.resetDefaults);
+  const toggleNotification = useConfigStore((s) => s.toggleNotification);
+  const notifications = useConfigStore((s) => s.notifications);
+  const soundEnabled = useConfigStore((s) => s.soundEnabled);
+  const theme = useConfigStore((s) => s.theme);
 
   /** Max items per panel */
   const maxItemsPerPanel = useMemo((): Record<number, number> => {
@@ -460,27 +477,29 @@ export function SettingsView() {
       1: NOTIF_ITEM_COUNT,
       2: 1, // Keyboard panel has no interactive items (read-only)
       3: DATA_ITEM_COUNT,
-    }
-  }, [])
+    };
+  }, []);
 
   // ── Keyboard handling ───────────────────────────────────────────────────────
 
   useKeyboard((key) => {
     // Tab: cycle panels
     if (key.name === "tab") {
-      setActivePanel((p) => (p + 1) % PANEL_COUNT)
-      setActiveItem(0)
-      return
+      setActivePanel((p) => (p + 1) % PANEL_COUNT);
+      setActiveItem(0);
+      return;
     }
 
     // Up/Down: navigate items within active panel
     if (key.name === "up") {
-      setActiveItem((i) => Math.max(0, i - 1))
-      return
+      setActiveItem((i) => Math.max(0, i - 1));
+      return;
     }
     if (key.name === "down") {
-      setActiveItem((i) => Math.min((maxItemsPerPanel[activePanel] ?? 0) - 1, i + 1))
-      return
+      setActiveItem((i) =>
+        Math.min((maxItemsPerPanel[activePanel] ?? 0) - 1, i + 1)
+      );
+      return;
     }
 
     // Panel-specific actions
@@ -490,59 +509,64 @@ export function SettingsView() {
         switch (activeItem) {
           case 0: // Dark theme
             if (key.name === "space" || key.name === "return")
-              updateConfig({ theme: "dark" })
-            break
+              updateConfig({ theme: "dark" });
+            break;
           case 1: // Light theme
             if (key.name === "space" || key.name === "return")
-              updateConfig({ theme: "light" })
-            break
-          case 2: { // Refresh rate
-            const currentIdx = REFRESH_RATES.indexOf(refreshIntervalMs as (typeof REFRESH_RATES)[number])
+              updateConfig({ theme: "light" });
+            break;
+          case 2: {
+            // Refresh rate
+            const currentIdx = REFRESH_RATES.indexOf(
+              refreshIntervalMs as (typeof REFRESH_RATES)[number]
+            );
             if (key.name === "left") {
-              const prev = (currentIdx - 1 + REFRESH_RATES.length) % REFRESH_RATES.length
-              updateConfig({ refreshIntervalMs: REFRESH_RATES[prev] })
+              const prev =
+                (currentIdx - 1 + REFRESH_RATES.length) % REFRESH_RATES.length;
+              updateConfig({ refreshIntervalMs: REFRESH_RATES[prev] });
             } else if (key.name === "right") {
-              const next = (currentIdx + 1) % REFRESH_RATES.length
-              updateConfig({ refreshIntervalMs: REFRESH_RATES[next] })
+              const next = (currentIdx + 1) % REFRESH_RATES.length;
+              updateConfig({ refreshIntervalMs: REFRESH_RATES[next] });
             }
-            break
+            break;
           }
-          case 3: { // Default view
-            const currentIdx = VIEW_OPTIONS.indexOf(defaultView)
+          case 3: {
+            // Default view
+            const currentIdx = VIEW_OPTIONS.indexOf(defaultView);
             if (key.name === "left") {
-              const prev = (currentIdx - 1 + VIEW_OPTIONS.length) % VIEW_OPTIONS.length
-              updateConfig({ defaultView: VIEW_OPTIONS[prev] })
+              const prev =
+                (currentIdx - 1 + VIEW_OPTIONS.length) % VIEW_OPTIONS.length;
+              updateConfig({ defaultView: VIEW_OPTIONS[prev] });
             } else if (key.name === "right") {
-              const next = (currentIdx + 1) % VIEW_OPTIONS.length
-              updateConfig({ defaultView: VIEW_OPTIONS[next] })
+              const next = (currentIdx + 1) % VIEW_OPTIONS.length;
+              updateConfig({ defaultView: VIEW_OPTIONS[next] });
             }
-            break
+            break;
           }
           case 4: // Reset defaults
-            if (key.name === "space" || key.name === "return")
-              resetDefaults()
-            break
+            if (key.name === "space" || key.name === "return") resetDefaults();
+            break;
         }
-        break
+        break;
       }
 
       case 1: {
         // Notifications panel
         if (activeItem >= 0 && activeItem < 4) {
           if (key.name === "space") {
-            const channel = NOTIFICATION_CHANNELS[activeItem]
-            toggleNotification(channel)
+            const channel = NOTIFICATION_CHANNELS[activeItem];
+            toggleNotification(channel);
           }
         } else if (activeItem === 4) {
           if (key.name === "space")
-            updateConfig({ soundEnabled: !soundEnabled })
+            updateConfig({ soundEnabled: !soundEnabled });
         }
-        break
+        break;
       }
 
       case 2: {
         // Keyboard panel — read-only, nothing to toggle
-        break
+        break;
       }
 
       case 3: {
@@ -550,10 +574,10 @@ export function SettingsView() {
         if (key.name === "space" || key.name === "return") {
           // Buttons are currently stubs; will be wired when cache/export layer exists
         }
-        break
+        break;
       }
     }
-  })
+  });
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -566,7 +590,8 @@ export function SettingsView() {
             SETTINGS
           </text>
           <text fg={Colors.muted} dim>
-            Tab to switch panels · ↑↓ to navigate · ←→ to change · Space to toggle
+            Tab to switch panels · ↑↓ to navigate · ←→ to change · Space to
+            toggle
           </text>
         </box>
 
@@ -582,7 +607,10 @@ export function SettingsView() {
           </PanelBox>
 
           <PanelBox title="NOTIFICATIONS" active={activePanel === 1} width={28}>
-            <NotificationsPanel active={activePanel === 1} activeItem={activeItem} />
+            <NotificationsPanel
+              active={activePanel === 1}
+              activeItem={activeItem}
+            />
           </PanelBox>
 
           <PanelBox title="KEYBOARD" active={activePanel === 2} width={34}>
@@ -595,5 +623,5 @@ export function SettingsView() {
         </box>
       </box>
     </ErrorBoundary>
-  )
+  );
 }

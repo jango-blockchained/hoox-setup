@@ -5,8 +5,8 @@
  * Uses the Hoox-styled toast helpers from ./toast.tsx.
  * Imported and called from the app root or StatusBar when connection state changes.
  */
-import { toastSuccess, toastWarning, toastInfo } from './toast'
-import { formatDuration } from "@jango-blockchained/hoox-shared"
+import { toastSuccess, toastWarning, toastInfo } from "./toast";
+import { formatDuration } from "@jango-blockchained/hoox-shared";
 
 // ─── Toast factory functions ─────────────────────────────────────────────────
 
@@ -18,10 +18,10 @@ import { formatDuration } from "@jango-blockchained/hoox-shared"
  * @param disconnectedAt  Timestamp (ms) when the disconnection began
  */
 export function toastReconnected(disconnectedAt: number): void {
-  const now = Date.now()
-  const downtime = now - disconnectedAt
-  const duration = formatDuration(downtime)
-  toastSuccess(`Reconnected \u2022 ${duration} downtime`)
+  const now = Date.now();
+  const downtime = now - disconnectedAt;
+  const duration = formatDuration(downtime);
+  toastSuccess(`Reconnected \u2022 ${duration} downtime`);
 }
 
 /**
@@ -29,9 +29,9 @@ export function toastReconnected(disconnectedAt: number): void {
  * Called when the API returns HTTP 429.
  */
 export function toastRateLimited(): void {
-  toastWarning('API rate limited \u2014 backing off', {
+  toastWarning("API rate limited \u2014 backing off", {
     duration: 6000,
-  })
+  });
 }
 
 /**
@@ -39,9 +39,9 @@ export function toastRateLimited(): void {
  * Called after config-store persists to disk.
  */
 export function toastConfigSaved(): void {
-  toastSuccess('Configuration saved', {
+  toastSuccess("Configuration saved", {
     duration: 3000,
-  })
+  });
 }
 
 /**
@@ -54,7 +54,7 @@ export function toastConfigSaved(): void {
 export function toastDeployStarted(workerName: string): string | number {
   return toastInfo(`Deploy started: ${workerName}`, {
     duration: 0, // persistent until updated
-  })
+  });
 }
 
 /**
@@ -66,7 +66,7 @@ export function toastDeployStarted(workerName: string): string | number {
 export function toastDeployCompleted(workerName: string): void {
   toastSuccess(`Deploy completed: ${workerName}`, {
     duration: 4000,
-  })
+  });
 }
 
 /**
@@ -78,7 +78,7 @@ export function toastDeployCompleted(workerName: string): void {
 export function toastDeployFailed(workerName: string, error: string): void {
   toastWarning(`Deploy failed: ${workerName} \u2014 ${error}`, {
     duration: 8000,
-  })
+  });
 }
 
 /**
@@ -86,7 +86,7 @@ export function toastDeployFailed(workerName: string, error: string): void {
  * Called when the connection transitions to 'offline'.
  */
 export function toastConnectionLost(): void {
-  toastWarning('Connection lost \u2014 retrying with backoff', {
+  toastWarning("Connection lost \u2014 retrying with backoff", {
     duration: 0, // persistent until reconnected
-  })
+  });
 }

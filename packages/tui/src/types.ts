@@ -13,21 +13,21 @@ export const ALL_VIEWS = [
   "config-editor",
   "setup-wizard",
   "settings",
-] as const
+] as const;
 
-export type ViewId = (typeof ALL_VIEWS)[number]
+export type ViewId = (typeof ALL_VIEWS)[number];
 
 export const VIEW_LABELS: Record<ViewId, string> = {
-  "dashboard": "Dashboard",
-  "workers": "Workers",
+  dashboard: "Dashboard",
+  workers: "Workers",
   "worker-detail": "Worker Detail",
   "trade-monitor": "Trades",
   "logs-viewer": "Logs",
   "service-manager": "Services",
   "config-editor": "Config",
   "setup-wizard": "Setup",
-  "settings": "Settings",
-}
+  settings: "Settings",
+};
 
 export const VIEW_ORDER: ViewId[] = [
   "dashboard",
@@ -39,42 +39,47 @@ export const VIEW_ORDER: ViewId[] = [
   "config-editor",
   "setup-wizard",
   "settings",
-]
+];
 
 export function viewIndex(view: ViewId): number {
-  return VIEW_ORDER.indexOf(view)
+  return VIEW_ORDER.indexOf(view);
 }
 
-export type ModalType = "confirm" | "choice" | "loading" | "prompt"
+export type ModalType = "confirm" | "choice" | "loading" | "prompt";
 
 export interface ModalState {
-  type: ModalType
-  id: string
-  title?: string
-  message?: string
-  resolve?: (value: unknown) => void
+  type: ModalType;
+  id: string;
+  title?: string;
+  message?: string;
+  resolve?: (value: unknown) => void;
 }
 
 export interface BoxLayout {
-  flexDirection?: "row" | "column"
-  justifyContent?: "flex-start" | "center" | "flex-end" | "space-between" | "space-around"
-  alignItems?: "flex-start" | "center" | "flex-end" | "stretch"
-  width?: number | string
-  height?: number | string
-  flexGrow?: number
-  padding?: number
-  paddingTop?: number
-  paddingBottom?: number
-  paddingLeft?: number
-  paddingRight?: number
-  gap?: number
-  border?: boolean
-  borderStyle?: "single" | "rounded" | "double" | "bold"
-  backgroundColor?: string
+  flexDirection?: "row" | "column";
+  justifyContent?:
+    | "flex-start"
+    | "center"
+    | "flex-end"
+    | "space-between"
+    | "space-around";
+  alignItems?: "flex-start" | "center" | "flex-end" | "stretch";
+  width?: number | string;
+  height?: number | string;
+  flexGrow?: number;
+  padding?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  gap?: number;
+  border?: boolean;
+  borderStyle?: "single" | "rounded" | "double" | "bold";
+  backgroundColor?: string;
 }
 
 export interface ShortcutMap {
-  [keys: string]: string
+  [keys: string]: string;
 }
 
 export const DEFAULT_SHORTCUTS: ShortcutMap = {
@@ -91,10 +96,10 @@ export const DEFAULT_SHORTCUTS: ShortcutMap = {
   "Ctrl+B": "Toggle Sidebar",
   "Ctrl+R": "Refresh Data",
   "Ctrl+Q": "Quit",
-  "Esc": "Back / Close",
-  "Tab": "Next Focus",
+  Esc: "Back / Close",
+  Tab: "Next Focus",
   "Shift+Tab": "Previous Focus",
-  "Space": "Toggle / Pause",
+  Space: "Toggle / Pause",
   "/": "Search",
-  "Enter": "Select / Confirm",
-}
+  Enter: "Select / Confirm",
+};

@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -65,6 +66,7 @@ export function VisionUpload() {
     }
     setLoading(true);
     setResult(null);
+    const controller = new AbortController();
     try {
       const res = await fetch("/api/agent/vision", {
         method: "POST",
@@ -75,6 +77,7 @@ export function VisionUpload() {
           prompt,
           model,
         }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.success) {
@@ -84,7 +87,9 @@ export function VisionUpload() {
         toast.error(data.error || "Analysis failed");
       }
     } catch (e) {
-      toast.error("Failed to analyze image");
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to analyze image");
+      }
     } finally {
       setLoading(false);
     }

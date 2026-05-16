@@ -11,13 +11,13 @@
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
  * Colors from design tokens via @jango-blockchained/hoox-shared. No CSS, no DOM.
  */
-import { useMemo, useState } from "react"
-import { useKeyboard } from "@opentui/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
-import { useServiceStore } from "@jango-blockchained/hoox-shared"
-import { ErrorBoundary } from "../shared/error-boundary"
-import { StatusDot } from "../shared/status-dot"
-import type { Alert, AlertSeverity } from "@jango-blockchained/hoox-shared"
+import { useMemo, useState } from "react";
+import { useKeyboard } from "@opentui/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import { StatusDot } from "../shared/status-dot";
+import type { Alert, AlertSeverity } from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ const SEVERITY_COLOR: Record<AlertSeverity, string> = {
   warning: Colors.warning,
   error: Colors.error,
   critical: Colors.error, // critical gets same red as error, but bold
-}
+};
 
 /** Severity label prefix */
 const SEVERITY_LABEL: Record<AlertSeverity, string> = {
@@ -35,10 +35,10 @@ const SEVERITY_LABEL: Record<AlertSeverity, string> = {
   warning: "WARN",
   error: "ERR",
   critical: "CRIT",
-}
+};
 
 /** Maximum alerts shown in the panel */
-const MAX_VISIBLE_ALERTS = 50
+const MAX_VISIBLE_ALERTS = 50;
 
 // ─── Number Formatter (Bebas-style large numbers) ────────────────────────────
 
@@ -51,27 +51,27 @@ const MAX_VISIBLE_ALERTS = 50
  */
 function formatStatNumber(value: number, isPnl = false): string {
   if (isPnl) {
-    const sign = value >= 0 ? "+" : ""
-    const abs = Math.abs(value)
-    if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M`
-    if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(1)}K`
-    return `${sign}${abs.toFixed(2)}`
+    const sign = value >= 0 ? "+" : "";
+    const abs = Math.abs(value);
+    if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M`;
+    if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(1)}K`;
+    return `${sign}${abs.toFixed(2)}`;
   }
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
-  return value.toLocaleString("en-US")
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return value.toLocaleString("en-US");
 }
 
 /**
  * Format a timestamp (ms) to HH:MM:SS for alert display.
  */
 function formatTime(ts: number): string {
-  const d = new Date(ts)
+  const d = new Date(ts);
   return [
     d.getHours().toString().padStart(2, "0"),
     d.getMinutes().toString().padStart(2, "0"),
     d.getSeconds().toString().padStart(2, "0"),
-  ].join(":")
+  ].join(":");
 }
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
@@ -80,14 +80,14 @@ function formatTime(ts: number): string {
  * DashboardHeader — view title with animated connection status.
  */
 function DashboardHeader() {
-  const connectionStatus = useServiceStore((s) => s.connectionStatus)
+  const connectionStatus = useServiceStore((s) => s.connectionStatus);
 
   const statusLabel: Record<string, string> = {
     connected: "CONNECTED",
     polling: "POLLING",
     reconnecting: "RECONNECTING",
     offline: "OFFLINE",
-  }
+  };
 
   return (
     <box flexDirection="row" gap={2} paddingBottom={1}>
@@ -110,7 +110,7 @@ function DashboardHeader() {
         </text>
       </box>
     </box>
-  )
+  );
 }
 
 /**
@@ -119,10 +119,10 @@ function DashboardHeader() {
  * Limited to first 10 workers (fits the dashboard layout).
  */
 function ServiceHealthGrid() {
-  const workers = useServiceStore((s) => s.workers)
+  const workers = useServiceStore((s) => s.workers);
 
   // Show first 10 workers (dashboard is an overview)
-  const visibleWorkers = useMemo(() => workers.slice(0, 10), [workers])
+  const visibleWorkers = useMemo(() => workers.slice(0, 10), [workers]);
 
   if (workers.length === 0) {
     return (
@@ -131,7 +131,7 @@ function ServiceHealthGrid() {
           No workers connected — waiting for data…
         </text>
       </box>
-    )
+    );
   }
 
   return (
@@ -193,7 +193,7 @@ function ServiceHealthGrid() {
         </box>
       )}
     </box>
-  )
+  );
 }
 
 /**
@@ -202,24 +202,26 @@ function ServiceHealthGrid() {
  * Color-coded by severity. Scrollable with ↑↓ keys.
  */
 function AlertsPanel() {
-  const alerts = useServiceStore((s) => s.alerts)
-  const [scrollOffset, setScrollOffset] = useState(0)
+  const alerts = useServiceStore((s) => s.alerts);
+  const [scrollOffset, setScrollOffset] = useState(0);
 
   // Newest first, limited
   const sortedAlerts = useMemo(() => {
     return [...alerts]
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, MAX_VISIBLE_ALERTS)
-  }, [alerts])
+      .slice(0, MAX_VISIBLE_ALERTS);
+  }, [alerts]);
 
   // Keyboard: scroll through alerts
   useKeyboard((key) => {
     if (key.name === "up") {
-      setScrollOffset((o) => Math.max(0, o - 1))
+      setScrollOffset((o) => Math.max(0, o - 1));
     } else if (key.name === "down") {
-      setScrollOffset((o) => Math.min(Math.max(0, sortedAlerts.length - 1), o + 1))
+      setScrollOffset((o) =>
+        Math.min(Math.max(0, sortedAlerts.length - 1), o + 1)
+      );
     }
-  })
+  });
 
   return (
     <box flexDirection="column" flexGrow={1}>
@@ -243,10 +245,10 @@ function AlertsPanel() {
           paddingTop={0}
         >
           {sortedAlerts.map((alert, i) => {
-            const color = SEVERITY_COLOR[alert.severity]
-            const label = SEVERITY_LABEL[alert.severity]
-            const isCritical = alert.severity === "critical"
-            const isSelected = i === scrollOffset
+            const color = SEVERITY_COLOR[alert.severity];
+            const label = SEVERITY_LABEL[alert.severity];
+            const isCritical = alert.severity === "critical";
+            const isSelected = i === scrollOffset;
 
             return (
               <box
@@ -271,11 +273,7 @@ function AlertsPanel() {
                 </text>
 
                 {/* Message */}
-                <text
-                  fg={color}
-                  bold={isCritical}
-                  dim={alert.acknowledged}
-                >
+                <text fg={color} bold={isCritical} dim={alert.acknowledged}>
                   {alert.message.length > 60
                     ? alert.message.slice(0, 57) + "…"
                     : alert.message}
@@ -288,7 +286,7 @@ function AlertsPanel() {
                   </text>
                 )}
               </box>
-            )
+            );
           })}
         </scrollbox>
       )}
@@ -300,7 +298,7 @@ function AlertsPanel() {
         </text>
       )}
     </box>
-  )
+  );
 }
 
 /**
@@ -312,10 +310,10 @@ function MetricCard({
   color,
   isPnl = false,
 }: {
-  label: string
-  value: number
-  color: string
-  isPnl?: boolean
+  label: string;
+  value: number;
+  color: string;
+  isPnl?: boolean;
 }) {
   return (
     <box
@@ -338,7 +336,7 @@ function MetricCard({
         {formatStatNumber(value, isPnl)}
       </text>
     </box>
-  )
+  );
 }
 
 /**
@@ -346,13 +344,13 @@ function MetricCard({
  * P&L, Active Strategies, Daily Trades, AI Calls.
  */
 function QuickStatsRow() {
-  const metrics = useServiceStore((s) => s.metrics)
+  const metrics = useServiceStore((s) => s.metrics);
 
   // Default values when metrics is null/unavailable
-  const totalPnl = metrics?.totalPnl ?? 0
-  const activeStrategies = metrics?.activeStrategies ?? 0
-  const dailyTrades = metrics?.dailyTrades ?? 0
-  const aiCalls = metrics?.aiCalls ?? 0
+  const totalPnl = metrics?.totalPnl ?? 0;
+  const activeStrategies = metrics?.activeStrategies ?? 0;
+  const dailyTrades = metrics?.dailyTrades ?? 0;
+  const aiCalls = metrics?.aiCalls ?? 0;
 
   return (
     <box flexDirection="column" gap={0}>
@@ -377,11 +375,7 @@ function QuickStatsRow() {
           value={dailyTrades}
           color={Colors.info}
         />
-        <MetricCard
-          label="AI Calls"
-          value={aiCalls}
-          color={Colors.accent}
-        />
+        <MetricCard label="AI Calls" value={aiCalls} color={Colors.accent} />
       </box>
 
       {/* Empty state when metrics unavailable */}
@@ -391,7 +385,7 @@ function QuickStatsRow() {
         </text>
       )}
     </box>
-  )
+  );
 }
 
 // ─── Main View ───────────────────────────────────────────────────────────────
@@ -428,5 +422,5 @@ export function DashboardView() {
         <QuickStatsRow />
       </box>
     </ErrorBoundary>
-  )
+  );
 }

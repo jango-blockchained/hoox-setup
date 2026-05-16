@@ -10,53 +10,53 @@
  *
  * All colors use Colors tokens from @jango-blockchained/hoox-shared (no hardcoded hex).
  */
-import { useState } from "react"
+import { useState } from "react";
 import {
   type ConfirmContext,
   useDialogKeyboard,
-} from "@opentui-ui/dialog/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
+} from "@opentui-ui/dialog/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 /** A single selectable option */
 export interface SelectOption {
   /** Unique key for the option */
-  key: string
+  key: string;
   /** Display label shown in the list */
-  label: string
+  label: string;
   /** Optional description rendered dimmed below or beside the label */
-  description?: string
+  description?: string;
 }
 
 /** Options for the SelectModal */
 export interface SelectModalOptions {
   /** Title displayed at the top of the modal (bold, accent-colored) */
-  title: string
+  title: string;
   /** Array of selectable options */
-  options: SelectOption[]
+  options: SelectOption[];
   /** Whether clicking outside the modal dismisses it (default: true) */
-  closeOnClickOutside?: boolean
+  closeOnClickOutside?: boolean;
 }
 
 /** Dialog handle — the subset of useDialog() needed by SelectModal */
 export interface SelectDialogHandle {
   prompt<T>(options: {
-    content: (ctx: ConfirmContext) => unknown
-    fallback?: T
-    closeOnClickOutside?: boolean
-  }): Promise<T | undefined>
+    content: (ctx: ConfirmContext) => unknown;
+    fallback?: T;
+    closeOnClickOutside?: boolean;
+  }): Promise<T | undefined>;
 }
 
 // ── Internal: keyboard-navigable option list ───────────────────────────────
 
 /** Props for the selectable option list rendered inside the dialog */
 interface SelectListProps extends ConfirmContext {
-  options: SelectOption[]
-  accentColor: string
-  foregroundColor: string
-  mutedColor: string
-  highlightColor: string
+  options: SelectOption[];
+  accentColor: string;
+  foregroundColor: string;
+  mutedColor: string;
+  highlightColor: string;
 }
 
 /**
@@ -74,40 +74,28 @@ function SelectList({
   dismiss,
   dialogId,
 }: SelectListProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useDialogKeyboard(
-    (key) => {
-      if (key.name === "down" || key.name === "j") {
-        setSelectedIndex((prev) =>
-          prev < options.length - 1 ? prev + 1 : 0,
-        )
-      }
-      if (key.name === "up" || key.name === "k") {
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : options.length - 1,
-        )
-      }
-      if (key.name === "return") {
-        const selected = options[selectedIndex]
-        if (selected) resolve(selected.key)
-      }
-      if (key.name === "escape") {
-        dismiss()
-      }
-    },
-    dialogId,
-  )
+  useDialogKeyboard((key) => {
+    if (key.name === "down" || key.name === "j") {
+      setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+    }
+    if (key.name === "up" || key.name === "k") {
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+    }
+    if (key.name === "return") {
+      const selected = options[selectedIndex];
+      if (selected) resolve(selected.key);
+    }
+    if (key.name === "escape") {
+      dismiss();
+    }
+  }, dialogId);
 
   return (
     <box flexDirection="column" gap={0}>
       {options.map((opt, idx) => (
-        <box
-          flexDirection="row"
-          gap={2}
-          paddingLeft={1}
-          paddingRight={1}
-        >
+        <box flexDirection="row" gap={2} paddingLeft={1} paddingRight={1}>
           {/* Selection indicator */}
           <text fg={idx === selectedIndex ? accentColor : mutedColor}>
             {idx === selectedIndex ? "▶" : " "}
@@ -129,7 +117,7 @@ function SelectList({
         </box>
       ))}
     </box>
-  )
+  );
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────
@@ -156,9 +144,9 @@ function SelectList({
  */
 export async function showSelectModal(
   dialog: SelectDialogHandle,
-  opts: SelectModalOptions,
+  opts: SelectModalOptions
 ): Promise<string | undefined> {
-  const { title, options, closeOnClickOutside = true } = opts
+  const { title, options, closeOnClickOutside = true } = opts;
 
   return dialog.prompt<string>({
     content: (ctx: ConfirmContext) => (
@@ -196,5 +184,5 @@ export async function showSelectModal(
     ),
     fallback: undefined,
     closeOnClickOutside,
-  })
+  });
 }

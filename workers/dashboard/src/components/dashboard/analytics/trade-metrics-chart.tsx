@@ -77,7 +77,8 @@ export function TradeMetricsChart() {
           setData(json.data || []);
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
         console.error("Failed to fetch trade metrics:", error);
       } finally {
         setLoading(false);

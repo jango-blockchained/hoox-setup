@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -28,6 +29,7 @@ export function ModelConfig() {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    const controller = new AbortController();
     setSaving(true);
     try {
       const res = await fetch("/api/agent/config", {
@@ -37,6 +39,7 @@ export function ModelConfig() {
           defaultProvider,
           fallbackChain,
         }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.success) {
@@ -45,7 +48,9 @@ export function ModelConfig() {
         toast.error(data.error || "Save failed");
       }
     } catch (e) {
-      toast.error("Failed to save configuration");
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to save configuration");
+      }
     } finally {
       setSaving(false);
     }

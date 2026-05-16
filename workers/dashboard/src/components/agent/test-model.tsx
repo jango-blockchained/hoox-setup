@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +31,7 @@ export function TestModel() {
   const [result, setResult] = useState<string | null>(null);
 
   const handleTest = async () => {
+    const controller = new AbortController();
     setLoading(true);
     setResult(null);
     try {
@@ -37,6 +39,7 @@ export function TestModel() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, model, prompt }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.success) {
@@ -46,7 +49,9 @@ export function TestModel() {
         toast.error(data.error || "Test failed");
       }
     } catch (e) {
-      toast.error("Failed to test model");
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to test model");
+      }
     } finally {
       setLoading(false);
     }

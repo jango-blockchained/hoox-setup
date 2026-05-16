@@ -6,35 +6,38 @@
  *
  * Colors use Hoox design tokens — no hardcoded hex.
  */
-import { Component, type ReactNode } from "react"
-import { Colors } from "@jango-blockchained/hoox-shared"
+import { Component, type ReactNode } from "react";
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface ErrorBoundaryProps {
   /** Name of the view being wrapped (shown in error UI) */
-  viewName: string
+  viewName: string;
   /** Child content to protect */
-  children: ReactNode
+  children: ReactNode;
 }
 
 interface ErrorBoundaryState {
-  error: Error | null
+  error: Error | null;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null }
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  state: ErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { error }
+    return { error };
   }
 
   /** Reset error state to retry rendering children */
   private handleRetry = () => {
-    this.setState({ error: null })
-  }
+    this.setState({ error: null });
+  };
 
   render(): ReactNode {
     if (this.state.error) {
@@ -74,9 +77,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </text>
           </box>
         </box>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

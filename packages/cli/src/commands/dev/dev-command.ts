@@ -14,7 +14,11 @@ import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { PrerequisitesService } from "../../services/prerequisites/index.js";
 import { DockerService } from "../../services/docker/index.js";
-import { formatSuccess, formatError, getFormatOptions } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatError,
+  getFormatOptions,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
 // ---------------------------------------------------------------------------

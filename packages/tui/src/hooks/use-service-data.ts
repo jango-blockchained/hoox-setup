@@ -4,8 +4,10 @@
  * Usage: useServiceData(s => s.workers)
  *        useServiceData(s => s.connectionStatus)
  */
-import { useServiceStore } from "@jango-blockchained/hoox-shared"
+import { useServiceStore } from "@jango-blockchained/hoox-shared";
 
-export function useServiceData<T>(selector: (state: ReturnType<typeof useServiceStore.getState>) => T): T {
-  return useServiceStore(selector)
+export function useServiceData<T>(
+  selector: (state: ReturnType<typeof useServiceStore.getState>) => T
+): T {
+  return useServiceStore(selector);
 }

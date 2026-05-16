@@ -18,9 +18,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function resolveTUIEntry(): string {
   // Try monorepo-relative paths first
   const candidates = [
-    resolve(__dirname, "../../../../tui/src/main.tsx"),       // packages/cli → packages/tui
-    resolve(process.cwd(), "packages/tui/src/main.tsx"),      // CWD = repo root
-    resolve(process.cwd(), "../tui/src/main.tsx"),            // CWD = packages/cli
+    resolve(__dirname, "../../../../tui/src/main.tsx"), // packages/cli → packages/tui
+    resolve(process.cwd(), "packages/tui/src/main.tsx"), // CWD = repo root
+    resolve(process.cwd(), "../tui/src/main.tsx"), // CWD = packages/cli
   ];
 
   for (const path of candidates) {
@@ -42,14 +42,18 @@ export function registerTUICommand(program: Command): void {
     .action(async (options) => {
       const tuiEntry = resolveTUIEntry();
 
-      console.log(theme.heading("\nLaunching HOOX Terminal Operations Center...\n"));
+      console.log(
+        theme.heading("\nLaunching HOOX Terminal Operations Center...\n")
+      );
       console.log(theme.dim(`  Entry: ${tuiEntry}`));
       console.log(theme.dim(`  FPS:   ${options.fps}`));
-      console.log(theme.dim(`  Mouse: ${options.mouse ? "enabled" : "disabled"}\n`));
+      console.log(
+        theme.dim(`  Mouse: ${options.mouse ? "enabled" : "disabled"}\n`)
+      );
 
       // Spawn the TUI as a child process — it takes over the terminal
       const child = spawn("bun", ["run", tuiEntry], {
-        stdio: "inherit",        // TUI gets full terminal control
+        stdio: "inherit", // TUI gets full terminal control
         env: {
           ...process.env,
           TUI_FPS: options.fps,
@@ -67,12 +71,16 @@ export function registerTUICommand(program: Command): void {
             console.log(theme.dim(`\nTUI exited with code ${code}\n`));
             resolveChild();
           } else {
-            reject(new CLIError("TUI process terminated abnormally", ExitCode.ERROR));
+            reject(
+              new CLIError("TUI process terminated abnormally", ExitCode.ERROR)
+            );
           }
         });
 
         child.on("error", (err) => {
-          reject(new CLIError(`Failed to launch TUI: ${err.message}`, ExitCode.ERROR));
+          reject(
+            new CLIError(`Failed to launch TUI: ${err.message}`, ExitCode.ERROR)
+          );
         });
       });
     });

@@ -36,6 +36,6 @@ export const Colors = {
   panel: "#1A1A2E",
   divider: "#333333",
   highlight: "#E8780A",
-} as const
+} as const;
 
-export type ColorKey = keyof typeof Colors
+export type ColorKey = keyof typeof Colors;

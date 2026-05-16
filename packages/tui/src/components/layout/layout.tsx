@@ -1,10 +1,10 @@
 /** @jsxImportSource @opentui/react */
 
-import type { ReactNode } from 'react'
-import { delegate } from '@opentui/core'
-import { Sidebar } from './sidebar'
-import { TabBar } from './tabbar'
-import { StatusBar } from './statusbar'
+import type { ReactNode } from "react";
+import { delegate } from "@opentui/core";
+import { Sidebar } from "./sidebar";
+import { TabBar } from "./tabbar";
+import { StatusBar } from "./statusbar";
 
 /**
  * Layout — root shell that persists across all views.
@@ -27,7 +27,7 @@ import { StatusBar } from './statusbar'
  */
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -35,11 +35,11 @@ export function Layout({ children }: LayoutProps) {
   // into the active view. The sidebar and tabbar receive focus via
   // global keyboard dispatch (Ctrl+B for sidebar toggle, Ctrl+1–0 for tabs).
   const contentPane = delegate(
-    { focus: 'content-area' },
+    { focus: "content-area" },
     <box id="content-area" flexGrow={1}>
       {children}
-    </box>,
-  )
+    </box>
+  );
 
   return (
     <box flexDirection="row" width="100%" height="100%">
@@ -53,5 +53,5 @@ export function Layout({ children }: LayoutProps) {
         <StatusBar />
       </box>
     </box>
-  )
+  );
 }

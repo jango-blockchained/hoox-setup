@@ -31,7 +31,9 @@ export class UpdateService {
    * auto-update (non-TTY / --yes flag). Never throws — errors are
    * returned in UpdateResult.
    */
-  async checkAndPromptUpdate(options?: { yes?: boolean }): Promise<UpdateResult> {
+  async checkAndPromptUpdate(options?: {
+    yes?: boolean;
+  }): Promise<UpdateResult> {
     try {
       const versionCheck = await this.prereqs.checkWranglerVersion();
 
@@ -103,7 +105,7 @@ export class UpdateService {
     try {
       const res = await fetch("https://registry.npmjs.org/wrangler/latest");
       if (!res.ok) return null;
-      const data = await res.json() as { version?: string };
+      const data = (await res.json()) as { version?: string };
       return data.version ?? null;
     } catch {
       return null;
@@ -163,7 +165,9 @@ export class UpdateService {
       const verify = await this.prereqs.checkWranglerVersion();
       const newVersion = verify.current;
 
-      const versionChanged = previousVersion ? previousVersion !== newVersion : true;
+      const versionChanged = previousVersion
+        ? previousVersion !== newVersion
+        : true;
 
       if (versionChanged) {
         process.stdout.write(
@@ -182,9 +186,7 @@ export class UpdateService {
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      process.stdout.write(
-        `  ${theme.error("!")} Update failed: ${message}\n`
-      );
+      process.stdout.write(`  ${theme.error("!")} Update failed: ${message}\n`);
       return { updated: false, error: message };
     }
   }

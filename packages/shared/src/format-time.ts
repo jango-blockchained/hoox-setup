@@ -15,25 +15,25 @@
  */
 export function formatRelativeTime(
   timestampMs: number,
-  nowMs?: number,
+  nowMs?: number
 ): string {
-  const now = nowMs ?? Date.now()
-  const diffMs = now - timestampMs
+  const now = nowMs ?? Date.now();
+  const diffMs = now - timestampMs;
 
   // Guard: future timestamps or zero
-  if (diffMs < 0) return "just now"
-  if (timestampMs === 0) return "—"
+  if (diffMs < 0) return "just now";
+  if (timestampMs === 0) return "—";
 
-  const seconds = Math.floor(diffMs / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return "< 1m ago"
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 30) return `${days}d ago`
-  return `> 30d ago`
+  if (seconds < 60) return "< 1m ago";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 30) return `${days}d ago`;
+  return `> 30d ago`;
 }
 
 /**
@@ -44,17 +44,17 @@ export function formatRelativeTime(
  * @returns           Compact duration string (e.g. "12s", "2m 30s")
  */
 export function formatDuration(durationMs: number): string {
-  const seconds = Math.floor(durationMs / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
+  const seconds = Math.floor(durationMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
 
   if (hours > 0) {
-    const remainMin = minutes % 60
-    return remainMin > 0 ? `${hours}h ${remainMin}m` : `${hours}h`
+    const remainMin = minutes % 60;
+    return remainMin > 0 ? `${hours}h ${remainMin}m` : `${hours}h`;
   }
   if (minutes > 0) {
-    const remainSec = seconds % 60
-    return remainSec > 0 ? `${minutes}m ${remainSec}s` : `${minutes}m`
+    const remainSec = seconds % 60;
+    return remainSec > 0 ? `${minutes}m ${remainSec}s` : `${minutes}m`;
   }
-  return `${seconds}s`
+  return `${seconds}s`;
 }

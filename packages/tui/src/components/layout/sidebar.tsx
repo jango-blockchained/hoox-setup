@@ -1,9 +1,9 @@
 /** @jsxImportSource @opentui/react */
 
-import { useState } from 'react'
-import { Colors } from '@jango-blockchained/hoox-shared'
-import { useUIStore } from '@jango-blockchained/hoox-shared/stores/ui-store'
-import { VIEW_ORDER, viewIndex, type ViewId } from '../../types'
+import { useState } from "react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
+import { VIEW_ORDER, viewIndex, type ViewId } from "../../types";
 
 /**
  * Sidebar — 4-column navigation panel.
@@ -30,24 +30,24 @@ function LogoMark({ expanded }: { expanded: boolean }) {
       padding={0}
     >
       <text fg={Colors.accent.toHex()} bold>
-        {expanded ? 'HOOX' : 'H'}
+        {expanded ? "HOOX" : "H"}
       </text>
     </box>
-  )
+  );
 }
 
 // ---- NavDots -------------------------------------------------------------------------
 
 interface NavDotsProps {
-  activeView: ViewId
-  onNavigate: (view: ViewId) => void
+  activeView: ViewId;
+  onNavigate: (view: ViewId) => void;
 }
 
 function NavDots({ activeView, onNavigate }: NavDotsProps) {
   return (
     <box flexDirection="column" gap={0} padding={0} justifyContent="center">
       {VIEW_ORDER.map((view) => {
-        const isActive = view === activeView
+        const isActive = view === activeView;
         return (
           <box
             key={view}
@@ -62,25 +62,25 @@ function NavDots({ activeView, onNavigate }: NavDotsProps) {
               dim={!isActive}
               onMouseUp={() => onNavigate(view)}
             >
-              {isActive ? '●' : '○'}
+              {isActive ? "●" : "○"}
             </text>
           </box>
-        )
+        );
       })}
     </box>
-  )
+  );
 }
 
 // ---- ProgressBar ---------------------------------------------------------------------
 
 interface ProgressBarProps {
-  current: number // 0-based active view index
-  total: number
+  current: number; // 0-based active view index
+  total: number;
 }
 
 function ProgressBar({ current, total }: ProgressBarProps) {
-  const filled = Math.round(((current + 1) / total) * 10)
-  const bar = '█'.repeat(filled) + '░'.repeat(10 - filled)
+  const filled = Math.round(((current + 1) / total) * 10);
+  const bar = "█".repeat(filled) + "░".repeat(10 - filled);
 
   return (
     <box flexDirection="column" width={4} gap={0} padding={0}>
@@ -89,22 +89,22 @@ function ProgressBar({ current, total }: ProgressBarProps) {
         {current + 1}/{total}
       </text>
     </box>
-  )
+  );
 }
 
 // ---- Sidebar (composed) --------------------------------------------------------------
 
 export function Sidebar() {
-  const [hovered, setHovered] = useState(false)
+  const [hovered, setHovered] = useState(false);
 
-  const activeView = useUIStore((s) => s.activeView)
-  const sidebarExpanded = useUIStore((s) => s.sidebarExpanded)
-  const setActiveView = useUIStore((s) => s.setActiveView)
+  const activeView = useUIStore((s) => s.activeView);
+  const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
+  const setActiveView = useUIStore((s) => s.setActiveView);
 
-  const expanded = sidebarExpanded || hovered
+  const expanded = sidebarExpanded || hovered;
 
   function handleNavigate(view: ViewId) {
-    setActiveView(view)
+    setActiveView(view);
   }
 
   return (
@@ -135,5 +135,5 @@ export function Sidebar() {
         />
       </box>
     </box>
-  )
+  );
 }

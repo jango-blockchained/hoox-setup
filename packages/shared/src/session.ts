@@ -10,28 +10,28 @@
  * Uses Bun's native file API for async read/write.
  */
 
-import { homedir } from "node:os"
-import { join } from "node:path"
-import type { ViewId } from "../types"
+import { homedir } from "node:os";
+import { join } from "node:path";
+import type { ViewId } from "../types";
 
 // ─── Session shape ───────────────────────────────────────────────────────────
 
 export interface SessionState {
   /** Last active view ID (e.g. "dashboard", "workers") */
-  activeView: ViewId
+  activeView: ViewId;
   /** Whether the sidebar was expanded */
-  sidebarExpanded: boolean
+  sidebarExpanded: boolean;
   /** Terminal window dimensions (cols × rows) */
-  windowSize: { cols: number; rows: number }
+  windowSize: { cols: number; rows: number };
   /** Timestamp of the last successful data fetch (ms) */
-  lastData: number
+  lastData: number;
   /** ISO timestamp of when the session was saved */
-  savedAt: string
+  savedAt: string;
 }
 
 // ─── File path ───────────────────────────────────────────────────────────────
 
-const SESSION_FILE = join(homedir(), ".hoox", "session.json")
+const SESSION_FILE = join(homedir(), ".hoox", "session.json");
 
 // ─── Defaults (used when no saved session exists) ────────────────────────────
 
@@ -41,7 +41,7 @@ const DEFAULT_SESSION: SessionState = {
   windowSize: { cols: 80, rows: 24 },
   lastData: 0,
   savedAt: new Date().toISOString(),
-}
+};
 
 // ─── Save ────────────────────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ export async function saveSession(
   activeView: ViewId,
   sidebarExpanded: boolean,
   windowSize: { cols: number; rows: number },
-  lastData: number,
+  lastData: number
 ): Promise<void> {
   try {
     const session: SessionState = {
@@ -65,12 +65,15 @@ export async function saveSession(
       windowSize,
       lastData,
       savedAt: new Date().toISOString(),
-    }
-    await Bun.write(SESSION_FILE, JSON.stringify(session, null, 2))
+    };
+    await Bun.write(SESSION_FILE, JSON.stringify(session, null, 2));
   } catch (error) {
     // Session save failures are non-fatal — log and continue
     // (write failures may occur if ~/.hoox doesn't exist or is unwritable)
-    console.error("[session] Failed to save session:", (error as Error).message)
+    console.error(
+      "[session] Failed to save session:",
+      (error as Error).message
+    );
   }
 }
 
@@ -84,12 +87,12 @@ export async function saveSession(
  */
 export async function restoreSession(): Promise<SessionState> {
   try {
-    const file = Bun.file(SESSION_FILE)
-    const exists = await file.exists()
-    if (!exists) return { ...DEFAULT_SESSION }
+    const file = Bun.file(SESSION_FILE);
+    const exists = await file.exists();
+    if (!exists) return { ...DEFAULT_SESSION };
 
-    const raw = await file.text()
-    const parsed = JSON.parse(raw) as Partial<SessionState>
+    const raw = await file.text();
+    const parsed = JSON.parse(raw) as Partial<SessionState>;
 
     // Validate and merge with defaults
     return {
@@ -106,10 +109,10 @@ export async function restoreSession(): Promise<SessionState> {
           ? parsed.lastData
           : DEFAULT_SESSION.lastData,
       savedAt: parsed.savedAt ?? DEFAULT_SESSION.savedAt,
-    }
+    };
   } catch {
     // Corrupt or unreadable session file — use defaults
-    return { ...DEFAULT_SESSION }
+    return { ...DEFAULT_SESSION };
   }
 }
 
@@ -125,8 +128,8 @@ const VALID_VIEW_IDS = new Set<string>([
   "config-editor",
   "setup-wizard",
   "settings",
-])
+]);
 
 function validateViewId(id: unknown): id is ViewId {
-  return typeof id === "string" && VALID_VIEW_IDS.has(id)
+  return typeof id === "string" && VALID_VIEW_IDS.has(id);
 }

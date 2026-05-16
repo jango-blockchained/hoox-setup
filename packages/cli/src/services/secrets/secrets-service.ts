@@ -173,9 +173,7 @@ export class SecretsService {
    * the worker's `.dev.vars` file.  Secrets with placeholder values are
    * skipped and reported as errors.
    */
-  async syncToCloudflare(
-    workerName: string
-  ): Promise<Result<string[]>> {
+  async syncToCloudflare(workerName: string): Promise<Result<string[]>> {
     const worker = this.config.workers[workerName];
     if (!worker) {
       return {

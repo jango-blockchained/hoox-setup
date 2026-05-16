@@ -97,6 +97,8 @@ export function SettingsForm() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function load() {
       try {
         const workerNames = DEFAULT_WORKERS.filter((w) => w.enabled).map(
@@ -105,17 +107,24 @@ export function SettingsForm() {
         const loadedConfigs = await loadAllConfigs(workerNames);
         const loadedSettings = await loadMergedSettings(workerNames);
 
-        setConfigs(loadedConfigs);
-        setSettings(loadedSettings);
+        if (!controller.signal.aborted) {
+          setConfigs(loadedConfigs);
+          setSettings(loadedSettings);
+        }
       } catch (err) {
-        console.error("Failed to load settings:", err);
-        toast.error("Failed to load settings");
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("Failed to load settings:", err);
+          toast.error("Failed to load settings");
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     }
 
     load();
+    return () => controller.abort();
   }, []);
 
   const handleChange = (
@@ -133,6 +142,7 @@ export function SettingsForm() {
   };
 
   const handleSave = async () => {
+    const controller = new AbortController();
     setIsSaving(true);
     let savedCount = 0;
     let failedCount = 0;
@@ -144,6 +154,7 @@ export function SettingsForm() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ worker, key, value }),
+            signal: controller.signal,
           });
 
           if (res.ok) {
@@ -166,10 +177,12 @@ export function SettingsForm() {
         });
       }
     } catch (err) {
-      toast.error("Failed to save settings", {
-        description: "Check console for details.",
-      });
-      console.error("Settings save error:", err);
+      if (err instanceof Error && err.name !== "AbortError") {
+        toast.error("Failed to save settings", {
+          description: "Check console for details.",
+        });
+        console.error("Settings save error:", err);
+      }
     } finally {
       setIsSaving(false);
     }

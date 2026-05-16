@@ -1,8 +1,8 @@
 /** @jsxImportSource @opentui/react */
 
-import { Colors } from '@jango-blockchained/hoox-shared'
-import { useUIStore } from '@jango-blockchained/hoox-shared/stores/ui-store'
-import { VIEWS, type ViewId } from '../../types'
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
+import { ALL_VIEWS, VIEW_LABELS, type ViewId } from "../../types";
 
 /**
  * TabBar — horizontal row of 10 tab items.
@@ -13,11 +13,11 @@ import { VIEWS, type ViewId } from '../../types'
  * via the UI store.
  */
 export function TabBar() {
-  const activeView = useUIStore((s) => s.activeView)
-  const setActiveView = useUIStore((s) => s.setActiveView)
+  const activeView = useUIStore((s) => s.activeView);
+  const setActiveView = useUIStore((s) => s.setActiveView);
 
   function handleSelect(view: ViewId) {
-    setActiveView(view)
+    setActiveView(view);
   }
 
   return (
@@ -29,22 +29,21 @@ export function TabBar() {
       height={1}
       justifyContent="flex-start"
     >
-      {VIEWS.map((v) => {
-        const isActive = v.id === activeView
+      {ALL_VIEWS.map((view) => {
+        const isActive = view === activeView;
         return (
           <text
-            key={v.id}
+            key={view}
             fg={isActive ? Colors.accent.toHex() : Colors.muted.toHex()}
             bold={isActive}
             dim={!isActive}
             underline={isActive}
-            onMouseUp={() => handleSelect(v.id)}
+            onMouseUp={() => handleSelect(view)}
           >
-            {v.shortcut}
-            {v.label.substring(0, 8)}
+            {VIEW_LABELS[view].substring(0, 8)}
           </text>
-        )
+        );
       })}
     </box>
-  )
+  );
 }

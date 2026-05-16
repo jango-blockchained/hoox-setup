@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +43,7 @@ export function ChatInterface() {
   }, [messages]);
 
   const sendMessage = async () => {
+    const controller = new AbortController();
     if (!input.trim()) return;
 
     const userMessage: Message = { role: "user", content: input };
@@ -65,6 +67,7 @@ export function ChatInterface() {
           maxTokens,
           stream: true,
         }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -106,8 +109,10 @@ export function ChatInterface() {
         }
       }
     } catch (e) {
-      toast.error("Failed to send message");
-      setMessages((prev) => prev.slice(0, -1));
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to send message");
+        setMessages((prev) => prev.slice(0, -1));
+      }
     } finally {
       setLoading(false);
     }

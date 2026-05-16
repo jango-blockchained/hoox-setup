@@ -3,14 +3,14 @@
  *
  * Avoids circular imports between main.ts and hooks.
  */
-import type { CliRenderer } from "@opentui/core"
+import type { CliRenderer } from "@opentui/core";
 
-let _renderer: CliRenderer | null = null
+let _renderer: CliRenderer | null = null;
 
 export function setRendererRef(renderer: CliRenderer): void {
-  _renderer = renderer
+  _renderer = renderer;
 }
 
 export function getRendererRef(): CliRenderer | null {
-  return _renderer
+  return _renderer;
 }

@@ -1,6 +1,10 @@
 import { Command } from "commander";
 import { UpdateService } from "../../services/update/index.js";
-import { formatSuccess, formatError, getFormatOptions } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatError,
+  getFormatOptions,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 
 export function registerUpdateCommand(program: Command): void {
@@ -31,10 +35,7 @@ EXAMPLES:
           );
         } else if (result.error) {
           formatError(
-            new CLIError(
-              `Update failed: ${result.error}`,
-              ExitCode.ERROR
-            ),
+            new CLIError(`Update failed: ${result.error}`, ExitCode.ERROR),
             fmt
           );
           process.exitCode = ExitCode.ERROR;

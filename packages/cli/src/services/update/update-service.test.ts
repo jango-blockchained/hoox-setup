@@ -1,11 +1,13 @@
 import { describe, expect, it, mock } from "bun:test";
 import { UpdateService } from "./update-service.js";
 
-function createMockPrereqs(overrides?: Partial<{
-  outdated: boolean;
-  current: string;
-  minimum: string;
-}>) {
+function createMockPrereqs(
+  overrides?: Partial<{
+    outdated: boolean;
+    current: string;
+    minimum: string;
+  }>
+) {
   const defaults = { outdated: false, current: "4.0.0", minimum: "3.88.0" };
   const config = { ...defaults, ...overrides };
 
@@ -35,7 +37,10 @@ describe("UpdateService", () => {
     });
 
     it("auto-updates when wrangler is outdated and --yes is set", async () => {
-      const mockPrereqs = createMockPrereqs({ outdated: true, current: "3.87.0" });
+      const mockPrereqs = createMockPrereqs({
+        outdated: true,
+        current: "3.87.0",
+      });
       const svc = new UpdateService(undefined, mockPrereqs as any);
 
       const result = await svc.checkAndPromptUpdate({ yes: true });
@@ -46,7 +51,10 @@ describe("UpdateService", () => {
 
   describe("updateWrangler", () => {
     it("returns result when called (does not throw)", async () => {
-      const mockPrereqs = createMockPrereqs({ outdated: false, current: "4.0.0" });
+      const mockPrereqs = createMockPrereqs({
+        outdated: false,
+        current: "4.0.0",
+      });
       const svc = new UpdateService(undefined, mockPrereqs as any);
 
       const result = await svc.updateWrangler();

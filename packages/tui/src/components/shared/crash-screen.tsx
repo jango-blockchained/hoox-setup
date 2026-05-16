@@ -11,24 +11,28 @@
  * rendered in a degraded state — no hooks, no stores, no external state.
  * Colors use Hoox design tokens via @jango-blockchained/hoox-shared.
  */
-import { Colors } from '@jango-blockchained/hoox-shared'
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type CrashAction = 'restart' | 'safe-mode' | 'report-bug'
+export type CrashAction = "restart" | "safe-mode" | "report-bug";
 
 export interface CrashScreenProps {
   /** The error that caused the crash */
-  error: Error
+  error: Error;
   /** Callback for crash action buttons */
-  onAction: (action: CrashAction) => void
+  onAction: (action: CrashAction) => void;
   /** Whether we're in safe mode (affects display) */
-  safeMode?: boolean
+  safeMode?: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenProps) {
+export function CrashScreen({
+  error,
+  onAction,
+  safeMode = false,
+}: CrashScreenProps) {
   return (
     <box
       flexDirection="column"
@@ -56,7 +60,7 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
           ╔══════════════════════════════════════╗
         </text>
         <text fg={Colors.error} bold>
-          ║   Something went wrong               ║
+          ║ Something went wrong ║
         </text>
         <text fg={Colors.error} bold>
           ╚══════════════════════════════════════╝
@@ -71,13 +75,11 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
 
         {/* Error message */}
         <box paddingTop={1} flexDirection="column" alignItems="center">
-          <text fg={Colors.muted}>
-            {error.message.split('\n')[0]}
-          </text>
+          <text fg={Colors.muted}>{error.message.split("\n")[0]}</text>
           {/* Show second line if present (e.g. stack trace hint) */}
-          {error.message.includes('\n') && (
+          {error.message.includes("\n") && (
             <text fg={Colors.dim} dim>
-              {error.message.split('\n')[1]?.slice(0, 80)}
+              {error.message.split("\n")[1]?.slice(0, 80)}
             </text>
           )}
         </box>
@@ -96,9 +98,9 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
           <text
             fg={Colors.accent}
             bg={Colors.card}
-            onMouseUp={() => onAction('restart')}
+            onMouseUp={() => onAction("restart")}
           >
-            {'  [Restart]  '}
+            {"  [Restart]  "}
           </text>
         </box>
 
@@ -114,9 +116,9 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
             <text
               fg={Colors.warning}
               bg={Colors.card}
-              onMouseUp={() => onAction('safe-mode')}
+              onMouseUp={() => onAction("safe-mode")}
             >
-              {'  [Safe Mode]  '}
+              {"  [Safe Mode]  "}
             </text>
           </box>
         )}
@@ -132,9 +134,9 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
           <text
             fg={Colors.muted}
             bg={Colors.card}
-            onMouseUp={() => onAction('report-bug')}
+            onMouseUp={() => onAction("report-bug")}
           >
-            {'  [Report Bug]  '}
+            {"  [Report Bug]  "}
           </text>
         </box>
       </box>
@@ -144,5 +146,5 @@ export function CrashScreen({ error, onAction, safeMode = false }: CrashScreenPr
         Press R to restart · S for safe mode · B for bug report · Q to quit
       </text>
     </box>
-  )
+  );
 }

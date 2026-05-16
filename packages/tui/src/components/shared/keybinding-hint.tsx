@@ -6,15 +6,15 @@
  * Format: " keys  label" — keys in dim/muted, label in foreground.
  * Used as a compact shortcut indicator throughout the TUI.
  */
-import { Colors } from "@jango-blockchained/hoox-shared"
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export interface KeybindingHintProps {
   /** The key combination (e.g. "Ctrl+P", "^P", "↑↓") */
-  keys: string
+  keys: string;
   /** The action description (e.g. "Palette", "Navigate") */
-  label: string
+  label: string;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -26,9 +26,7 @@ export function KeybindingHint({ keys, label }: KeybindingHintProps) {
         {keys}
       </text>
       <text> </text>
-      <text fg={Colors.foreground}>
-        {label}
-      </text>
+      <text fg={Colors.foreground}>{label}</text>
     </box>
-  )
+  );
 }

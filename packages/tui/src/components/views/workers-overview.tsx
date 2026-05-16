@@ -19,64 +19,69 @@
  * Wrapped in ScrollBox for overflow when workers exceed viewport height.
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
  */
-import { useState, useMemo } from "react"
-import { useKeyboard } from "@opentui/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
-import { useServiceStore } from "@jango-blockchained/hoox-shared"
-import { useUIStore } from "@jango-blockchained/hoox-shared"
-import { ErrorBoundary } from "../shared/error-boundary"
-import { StatusDot } from "../shared/status-dot"
-import type { WorkerInfo } from "@jango-blockchained/hoox-shared"
+import { useState, useMemo } from "react";
+import { useKeyboard } from "@opentui/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import { StatusDot } from "../shared/status-dot";
+import type { WorkerInfo } from "@jango-blockchained/hoox-shared";
 
 // ── Grid Constants ────────────────────────────────────────────────────────────
 
-const COLS = 2
+const COLS = 2;
 
 // ── Formatting Helpers ────────────────────────────────────────────────────────
 
 /** Convert uptime in seconds to a compact human-readable string. */
 function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400)
-  const hours = Math.floor((seconds % 86400) / 3600)
-  if (days > 0) return `${days}d${hours}h`
-  if (hours > 0) return `${hours}h`
-  const minutes = Math.floor(seconds / 60)
-  return `${minutes}m`
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  if (days > 0) return `${days}d${hours}h`;
+  if (hours > 0) return `${hours}h`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m`;
 }
 
 /** Format large numbers with K/M suffixes. */
 function formatCount(n: number): string {
   if (n >= 1_000_000) {
-    const val = (n / 1_000_000).toFixed(1)
-    return `${val.replace(/\.0$/, "")}M`
+    const val = (n / 1_000_000).toFixed(1);
+    return `${val.replace(/\.0$/, "")}M`;
   }
   if (n >= 1_000) {
-    const val = (n / 1_000).toFixed(1)
-    return `${val.replace(/\.0$/, "")}K`
+    const val = (n / 1_000).toFixed(1);
+    return `${val.replace(/\.0$/, "")}K`;
   }
-  return String(n)
+  return String(n);
 }
 
 /** Format CPU percentage (0-100). */
 function formatCpu(pct: number): string {
-  return `${pct.toFixed(1)}%`
+  return `${pct.toFixed(1)}%`;
 }
 
 /** Format memory as "used/128 MB". */
 function formatMemory(mb: number): string {
-  return `${Math.round(mb)}/128 MB`
+  return `${Math.round(mb)}/128 MB`;
 }
 
 // ── Sub-component: Single Worker Card ─────────────────────────────────────────
 
 interface WorkerCardProps {
-  worker: WorkerInfo
-  index: number
-  focused: boolean
-  onViewDetails: () => void
+  worker: WorkerInfo;
+  index: number;
+  focused: boolean;
+  onViewDetails: () => void;
 }
 
-function WorkerCard({ worker, index, focused, onViewDetails }: WorkerCardProps) {
+function WorkerCard({
+  worker,
+  index,
+  focused,
+  onViewDetails,
+}: WorkerCardProps) {
   return (
     <box
       flexDirection="column"
@@ -95,7 +100,10 @@ function WorkerCard({ worker, index, focused, onViewDetails }: WorkerCardProps) 
         <text fg={Colors.foreground} bold>
           {worker.name}
         </text>
-        <StatusDot status={worker.status} pulse={worker.status === "operational"} />
+        <StatusDot
+          status={worker.status}
+          pulse={worker.status === "operational"}
+        />
       </box>
 
       {/* Metrics — three 2-column rows */}
@@ -135,65 +143,63 @@ function WorkerCard({ worker, index, focused, onViewDetails }: WorkerCardProps) 
         >
           [View Details]
         </text>
-        <text fg={Colors.muted}>
-          [Logs]
-        </text>
+        <text fg={Colors.muted}>[Logs]</text>
       </box>
     </box>
-  )
+  );
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export function WorkersOverview() {
   // ── 2D grid focus state ─────────────────────────────────────────────────
-  const [focusedIndex, setFocusedIndex] = useState(0)
+  const [focusedIndex, setFocusedIndex] = useState(0);
 
   // ── Store subscriptions (selectors for performance) ─────────────────────
-  const workers = useServiceStore((s) => s.workers)
-  const selectWorker = useServiceStore((s) => s.selectWorker)
-  const setView = useUIStore((s) => s.setView)
+  const workers = useServiceStore((s) => s.workers);
+  const selectWorker = useServiceStore((s) => s.selectWorker);
+  const setView = useUIStore((s) => s.setView);
 
   // ── Derived grid dimensions ─────────────────────────────────────────────
-  const maxIndex = Math.max(0, workers.length - 1)
+  const maxIndex = Math.max(0, workers.length - 1);
 
   /** Group workers into rows of 2 for the 2-column grid. */
   const rows: WorkerInfo[][] = useMemo(() => {
-    const result: WorkerInfo[][] = []
+    const result: WorkerInfo[][] = [];
     for (let i = 0; i < workers.length; i += COLS) {
-      result.push(workers.slice(i, i + COLS))
+      result.push(workers.slice(i, i + COLS));
     }
-    return result
-  }, [workers])
+    return result;
+  }, [workers]);
 
   // Clamp focusedIndex when worker list changes
-  const safeIndex = Math.min(focusedIndex, maxIndex)
+  const safeIndex = Math.min(focusedIndex, maxIndex);
 
   // ── View-local keyboard: 2D grid navigation ─────────────────────────────
   useKeyboard((key) => {
     switch (key.name) {
       case "up":
-        setFocusedIndex((i) => Math.max(0, i - COLS))
-        break
+        setFocusedIndex((i) => Math.max(0, i - COLS));
+        break;
       case "down":
-        setFocusedIndex((i) => Math.min(maxIndex, i + COLS))
-        break
+        setFocusedIndex((i) => Math.min(maxIndex, i + COLS));
+        break;
       case "left":
-        setFocusedIndex((i) => Math.max(0, i - 1))
-        break
+        setFocusedIndex((i) => Math.max(0, i - 1));
+        break;
       case "right":
-        setFocusedIndex((i) => Math.min(maxIndex, i + 1))
-        break
+        setFocusedIndex((i) => Math.min(maxIndex, i + 1));
+        break;
       case "enter": {
-        const worker = workers[safeIndex]
+        const worker = workers[safeIndex];
         if (worker) {
-          selectWorker(worker.id)
-          setView("worker-detail")
+          selectWorker(worker.id);
+          setView("worker-detail");
         }
-        break
+        break;
       }
     }
-  })
+  });
 
   // ── Escape hatch: empty state ───────────────────────────────────────────
   if (workers.length === 0) {
@@ -208,7 +214,7 @@ export function WorkersOverview() {
           </text>
         </box>
       </ErrorBoundary>
-    )
+    );
   }
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -220,9 +226,7 @@ export function WorkersOverview() {
           <text fg={Colors.accent} bold>
             Workers
           </text>
-          <text fg={Colors.muted}>
-            {workers.length} total
-          </text>
+          <text fg={Colors.muted}>{workers.length} total</text>
         </box>
 
         {/* Scrollable 2-column card grid */}
@@ -231,7 +235,7 @@ export function WorkersOverview() {
             {rows.map((row, rowIdx) => (
               <box key={rowIdx} flexDirection="row" gap={1}>
                 {row.map((worker, colIdx) => {
-                  const globalIdx = rowIdx * COLS + colIdx
+                  const globalIdx = rowIdx * COLS + colIdx;
                   return (
                     <WorkerCard
                       key={worker.id}
@@ -239,11 +243,11 @@ export function WorkersOverview() {
                       index={globalIdx}
                       focused={globalIdx === safeIndex}
                       onViewDetails={() => {
-                        selectWorker(worker.id)
-                        setView("worker-detail")
+                        selectWorker(worker.id);
+                        setView("worker-detail");
                       }}
                     />
-                  )
+                  );
                 })}
               </box>
             ))}
@@ -251,5 +255,5 @@ export function WorkersOverview() {
         </scrollbox>
       </box>
     </ErrorBoundary>
-  )
+  );
 }

@@ -7,27 +7,27 @@
  * A ToasterRenderable must be initialized in the app root before calling
  * these functions (see app.tsx).
  */
-import { toast, TOAST_DURATION } from "@opentui-ui/toast"
-import { Colors } from "@jango-blockchained/hoox-shared"
+import { toast, TOAST_DURATION } from "@opentui-ui/toast";
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 /** Options that can be passed to any toast helper */
 export interface ToastOptions {
   /** Additional description text below the message */
-  description?: string
+  description?: string;
   /** Auto-dismiss duration in ms (overrides the helper's default) */
-  duration?: number
+  duration?: number;
   /** Whether the toast can be manually dismissed (default: true) */
-  dismissible?: boolean
+  dismissible?: boolean;
   /** Action button with label and click handler */
-  action?: { label: string; onClick: () => void }
+  action?: { label: string; onClick: () => void };
   /** Show a close button on the toast (default: false) */
-  closeButton?: boolean
+  closeButton?: boolean;
 }
 
 /** Returned toast ID for programmatic control */
-export type ToastId = string | number
+export type ToastId = string | number;
 
 // ── Hoox-styled toast style overrides ──────────────────────────────────────
 
@@ -38,16 +38,16 @@ const baseStyle = {
   borderColor: Colors.border,
   paddingX: 1,
   paddingY: 0,
-}
+};
 
 /** Per-type border color overrides using Hoox design tokens */
 const hooxTypeStyles = {
   success: { borderColor: Colors.success },
-  error:   { borderColor: Colors.error },
+  error: { borderColor: Colors.error },
   warning: { borderColor: Colors.warning },
-  info:    { borderColor: Colors.accent },
+  info: { borderColor: Colors.accent },
   loading: { borderColor: Colors.muted },
-}
+};
 
 // ── Toast helper functions ─────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export function toastSuccess(message: string, options?: ToastOptions): ToastId {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.success },
     duration: options?.duration ?? TOAST_DURATION.SHORT,
-  })
+  });
 }
 
 /**
@@ -78,7 +78,7 @@ export function toastError(message: string, options?: ToastOptions): ToastId {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.error },
     duration: options?.duration ?? TOAST_DURATION.LONG,
-  })
+  });
 }
 
 /**
@@ -93,7 +93,7 @@ export function toastWarning(message: string, options?: ToastOptions): ToastId {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.warning },
     duration: options?.duration ?? TOAST_DURATION.LONG,
-  })
+  });
 }
 
 /**
@@ -108,7 +108,7 @@ export function toastInfo(message: string, options?: ToastOptions): ToastId {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.info },
     duration: options?.duration ?? TOAST_DURATION.DEFAULT,
-  })
+  });
 }
 
 /**
@@ -125,12 +125,15 @@ export function toastInfo(message: string, options?: ToastOptions): ToastId {
  *   toastError("Deploy failed", { id })
  * }
  */
-export function toastLoading(message: string, options?: Omit<ToastOptions, "duration">): ToastId {
+export function toastLoading(
+  message: string,
+  options?: Omit<ToastOptions, "duration">
+): ToastId {
   return toast.loading(message, {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.loading },
     duration: options?.duration ?? TOAST_DURATION.PERSISTENT,
-  })
+  });
 }
 
 /**
@@ -142,5 +145,5 @@ export function toastLoading(message: string, options?: Omit<ToastOptions, "dura
  * dismissToast()     // dismiss all
  */
 export function dismissToast(id?: ToastId): void {
-  toast.dismiss(id as string | number | undefined)
+  toast.dismiss(id as string | number | undefined);
 }

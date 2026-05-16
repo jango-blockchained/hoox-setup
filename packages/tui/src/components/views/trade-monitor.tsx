@@ -16,29 +16,29 @@
  * Follows Pattern 1 (View Composition), Pattern 2 (Store Subscription).
  * Colors from @jango-blockchained/hoox-shared design tokens. No CSS, no DOM.
  */
-import { useState, useMemo, useRef } from "react"
-import { useKeyboard } from "@opentui/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
-import { useServiceStore } from "@jango-blockchained/hoox-shared"
-import { ErrorBoundary } from "../shared/error-boundary"
-import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared"
+import { useState, useMemo, useRef } from "react";
+import { useKeyboard } from "@opentui/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Maximum trades rendered in the live feed display */
-const MAX_VISIBLE_TRADES = 500
+const MAX_VISIBLE_TRADES = 500;
 
 /** Side-based display color tokens */
 const SIDE_COLOR: Record<TradeSide, string> = {
   buy: Colors.success,
   sell: Colors.error,
-}
+};
 
 /** Side label for display */
 const SIDE_LABEL: Record<TradeSide, string> = {
   buy: "BUY ",
   sell: "SELL",
-}
+};
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -46,12 +46,12 @@ const SIDE_LABEL: Record<TradeSide, string> = {
  * Format a timestamp (ms) to HH:MM:SS.
  */
 function formatTime(ts: number): string {
-  const d = new Date(ts)
+  const d = new Date(ts);
   return [
     d.getHours().toString().padStart(2, "0"),
     d.getMinutes().toString().padStart(2, "0"),
     d.getSeconds().toString().padStart(2, "0"),
-  ].join(":")
+  ].join(":");
 }
 
 /**
@@ -59,18 +59,18 @@ function formatTime(ts: number): string {
  * Shows 2 decimal places only when the value has a fractional part.
  */
 function formatPnL(value: number): string {
-  const sign = value >= 0 ? "+" : ""
-  const abs = Math.abs(value)
-  const hasCents = abs !== Math.round(abs)
-  const decimals = hasCents ? 2 : 0
-  return `${sign}${abs.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`
+  const sign = value >= 0 ? "+" : "";
+  const abs = Math.abs(value);
+  const hasCents = abs !== Math.round(abs);
+  const decimals = hasCents ? 2 : 0;
+  return `${sign}${abs.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
 /**
  * Format a ratio as a percentage string.
  */
 function formatPct(value: number, decimals = 1): string {
-  return `${(value * 100).toFixed(decimals)}%`
+  return `${(value * 100).toFixed(decimals)}%`;
 }
 
 /**
@@ -80,24 +80,24 @@ function formatNum(value: number, decimals = 0): string {
   return value.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  })
+  });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Get Unix timestamp for midnight today (local time) */
 function startOfToday(): number {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  return d.getTime()
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
 
 /** Get Unix timestamp for N days ago at midnight */
 function startOfDaysAgo(days: number): number {
-  const d = new Date()
-  d.setDate(d.getDate() - days)
-  d.setHours(0, 0, 0, 0)
-  return d.getTime()
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
 
 /**
@@ -105,9 +105,9 @@ function startOfDaysAgo(days: number): number {
  * Returns null if trade is in the future (clock skew).
  */
 function calcLatency(tradeTs: number): number | null {
-  const now = Date.now()
-  const latency = now - tradeTs
-  return latency >= 0 ? latency : null
+  const now = Date.now();
+  const latency = now - tradeTs;
+  return latency >= 0 ? latency : null;
 }
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
@@ -119,8 +119,8 @@ function TradeMonitorHeader({
   paused,
   tradeCount,
 }: {
-  paused: boolean
-  tradeCount: number
+  paused: boolean;
+  tradeCount: number;
 }) {
   return (
     <box flexDirection="row" gap={2} paddingBottom={1}>
@@ -152,7 +152,7 @@ function TradeMonitorHeader({
         Space to {paused ? "resume" : "pause"}
       </text>
     </box>
-  )
+  );
 }
 
 /**
@@ -166,43 +166,43 @@ function TradeMonitorHeader({
  * Feed is capped at the store's ring buffer size (500).
  */
 function LiveTradeFeed({ paused }: { paused: boolean }) {
-  const tradeStream = useServiceStore((s) => s.tradeStream)
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const tradeStream = useServiceStore((s) => s.tradeStream);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Snapshot frozen trades when paused; keep updating otherwise
-  const frozenRef = useRef<Trade[]>([])
-  const wasPausedRef = useRef(false)
+  const frozenRef = useRef<Trade[]>([]);
+  const wasPausedRef = useRef(false);
 
   // Capture snapshot on pause edge, release on resume
   if (!paused && wasPausedRef.current) {
-    frozenRef.current = []
+    frozenRef.current = [];
   }
   if (paused && !wasPausedRef.current) {
-    frozenRef.current = [...tradeStream]
+    frozenRef.current = [...tradeStream];
   }
-  wasPausedRef.current = paused
+  wasPausedRef.current = paused;
 
   // Use frozen snapshot when paused, live stream when not
-  const effectiveStream = paused ? frozenRef.current : tradeStream
+  const effectiveStream = paused ? frozenRef.current : tradeStream;
 
   // Newest first, reversed (store stores newest last)
   const sortedTrades = useMemo(() => {
-    return [...effectiveStream].reverse().slice(0, MAX_VISIBLE_TRADES)
-  }, [effectiveStream])
+    return [...effectiveStream].reverse().slice(0, MAX_VISIBLE_TRADES);
+  }, [effectiveStream]);
 
-  const maxIndex = Math.max(0, sortedTrades.length - 1)
+  const maxIndex = Math.max(0, sortedTrades.length - 1);
 
   // Clamp selected index when data changes
-  const safeIndex = Math.min(selectedIndex, maxIndex)
+  const safeIndex = Math.min(selectedIndex, maxIndex);
 
   // Keyboard: navigate trade rows
   useKeyboard((key) => {
     if (key.name === "up") {
-      setSelectedIndex((i) => Math.max(0, i - 1))
+      setSelectedIndex((i) => Math.max(0, i - 1));
     } else if (key.name === "down") {
-      setSelectedIndex((i) => Math.min(maxIndex, i + 1))
+      setSelectedIndex((i) => Math.min(maxIndex, i + 1));
     }
-  })
+  });
 
   return (
     <box flexDirection="column" flexGrow={1}>
@@ -247,16 +247,16 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
           borderColor={Colors.border}
         >
           {sortedTrades.map((trade, i) => {
-            const color = SIDE_COLOR[trade.side]
-            const label = SIDE_LABEL[trade.side]
-            const latency = calcLatency(trade.timestamp)
-            const isSelected = i === safeIndex
+            const color = SIDE_COLOR[trade.side];
+            const label = SIDE_LABEL[trade.side];
+            const latency = calcLatency(trade.timestamp);
+            const isSelected = i === safeIndex;
             const latencyStr =
               latency !== null
                 ? latency < 1000
                   ? `${latency}ms`
                   : `${(latency / 1000).toFixed(1)}s`
-                : "—"
+                : "—";
 
             return (
               <box
@@ -307,7 +307,7 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
                   · {latencyStr}
                 </text>
               </box>
-            )
+            );
           })}
         </scrollbox>
       )}
@@ -319,7 +319,7 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
         </text>
       )}
     </box>
-  )
+  );
 }
 
 /**
@@ -329,31 +329,31 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
  * with color-coded P&L (green positive, red negative). Total P&L in header.
  */
 function OpenPositions() {
-  const tradeStream = useServiceStore((s) => s.tradeStream)
+  const tradeStream = useServiceStore((s) => s.tradeStream);
 
   // Derive positions: group by symbol, sum pnl where available
   const positions = useMemo(() => {
     const map = new Map<
       string,
       { pnl: number; tradeCount: number; lastPrice: number; side: TradeSide }
-    >()
+    >();
 
     for (const trade of tradeStream) {
-      const existing = map.get(trade.symbol)
+      const existing = map.get(trade.symbol);
       if (existing) {
         if (trade.pnl !== undefined) {
-          existing.pnl += trade.pnl
+          existing.pnl += trade.pnl;
         }
-        existing.tradeCount++
-        existing.lastPrice = trade.price
-        existing.side = trade.side
+        existing.tradeCount++;
+        existing.lastPrice = trade.price;
+        existing.side = trade.side;
       } else {
         map.set(trade.symbol, {
           pnl: trade.pnl ?? 0,
           tradeCount: 1,
           lastPrice: trade.price,
           side: trade.side,
-        })
+        });
       }
     }
 
@@ -361,10 +361,10 @@ function OpenPositions() {
     return Array.from(map.entries())
       .map(([symbol, data]) => ({ symbol, ...data }))
       .filter((p) => p.tradeCount > 0)
-      .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))
-  }, [tradeStream])
+      .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
+  }, [tradeStream]);
 
-  const totalPnl = positions.reduce((sum, p) => sum + p.pnl, 0)
+  const totalPnl = positions.reduce((sum, p) => sum + p.pnl, 0);
 
   return (
     <box flexDirection="column">
@@ -373,10 +373,7 @@ function OpenPositions() {
         <text fg={Colors.foreground} bold dim>
           OPEN POSITIONS
         </text>
-        <text
-          fg={totalPnl >= 0 ? Colors.success : Colors.error}
-          bold
-        >
+        <text fg={totalPnl >= 0 ? Colors.success : Colors.error} bold>
           {formatPnL(totalPnl)}
         </text>
       </box>
@@ -437,16 +434,13 @@ function OpenPositions() {
           <text fg={Colors.muted} dim>
             TOTAL
           </text>
-          <text
-            fg={totalPnl >= 0 ? Colors.success : Colors.error}
-            bold
-          >
+          <text fg={totalPnl >= 0 ? Colors.success : Colors.error} bold>
             {formatPnL(totalPnl)}
           </text>
         </box>
       )}
     </box>
-  )
+  );
 }
 
 /**
@@ -460,55 +454,55 @@ function OpenPositions() {
  *   - Sharpe ratio (calculated from trade returns when enough data)
  */
 function PerformanceSummary() {
-  const tradeStream = useServiceStore((s) => s.tradeStream)
-  const metrics = useServiceStore((s) => s.metrics)
+  const tradeStream = useServiceStore((s) => s.tradeStream);
+  const metrics = useServiceStore((s) => s.metrics);
 
   const perf = useMemo(() => {
-    const todayStart = startOfToday()
-    const weekStart = startOfDaysAgo(7)
-    const monthStart = startOfDaysAgo(30)
+    const todayStart = startOfToday();
+    const weekStart = startOfDaysAgo(7);
+    const monthStart = startOfDaysAgo(30);
 
-    let todayPnl = 0
-    let weekPnl = 0
-    let monthPnl = 0
-    let winCount = 0
-    let totalWithPnl = 0
+    let todayPnl = 0;
+    let weekPnl = 0;
+    let monthPnl = 0;
+    let winCount = 0;
+    let totalWithPnl = 0;
 
     for (const trade of tradeStream) {
-      const pnl = trade.pnl ?? 0
-      if (trade.timestamp >= todayStart) todayPnl += pnl
-      if (trade.timestamp >= weekStart) weekPnl += pnl
-      if (trade.timestamp >= monthStart) monthPnl += pnl
+      const pnl = trade.pnl ?? 0;
+      if (trade.timestamp >= todayStart) todayPnl += pnl;
+      if (trade.timestamp >= weekStart) weekPnl += pnl;
+      if (trade.timestamp >= monthStart) monthPnl += pnl;
 
       if (trade.pnl !== undefined) {
-        totalWithPnl++
-        if (trade.pnl > 0) winCount++
+        totalWithPnl++;
+        if (trade.pnl > 0) winCount++;
       }
     }
 
-    const winRate = totalWithPnl > 0 ? winCount / totalWithPnl : 0
+    const winRate = totalWithPnl > 0 ? winCount / totalWithPnl : 0;
 
     // Sharpe ratio: (mean return / std deviation of returns) * sqrt(252)
     // Using trade pnl values as returns proxy, annualized
-    let sharpe = 0
+    let sharpe = 0;
     if (totalWithPnl >= 5) {
       const returns = tradeStream
         .filter((t) => t.pnl !== undefined)
-        .map((t) => t.pnl!)
-      const mean = returns.reduce((s, r) => s + r, 0) / returns.length
+        .map((t) => t.pnl!);
+      const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
       const variance =
-        returns.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / returns.length
-      const stdDev = Math.sqrt(variance)
+        returns.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / returns.length;
+      const stdDev = Math.sqrt(variance);
       if (stdDev > 0 && mean !== 0) {
-        sharpe = (mean / stdDev) * Math.sqrt(252)
+        sharpe = (mean / stdDev) * Math.sqrt(252);
       }
     }
 
-    return { todayPnl, weekPnl, monthPnl, winRate, sharpe, totalWithPnl }
-  }, [tradeStream])
+    return { todayPnl, weekPnl, monthPnl, winRate, sharpe, totalWithPnl };
+  }, [tradeStream]);
 
   // Also show overall P&L from system metrics if available
-  const overallPnl = metrics?.totalPnl
+  const overallPnl = metrics?.totalPnl;
 
   return (
     <box flexDirection="column" flexGrow={1}>
@@ -558,10 +552,7 @@ function PerformanceSummary() {
           <text fg={Colors.muted} dim>
             WinRate
           </text>
-          <text
-            fg={perf.winRate >= 0.5 ? Colors.success : Colors.warning}
-            bold
-          >
+          <text fg={perf.winRate >= 0.5 ? Colors.success : Colors.warning} bold>
             {formatPct(perf.winRate)}
           </text>
         </box>
@@ -584,9 +575,7 @@ function PerformanceSummary() {
             bold={perf.totalWithPnl >= 5}
             dim={perf.totalWithPnl < 5}
           >
-            {perf.totalWithPnl >= 5
-              ? perf.sharpe.toFixed(2)
-              : "N/A"}
+            {perf.totalWithPnl >= 5 ? perf.sharpe.toFixed(2) : "N/A"}
           </text>
         </box>
       </box>
@@ -601,10 +590,7 @@ function PerformanceSummary() {
             <text fg={Colors.muted} dim>
               Total P&L
             </text>
-            <text
-              fg={overallPnl >= 0 ? Colors.success : Colors.error}
-              bold
-            >
+            <text fg={overallPnl >= 0 ? Colors.success : Colors.error} bold>
               {formatPnL(overallPnl)}
             </text>
           </box>
@@ -618,7 +604,7 @@ function PerformanceSummary() {
         </text>
       )}
     </box>
-  )
+  );
 }
 
 // ─── Main View ───────────────────────────────────────────────────────────────
@@ -637,24 +623,21 @@ function PerformanceSummary() {
  * re-renders on data changes via Zustand selectors.
  */
 export function TradeMonitor() {
-  const [paused, setPaused] = useState(false)
-  const tradeStream = useServiceStore((s) => s.tradeStream)
+  const [paused, setPaused] = useState(false);
+  const tradeStream = useServiceStore((s) => s.tradeStream);
 
   // Keyboard: space toggles pause/resume
   useKeyboard((key) => {
     if (key.name === "space") {
-      setPaused((p) => !p)
+      setPaused((p) => !p);
     }
-  })
+  });
 
   return (
     <ErrorBoundary viewName="Trade Monitor">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* 1. Header */}
-        <TradeMonitorHeader
-          paused={paused}
-          tradeCount={tradeStream.length}
-        />
+        <TradeMonitorHeader paused={paused} tradeCount={tradeStream.length} />
 
         {/* Divider */}
         <text fg={Colors.border} dim>
@@ -689,5 +672,5 @@ export function TradeMonitor() {
         </box>
       </box>
     </ErrorBoundary>
-  )
+  );
 }

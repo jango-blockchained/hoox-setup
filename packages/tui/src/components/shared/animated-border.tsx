@@ -9,21 +9,24 @@
  *
  * Used to wrap interactive panels, selected rows, and focusable sections.
  */
-import { type ReactNode } from "react"
-import { Colors } from "@jango-blockchained/hoox-shared"
+import { type ReactNode } from "react";
+import { Colors } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export interface AnimatedBorderProps {
   /** Content to wrap with the animated border */
-  children: ReactNode
+  children: ReactNode;
   /** Whether the contained element is focused/highlighted */
-  focused?: boolean
+  focused?: boolean;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function AnimatedBorder({ children, focused = false }: AnimatedBorderProps) {
+export function AnimatedBorder({
+  children,
+  focused = false,
+}: AnimatedBorderProps) {
   return (
     <box
       border={true}
@@ -33,5 +36,5 @@ export function AnimatedBorder({ children, focused = false }: AnimatedBorderProp
     >
       {children}
     </box>
-  )
+  );
 }

@@ -61,7 +61,8 @@ export function WorkerPerformance() {
           setData(json.data || []);
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
         console.error("Failed to fetch worker performance:", error);
       } finally {
         setLoading(false);

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -39,11 +40,13 @@ export function ReasoningPanel() {
     setLoading(true);
     setReasoning(null);
     setAnswer(null);
+    const controller = new AbortController();
     try {
       const res = await fetch("/api/agent/reasoning", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, model, reasoningEffort: effort }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.success) {
@@ -54,7 +57,9 @@ export function ReasoningPanel() {
         toast.error(data.error || "Reasoning failed");
       }
     } catch (e) {
-      toast.error("Failed to get reasoning");
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to get reasoning");
+      }
     } finally {
       setLoading(false);
     }

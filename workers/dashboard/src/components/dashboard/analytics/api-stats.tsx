@@ -54,7 +54,8 @@ export function ApiStats() {
           setData(json.data || []);
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
         console.error("Failed to fetch API stats:", error);
       } finally {
         setLoading(false);

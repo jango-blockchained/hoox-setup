@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -21,6 +22,7 @@ export function RiskParameters() {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    const controller = new AbortController();
     setSaving(true);
     try {
       const res = await fetch("/api/agent/config", {
@@ -31,6 +33,7 @@ export function RiskParameters() {
           trailingStopPercent: trailingStop / 100,
           takeProfitPercent: takeProfit / 100,
         }),
+        signal: controller.signal,
       });
       const data = await res.json();
       if (data.success) {
@@ -39,7 +42,9 @@ export function RiskParameters() {
         toast.error(data.error || "Save failed");
       }
     } catch (e) {
-      toast.error("Failed to save parameters");
+      if (e instanceof Error && e.name !== "AbortError") {
+        toast.error("Failed to save parameters");
+      }
     } finally {
       setSaving(false);
     }

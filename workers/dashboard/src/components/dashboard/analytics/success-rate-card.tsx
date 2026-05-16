@@ -55,7 +55,8 @@ export function SuccessRateCard() {
           setData(json.data[0]);
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (error instanceof DOMException && error.name === "AbortError")
+          return;
         console.error("Failed to fetch success rate:", error);
       } finally {
         setLoading(false);

@@ -6,27 +6,27 @@
  *   2. ~/.hoox/config.json (persisted user settings)
  *   3. Project-local .env file
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
-import { join } from "node:path"
-import { homedir } from "node:os"
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { homedir } from "node:os";
 
-const HOX_DIR = join(homedir(), ".hoox")
-const CONFIG_PATH = join(HOX_DIR, "config.json")
+const HOX_DIR = join(homedir(), ".hoox");
+const CONFIG_PATH = join(HOX_DIR, "config.json");
 
 export interface HooxConfig {
-  apiUrl: string
-  apiToken: string
-  refreshIntervalMs: number
-  theme: "dark" | "light"
-  activeExchanges: string[]
+  apiUrl: string;
+  apiToken: string;
+  refreshIntervalMs: number;
+  theme: "dark" | "light";
+  activeExchanges: string[];
   notifications: {
-    alerts: boolean
-    trades: boolean
-    debug: boolean
-    system: boolean
-  }
-  soundEnabled: boolean
-  defaultView: string
+    alerts: boolean;
+    trades: boolean;
+    debug: boolean;
+    system: boolean;
+  };
+  soundEnabled: boolean;
+  defaultView: string;
 }
 
 const DEFAULT_CONFIG: HooxConfig = {
@@ -43,19 +43,19 @@ const DEFAULT_CONFIG: HooxConfig = {
   },
   soundEnabled: true,
   defaultView: "dashboard",
-}
+};
 
 /** Read config from disk, merging with defaults and env vars */
 export function readConfigSync(): HooxConfig {
   const envConfig: Partial<HooxConfig> = {
     apiUrl: process.env.HOOX_API_URL,
     apiToken: process.env.HOOX_API_TOKEN,
-  }
+  };
 
-  let fileConfig: Partial<HooxConfig> = {}
+  let fileConfig: Partial<HooxConfig> = {};
   try {
     if (existsSync(CONFIG_PATH)) {
-      fileConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"))
+      fileConfig = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
     }
   } catch {
     // Ignore parse errors, use defaults
@@ -67,40 +67,43 @@ export function readConfigSync(): HooxConfig {
     ...Object.fromEntries(
       Object.entries(envConfig).filter(([_, v]) => v !== undefined)
     ),
-  }
+  };
 }
 
 export async function readConfig(): Promise<HooxConfig> {
-  return readConfigSync()
+  return readConfigSync();
 }
 
 /** Write config to disk */
 export function writeConfigSync(config: HooxConfig): void {
   try {
     if (!existsSync(HOX_DIR)) {
-      mkdirSync(HOX_DIR, { recursive: true })
+      mkdirSync(HOX_DIR, { recursive: true });
     }
-    writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8")
+    writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
   } catch (err) {
-    console.error("Failed to write config:", err)
+    console.error("Failed to write config:", err);
   }
 }
 
 export async function writeConfig(config: HooxConfig): Promise<void> {
-  writeConfigSync(config)
+  writeConfigSync(config);
 }
 
 /** Validate config — returns array of error messages */
 export function validateConfig(config: Partial<HooxConfig>): string[] {
-  const errors: string[] = []
+  const errors: string[] = [];
   if (config.apiUrl && !config.apiUrl.startsWith("http")) {
-    errors.push("apiUrl must start with http:// or https://")
+    errors.push("apiUrl must start with http:// or https://");
   }
-  if (config.refreshIntervalMs !== undefined && config.refreshIntervalMs < 100) {
-    errors.push("refreshIntervalMs must be >= 100ms")
+  if (
+    config.refreshIntervalMs !== undefined &&
+    config.refreshIntervalMs < 100
+  ) {
+    errors.push("refreshIntervalMs must be >= 100ms");
   }
   if (config.theme && !["dark", "light"].includes(config.theme)) {
-    errors.push('theme must be "dark" or "light"')
+    errors.push('theme must be "dark" or "light"');
   }
-  return errors
+  return errors;
 }

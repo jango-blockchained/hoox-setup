@@ -27,7 +27,6 @@ export async function logKvTimestamp(
   const key = `${prefix}_${timestamp}`;
   try {
     await env.REPORT_KV.put(key, timestamp);
-    console.log(`Logged timestamp ${timestamp} to KV with key ${key}`);
   } catch (error) {
     console.error(
       `Failed to log timestamp to KV: ${toError(error, "Unknown error")}`
