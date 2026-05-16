@@ -133,8 +133,3 @@ jobs:
 
       - name: Verify CLI bin exists
         run: ls -la packages/cli/bin/hoox.js
-
-      - name: Build dashboard (Next.js + OpenNext)
-        run: |
-          cd workers/dashboard
-          bun run build
