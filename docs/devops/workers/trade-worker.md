@@ -1,9 +1,10 @@
 ---
 title: "Trade Worker"
 ---
+
 # Trade Worker
 
-**Last Updated:** April 2026
+**Last Updated:** May 2026
 
 A Cloudflare® Worker service for executing cryptocurrency trades, logging signals, and potentially leveraging AI/RAG for strategy analysis. This worker interacts directly with exchange APIs, D1, R2, and potentially AI services.
 
@@ -175,7 +176,29 @@ Provides direct access to data stored by the worker.
 
 ## Exchange Clients
 
-The worker uses dedicated client implementations for each supported exchange (e.g., `binance-client.ts`, `mexc-client.ts`). These handle exchange-specific API requirements.
+The worker uses dedicated client implementations for each supported exchange (e.g., `binance-client.ts`, `mexc-client.ts`, `bybit-client.ts`). These handle exchange-specific API requirements.
+
+### Exchange Router
+
+The `ExchangeRouter` class routes trade signals to the appropriate exchange client. It uses a provider-based architecture:
+
+- **Generic Provider Interface** — `IExchangeProvider<TClient, TEnv>` is defined in `@jango-blockchained/hoox-shared` and is reusable across workers.
+- **Local Providers** — `BinanceProvider`, `MexcProvider`, `BybitProvider` implement the interface with trade-worker-specific client construction.
+- **Dynamic Routing** — Symbol-to-exchange mappings can be overridden via `CONFIG_KV` without code redeployment.
+- **Composition Pattern** — The trade-worker `ExchangeRouter` wraps the shared generic `ExchangeRouter` and extends it with KV-based dynamic routing.
+
+```typescript
+// Provider structure
+class BinanceProvider implements IExchangeProvider<IExchangeClient, Env> {
+  readonly name = "binance";
+  createClient(env: Env): IExchangeClient {
+    /* ... */
+  }
+  hasCredentials(env: Env): boolean {
+    /* ... */
+  }
+}
+```
 
 ## Database Interaction
 
@@ -189,7 +212,20 @@ The worker uses its `DB` binding to interact directly with the configured D1 dat
 
 ## Error Handling
 
-The worker includes error handling for authentication failures, invalid parameters, exchange API errors, network issues, and database interaction failures.
+The worker uses the standardized `Errors.*` factory from `@jango-blockchained/hoox-shared` for all error responses, ensuring consistent JSON error format across all workers:
+
+```typescript
+import { Errors } from "@jango-blockchained/hoox-shared/errors";
+
+// Standardized error responses
+Errors.badRequest("Invalid payload"); // 400
+Errors.unauthorized("Invalid key"); // 401
+Errors.forbidden("Access denied"); // 403
+Errors.notFound("Resource not found"); // 404
+Errors.internal("Processing failed"); // 500
+```
+
+Error handling covers authentication failures, invalid parameters, exchange API errors, network issues, and database interaction failures.
 
 ---
 

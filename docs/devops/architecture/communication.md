@@ -2,6 +2,7 @@
 title: "🔗 Worker Communication"
 description: "How workers communicate with each other"
 ---
+
 # 🔗 Worker Communication
 
 > How workers communicate with each other
@@ -49,22 +50,22 @@ export default {
 
 ## Communication Table
 
-| From → To                  | Binding          | Method        | Purpose                     |
-| -------------------------- | ---------------- | ------------- | --------------------------- |
-| hoox → analytics-worker    | ANALYTICS_SERVICE | POST /track   | Track API call metrics      |
-| hoox → trade-worker        | TRADE_SERVICE    | POST /webhook | Execute trade               |
-| hoox → telegram-worker     | TELEGRAM_SERVICE | POST /process | Send notification           |
-| trade-worker → d1-worker   | D1_SERVICE       | SQL queries   | Log signals                 |
-| trade-worker → web3        | WEB3_WALLET      | POST          | Web3 ops                    |
-| trade-worker → telegram    | TELEGRAM_SERVICE | POST          | Trade notification          |
-| trade-worker → analytics   | ANALYTICS_SERVICE | POST /track   | Track execution metrics     |
-| telegram → analytics       | ANALYTICS_SERVICE | POST /track   | Track message processing    |
-| telegram → trade-worker    | TRADE_SERVICE    | POST          | Status check                |
-| report → telegram-worker   | TELEGRAM_SERVICE | POST /process | Send PDF report link        |
-| agent → trade-worker       | TRADE_SERVICE    | POST          | Risk management actions     |
-| agent → d1-worker          | D1_SERVICE       | SQL queries   | Portfolio queries           |
-| agent → telegram-worker    | TELEGRAM_SERVICE | POST          | Health summary delivery     |
-| email → analytics-worker   | ANALYTICS_SERVICE | POST /track   | Track email parsing metrics |
+| From → To                | Binding           | Method        | Purpose                     |
+| ------------------------ | ----------------- | ------------- | --------------------------- |
+| hoox → analytics-worker  | ANALYTICS_SERVICE | POST /track   | Track API call metrics      |
+| hoox → trade-worker      | TRADE_SERVICE     | POST /webhook | Execute trade               |
+| hoox → telegram-worker   | TELEGRAM_SERVICE  | POST /process | Send notification           |
+| trade-worker → d1-worker | D1_SERVICE        | SQL queries   | Log signals                 |
+| trade-worker → web3      | WEB3_WALLET       | POST          | Web3 ops                    |
+| trade-worker → telegram  | TELEGRAM_SERVICE  | POST          | Trade notification          |
+| trade-worker → analytics | ANALYTICS_SERVICE | POST /track   | Track execution metrics     |
+| telegram → analytics     | ANALYTICS_SERVICE | POST /track   | Track message processing    |
+| telegram → trade-worker  | TRADE_SERVICE     | POST          | Status check                |
+| report → telegram-worker | TELEGRAM_SERVICE  | POST /process | Send PDF report link        |
+| agent → trade-worker     | TRADE_SERVICE     | POST          | Risk management actions     |
+| agent → d1-worker        | D1_SERVICE        | SQL queries   | Portfolio queries           |
+| agent → telegram-worker  | TELEGRAM_SERVICE  | POST          | Health summary delivery     |
+| email → analytics-worker | ANALYTICS_SERVICE | POST /track   | Track email parsing metrics |
 
 ## Request/Response Format
 
@@ -111,22 +112,32 @@ async function callWorker(env, serviceBinding) {
 
 ## Authentication Between Workers
 
-### Using Internal Key
+All internal workers use the shared `requireInternalAuth` middleware from `@jango-blockchained/hoox-shared/middleware`, which expects a consistent `X-Internal-Auth-Key` header and validates it against the `INTERNAL_KEY_BINDING` environment binding.
+
+### Using requireInternalAuth (Standard)
 
 ```typescript
-// Verify internal key in receiving worker
-const INTERNAL_KEY = await env.INTERNAL_KEY_BINDING?.get();
+import { requireInternalAuth } from "@jango-blockchained/hoox-shared/middleware";
 
-export async function handleRequest(request, env) {
-  const authHeader = request.headers.get("Authorization");
+async function handleRequest(request: Request, env: Env): Promise<Response> {
+  // Returns 401 Response if invalid, null if authorized
+  const authError = requireInternalAuth(request, env, "INTERNAL_KEY_BINDING");
+  if (authError) return authError;
 
-  if (authHeader !== INTERNAL_KEY) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  // Process request...
+  // Authorized — process request
 }
 ```
+
+### Sending Authenticated Requests
+
+```typescript
+// In the calling worker
+const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", payload, {
+  headers: { "X-Internal-Auth-Key": env.INTERNAL_KEY_BINDING as string },
+});
+```
+
+All internal-only workers (trade-worker, d1-worker, agent-worker, telegram-worker) now use the **same** `INTERNAL_KEY_BINDING` binding name, simplifying secret management and deployment.
 
 ## Testing Service Bindings
 
