@@ -4,29 +4,42 @@ FROM oven/bun:1.3.12 AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Copy ALL manifests first to establish workspaces correctly
 COPY package.json bun.lock* ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/cli/package.json packages/cli/
+COPY packages/tui/package.json packages/tui/
+COPY workers/hoox/package.json workers/hoox/
+COPY workers/trade-worker/package.json workers/trade-worker/
+COPY workers/d1-worker/package.json workers/d1-worker/
+COPY workers/telegram-worker/package.json workers/telegram-worker/
+COPY workers/agent-worker/package.json workers/agent-worker/
+COPY workers/web3-wallet-worker/package.json workers/web3-wallet-worker/
+COPY workers/analytics-worker/package.json workers/analytics-worker/
+COPY workers/report-worker/package.json workers/report-worker/
+COPY workers/dashboard/package.json workers/dashboard/
+COPY pages/docs/package.json pages/docs/
+
+# Install dependencies (this will link workspaces)
 RUN bun install
 
-# Copy shared package
+# Copy source code
 COPY packages/shared/ packages/shared/
-RUN bun install
-
-# Copy worker source code
 COPY workers/ workers/
-COPY pages/ pages/
 COPY packages/ packages/
 
 # Compile workers to standalone JS
+# We externalize cloudflare:workers and workers-types because they are provided by the workerd runtime, 
+# and hoox-shared because we want to resolve it via workspace linking during the build.
 RUN mkdir -p dist && \
-    bun build workers/hoox/src/index.ts --outdir=dist/hoox --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/trade-worker/src/index.ts --outdir=dist/trade-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/d1-worker/src/index.ts --outdir=dist/d1-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/web3-wallet-worker/src/index.ts --outdir=dist/web3-wallet-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/analytics-worker/src/index.ts --outdir=dist/analytics-worker --target=bun --external "@jango-blockchained/hoox-shared" && \
-    bun build workers/report-worker/src/index.ts --outdir=dist/report-worker --target=bun --external "@jango-blockchained/hoox-shared"
+    bun build workers/hoox/src/index.ts --outdir=dist/hoox --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/trade-worker/src/index.ts --outdir=dist/trade-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/d1-worker/src/index.ts --outdir=dist/d1-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/agent-worker/src/index.ts --outdir=dist/agent-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/web3-wallet-worker/src/index.ts --outdir=dist/web3-wallet-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/analytics-worker/src/index.ts --outdir=dist/analytics-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers" && \
+    bun build workers/report-worker/src/index.ts --outdir=dist/report-worker --target=bun --external "@jango-blockchained/hoox-shared" --external "cloudflare:workers"
 
 # Final Runtime
 FROM oven/bun:1.3-alpine
