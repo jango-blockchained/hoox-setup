@@ -15,45 +15,50 @@
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
  * Colors from @jango-blockchained/hoox-shared tokens — no hardcoded hex.
  */
-import { useState, useMemo, useEffect } from "react"
-import { useKeyboard } from "@opentui/react"
-import { Colors } from "@jango-blockchained/hoox-shared"
-import { useServiceStore } from "@jango-blockchained/hoox-shared"
-import { useUIStore } from "@jango-blockchained/hoox-shared"
-import { ErrorBoundary } from "@/components/shared/error-boundary"
-import { StatusDot, type StatusDotStatus } from "@/components/shared/status-dot"
+import { useState, useMemo, useEffect } from "react";
+import { useKeyboard } from "@opentui/react";
+import { Colors } from "@jango-blockchained/hoox-shared";
+import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import { StatusDot, type StatusDotStatus } from "../shared/status-dot";
 
 // ── Local type aliases (inferred from store return types) ──────────────────
 
 /** Worker info shape — inferred from service-store WorkerInfo */
-type Worker = ReturnType<typeof useServiceStore.getState>["workers"][number]
+type Worker = ReturnType<typeof useServiceStore.getState>["workers"][number];
 
 /** Log entry shape — inferred from service-store LogEntry */
-type Log = ReturnType<typeof useServiceStore.getState>["logs"][number]
+type Log = ReturnType<typeof useServiceStore.getState>["logs"][number];
 
 /** Log level type */
-type Level = "debug" | "info" | "warn" | "error"
+type Level = "debug" | "info" | "warn" | "error";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 /** Number of focusable panes in the 2×2 grid */
-const PANE_COUNT = 4
+const PANE_COUNT = 4;
 
-const PANE_NAMES = ["Metrics", "Live Logs", "Durable Objects", "Config Preview"] as const
+const PANE_NAMES = [
+  "Metrics",
+  "Live Logs",
+  "Durable Objects",
+  "Config Preview",
+] as const;
 
 /** Log-level color mapping */
 const LOG_COLORS: Record<Level, string> = {
   debug: Colors.muted,
-  info:  Colors.info,
-  warn:  Colors.warning,
+  info: Colors.info,
+  warn: Colors.warning,
   error: Colors.error,
-}
+};
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface DemoConfigEntry {
-  key: string
-  value: string
+  key: string;
+  value: string;
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -79,40 +84,71 @@ function BreadcrumbHeader({ worker }: { worker: Worker }) {
         |
       </text>
       {/* Status dot + label */}
-      <StatusDot status={worker.status as StatusDotStatus} pulse={worker.status === "operational"} />
-      <text fg={Colors.foreground}>
-        {worker.status.toUpperCase()}
-      </text>
+      <StatusDot
+        status={worker.status as StatusDotStatus}
+        pulse={worker.status === "operational"}
+      />
+      <text fg={Colors.foreground}>{worker.status.toUpperCase()}</text>
     </box>
-  )
+  );
 }
 
 /**
  * Metrics pane — key health and performance indicators.
  */
 function MetricsPane({ worker }: { worker: Worker }) {
-  const metrics = useServiceStore(s => s.metrics)
+  const metrics = useServiceStore((s) => s.metrics);
 
   // Derived values with sensible fallbacks
-  const cpuAvg = worker.cpu.toFixed(1)
-  const cpuP99 = Math.min(worker.cpu * 1.8, 100).toFixed(1) // estimated p99
-  const throttlingPct = worker.cpu > 80 ? ((worker.cpu - 80) * 5).toFixed(1) : "0.0"
-  const memoryLimitMB = 128 // Cloudflare default
-  const p50Latency = worker.cpu > 60 ? (10 + (worker.cpu - 60) * 0.5).toFixed(0) : "10"
+  const cpuAvg = worker.cpu.toFixed(1);
+  const cpuP99 = Math.min(worker.cpu * 1.8, 100).toFixed(1); // estimated p99
+  const throttlingPct =
+    worker.cpu > 80 ? ((worker.cpu - 80) * 5).toFixed(1) : "0.0";
+  const memoryLimitMB = 128; // Cloudflare default
+  const p50Latency =
+    worker.cpu > 60 ? (10 + (worker.cpu - 60) * 0.5).toFixed(0) : "10";
 
   const rows: [string, string, string][] = [
-    ["Uptime",      formatUptime(worker.uptime),     Colors.success],
-    ["CPU Avg",     `${cpuAvg}%`,                    worker.cpu > 80 ? Colors.error : worker.cpu > 60 ? Colors.warning : Colors.success],
-    ["CPU P99",     `${cpuP99}%`,                    Colors.muted],
-    ["Memory",      `${worker.memory} MB / ${memoryLimitMB} MB`, worker.memory > 100 ? Colors.warning : Colors.success],
-    ["Throttling",  `${throttlingPct}%`,             throttlingPct !== "0.0" ? Colors.error : Colors.success],
+    ["Uptime", formatUptime(worker.uptime), Colors.success],
+    [
+      "CPU Avg",
+      `${cpuAvg}%`,
+      worker.cpu > 80
+        ? Colors.error
+        : worker.cpu > 60
+          ? Colors.warning
+          : Colors.success,
+    ],
+    ["CPU P99", `${cpuP99}%`, Colors.muted],
+    [
+      "Memory",
+      `${worker.memory} MB / ${memoryLimitMB} MB`,
+      worker.memory > 100 ? Colors.warning : Colors.success,
+    ],
+    [
+      "Throttling",
+      `${throttlingPct}%`,
+      throttlingPct !== "0.0" ? Colors.error : Colors.success,
+    ],
     ["Invocations", worker.requests.toLocaleString(), Colors.info],
-    ["Errors",      "0",                             Colors.success],
-    ["P50 Latency", `${p50Latency} ms`,             Number(p50Latency) > 100 ? Colors.warning : Colors.success],
-  ]
+    ["Errors", "0", Colors.success],
+    [
+      "P50 Latency",
+      `${p50Latency} ms`,
+      Number(p50Latency) > 100 ? Colors.warning : Colors.success,
+    ],
+  ];
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+    <box
+      flexDirection="column"
+      flexGrow={1}
+      padding={1}
+      border={true}
+      borderStyle="single"
+      borderColor={Colors.border}
+      backgroundColor={Colors.card}
+    >
       <text fg={Colors.accent} bold>
         Metrics
       </text>
@@ -122,56 +158,68 @@ function MetricsPane({ worker }: { worker: Worker }) {
             <text fg={Colors.muted} dim>
               {label.padEnd(14)}
             </text>
-            <text fg={color}>
-              {value}
-            </text>
+            <text fg={color}>{value}</text>
           </box>
         ))}
       </box>
     </box>
-  )
+  );
 }
 
 /**
  * Live Logs pane — streaming log entries with auto-scroll and pause/resume.
  */
-function LogsPane({ workerId, focused }: { workerId: string; focused: boolean }) {
+function LogsPane({
+  workerId,
+  focused,
+}: {
+  workerId: string;
+  focused: boolean;
+}) {
   // All logs from the ring buffer, filtered to this worker
-  const allLogs = useServiceStore(s => s.logs)
+  const allLogs = useServiceStore((s) => s.logs);
   const workerLogs = useMemo(
-    () => allLogs.filter(l => l.workerId === workerId),
-    [allLogs, workerId],
-  )
+    () => allLogs.filter((l) => l.workerId === workerId),
+    [allLogs, workerId]
+  );
 
   // Pause toggle via Space key
-  const [paused, setPaused] = useState(false)
+  const [paused, setPaused] = useState(false);
 
   // Auto-scroll: track whether we're at the bottom
-  const [autoScroll, setAutoScroll] = useState(true)
+  const [autoScroll, setAutoScroll] = useState(true);
 
   // When not paused, always show newest entries
   useEffect(() => {
     if (!paused) {
-      setAutoScroll(true)
+      setAutoScroll(true);
     }
-  }, [workerLogs.length, paused])
+  }, [workerLogs.length, paused]);
 
   // Keyboard: Space toggles pause when this pane is focused
   useKeyboard((key) => {
-    if (!focused) return
+    if (!focused) return;
     if (key.name === "space") {
-      setPaused(p => !p)
+      setPaused((p) => !p);
     }
-  })
+  });
 
   // Display logs: last 50 entries (or all if paused)
   const displayedLogs = useMemo(() => {
-    const source = paused ? workerLogs : workerLogs.slice(-50)
-    return source
-  }, [workerLogs, paused])
+    const source = paused ? workerLogs : workerLogs.slice(-50);
+    return source;
+  }, [workerLogs, paused]);
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={focused ? Colors.accent : Colors.border} backgroundColor={Colors.card}>
+    <box
+      flexDirection="column"
+      flexGrow={1}
+      padding={1}
+      border={true}
+      borderStyle="single"
+      borderColor={focused ? Colors.accent : Colors.border}
+      backgroundColor={Colors.card}
+    >
       {/* Header with pause indicator */}
       <box flexDirection="row" justifyContent="space-between">
         <text fg={Colors.accent} bold>
@@ -196,30 +244,28 @@ function LogsPane({ workerId, focused }: { workerId: string; focused: boolean })
             No logs yet...
           </text>
         ) : (
-          displayedLogs.map((log) => (
-            <LogLine key={log.id} log={log} />
-          ))
+          displayedLogs.map((log) => <LogLine key={log.id} log={log} />)
         )}
       </scrollbox>
     </box>
-  )
+  );
 }
 
 /** A single log line, color-coded by level */
 function LogLine({ log }: { log: Log }) {
-  const color = LOG_COLORS[log.level]
+  const color = LOG_COLORS[log.level];
   const time = new Date(log.timestamp).toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  })
+  });
 
   return (
     <text fg={color}>
       {time} [{log.level.toUpperCase().padEnd(5)}] {log.message}
     </text>
-  )
+  );
 }
 
 /**
@@ -230,15 +276,25 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
   const dos = useMemo(() => {
     const names = worker.name
       ? [`${worker.name}-state`, `${worker.name}-cache`, `${worker.name}-queue`]
-      : []
-    return names.slice(0, Math.max(1, worker.durableObjectCount)).map((name, i) => ({
-      name,
-      status: worker.status === "down" ? "ERROR" as const : "OK" as const,
-    }))
-  }, [worker])
+      : [];
+    return names
+      .slice(0, Math.max(1, worker.durableObjectCount))
+      .map((name, i) => ({
+        name,
+        status: worker.status === "down" ? ("ERROR" as const) : ("OK" as const),
+      }));
+  }, [worker]);
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+    <box
+      flexDirection="column"
+      flexGrow={1}
+      padding={1}
+      border={true}
+      borderStyle="single"
+      borderColor={Colors.border}
+      backgroundColor={Colors.card}
+    >
       <text fg={Colors.accent} bold>
         Durable Objects
       </text>
@@ -256,7 +312,9 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
               >
                 {dobj.status === "OK" ? "█" : "░"}
               </text>
-              <text fg={dobj.status === "OK" ? Colors.foreground : Colors.error}>
+              <text
+                fg={dobj.status === "OK" ? Colors.foreground : Colors.error}
+              >
                 {dobj.name}
               </text>
             </box>
@@ -264,7 +322,7 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
         )}
       </scrollbox>
     </box>
-  )
+  );
 }
 
 /**
@@ -272,17 +330,31 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
  */
 function ConfigPreviewPane({ worker }: { worker: Worker }) {
   // Demo config derived from worker info and sensible defaults
-  const configEntries: DemoConfigEntry[] = useMemo(() => [
-    { key: "active",    value: worker.status === "operational" ? "true" : "false" },
-    { key: "exchanges", value: "binance, mexc, bybit" },
-    { key: "maxSpread", value: "0.5" },
-    { key: "symbol",    value: "BTCUSDT, ETHUSDT, SOLUSDT" },
-    { key: "version",   value: worker.version || "0.1.0" },
-    { key: "edges",     value: worker.edgeCount.toString() },
-  ], [worker])
+  const configEntries: DemoConfigEntry[] = useMemo(
+    () => [
+      {
+        key: "active",
+        value: worker.status === "operational" ? "true" : "false",
+      },
+      { key: "exchanges", value: "binance, mexc, bybit" },
+      { key: "maxSpread", value: "0.5" },
+      { key: "symbol", value: "BTCUSDT, ETHUSDT, SOLUSDT" },
+      { key: "version", value: worker.version || "0.1.0" },
+      { key: "edges", value: worker.edgeCount.toString() },
+    ],
+    [worker]
+  );
 
   return (
-    <box flexDirection="column" flexGrow={1} padding={1} border={true} borderStyle="single" borderColor={Colors.border} backgroundColor={Colors.card}>
+    <box
+      flexDirection="column"
+      flexGrow={1}
+      padding={1}
+      border={true}
+      borderStyle="single"
+      borderColor={Colors.border}
+      backgroundColor={Colors.card}
+    >
       <text fg={Colors.accent} bold>
         Config Preview
       </text>
@@ -292,57 +364,56 @@ function ConfigPreviewPane({ worker }: { worker: Worker }) {
             <text fg={Colors.muted} dim>
               {entry.key.padEnd(14)}
             </text>
-            <text fg={Colors.foreground}>
-              {entry.value}
-            </text>
+            <text fg={Colors.foreground}>{entry.value}</text>
           </box>
         ))}
       </box>
     </box>
-  )
+  );
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Format uptime seconds into a human-readable string. */
 function formatUptime(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
-  const days = Math.floor(seconds / 86400)
-  const hours = Math.floor((seconds % 86400) / 3600)
-  return `${days}d ${hours}h`
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400)
+    return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  return `${days}d ${hours}h`;
 }
 
 // ── Main View ────────────────────────────────────────────────────────────────
 
 export function WorkerDetail() {
   // Focus tracking for pane cycling
-  const [focusPane, setFocusPane] = useState(0)
+  const [focusPane, setFocusPane] = useState(0);
 
   // Store subscriptions (Pattern 2: selective selectors)
-  const selectedWorkerId = useServiceStore(s => s.selectedWorkerId)
-  const workers = useServiceStore(s => s.workers)
-  const goBack = useUIStore(s => s.goBack)
+  const selectedWorkerId = useServiceStore((s) => s.selectedWorkerId);
+  const workers = useServiceStore((s) => s.workers);
+  const goBack = useUIStore((s) => s.goBack);
 
   // Derive the current worker
   const worker = useMemo(
-    () => workers.find(w => w.id === selectedWorkerId) ?? null,
-    [workers, selectedWorkerId],
-  )
+    () => workers.find((w) => w.id === selectedWorkerId) ?? null,
+    [workers, selectedWorkerId]
+  );
 
   // View-local keyboard handling
   useKeyboard((key) => {
     switch (key.name) {
       case "tab":
         // Cycle focus forward between panes
-        setFocusPane(i => (i + 1) % PANE_COUNT)
-        break
+        setFocusPane((i) => (i + 1) % PANE_COUNT);
+        break;
       case "escape":
-        goBack()
-        break
+        goBack();
+        break;
     }
-  })
+  });
 
   // ── No worker selected or not found ────────────────────────────────────────
   if (!selectedWorkerId || !worker) {
@@ -362,7 +433,13 @@ export function WorkerDetail() {
               edgeCount: 0,
             }}
           />
-          <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center" gap={1}>
+          <box
+            flexDirection="column"
+            flexGrow={1}
+            justifyContent="center"
+            alignItems="center"
+            gap={1}
+          >
             <text fg={Colors.error} bold>
               Worker Not Found
             </text>
@@ -379,7 +456,7 @@ export function WorkerDetail() {
           </box>
         </box>
       </ErrorBoundary>
-    )
+    );
   }
 
   // ── Full 4-pane layout ─────────────────────────────────────────────────────
@@ -419,10 +496,10 @@ export function WorkerDetail() {
             ))}
           </box>
           <text fg={Colors.muted} dim>
-            Tab: focus  ·  Esc: back
+            Tab: focus · Esc: back
           </text>
         </box>
       </box>
     </ErrorBoundary>
-  )
+  );
 }
