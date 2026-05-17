@@ -1146,6 +1146,16 @@ export function ConfigEditor() {
           </box>
         </box>
 
+        {/* Validation status */}
+        {validationError && (
+          <box paddingLeft={1} paddingBottom={0} flexDirection="row" gap={1}>
+            <text fg={Colors.error} bold>
+              ⚠
+            </text>
+            <text fg={Colors.error}>Validation: {validationError}</text>
+          </box>
+        )}
+
         {/* Footer: ActionBar */}
         <text fg={Colors.border} dim>
           {"─".repeat(80)}
