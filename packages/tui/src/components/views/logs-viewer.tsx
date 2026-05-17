@@ -507,6 +507,8 @@ export function LogsViewer() {
           onTogglePause={() => setPaused((p) => !p)}
           onExport={handleExport}
           onClear={handleClear}
+          sseConnected={connectionStatus === "connected"}
+          onFetch={handleFetch}
         />
       </box>
     </ErrorBoundary>
