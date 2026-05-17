@@ -483,6 +483,111 @@ export function SettingsView() {
   const soundEnabled = useConfigStore((s) => s.soundEnabled);
   const theme = useConfigStore((s) => s.theme);
 
+  // ── Data panel handlers ────────────────────────────────────────────────────
+
+  const handleClearCache = useCallback(async () => {
+    try {
+      const cachePath = path.join(os.homedir(), ".hoox", "cache");
+      const proc = Bun.spawn(["rm", "-rf", cachePath]);
+      await proc.exited;
+      useServiceStore.getState().addAlert({
+        id: `cache-${Date.now()}`,
+        type: "config",
+        severity: "info",
+        message: "Cache cleared successfully",
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `cache-err-${Date.now()}`,
+        type: "config",
+        severity: "error",
+        message: `Cache clear failed: ${err instanceof Error ? err.message : String(err)}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    }
+  }, []);
+
+  const handleExportData = useCallback(async () => {
+    try {
+      const result = await cliBridge.configShow();
+      if (!result.success) {
+        useServiceStore.getState().addAlert({
+          id: `export-err-${Date.now()}`,
+          type: "config",
+          severity: "error",
+          message: `Export failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filePath = path.join(
+        os.homedir(),
+        ".hoox",
+        `config-export-${timestamp}.json`
+      );
+      await Bun.write(filePath, JSON.stringify(result.data, null, 2));
+      useServiceStore.getState().addAlert({
+        id: `export-${Date.now()}`,
+        type: "config",
+        severity: "info",
+        message: `Config exported to ${filePath}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `export-err-${Date.now()}`,
+        type: "config",
+        severity: "error",
+        message: `Export error: ${err instanceof Error ? err.message : String(err)}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    }
+  }, []);
+
+  const handleImportData = useCallback(async () => {
+    useServiceStore.getState().addAlert({
+      id: `import-${Date.now()}`,
+      type: "config",
+      severity: "info",
+      message: "Import: select a config file to restore",
+      timestamp: Date.now(),
+      acknowledged: false,
+    });
+  }, []);
+
+  const handleCheckSetup = useCallback(async () => {
+    try {
+      const result = await cliBridge.checkSetup();
+      const message = result.success
+        ? `Setup check passed (${(result.duration / 1000).toFixed(1)}s)`
+        : `Setup check failed: ${result.stderr || result.stdout || "unknown error"}`;
+      useServiceStore.getState().addAlert({
+        id: `setup-${Date.now()}`,
+        type: "config",
+        severity: result.success ? "info" : "warning",
+        message,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `setup-err-${Date.now()}`,
+        type: "config",
+        severity: "error",
+        message: `Setup check error: ${err instanceof Error ? err.message : String(err)}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    }
+  }, []);
+
   /** Max items per panel */
   const maxItemsPerPanel = useMemo((): Record<number, number> => {
     return {
@@ -583,9 +688,22 @@ export function SettingsView() {
       }
 
       case 3: {
-        // Data panel — buttons are activated on Enter/mouse
+        // Data panel — buttons are activated on Enter/Space
         if (key.name === "space" || key.name === "return") {
-          // Buttons are currently stubs; will be wired when cache/export layer exists
+          switch (activeItem) {
+            case 0:
+              handleClearCache();
+              break;
+            case 1:
+              handleExportData();
+              break;
+            case 2:
+              handleImportData();
+              break;
+            case 3:
+              handleCheckSetup();
+              break;
+          }
         }
         break;
       }
@@ -631,7 +749,14 @@ export function SettingsView() {
           </PanelBox>
 
           <PanelBox title="DATA" active={activePanel === 3} width={24}>
-            <DataPanel active={activePanel === 3} activeItem={activeItem} />
+            <DataPanel
+              active={activePanel === 3}
+              activeItem={activeItem}
+              onClearCache={handleClearCache}
+              onExportData={handleExportData}
+              onImportData={handleImportData}
+              onCheckSetup={handleCheckSetup}
+            />
           </PanelBox>
         </box>
       </box>
