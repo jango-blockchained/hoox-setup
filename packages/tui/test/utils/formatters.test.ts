@@ -16,7 +16,7 @@ import { describe, it, expect } from "bun:test";
 import {
   formatRelativeTime,
   formatDuration,
-} from "@jango-blockchained/hoox-shared";
+} from "@jango-blockchained/hoox-shared/format-time";
 
 // ─── formatRelativeTime ──────────────────────────────────────────────────────
 
@@ -164,7 +164,7 @@ describe("number formatting", () => {
 
   it("prefixes P&L with + for positive and - for negative", () => {
     function formatPnL(pnl: number): string {
-      const prefix = pnl >= 0 ? "+" : "";
+      const prefix = pnl >= 0 ? "+" : "-";
       const abs = Math.abs(pnl);
       if (abs >= 1_000_000) return `${prefix}${(abs / 1_000_000).toFixed(2)}M`;
       if (abs >= 1_000) return `${prefix}${(abs / 1_000).toFixed(2)}K`;

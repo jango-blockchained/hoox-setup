@@ -13,6 +13,7 @@
  * Not a full TUI render test (which requires a terminal).
  */
 import { describe, test, expect, beforeEach } from "bun:test";
+
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
 import {

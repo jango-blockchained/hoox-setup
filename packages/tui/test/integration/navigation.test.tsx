@@ -228,8 +228,8 @@ describe("Navigation Integration", () => {
       for (let i = 0; i < 10; i++) {
         dispatchCtrlB();
       }
-      // 10 toggles from true: true→false→true→false→true→false→true→false→true→false
-      expect(useUIStore.getState().sidebarExpanded).toBe(false);
+      // 10 toggles from true: true→false→true→false→true→false→true→false→true→false→true
+      expect(useUIStore.getState().sidebarExpanded).toBe(true);
     });
 
     it("handles rapid palette open/close", () => {

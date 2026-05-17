@@ -6,8 +6,8 @@
  * Tests use Bun's built-in test runner with mock service store data.
  * Path: bun test
  */
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { render, createRoot } from "@opentui/react";
+import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
+import { createRoot } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
 import { ServiceManager } from "./service-manager";
 import type { DialogHandle } from "@/components/ui/dialog";

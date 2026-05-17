@@ -52,7 +52,7 @@ const MAX_VISIBLE_ALERTS = 50;
  */
 function formatStatNumber(value: number, isPnl = false): string {
   if (isPnl) {
-    const sign = value >= 0 ? "+" : "";
+    const sign = value >= 0 ? "+" : "-";
     const abs = Math.abs(value);
     if (abs >= 1_000_000) return `${sign}${(abs / 1_000_000).toFixed(1)}M`;
     if (abs >= 1_000) return `${sign}${(abs / 1_000).toFixed(1)}K`;

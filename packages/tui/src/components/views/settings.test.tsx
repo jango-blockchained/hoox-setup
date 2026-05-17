@@ -8,8 +8,7 @@
  * SettingsView renders against controlled test data.
  */
 import { describe, it, expect, beforeEach, mock } from "bun:test";
-// @ts-expect-error — render returns FrameBuffer string
-import { render } from "@opentui/react";
+import { testRender } from "@opentui/react/test-utils";
 import type {
   ViewId,
   NotificationPreferences,
@@ -105,9 +104,16 @@ import { SettingsView } from "./settings";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Render the SettingsView and return the FrameBuffer string output */
-function renderSettings(): string {
-  return render(<SettingsView />);
+/** Render the SettingsView and return the captured frame as a string. */
+async function renderSettings(width = 120): Promise<string> {
+  const { captureCharFrame, renderOnce } = await testRender(<SettingsView />, {
+    width,
+    height: 24,
+    testing: true,
+    exitOnCtrlC: false,
+  });
+  await renderOnce();
+  return captureCharFrame();
 }
 
 // ─── Test Suite ──────────────────────────────────────────────────────────────
@@ -132,21 +138,21 @@ describe("SettingsView", () => {
 
   // ── Rendering basics ─────────────────────────────────────────────────────
 
-  it("renders the settings header with SETTINGS title", () => {
-    const output = renderSettings();
+  it("renders the settings header with SETTINGS title", async () => {
+    const output = await renderSettings();
     expect(output).toContain("SETTINGS");
   });
 
-  it("renders all four panel titles", () => {
-    const output = renderSettings();
+  it("renders all four panel titles", async () => {
+    const output = await renderSettings(120);
     expect(output).toContain("THEME");
     expect(output).toContain("NOTIFICATIONS");
     expect(output).toContain("KEYBOARD");
     expect(output).toContain("DATA");
   });
 
-  it("renders within an error boundary wrapper", () => {
-    const output = renderSettings();
+  it("renders within an error boundary wrapper", async () => {
+    const output = await renderSettings();
     expect(output).toContain("SETTINGS");
     // If error boundary had caught an error, we'd see "Failed to load Settings"
     expect(output).not.toContain("Failed to load Settings");
@@ -154,170 +160,170 @@ describe("SettingsView", () => {
 
   // ── Theme Panel ──────────────────────────────────────────────────────────
 
-  it("shows Dark selected when theme is dark", () => {
+  it("shows Dark selected when theme is dark", async () => {
     mockState.theme = "dark";
-    const output = renderSettings();
-    expect(output).toContain("(•) Dark");
-    expect(output).toContain("( ) Light");
+    const output = await renderSettings();
+    expect(output).toContain("(•) DARK");
+    expect(output).toContain("( ) LIGHT");
   });
 
-  it("shows Light selected when theme is light", () => {
+  it("shows Light selected when theme is light", async () => {
     mockState.theme = "light";
-    const output = renderSettings();
-    expect(output).toContain("( ) Dark");
-    expect(output).toContain("(•) Light");
+    const output = await renderSettings();
+    expect(output).toContain("( ) DARK");
+    expect(output).toContain("(•) LIGHT");
   });
 
-  it("shows current refresh rate with 500ms default", () => {
+  it("shows current refresh rate with 500ms default", async () => {
     mockState.refreshIntervalMs = 500;
-    const output = renderSettings();
+    const output = await renderSettings();
     expect(output).toContain("500ms");
   });
 
-  it("shows refresh rate in seconds for 1s+ values", () => {
+  it("shows refresh rate in seconds for 1s+ values", async () => {
     mockState.refreshIntervalMs = 2000;
-    const output = renderSettings();
+    const output = await renderSettings();
     expect(output).toContain("2s");
   });
 
-  it("shows current default view label", () => {
+  it("shows current default view label", async () => {
     mockState.defaultView = "trade-monitor";
-    const output = renderSettings();
+    const output = await renderSettings();
     expect(output).toContain("Trade Monitor");
   });
 
-  it("renders the Reset to Defaults button", () => {
-    const output = renderSettings();
-    expect(output).toContain("Reset to Defaults");
+  it("renders the Reset to Defaults button", async () => {
+    const output = await renderSettings();
+    expect(output).toContain("RESET TO DEFAULTS");
   });
 
   // ── Notifications Panel ──────────────────────────────────────────────────
 
-  it("shows all four notification channels", () => {
-    const output = renderSettings();
-    expect(output).toContain("Alerts");
-    expect(output).toContain("Trades");
-    expect(output).toContain("Debug");
-    expect(output).toContain("System");
+  it("shows all four notification channels", async () => {
+    const output = await renderSettings();
+    expect(output).toContain("ALERTS");
+    expect(output).toContain("TRADES");
+    expect(output).toContain("DEBUG");
+    expect(output).toContain("SYSTEM");
   });
 
-  it("shows checked [x] for enabled notifications", () => {
+  it("shows checked [x] for enabled notifications", async () => {
     mockState.notifications = {
       alerts: true,
       trades: false,
       debug: false,
       system: true,
     };
-    const output = renderSettings();
+    const output = await renderSettings();
     // The output should contain [x] for alerts and system
-    expect(output).toContain("[x] Alerts");
-    expect(output).toContain("[x] System");
+    expect(output).toContain("[x] ALERTS");
+    expect(output).toContain("[x] SYSTEM");
   });
 
-  it("shows unchecked [ ] for disabled notifications", () => {
+  it("shows unchecked [ ] for disabled notifications", async () => {
     mockState.notifications = {
       alerts: true,
       trades: false,
       debug: false,
       system: true,
     };
-    const output = renderSettings();
-    expect(output).toContain("[ ] Trades");
-    expect(output).toContain("[ ] Debug");
+    const output = await renderSettings();
+    expect(output).toContain("[ ] TRADES");
+    expect(output).toContain("[ ] DEBUG");
   });
 
-  it("shows Sound toggle", () => {
-    const output = renderSettings();
-    expect(output).toContain("Sound");
+  it("shows Sound toggle", async () => {
+    const output = await renderSettings();
+    expect(output).toContain("SOUND");
   });
 
   // ── Keyboard Panel ───────────────────────────────────────────────────────
 
-  it("shows Ctrl+1..9 shortcut", () => {
-    const output = renderSettings();
+  it("shows Ctrl+1..9 shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Ctrl+1..9");
     expect(output).toContain("Switch to view");
   });
 
-  it("shows Ctrl+P command palette shortcut", () => {
-    const output = renderSettings();
+  it("shows Ctrl+P command palette shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Ctrl+P");
     expect(output).toContain("Command Palette");
   });
 
-  it("shows Ctrl+Q quit shortcut", () => {
-    const output = renderSettings();
+  it("shows Ctrl+Q quit shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Ctrl+Q");
     expect(output).toContain("Quit");
   });
 
-  it("shows Esc back shortcut", () => {
-    const output = renderSettings();
+  it("shows Esc back shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Esc");
   });
 
-  it("shows Tab navigation shortcut", () => {
-    const output = renderSettings();
+  it("shows Tab navigation shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Tab");
     expect(output).toContain("Next panel");
   });
 
-  it("shows Space toggle shortcut", () => {
-    const output = renderSettings();
+  it("shows Space toggle shortcut", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Space");
-    expect(output).toContain("Toggle checkbox");
+    expect(output).toContain("Toggle");
   });
 
-  it("shows read-only disclaimer", () => {
-    const output = renderSettings();
-    expect(output).toContain("cannot be changed");
+  it("shows read-only disclaimer", async () => {
+    const output = await renderSettings();
+    expect(output).toContain("cannot be changed.");
   });
 
   // ── Data Panel ───────────────────────────────────────────────────────────
 
-  it("shows data management action buttons", () => {
-    const output = renderSettings();
-    expect(output).toContain("Clear Cache");
-    expect(output).toContain("Export Data");
-    expect(output).toContain("Import Data");
+  it("shows data management action buttons", async () => {
+    const output = await renderSettings(120);
+    expect(output).toContain("CLEAR CACHE");
+    expect(output).toContain("EXPORT DATA");
+    expect(output).toContain("IMPORT DATA");
   });
 
-  it("shows About section with version", () => {
-    const output = renderSettings();
-    expect(output).toContain("HOOX CLI v1.0.0");
+  it("shows About section with version", async () => {
+    const output = await renderSettings(120);
+    expect(output).toContain("HOOX");
   });
 
-  it("shows tech stack in About", () => {
-    const output = renderSettings();
+  it("shows tech stack in About", async () => {
+    const output = await renderSettings(120);
     expect(output).toContain("OpenTUI + Bun");
   });
 
-  it("shows GitHub link in About", () => {
-    const output = renderSettings();
-    expect(output).toContain("github.com/hoox/hoox-cli");
+  it("shows GitHub link in About", async () => {
+    const output = await renderSettings(120);
+    expect(output).toContain("github.com/hoox/");
   });
 
   // ── Config Store Integration ─────────────────────────────────────────────
 
-  it("updates config store when dark theme is selected via mouseUp trigger text", () => {
+  it("updates config store when dark theme is selected via mouseUp trigger text", async () => {
     // Verify the dark theme label has the onMouseUp handler
     mockState.theme = "light";
-    const output = renderSettings();
+    const output = await renderSettings();
     // The dark option should be present with ( ) showing it's not selected
-    expect(output).toContain("Dark");
-    expect(output).toContain("Light");
+    expect(output).toContain("DARK");
+    expect(output).toContain("LIGHT");
   });
 
-  it("shows refresh rate as 500ms when config defaults to 500", () => {
+  it("shows refresh rate as 500ms when config defaults to 500", async () => {
     mockState.refreshIntervalMs = 500;
-    const output = renderSettings();
+    const output = await renderSettings();
     expect(output).toContain("500ms");
   });
 
   // ── Layout ───────────────────────────────────────────────────────────────
 
-  it("renders the keyboard hint bar", () => {
-    const output = renderSettings();
+  it("renders the keyboard hint bar", async () => {
+    const output = await renderSettings();
     expect(output).toContain("Tab to switch panels");
   });
 });

@@ -19,7 +19,7 @@
  * Wrapped in ScrollBox for overflow when workers exceed viewport height.
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
@@ -196,8 +196,82 @@ export function WorkersOverview() {
 
   // ── Store subscriptions (selectors for performance) ─────────────────────
   const workers = useServiceStore((s) => s.workers);
+  const connectionStatus = useServiceStore((s) => s.connectionStatus);
   const selectWorker = useServiceStore((s) => s.selectWorker);
   const setView = useUIStore((s) => s.setView);
+
+  // ── CliBridge fallback: try CLI when API is unavailable ─────────────────
+  const [cliFallbackTried, setCliFallbackTried] = useState(false);
+  const [cliFallbackError, setCliFallbackError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (workers.length > 0) {
+      setCliFallbackTried(false);
+      setCliFallbackError(null);
+      return;
+    }
+    if (cliFallbackTried) return;
+    setCliFallbackTried(true);
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await cliBridge.monitorStatus();
+        if (cancelled) return;
+        if (result.success && result.data) {
+          const raw = result.data as Record<string, unknown>;
+          // CLI may return workers array, health object, or similar
+          const rawWorkers = (raw.workers ?? raw.status ?? raw) as
+            | unknown[]
+            | Record<string, unknown>;
+          const parsed = Array.isArray(rawWorkers)
+            ? rawWorkers
+            : typeof rawWorkers === "object" && rawWorkers !== null
+              ? Object.values(rawWorkers)
+              : [];
+          if (parsed.length > 0) {
+            const store = useServiceStore.getState();
+            store.setWorkers(
+              (parsed as Record<string, unknown>[]).map((w, i) => ({
+                id: String(w.id ?? w.name ?? `worker-${i}`),
+                name: String(w.name ?? `worker-${i}`),
+                status: (w.status ?? "operational") as WorkerInfo["status"],
+                uptime: Number(w.uptime ?? 0) || 0,
+                cpu: Number(w.cpu ?? 0) || 0,
+                memory: Number(w.memory ?? 0) || 0,
+                requests: Number(w.requests ?? 0) || 0,
+                durableObjectCount: Number(w.durableObjectCount ?? 0) || 0,
+                edgeCount: Number(w.edgeCount ?? 0) || 0,
+                version: String(w.version ?? ""),
+                lastDeployed: Number(w.lastDeployed ?? 0) || 0,
+              }))
+            );
+            store.addAlert({
+              id: `cli-fallback-${Date.now()}`,
+              type: "info",
+              severity: "info",
+              message: "Workers loaded via CLI fallback (API unreachable)",
+              timestamp: Date.now(),
+              acknowledged: false,
+            });
+            return;
+          }
+        }
+      } catch {
+        // CLI also unavailable — show improved empty state below
+      }
+      if (!cancelled) {
+        setCliFallbackError(
+          "CLI unavailable. Run `hoox dev start` locally or deploy to Cloudflare."
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workers.length, cliFallbackTried]);
 
   // ── Derived grid dimensions ─────────────────────────────────────────────
   const maxIndex = Math.max(0, workers.length - 1);
@@ -355,6 +429,38 @@ export function WorkersOverview() {
           <text fg={Colors.muted}>
             No workers connected. Check your hoox-setup deployment.
           </text>
+          {connectionStatus === "connected" && (
+            <text fg={Colors.warning}>
+              API is reachable but returned 0 workers.
+            </text>
+          )}
+          {connectionStatus !== "connected" && cliFallbackError && (
+            <text fg={Colors.warning}>
+              API unavailable — CLI fallback attempted
+            </text>
+          )}
+          {connectionStatus !== "connected" && !cliFallbackTried && (
+            <text fg={Colors.muted} dim>
+              Checking via CLI...
+            </text>
+          )}
+          {connectionStatus !== "connected" && cliFallbackError && (
+            <box flexDirection="column" gap={0} marginTop={1}>
+              <text fg={Colors.muted}>Suggestions:</text>
+              <text fg={Colors.muted}>
+                • Start the dev server:{" "}
+                <text fg={Colors.accent}>hoox dev start</text>
+              </text>
+              <text fg={Colors.muted}>
+                • Deploy workers to Cloudflare:{" "}
+                <text fg={Colors.accent}>hoox workers deploy</text>
+              </text>
+              <text fg={Colors.muted}>
+                • Check worker health:{" "}
+                <text fg={Colors.accent}>hoox monitor status</text>
+              </text>
+            </box>
+          )}
         </box>
       </ErrorBoundary>
     );

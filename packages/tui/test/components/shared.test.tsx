@@ -289,7 +289,7 @@ describe("Shared Components", () => {
 
       it("requires characters in order", () => {
         expect(fuzzyMatch("das", "Dashboard")).toBe(true);
-        expect(fuzzyMatch("sad", "Dashboard")).toBe(false); // "a" before "s" — not in order
+        expect(fuzzyMatch("sad", "Dashboard")).toBe(true); // s(2)→a(6)→d(8) all in order
       });
     });
 

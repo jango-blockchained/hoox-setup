@@ -1,16 +1,11 @@
 /** @jsxImportSource @opentui/react */
-/**
- * Tests for WorkersOverview — validates 2D grid layout, keyboard navigation,
- * metric formatting, status dot display, and view navigation on Enter.
- */
 import { describe, it, expect, beforeEach, vi } from "bun:test";
-import { render } from "@opentui/react";
+import { testRender } from "@opentui/react/test-utils";
 import { WorkersOverview } from "./workers-overview";
 import { makeWorker, type TestWorkerInfo } from "../../test-utils";
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
+import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
 
-// Helpers ─────────────────────────────────────────────────────────────────────
-
-/** Collect all rendered text nodes from a TUI render tree. */
 function collectText(output: unknown): string[] {
   const texts: string[] = [];
   const walk = (node: any): void => {
@@ -32,207 +27,205 @@ function collectText(output: unknown): string[] {
   return texts;
 }
 
-/** Check that a rendered output string (or tree) contains all expected substrings. */
+async function renderWorkersOverview(): Promise<string> {
+  const { captureCharFrame, renderOnce } = await testRender(
+    <WorkersOverview />,
+    { width: 80, height: 24, testing: true, exitOnCtrlC: false }
+  );
+  await renderOnce();
+  return captureCharFrame();
+}
+
 function outputContains(output: string, ...substrings: string[]): boolean {
   return substrings.every((s) => output.includes(s));
 }
 
-// ── Setup ────────────────────────────────────────────────────────────────────
-
-// Mock the stores so we can control which workers are shown
-const mockWorkers: TestWorkerInfo[] = [];
-
-vi.mock("@jango-blockchained/hoox-shared", () => ({
-  Colors: {
-    background: "#0D1117",
-    foreground: "#EEEEEE",
-    card: "#1A1A2E",
-    accent: "#E8780A",
-    border: "#333333",
-    muted: "#888888",
-    success: "#00FF88",
-    error: "#FF4444",
-    warning: "#FFAA00",
-    info: "#4488FF",
-    dim: "#555555",
-    highlight: "#E8780A",
+vi.mock("../../services/cli-bridge", () => ({
+  cliBridge: {
+    monitorStatus: vi.fn().mockResolvedValue({
+      success: false,
+      stdout: "",
+      stderr: "CLI not available in test",
+      duration: 0,
+    }),
+    abort: vi.fn(),
+    dispose: vi.fn(),
   },
-  useServiceStore: (selector: (s: any) => any) => {
-    const state = {
-      workers: mockWorkers,
-      selectWorker: vi.fn(),
-      selectedWorkerId: null,
-    };
-    return selector(state);
-  },
-  useUIStore: (selector: (s: any) => any) => {
-    const state = {
-      setView: vi.fn(),
-      activeView: "workers",
-    };
-    return selector(state);
-  },
-  useConfigStore: () => ({}),
 }));
 
-// ── Tests ────────────────────────────────────────────────────────────────────
+function resetStores() {
+  useServiceStore.setState({
+    workers: [],
+    logs: [],
+    metrics: null,
+    connectionStatus: "connected",
+    selectedWorkerId: null,
+    lastUpdated: 0,
+    alerts: [],
+    tradeStream: [],
+  });
+  useUIStore.setState({
+    activeView: "workers",
+    sidebarExpanded: true,
+    modal: null,
+    commandPaletteOpen: false,
+    previousView: null,
+  });
+}
 
 describe("WorkersOverview", () => {
   beforeEach(() => {
-    mockWorkers.length = 0;
+    resetStores();
   });
 
-  // ── Grid Layout ─────────────────────────────────────────────────────────
-
   describe("2-column grid layout", () => {
-    it("renders all workers", () => {
-      mockWorkers.push(
-        makeWorker({ id: "w1", name: "alpha" }),
-        makeWorker({ id: "w2", name: "beta" }),
-        makeWorker({ id: "w3", name: "gamma" })
-      );
+    it("renders all workers", async () => {
+      useServiceStore.setState({
+        workers: [
+          makeWorker({ id: "w1", name: "alpha" }),
+          makeWorker({ id: "w2", name: "beta" }),
+          makeWorker({ id: "w3", name: "gamma" }),
+        ],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
-      expect(outputContains(text, "alpha", "beta", "gamma")).toBe(true);
+      expect(outputContains(text, "ALPHA", "BETA", "GAMMA")).toBe(true);
       expect(outputContains(text, "3 total")).toBe(true);
     });
 
-    it("shows empty state when no workers", () => {
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+    it("shows empty state when no workers", async () => {
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "No workers connected")).toBe(true);
     });
 
-    it("numbers workers with No.XX format", () => {
-      mockWorkers.push(
-        makeWorker({ id: "w1", name: "alpha" }),
-        makeWorker({ id: "w2", name: "beta" })
-      );
+    it("numbers workers with No.XX format", async () => {
+      useServiceStore.setState({
+        workers: [
+          makeWorker({ id: "w1", name: "alpha" }),
+          makeWorker({ id: "w2", name: "beta" }),
+        ],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "No.01", "No.02")).toBe(true);
     });
   });
 
-  // ── Metric Formatting ───────────────────────────────────────────────────
-
   describe("metric formatting", () => {
-    it("formats uptime in hours when under 24h", () => {
-      mockWorkers.push(makeWorker({ id: "w1", uptime: 7200 })); // 2h
+    it("formats uptime in hours when under 24h", async () => {
+      useServiceStore.setState({
+        workers: [makeWorker({ id: "w1", uptime: 7200 })],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "2h")).toBe(true);
     });
 
-    it("formats uptime in days+hours when >= 24h", () => {
-      mockWorkers.push(makeWorker({ id: "w1", uptime: 259200 })); // 3d 0h
+    it("formats uptime in days+hours when >= 24h", async () => {
+      useServiceStore.setState({
+        workers: [makeWorker({ id: "w1", uptime: 259200 })],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "3d0h")).toBe(true);
     });
 
-    it("formats requests with K/M suffixes", () => {
-      mockWorkers.push(
-        makeWorker({ id: "w1", requests: 1_200 }), // 1.2K
-        makeWorker({ id: "w2", requests: 1_200_000 }) // 1.2M
-      );
+    it("formats requests with K/M suffixes", async () => {
+      useServiceStore.setState({
+        workers: [
+          makeWorker({ id: "w1", requests: 1_200 }),
+          makeWorker({ id: "w2", requests: 1_200_000 }),
+        ],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "1.2K", "1.2M")).toBe(true);
     });
 
-    it("shows memory as used/128 MB", () => {
-      mockWorkers.push(makeWorker({ id: "w1", memory: 64 }));
+    it("shows memory as used/128 MB", async () => {
+      useServiceStore.setState({
+        workers: [makeWorker({ id: "w1", memory: 64 })],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "64/128 MB")).toBe(true);
     });
 
-    it("shows CPU as percentage", () => {
-      mockWorkers.push(makeWorker({ id: "w1", cpu: 45.5 }));
+    it("shows CPU as percentage", async () => {
+      useServiceStore.setState({
+        workers: [makeWorker({ id: "w1", cpu: 45.5 })],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "45.5%")).toBe(true);
     });
   });
 
-  // ── Status Dot ──────────────────────────────────────────────────────────
-
   describe("status dots", () => {
-    it("renders status dot for each worker", () => {
-      mockWorkers.push(
-        makeWorker({ id: "w1", status: "operational" }),
-        makeWorker({ id: "w2", status: "degraded" }),
-        makeWorker({ id: "w3", status: "down" })
-      );
+    it("renders status dot for each worker", async () => {
+      useServiceStore.setState({
+        workers: [
+          makeWorker({ id: "w1", status: "operational" }),
+          makeWorker({ id: "w2", status: "degraded" }),
+          makeWorker({ id: "w3", status: "down" }),
+        ],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
-      // StatusDot uses █ ▌ ░ characters
       expect(outputContains(text, "█", "▌", "░")).toBe(true);
     });
   });
 
-  // ── Action Buttons ──────────────────────────────────────────────────────
-
   describe("action buttons", () => {
-    it("renders [View Details] and [Logs] per card", () => {
-      mockWorkers.push(makeWorker({ id: "w1" }));
+    it("renders [View Details] and [Logs] per card", async () => {
+      useServiceStore.setState({
+        workers: [makeWorker({ id: "w1" })],
+      });
 
-      const result = render(<WorkersOverview />);
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
-      expect(outputContains(text, "[View Details]", "[Logs]")).toBe(true);
+      expect(outputContains(text, "[VIEW DETAILS]", "[LOGS]")).toBe(true);
     });
   });
 
-  // ── ScrollBox ───────────────────────────────────────────────────────────
-
   describe("scroll behavior", () => {
-    it("wraps content in scrollbox for overflow", () => {
-      // Fill with enough workers to potentially overflow
+    it("wraps content in scrollbox for overflow", async () => {
+      const workers = [];
       for (let i = 0; i < 20; i++) {
-        mockWorkers.push(makeWorker({ id: `w${i}`, name: `worker-${i}` }));
+        workers.push(makeWorker({ id: `w${i}`, name: `worker-${i}` }));
       }
+      useServiceStore.setState({ workers });
 
-      const result = render(<WorkersOverview />);
-      // Collect text from the render tree to verify all workers present
-      const text = result.output ?? String(result);
+      const text = await renderWorkersOverview();
 
       expect(outputContains(text, "20 total")).toBe(true);
     });
   });
 
-  // ── Keyboard Navigation ─────────────────────────────────────────────────
-
   describe("keyboard navigation", () => {
-    it("renders without errors (keyboard wired via useKeyboard)", () => {
-      mockWorkers.push(
-        makeWorker({ id: "w1" }),
-        makeWorker({ id: "w2" }),
-        makeWorker({ id: "w3" }),
-        makeWorker({ id: "w4" }),
-        makeWorker({ id: "w5" })
-      );
+    it("renders without errors (keyboard wired via useKeyboard)", async () => {
+      useServiceStore.setState({
+        workers: [
+          makeWorker({ id: "w1" }),
+          makeWorker({ id: "w2" }),
+          makeWorker({ id: "w3" }),
+          makeWorker({ id: "w4" }),
+          makeWorker({ id: "w5" }),
+        ],
+      });
 
-      // Component should render successfully with keyboard hook attached
-      expect(() => render(<WorkersOverview />)).not.toThrow();
+      const text = await renderWorkersOverview();
+      expect(text).toBeDefined();
+      expect(typeof text).toBe("string");
     });
   });
 });

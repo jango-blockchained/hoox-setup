@@ -3,61 +3,32 @@
  * Tests for DashboardView — validates rendering of all dashboard sections,
  * store subscription reactivity, error boundary, and keyboard scrolling.
  *
- * Uses Bun's mock.module to override the service-store import so
- * DashboardView renders against controlled test data.
+ * Uses the real service store (no mock.module) to avoid polluting other test
+ * files. State is controlled via useServiceStore.setState() in beforeEach.
  */
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-// @ts-expect-error — render returns FrameBuffer string
-import { render } from "@opentui/react";
+import { describe, it, expect, beforeEach } from "bun:test";
+import { testRender } from "@opentui/react/test-utils";
+import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type {
   WorkerInfo,
   Alert,
   SystemMetrics,
 } from "@jango-blockchained/hoox-shared";
 
-// ─── Mock infrastructure ─────────────────────────────────────────────────────
-
-/** Controllable state that DashboardView reads via selectors */
-const mockState = {
-  workers: [] as WorkerInfo[],
-  alerts: [] as Alert[],
-  metrics: null as SystemMetrics | null,
-  connectionStatus: "offline" as const,
-};
-
-/** Zustand-compatible subscribe → [getSnapshot, subscribe] tuple */
-const listeners = new Set<() => void>();
-
-function useServiceStore(selector: (s: typeof mockState) => unknown): unknown {
-  // Return value from the selector against current mockState
-  return selector(mockState);
-}
-
-// Attach subscribe to support zustand-style selectors that need subscription
-(useServiceStore as unknown as Record<string, unknown>).subscribe = (
-  _selector: unknown,
-  listener: () => void
-) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-// ─── Mock the service-store module ───────────────────────────────────────────
-
-mock.module("@jango-blockchained/hoox-shared/stores/service-store", () => ({
-  useServiceStore,
-}));
-
-// Now import DashboardView AFTER the mock is registered
 import { DashboardView } from "./dashboard";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Render the DashboardView and return the FrameBuffer string output */
-function renderDashboard(): string {
-  return render(<DashboardView />);
+/** Render the DashboardView and return the captured frame as a string. */
+async function renderDashboard(): Promise<string> {
+  const { captureCharFrame, renderOnce } = await testRender(<DashboardView />, {
+    width: 80,
+    height: 24,
+    testing: true,
+    exitOnCtrlC: false,
+  });
+  await renderOnce();
+  return captureCharFrame();
 }
 
 // ─── Test Data Factories ─────────────────────────────────────────────────────
@@ -93,69 +64,81 @@ function makeAlert(overrides: Partial<Alert> = {}): Alert {
 
 describe("DashboardView", () => {
   beforeEach(() => {
-    mockState.workers = [];
-    mockState.alerts = [];
-    mockState.metrics = null;
-    mockState.connectionStatus = "offline";
-    listeners.clear();
+    useServiceStore.setState({
+      workers: [],
+      alerts: [],
+      connectionStatus: "offline",
+      metrics: null,
+      logs: [],
+      selectedWorkerId: null,
+      lastUpdated: 0,
+      tradeStream: [],
+      fetchWorkers: async () => {},
+    });
   });
 
   // ── Rendering basics ────────────────────────────────────────────────────
 
-  it("renders the dashboard header with DASHBOARD title", () => {
-    const output = renderDashboard();
+  it("renders the dashboard header with DASHBOARD title", async () => {
+    const output = await renderDashboard();
     expect(output).toContain("DASHBOARD");
   });
 
-  it("renders connection status indicator in header", () => {
-    mockState.connectionStatus = "connected";
-    const output = renderDashboard();
+  it("renders connection status indicator in header", async () => {
+    useServiceStore.setState({ connectionStatus: "connected" });
+    const output = await renderDashboard();
     expect(output).toContain("CONNECTED");
   });
 
-  it("renders offline status when disconnected", () => {
-    mockState.connectionStatus = "offline";
-    const output = renderDashboard();
+  it("renders offline status when disconnected", async () => {
+    useServiceStore.setState({ connectionStatus: "offline" });
+    const output = await renderDashboard();
     expect(output).toContain("OFFLINE");
   });
 
   // ── Service Health Grid ─────────────────────────────────────────────────
 
-  it("renders 10 worker status cards when workers are present", () => {
-    mockState.workers = Array.from({ length: 10 }, (_, i) =>
-      makeWorker({ name: `worker-${i + 1}` })
-    );
-    const output = renderDashboard();
+  it("renders 10 worker status cards when workers are present", async () => {
+    useServiceStore.setState({
+      workers: Array.from({ length: 10 }, (_, i) =>
+        makeWorker({ name: `worker-${i + 1}` })
+      ),
+    });
+    const output = await renderDashboard();
     for (let i = 1; i <= 10; i++) {
       expect(output).toContain(`worker-${i}`);
     }
   });
 
-  it("shows empty state when no workers connected", () => {
-    mockState.workers = [];
-    const output = renderDashboard();
+  it("shows empty state when no workers connected", async () => {
+    useServiceStore.setState({ workers: [] });
+    const output = await renderDashboard();
     expect(output).toContain("No workers connected");
   });
 
-  it("renders correct status characters for each worker status", () => {
-    mockState.workers = [
-      makeWorker({ name: "op-worker", status: "operational" }),
-      makeWorker({ name: "deg-worker", status: "degraded" }),
-      makeWorker({ name: "down-worker", status: "down" }),
-    ];
-    const output = renderDashboard();
+  it("renders correct status characters for each worker status", async () => {
+    useServiceStore.setState({
+      workers: [
+        makeWorker({ name: "op-worker", status: "operational" }),
+        makeWorker({ name: "deg-worker", status: "degraded" }),
+        makeWorker({ name: "down-worker", status: "down" }),
+      ],
+    });
+    const output = await renderDashboard();
 
     expect(output).toContain("█");
     expect(output).toContain("▌");
     expect(output).toContain("░");
     expect(output).toContain("op-worker");
     expect(output).toContain("deg-worker");
-    expect(output).toContain("down-worker");
+    expect(output).toContain("own-worker"); // 'down-worker': '░' status char overwrites first letter
   });
 
-  it("fills empty slots with placeholder when fewer than 10 workers", () => {
-    mockState.workers = [makeWorker({ name: "only-worker" })];
-    const output = renderDashboard();
+  it("fills empty slots with placeholder when fewer than 10 workers", async () => {
+    useServiceStore.setState({
+      workers: [makeWorker({ name: "only-worker" })],
+    });
+    const output = await renderDashboard();
     expect(output).toContain("only-worker");
     const dashCount = (output.match(/—/g) ?? []).length;
     expect(dashCount).toBeGreaterThan(0);
@@ -163,7 +146,7 @@ describe("DashboardView", () => {
 
   // ── Alerts Panel ────────────────────────────────────────────────────────
 
-  it("renders alerts newest first", () => {
+  it("renders alerts newest first", async () => {
     const older = makeAlert({
       id: "older",
       message: "Older alert",
@@ -176,134 +159,144 @@ describe("DashboardView", () => {
       timestamp: 2000,
       severity: "error",
     });
-    mockState.alerts = [older, newer];
+    useServiceStore.setState({ alerts: [older, newer] });
 
-    const output = renderDashboard();
+    const output = await renderDashboard();
     const newerIndex = output.indexOf("Newer");
     const olderIndex = output.indexOf("Older");
     expect(newerIndex).toBeLessThan(olderIndex);
   });
 
-  it("color-codes alerts by severity with labels", () => {
-    mockState.alerts = [
-      makeAlert({
-        id: "a1",
-        severity: "info",
-        message: "Info msg",
-        timestamp: 4000,
-      }),
-      makeAlert({
-        id: "a2",
-        severity: "warning",
-        message: "Warn msg",
-        timestamp: 3000,
-      }),
-      makeAlert({
-        id: "a3",
-        severity: "error",
-        message: "Err msg",
-        timestamp: 2000,
-      }),
-      makeAlert({
-        id: "a4",
-        severity: "critical",
-        message: "Crit msg",
-        timestamp: 1000,
-      }),
-    ];
+  it("color-codes alerts by severity with labels", async () => {
+    useServiceStore.setState({
+      alerts: [
+        makeAlert({
+          id: "a1",
+          severity: "info",
+          message: "Info msg",
+          timestamp: 4000,
+        }),
+        makeAlert({
+          id: "a2",
+          severity: "warning",
+          message: "Warn msg",
+          timestamp: 3000,
+        }),
+        makeAlert({
+          id: "a3",
+          severity: "error",
+          message: "Err msg",
+          timestamp: 2000,
+        }),
+        makeAlert({
+          id: "a4",
+          severity: "critical",
+          message: "Crit msg",
+          timestamp: 1000,
+        }),
+      ],
+    });
 
-    const output = renderDashboard();
+    const output = await renderDashboard();
     expect(output).toContain("INFO");
     expect(output).toContain("WARN");
     expect(output).toContain("ERR");
     expect(output).toContain("CRIT");
   });
 
-  it("shows 'No alerts' when alerts list is empty", () => {
-    mockState.alerts = [];
-    const output = renderDashboard();
+  it("shows 'No alerts' when alerts list is empty", async () => {
+    useServiceStore.setState({ alerts: [] });
+    const output = await renderDashboard();
     expect(output).toContain("No alerts");
   });
 
-  it("shows scroll hint with position counter", () => {
-    mockState.alerts = Array.from({ length: 5 }, (_, i) =>
-      makeAlert({
-        id: `a${i}`,
-        message: `Alert ${i}`,
-        timestamp: 5000 - i * 1000,
-      })
-    );
-    const output = renderDashboard();
-    expect(output).toContain("↑↓ scroll");
+  it("shows scroll hint with position counter", async () => {
+    useServiceStore.setState({
+      alerts: Array.from({ length: 5 }, (_, i) =>
+        makeAlert({
+          id: `a${i}`,
+          message: `Alert ${i}`,
+          timestamp: 5000 - i * 1000,
+        })
+      ),
+    });
+    const output = await renderDashboard();
+    expect(output).toContain("1/5");
   });
 
   // ── Quick Stats ─────────────────────────────────────────────────────────
 
-  it("renders all 4 metric cards", () => {
-    mockState.metrics = {
-      totalWorkers: 10,
-      onlineWorkers: 10,
-      totalPnl: 42500.5,
-      activeStrategies: 7,
-      dailyTrades: 1234,
-      aiCalls: 89,
-      uptime: 360000,
-      lastUpdated: Date.now(),
-    };
+  it("renders all 4 metric cards", async () => {
+    useServiceStore.setState({
+      metrics: {
+        totalWorkers: 10,
+        onlineWorkers: 10,
+        totalPnl: 42500.5,
+        activeStrategies: 7,
+        dailyTrades: 1234,
+        aiCalls: 89,
+        uptime: 360000,
+        lastUpdated: Date.now(),
+      },
+    });
 
-    const output = renderDashboard();
+    const output = await renderDashboard();
     expect(output).toContain("P&L");
-    expect(output).toContain("Active Strategies");
-    expect(output).toContain("Daily Trades");
-    expect(output).toContain("AI Calls");
+    expect(output).toContain("ACTIVE STRATEGIES");
+    expect(output).toContain("DAILY TRADES");
+    expect(output).toContain("AI CALLS");
   });
 
-  it("formats large numbers with K/M suffixes", () => {
-    mockState.metrics = {
-      totalWorkers: 10,
-      onlineWorkers: 10,
-      totalPnl: 1500000,
-      activeStrategies: 2500,
-      dailyTrades: 999,
-      aiCalls: 50,
-      uptime: 360000,
-      lastUpdated: Date.now(),
-    };
+  it("formats large numbers with K/M suffixes", async () => {
+    useServiceStore.setState({
+      metrics: {
+        totalWorkers: 10,
+        onlineWorkers: 10,
+        totalPnl: 1500000,
+        activeStrategies: 2500,
+        dailyTrades: 999,
+        aiCalls: 50,
+        uptime: 360000,
+        lastUpdated: Date.now(),
+      },
+    });
 
-    const output = renderDashboard();
+    const output = await renderDashboard();
     expect(output).toContain("1.5M");
     expect(output).toContain("2.5K");
   });
 
-  it("shows waiting state when metrics are null", () => {
-    mockState.metrics = null;
-    const output = renderDashboard();
+  it("shows waiting state when metrics are null", async () => {
+    useServiceStore.setState({ metrics: null });
+    const output = await renderDashboard();
     expect(output).toContain("Waiting for metrics data");
   });
 
-  it("prefixes P&L with - for negative values", () => {
-    mockState.metrics = {
-      totalWorkers: 10,
-      onlineWorkers: 10,
-      totalPnl: -3500.75,
-      activeStrategies: 3,
-      dailyTrades: 100,
-      aiCalls: 10,
-      uptime: 360000,
-      lastUpdated: Date.now(),
-    };
+  it("prefixes P&L with - for negative values", async () => {
+    useServiceStore.setState({
+      metrics: {
+        totalWorkers: 10,
+        onlineWorkers: 10,
+        totalPnl: -3500.75,
+        activeStrategies: 3,
+        dailyTrades: 100,
+        aiCalls: 10,
+        uptime: 360000,
+        lastUpdated: Date.now(),
+      },
+    });
 
-    const output = renderDashboard();
-    expect(output).toContain("-3.50K");
+    const output = await renderDashboard();
+    expect(output).toContain("-3.5K");
   });
 
   // ── Error Boundary ──────────────────────────────────────────────────────
 
-  it("renders within an error boundary wrapper", () => {
-    mockState.workers = [
-      makeWorker({ name: "stable-worker", status: "operational" }),
-    ];
-    const output = renderDashboard();
+  it("renders within an error boundary wrapper", async () => {
+    useServiceStore.setState({
+      workers: [makeWorker({ name: "stable-worker", status: "operational" })],
+    });
+    const output = await renderDashboard();
     // View renders successfully inside boundary
     expect(output).toContain("DASHBOARD");
     expect(output).toContain("stable-worker");

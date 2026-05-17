@@ -59,7 +59,7 @@ function formatTime(ts: number): string {
  * Shows 2 decimal places only when the value has a fractional part.
  */
 function formatPnL(value: number): string {
-  const sign = value >= 0 ? "+" : "";
+  const sign = value >= 0 ? "+" : "-";
   const abs = Math.abs(value);
   const hasCents = abs !== Math.round(abs);
   const decimals = hasCents ? 2 : 0;

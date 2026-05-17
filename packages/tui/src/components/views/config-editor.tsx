@@ -25,6 +25,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
+import { file, write } from "bun";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 
@@ -126,9 +127,9 @@ async function loadFileContent(relativePath: string): Promise<string> {
   const fullPath = `${dir}/${relativePath}`;
   try {
     // Use Bun.file to check existence and read
-    const file = Bun.file(fullPath);
-    const exists = await file.exists();
-    return exists ? await file.text() : "";
+    const f = file(fullPath);
+    const exists = await f.exists();
+    return exists ? await f.text() : "";
   } catch {
     // File doesn't exist or can't be read — return a placeholder
     return `# ${relativePath}\n# File not found at ${fullPath}\n`;
@@ -142,7 +143,7 @@ async function saveFileContent(
 ): Promise<void> {
   const dir = resolveConfigDir();
   const fullPath = `${dir}/${relativePath}`;
-  await Bun.write(fullPath, content);
+  await write(fullPath, content);
 }
 
 // ─── Syntax Highlighting — TOML ───────────────────────────────────────────────

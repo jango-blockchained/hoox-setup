@@ -331,7 +331,7 @@ describe("useServiceStore", () => {
       useServiceStore.getState().handleConnectionFailure("Still down");
 
       expect(useServiceStore.getState().retryCount).toBe(3);
-      expect(useServiceStore.getState().reconnectDelay).toBe(8000); // retry 3 → backoff[2] = 4000? No, retryCount=3 → index=2 → 4000
+      expect(useServiceStore.getState().reconnectDelay).toBe(4000); // retryCount=3 → index=Math.min(3-1,4)=2 → BACKOFF[2]=4000
 
       // Actually retryCount starts at 1 for handleConnectionFailure, so after first failure retryCount=1.
       // When called again with retryCount=2, it becomes 3 → backoff[2]=4000. Let me verify the backoff.
