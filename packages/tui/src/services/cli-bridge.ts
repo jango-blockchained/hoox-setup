@@ -17,7 +17,8 @@ export interface ExecOptions {
 
 class CliBridgeImpl {
   private binaryPath: string | null = null;
-  private activeCommands = new Map<string, AbortController>();
+  /** Maps tag → set of AbortControllers for concurrent commands with same tag */
+  private activeCommands = new Map<string, Set<AbortController>>();
 
   async resolveBinary(): Promise<string> {
     if (this.binaryPath) return this.binaryPath;
@@ -43,6 +44,20 @@ class CliBridgeImpl {
     }
 
     throw new Error("hoox binary not found — is the CLI installed?");
+  }
+
+  /** Track a new command under a tag. Returns a cleanup function. */
+  private trackCommand(tag: string, aborter: AbortController): () => void {
+    const controllers = this.activeCommands.get(tag) ?? new Set();
+    controllers.add(aborter);
+    this.activeCommands.set(tag, controllers);
+    return () => {
+      const set = this.activeCommands.get(tag);
+      if (set) {
+        set.delete(aborter);
+        if (set.size === 0) this.activeCommands.delete(tag);
+      }
+    };
   }
 
   invalidateCache(): void {
@@ -71,7 +86,7 @@ class CliBridgeImpl {
     const start = performance.now();
     const tag = options?.tag ?? args[0] ?? "unknown";
     const aborter = new AbortController();
-    this.activeCommands.set(tag, aborter);
+    const cleanup = this.trackCommand(tag, aborter);
 
     const cmdArgs = [...args];
     if (options?.json) cmdArgs.push("--json");
@@ -100,8 +115,9 @@ class CliBridgeImpl {
             stderrResult += chunk;
             options?.onProgress?.(chunk);
           }
-        } catch {
-          /* stream may close due to abort */
+        } catch (streamErr) {
+          // Stream closing due to abort is expected
+          if (!aborter.signal.aborted) throw streamErr;
         }
       };
 
@@ -112,7 +128,7 @@ class CliBridgeImpl {
 
       const exitCode = await proc.exited;
       clearTimeout(timer);
-      this.activeCommands.delete(tag);
+      cleanup();
 
       let data: T | null = null;
       if (options?.json && exitCode === 0 && stdout.trim()) {
@@ -132,10 +148,8 @@ class CliBridgeImpl {
         duration: performance.now() - start,
       };
     } catch (err) {
-      this.activeCommands.delete(tag);
-      const isAbort =
-        err instanceof Error &&
-        (err.name === "AbortError" || err.message.includes("abort"));
+      cleanup();
+      const isAbort = err instanceof Error && err.name === "AbortError";
       return {
         success: false,
         exitCode: -1,
@@ -150,16 +164,16 @@ class CliBridgeImpl {
   }
 
   abort(tag: string): void {
-    const aborter = this.activeCommands.get(tag);
-    if (aborter) {
-      aborter.abort();
+    const controllers = this.activeCommands.get(tag);
+    if (controllers) {
+      for (const aborter of controllers) aborter.abort();
       this.activeCommands.delete(tag);
     }
   }
 
   dispose(): void {
-    for (const [, aborter] of this.activeCommands) {
-      aborter.abort();
+    for (const [, controllers] of this.activeCommands) {
+      for (const aborter of controllers) aborter.abort();
     }
     this.activeCommands.clear();
   }
