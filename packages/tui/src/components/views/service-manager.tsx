@@ -25,6 +25,7 @@ import { ErrorBoundary } from "../shared/error-boundary";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";
+import { cliBridge } from "../../services/cli-bridge";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -196,6 +197,7 @@ interface WorkerRowProps {
   onSelect: (index: number) => void;
   onDeploy: (worker: WorkerInfo) => void;
   onRestart: (worker: WorkerInfo) => void;
+  deployingWorker?: string | null;
 }
 
 function WorkerRow({
@@ -205,9 +207,11 @@ function WorkerRow({
   onSelect,
   onDeploy,
   onRestart,
+  deployingWorker,
 }: WorkerRowProps) {
   const isSelected = index === selectedIndex;
   const bgColor = isSelected ? Colors.card : undefined;
+  const isDeploying = deployingWorker === worker.name;
 
   return (
     <box
@@ -239,16 +243,18 @@ function WorkerRow({
       {/* Per-worker action buttons */}
       <box flexDirection="row" gap={1}>
         <text
-          fg={Colors.accent}
+          fg={isDeploying ? Colors.muted : Colors.accent}
           bg={Colors.card}
-          onMouseUp={() => onDeploy(worker)}
+          dim={isDeploying}
+          onMouseUp={isDeploying ? undefined : () => onDeploy(worker)}
         >
           {" Deploy "}
         </text>
         <text
-          fg={Colors.warning}
+          fg={isDeploying ? Colors.muted : Colors.warning}
           bg={Colors.card}
-          onMouseUp={() => onRestart(worker)}
+          dim={isDeploying}
+          onMouseUp={isDeploying ? undefined : () => onRestart(worker)}
         >
           {" Restart "}
         </text>
@@ -263,12 +269,14 @@ interface WorkerControlListProps {
   workers: WorkerInfo[];
   onDeploy: (worker: WorkerInfo) => void;
   onRestart: (worker: WorkerInfo) => void;
+  deployingWorker?: string | null;
 }
 
 function WorkerControlList({
   workers,
   onDeploy,
   onRestart,
+  deployingWorker,
 }: WorkerControlListProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -318,6 +326,7 @@ function WorkerControlList({
               onSelect={setSelectedIndex}
               onDeploy={onDeploy}
               onRestart={onRestart}
+              deployingWorker={deployingWorker}
             />
           ))
         )}
@@ -332,13 +341,21 @@ interface BulkActionsProps {
   workers: WorkerInfo[];
   onDeployAll: () => void;
   onRestartAll: () => void;
+  deployingWorker?: string | null;
 }
 
-function BulkActions({ workers, onDeployAll, onRestartAll }: BulkActionsProps) {
+function BulkActions({
+  workers,
+  onDeployAll,
+  onRestartAll,
+  deployingWorker,
+}: BulkActionsProps) {
   const operationalCount = workers.filter(
     (w) => w.status === "operational"
   ).length;
-  const canAct = workers.length > 0;
+  const canAct = workers.length > 0 && !deployingWorker;
+  const deployDim = !canAct || !!deployingWorker;
+  const restartDim = !canAct || !!deployingWorker;
 
   return (
     <box
@@ -363,7 +380,7 @@ function BulkActions({ workers, onDeployAll, onRestartAll }: BulkActionsProps) {
         <text
           fg={canAct ? Colors.accent : Colors.muted}
           bg={canAct ? Colors.card : undefined}
-          dim={!canAct}
+          dim={deployDim}
           onMouseUp={canAct ? onDeployAll : undefined}
         >
           {"  [Deploy All]  "}
@@ -371,7 +388,7 @@ function BulkActions({ workers, onDeployAll, onRestartAll }: BulkActionsProps) {
         <text
           fg={canAct ? Colors.warning : Colors.muted}
           bg={canAct ? Colors.card : undefined}
-          dim={!canAct}
+          dim={restartDim}
           onMouseUp={canAct ? onRestartAll : undefined}
         >
           {"  [Restart All]  "}
@@ -388,6 +405,10 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
   const workers = useServiceStore((s) => s.workers);
   const connectionStatus = useServiceStore((s) => s.connectionStatus);
 
+  // Deploy/restart tracking state
+  const [deployingWorker, setDeployingWorker] = useState<string | null>(null);
+  const [deployProgress, setDeployProgress] = useState("");
+
   // Edge count: sum of all workers' edgeCount + a base fallback
   const totalEdgeCount = workers.reduce((sum, w) => sum + w.edgeCount, 0);
   const displayEdgeCount = totalEdgeCount > 0 ? totalEdgeCount : 275;
@@ -403,9 +424,26 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
       cancelLabel: "Cancel",
     });
     if (confirmed) {
-      // In a real implementation this would call a deploy API.
-      // For now, re-fetch workers to reflect any change.
+      setDeployingWorker(worker.name);
+      setDeployProgress("");
+      const result = await cliBridge.deployWorker(
+        worker.name,
+        (chunk: string) => {
+          setDeployProgress((prev: string) => prev + chunk);
+        }
+      );
+      setDeployingWorker(null);
       const store = useServiceStore.getState();
+      store.addAlert({
+        id: `deploy-${Date.now()}-${worker.name}`,
+        type: "deploy",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `${worker.name} deployed successfully (${(result.duration / 1000).toFixed(1)}s)`
+          : `${worker.name} deploy failed: ${result.stderr || result.stdout || "unknown error"}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
       await store.fetchWorkers();
     }
   };
@@ -419,7 +457,26 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
       cancelLabel: "Cancel",
     });
     if (confirmed) {
+      setDeployingWorker(worker.name);
+      setDeployProgress("");
+      const result = await cliBridge.repairWorker(
+        worker.name,
+        (chunk: string) => {
+          setDeployProgress((prev: string) => prev + chunk);
+        }
+      );
+      setDeployingWorker(null);
       const store = useServiceStore.getState();
+      store.addAlert({
+        id: `restart-${Date.now()}-${worker.name}`,
+        type: "restart",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `${worker.name} restarted successfully (${(result.duration / 1000).toFixed(1)}s)`
+          : `${worker.name} restart failed: ${result.stderr || result.stdout || "unknown error"}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
       await store.fetchWorkers();
     }
   };
@@ -433,7 +490,23 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
       cancelLabel: "Cancel",
     });
     if (confirmed) {
+      setDeployingWorker("all");
+      setDeployProgress("");
+      const result = await cliBridge.deployAll((chunk: string) => {
+        setDeployProgress((prev: string) => prev + chunk);
+      });
+      setDeployingWorker(null);
       const store = useServiceStore.getState();
+      store.addAlert({
+        id: `deploy-all-${Date.now()}`,
+        type: "deploy",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `All workers deployed successfully (${(result.duration / 1000).toFixed(1)}s)`
+          : `Deploy all failed: ${result.stderr || result.stdout || "unknown error"}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
       await store.fetchWorkers();
     }
   };
@@ -447,7 +520,23 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
       cancelLabel: "Cancel",
     });
     if (confirmed) {
+      setDeployingWorker("all");
+      setDeployProgress("");
+      const result = await cliBridge.rebuild((chunk: string) => {
+        setDeployProgress((prev: string) => prev + chunk);
+      });
+      setDeployingWorker(null);
       const store = useServiceStore.getState();
+      store.addAlert({
+        id: `restart-all-${Date.now()}`,
+        type: "restart",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `All workers restarted successfully (${(result.duration / 1000).toFixed(1)}s)`
+          : `Restart all failed: ${result.stderr || result.stdout || "unknown error"}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
       await store.fetchWorkers();
     }
   };
@@ -502,6 +591,7 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
               workers={workers}
               onDeploy={handleDeploy}
               onRestart={handleRestart}
+              deployingWorker={deployingWorker}
             />
           </box>
 
@@ -523,7 +613,20 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
           workers={workers}
           onDeployAll={handleDeployAll}
           onRestartAll={handleRestartAll}
+          deployingWorker={deployingWorker}
         />
+
+        {/* Deploy progress text */}
+        {deployingWorker && (
+          <box flexDirection="column" gap={0} paddingLeft={1}>
+            <text fg={Colors.accent}>DEPLOYING {deployingWorker}...</text>
+            {deployProgress && (
+              <text fg={Colors.muted} dim>
+                {deployProgress.slice(-200)}
+              </text>
+            )}
+          </box>
+        )}
       </box>
     </ErrorBoundary>
   );
