@@ -15,11 +15,12 @@
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
  * Colors from @jango-blockchained/hoox-shared tokens — no hardcoded hex.
  */
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { cliBridge } from "../../services/cli-bridge";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot, type StatusDotStatus } from "../shared/status-dot";
 
@@ -327,11 +328,22 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
 
 /**
  * Config Preview pane — read-only key:value pairs.
+ * Shows live data from cliBridge.configShow() when available,
+ * falls back to worker-derived defaults.
  */
-function ConfigPreviewPane({ worker }: { worker: Worker }) {
-  // Demo config derived from worker info and sensible defaults
-  const configEntries: DemoConfigEntry[] = useMemo(
-    () => [
+function ConfigPreviewPane({
+  worker,
+  entries,
+  loading,
+}: {
+  worker: Worker;
+  entries?: DemoConfigEntry[];
+  loading?: boolean;
+}) {
+  // Live entries from CLI or fallback to worker-derived demo data
+  const displayEntries: DemoConfigEntry[] = useMemo(() => {
+    if (entries && entries.length > 0) return entries;
+    return [
       {
         key: "active",
         value: worker.status === "operational" ? "true" : "false",
@@ -341,9 +353,8 @@ function ConfigPreviewPane({ worker }: { worker: Worker }) {
       { key: "symbol", value: "BTCUSDT, ETHUSDT, SOLUSDT" },
       { key: "version", value: worker.version || "0.1.0" },
       { key: "edges", value: worker.edgeCount.toString() },
-    ],
-    [worker]
-  );
+    ];
+  }, [entries, worker]);
 
   return (
     <box
@@ -355,11 +366,18 @@ function ConfigPreviewPane({ worker }: { worker: Worker }) {
       borderColor={Colors.border}
       backgroundColor={Colors.card}
     >
-      <text fg={Colors.accent} bold>
-        Config Preview
-      </text>
+      <box flexDirection="row" justifyContent="space-between">
+        <text fg={Colors.accent} bold>
+          Config Preview
+        </text>
+        {loading && (
+          <text fg={Colors.muted} dim>
+            loading...
+          </text>
+        )}
+      </box>
       <box flexDirection="column" paddingTop={1} gap={0}>
-        {configEntries.map((entry) => (
+        {displayEntries.map((entry) => (
           <box key={entry.key} flexDirection="row" gap={1}>
             <text fg={Colors.muted} dim>
               {entry.key.padEnd(14)}
@@ -391,9 +409,15 @@ export function WorkerDetail() {
   // Focus tracking for pane cycling
   const [focusPane, setFocusPane] = useState(0);
 
+  // Live data state from CliBridge
+  const [configEntries, setConfigEntries] = useState<DemoConfigEntry[]>([]);
+  const [configLoading, setConfigLoading] = useState(false);
+  const [cliLogsLoading, setCliLogsLoading] = useState(false);
+
   // Store subscriptions (Pattern 2: selective selectors)
   const selectedWorkerId = useServiceStore((s) => s.selectedWorkerId);
   const workers = useServiceStore((s) => s.workers);
+  const connectionStatus = useServiceStore((s) => s.connectionStatus);
   const goBack = useUIStore((s) => s.goBack);
 
   // Derive the current worker
@@ -401,6 +425,102 @@ export function WorkerDetail() {
     () => workers.find((w) => w.id === selectedWorkerId) ?? null,
     [workers, selectedWorkerId]
   );
+
+  // ── CliBridge data fetching ─────────────────────────────────────────────
+
+  const fetchConfig = useCallback(async () => {
+    if (!worker) return;
+    setConfigLoading(true);
+    try {
+      const result = await cliBridge.configShow();
+      if (result.success && result.data) {
+        const data = result.data as Record<string, unknown>;
+        setConfigEntries(
+          Object.entries(data).map(([key, value]) => ({
+            key,
+            value:
+              typeof value === "object" ? JSON.stringify(value) : String(value),
+          }))
+        );
+      }
+      useServiceStore.getState().addAlert({
+        id: `cfg-${Date.now()}`,
+        type: "config",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `Config loaded (${(result.duration / 1000).toFixed(1)}s)`
+          : `Config load failed`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch {
+      useServiceStore.getState().addAlert({
+        id: `cfg-err-${Date.now()}`,
+        type: "config",
+        severity: "warning",
+        message: "Config fetch error",
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } finally {
+      setConfigLoading(false);
+    }
+  }, [worker]);
+
+  const fetchLogs = useCallback(async () => {
+    if (!worker) return;
+    setCliLogsLoading(true);
+    try {
+      const result = await cliBridge.workerLogs(worker.name);
+      if (result.success && Array.isArray(result.data)) {
+        for (const log of result.data as Log[]) {
+          useServiceStore.getState().pushLog(log);
+        }
+      }
+      useServiceStore.getState().addAlert({
+        id: `logs-${Date.now()}`,
+        type: "logs",
+        severity: result.success ? "info" : "warning",
+        message: result.success
+          ? `Logs loaded (${
+              Array.isArray(result.data) ? result.data.length : 0
+            } entries, ${(result.duration / 1000).toFixed(1)}s)`
+          : `Logs load failed`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch {
+      useServiceStore.getState().addAlert({
+        id: `logs-err-${Date.now()}`,
+        type: "logs",
+        severity: "warning",
+        message: "Logs fetch error",
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } finally {
+      setCliLogsLoading(false);
+    }
+  }, [worker]);
+
+  // Fetch live config on mount
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
+
+  // Fetch logs via CLI as fallback when SSE is not connected
+  useEffect(() => {
+    if (connectionStatus !== "connected") {
+      fetchLogs();
+    }
+  }, [connectionStatus, fetchLogs]);
+
+  const handleRefresh = useCallback(() => {
+    fetchConfig();
+    if (connectionStatus !== "connected") {
+      fetchLogs();
+    }
+  }, [fetchConfig, fetchLogs, connectionStatus]);
 
   // View-local keyboard handling
   useKeyboard((key) => {
@@ -412,6 +532,9 @@ export function WorkerDetail() {
       case "escape":
         goBack();
         break;
+    }
+    if (key.ctrl && key.name === "r") {
+      handleRefresh();
     }
   });
 
@@ -477,7 +600,11 @@ export function WorkerDetail() {
           {/* Row 2: Durable Objects | Config Preview */}
           <box flexDirection="row" flexGrow={1} gap={1}>
             <DurableObjectsPane worker={worker} />
-            <ConfigPreviewPane worker={worker} />
+            <ConfigPreviewPane
+              worker={worker}
+              entries={configEntries}
+              loading={configLoading}
+            />
           </box>
         </box>
 
@@ -496,7 +623,7 @@ export function WorkerDetail() {
             ))}
           </box>
           <text fg={Colors.muted} dim>
-            Tab: focus · Esc: back
+            Tab: focus · Ctrl+R: refresh · Esc: back
           </text>
         </box>
       </box>
