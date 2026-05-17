@@ -11,12 +11,13 @@
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
  * Colors from design tokens via @jango-blockchained/hoox-shared. No CSS, no DOM.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
+import { cliBridge } from "../../services/cli-bridge";
 import type { Alert, AlertSeverity } from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -79,7 +80,7 @@ function formatTime(ts: number): string {
 /**
  * DashboardHeader — view title with animated connection status.
  */
-function DashboardHeader() {
+function DashboardHeader({ onRefresh }: { onRefresh?: () => void }) {
   const connectionStatus = useServiceStore((s) => s.connectionStatus);
 
   const statusLabel: Record<string, string> = {
@@ -107,6 +108,9 @@ function DashboardHeader() {
         />
         <text dim fg={Colors.muted}>
           {statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}
+        </text>
+        <text fg={Colors.muted} onMouseUp={onRefresh}>
+          [REFRESH]
         </text>
       </box>
     </box>
@@ -366,16 +370,16 @@ function QuickStatsRow() {
           isPnl
         />
         <MetricCard
-          label="Active Strategies"
+          label="ACTIVE STRATEGIES"
           value={activeStrategies}
           color={Colors.accent}
         />
         <MetricCard
-          label="Daily Trades"
+          label="DAILY TRADES"
           value={dailyTrades}
           color={Colors.info}
         />
-        <MetricCard label="AI Calls" value={aiCalls} color={Colors.accent} />
+        <MetricCard label="AI CALLS" value={aiCalls} color={Colors.accent} />
       </box>
 
       {/* Empty state when metrics unavailable */}
@@ -400,11 +404,30 @@ function QuickStatsRow() {
  * and re-renders on data changes via Zustand selectors.
  */
 export function DashboardView() {
+  const handleRefresh = async () => {
+    const result = await cliBridge.monitorStatus();
+    if (result.success) {
+      const store = useServiceStore.getState();
+      await store.fetchWorkers();
+    }
+  };
+
+  useEffect(() => {
+    const runHealthCheck = async () => {
+      const health = await cliBridge.checkHealth();
+      if (health.success) {
+        const store = useServiceStore.getState();
+        await store.fetchWorkers();
+      }
+    };
+    runHealthCheck();
+  }, []);
+
   return (
     <ErrorBoundary viewName="Dashboard">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* 1. Header: title + connection status */}
-        <DashboardHeader />
+        <DashboardHeader onRefresh={handleRefresh} />
 
         {/* Divider */}
         <text fg={Colors.border} dim>

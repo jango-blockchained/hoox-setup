@@ -17,7 +17,7 @@
  *
  * Uses Colors tokens, useServiceStore, StatusDot, and showConfirm dialog.
  */
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { StatusDot } from "../shared/status-dot";
@@ -26,6 +26,7 @@ import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";
 import { cliBridge } from "../../services/cli-bridge";
+import type { CliResult } from "../../types";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -414,130 +415,171 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
   const displayEdgeCount = totalEdgeCount > 0 ? totalEdgeCount : 275;
   const showPlus = totalEdgeCount === 0;
 
+  /** Shared progress callback */
+  const onProgress = useCallback((chunk: string) => {
+    setDeployProgress((prev) => (prev + chunk).slice(-2000));
+  }, []);
+
+  /** Alert helper */
+  const addResultAlert = useCallback(
+    (
+      id: string,
+      type: string,
+      result: CliResult,
+      successMsg: string,
+      failMsg: string
+    ) => {
+      const store = useServiceStore.getState();
+      store.addAlert({
+        id,
+        type,
+        severity: result.success ? "info" : "warning",
+        message: result.success ? successMsg : failMsg,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    },
+    []
+  );
+
   // ── Per-worker action handlers ─────────────────────────────────────────
   const handleDeploy = async (worker: WorkerInfo) => {
-    if (!dialog) return;
+    if (!dialog || deployingWorker) return;
     const confirmed = await showConfirm(dialog, {
       title: `Deploy ${worker.name}`,
       message: `Trigger a new deployment for ${worker.name}? This will publish the latest code bundle to Cloudflare.`,
       confirmLabel: "Deploy",
       cancelLabel: "Cancel",
     });
-    if (confirmed) {
-      setDeployingWorker(worker.name);
-      setDeployProgress("");
-      const result = await cliBridge.deployWorker(
-        worker.name,
-        (chunk: string) => {
-          setDeployProgress((prev: string) => prev + chunk);
-        }
+    if (!confirmed) return;
+    setDeployingWorker(worker.name);
+    setDeployProgress("");
+    try {
+      const result = await cliBridge.deployWorker(worker.name, onProgress);
+      addResultAlert(
+        `deploy-${Date.now()}-${worker.name}`,
+        "deploy",
+        result,
+        `${worker.name} deployed (${(result.duration / 1000).toFixed(1)}s)`,
+        `${worker.name} deploy failed: ${result.stderr || result.stdout || "unknown error"}`
       );
-      setDeployingWorker(null);
-      const store = useServiceStore.getState();
-      store.addAlert({
-        id: `deploy-${Date.now()}-${worker.name}`,
+      if (result.success) await useServiceStore.getState().fetchWorkers();
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `deploy-err-${Date.now()}`,
         type: "deploy",
-        severity: result.success ? "info" : "warning",
-        message: result.success
-          ? `${worker.name} deployed successfully (${(result.duration / 1000).toFixed(1)}s)`
-          : `${worker.name} deploy failed: ${result.stderr || result.stdout || "unknown error"}`,
+        severity: "error",
+        message: `${worker.name} deploy error: ${err instanceof Error ? err.message : String(err)}`,
         timestamp: Date.now(),
         acknowledged: false,
       });
-      await store.fetchWorkers();
+    } finally {
+      setDeployingWorker(null);
     }
   };
 
   const handleRestart = async (worker: WorkerInfo) => {
-    if (!dialog) return;
+    if (!dialog || deployingWorker) return;
     const confirmed = await showConfirm(dialog, {
       title: `Restart ${worker.name}`,
       message: `Restart the ${worker.name} worker? Running tasks will be gracefully drained before restart.`,
       confirmLabel: "Restart",
       cancelLabel: "Cancel",
     });
-    if (confirmed) {
-      setDeployingWorker(worker.name);
-      setDeployProgress("");
-      const result = await cliBridge.repairWorker(
-        worker.name,
-        (chunk: string) => {
-          setDeployProgress((prev: string) => prev + chunk);
-        }
+    if (!confirmed) return;
+    setDeployingWorker(worker.name);
+    setDeployProgress("");
+    try {
+      const result = await cliBridge.repairWorker(worker.name, onProgress);
+      addResultAlert(
+        `restart-${Date.now()}-${worker.name}`,
+        "restart",
+        result,
+        `${worker.name} restarted (${(result.duration / 1000).toFixed(1)}s)`,
+        `${worker.name} restart failed: ${result.stderr || result.stdout || "unknown error"}`
       );
-      setDeployingWorker(null);
-      const store = useServiceStore.getState();
-      store.addAlert({
-        id: `restart-${Date.now()}-${worker.name}`,
+      if (result.success) await useServiceStore.getState().fetchWorkers();
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `restart-err-${Date.now()}`,
         type: "restart",
-        severity: result.success ? "info" : "warning",
-        message: result.success
-          ? `${worker.name} restarted successfully (${(result.duration / 1000).toFixed(1)}s)`
-          : `${worker.name} restart failed: ${result.stderr || result.stdout || "unknown error"}`,
+        severity: "error",
+        message: `${worker.name} restart error: ${err instanceof Error ? err.message : String(err)}`,
         timestamp: Date.now(),
         acknowledged: false,
       });
-      await store.fetchWorkers();
+    } finally {
+      setDeployingWorker(null);
     }
   };
 
   const handleDeployAll = async () => {
-    if (!dialog) return;
+    if (!dialog || deployingWorker) return;
     const confirmed = await showConfirm(dialog, {
       title: "Deploy All Workers",
       message: `This will deploy the latest code to all ${workers.length} workers. Existing deployments will be replaced. Continue?`,
       confirmLabel: "Deploy All",
       cancelLabel: "Cancel",
     });
-    if (confirmed) {
-      setDeployingWorker("all");
-      setDeployProgress("");
-      const result = await cliBridge.deployAll((chunk: string) => {
-        setDeployProgress((prev: string) => prev + chunk);
-      });
-      setDeployingWorker(null);
-      const store = useServiceStore.getState();
-      store.addAlert({
-        id: `deploy-all-${Date.now()}`,
+    if (!confirmed) return;
+    setDeployingWorker("all");
+    setDeployProgress("");
+    try {
+      const result = await cliBridge.deployAll(onProgress);
+      addResultAlert(
+        `deploy-all-${Date.now()}`,
+        "deploy",
+        result,
+        `All deployed (${(result.duration / 1000).toFixed(1)}s)`,
+        `Deploy all failed: ${result.stderr || result.stdout || "unknown error"}`
+      );
+      if (result.success) await useServiceStore.getState().fetchWorkers();
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `deploy-all-err-${Date.now()}`,
         type: "deploy",
-        severity: result.success ? "info" : "warning",
-        message: result.success
-          ? `All workers deployed successfully (${(result.duration / 1000).toFixed(1)}s)`
-          : `Deploy all failed: ${result.stderr || result.stdout || "unknown error"}`,
+        severity: "error",
+        message: `Deploy all error: ${err instanceof Error ? err.message : String(err)}`,
         timestamp: Date.now(),
         acknowledged: false,
       });
-      await store.fetchWorkers();
+    } finally {
+      setDeployingWorker(null);
     }
   };
 
   const handleRestartAll = async () => {
-    if (!dialog) return;
+    if (!dialog || deployingWorker) return;
     const confirmed = await showConfirm(dialog, {
       title: "Restart All Workers",
       message: `This will restart all ${workers.length} workers. Active trades will be gracefully drained. Continue?`,
       confirmLabel: "Restart All",
       cancelLabel: "Cancel",
     });
-    if (confirmed) {
-      setDeployingWorker("all");
-      setDeployProgress("");
-      const result = await cliBridge.rebuild((chunk: string) => {
-        setDeployProgress((prev: string) => prev + chunk);
-      });
-      setDeployingWorker(null);
-      const store = useServiceStore.getState();
-      store.addAlert({
-        id: `restart-all-${Date.now()}`,
+    if (!confirmed) return;
+    setDeployingWorker("all");
+    setDeployProgress("");
+    try {
+      const result = await cliBridge.rebuild(onProgress);
+      addResultAlert(
+        `restart-all-${Date.now()}`,
+        "restart",
+        result,
+        `All restarted (${(result.duration / 1000).toFixed(1)}s)`,
+        `Restart all failed: ${result.stderr || result.stdout || "unknown error"}`
+      );
+      if (result.success) await useServiceStore.getState().fetchWorkers();
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `restart-all-err-${Date.now()}`,
         type: "restart",
-        severity: result.success ? "info" : "warning",
-        message: result.success
-          ? `All workers restarted successfully (${(result.duration / 1000).toFixed(1)}s)`
-          : `Restart all failed: ${result.stderr || result.stdout || "unknown error"}`,
+        severity: "error",
+        message: `Restart all error: ${err instanceof Error ? err.message : String(err)}`,
         timestamp: Date.now(),
         acknowledged: false,
       });
-      await store.fetchWorkers();
+    } finally {
+      setDeployingWorker(null);
     }
   };
 
