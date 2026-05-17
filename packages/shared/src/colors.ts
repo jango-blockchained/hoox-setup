@@ -14,10 +14,11 @@ export const Colors = {
   // Base
   background: "#0D1117",
   foreground: "#EEEEEE",
-  card: "#1A1A2E",
-  border: "#333333",
-  muted: "#888888",
-  dim: "#555555",
+  card: "#1C1C1F", // oklch(0.12 0 0)
+  border: "#484848", // oklch(0.3 0 0)
+  muted: "#A0A0A0", // oklch(0.68 0 0)
+  "muted-foreground": "#6E6E6E", // oklch(0.55 0 0)
+  dim: "#3B3B3D", // oklch(0.25 0 0)
 
   // Accent (the orange — from oklch(0.7 0.2 45))
   accent: "#E8780A",
@@ -31,10 +32,10 @@ export const Colors = {
 
   // Semantic aliases
   text: "#EEEEEE",
-  "text-muted": "#888888",
-  "text-dim": "#555555",
-  panel: "#1A1A2E",
-  divider: "#333333",
+  "text-muted": "#A0A0A0",
+  "text-dim": "#6E6E6E",
+  panel: "#1C1C1F",
+  divider: "#484848",
   highlight: "#E8780A",
 } as const;
 

@@ -78,84 +78,84 @@ const VIEW_SHORTCUTS: Record<string, ViewId> = {
 const PALETTE_COMMANDS: CommandEntry[] = [
   {
     id: "dashboard",
-    name: "Dashboard",
+    name: "DASHBOARD",
     category: "view",
     shortcut: "^1",
     aliases: ["home", "overview"],
   },
   {
     id: "workers",
-    name: "Workers Overview",
+    name: "WORKERS OVERVIEW",
     category: "view",
     shortcut: "^2",
     aliases: ["services"],
   },
   {
     id: "worker-detail",
-    name: "Worker Detail",
+    name: "WORKER DETAIL",
     category: "view",
     shortcut: "^3",
     aliases: ["detail"],
   },
   {
     id: "trade-monitor",
-    name: "Trade Monitor",
+    name: "TRADE MONITOR",
     category: "view",
     shortcut: "^4",
     aliases: ["trades", "positions"],
   },
   {
     id: "logs-viewer",
-    name: "Logs Viewer",
+    name: "LOGS VIEWER",
     category: "view",
     shortcut: "^5",
     aliases: ["logs"],
   },
   {
     id: "service-manager",
-    name: "Service Manager",
+    name: "SERVICE MANAGER",
     category: "view",
     shortcut: "^6",
     aliases: ["deploy", "restart"],
   },
   {
     id: "config-editor",
-    name: "Config Editor",
+    name: "CONFIG EDITOR",
     category: "view",
     shortcut: "^7",
     aliases: ["edit", "settings"],
   },
   {
     id: "setup-wizard",
-    name: "Setup Wizard",
+    name: "SETUP WIZARD",
     category: "view",
     shortcut: "^8",
     aliases: ["onboarding", "first-run"],
   },
   {
     id: "settings",
-    name: "Settings",
+    name: "SETTINGS",
     category: "view",
     shortcut: "^9",
     aliases: ["preferences"],
   },
   {
     id: "refresh",
-    name: "Refresh Data",
+    name: "REFRESH DATA",
     category: "action",
     shortcut: "^R",
     aliases: ["reload"],
   },
   {
     id: "toggle-sidebar",
-    name: "Toggle Sidebar",
+    name: "TOGGLE SIDEBAR",
     category: "action",
     shortcut: "^B",
     aliases: ["collapse"],
   },
   {
     id: "quit",
-    name: "Quit HOOX",
+    name: "QUIT HOOX",
     category: "action",
     shortcut: "^Q",
     aliases: ["exit", "close"],
@@ -227,16 +227,19 @@ function StatusBar() {
       paddingLeft={1}
       paddingRight={1}
       backgroundColor={Colors.card}
-      border={true}
-      borderStyle="single"
-      borderColor={Colors.border}
     >
-      <text fg={statusColor[connectionStatus] ?? Colors.muted}>
-        {parts.join("  ")}
-      </text>
-      <text dim fg={Colors.muted}>
-        Ctrl+P palette · Ctrl+B sidebar · Ctrl+Q quit
-      </text>
+      <box flexDirection="row" gap={1}>
+        <text fg={Colors["muted-foreground"]} dim>
+          ┌
+        </text>
+        <text fg={statusColor[connectionStatus] ?? Colors.muted}>
+          {parts.join("  ")}
+        </text>
+        <text fg={Colors["muted-foreground"]} dim>
+          ┐
+        </text>
+      </box>
+      <text fg={Colors["text-dim"]}>^P PALETTE · ^B SIDEBAR · ^Q QUIT</text>
     </box>
   );
 }
@@ -256,15 +259,15 @@ function Sidebar() {
   if (!sidebarExpanded) return null;
 
   const items: { id: ViewId; label: string; shortcut: string }[] = [
-    { id: "dashboard", label: "Dashboard", shortcut: "1" },
-    { id: "workers", label: "Workers", shortcut: "2" },
-    { id: "worker-detail", label: "Worker Detail", shortcut: "3" },
-    { id: "trade-monitor", label: "Trade Monitor", shortcut: "4" },
-    { id: "logs-viewer", label: "Logs Viewer", shortcut: "5" },
-    { id: "service-manager", label: "Service Manager", shortcut: "6" },
-    { id: "config-editor", label: "Config Editor", shortcut: "7" },
-    { id: "setup-wizard", label: "Setup Wizard", shortcut: "8" },
-    { id: "settings", label: "Settings", shortcut: "9" },
+    { id: "dashboard", label: "DASHBOARD", shortcut: "1" },
+    { id: "workers", label: "WORKERS", shortcut: "2" },
+    { id: "worker-detail", label: "DETAIL", shortcut: "3" },
+    { id: "trade-monitor", label: "TRADES", shortcut: "4" },
+    { id: "logs-viewer", label: "LOGS", shortcut: "5" },
+    { id: "service-manager", label: "SERVICES", shortcut: "6" },
+    { id: "config-editor", label: "CONFIG", shortcut: "7" },
+    { id: "setup-wizard", label: "SETUP", shortcut: "8" },
+    { id: "settings", label: "SETTINGS", shortcut: "9" },
   ];
 
   return (
@@ -278,12 +281,12 @@ function Sidebar() {
       borderColor={Colors.border}
       backgroundColor={Colors.card}
     >
-      {/* Brand header */}
+      {/* Brand header — HUD-style with accent bracket decoration */}
       <text fg={Colors.accent} bold>
-        HOOX
+        ┌ HOOX ┐
       </text>
-      <text fg={Colors.muted} dim>
-        ════════════════
+      <text fg={Colors["muted-foreground"]} dim>
+        ─────────────────
       </text>
 
       {/* Navigation items */}

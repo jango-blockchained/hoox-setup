@@ -16,26 +16,28 @@ import { describe, it, expect } from "bun:test";
  * landing page DNA. They are used throughout the TUI via @jango-blockchained/hoox-shared.
  *
  * Palette:
- *   - Dark background: #0D1117 (GitHub-dark inspired)
- *   - Orange accent:   #E8780A (brand primary)
- *   - Cards:           #1A1A2E (subtle elevation)
- *   - Border:          #333333 (hairline)
- *   - Text foreground: #EEEEEE (high contrast on dark bg)
- *   - Text muted:      #888888 (secondary info)
- *   - Text dim:        #555555 (tertiary / disabled)
- *   - Success:         #00FF88 (green, operational)
- *   - Error:           #FF4444 (red, failure)
- *   - Warning:         #FFAA00 (amber, degraded)
- *   - Info:            #4488FF (blue, informational)
+ *   - Dark background:   #0D1117 (oklch 0.08 0 0)
+ *   - Orange accent:     #E8780A (oklch 0.7 0.2 45)
+ *   - Cards:             #1C1C1F (oklch 0.12 0 0)
+ *   - Border:            #484848 (oklch 0.3 0 0)
+ *   - Text foreground:   #EEEEEE (oklch 0.95 0 0)
+ *   - Text muted:        #A0A0A0 (oklch 0.68 0 0)
+ *   - Muted foreground:  #6E6E6E (oklch 0.55 0 0)
+ *   - Text dim:          #3B3B3D (oklch 0.25 0 0)
+ *   - Success:           #00FF88 (green, operational)
+ *   - Error:             #FF4444 (red, failure)
+ *   - Warning:           #FFAA00 (amber, degraded)
+ *   - Info:              #4488FF (blue, informational)
  */
 export const Colors = {
   background: "#0D1117",
   foreground: "#EEEEEE",
-  card: "#1A1A2E",
+  card: "#1C1C1F",
   accent: "#E8780A",
-  border: "#333333",
-  muted: "#888888",
-  dim: "#555555",
+  border: "#484848",
+  muted: "#A0A0A0",
+  "muted-foreground": "#6E6E6E",
+  dim: "#3B3B3D",
   success: "#00FF88",
   error: "#FF4444",
   warning: "#FFAA00",
@@ -129,8 +131,8 @@ describe("Colors Design System", () => {
       expect(rgb.b).toBeLessThan(30);
     });
 
-    it("cards have subtle elevation (#1A1A2E)", () => {
-      expect(Colors.card).toBe("#1A1A2E");
+    it("cards have subtle elevation (#1C1C1F)", () => {
+      expect(Colors.card).toBe("#1C1C1F");
       const rgb = hexToRgb(Colors.card)!;
       // Should be slightly lighter than background
       expect(rgb.r).toBeGreaterThan(20);
@@ -223,7 +225,7 @@ describe("Colors Design System", () => {
   // ── Token completeness ──────────────────────────────────────────────────
 
   describe("token completeness", () => {
-    it("has exactly 12 color tokens", () => {
+    it("has exactly 13 color tokens", () => {
       expect(Object.keys(Colors).length).toBe(13); // 12 unique + highlight duplicate
     });
 
@@ -254,6 +256,7 @@ describe("Colors Design System", () => {
         "accent",
         "border",
         "muted",
+        "muted-foreground",
         "dim",
         "success",
         "error",
@@ -344,7 +347,7 @@ describe("status color mappings", () => {
       warn: Colors.warning,
       error: Colors.error,
     };
-    expect(logColors.debug).toBe("#555555");
+    expect(logColors.debug).toBe("#3B3B3D");
     expect(logColors.info).toBe("#EEEEEE");
     expect(logColors.warn).toBe("#FFAA00");
     expect(logColors.error).toBe("#FF4444");

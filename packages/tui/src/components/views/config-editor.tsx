@@ -26,6 +26,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { cliBridge } from "../../services/cli-bridge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -928,6 +929,7 @@ export function ConfigEditor() {
   const [focusedTreeIdx, setFocusedTreeIdx] = useState(0);
   const [editorScrollOffset, setEditorScrollOffset] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // ── Derived ────────────────────────────────────────────────────────────
   const fileTree = useMemo(() => CONFIG_TREE_BLUEPRINT, []);
@@ -973,6 +975,7 @@ export function ConfigEditor() {
       setActivePane("editor");
       setSyntaxErrors([]);
       setEditorScrollOffset(0);
+      setValidationError(null);
       setStatusMessage(`Loaded: ${path}`);
     },
     [fileContents]
@@ -991,23 +994,43 @@ export function ConfigEditor() {
         return next;
       });
       setStatusMessage(`Saved: ${selectedFile}`);
+      setValidationError(null);
+      const result = await cliBridge.configValidate();
+      if (!result.success) {
+        const errMsg =
+          result.stderr || result.stdout || "Unknown validation error";
+        setValidationError(errMsg);
+        setStatusMessage(`Saved — Validation failed: ${errMsg}`);
+      } else {
+        setValidationError(null);
+        setStatusMessage("Saved — Config valid");
+      }
     } catch (e) {
-      setStatusMessage(
-        `Failed to save: ${e instanceof Error ? e.message : String(e)}`
-      );
+      const msg = e instanceof Error ? e.message : String(e);
+      setStatusMessage(`Failed to save: ${msg}`);
     }
   }, [selectedFile, currentContent]);
 
-  const handleValidate = useCallback(() => {
+  const handleValidate = useCallback(async () => {
     if (!selectedFile) return;
     const errors = validateSyntax(currentContent, fileType);
     setSyntaxErrors(errors);
-    if (errors.length === 0) {
-      setStatusMessage("Validation passed — no syntax errors");
+    setValidationError(null);
+    const result = await cliBridge.configValidate();
+    if (!result.success) {
+      const errMsg =
+        result.stderr || result.stdout || "Unknown validation error";
+      setValidationError(errMsg);
+      setStatusMessage(`Validation failed: ${errMsg}`);
     } else {
-      setStatusMessage(
-        `Found ${errors.length} syntax error${errors.length > 1 ? "s" : ""}`
-      );
+      setValidationError(null);
+      if (errors.length === 0) {
+        setStatusMessage("Validation passed — Config is valid");
+      } else {
+        setStatusMessage(
+          `Found ${errors.length} syntax error${errors.length > 1 ? "s" : ""}`
+        );
+      }
     }
   }, [selectedFile, currentContent, fileType]);
 

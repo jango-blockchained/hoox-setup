@@ -12,7 +12,13 @@ import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
-import type { LogEntry, LogLevel } from "@jango-blockchained/hoox-shared";
+import { cliBridge } from "../../services/cli-bridge";
+import * as path from "path";
+import type {
+  LogEntry,
+  LogLevel,
+  Alert,
+} from "@jango-blockchained/hoox-shared";
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 
@@ -84,14 +90,14 @@ function FilterPanel({
     >
       {/* ── Level Section ───────────────────────────────────────────────── */}
       <text bold fg={Colors.muted}>
-        Level
+        LEVEL
       </text>
       <box flexDirection="row" gap={1}>
         <text
           fg={allLevels ? Colors.accent : Colors.muted}
           onMouseUp={onToggleAll}
         >
-          {allLevels ? "[x]" : "[ ]"} All
+          {allLevels ? "[x]" : "[ ]"} ALL
         </text>
       </box>
       {ALL_LEVELS.map((lvl) => (
@@ -111,7 +117,7 @@ function FilterPanel({
       {/* ── Worker Section ──────────────────────────────────────────────── */}
       <box height={1} />
       <text bold fg={Colors.muted}>
-        Worker
+        WORKER
       </text>
       {workerNames.length === 0 ? (
         <text dim fg={Colors.dim}>
@@ -136,7 +142,7 @@ function FilterPanel({
       {/* ── Search Section ──────────────────────────────────────────────── */}
       <box height={1} />
       <text bold fg={Colors.muted}>
-        Search /
+        SEARCH /
       </text>
       <input
         id="log-search"
@@ -219,6 +225,8 @@ interface ActionBarProps {
   onTogglePause: () => void;
   onExport: () => void;
   onClear: () => void;
+  sseConnected: boolean;
+  onFetch?: () => void;
 }
 
 function ActionBar({
@@ -226,6 +234,8 @@ function ActionBar({
   onTogglePause,
   onExport,
   onClear,
+  sseConnected,
+  onFetch,
 }: ActionBarProps) {
   return (
     <box
@@ -250,6 +260,11 @@ function ActionBar({
         <text fg={Colors.foreground} onMouseUp={onClear}>
           [Clear]
         </text>
+        {!sseConnected && onFetch ? (
+          <text fg={Colors.accent} onMouseUp={onFetch}>
+            [FETCH]
+          </text>
+        ) : null}
       </box>
       <text dim fg={Colors.muted}>
         Space:pause /:search Tab:switch
@@ -274,6 +289,7 @@ export function LogsViewer() {
   // ── Store subscriptions (selectors only) ────────────────────────────────
   const allLogs = useServiceStore((s) => s.logs);
   const workers = useServiceStore((s) => s.workers);
+  const connectionStatus = useServiceStore((s) => s.connectionStatus);
 
   // Derive unique worker names for checkboxes
   const workerNames = useMemo(() => workers.map((w) => w.name), [workers]);
@@ -301,12 +317,97 @@ export function LogsViewer() {
     });
   }, []);
 
-  const handleExport = useCallback(() => {
-    // TODO: Write filteredLogs to file when filesystem integration is available
+  const handleExport = useCallback(async () => {
+    const ts = Date.now();
+    try {
+      const result = await cliBridge.exec<LogEntry[]>(["logs", "all"], {
+        json: true,
+        timeout: 20_000,
+      });
+
+      let data: LogEntry[];
+      if (result.success && result.data) {
+        data = result.data;
+      } else {
+        data = useServiceStore.getState().logs;
+      }
+
+      const homeDir = process.env.HOME || process.env.USERPROFILE || ".";
+      const dirPath = path.join(homeDir, ".hoox");
+      const filePath = path.join(dirPath, `logs-export-${ts}.json`);
+      await Bun.write(filePath, JSON.stringify(data, null, 2));
+
+      const alert: Alert = {
+        id: `export-${ts}`,
+        type: "info",
+        severity: "info",
+        message: `Exported ${data.length} logs to ${filePath}`,
+        timestamp: ts,
+        acknowledged: false,
+      };
+      useServiceStore.getState().addAlert(alert);
+    } catch (err) {
+      const alert: Alert = {
+        id: `export-err-${Date.now()}`,
+        type: "error",
+        severity: "error",
+        message: `Export failed: ${(err as Error).message}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      };
+      useServiceStore.getState().addAlert(alert);
+    }
   }, []);
 
   const handleClear = useCallback(() => {
-    // TODO: Clear ring buffer via store action when implemented
+    const ts = Date.now();
+    useServiceStore.setState((state) => {
+      state.logs = [];
+    });
+    const alert: Alert = {
+      id: `clear-${ts}`,
+      type: "info",
+      severity: "info",
+      message: "Log buffer cleared",
+      timestamp: ts,
+      acknowledged: false,
+    };
+    useServiceStore.getState().addAlert(alert);
+  }, []);
+
+  const handleFetch = useCallback(async () => {
+    const ts = Date.now();
+    let fetchedCount = 0;
+    const names = useServiceStore.getState().workers.map((w) => w.name);
+    if (names.length === 0) {
+      names.push("all");
+    }
+    for (const name of names) {
+      try {
+        const result = await cliBridge.workerLogs(name);
+        if (result.success && Array.isArray(result.data)) {
+          const entries = result.data as LogEntry[];
+          for (const entry of entries) {
+            useServiceStore.getState().pushLog(entry);
+          }
+          fetchedCount += entries.length;
+        }
+      } catch {
+        // skip failed worker
+      }
+    }
+    const alert: Alert = {
+      id: `fetch-${ts}`,
+      type: "info",
+      severity: "info",
+      message:
+        fetchedCount > 0
+          ? `Fetched ${fetchedCount} logs from CLI`
+          : "No logs fetched from CLI",
+      timestamp: ts,
+      acknowledged: false,
+    };
+    useServiceStore.getState().addAlert(alert);
   }, []);
 
   // ── Filter logic (AND combination) ──────────────────────────────────────

@@ -14,11 +14,14 @@
  *
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useConfigStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { cliBridge } from "../../services/cli-bridge";
+import * as path from "path";
+import * as os from "os";
 import type {
   ViewId,
   NotificationPreferences,
@@ -71,10 +74,10 @@ const NOTIFICATION_CHANNELS: (keyof NotificationPreferences)[] = [
 
 /** Human-readable labels for notification channels */
 const NOTIFICATION_LABELS: Record<keyof NotificationPreferences, string> = {
-  alerts: "Alerts",
-  trades: "Trades",
-  debug: "Debug",
-  system: "System",
+  alerts: "ALERTS",
+  trades: "TRADES",
+  debug: "DEBUG",
+  system: "SYSTEM",
 };
 
 /** System-level keyboard shortcuts shown in the reference panel */
@@ -203,7 +206,7 @@ function ThemePanel({
     <box flexDirection="column" gap={0}>
       {/* Dark/Light radio toggles */}
       <text fg={Colors.foreground} bold dim>
-        Theme
+        THEME
       </text>
       <box flexDirection="row" gap={1} paddingLeft={1}>
         <text
@@ -213,7 +216,7 @@ function ThemePanel({
           dim={!isDark}
           onMouseUp={() => updateConfig({ theme: "dark" })}
         >
-          ({isDark ? "•" : " "}) Dark
+          ({isDark ? "•" : " "}) DARK
         </text>
         <text
           fg={!isDark ? Colors.accent : Colors.muted}
@@ -222,14 +225,14 @@ function ThemePanel({
           dim={isDark}
           onMouseUp={() => updateConfig({ theme: "light" })}
         >
-          ({!isDark ? "•" : " "}) Light
+          ({!isDark ? "•" : " "}) LIGHT
         </text>
       </box>
 
       {/* Refresh rate selector */}
       <box paddingTop={1}>
         <text fg={Colors.foreground} bold dim>
-          Refresh Rate
+          REFRESH RATE
         </text>
       </box>
       <text
@@ -246,7 +249,7 @@ function ThemePanel({
       {/* Default view dropdown */}
       <box paddingTop={1}>
         <text fg={Colors.foreground} bold dim>
-          Default View
+          DEFAULT VIEW
         </text>
       </box>
       <text
@@ -268,7 +271,7 @@ function ThemePanel({
           bold
           onMouseUp={resetDefaults}
         >
-          {"[ Reset to Defaults ]"}
+          {"[ RESET TO DEFAULTS ]"}
         </text>
       </box>
     </box>
@@ -302,7 +305,7 @@ function NotificationsPanel({
     <box flexDirection="column" gap={0}>
       {/* Notification checkboxes */}
       <text fg={Colors.foreground} bold dim>
-        Channels
+        CHANNELS
       </text>
       {NOTIFICATION_CHANNELS.map((channel, i) => (
         <Checkbox
@@ -317,7 +320,7 @@ function NotificationsPanel({
       {/* Sound toggle */}
       <box paddingTop={1}>
         <Checkbox
-          label="Sound"
+          label="SOUND"
           checked={soundEnabled}
           onToggle={() => updateConfig({ soundEnabled: !soundEnabled })}
           active={active && activeItem === 4}
@@ -337,9 +340,9 @@ function KeyboardPanel() {
   return (
     <box flexDirection="column" gap={0}>
       <text fg={Colors.foreground} bold dim>
-        Key
+        KEY
         {"  "}
-        Action
+        ACTION
       </text>
 
       {SYSTEM_SHORTCUTS.map((entry) => (
@@ -372,20 +375,28 @@ function KeyboardPanel() {
  * Local item indices:
  *   0 = Clear Cache, 1 = Export Data, 2 = Import Data
  */
-const DATA_ITEM_COUNT = 3;
+const DATA_ITEM_COUNT = 4;
 
 function DataPanel({
   active,
   activeItem,
+  onClearCache,
+  onExportData,
+  onImportData,
+  onCheckSetup,
 }: {
   active: boolean;
   activeItem: number;
+  onClearCache: () => void;
+  onExportData: () => void;
+  onImportData: () => void;
+  onCheckSetup: () => void;
 }) {
   return (
     <box flexDirection="column" gap={0} flexGrow={1}>
       {/* Data management header */}
       <text fg={Colors.foreground} bold dim>
-        Data Management
+        DATA MANAGEMENT
       </text>
 
       {/* Action buttons */}
@@ -394,38 +405,40 @@ function DataPanel({
           fg={Colors.accent}
           bg={active && activeItem === 0 ? Colors.background : undefined}
           bold
-          onMouseUp={() => {
-            /* Clear Cache — implemented when cache layer exists */
-          }}
+          onMouseUp={onClearCache}
         >
-          [ Clear Cache ]
+          [ CLEAR CACHE ]
         </text>
         <text
           fg={Colors.accent}
           bg={active && activeItem === 1 ? Colors.background : undefined}
           bold
-          onMouseUp={() => {
-            /* Export Data — triggers config/state export */
-          }}
+          onMouseUp={onExportData}
         >
-          [ Export Data ]
+          [ EXPORT DATA ]
         </text>
         <text
           fg={Colors.accent}
           bg={active && activeItem === 2 ? Colors.background : undefined}
           bold
-          onMouseUp={() => {
-            /* Import Data — triggers config/state import */
-          }}
+          onMouseUp={onImportData}
         >
-          [ Import Data ]
+          [ IMPORT DATA ]
+        </text>
+        <text
+          fg={Colors.warning}
+          bg={active && activeItem === 3 ? Colors.background : undefined}
+          bold
+          onMouseUp={onCheckSetup}
+        >
+          [ CHECK SETUP ]
         </text>
       </box>
 
       {/* About section */}
       <box paddingTop={1}>
         <text fg={Colors.foreground} bold dim>
-          About
+          ABOUT
         </text>
       </box>
       <box flexDirection="column" gap={0} paddingLeft={1}>

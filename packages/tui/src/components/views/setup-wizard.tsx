@@ -1,37 +1,263 @@
 /** @jsxImportSource @opentui/react */
 /**
- * Setup Wizard — 6-step onboarding for first-run Hoox configuration.
+ * Setup Wizard — Prerequisites dashboard + 6-step onboarding.
  *
- * Steps: 1=API Keys, 2=Exchanges, 3=AI Providers, 4=Strategies,
- *        5=Notifications, 6=Deploy
+ * Step 0: Prerequisites — system checks (wrangler, Docker, Cloudflare auth, etc.)
+ * Steps 1-6: API Keys, Exchanges, AI Providers, Strategies, Notifications, Deploy
  *
- * Writes completed config to useConfigStore on final deploy action.
- * Can be reopened from Settings via UI store setView('setup-wizard').
- *
- * Uses subtask_07 dialog.tsx for deploy confirmation via showConfirm().
+ * Runs system checks on mount via Bun.spawn and displays results with
+ * status indicators matching the landing page's HUD-style status display.
  */
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useConfigStore } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
+import { cliBridge } from "../../services/cli-bridge";
+
+// ─── Prerequisite Check Types ───────────────────────────────────────────────
+
+interface PrereqCheck {
+  name: string;
+  status: "pass" | "warn" | "fail" | "checking";
+  version: string;
+  required: string;
+  hint?: string;
+}
+
+type PrereqCategory = "tool" | "account" | "repository";
+
+interface PrereqGroup {
+  label: string;
+  checks: PrereqCheck[];
+}
+
+// ─── System Check Runner ────────────────────────────────────────────────────
+
+async function spawnVersion(
+  cmd: string[],
+  flag: string
+): Promise<string | null> {
+  try {
+    const proc = Bun.spawn([...cmd, flag], { stdout: "pipe", stderr: "pipe" });
+    const out = await new Response(proc.stdout).text();
+    const exitCode = await proc.exited;
+    if (exitCode !== 0) return null;
+    return out.trim();
+  } catch {
+    return null;
+  }
+}
+
+function extractSemver(raw: string): string {
+  const m = raw.match(/(\d+\.\d+\.\d+)/);
+  return m ? m[1] : raw;
+}
+
+async function checkBun(): Promise<PrereqCheck> {
+  const raw = await spawnVersion(["bun"], "--version");
+  if (!raw)
+    return {
+      name: "Bun",
+      status: "fail",
+      version: "not found",
+      required: ">=1.2",
+      hint: "curl -fsSL https://bun.sh | bash",
+    };
+  const [major, minor] = raw.split(".").map(Number);
+  const ok = (major ?? 0) >= 1 && (minor ?? 0) >= 2;
+  return {
+    name: "Bun",
+    status: ok ? "pass" : "warn",
+    version: raw,
+    required: ">=1.2",
+    hint: ok ? undefined : "Update: curl -fsSL https://bun.sh | bash",
+  };
+}
+
+async function checkGit(): Promise<PrereqCheck> {
+  const raw = await spawnVersion(["git"], "--version");
+  if (!raw)
+    return {
+      name: "Git",
+      status: "fail",
+      version: "not found",
+      required: ">=2.40",
+      hint: "apt install git",
+    };
+  const m = raw.match(/(\d+\.\d+)/);
+  const ver = m ? m[1] : "unknown";
+  const [major, minor] = ver.split(".").map(Number);
+  const ok = (major ?? 0) >= 2 && (minor ?? 0) >= 40;
+  return {
+    name: "Git",
+    status: ok ? "pass" : "warn",
+    version: ver,
+    required: ">=2.40",
+    hint: ok ? undefined : "Update: apt install git",
+  };
+}
+
+async function checkWrangler(): Promise<PrereqCheck> {
+  const raw = await spawnVersion(["wrangler"], "--version");
+  if (!raw)
+    return {
+      name: "Wrangler CLI",
+      status: "fail",
+      version: "not found",
+      required: ">=3.88.0",
+      hint: "bun add -g wrangler",
+    };
+  const ver = extractSemver(raw);
+  const parts = ver.split(".").map(Number);
+  const ok = (parts[0] ?? 0) >= 3 && (parts[1] ?? 0) >= 88;
+  return {
+    name: "Wrangler CLI",
+    status: ok ? "pass" : "warn",
+    version: ver,
+    required: ">=3.88.0",
+    hint: ok ? undefined : `bun add -g wrangler@latest (${ver} < 3.88.0)`,
+  };
+}
+
+async function checkDocker(): Promise<PrereqCheck> {
+  const raw = await spawnVersion(["docker"], "--version");
+  if (!raw)
+    return {
+      name: "Docker",
+      status: "pass",
+      version: "not installed",
+      required: "optional",
+      hint: "Optional — used for Docker dev runtime",
+    };
+  const ver = raw.replace(/^Docker version /, "").replace(/,.*$/, "");
+  let composeOk = false;
+  try {
+    const cp = Bun.spawn(["docker", "compose", "version"], { stdout: "pipe" });
+    const co = await new Response(cp.stdout).text();
+    composeOk = co.trim().length > 0;
+  } catch {
+    /* ok */
+  }
+  const version = ver + (composeOk ? " (compose ✓)" : "");
+  return { name: "Docker", status: "pass", version, required: "optional" };
+}
+
+async function checkCfAuth(): Promise<PrereqCheck> {
+  const raw = await spawnVersion(["wrangler"], "whoami");
+  if (!raw || raw.includes("not authenticated")) {
+    return {
+      name: "Cloudflare Auth",
+      status: "fail",
+      version: "not authenticated",
+      required: "wrangler login",
+      hint: "wrangler login",
+    };
+  }
+  const email = raw.match(/[\w.+-]+@[\w-]+\.[\w.]+/)?.[0] ?? "authenticated";
+  return {
+    name: "Cloudflare Auth",
+    status: "pass",
+    version: email,
+    required: "wrangler whoami",
+  };
+}
+
+async function checkCfAccountId(): Promise<PrereqCheck> {
+  try {
+    const file = Bun.file("wrangler.jsonc");
+    const exists = await file.exists();
+    if (!exists) {
+      return {
+        name: "Cloudflare Account",
+        status: "warn",
+        version: "not detected",
+        required: "wrangler.jsonc",
+        hint: "Run: wrangler init or hoox init",
+      };
+    }
+    const text = await file.text();
+    const m = text.match(
+      /(?:account_id|accountId)\s*["']?\s*:\s*["']([^"']+)["']/
+    );
+    if (m)
+      return {
+        name: "Cloudflare Account",
+        status: "pass",
+        version: m[1].slice(0, 12) + "…",
+        required: "wrangler.jsonc",
+      };
+    return {
+      name: "Cloudflare Account",
+      status: "warn",
+      version: "not in wrangler.jsonc",
+      required: "account_id field",
+      hint: "Add account_id to wrangler.jsonc",
+    };
+  } catch {
+    return {
+      name: "Cloudflare Account",
+      status: "fail",
+      version: "read error",
+      required: "wrangler.jsonc",
+    };
+  }
+}
+
+async function checkRepository(): Promise<PrereqCheck> {
+  try {
+    const wExists = await Bun.file("wrangler.jsonc").exists();
+    const envExists =
+      (await Bun.file(".env.local").exists()) ||
+      (await Bun.file(".env.example").exists());
+    if (!wExists)
+      return {
+        name: "Repository",
+        status: "fail",
+        version: "wrangler.jsonc missing",
+        required: "valid",
+        hint: "hoox init",
+      };
+    if (!envExists)
+      return {
+        name: "Repository",
+        status: "warn",
+        version: "no .env found",
+        required: "valid",
+        hint: "Copy .env.example to .env.local",
+      };
+    return {
+      name: "Repository",
+      status: "pass",
+      version: "OK",
+      required: "valid",
+    };
+  } catch {
+    return {
+      name: "Repository",
+      status: "fail",
+      version: "check failed",
+      required: "valid",
+    };
+  }
+}
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-/** Ordered step labels displayed in the progress indicator */
-const STEPS = [
-  "API Keys",
-  "Exchanges",
-  "AI Providers",
-  "Strategies",
-  "Notifications",
-  "Deploy",
+const SETUP_STEPS = [
+  "PREREQUISITES",
+  "API KEYS",
+  "EXCHANGES",
+  "AI PROVIDERS",
+  "STRATEGIES",
+  "NOTIFICATIONS",
+  "DEPLOY",
 ] as const;
 
-const TOTAL_STEPS = STEPS.length;
+const TOTAL_SETUP_STEPS = SETUP_STEPS.length;
 
 /** Exchanges supported by the wizard */
 const EXCHANGES = ["Binance", "Bybit", "MEXC"] as const;
@@ -119,9 +345,60 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   const [validation, setValidation] = useState<Record<string, ValidationState>>(
     {}
   );
+  const [prereqs, setPrereqs] = useState<PrereqGroup[]>([]);
+  const [prereqsRunning, setPrereqsRunning] = useState(true);
+  const [cfAccountId, setCfAccountId] = useState("");
+  const [cfApiToken, setCfApiToken] = useState("");
+  const [deploying, setDeploying] = useState(false);
+  const [deployLog, setDeployLog] = useState("");
 
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const setView = useUIStore((s) => s.setView);
+  const addAlert = useServiceStore((s) => s.addAlert);
+
+  // ── Run system checks on mount ──────────────────────────────────────────
+  const runChecks = useCallback(async () => {
+    setPrereqsRunning(true);
+    setPrereqs([
+      { label: "RUNTIME", checks: [await checkBun(), await checkGit()] },
+      { label: "TOOLS", checks: [await checkWrangler(), await checkDocker()] },
+      {
+        label: "CLOUDFLARE",
+        checks: [await checkCfAuth(), await checkCfAccountId()],
+      },
+      { label: "REPOSITORY", checks: [await checkRepository()] },
+    ]);
+    setPrereqsRunning(false);
+  }, []);
+
+  useEffect(() => {
+    runChecks();
+  }, [runChecks]);
+
+  // ── Detect Cloudflare account ID from wrangler.jsonc ────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const file = Bun.file("wrangler.jsonc");
+        if (await file.exists()) {
+          const text = await file.text();
+          const m = text.match(
+            /(?:account_id|accountId)\s*["']?\s*:\s*["']([^"']+)["']/
+          );
+          if (m) setCfAccountId(m[1]);
+        }
+        const cfgFile = Bun.file(
+          `${process.env.HOME ?? "~"}/.hoox/config.json`
+        );
+        if (await cfgFile.exists()) {
+          const cfg = JSON.parse(await cfgFile.text());
+          if (cfg.apiToken) setCfApiToken(cfg.apiToken);
+        }
+      } catch {
+        /* non-fatal */
+      }
+    })();
+  }, []);
 
   /**
    * Update a field in the form data (deep path via dot notation, e.g. "apiKeys.binance.key")
@@ -141,7 +418,6 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
       obj[keys[keys.length - 1]] = value;
       return next;
     });
-    // Clear validation when field changes
     setValidation((prev) => {
       const next = { ...prev };
       delete next[path];
@@ -149,13 +425,12 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     });
   };
 
-  /** Validate the current step's fields and update validation state */
+  /** Validate the current step's fields */
   const validateStep = (): boolean => {
     const results: Record<string, ValidationState> = {};
     let allValid = true;
 
-    if (step === 0) {
-      // Validate API keys
+    if (step === 1) {
       for (const exchange of EXCHANGES) {
         const e = exchange.toLowerCase();
         const keyPath = `apiKeys.${e}.key`;
@@ -171,8 +446,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           if (!results[secretPath]) allValid = false;
         }
       }
-    } else if (step === 4) {
-      // Validate notification fields
+    } else if (step === 5) {
       if (data.notifications.email.enabled) {
         results["notifications.email.address"] = data.notifications.email
           .address
@@ -200,9 +474,15 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     return allValid;
   };
 
-  /** Advance to next step (with validation) */
+  /** Advance to next step */
   const handleNext = () => {
-    if (validateStep() && step < TOTAL_STEPS - 1) {
+    if (step === 0) {
+      if (!prereqsRunning) {
+        setStep(1);
+      }
+      return;
+    }
+    if (validateStep() && step < TOTAL_SETUP_STEPS - 1) {
       setStep((s) => s + 1);
     }
   };
@@ -212,15 +492,14 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     if (step > 0) setStep((s) => s - 1);
   };
 
-  /** Skip current step (only allowed for optional steps: Exchanges, Strategies) */
+  /** Skip current step (optional steps only) */
   const handleSkip = () => {
-    if (step < TOTAL_STEPS - 1) {
-      // Steps 1 (Exchanges) and 3 (Strategies) are skippable
-      setStep((s) => s + 1);
+    if (step < TOTAL_SETUP_STEPS - 1) {
+      if (step === 2 || step === 4) setStep((s) => s + 1);
     }
   };
 
-  /** Deploy: write config and navigate away */
+  /** Deploy: write config, run hoox deploy all, navigate on success */
   const handleDeploy = async () => {
     try {
       const activeExchanges = Object.entries(data.exchanges)
@@ -236,14 +515,39 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           confirmLabel: "Deploy",
           cancelLabel: "Cancel",
         });
-        if (confirmed) {
-          setView("dashboard");
-        }
-      } else {
-        setView("dashboard");
+        if (!confirmed) return;
       }
-    } catch {
-      // Error in config write or dialog — handled by ErrorBoundary
+
+      setDeploying(true);
+      setDeployLog("");
+
+      const result = await cliBridge.deployAll((chunk) => {
+        setDeployLog((prev) => prev + chunk);
+      });
+
+      if (result.success) {
+        addAlert({
+          id: `deploy-${Date.now()}`,
+          type: "deploy",
+          severity: "info",
+          message: "Deployment completed successfully",
+          timestamp: Date.now(),
+          acknowledged: false,
+          source: "SetupWizard",
+        });
+        setView("dashboard");
+      } else {
+        setDeployLog(
+          (prev) =>
+            prev + `\nDeploy failed: ${result.stderr || "Unknown error"}\n`
+        );
+      }
+    } catch (err) {
+      setDeployLog(
+        (prev) => prev + `\nDeploy error: ${(err as Error).message}\n`
+      );
+    } finally {
+      setDeploying(false);
     }
   };
 
@@ -253,6 +557,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     if (key.name === "left" || (key.ctrl && key.name === "p")) handleBack();
     if (key.name === "escape") handleBack();
     if (key.name === "tab" && key.shift) handleBack();
+    if (key.name === "r" && step === 0) runChecks();
   });
 
   // ── Validation indicator for a field ─────────────────────────────────────
@@ -310,9 +615,109 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  // ── Step Content Renderers ──────────────────────────────────────────────
+  // ── Status Icon helper ──────────────────────────────────────────────────
+  const StatusIcon = ({ status }: { status: PrereqCheck["status"] }) => {
+    if (status === "checking") return <text fg={Colors.muted}>⋯</text>;
+    if (status === "pass") return <text fg={Colors.success}>█</text>;
+    if (status === "warn") return <text fg={Colors.warning}>▌</text>;
+    return (
+      <text fg={Colors.error} dim>
+        ░
+      </text>
+    );
+  };
 
-  /** Step 0: API Keys */
+  // ── Step Content: PREREQUISITES (step 0) ────────────────────────────────
+  const StepPrerequisites = () => {
+    const allPassed = prereqs.every((g) =>
+      g.checks.every((c) => c.status === "pass")
+    );
+    return (
+      <box flexDirection="column" gap={1}>
+        {/* System checks grid */}
+        {prereqs.map((group) => (
+          <box flexDirection="column" gap={0}>
+            <text bold fg={Colors["muted-foreground"]} dim>
+              ┌ {group.label} ┐
+            </text>
+            {group.checks.map((c) => (
+              <box flexDirection="row" gap={2} paddingLeft={2}>
+                <StatusIcon status={c.status} />
+                <text fg={Colors.foreground} width={20}>
+                  {c.name}
+                </text>
+                <text
+                  fg={
+                    c.status === "pass"
+                      ? Colors.success
+                      : c.status === "warn"
+                        ? Colors.warning
+                        : Colors.error
+                  }
+                >
+                  {c.status === "checking"
+                    ? "CHECKING"
+                    : c.status === "pass"
+                      ? "PASS"
+                      : c.status === "warn"
+                        ? "WARN"
+                        : "FAIL"}
+                </text>
+                <text fg={Colors.muted}>{c.version}</text>
+                {c.hint && (
+                  <text fg={Colors.dim} dim>
+                    — {c.hint}
+                  </text>
+                )}
+              </box>
+            ))}
+          </box>
+        ))}
+
+        {/* Cloudflare config card */}
+        <box flexDirection="column" gap={0} paddingTop={1}>
+          <text bold fg={Colors["muted-foreground"]} dim>
+            ┌ CLOUDFLARE CONFIG ┐
+          </text>
+          <box flexDirection="column" gap={0} paddingLeft={2}>
+            <box flexDirection="row" gap={2}>
+              <text fg={Colors.muted} width={14}>
+                Account ID:
+              </text>
+              <text fg={cfAccountId ? Colors.success : Colors.warning}>
+                {cfAccountId || "(auto-detect)"}
+              </text>
+              {cfAccountId && <text fg={Colors.success}> ✓</text>}
+            </box>
+            <box flexDirection="row" gap={2}>
+              <text fg={Colors.muted} width={14}>
+                API Token:
+              </text>
+              <text fg={cfApiToken ? Colors.success : Colors.dim}>
+                {cfApiToken ? maskSecret(cfApiToken) : "(not set)"}
+              </text>
+              {cfApiToken && <text fg={Colors.success}> ✓</text>}
+            </box>
+          </box>
+        </box>
+
+        {/* Overall status */}
+        <box paddingTop={1} paddingLeft={2}>
+          <text fg={allPassed ? Colors.success : Colors.warning} bold>
+            {prereqsRunning
+              ? "RUNNING CHECKS…"
+              : allPassed
+                ? "ALL CHECKS PASSED"
+                : "SOME CHECKS NEED ATTENTION"}
+          </text>
+        </box>
+      </box>
+    );
+  };
+
+  // ── Step Content Renderers (shifted: old step N is now step N+1) ────────
+
+  /** Step 1: API Keys */
   const StepApiKeys = () => (
     <box flexDirection="column" gap={0}>
       <text bold fg={Colors.accent}>
@@ -346,7 +751,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  /** Step 1: Exchanges */
+  /** Step 2: Exchanges */
   const StepExchanges = () => (
     <box flexDirection="column" gap={0}>
       <text bold fg={Colors.accent}>
@@ -367,7 +772,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  /** Step 2: AI Providers */
+  /** Step 3: AI Providers */
   const StepAiProviders = () => (
     <box flexDirection="column" gap={0}>
       <text bold fg={Colors.accent}>
@@ -396,7 +801,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  /** Step 3: Strategies */
+  /** Step 4: Strategies */
   const StepStrategies = () => (
     <box flexDirection="column" gap={0}>
       <text bold fg={Colors.accent}>
@@ -428,7 +833,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  /** Step 4: Notifications */
+  /** Step 5: Notifications */
   const StepNotifications = () => (
     <box flexDirection="column" gap={0}>
       <text bold fg={Colors.accent}>
@@ -438,7 +843,6 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
         Configure alert channels for trade events and system status.
       </text>
       <box flexDirection="column" gap={1} paddingTop={1}>
-        {/* Email */}
         <box flexDirection="column" gap={0}>
           <Checkbox
             label="Email"
@@ -458,7 +862,6 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           )}
         </box>
 
-        {/* Telegram */}
         <box flexDirection="column" gap={0}>
           <Checkbox
             label="Telegram"
@@ -485,7 +888,6 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           )}
         </box>
 
-        {/* Discord */}
         <box flexDirection="column" gap={0}>
           <Checkbox
             label="Discord"
@@ -516,7 +918,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     </box>
   );
 
-  /** Step 5: Deploy — Summary view */
+  /** Step 6: Deploy — Summary view */
   const StepDeploy = () => {
     const activeCount = Object.values(data.exchanges).filter(Boolean).length;
     const apiKeysConfigured = Object.values(data.apiKeys).filter(
@@ -530,53 +932,112 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
 
     return (
       <box flexDirection="column" gap={0}>
-        <text bold fg={Colors.accent}>
-          Ready to Deploy
-        </text>
-        <text dim fg={Colors.muted}>
-          Review your configuration before deploying.
-        </text>
-        <box flexDirection="column" gap={0} paddingTop={1}>
-          <text fg={Colors.foreground}>
-            Exchanges: {activeCount} active (
-            {data.exchanges.binance ? "Binance " : ""}
-            {data.exchanges.bybit ? "Bybit " : ""}
-            {data.exchanges.mexc ? "MEXC" : ""}
-            {activeCount === 0 ? "none" : ""})
-          </text>
-          <text fg={Colors.foreground}>
-            API Keys: {apiKeysConfigured}/3 configured
-          </text>
-          <text fg={Colors.foreground}>
-            AI Provider:{" "}
-            {data.ai.providerUrl ? data.ai.model : "not configured"}
-          </text>
-          <text fg={Colors.foreground}>Strategy: {data.strategy.type}</text>
-          <text fg={Colors.foreground}>
-            Notifications: {notifCount} channels
-            {data.notifications.email.enabled ? " Email" : ""}
-            {data.notifications.telegram.enabled ? " Telegram" : ""}
-            {data.notifications.discord.enabled ? " Discord" : ""}
-            {notifCount === 0 ? " none" : ""}
-          </text>
-        </box>
-        <box paddingTop={2} justifyContent="center">
-          <text
-            fg={Colors.accent}
-            bg={Colors.card}
-            bold
-            onMouseUp={handleDeploy}
-          >
-            {"  [ Deploy Now ]  "}
-          </text>
-        </box>
+        {deploying ? (
+          <>
+            <text bold fg={Colors.accent}>
+              Deploying…
+            </text>
+            <text dim fg={Colors.muted}>
+              Running hoox deploy all — this may take a few minutes.
+            </text>
+            <box
+              flexDirection="column"
+              gap={0}
+              paddingTop={1}
+              height={10}
+              overflow="hidden"
+            >
+              <scrollbox border={false} flexGrow={1}>
+                <text fg={Colors.foreground}>{deployLog || "Starting…\n"}</text>
+              </scrollbox>
+            </box>
+            <box paddingTop={1}>
+              <text dim fg={Colors.muted}>
+                Deploying workers, please wait…
+              </text>
+            </box>
+          </>
+        ) : deployLog ? (
+          <>
+            <text bold fg={Colors.error}>
+              Deploy Failed
+            </text>
+            <box
+              flexDirection="column"
+              gap={0}
+              paddingTop={1}
+              height={8}
+              overflow="hidden"
+            >
+              <scrollbox border={false} flexGrow={1}>
+                <text fg={Colors.error}>{deployLog}</text>
+              </scrollbox>
+            </box>
+            <box paddingTop={2} justifyContent="center">
+              <text
+                fg={Colors.accent}
+                bg={Colors.card}
+                bold
+                onMouseUp={() => {
+                  setDeployLog("");
+                  handleDeploy();
+                }}
+              >
+                {"  [ Retry Deploy ]  "}
+              </text>
+            </box>
+          </>
+        ) : (
+          <>
+            <text bold fg={Colors.accent}>
+              Ready to Deploy
+            </text>
+            <text dim fg={Colors.muted}>
+              Review your configuration before deploying.
+            </text>
+            <box flexDirection="column" gap={0} paddingTop={1}>
+              <text fg={Colors.foreground}>
+                Exchanges: {activeCount} active (
+                {data.exchanges.binance ? "Binance " : ""}
+                {data.exchanges.bybit ? "Bybit " : ""}
+                {data.exchanges.mexc ? "MEXC" : ""}
+                {activeCount === 0 ? "none" : ""})
+              </text>
+              <text fg={Colors.foreground}>
+                API Keys: {apiKeysConfigured}/3 configured
+              </text>
+              <text fg={Colors.foreground}>
+                AI Provider:{" "}
+                {data.ai.providerUrl ? data.ai.model : "not configured"}
+              </text>
+              <text fg={Colors.foreground}>Strategy: {data.strategy.type}</text>
+              <text fg={Colors.foreground}>
+                Notifications: {notifCount} channels
+                {data.notifications.email.enabled ? " Email" : ""}
+                {data.notifications.telegram.enabled ? " Telegram" : ""}
+                {data.notifications.discord.enabled ? " Discord" : ""}
+                {notifCount === 0 ? " none" : ""}
+              </text>
+            </box>
+            <box paddingTop={2} justifyContent="center">
+              <text
+                fg={deploying ? Colors.dim : Colors.accent}
+                bg={deploying ? Colors.border : Colors.card}
+                bold
+                onMouseUp={deploying ? undefined : handleDeploy}
+              >
+                {"  [ Deploy Now ]  "}
+              </text>
+            </box>
+          </>
+        )}
       </box>
     );
   };
 
   // ─── Progress Indicator ─────────────────────────────────────────────────
 
-  const progressLine = STEPS.map((label, i) => {
+  const progressLine = SETUP_STEPS.map((label, i) => {
     const isFilled = i <= step;
     const isCurrent = i === step;
     return (
@@ -595,16 +1056,18 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   const stepContent = (() => {
     switch (step) {
       case 0:
-        return <StepApiKeys />;
+        return <StepPrerequisites />;
       case 1:
-        return <StepExchanges />;
+        return <StepApiKeys />;
       case 2:
-        return <StepAiProviders />;
+        return <StepExchanges />;
       case 3:
-        return <StepStrategies />;
+        return <StepAiProviders />;
       case 4:
-        return <StepNotifications />;
+        return <StepStrategies />;
       case 5:
+        return <StepNotifications />;
+      case 6:
         return <StepDeploy />;
       default:
         return <text>Unknown step</text>;
@@ -612,15 +1075,15 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   })();
 
   const isFirstStep = step === 0;
-  const isLastStep = step === TOTAL_STEPS - 1;
-  const canSkip = step === 1 || step === 3; // Exchanges and Strategies are optional
+  const isLastStep = step === TOTAL_SETUP_STEPS - 1;
+  const canSkip = step === 2 || step === 4;
 
   return (
     <ErrorBoundary viewName="Setup Wizard">
       <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
         {/* Title */}
         <text bold fg={Colors.foreground}>
-          Setup Wizard — Step {step + 1} of {TOTAL_STEPS}: {STEPS[step]}
+          SETUP — STEP {step + 1}/{TOTAL_SETUP_STEPS}: {SETUP_STEPS[step]}
         </text>
 
         {/* Progress Indicator */}
@@ -630,7 +1093,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
 
         {/* Separator */}
         <text fg={Colors.border} dim>
-          {"─".repeat(60)}
+          {"─".repeat(TOTAL_SETUP_STEPS * 16)}
         </text>
 
         {/* Step Content (scrollbox for overflow) */}
@@ -640,35 +1103,32 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
 
         {/* Navigation Bar */}
         <box flexDirection="row" justifyContent="space-between" paddingTop={1}>
-          {/* Left: Back */}
           <text
             fg={isFirstStep ? Colors.dim : Colors.muted}
             onMouseUp={isFirstStep ? undefined : handleBack}
           >
-            {isFirstStep ? "            " : "[← Back]"}
+            {isFirstStep ? "            " : "[← BACK]"}
           </text>
 
-          {/* Center: Skip */}
           <text
             fg={canSkip && !isLastStep ? Colors.muted : Colors.dim}
             onMouseUp={canSkip && !isLastStep ? handleSkip : undefined}
           >
-            {canSkip && !isLastStep ? "[Skip]" : ""}
+            {canSkip && !isLastStep ? "[SKIP]" : ""}
           </text>
 
-          {/* Right: Next / Deploy */}
           <text
             fg={isLastStep ? Colors.dim : Colors.accent}
             bold={!isLastStep}
             onMouseUp={isLastStep ? undefined : handleNext}
           >
-            {isLastStep ? "" : "[Next →]"}
+            {isLastStep ? "" : "[NEXT →]"}
           </text>
         </box>
 
         {/* Keybindings hint */}
         <text dim fg={Colors.dim}>
-          ← → navigate steps | Tab next field | Esc back | Skip optional steps
+          ← → NAVIGATE · ESC BACK · R RE-RUN CHECKS · OPTIONAL STEPS SKIPPABLE
         </text>
       </box>
     </ErrorBoundary>
