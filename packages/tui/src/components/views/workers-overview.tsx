@@ -19,13 +19,14 @@
  * Wrapped in ScrollBox for overflow when workers exceed viewport height.
  * Follows TUI Patterns 1 (View Composition), 2 (Store Subscription), 8 (ScrollBox).
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
+import { cliBridge } from "../../services/cli-bridge";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared";
 
 // ── Grid Constants ────────────────────────────────────────────────────────────
@@ -74,6 +75,10 @@ interface WorkerCardProps {
   index: number;
   focused: boolean;
   onViewDetails: () => void;
+  onDeploy: () => void;
+  onRestart: () => void;
+  onLogs: () => void;
+  isDeploying: boolean;
 }
 
 function WorkerCard({
@@ -81,6 +86,10 @@ function WorkerCard({
   index,
   focused,
   onViewDetails,
+  onDeploy,
+  onRestart,
+  onLogs,
+  isDeploying,
 }: WorkerCardProps) {
   return (
     <box
@@ -98,7 +107,7 @@ function WorkerCard({
           No.{String(index + 1).padStart(2, "0")}
         </text>
         <text fg={Colors.foreground} bold>
-          {worker.name}
+          {worker.name.toUpperCase()}
         </text>
         <StatusDot
           status={worker.status}
@@ -106,22 +115,22 @@ function WorkerCard({
         />
       </box>
 
-      {/* Metrics — three 2-column rows */}
+      {/* Metrics — three 2-column rows (uppercase labels match landing page convention) */}
       <box flexDirection="column" paddingLeft={1} gap={0}>
         <box flexDirection="row" gap={2}>
-          <text fg={Colors.muted}>Uptime:</text>
+          <text fg={Colors.muted}>UPTIME:</text>
           <text fg={Colors.foreground}>{formatUptime(worker.uptime)}</text>
         </box>
         <box flexDirection="row" gap={2}>
-          <text fg={Colors.muted}>CPU avg:</text>
+          <text fg={Colors.muted}>CPU AVG:</text>
           <text fg={Colors.foreground}>{formatCpu(worker.cpu)}</text>
         </box>
         <box flexDirection="row" gap={2}>
-          <text fg={Colors.muted}>Memory:</text>
+          <text fg={Colors.muted}>MEMORY:</text>
           <text fg={Colors.foreground}>{formatMemory(worker.memory)}</text>
         </box>
         <box flexDirection="row" gap={2}>
-          <text fg={Colors.muted}>Req/24h:</text>
+          <text fg={Colors.muted}>REQ/24H:</text>
           <text fg={Colors.foreground}>{formatCount(worker.requests)}</text>
         </box>
         <box flexDirection="row" gap={2}>
@@ -129,7 +138,7 @@ function WorkerCard({
           <text fg={Colors.foreground}>{worker.durableObjectCount}</text>
         </box>
         <box flexDirection="row" gap={2}>
-          <text fg={Colors.muted}>Edges:</text>
+          <text fg={Colors.muted}>EDGES:</text>
           <text fg={Colors.foreground}>{worker.edgeCount}</text>
         </box>
       </box>
@@ -141,9 +150,35 @@ function WorkerCard({
           bg={focused ? Colors.card : undefined}
           onMouseUp={onViewDetails}
         >
-          [View Details]
+          [VIEW DETAILS]
         </text>
-        <text fg={Colors.muted}>[Logs]</text>
+        <text
+          fg={
+            isDeploying ? Colors.muted : focused ? Colors.accent : Colors.muted
+          }
+          bg={focused ? Colors.card : undefined}
+          onMouseUp={isDeploying ? undefined : onDeploy}
+        >
+          [DEPLOY]
+        </text>
+        <text
+          fg={
+            isDeploying ? Colors.muted : focused ? Colors.accent : Colors.muted
+          }
+          bg={focused ? Colors.card : undefined}
+          onMouseUp={isDeploying ? undefined : onRestart}
+        >
+          [RESTART]
+        </text>
+        <text
+          fg={
+            isDeploying ? Colors.muted : focused ? Colors.accent : Colors.muted
+          }
+          bg={focused ? Colors.card : undefined}
+          onMouseUp={isDeploying ? undefined : onLogs}
+        >
+          [LOGS]
+        </text>
       </box>
     </box>
   );
@@ -154,6 +189,10 @@ function WorkerCard({
 export function WorkersOverview() {
   // ── 2D grid focus state ─────────────────────────────────────────────────
   const [focusedIndex, setFocusedIndex] = useState(0);
+
+  // ── Deploy state ────────────────────────────────────────────────────────
+  const [deployingWorker, setDeployingWorker] = useState<string | null>(null);
+  const [deployProgress, setDeployProgress] = useState("");
 
   // ── Store subscriptions (selectors for performance) ─────────────────────
   const workers = useServiceStore((s) => s.workers);
@@ -201,6 +240,110 @@ export function WorkersOverview() {
     }
   });
 
+  // ── Action Handlers ─────────────────────────────────────────────────────
+  const onProgress = useCallback((chunk: string) => {
+    setDeployProgress((prev) => (prev + chunk).slice(-2000));
+  }, []);
+
+  const handleLogs = useCallback(
+    async (worker: WorkerInfo) => {
+      if (deployingWorker) return;
+      try {
+        const result = await cliBridge.workerLogs(worker.name);
+        useServiceStore.getState().addAlert({
+          id: `logs-${Date.now()}-${worker.name}`,
+          type: "logs",
+          severity: result.success ? "info" : "warning",
+          message: result.success
+            ? `${worker.name} logs retrieved (${(result.duration / 1000).toFixed(1)}s)`
+            : `${worker.name} logs failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+      } catch (err) {
+        useServiceStore.getState().addAlert({
+          id: `logs-err-${Date.now()}`,
+          type: "logs",
+          severity: "warning",
+          message: `${worker.name} logs error: ${err instanceof Error ? err.message : String(err)}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+      }
+    },
+    [deployingWorker]
+  );
+
+  const handleDeploy = useCallback(
+    async (worker: WorkerInfo) => {
+      if (deployingWorker) return;
+      setDeployingWorker(worker.name);
+      setDeployProgress("");
+      try {
+        const result = await cliBridge.deployWorker(worker.name, onProgress);
+        const store = useServiceStore.getState();
+        store.addAlert({
+          id: `deploy-${Date.now()}-${worker.name}`,
+          type: "deploy",
+          severity: result.success ? "info" : "warning",
+          message: result.success
+            ? `${worker.name} deployed (${(result.duration / 1000).toFixed(1)}s)`
+            : `${worker.name} deploy failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        if (result.success) await store.fetchWorkers();
+      } catch (err) {
+        useServiceStore.getState().addAlert({
+          id: `deploy-err-${Date.now()}`,
+          type: "deploy",
+          severity: "warning",
+          message: `${worker.name} deploy error: ${err instanceof Error ? err.message : String(err)}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+      } finally {
+        setDeployingWorker(null);
+      }
+    },
+    [deployingWorker, onProgress]
+  );
+
+  const handleRestart = useCallback(
+    async (worker: WorkerInfo) => {
+      if (deployingWorker) return;
+      setDeployingWorker(worker.name);
+      setDeployProgress("");
+      try {
+        const result = await cliBridge.repairWorker(worker.name, onProgress);
+        const store = useServiceStore.getState();
+        store.addAlert({
+          id: `restart-${Date.now()}-${worker.name}`,
+          type: "restart",
+          severity: result.success ? "info" : "warning",
+          message: result.success
+            ? `${worker.name} restarted (${(result.duration / 1000).toFixed(1)}s)`
+            : `${worker.name} restart failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        if (result.success) await store.fetchWorkers();
+      } catch (err) {
+        useServiceStore.getState().addAlert({
+          id: `restart-err-${Date.now()}`,
+          type: "restart",
+          severity: "warning",
+          message: `${worker.name} restart error: ${err instanceof Error ? err.message : String(err)}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+      } finally {
+        setDeployingWorker(null);
+      }
+    },
+    [deployingWorker, onProgress]
+  );
+
   // ── Escape hatch: empty state ───────────────────────────────────────────
   if (workers.length === 0) {
     return (
@@ -229,6 +372,18 @@ export function WorkersOverview() {
           <text fg={Colors.muted}>{workers.length} total</text>
         </box>
 
+        {/* Deploy progress */}
+        {deployingWorker && (
+          <box flexDirection="column" gap={0}>
+            <text fg={Colors.accent}>DEPLOYING {deployingWorker}...</text>
+            {deployProgress && (
+              <text fg={Colors.muted} dim>
+                {deployProgress.slice(-200)}
+              </text>
+            )}
+          </box>
+        )}
+
         {/* Scrollable 2-column card grid */}
         <scrollbox width="100%" flexGrow={1} border={false}>
           <box flexDirection="column" gap={1}>
@@ -246,6 +401,10 @@ export function WorkersOverview() {
                         selectWorker(worker.id);
                         setView("worker-detail");
                       }}
+                      onDeploy={() => handleDeploy(worker)}
+                      onRestart={() => handleRestart(worker)}
+                      onLogs={() => handleLogs(worker)}
+                      isDeploying={deployingWorker === worker.name}
                     />
                   );
                 })}
