@@ -226,12 +226,20 @@ export async function main(): Promise<void> {
     // Auto-launch the setup wizard if not yet initialized
     const configFile = Bun.file("wrangler.jsonc");
     const hasConfig = await configFile.exists();
-    const hasWizardState = Bun.file(WIZARD_STATE_PATH);
+    const wizardStateFile = Bun.file(WIZARD_STATE_PATH);
+    const hasWizardState = await wizardStateFile.exists();
 
     if (!hasConfig) {
       // No wrangler.jsonc → project is uninitialized → run the wizard
-      await program.parseAsync(["init"], { from: "user" });
+      // If there's a partial wizard state file, auto-resume
+      const args = hasWizardState ? ["init", "--resume"] : ["init"];
+      await program.parseAsync(args, { from: "user" });
       process.exit(ExitCode.SUCCESS);
+    }
+
+    // Clean up stale wizard state if project is already initialized
+    if (hasWizardState) {
+      await Bun.write(WIZARD_STATE_PATH, "");
     }
 
     // Interactive TUI mode — launches when hoox is called with no arguments
