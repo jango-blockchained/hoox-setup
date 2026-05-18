@@ -59,31 +59,23 @@ export async function GET() {
 
     let fetchedSecrets: { name: string }[] = [];
 
-    if (apiToken && accountId && storeId) {
-      // Fetch from Cloudflare Secret Store directly instead of reading process.env
-      const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${accountId}/secrets_store/stores/${storeId}/secrets`,
-        {
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        }
-      );
-
-      const data = (await response.json()) as {
-        success: boolean;
-        result?: { name: string }[];
-      };
-      if (data.success && data.result) {
-        fetchedSecrets = data.result;
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/secrets_store/stores/${storeId}/secrets`,
+      {
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
       }
-    } else {
-      // Fallback to process.env if CF tokens are not set
-      fetchedSecrets = ALL_SECRETS.filter((name) => !!getEnvVar(name)).map(
-        (name) => ({ name })
-      );
+    );
+
+    const data = (await response.json()) as {
+      success: boolean;
+      result?: { name: string }[];
+    };
+    if (data.success && data.result) {
+      fetchedSecrets = data.result;
     }
 
     const availableNames = new Set(fetchedSecrets.map((s) => s.name));

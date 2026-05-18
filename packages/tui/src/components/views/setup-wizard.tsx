@@ -413,9 +413,19 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
         unknown
       >;
       for (let i = 0; i < keys.length - 1; i++) {
-        obj = obj[keys[i]] as Record<string, unknown>;
+        const key = keys[i];
+        if (key === "__proto__" || key === "constructor" || key === "prototype")
+          return prev;
+        obj = obj[key] as Record<string, unknown>;
       }
-      obj[keys[keys.length - 1]] = value;
+      const lastKey = keys[keys.length - 1];
+      if (
+        lastKey === "__proto__" ||
+        lastKey === "constructor" ||
+        lastKey === "prototype"
+      )
+        return prev;
+      obj[lastKey] = value;
       return next;
     });
     setValidation((prev) => {

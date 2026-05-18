@@ -697,10 +697,11 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
       return;
     }
 
-    const edits = jsonc.modify(content, ["vars"], vars, {
+    const fresh = readFileSync(filePath, "utf-8");
+    const edits = jsonc.modify(fresh, ["vars"], vars, {
       formattingOptions: { tabSize: 2, insertSpaces: true },
     });
-    writeFileSync(filePath, jsonc.applyEdits(content, edits), "utf-8");
+    writeFileSync(filePath, jsonc.applyEdits(fresh, edits), "utf-8");
     formatSuccess(
       `Updated ${changesCount} service URL(s) in dashboard wrangler.jsonc`,
       fmt

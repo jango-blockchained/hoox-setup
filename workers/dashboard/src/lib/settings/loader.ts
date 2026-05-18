@@ -35,22 +35,15 @@ function parseFieldValue(
 function createField(
   sectionId: string,
   key: string,
-  value: string | number | boolean,
-  options?: string[]
+  value: string | number | boolean
 ): SettingField {
-  const type = options ? "select" : parseFieldValue(value);
   const field: SettingField = {
     key: `${sectionId}:${key}`,
     label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    type: type as SettingField["type"],
+    type: parseFieldValue(value) as SettingField["type"],
     default: value,
     placeholder: String(value),
   };
-
-  if (options) {
-    field.type = "select";
-    field.options = options.map((opt) => ({ value: opt, label: opt }));
-  }
 
   return field;
 }

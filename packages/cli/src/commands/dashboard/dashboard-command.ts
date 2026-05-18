@@ -79,10 +79,11 @@ function updateWranglerVars(
     return;
   }
 
-  const edits = jsonc.modify(content, ["vars"], vars, {
+  const fresh = readFileSync(filePath, "utf-8");
+  const edits = jsonc.modify(fresh, ["vars"], vars, {
     formattingOptions: { tabSize: 2, insertSpaces: true },
   });
-  const updated = jsonc.applyEdits(content, edits);
+  const updated = jsonc.applyEdits(fresh, edits);
   writeFileSync(filePath, updated, "utf-8");
 
   formatSuccess(
