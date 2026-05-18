@@ -39,7 +39,7 @@ export async function POST(
     }
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set("session", username, {
+    response.cookies.set("session", username ?? "", {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

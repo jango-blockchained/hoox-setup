@@ -79,7 +79,7 @@ export function VisionUpload() {
         }),
         signal: controller.signal,
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setResult(data.response);
         toast.success("Analysis complete");

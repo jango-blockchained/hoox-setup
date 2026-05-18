@@ -3,7 +3,7 @@
  * Adapted from workers/agent-worker/src/middleware/logger.ts
  */
 
-import { toError } from "../errors.js";
+import { toError } from "../errors";
 
 export interface LogContext {
   service: string;

@@ -122,7 +122,7 @@ export function WorkersOverview() {
         const res = await fetch("/api/agent/status", {
           signal: controller.signal,
         });
-        const data = await res.json();
+        const data: any = await res.json();
         if (data.success && data.status) {
           setWorkers((prev) =>
             prev.map((w) => {

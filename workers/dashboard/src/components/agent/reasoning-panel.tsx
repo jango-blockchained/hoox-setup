@@ -48,7 +48,7 @@ export function ReasoningPanel() {
         body: JSON.stringify({ prompt, model, reasoningEffort: effort }),
         signal: controller.signal,
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setReasoning(data.reasoning || null);
         setAnswer(data.answer || data.response);

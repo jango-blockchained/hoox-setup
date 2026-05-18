@@ -1,5 +1,5 @@
-import { toError } from "@jango-blockchained/hoox-shared";
-import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared";
+import { toError } from "@jango-blockchained/hoox-shared/errors";
+import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared/types";
 
 function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
@@ -85,9 +85,9 @@ class ApiClient {
     return (await response.json()) as T;
   }
 
-  private asObject(value: unknown): Record<string, unknown> {
+  private asObject(value: unknown): Record<string, any> {
     return typeof value === "object" && value !== null
-      ? (value as Record<string, unknown>)
+      ? (value as Record<string, any>)
       : {};
   }
 

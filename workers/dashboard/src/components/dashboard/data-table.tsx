@@ -99,6 +99,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 
@@ -244,9 +245,9 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     header: "Status",
     cell: ({ row }) => (
       <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "filled" ? (
+        {row.original.status === "CLOSED" ? (
           <IconCircleCheckFilled className="mr-1 size-3 fill-success" />
-        ) : row.original.status === "open" ? (
+        ) : row.original.status === "OPEN" ? (
           <IconLoader className="mr-1 size-3 text-warning" />
         ) : null}
         {row.original.status}

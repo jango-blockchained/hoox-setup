@@ -11,7 +11,7 @@ import type {
   TradeSignalRecord,
   D1QueryResult,
 } from "./schemas";
-import { toError } from "../errors.js";
+import { toError } from "../errors";
 
 export interface BatchStatement {
   query: string;

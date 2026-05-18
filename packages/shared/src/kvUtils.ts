@@ -3,7 +3,7 @@
  * Shared across workers that need KV timestamp logging
  */
 import type { KVNamespace } from "@cloudflare/workers-types";
-import { toError } from "./errors.js";
+import { toError } from "./errors";
 
 /**
  * Interface for environments with a KVNamespace binding

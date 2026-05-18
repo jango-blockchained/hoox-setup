@@ -35,6 +35,7 @@ interface CapturedCalls {
   passwordMessages: string[];
   textMessages: string[];
   multiselectMessages: string[];
+  selectMessages: string[];
   confirmMessages: string[];
   cancelMessages: string[];
   logInfo: string[];
@@ -54,6 +55,7 @@ function makeCapture(): CapturedCalls {
     passwordMessages: [],
     textMessages: [],
     multiselectMessages: [],
+    selectMessages: [],
     confirmMessages: [],
     cancelMessages: [],
     logInfo: [],
@@ -72,7 +74,9 @@ interface PromptResponses {
   password?: string | symbol;
   text?: string | symbol;
   multiselect?: string[] | symbol;
-  confirm?: boolean | symbol;
+  select?: string | symbol;
+  /** Confirm responses returned in order (call-by-call). Defaults are `[true, false, false]`. */
+  confirmSequence?: boolean[];
   /** Group responses keyed by field name */
   group?: Record<string, string>;
 }
@@ -81,7 +85,8 @@ const defaultResponses: Required<PromptResponses> = {
   password: "test-token",
   text: "test-account",
   multiselect: [],
-  confirm: true,
+  select: "minimal",
+  confirmSequence: [true, false, false], // risk → provisioning → deploy
   group: {},
 };
 
@@ -92,6 +97,7 @@ interface CallCounters {
   password: number;
   text: number;
   multiselect: number;
+  select: number;
   confirm: number;
 }
 
@@ -99,11 +105,12 @@ let counters: CallCounters = {
   password: 0,
   text: 0,
   multiselect: 0,
+  select: 0,
   confirm: 0,
 };
 
 function resetCounters(): void {
-  counters = { password: 0, text: 0, multiselect: 0, confirm: 0 };
+  counters = { password: 0, text: 0, multiselect: 0, select: 0, confirm: 0 };
 }
 
 /** Whether to simulate cancellation on next check. */
@@ -182,13 +189,26 @@ function installClackSpies(): void {
         : (responses.multiselect ?? defaultResponses.multiselect);
     }
   );
+  spyOn(clack, "select").mockImplementation(
+    async (opts: {
+      message: string;
+      options: { value: string; label: string; hint?: string }[];
+    }) => {
+      captured.selectMessages.push(opts.message);
+      counters.select++;
+      return simulateCancel
+        ? Symbol.for("clack.cancel")
+        : (responses.select ?? defaultResponses.select);
+    }
+  );
   spyOn(clack, "confirm").mockImplementation(
     async (opts: { message: string; initialValue?: boolean }) => {
       captured.confirmMessages.push(opts.message);
-      counters.confirm++;
-      return simulateCancel
-        ? Symbol.for("clack.cancel")
-        : (responses.confirm ?? defaultResponses.confirm);
+      const idx = counters.confirm++;
+      const seq = responses.confirmSequence ?? defaultResponses.confirmSequence;
+      const val = idx < seq.length ? seq[idx] : seq[seq.length - 1];
+      if (simulateCancel) return Symbol.for("clack.cancel");
+      return val;
     }
   );
   spyOn(clack, "group").mockImplementation(
@@ -244,8 +264,7 @@ function installClackSpies(): void {
 // Mock: Bun.write & Bun.file
 // ---------------------------------------------------------------------------
 
-const originalWrite = Bun.write;
-const originalFile = Bun.file;
+const origWhoamiPrototype = CloudflareService.prototype.whoami;
 
 beforeEach(() => {
   captured = makeCapture();
@@ -302,7 +321,7 @@ beforeEach(() => {
 
 afterEach(() => {
   mock.restore();
-  CloudflareService.prototype.whoami = origWhoami;
+  CloudflareService.prototype.whoami = origWhoamiPrototype;
 });
 
 // ---------------------------------------------------------------------------
@@ -320,18 +339,19 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account-id",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
-      // Prevent collectBaseSecrets confirm from breaking
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       expect(captured.intro.length).toBeGreaterThan(0);
       expect(captured.intro.some((m) => m.includes("Hoox Setup Wizard"))).toBe(
         true
       );
-      // Outro may or may not fire depending on flow. If confirm returns false,
-      // the base secrets confirm gets captured but the flow continues.
+      expect(captured.outro.some((m) => m.includes("Setup complete"))).toBe(
+        true
+      );
     });
 
     it("collects Cloudflare API token with validation", async () => {
@@ -339,7 +359,8 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account-id",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
@@ -369,7 +390,8 @@ describe("init command", () => {
         password: "",
         text: "test-account-id",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
@@ -417,7 +439,8 @@ describe("init command", () => {
         password: "valid-token",
         text: "existing-account-id-123",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
@@ -434,7 +457,8 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account-id",
         multiselect: ["binance", "telegram"],
-        confirm: false,
+        select: "full", // full preset includes integrations
+        confirmSequence: [true, false, false],
         group: {
           BINANCE_API_KEY: "binance-key-123",
           BINANCE_API_SECRET: "binance-secret-123",
@@ -445,8 +469,8 @@ describe("init command", () => {
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       expect(
-        captured.multiselectMessages.some((m) =>
-          m.includes("Select integrations")
+        captured.selectMessages.some((m) =>
+          m.includes("Select a worker preset")
         )
       ).toBe(true);
     });
@@ -456,7 +480,8 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account-id",
         multiselect: ["telegram"],
-        confirm: false,
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           TELEGRAM_BOT_TOKEN: "tg-token-abc",
         },
@@ -510,7 +535,7 @@ describe("init command", () => {
 
       const options: InitOptions = {
         token: "bad-token",
-        account: "account-123",
+        account: "abc123def456abc123def456abc123de",
       };
 
       const promise = runInitCommand(
@@ -569,12 +594,14 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"d1-worker"');
       expect(workersJsonc).toContain('"hoox"');
       expect(workersJsonc).toContain('"agent-worker"');
@@ -585,8 +612,9 @@ describe("init command", () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["binance", "telegram"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           BINANCE_API_KEY: "bk",
           BINANCE_API_SECRET: "bs",
@@ -597,6 +625,7 @@ describe("init command", () => {
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"trade-worker"');
       expect(workersJsonc).toContain('"BINANCE_API_KEY"');
       expect(workersJsonc).toContain('"BINANCE_API_SECRET"');
@@ -604,52 +633,53 @@ describe("init command", () => {
       expect(workersJsonc).toContain('"TELEGRAM_BOT_TOKEN"');
     });
 
-    it("includes AI provider integrations when selected", async () => {
+    it("includes AI provider (OpenAI) integration from full preset", async () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["openai", "anthropic", "google-ai"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           AGENT_OPENAI_KEY: "sk-openai-123",
-          AGENT_ANTHROPIC_KEY: "sk-ant-123",
-          AGENT_GOOGLE_KEY: "google-ai-key-456",
         },
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"agent-worker"');
       expect(workersJsonc).toContain('"AGENT_OPENAI_KEY"');
-      expect(workersJsonc).toContain('"AGENT_ANTHROPIC_KEY"');
-      expect(workersJsonc).toContain('"AGENT_GOOGLE_KEY"');
     });
 
-    it("includes Home Assistant integration when selected", async () => {
+    it("includes wallet integration from full preset", async () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["home-assistant"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
-          HA_TOKEN_BINDING: "ha-token-789",
+          WALLET_MNEMONIC_SECRET: "seed-phrase-789",
         },
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
-      expect(workersJsonc).toContain('"hoox"');
-      expect(workersJsonc).toContain('"HA_TOKEN_BINDING"');
+      expect(workersJsonc).toBeDefined();
+      expect(workersJsonc).toContain('"web3-wallet-worker"');
+      expect(workersJsonc).toContain('"WALLET_MNEMONIC_SECRET"');
     });
 
     it("merges exchange secrets into single trade-worker", async () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["binance", "mexc"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           BINANCE_API_KEY: "bk",
           BINANCE_API_SECRET: "bs",
@@ -661,6 +691,7 @@ describe("init command", () => {
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"trade-worker"');
       expect(workersJsonc).toContain('"BINANCE_API_KEY"');
       expect(workersJsonc).toContain('"MEXC_API_KEY"');
@@ -675,12 +706,14 @@ describe("init command", () => {
         password: "my-cf-token",
         text: "my-account-id",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"global"');
       expect(workersJsonc).toContain('"cloudflare_api_token"');
       expect(workersJsonc).toContain('"cloudflare_account_id"');
@@ -692,12 +725,14 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
       const workersJsonc = captured.writes["wrangler.jsonc"];
+      expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain("// Hoox Workspace Configuration");
       expect(workersJsonc).toContain("// Generated by `hoox init`");
     });
@@ -712,8 +747,9 @@ describe("init command", () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["telegram"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           TELEGRAM_BOT_TOKEN: "tg-secret-value",
         },
@@ -723,6 +759,7 @@ describe("init command", () => {
 
       const devVarsPath = "workers/telegram-worker/.dev.vars";
       const devVars = captured.writes[devVarsPath];
+      expect(devVars).toBeDefined();
       expect(devVars).toContain("TELEGRAM_BOT_TOKEN=tg-secret-value");
       expect(devVars).toContain("NEVER commit this file");
     });
@@ -732,12 +769,13 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
-      // d1-worker has no user-collected secrets in interactive mode
+      // d1-worker has no user-collected secrets
       const d1DevVars = captured.writes["workers/d1-worker/.dev.vars"];
       expect(d1DevVars).toBeUndefined();
     });
@@ -746,8 +784,9 @@ describe("init command", () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["openai"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
           AGENT_OPENAI_KEY: "sk-openai-real-value",
         },
@@ -757,26 +796,29 @@ describe("init command", () => {
 
       const devVarsPath = "workers/agent-worker/.dev.vars";
       const devVars = captured.writes[devVarsPath];
+      expect(devVars).toBeDefined();
       expect(devVars).toContain("AGENT_OPENAI_KEY=sk-openai-real-value");
       expect(devVars).toContain("NEVER commit this file");
     });
 
-    it("creates .dev.vars for hoox when Home Assistant selected", async () => {
+    it("creates .dev.vars for web3-wallet-worker when wallet integration selected", async () => {
       responses = {
         password: "valid-token",
         text: "test-account",
-        multiselect: ["home-assistant"],
-        confirm: false,
+        multiselect: [],
+        select: "full",
+        confirmSequence: [true, false, false],
         group: {
-          HA_TOKEN_BINDING: "ha-token-real-value",
+          WALLET_MNEMONIC_SECRET: "mnemonic-real-value",
         },
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
-      const devVarsPath = "workers/hoox/.dev.vars";
+      const devVarsPath = "workers/web3-wallet-worker/.dev.vars";
       const devVars = captured.writes[devVarsPath];
-      expect(devVars).toContain("HA_TOKEN_BINDING=ha-token-real-value");
+      expect(devVars).toBeDefined();
+      expect(devVars).toContain("WALLET_MNEMONIC_SECRET=mnemonic-real-value");
       expect(devVars).toContain("NEVER commit this file");
     });
   });
@@ -786,19 +828,24 @@ describe("init command", () => {
   // ------------------------------------------------------------------
 
   describe("cancellation handling", () => {
-    it("exits on cancel during token prompt", async () => {
-      // Override the process.exit mock to track calls
+    it("exits on cancel during risk acknowledgment", async () => {
       let exitCalled = false;
       let exitCode = -1;
       const exitMock = mock((code?: number) => {
         exitCalled = true;
         exitCode = code ?? -1;
+        throw new Error("EXIT"); // Must throw to stop execution flow
       });
       process.exit = exitMock as unknown as typeof process.exit;
 
+      // First confirm (risk) is canceled
       simulateCancel = true;
 
-      await runInitCommand({}, { json: false, quiet: true }, false);
+      try {
+        await runInitCommand({}, { json: false, quiet: true }, false);
+      } catch {
+        // expected — process.exit throws
+      }
 
       expect(exitCalled).toBe(true);
       expect(exitCode).toBe(0);
@@ -815,13 +862,15 @@ describe("init command", () => {
         password: "valid-token",
         text: "test-account",
         multiselect: [],
-        confirm: false,
+        select: "minimal",
+        confirmSequence: [true, false, false],
       };
 
       await runInitCommand({}, { json: false, quiet: true }, false);
 
-      // In quiet mode, the intro/outro patterns are still called but
-      // our formatSuccess/formatter functions respect quiet mode.
+      // In quiet mode, formatSuccess/formatter functions respect quiet mode.
+      // The flow should complete without throwing.
+      expect(captured.writes["wrangler.jsonc"]).toBeDefined();
     });
   });
 });

@@ -126,8 +126,6 @@ function validateCloudflareConfig(
   }
   if (!accountId || String(accountId).trim().length === 0) {
     errors.push("Cloudflare Account ID is required");
-  } else if (!/^[a-f0-9]{32}$/i.test(String(accountId).trim())) {
-    errors.push("Account ID should be a 32-character hex string");
   }
   return errors;
 }

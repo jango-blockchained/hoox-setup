@@ -46,17 +46,17 @@ describe("WizardEngine", () => {
     expect(engine.getCurrentStep().id).toBe("CLOUDFLARE_CONFIG");
   });
 
-  it("returns validation error for invalid account ID format", () => {
+  it("accepts non-hex but non-empty account ID (engine only validates required)", () => {
     const engine = new WizardEngine();
     engine.execute({ checksPassed: true });
     const errors = engine.execute({
       apiToken: "tok_xxx",
-      accountId: "not-a-hex-string",
+      accountId: "my-account-id-string",
       secretStoreId: "",
       subdomain: "myapp",
     });
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors[0]).toContain("32-character hex");
+    expect(errors.length).toBe(0);
+    expect(engine.getCurrentStep().id).toBe("WORKER_SELECTION");
   });
 
   it("buildConfig returns valid WorkersJsonConfig after minimal preset", () => {

@@ -1,42 +1,38 @@
 /**
  * `hoox init` — interactive setup wizard for Hoox Workspace.
  *
- * Interactive flow:
- *   1. Collect & validate Cloudflare API token
- *   2. Collect account ID
- *   3. Collect secret store ID
- *   4. Select integrations (exchanges, wallet, email, telegram)
- *   5. Collect per-integration secrets
- *   6. Write wrangler.jsonc
- *   7. Create .dev.vars templates
+ * Uses the shared WizardEngine from @jango-blockchained/hoox-shared.
  *
+ * Interactive flow uses @clack/prompts for the UI layer.
  * Non-interactive mode (--token, --account, --secret-store, --prefix):
  *   Skips all prompts and writes config with base workers only.
  */
 
 import * as p from "@clack/prompts";
 import { Command } from "commander";
+import {
+  WizardEngine,
+  serializeState,
+  deserializeState,
+  WIZARD_STATE_PATH,
+} from "@jango-blockchained/hoox-shared";
+import type { WorkersJsonConfig } from "@jango-blockchained/hoox-shared";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { formatSuccess, formatError } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
-import { INTEGRATIONS, BASE_WORKERS, BASE_SECRETS } from "./types.js";
-import type { InitOptions, WorkersJsonConfig, WorkerConfig } from "./types.js";
+import { CLIProvisioner } from "./cli-provisioner.js";
+import type { InitOptions } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Try to read an existing wrangler.jsonc from the current directory
- * and extract the account ID (used as default value in prompt).
- */
 async function getExistingAccountId(): Promise<string | undefined> {
   try {
     const file = Bun.file("wrangler.jsonc");
     if (!(await file.exists())) return undefined;
     const raw = await file.text();
-    // Simple regex extract — avoids depending on jsonc-parser for just this
     const match = raw.match(/"cloudflare_account_id"\s*:\s*"([^"]+)"/);
     return match ? match[1] : undefined;
   } catch {
@@ -44,16 +40,10 @@ async function getExistingAccountId(): Promise<string | undefined> {
   }
 }
 
-/**
- * Validate a Cloudflare API token by calling `wrangler whoami`.
- * Returns an error string on failure, undefined on success.
- */
 async function validateApiToken(
   cf: CloudflareService,
   token: string
 ): Promise<string | undefined> {
-  // CloudflareService uses wrangler which reads CLOUDFLARE_API_TOKEN from env.
-  // We need to pass the token. Temporarily set the env var for the whoami call.
   const prev = process.env.CLOUDFLARE_API_TOKEN;
   process.env.CLOUDFLARE_API_TOKEN = token;
   try {
@@ -69,124 +59,13 @@ async function validateApiToken(
   }
 }
 
-/**
- * Build the full wrangler.jsonc config object from collected values.
- */
-/**
- * Extended worker config used internally during build to carry collected
- * secret values forward to .dev.vars generation.
- */
-interface InternalWorkerConfig extends WorkerConfig {
-  _collectedSecrets?: Record<string, string>;
-  _collectedBaseSecrets?: Record<string, string>;
-}
-
-function buildConfig(
-  globalToken: string,
-  globalAccount: string,
-  globalSecretStore: string,
-  globalPrefix: string,
-  selectedIntegrations: string[],
-  integrationSecrets: Record<string, Record<string, string>>,
-  baseSecrets: Record<string, Record<string, string>>
-): WorkersJsonConfig {
-  const workers: Record<string, InternalWorkerConfig> = {};
-
-  // Base workers (always enabled)
-  for (const [name, baseCfg] of Object.entries(BASE_WORKERS)) {
-    const secrets = BASE_SECRETS[name] ? [...BASE_SECRETS[name]] : [];
-    workers[name] = {
-      enabled: true,
-      path: baseCfg.path,
-      vars: { ...baseCfg.vars },
-      secrets,
-    };
-  }
-
-  // Integration workers — merge secrets per worker
-  for (const key of selectedIntegrations) {
-    const integration = INTEGRATIONS.find((i) => i.key === key);
-    if (!integration) continue;
-
-    const workerName = integration.workerName;
-    if (!workers[workerName]) {
-      workers[workerName] = {
-        enabled: true,
-        path: `workers/${workerName}`,
-        vars: {},
-        secrets: [],
-      };
-    }
-
-    // Add integration-specific vars
-    if (integration.vars) {
-      Object.assign(workers[workerName].vars, integration.vars);
-    }
-
-    // Add integration-specific secrets
-    const collected = integrationSecrets[key] ?? {};
-    for (const secretName of Object.keys(integration.secrets)) {
-      if (!workers[workerName].secrets.includes(secretName)) {
-        workers[workerName].secrets.push(secretName);
-      }
-    }
-    // Store collected values for .dev.vars
-    if (!workers[workerName]._collectedSecrets) {
-      workers[workerName]._collectedSecrets = {};
-    }
-    Object.assign(workers[workerName]._collectedSecrets!, collected);
-  }
-
-  // Merge base secrets that are collected (per-worker map)
-  for (const [wName, secrets] of Object.entries(baseSecrets)) {
-    if (workers[wName]) {
-      workers[wName]._collectedBaseSecrets = secrets;
-    }
-  }
-
-  return {
-    global: {
-      cloudflare_api_token: globalToken,
-      cloudflare_account_id: globalAccount,
-      cloudflare_secret_store_id: globalSecretStore,
-      subdomain_prefix: globalPrefix,
-    },
-    workers: workers as Record<string, WorkerConfig>,
-  };
-}
-
-/**
- * Write wrangler.jsonc using JSON-style formatting.
- * Uses JSON.stringify (not jsonc-parser for the main structure,
- * but with a JSONC header comment).
- */
 async function writeWorkersJsonc(
   config: WorkersJsonConfig,
   opts?: { json?: boolean; quiet?: boolean }
 ): Promise<void> {
-  const { workers, ...restGlobal } = config;
-
-  // Strip internal fields before serializing
-  const cleanWorkers: Record<string, WorkerConfig> = {};
-  for (const [name, worker] of Object.entries(workers)) {
-    const w = worker as WorkerConfig & {
-      _collectedSecrets?: Record<string, string>;
-      _collectedBaseSecrets?: Record<string, string>;
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _collectedSecrets, _collectedBaseSecrets, ...clean } = w;
-    cleanWorkers[name] = clean;
-  }
-
-  const out = {
-    ...restGlobal,
-    workers: cleanWorkers,
-  };
-
-  // Use jsonc-parser's format to get nice JSONC output
   const { format, applyEdits } = await import("jsonc-parser");
 
-  const raw = JSON.stringify(out, null, 2);
+  const raw = JSON.stringify(config, null, 2);
   const formattingOpts = {
     insertSpaces: true,
     tabSize: 2,
@@ -207,13 +86,9 @@ async function writeWorkersJsonc(
   }
 }
 
-/**
- * Create .dev.vars template files for each worker with collected secrets.
- */
 async function createDevVars(
   config: WorkersJsonConfig,
-  integrationSecrets: Record<string, Record<string, string>>,
-  baseSecrets: Record<string, Record<string, string>>,
+  secrets: Record<string, Record<string, string>>,
   opts?: { json?: boolean; quiet?: boolean }
 ): Promise<void> {
   for (const [workerName, worker] of Object.entries(config.workers)) {
@@ -222,50 +97,25 @@ async function createDevVars(
     lines.push(`# Generated by \`hoox init\`. NEVER commit this file.`);
     lines.push("");
 
-    // Integration secrets for this worker
-    for (const integration of INTEGRATIONS) {
-      if (integration.workerName === workerName) {
-        const collected = integrationSecrets[integration.key];
-        if (collected) {
-          for (const [key, value] of Object.entries(collected)) {
-            lines.push(`${key}=${value}`);
-          }
-        }
-      }
-    }
-
-    // Base secrets for this worker (from direct baseSecrets map)
-    const workerBaseSecrets = baseSecrets[workerName];
-    if (workerBaseSecrets) {
-      for (const [key, value] of Object.entries(workerBaseSecrets)) {
+    // Add secrets from the collected data
+    for (const [, integrationSecrets] of Object.entries(secrets)) {
+      for (const [key, value] of Object.entries(integrationSecrets)) {
         lines.push(`${key}=${value}`);
       }
     }
 
-    // Also write secrets from BASE_SECRETS config that the user provided values for
-    const collectedBase = (
-      worker as unknown as { _collectedBaseSecrets?: Record<string, string> }
-    )._collectedBaseSecrets;
-    if (collectedBase) {
-      for (const [key, value] of Object.entries(collectedBase)) {
-        lines.push(`${key}=${value}`);
-      }
-    }
-
-    if (lines.length <= 3) continue; // No secrets for this worker
+    if (lines.length <= 3) continue;
 
     const content = lines.join("\n") + "\n";
     const filePath = `${worker.path}/.dev.vars`;
     const dir = `${worker.path}`;
 
-    // Ensure directory exists
     try {
       await Bun.write(filePath, content);
       if (!opts?.quiet) {
         formatSuccess(`Created ${filePath}`, opts);
       }
     } catch {
-      // If directory doesn't exist, create and retry
       const { mkdir } = await import("node:fs/promises");
       await mkdir(dir, { recursive: true });
       await Bun.write(filePath, content);
@@ -276,49 +126,33 @@ async function createDevVars(
   }
 }
 
-/**
- * Prompt for per-integration secrets. Returns a map of integration key →
- * collected secret values.
- */
-async function collectIntegrationSecrets(
-  selectedIntegrations: string[]
-): Promise<Record<string, Record<string, string>>> {
-  const result: Record<string, Record<string, string>> = {};
+async function saveState(engine: WizardEngine): Promise<void> {
+  const state = engine.getState();
+  const json = serializeState(state);
+  await Bun.write(WIZARD_STATE_PATH, json);
+}
 
-  for (const key of selectedIntegrations) {
-    const integration = INTEGRATIONS.find((i) => i.key === key);
-    if (!integration || Object.keys(integration.secrets).length === 0) continue;
-
-    const secretEntries = Object.entries(integration.secrets);
-    const groupFields: Record<string, () => Promise<string | symbol>> = {};
-
-    for (const [secretName] of secretEntries) {
-      groupFields[secretName] = () =>
-        p.password({
-          message: `${integration.secrets[secretName]}:`,
-          validate(value) {
-            if (!value) return "This secret is required";
-            return;
-          },
-        });
-    }
-
-    const collected = await p.group(groupFields, {
-      onCancel: () => {
-        p.cancel("Setup cancelled.");
-        process.exit(0);
-      },
-    });
-
-    // Convert Symbol values (shouldn't happen due to onCancel) to empty strings
-    result[key] = {};
-    for (const [secretName] of secretEntries) {
-      const val = collected[secretName];
-      result[key][secretName] = typeof val === "string" ? val : "";
-    }
+async function loadSavedState(): Promise<WizardEngine | null> {
+  try {
+    const file = Bun.file(WIZARD_STATE_PATH);
+    if (!(await file.exists())) return null;
+    const json = await file.text();
+    const state = deserializeState(json);
+    return new WizardEngine(state);
+  } catch {
+    return null;
   }
+}
 
-  return result;
+async function cleanupState(): Promise<void> {
+  try {
+    const file = Bun.file(WIZARD_STATE_PATH);
+    if (await file.exists()) {
+      await Bun.write(WIZARD_STATE_PATH, "");
+    }
+  } catch {
+    // ignore
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -336,6 +170,8 @@ This wizard helps you set up:
   - Cloudflare API token and account
   - Subdomain prefix for worker URLs
   - Secret store configuration
+  - Worker selection with preset templates
+  - Infrastructure provisioning (D1, KV)
   - Initial worker configuration
 
 INTERACTIVE MODE:
@@ -349,6 +185,8 @@ OPTIONS:
   --account <id>         Cloudflare Account ID
   --secret-store <id>    Secret Store ID
   --prefix <prefix>      Subdomain prefix (default: cryptolinx)
+  --preset <name>        Worker preset (minimal, standard, full)
+  --resume               Resume from saved wizard state
   --accept-risk          Skip risk acknowledgment
 
 EXAMPLES:
@@ -362,6 +200,8 @@ EXAMPLES:
       "--prefix <prefix>",
       "Subdomain prefix (non-interactive, default: cryptolinx)"
     )
+    .option("--preset <name>", "Worker preset (minimal, standard, full)")
+    .option("--resume", "Resume from saved wizard state")
     .option("--accept-risk", "Skip the risk acknowledgment confirmation")
     .action(async (options: InitOptions) => {
       const globalOpts = program.opts() as { json?: boolean; quiet?: boolean };
@@ -378,17 +218,16 @@ EXAMPLES:
     });
 }
 
-/**
- * Core logic extracted for testability.
- */
+// ---------------------------------------------------------------------------
+// Core logic
+// ---------------------------------------------------------------------------
+
 export async function runInitCommand(
   options: InitOptions,
   globalOpts: { json?: boolean; quiet?: boolean },
   isNonInteractive: boolean
 ): Promise<void> {
-  // ------------------------------------------------------------------
-  // Non-interactive mode: write config directly from flags
-  // ------------------------------------------------------------------
+  // ── Non-interactive mode ───────────────────────────────────────────────
   if (isNonInteractive) {
     if (!globalOpts.quiet) {
       p.intro("Hoox Setup Wizard");
@@ -411,18 +250,29 @@ export async function runInitCommand(
       formatSuccess("Cloudflare API token validated", globalOpts);
     }
 
-    const config = buildConfig(
-      token,
-      account,
-      secretStore,
-      prefix,
-      [], // no integrations in non-interactive mode
-      {},
-      {}
-    );
+    // Use engine to build config
+    const engine = new WizardEngine();
+    engine.execute({ checksPassed: true });
+    engine.execute({
+      apiToken: token,
+      accountId: account,
+      secretStoreId: secretStore,
+      subdomain: prefix,
+    });
 
+    // Apply preset if provided
+    if (
+      options.preset &&
+      ["minimal", "standard", "full"].includes(options.preset)
+    ) {
+      engine.execute({ preset: options.preset });
+    } else {
+      engine.execute({ preset: "minimal" as const });
+    }
+
+    const config = engine.buildConfig();
     await writeWorkersJsonc(config, globalOpts);
-    await createDevVars(config, {}, {}, globalOpts);
+    await createDevVars(config, {}, globalOpts);
 
     if (!globalOpts.quiet) {
       p.outro("Setup complete! Run hoox check setup to verify.");
@@ -430,14 +280,36 @@ export async function runInitCommand(
     return;
   }
 
-  // ------------------------------------------------------------------
-  // Interactive mode
-  // ------------------------------------------------------------------
+  // ── Interactive mode ─────────────────────────────────────────────────
 
   p.intro(theme.heading("Hoox Setup Wizard"));
 
-  const skipRiskWarning = options.acceptRisk || isNonInteractive;
-  if (!skipRiskWarning) {
+  // Try to resume from saved state
+  let engine: WizardEngine | null = null;
+  if (options.resume) {
+    engine = await loadSavedState();
+    if (engine) {
+      const resumeStep = engine.getCurrentStep().label;
+      const resumed = await p.confirm({
+        message: `Found saved wizard state. Resume from "${resumeStep}"?`,
+        initialValue: true,
+      });
+      if (p.isCancel(resumed)) {
+        p.cancel("Setup cancelled.");
+        process.exit(0);
+      }
+      if (!resumed) {
+        engine = null;
+      }
+    }
+  }
+
+  if (!engine) {
+    engine = new WizardEngine();
+  }
+
+  const skipRiskWarning = options.acceptRisk;
+  if (!skipRiskWarning && engine.getCurrentStep().id === "PREREQUISITES") {
     const accepted = await p.confirm({
       message:
         "Hoox connects to live trading exchanges and can execute real trades with real money. " +
@@ -455,170 +327,264 @@ export async function runInitCommand(
       p.outro("Setup cancelled. See DISCLAIMER.md for full terms.");
       process.exit(0);
     }
+
+    // Step 0: Prerequisites check (always passes — CLI is running)
+    engine.execute({ checksPassed: true });
+    await saveState(engine);
   }
 
-  // Step 1: Cloudflare API token with validation loop
-  const cf = new CloudflareService();
-  let apiToken: string | symbol = "";
-  let tokenValid = false;
+  // ── Step 1: Cloudflare API token ──────────────────────────────────────
+  if (engine.getCurrentStep().id === "CLOUDFLARE_CONFIG") {
+    const cf = new CloudflareService();
+    let apiToken: string | symbol = "";
+    let tokenValid = false;
 
-  while (!tokenValid) {
-    apiToken = await p.password({
-      message: "Cloudflare API token:",
+    while (!tokenValid) {
+      apiToken = await p.password({
+        message: "Cloudflare API token:",
+        validate(value) {
+          if (!value) return "API token is required";
+          return;
+        },
+      });
+
+      if (p.isCancel(apiToken)) {
+        p.cancel("Setup cancelled.");
+        process.exit(0);
+      }
+
+      p.log.step("Validating Cloudflare API token...");
+      const tokenError = await validateApiToken(cf, apiToken as string);
+      if (tokenError) {
+        p.log.error(tokenError);
+        p.log.warn("Please check your token and try again.");
+      } else {
+        tokenValid = true;
+        formatSuccess("Cloudflare API token validated", globalOpts);
+      }
+    }
+
+    const defaultAccountId = await getExistingAccountId();
+    const accountResult = await p.text({
+      message: "Cloudflare Account ID:",
+      placeholder: "abc123...",
+      defaultValue: defaultAccountId ?? "",
       validate(value) {
-        if (!value) return "API token is required";
+        if (!value) return "Account ID is required";
+        if (!/^[a-f0-9]{32}$/i.test(value.trim())) {
+          return "Account ID should be a 32-character hex string";
+        }
         return;
       },
     });
-
-    if (p.isCancel(apiToken)) {
+    if (p.isCancel(accountResult)) {
       p.cancel("Setup cancelled.");
       process.exit(0);
     }
 
-    p.log.step("Validating Cloudflare API token...");
-    const tokenError = await validateApiToken(cf, apiToken as string);
-    if (tokenError) {
-      p.log.error(tokenError);
-      p.log.warn("Please check your token and try again.");
-    } else {
-      tokenValid = true;
-      formatSuccess("Cloudflare API token validated", globalOpts);
+    const secretStoreResult = await p.text({
+      message: "Cloudflare Secret Store ID:",
+      placeholder: "optional",
+      defaultValue: "",
+    });
+    if (p.isCancel(secretStoreResult)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const prefixResult = await p.text({
+      message: "Subdomain prefix:",
+      placeholder: "cryptolinx",
+      defaultValue: "cryptolinx",
+      validate(value) {
+        if (!value) return "Subdomain prefix is required";
+        return;
+      },
+    });
+    if (p.isCancel(prefixResult)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    engine.execute({
+      apiToken: apiToken as string,
+      accountId: accountResult,
+      secretStoreId: secretStoreResult,
+      subdomain: prefixResult,
+    });
+    await saveState(engine);
+  }
+
+  // ── Step 2: Worker selection with presets ──────────────────────────────
+  if (engine.getCurrentStep().id === "WORKER_SELECTION") {
+    const presetChoice = await p.select({
+      message: "Select a worker preset:",
+      options: [
+        {
+          value: "minimal",
+          label: "Minimal",
+          hint: "Gateway + D1 — webhook processing only",
+        },
+        {
+          value: "standard",
+          label: "Standard",
+          hint: "Trading + analytics + Telegram",
+        },
+        {
+          value: "full",
+          label: "Full",
+          hint: "All workers + AI + DeFi + email",
+        },
+      ],
+    });
+
+    if (p.isCancel(presetChoice)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    engine.execute({ preset: presetChoice as string });
+    await saveState(engine);
+
+    // Show selected workers
+    const state = engine.getState();
+    p.log.step(`Selected workers: ${state.selectedWorkers.join(", ")}`);
+    if (state.selectedIntegrations.length > 0) {
+      p.log.step(`Integrations: ${state.selectedIntegrations.join(", ")}`);
     }
   }
 
-  // Step 2: Account ID
-  const defaultAccountId = await getExistingAccountId();
-  const accountResult = await p.text({
-    message: "Cloudflare Account ID:",
-    placeholder: "abc123...",
-    defaultValue: defaultAccountId ?? "",
-    validate(value) {
-      if (!value) return "Account ID is required";
-      return;
-    },
-  });
-  if (p.isCancel(accountResult)) {
-    p.cancel("Setup cancelled.");
-    process.exit(0);
-  }
-  const accountId: string = accountResult;
+  // ── Step 3: Provisioning ──────────────────────────────────────────────
+  if (engine.getCurrentStep().id === "PROVISIONING") {
+    const plan = engine.getProvisioningPlan();
+    const hasResources =
+      plan.d1Databases.length > 0 || plan.kvNamespaces.length > 0;
 
-  // Step 3: Secret Store ID
-  const secretStoreResult = await p.text({
-    message: "Cloudflare Secret Store ID:",
-    placeholder: "optional",
-    defaultValue: "",
-  });
-  if (p.isCancel(secretStoreResult)) {
-    p.cancel("Setup cancelled.");
-    process.exit(0);
-  }
-  const secretStoreId: string = secretStoreResult;
-
-  // Step 4: Subdomain prefix
-  const prefixResult = await p.text({
-    message: "Subdomain prefix:",
-    placeholder: "cryptolinx",
-    defaultValue: "cryptolinx",
-    validate(value) {
-      if (!value) return "Subdomain prefix is required";
-      return;
-    },
-  });
-  if (p.isCancel(prefixResult)) {
-    p.cancel("Setup cancelled.");
-    process.exit(0);
-  }
-  const prefix: string = prefixResult;
-
-  // Step 5: Select integrations
-  const integrationOptions = INTEGRATIONS.map((i) => ({
-    value: i.key,
-    label: i.label,
-    hint: i.workerName,
-  }));
-
-  const selectedIntegrations = await p.multiselect({
-    message: "Select integrations to enable:",
-    options: integrationOptions,
-    required: false,
-  });
-
-  if (p.isCancel(selectedIntegrations)) {
-    p.cancel("Setup cancelled.");
-    process.exit(0);
-  }
-
-  const selected: string[] = Array.isArray(selectedIntegrations)
-    ? selectedIntegrations
-    : [];
-
-  // Step 6: Collect per-integration secrets
-  p.log.step("Collecting integration secrets...");
-  const integrationSecrets = await collectIntegrationSecrets(selected);
-
-  // Step 7: Collect base secrets for always-enabled workers
-  const baseSecrets: Record<string, Record<string, string>> = {};
-
-  const collectBaseSecrets =
-    selected.length > 0 ||
-    (await p.confirm({
-      message: "Configure base worker secrets?",
-      initialValue: true,
-    }));
-
-  if (collectBaseSecrets) {
-    for (const [workerName, secretNames] of Object.entries(BASE_SECRETS)) {
-      if (secretNames.length === 0) continue;
-
-      const groupFields: Record<string, () => Promise<string | symbol>> = {};
-      for (const secretName of secretNames) {
-        groupFields[secretName] = () =>
-          p.password({
-            message: `${workerName} — ${secretName}:`,
-            validate(value) {
-              if (!value) return `Required for ${workerName}`;
-              return;
-            },
-          });
-      }
-
-      p.log.step(`Secrets for ${workerName}...`);
-      const collected = await p.group(groupFields, {
-        onCancel: () => {
-          p.cancel("Setup cancelled.");
-          process.exit(0);
-        },
+    if (hasResources) {
+      const shouldProvision = await p.confirm({
+        message: `Provision Cloudflare resources? (${[
+          ...plan.d1Databases.map((d) => `D1:${d}`),
+          ...plan.kvNamespaces.map((k) => `KV:${k}`),
+        ].join(", ")})`,
+        initialValue: true,
       });
 
-      baseSecrets[workerName] = {};
-      for (const secretName of secretNames) {
-        const val = collected[secretName];
-        if (typeof val === "string") {
-          baseSecrets[workerName][secretName] = val;
+      if (p.isCancel(shouldProvision)) {
+        p.cancel("Setup cancelled.");
+        process.exit(0);
+      }
+
+      if (shouldProvision) {
+        p.log.step("Provisioning infrastructure...");
+        const provisioner = new CLIProvisioner();
+        const result = await provisioner.provision(plan);
+
+        if (result.success) {
+          formatSuccess(`Created: ${result.created.join(", ")}`, globalOpts);
+        } else {
+          p.log.warn(`Provisioning had issues: ${result.errors.join("; ")}`);
+        }
+
+        engine.execute({ provisioningResults: result });
+      } else {
+        engine.execute({
+          provisioningResults: { success: true, created: [], errors: [] },
+        });
+      }
+    } else {
+      engine.execute({});
+    }
+    await saveState(engine);
+  }
+
+  // ── Step 4: Secrets ──────────────────────────────────────────────────
+  if (engine.getCurrentStep().id === "SECRETS") {
+    const state = engine.getState();
+    const collectedSecrets: Record<string, Record<string, string>> = {};
+
+    if (state.selectedIntegrations.length > 0) {
+      p.log.step("Collecting integration secrets...");
+
+      for (const key of state.selectedIntegrations) {
+        const { INTEGRATIONS } =
+          await import("@jango-blockchained/hoox-shared");
+        const integration = INTEGRATIONS.find((i) => i.key === key);
+        if (!integration || Object.keys(integration.secrets).length === 0)
+          continue;
+
+        const secretEntries = Object.entries(integration.secrets);
+        const groupFields: Record<string, () => Promise<string | symbol>> = {};
+
+        for (const [secretName] of secretEntries) {
+          groupFields[secretName] = () =>
+            p.password({
+              message: `${integration.secrets[secretName]}:`,
+              validate(value) {
+                if (!value) return "This secret is required";
+                return;
+              },
+            });
+        }
+
+        const collected = await p.group(groupFields, {
+          onCancel: () => {
+            p.cancel("Setup cancelled.");
+            process.exit(0);
+          },
+        });
+
+        collectedSecrets[key] = {};
+        for (const [secretName] of secretEntries) {
+          const val = collected[secretName];
+          collectedSecrets[key][secretName] =
+            typeof val === "string" ? val : "";
         }
       }
     }
+
+    engine.execute({ secrets: collectedSecrets });
+    await saveState(engine);
   }
 
-  // Step 8: Build and write config
-  p.log.step("Writing configuration...");
+  // ── Step 5: Config Write ──────────────────────────────────────────────
+  if (engine.getCurrentStep().id === "CONFIG_WRITE") {
+    p.log.step("Writing configuration...");
 
-  const config = buildConfig(
-    apiToken as string,
-    accountId,
-    secretStoreId,
-    prefix,
-    selected,
-    integrationSecrets,
-    baseSecrets
-  );
+    const config = engine.buildConfig();
+    const state = engine.getState();
 
-  await writeWorkersJsonc(config, globalOpts);
-  await createDevVars(config, integrationSecrets, baseSecrets, globalOpts);
+    await writeWorkersJsonc(config, globalOpts);
+    await createDevVars(config, state.secrets, globalOpts);
 
-  // Done
+    engine.execute({});
+    await cleanupState(); // Clean up state file — wizard complete
+  }
+
+  // ── Step 6: Deploy ──────────────────────────────────────────────────
+  if (engine.getCurrentStep().id === "DEPLOY") {
+    const shouldDeploy = await p.confirm({
+      message: "Deploy workers now?",
+      initialValue: false,
+    });
+
+    if (p.isCancel(shouldDeploy)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    if (shouldDeploy) {
+      p.log.step("Deploying workers...");
+      const proc = Bun.spawn(["hoox", "deploy", "all"], {
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+      await proc.exited;
+    }
+
+    engine.execute({});
+  }
+
+  // ── Done ──────────────────────────────────────────────────────────────
   p.outro(
     theme.success("Setup complete! Run ") +
       theme.bold("hoox check setup") +

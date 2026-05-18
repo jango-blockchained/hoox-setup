@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Brain, Activity, Settings, Shield, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 export default function AgentClient() {
@@ -29,7 +30,7 @@ export default function AgentClient() {
     setLoading(true);
     try {
       const res = await fetch("/api/agent/status", { signal });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setStatus(data.status);
       }
@@ -57,7 +58,7 @@ export default function AgentClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         toast.success(data.message);
         fetchStatus();

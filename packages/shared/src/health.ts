@@ -3,7 +3,7 @@
  * Provides a standardized /health endpoint response
  */
 
-import { createSuccessResponse } from "./json-response.js";
+import { createSuccessResponse } from "./json-response";
 
 export interface HealthCheckOptions {
   /** Worker/service name included in the response */

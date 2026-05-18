@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { executeAnalyticsQuery } from "./shared";
+import { executeAnalyticsQuery } from "@/app/api/analytics/shared";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";

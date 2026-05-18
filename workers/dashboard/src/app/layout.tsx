@@ -3,6 +3,8 @@ import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: { default: "Hoox Dashboard", template: "%s | Hoox Dashboard" },
   description: "Hoox trading system dashboard",

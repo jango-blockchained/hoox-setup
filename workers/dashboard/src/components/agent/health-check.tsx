@@ -37,7 +37,7 @@ export function HealthCheck() {
     setChecking(true);
     try {
       const res = await fetch("/api/agent/health", { signal });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setProviders(
           Object.entries(data.providers).map(([name, info]: [string, any]) => ({

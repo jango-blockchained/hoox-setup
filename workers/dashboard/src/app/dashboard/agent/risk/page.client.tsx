@@ -15,7 +15,7 @@ export default function RiskClient() {
   const fetchStatus = async (signal?: AbortSignal) => {
     try {
       const res = await fetch("/api/agent/status", { signal });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         setKillSwitchActive(data.status?.killSwitch || false);
       }
@@ -42,7 +42,7 @@ export default function RiskClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.success) {
         toast.success(data.message);
         fetchStatus();
