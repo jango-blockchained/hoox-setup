@@ -1,46 +1,163 @@
 import { Command } from "commander";
+import { spinner } from "@clack/prompts";
+import { ConfigService } from "../../services/config/index.js";
 import { UpdateService } from "../../services/update/index.js";
-import {
-  formatSuccess,
-  formatError,
-  getFormatOptions,
-} from "../../utils/formatters.js";
+import { formatError, getFormatOptions } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { theme } from "../../utils/theme.js";
+
+async function gitPull(cwd: string): Promise<string> {
+  const proc = Bun.spawn(["git", "pull", "--ff-only"], {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const exitCode = await proc.exited;
+  const stdout = await new Response(proc.stdout).text();
+  const stderr = await new Response(proc.stderr).text();
+
+  if (exitCode !== 0) {
+    throw new Error(stderr.trim() || `git pull failed (exit ${exitCode})`);
+  }
+  return stdout.trim();
+}
+
+async function gitSubmoduleUpdate(
+  cwd: string,
+  submodulePath: string
+): Promise<string> {
+  const proc = Bun.spawn(
+    ["git", "submodule", "update", "--remote", "--init", "--", submodulePath],
+    {
+      cwd,
+      stdout: "pipe",
+      stderr: "pipe",
+    }
+  );
+  const exitCode = await proc.exited;
+  const stdout = await new Response(proc.stdout).text();
+  const stderr = await new Response(proc.stderr).text();
+
+  if (exitCode !== 0) {
+    throw new Error(
+      stderr.trim() || `git submodule update failed (exit ${exitCode})`
+    );
+  }
+  return stdout.trim();
+}
+
+async function isGitRepo(cwd: string): Promise<boolean> {
+  const proc = Bun.spawn(["git", "rev-parse", "--is-inside-work-tree"], {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const exitCode = await proc.exited;
+  return exitCode === 0;
+}
+
+async function isSubmodule(
+  cwd: string,
+  submodulePath: string
+): Promise<boolean> {
+  const proc = Bun.spawn(["git", "submodule", "status", "--", submodulePath], {
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const exitCode = await proc.exited;
+  if (exitCode !== 0) return false;
+  const out = (await new Response(proc.stdout).text()).trim();
+  return out.length > 0;
+}
 
 export function registerUpdateCommand(program: Command): void {
   program
     .command("update")
-    .summary("Update project dependencies (default: wrangler)")
+    .summary("Sync repo from GitHub or update wrangler")
     .description(
-      `Update wrangler to the latest available version.
+      `Update your local project from GitHub or update wrangler.
 
-Updates wrangler in the project's package.json
-via \`bun update wrangler\`.
+Without arguments, pulls latest changes for the main repo.
+With a worker name, updates that worker's submodule from its remote.
+With "wrangler", updates wrangler to the latest version.
 
 EXAMPLES:
-  hoox update              Check and update wrangler`
+  hoox update              Pull latest for main repo
+  hoox update d1-worker    Update the d1-worker submodule
+  hoox update wrangler     Update wrangler to latest version`
     )
-    .action(async () => {
+    .argument(
+      "[target]",
+      'What to update: worker name (e.g. d1-worker) or "wrangler"'
+    )
+    .action(async (target?: string) => {
       const fmt = getFormatOptions(program);
-      try {
-        const service = new UpdateService();
-        const result = await service.updateWrangler();
+      const cwd = process.cwd();
 
-        if (result.updated) {
-          formatSuccess(
-            result.newVersion
-              ? `Wrangler updated to ${result.newVersion}`
-              : "Wrangler updated",
-            fmt
+      try {
+        if (target === "wrangler") {
+          const service = new UpdateService();
+          const result = await service.updateWrangler();
+
+          if (result.error) {
+            formatError(
+              new CLIError(`Update failed: ${result.error}`, ExitCode.ERROR),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+          }
+          return;
+        }
+
+        if (!(await isGitRepo(cwd))) {
+          throw new CLIError(
+            "Not a git repository — run this command from the project root",
+            ExitCode.INVALID_USAGE
           );
-        } else if (result.error) {
-          formatError(
-            new CLIError(`Update failed: ${result.error}`, ExitCode.ERROR),
-            fmt
+        }
+
+        if (target) {
+          const configService = new ConfigService();
+          await configService.load();
+          const worker = configService.getWorker(target);
+
+          if (!worker) {
+            throw new CLIError(
+              `Unknown worker "${target}" — not found in wrangler.jsonc`,
+              ExitCode.INVALID_USAGE
+            );
+          }
+
+          const submodulePath = worker.path;
+          if (!(await isSubmodule(cwd, submodulePath))) {
+            throw new CLIError(
+              `"${submodulePath}" is not a git submodule — nothing to update`,
+              ExitCode.INVALID_USAGE
+            );
+          }
+
+          const s = spinner();
+          s.start(`Updating ${target}...`);
+
+          const output = await gitSubmoduleUpdate(cwd, submodulePath);
+
+          s.stop(
+            output
+              ? theme.success(`Updated ${target}`)
+              : theme.muted(`${target} already up to date`)
           );
-          process.exitCode = ExitCode.ERROR;
         } else {
-          formatSuccess("Wrangler is already up to date", fmt);
+          const s = spinner();
+          s.start("Pulling latest from remote...");
+
+          const output = await gitPull(cwd);
+
+          s.stop(
+            output
+              ? theme.success("Repository up to date")
+              : theme.muted("Already up to date")
+          );
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
