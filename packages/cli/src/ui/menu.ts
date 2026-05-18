@@ -17,8 +17,9 @@ import {
   isCancel,
   cancel,
 } from "@clack/prompts";
-import { renderBanner } from "./banner.js";
+import { renderBanner, renderCompactBanner, DISCLAIMER } from "./banner.js";
 import { CLIError } from "../utils/errors.js";
+import { theme } from "../utils/theme.js";
 
 // ---------------------------------------------------------------------------
 // Main entry
@@ -46,6 +47,10 @@ export async function runInteractiveTUI(program: Command): Promise<void> {
     // "back" or "continue" → loop back to main menu
   }
 
+  // Legal footer
+  process.stdout.write(
+    theme.dim("─".repeat(50)) + "\n" + theme.muted(DISCLAIMER) + "\n"
+  );
   outro("See you later!");
 }
 
@@ -54,8 +59,12 @@ export async function runInteractiveTUI(program: Command): Promise<void> {
 // ---------------------------------------------------------------------------
 
 const MAIN_CATEGORIES = [
+  {
+    value: "init",
+    label: "⚡ Setup Wizard",
+    hint: "bootstrap or reconfigure project",
+  },
   { value: "deploy", label: "Deploy", hint: "workers, dashboard" },
-  { value: "develop", label: "Develop", hint: "dev server, init project" },
   {
     value: "manage",
     label: "Manage",
@@ -67,6 +76,7 @@ const MAIN_CATEGORIES = [
     hint: "diagnostics, health, logs, tests",
   },
   { value: "tools", label: "Tools", hint: "WAF, clone worker, dashboard UI" },
+  { value: "develop", label: "Develop", hint: "dev server, start project" },
   { value: "__exit", label: "Exit" },
 ] as const;
 
@@ -96,6 +106,9 @@ async function handleCategory(
   program: Command
 ): Promise<"back" | "exit" | "continue"> {
   switch (category) {
+    case "init":
+      await runCommand(program, "init");
+      return "continue";
     case "deploy":
       return showDeployMenu(program);
     case "develop":
@@ -168,7 +181,6 @@ async function showDevelopMenu(
           label: "Start dev server",
           hint: "runs all workers locally",
         },
-        { value: "init", label: "Init project", hint: "bootstrap new project" },
         { value: "__back", label: "◀ Back to main menu" },
       ],
     });
