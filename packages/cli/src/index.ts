@@ -131,6 +131,7 @@ process.on("unhandledRejection", (reason) => {
 // ---------------------------------------------------------------------------
 
 import { registerInitCommand } from "./commands/init/index.js";
+import { WIZARD_STATE_PATH } from "@jango-blockchained/hoox-shared";
 import { registerDevCommand } from "./commands/dev/index.js";
 import { registerDeployCommand } from "./commands/deploy/index.js";
 import { registerInfraCommand } from "./commands/infra/index.js";
@@ -222,6 +223,17 @@ export async function main(): Promise<void> {
   if (hasArgs) {
     program.parse();
   } else {
+    // Auto-launch the setup wizard if not yet initialized
+    const configFile = Bun.file("wrangler.jsonc");
+    const hasConfig = await configFile.exists();
+    const hasWizardState = Bun.file(WIZARD_STATE_PATH);
+
+    if (!hasConfig) {
+      // No wrangler.jsonc → project is uninitialized → run the wizard
+      await program.parseAsync(["init"], { from: "user" });
+      process.exit(ExitCode.SUCCESS);
+    }
+
     // Interactive TUI mode — launches when hoox is called with no arguments
     await runInteractiveTUI(program);
     process.exit(ExitCode.SUCCESS);
