@@ -13,7 +13,7 @@ export {
   DISCLAIMER,
   FULL_LEGAL_NOTICE,
   DISCLAIMER_HEADER,
-} from "./legal.js";
+} from "./legal";
 
 // ── Original shared exports (CLI + Workers) ──────────────────────────────
 
@@ -33,25 +33,25 @@ export type {
   ProcessRequestBody,
   BaseEnv,
   Result,
-} from "./types.js";
+} from "./types";
 export {
   TradeActionSchema,
   WebhookPayloadSchema,
   TradeSignalSchema,
   PositionSchema,
   BalanceSchema,
-} from "./types.js";
-export type { TradeAction, WebhookPayload, TradeSignal } from "./types.js";
-export { KVKeys } from "./kvKeys.js";
+} from "./types";
+export type { TradeAction, WebhookPayload, TradeSignal } from "./types";
+export { KVKeys } from "./kvKeys";
 export {
   toError,
   Errors,
   createJsonResponse,
   createSuccessResponse,
   createErrorResponse,
-} from "./errors.js";
+} from "./errors";
 
-export { BaseExchangeClient, ExchangeRouter } from "./exchange-client.js";
+export { BaseExchangeClient, ExchangeRouter } from "./exchange-client";
 export type {
   ExchangeName,
   ExchangeConfig,
@@ -59,19 +59,19 @@ export type {
   OrderResponse,
   Position,
   IExchangeProvider,
-} from "./exchange-client.js";
+} from "./exchange-client";
 export {
   logKvTimestamp,
   headersToObject,
   kvTimestampMiddleware,
-} from "./kvUtils.js";
-export type { EnvWithKV } from "./kvUtils.js";
-export { trackAnalytics } from "./analytics.js";
-export type { AnalyticsEnv } from "./analytics.js";
-export { healthCheck } from "./health.js";
-export type { HealthCheckOptions } from "./health.js";
-export { D1Repository } from "./d1/index.js";
-export { serviceFetch } from "./service-bindings.js";
+} from "./kvUtils";
+export type { EnvWithKV } from "./kvUtils";
+export { trackAnalytics } from "./analytics";
+export type { AnalyticsEnv } from "./analytics";
+export { healthCheck } from "./health";
+export type { HealthCheckOptions } from "./health";
+export { D1Repository } from "./d1/index";
+export { serviceFetch } from "./service-bindings";
 export type {
   TradeRecord,
   PositionRecord,
@@ -80,7 +80,7 @@ export type {
   TradeSignalRecord,
   D1QueryResult,
   BatchStatement,
-} from "./d1/index.js";
+} from "./d1/index";
 
 // ── New TUI shared exports ────────────────────────────────────────────────
 
@@ -130,6 +130,33 @@ export type {
   LogLevel,
   LogFilter,
 } from "../../types";
+
+// ── Wizard engine ──────────────────────────────────────────────────────
+
+export type {
+  StepId,
+  WorkerPresetName,
+  WorkerPreset,
+  WorkerConfig,
+  WorkersJsonConfig,
+  IntegratedService,
+  ProvisioningPlan,
+  ProvisionResult,
+  WizardCloudflareConfig,
+  WizardState,
+  StepDefinition,
+} from "./wizard";
+export type { Provisioner } from "./wizard";
+export {
+  WizardEngine,
+  PRESETS,
+  WORKER_DEPENDENCIES,
+  INTEGRATIONS,
+  resolveDependencies,
+  serializeState,
+  deserializeState,
+  WIZARD_STATE_PATH,
+} from "./wizard";
 
 // Zustand stores
 export { useUIStore } from "../stores/ui-store";
