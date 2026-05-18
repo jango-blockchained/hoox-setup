@@ -4,7 +4,7 @@ title: "Hoox CLI Features & Commands"
 
 # Hoox CLI Features & Commands
 
-The `hoox` CLI is the central management tool for the Hoox Trading System (381 tests, 15 command groups, 50+ subcommands).
+The `hoox` CLI is the central management tool for the Hoox Trading System (28 test files, 15 command groups, 50+ subcommands).
 
 ## Quick Reference
 
@@ -112,6 +112,7 @@ hoox
 ## Global Options
 
 All commands support:
+
 - `--json`: Machine-parseable JSON output.
 - `--quiet`: Minimal output (for scripting).
 

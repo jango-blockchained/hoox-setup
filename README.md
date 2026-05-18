@@ -168,7 +168,7 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, 381 tests). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
+The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, 28 test files). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
 
 ### Complete Command Tree
 
@@ -227,6 +227,50 @@ Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bu
 - **Lightning Fast Installs**: Dependency resolution and installation are optimized for speed, caching, and concurrent fetching.
 - **Built-in Test Runner**: Hoox uses `bun test`, giving you natively integrated testing without heavy additional dependencies like Jest or Mocha.
 - **TypeScript Out-of-the-Box**: Bun compiles TypeScript on the fly, eliminating the need for slow build steps during development.
+
+---
+
+## 🧪 Testing & Build
+
+All tests use **Bun**'s native test runner (`bun test`). **106 test files** across 4 categories:
+
+| Type            | Count | Description                                                   |
+| :-------------- | :---: | :------------------------------------------------------------ |
+| **Unit**        |  92   | Isolated function/component tests per package and worker      |
+| **Integration** |   2   | Cross-component tests (TUI navigation, gateway middleware)    |
+| **E2E**         |   2   | Full-system tests (TUI smoke, CLI lifecycle)                  |
+| **Live**        |  10   | Cloudflare credential-dependent (D1, KV, R2, Queues, API, AI) |
+
+```bash
+# Run all tests (excluding live — needs Cloudflare credentials)
+bun test
+
+# Integration tests
+bun run test:integration
+
+# E2E tests
+bun run test:e2e
+
+# Live tests (requires tests/live/.env)
+bun run test:live
+
+# Per workspace
+bun run test:cli          # packages/cli/
+bun run test:tui          # packages/tui/
+bun run test:shared       # packages/shared/
+bun run test:workers      # workers/ (all workers)
+
+# Full CI pipeline
+bun run test:all          # lint → typecheck → test → live
+
+# Build packages that need it
+bun run build             # build:packages + typecheck
+bun run build:cli         # packages/cli → dist/
+bun run build:tui         # packages/tui → dist/
+bun run build:dashboard   # workers/dashboard (Next.js)
+bun run build:docs        # pages/docs (Astro)
+bun run typecheck         # tsc --noEmit
+```
 
 ---
 

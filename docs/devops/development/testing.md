@@ -2,51 +2,109 @@
 title: "🧪 Testing"
 description: "Validating functionality of Hoox workers"
 ---
+
 # 🧪 Testing
 
 > Validating functionality of Hoox workers
 
 ## Overview
 
-We use **Bun**'s native test runner (`bun test`) to validate the logic of our Cloudflare® Workers. Testing serverless edge functions requires a combination of unit tests and integration tests that mock Cloudflare®'s bindings (KV, D1, Service Bindings).
+All tests use **Bun**'s native test runner (`bun test`). There are **106 test files** across 4 test types:
+
+| Type            | Count | Description                                                                     |
+| :-------------- | :---: | :------------------------------------------------------------------------------ |
+| **Unit**        |  92   | Isolated function/component tests per package and worker                        |
+| **Integration** |   2   | Cross-component tests (TUI navigation, gateway middleware stack)                |
+| **E2E**         |   2   | Full-system smoke tests (TUI subprocess, CLI lifecycle)                         |
+| **Live**        |  10   | Cloudflare credential-dependent integration tests (D1, KV, R2, Queues, AI, API) |
 
 ## Running Tests
 
-### All Packages
+### All Tests (excluding live)
 
 ```bash
-# From repo root - runs all tests
+# From repo root — runs all unit, integration, and e2e tests
 bun test
 
 # With coverage report
 bun test --coverage
+
+# Excluding TUI e2e smoke test (which requires TUI binary)
+bun test --path-ignore-patterns 'packages/tui/test/e2e/**'
 ```
 
-### Per Package
+### Test by Category
+
+```bash
+# Integration tests
+bun run test:integration        # tests/integration/
+
+# E2E tests
+bun run test:e2e                # tests/e2e/ + tests/e2e.test.ts
+
+# Live tests (requires Cloudflare credentials in tests/live/.env)
+bun run test:live               # tests/live/ --jobs 1
+```
+
+### Test by Workspace
 
 ```bash
 # CLI
-cd packages/cli && bun test
+bun run test:cli                # packages/cli/
 
-# Specific worker
-cd workers/agent-worker && bun test
+# TUI
+bun run test:tui                # packages/tui/
 
-# Or use the management script
-hoox workers test hoox
+# Shared package
+bun run test:shared             # packages/shared/
+
+# All workers (including dashboard)
+bun run test:workers            # workers/
+```
+
+### Test Single Worker
+
+```bash
+# From repo root
+bun test workers/agent-worker/
+bun test workers/hoox/
+
+# Or cd into the worker directory
+cd workers/trade-worker && bun test
 ```
 
 ### Watch Mode
 
 ```bash
-# Watch mode for active development
-cd packages/cli && bun test --watch
+bun test packages/cli --watch
 ```
+
+## Test Inventory
+
+| #   | Workspace                        |  Count  | Type(s)                                       |
+| --- | -------------------------------- | :-----: | :-------------------------------------------- |
+| 1   | **`packages/cli`**               |   28    | Unit                                          |
+| 2   | **`packages/shared`**            |   12    | Unit                                          |
+| 3   | **`packages/tui`**               |   19    | 17 Unit · 1 Integration · 1 E2E               |
+| 4   | **`workers/hoox`**               |    5    | Unit                                          |
+| 5   | **`workers/trade-worker`**       |   11    | Unit                                          |
+| 6   | **`workers/agent-worker`**       |    5    | Unit                                          |
+| 7   | **`workers/d1-worker`**          |    1    | Unit                                          |
+| 8   | **`workers/telegram-worker`**    |    1    | Unit                                          |
+| 9   | **`workers/email-worker`**       |    3    | Unit                                          |
+| 10  | **`workers/analytics-worker`**   |    4    | Unit                                          |
+| 11  | **`workers/web3-wallet-worker`** |    1    | Unit                                          |
+| 12  | **`workers/dashboard`**          |    4    | Unit                                          |
+| 13  | **`workers/report-worker`**      |    0    | —                                             |
+|     | **Workspace subtotal**           | **94**  |                                               |
+| 14  | **`tests/integration/`**         |    1    | Integration (gateway)                         |
+| 15  | **`tests/e2e/`**                 |    1    | E2E (CLI lifecycle)                           |
+| 16  | **`tests/live/`**                |   10    | Live (Cloudflare API, D1, KV, R2, Queues, AI) |
+|     | **TOTAL**                        | **106** | **92 Unit · 2 Integration · 2 E2E · 10 Live** |
 
 ## Mocking Bindings
 
-Cloudflare® bindings must be mocked during local testing. We typically use standard JavaScript stubs to mock `env.SERVICE.fetch` or `env.KV.get`.
-
-Example of mocking a Service Binding in a unit test:
+Cloudflare® bindings must be mocked during local testing. We use standard JavaScript stubs to mock `env.SERVICE.fetch` or `env.KV.get`.
 
 ```typescript
 import { describe, it, expect } from "bun:test";
@@ -54,7 +112,6 @@ import type { Env } from "../src/index";
 
 describe("hoox Gateway", () => {
   it("should forward trade requests to trade-worker", async () => {
-    // Mock the environment safely without using 'as any'
     const mockEnv = {
       TRADE_SERVICE: {
         fetch: async (url: any, options: any) => {
@@ -72,88 +129,80 @@ describe("hoox Gateway", () => {
 
 ### Type Safety in Tests
 
-We enforce strict TypeScript typing across our codebase, including test files. **Do not use `as any`**. When mocking complex objects like the Cloudflare `Env`, cast your mock object securely using `as unknown as Env`.
+Enforce strict TypeScript typing — **do not use `as any`**. Cast mock objects securely using `as unknown as Env`.
 
 ## Integration Tests
 
-We use `@cloudflare/vitest-pool-workers` to run full end-to-end integration tests that mock the Cloudflare Workers environment and service bindings.
-
-To run the integration test suite:
+Integration tests use **Miniflare 3** directly (via `bun:test`, not vitest) to simulate Cloudflare Workers with service bindings.
 
 ```bash
 bun run test:integration
 ```
 
-Integration tests are located in the `tests/integration` directory and utilize a `vitest.config.ts` configuration.
+Integration tests live in `tests/integration/` and cover:
 
-## Development Commands
+- Gateway middleware stack (auth → validation → CORS → routing)
+- Worker service binding communication (planned: hoox→d1, trade-worker→d1, agent→trade)
 
-All workers follow standardized commands using Bun:
+## E2E Tests
+
+E2E tests validate full-system workflows:
 
 ```bash
-# Install dependencies (per worker)
-bun install
+bun run test:e2e
+```
 
-# Run tests
-bun test
+| File                                  | What it tests                                 |
+| :------------------------------------ | :-------------------------------------------- |
+| `tests/e2e.test.ts`                   | CLI lifecycle (init → config → check)         |
+| `packages/tui/test/e2e/smoke.test.ts` | TUI subprocess launch, render, and clean exit |
 
-# Run typecheck
+## Live Tests
+
+Live tests require Cloudflare credentials and hit real Cloudflare APIs:
+
+```bash
+bun run test:live
+```
+
+Set credentials in `tests/live/.env`:
+
+```
+CLOUDFLARE_API_TOKEN=...
+CLOUDFLARE_ACCOUNT_ID=...
+HOOX_D1_DATABASE=...
+```
+
+## Build Commands
+
+```bash
+# Build all packages that need it (CLI + TUI) + typecheck
+bun run build
+
+# Individual builds
+bun run build:cli          # packages/cli → dist/
+bun run build:tui          # packages/tui → dist/
+bun run build:dashboard    # workers/dashboard → next build
+bun run build:docs         # pages/docs → astro build
+
+# TypeScript typecheck (all workspaces)
 bun run typecheck
-# or
-npx tsc --noEmit
-
-# Local development
-bunx wrangler dev
-
-# Deploy to Cloudflare
-bunx wrangler deploy
 ```
 
-## Test Coverage by Package
+## Coverage
 
-We use `bun test --coverage` to track code coverage across the project. The CI pipeline enforces a minimum 80% coverage threshold.
-
-### Coverage Results (as of May 2026)
-
-| Package/File             | Function Coverage | Line Coverage | Status               |
-| ------------------------ | ----------------- | ------------- | -------------------- |
-| **packages/cli**         |                   |               |                      |
-| cf-client.ts             | 100%              | 100%          | ✅                   |
-| utils.ts                 | 83.33%            | 83.51%        | ✅                   |
-| validation.ts            | 92.86%            | 74.37%        | ⚠️ (functions only)  |
-| configUtils.ts           | 68.18%            | 40.48%        | ❌ Needs improvement |
-| workerCommands.ts        | 22.73%            | 2.27%         | ❌ Needs improvement |
-| **workers/hoox**         |                   |               |                      |
-| index.ts                 | 85%               | 82%           | ✅                   |
-| **workers/trade-worker** |                   |               |                      |
-| index.ts                 | 88%               | 85%           | ✅                   |
-| **workers/agent-worker** |                   |               |                      |
-| index.ts                 | 90%               | 87%           | ✅                   |
-
-> **Note**: Coverage percentages shown are when running test files in isolation. Running all tests together may show lower coverage due to test isolation issues with module mocking.
-
-### Running Coverage Reports
+We use `bun test --coverage` for code coverage. The CI pipeline enforces a minimum 80% coverage threshold.
 
 ```bash
-# Run all tests with coverage
+# Full coverage
+bun test --coverage
+
+# Per workspace
 bun test packages/cli --coverage
-
-# Run specific package tests
 bun test workers/hoox --coverage
-
-# Check coverage for a specific file (in isolation)
-cd packages/cli && bun test test/cf-client.test.ts --coverage
 ```
 
-### Improving Coverage
-
-To improve coverage for a specific file:
-
-1. Identify uncovered lines from the coverage report
-2. Create or update test files in the appropriate `test/` directory
-3. Mock external dependencies using `mock.module()` from `bun:test`
-4. Run the test in isolation to verify coverage improvement
-5. Ensure tests pass when run individually: `bun test test/your-test.test.ts --coverage`
+> **Note:** Coverage numbers from isolated file runs will differ from full-suite runs.
 
 ## Next Steps
 

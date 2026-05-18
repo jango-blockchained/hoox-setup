@@ -5,7 +5,7 @@ description: "Complete reference for the hoox command-line interface"
 
 # CLI Commands
 
-The `hoox` CLI has 15 command groups and 50+ subcommands (381 tests).
+The `hoox` CLI has 15 command groups and 50+ subcommands (28 test files, part of the 106-test project suite).
 
 ## Quick Reference
 
@@ -127,9 +127,9 @@ hoox waf                          Manage WAF rules
 
 All commands support:
 
-| Option | Description |
-|--------|-------------|
-| `--json` | Machine-parseable JSON output |
-| `--quiet` | Minimal output for scripting |
+| Option    | Description                   |
+| --------- | ----------------------------- |
+| `--json`  | Machine-parseable JSON output |
+| `--quiet` | Minimal output for scripting  |
 
 > **Full reference:** [CLI Features & Commands](../devops/cli_features.md) for detailed descriptions of all subcommands.
