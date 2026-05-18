@@ -232,14 +232,14 @@ Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bu
 
 ## 🧪 Testing & Build
 
-All tests use **Bun**'s native test runner (`bun test`). **106 test files** across 4 categories:
+All tests use **Bun**'s native test runner (`bun test`). **106 test files** with **1,574 individual test assertions** across 4 categories:
 
-| Type            | Count | Description                                                   |
-| :-------------- | :---: | :------------------------------------------------------------ |
-| **Unit**        |  92   | Isolated function/component tests per package and worker      |
-| **Integration** |   2   | Cross-component tests (TUI navigation, gateway middleware)    |
-| **E2E**         |   2   | Full-system tests (TUI smoke, CLI lifecycle)                  |
-| **Live**        |  10   | Cloudflare credential-dependent (D1, KV, R2, Queues, API, AI) |
+| Type            | Files | Assertions | Description                                                   |
+| :-------------- | :---: | :--------: | :------------------------------------------------------------ |
+| **Unit**        |  92   |   1,458    | Isolated function/component tests per package and worker      |
+| **Integration** |   2   |     34     | Cross-component tests (TUI navigation, gateway middleware)    |
+| **E2E**         |   2   |     5      | Full-system tests (TUI smoke, CLI lifecycle)                  |
+| **Live**        |  10   |     77     | Cloudflare credential-dependent (D1, KV, R2, Queues, API, AI) |
 
 ```bash
 # Run all tests (excluding live — needs Cloudflare credentials)

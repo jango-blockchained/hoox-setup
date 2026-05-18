@@ -9,14 +9,14 @@ description: "Validating functionality of Hoox workers"
 
 ## Overview
 
-All tests use **Bun**'s native test runner (`bun test`). There are **106 test files** across 4 test types:
+All tests use **Bun**'s native test runner (`bun test`). There are **106 test files** with **1,574 individual test assertions** across 4 test types:
 
-| Type            | Count | Description                                                                     |
-| :-------------- | :---: | :------------------------------------------------------------------------------ |
-| **Unit**        |  92   | Isolated function/component tests per package and worker                        |
-| **Integration** |   2   | Cross-component tests (TUI navigation, gateway middleware stack)                |
-| **E2E**         |   2   | Full-system smoke tests (TUI subprocess, CLI lifecycle)                         |
-| **Live**        |  10   | Cloudflare credential-dependent integration tests (D1, KV, R2, Queues, AI, API) |
+| Type            | Files | Assertions | Description                                                                     |
+| :-------------- | :---: | :--------: | :------------------------------------------------------------------------------ |
+| **Unit**        |  92   |   1,458    | Isolated function/component tests per package and worker                        |
+| **Integration** |   2   |     34     | Cross-component tests (TUI navigation, gateway middleware stack)                |
+| **E2E**         |   2   |     5      | Full-system smoke tests (TUI subprocess, CLI lifecycle)                         |
+| **Live**        |  10   |     77     | Cloudflare credential-dependent integration tests (D1, KV, R2, Queues, AI, API) |
 
 ## Running Tests
 
@@ -81,26 +81,26 @@ bun test packages/cli --watch
 
 ## Test Inventory
 
-| #   | Workspace                        |  Count  | Type(s)                                       |
-| --- | -------------------------------- | :-----: | :-------------------------------------------- |
-| 1   | **`packages/cli`**               |   28    | Unit                                          |
-| 2   | **`packages/shared`**            |   12    | Unit                                          |
-| 3   | **`packages/tui`**               |   19    | 17 Unit · 1 Integration · 1 E2E               |
-| 4   | **`workers/hoox`**               |    5    | Unit                                          |
-| 5   | **`workers/trade-worker`**       |   11    | Unit                                          |
-| 6   | **`workers/agent-worker`**       |    5    | Unit                                          |
-| 7   | **`workers/d1-worker`**          |    1    | Unit                                          |
-| 8   | **`workers/telegram-worker`**    |    1    | Unit                                          |
-| 9   | **`workers/email-worker`**       |    3    | Unit                                          |
-| 10  | **`workers/analytics-worker`**   |    4    | Unit                                          |
-| 11  | **`workers/web3-wallet-worker`** |    1    | Unit                                          |
-| 12  | **`workers/dashboard`**          |    4    | Unit                                          |
-| 13  | **`workers/report-worker`**      |    0    | —                                             |
-|     | **Workspace subtotal**           | **94**  |                                               |
-| 14  | **`tests/integration/`**         |    1    | Integration (gateway)                         |
-| 15  | **`tests/e2e/`**                 |    1    | E2E (CLI lifecycle)                           |
-| 16  | **`tests/live/`**                |   10    | Live (Cloudflare API, D1, KV, R2, Queues, AI) |
-|     | **TOTAL**                        | **106** | **92 Unit · 2 Integration · 2 E2E · 10 Live** |
+| #   | Workspace                        |  Files  | Assertions | Type(s)                                       |
+| --- | -------------------------------- | :-----: | :--------: | :-------------------------------------------- |
+| 1   | **`packages/cli`**               |   28    |    386     | Unit                                          |
+| 2   | **`packages/shared`**            |   12    |    170     | Unit                                          |
+| 3   | **`packages/tui`**               |   19    |    455     | 17 Unit · 1 Integration · 1 E2E               |
+| 4   | **`workers/hoox`**               |    5    |     78     | Unit                                          |
+| 5   | **`workers/trade-worker`**       |   11    |    169     | Unit                                          |
+| 6   | **`workers/agent-worker`**       |    5    |     77     | Unit                                          |
+| 7   | **`workers/d1-worker`**          |    1    |     9      | Unit                                          |
+| 8   | **`workers/telegram-worker`**    |    1    |     31     | Unit                                          |
+| 9   | **`workers/email-worker`**       |    3    |     25     | Unit                                          |
+| 10  | **`workers/analytics-worker`**   |    4    |     42     | Unit                                          |
+| 11  | **`workers/web3-wallet-worker`** |    1    |     7      | Unit                                          |
+| 12  | **`workers/dashboard`**          |    4    |     37     | Unit                                          |
+| 13  | **`workers/report-worker`**      |    0    |     0      | —                                             |
+|     | **Workspace subtotal**           | **94**  | **1,486**  |                                               |
+| 14  | **`tests/integration/`**         |    1    |     10     | Integration (gateway)                         |
+| 15  | **`tests/e2e/`**                 |    1    |     1      | E2E (CLI lifecycle)                           |
+| 16  | **`tests/live/`**                |   10    |     77     | Live (Cloudflare API, D1, KV, R2, Queues, AI) |
+|     | **TOTAL**                        | **106** | **1,574**  | **92 Unit · 2 Integration · 2 E2E · 10 Live** |
 
 ## Mocking Bindings
 
