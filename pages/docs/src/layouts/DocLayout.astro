@@ -109,6 +109,10 @@ const sections = buildNavigation(
           const code = pre.querySelector("code")?.textContent || "";
           const wrapper = document.createElement("div");
           wrapper.className = "mermaid-wrapper";
+          wrapper.style.overflow = "hidden";
+          wrapper.style.position = "relative";
+          wrapper.style.cursor = "grab";
+          wrapper.style.userSelect = "none";
 
           const id = "mermaid-" + Math.random().toString(36).slice(2, 9);
           const svg = document.createElement("div");
@@ -121,6 +125,73 @@ const sections = buildNavigation(
 
         try {
           await mermaid.run({ querySelector: ".mermaid" });
+          
+          // ── Interactive Zoom & Pan for Mermaid SVGs ──
+          document.querySelectorAll(".mermaid-wrapper").forEach((wrapper) => {
+            const svgNode = wrapper.querySelector("svg");
+            if (!svgNode) return;
+
+            // Apply hardware-accelerated transitions
+            svgNode.style.transition = "transform 0.05s ease-out";
+            svgNode.style.transformOrigin = "center center";
+
+            let scale = 1;
+            let translateX = 0;
+            let translateY = 0;
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+
+            const updateTransform = () => {
+              svgNode.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            };
+
+            // Mouse down -> Drag start
+            wrapper.addEventListener("mousedown", (e) => {
+              isDragging = true;
+              wrapper.style.cursor = "grabbing";
+              startX = e.clientX - translateX;
+              startY = e.clientY - translateY;
+              e.preventDefault();
+            });
+
+            // Mouse move -> Pan
+            window.addEventListener("mousemove", (e) => {
+              if (!isDragging) return;
+              translateX = e.clientX - startX;
+              translateY = e.clientY - startY;
+              updateTransform();
+            });
+
+            // Mouse up -> Drag stop
+            window.addEventListener("mouseup", () => {
+              if (!isDragging) return;
+              isDragging = false;
+              wrapper.style.cursor = "grab";
+            });
+
+            // Wheel -> Zoom
+            wrapper.addEventListener("wheel", (e) => {
+              e.preventDefault();
+              const zoomFactor = 1.1;
+              if (e.deltaY < 0) {
+                scale *= zoomFactor; // Zoom in
+              } else {
+                scale /= zoomFactor; // Zoom out
+              }
+              // Set bounds for scaling
+              scale = Math.max(0.3, Math.min(scale, 4.0));
+              updateTransform();
+            });
+
+            // Double click -> Reset
+            wrapper.addEventListener("dblclick", () => {
+              scale = 1;
+              translateX = 0;
+              translateY = 0;
+              updateTransform();
+            });
+          });
         } catch (e) {
           console.warn("Mermaid render error:", e);
         }

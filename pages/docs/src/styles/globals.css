@@ -176,7 +176,7 @@ html:not(.dark) ::selection {
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-mono;
   }
 }
 
@@ -329,22 +329,22 @@ article.prose a {
  */
 
 article.prose h1 {
-  @apply mb-3 mt-10 text-3xl font-bold tracking-tight text-foreground;
+  @apply mb-3 mt-10 text-3xl font-bold tracking-wider text-foreground uppercase;
   @apply xl:text-4xl;
 }
 
 article.prose h2 {
-  @apply mb-3 mt-8 text-xl font-semibold tracking-tight text-foreground;
+  @apply mb-3 mt-8 text-xl font-semibold tracking-wider text-foreground uppercase;
   @apply xl:text-2xl;
 }
 
 article.prose h3 {
-  @apply mb-2 mt-6 text-lg font-medium text-foreground;
+  @apply mb-2 mt-6 text-lg font-medium text-foreground uppercase tracking-wide;
   @apply xl:text-xl;
 }
 
 article.prose h4 {
-  @apply mb-1 mt-4 text-base font-medium text-foreground;
+  @apply mb-1 mt-4 text-base font-medium text-foreground uppercase tracking-wide;
 }
 
 article.prose p {
