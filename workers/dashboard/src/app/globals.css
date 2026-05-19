@@ -2,91 +2,53 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(240, 10%, 3.9%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(240, 10%, 3.9%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(240, 10%, 3.9%);
-  --primary: hsl(240, 5.9%, 10%);
-  --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(240, 4.8%, 95.9%);
-  --secondary-foreground: hsl(240, 5.9%, 10%);
-  --muted: hsl(240, 4.8%, 95.9%);
-  --muted-foreground: hsl(240, 3.8%, 46.1%);
-  --accent: hsl(240, 4.8%, 95.9%);
-  --accent-foreground: hsl(240, 5.9%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 5.9%, 90%);
-  --input: hsl(240, 5.9%, 90%);
-  --ring: hsl(240, 5.9%, 10%);
-  --chart-1: hsl(240, 5.9%, 10%);
-  --chart-2: hsl(240, 4.8%, 95.9%);
-  --chart-3: hsl(240, 3.8%, 46.1%);
-  --chart-4: hsl(240, 5.9%, 90%);
-  --chart-5: hsl(0, 0%, 98%);
-  --radius: 0.5rem;
-  --sidebar: hsl(0, 0%, 100%);
-  --sidebar-foreground: hsl(240, 10%, 3.9%);
-  --sidebar-primary: hsl(240, 5.9%, 10%);
-  --sidebar-primary-foreground: hsl(0, 0%, 98%);
-  --sidebar-accent: hsl(240, 4.8%, 95.9%);
-  --sidebar-accent-foreground: hsl(240, 5.9%, 10%);
-  --sidebar-border: hsl(240, 5.9%, 90%);
-  --sidebar-ring: hsl(240, 5.9%, 10%);
-  --success: hsl(142.1, 76.2%, 36.3%);
-  --success-foreground: hsl(355.7, 100%, 97.3%);
-  --warning: hsl(38, 92%, 50%);
-  --warning-foreground: hsl(48, 96%, 89%);
-}
-
+:root,
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --primary: hsl(0, 0%, 98%);
-  --primary-foreground: hsl(240, 5.9%, 10%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --chart-1: hsl(0, 0%, 98%);
-  --chart-2: hsl(240, 3.7%, 15.9%);
-  --chart-3: hsl(240, 5%, 64.9%);
-  --chart-4: hsl(240, 3.7%, 15.9%);
-  --chart-5: hsl(240, 5.9%, 10%);
-  --sidebar: hsl(240, 10%, 3.9%);
-  --sidebar-foreground: hsl(0, 0%, 98%);
-  --sidebar-primary: hsl(0, 0%, 98%);
-  --sidebar-primary-foreground: hsl(240, 5.9%, 10%);
-  --sidebar-accent: hsl(240, 3.7%, 15.9%);
-  --sidebar-accent-foreground: hsl(0, 0%, 98%);
-  --sidebar-border: hsl(240, 3.7%, 15.9%);
-  --sidebar-ring: hsl(240, 4.9%, 83.9%);
-  --success: hsl(142.1, 70.6%, 45.3%);
-  --success-foreground: hsl(144.9, 80.4%, 10%);
-  --warning: hsl(48, 96%, 89%);
-  --warning-foreground: hsl(38, 92%, 50%);
+  --background: oklch(0.08 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.12 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.95 0 0);
+  --primary-foreground: oklch(0.08 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.85 0 0);
+  --muted: oklch(0.28 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.7 0.2 45);
+  --accent-foreground: oklch(0.08 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.25 0 0);
+  --ring: oklch(0.7 0.2 45);
+  --chart-1: oklch(0.95 0 0);
+  --chart-2: oklch(0.22 0 0);
+  --chart-3: oklch(0.55 0 0);
+  --chart-4: oklch(0.3 0 0);
+  --chart-5: oklch(0.12 0 0);
+  --radius: 0rem;
+  --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.7 0.2 45);
+  --sidebar-primary-foreground: oklch(0.08 0 0);
+  --sidebar-accent: oklch(0.15 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.25 0 0);
+  --sidebar-ring: oklch(0.7 0.2 45);
+  --success: oklch(0.62 0.19 142.5);
+  --success-foreground: oklch(0.08 0 0);
+  --warning: oklch(0.8 0.15 80);
+  --warning-foreground: oklch(0.08 0 0);
 }
 
 @theme inline {
   --font-sans:
-    var(--font-geist-sans), "Inter", "Inter Fallback", system-ui, sans-serif;
+    var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif;
   --font-mono:
-    var(--font-geist-mono), "JetBrains Mono", "JetBrains Mono Fallback",
-    monospace;
+    var(--font-ibm-plex-mono), "IBM Plex Mono", "JetBrains Mono", monospace;
+  --font-heading: var(--font-bebas), "Bebas Neue", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -136,6 +98,25 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ── Grid background ── */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, oklch(0.22 0 0) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.22 0 0) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── Custom selection ── */
+::selection {
+  background: oklch(0.7 0.2 45);
+  color: oklch(0.08 0 0);
+}
+
+/* ── Glow effect for accent elements ── */
+.glow-accent {
+  box-shadow: 0 0 20px oklch(0.7 0.2 45 / 0.3);
 }
 
 /* Scrollbar utilities */
