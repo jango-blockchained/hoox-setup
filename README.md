@@ -5,11 +5,11 @@
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Runtime](https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&logo=bun)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
-[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/development/testing.md)
+[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/devops/development/testing-standards.md)
 [![License](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
 [![Main Repo](https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&logo=github)](https://github.com/jango-blockchained/hoox-setup)
 
-**Comprehensive Docs:** **[Documentation Home](docs/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
+**Comprehensive Docs:** **[Documentation Home](docs/enduser/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
 </div>
 
@@ -617,7 +617,7 @@ bun test --coverage
 
 Built natively on Bun, Hoox features TypeScript type safety with strict mode enabled.
 
-> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/development/testing.md) for detailed coverage reports.
+> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/devops/development/testing-standards.md) for detailed coverage reports.
 
 ### 🌐 Live Integration Tests
 
