@@ -236,7 +236,7 @@ article.prose pre {
 
 article.prose pre > code {
   @apply block bg-transparent p-0 text-inherit;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   line-height: 1.6;
   tab-size: 2;
