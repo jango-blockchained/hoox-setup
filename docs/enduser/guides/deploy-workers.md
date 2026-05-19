@@ -54,11 +54,11 @@ When you run `hoox deploy all`, the CLI:
 
 ## Troubleshooting
 
-| Problem | Likely Cause | Fix |
-|---------|-------------|-----|
-| `502 Bad Gateway` | Service binding target not deployed yet | Run `hoox deploy all` to enforce dependency order |
-| `401 Unauthorized` | Missing or wrong API key | `hoox secrets update-cf` |
-| Worker not appearing | Worker disabled in `wrangler.jsonc` | `hoox config set workers.<name>.enabled true` |
+| Problem              | Likely Cause                            | Fix                                               |
+| -------------------- | --------------------------------------- | ------------------------------------------------- |
+| `502 Bad Gateway`    | Service binding target not deployed yet | Run `hoox deploy all` to enforce dependency order |
+| `401 Unauthorized`   | Missing or wrong API key                | `hoox secrets update-cf`                          |
+| Worker not appearing | Worker disabled in `wrangler.jsonc`     | `hoox config set workers.<name>.enabled true`     |
 
 ## Next Steps
 

@@ -37,6 +37,7 @@ The kill switch is stored in KV — no redeployment needed. Changes take effect 
 ### 3. Health Summaries
 
 The AI risk manager can generate periodic summaries of:
+
 - Portfolio value and P&L
 - Open positions and exposure
 - Recent trade history

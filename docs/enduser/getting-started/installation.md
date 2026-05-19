@@ -41,6 +41,7 @@ hoox init
 ```
 
 The interactive wizard will:
+
 1. Check dependencies (bun, wrangler, git)
 2. Prompt for Cloudflare credentials
 3. Configure which workers to enable

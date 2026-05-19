@@ -41,6 +41,7 @@ hoox repair rebuild
 ```
 
 This interactive command:
+
 1. Backs up your D1 database
 2. Deletes and recreates D1
 3. Redeploys all workers
@@ -51,10 +52,10 @@ This interactive command:
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| `bun install` fails | `git submodule update --init --recursive` |
-| Worker deploy fails | `hoox secrets update-cf` |
-| 502 Bad Gateway | Deploy dependency workers first |
-| D1 query fails | `hoox db apply --remote` |
-| Telegram not receiving | `hoox deploy telegram-webhook` |
+| Symptom                | Fix                                       |
+| ---------------------- | ----------------------------------------- |
+| `bun install` fails    | `git submodule update --init --recursive` |
+| Worker deploy fails    | `hoox secrets update-cf`                  |
+| 502 Bad Gateway        | Deploy dependency workers first           |
+| D1 query fails         | `hoox db apply --remote`                  |
+| Telegram not receiving | `hoox deploy telegram-webhook`            |

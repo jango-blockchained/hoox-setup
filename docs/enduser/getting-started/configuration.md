@@ -15,11 +15,11 @@ cp .env.example .env.local
 
 ### Required Variables
 
-| Variable | Description |
-|----------|-------------|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Worker/Account permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
-| `SUBDOMAIN_PREFIX` | Prefix for worker subdomains (e.g., `mytrading`) |
+| Variable                | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | Cloudflare API token with Worker/Account permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID                           |
+| `SUBDOMAIN_PREFIX`      | Prefix for worker subdomains (e.g., `mytrading`)     |
 
 ### Optional Variables
 

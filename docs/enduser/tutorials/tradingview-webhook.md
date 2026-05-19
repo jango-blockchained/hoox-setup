@@ -48,11 +48,11 @@ hoox monitor trades
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| Alert fires but no trade appears | Check gateway logs: `hoox logs tail hoox` |
-| "401 Unauthorized" | Verify your API key: `hoox secrets check` |
-| Wrong exchange | Check exchange API keys are set: `hoox secrets update-cf` |
+| Problem                          | Fix                                                       |
+| -------------------------------- | --------------------------------------------------------- |
+| Alert fires but no trade appears | Check gateway logs: `hoox logs tail hoox`                 |
+| "401 Unauthorized"               | Verify your API key: `hoox secrets check`                 |
+| Wrong exchange                   | Check exchange API keys are set: `hoox secrets update-cf` |
 
 ## Next Steps
 

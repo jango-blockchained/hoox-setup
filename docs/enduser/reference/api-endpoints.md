@@ -41,15 +41,15 @@ Sends a trading signal to be executed. This is the primary endpoint used by Trad
 
 ### Parameters
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `apiKey` | string | Yes | Your gateway API key |
-| `exchange` | string | Yes | Target exchange: `binance`, `bybit`, or `mexc` |
-| `action` | string | Yes | `LONG`, `SHORT`, or `CLOSE` |
-| `symbol` | string | Yes | Trading pair (e.g., `BTC_USDT`, `ETH_USDT`) |
-| `quantity` | number | Yes | Amount to trade |
-| `orderType` | string | No | `market` (default) or `limit` |
-| `price` | number | No | Required if `orderType` is `limit` |
+| Field       | Type   | Required | Description                                    |
+| ----------- | ------ | -------- | ---------------------------------------------- |
+| `apiKey`    | string | Yes      | Your gateway API key                           |
+| `exchange`  | string | Yes      | Target exchange: `binance`, `bybit`, or `mexc` |
+| `action`    | string | Yes      | `LONG`, `SHORT`, or `CLOSE`                    |
+| `symbol`    | string | Yes      | Trading pair (e.g., `BTC_USDT`, `ETH_USDT`)    |
+| `quantity`  | number | Yes      | Amount to trade                                |
+| `orderType` | string | No       | `market` (default) or `limit`                  |
+| `price`     | number | No       | Required if `orderType` is `limit`             |
 
 ## Health Check
 
