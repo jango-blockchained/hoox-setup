@@ -39,7 +39,7 @@ const sectionSvgIcons: Record<string, string> = {
   <!-- Panel -->
   <div class="fixed left-0 top-0 bottom-0 w-72 bg-background border-r border-border overflow-y-auto z-10 shadow-2xl">
     <div class="flex items-center justify-between p-4 border-b border-border">
-      <span class="font-semibold">Navigation</span>
+      <span class="font-semibold font-mono">Navigation</span>
       <button
         onclick="document.getElementById('mobile-nav').classList.add('hidden')"
         class="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent"
@@ -74,10 +74,10 @@ const sectionSvgIcons: Record<string, string> = {
         href="/hoox-setup/"
         onclick="document.getElementById('mobile-nav').classList.add('hidden')"
         class={cn(
-          "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+          "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium font-mono",
           (!currentSlug || currentSlug === "home")
-            ? "bg-accent text-accent-foreground"
-            : "text-muted-foreground hover:bg-muted"
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted/70"
         )}
       >
         <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -87,8 +87,8 @@ const sectionSvgIcons: Record<string, string> = {
       {
         sections.map((section) => (
           <div class="mt-2 mobile-audience-section" data-audience={section.audience}>
-            <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <span class="text-muted-foreground/70" set:html={sectionSvgIcons[section.icon] || sectionSvgIcons.book} />
+            <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent font-mono">
+              <span class="text-accent/70" set:html={sectionSvgIcons[section.icon] || sectionSvgIcons.book} />
               <span>{section.title}</span>
             </div>
             <div class="ml-1 flex flex-col gap-0.5 mt-1">
@@ -97,10 +97,10 @@ const sectionSvgIcons: Record<string, string> = {
                   href={`/hoox-setup/${item.slug}/`}
                   onclick="document.getElementById('mobile-nav').classList.add('hidden')"
                   class={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm",
+                    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-mono",
                     currentSlug === item.slug
-                      ? "bg-accent text-accent-foreground font-medium"
-                      : "text-muted-foreground hover:bg-muted"
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/70"
                   )}
                 >
                   <span class="truncate">{item.title}</span>
