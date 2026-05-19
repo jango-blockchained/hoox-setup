@@ -86,6 +86,44 @@ function sanitizeContent(content: string): string {
   return content.replace(/^---[\s\S]*?---/, "").trim();
 }
 
+// ── NEW: Deep Plain Text Minifier & Compression for LLMs ──
+function minifyLlmText(content: string): string {
+  // 1. Remove frontmatter
+  let text = content.replace(/^---[\s\S]*?---/, "");
+
+  // 2. Remove Mermaid diagram blocks completely
+  text = text.replace(/```mermaid[\s\S]*?```/g, "");
+
+  // 3. Strip Markdown link formats: [Text](URL) -> Text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+
+  // 4. Strip HTML tags (SVG wrappers, HTML badges)
+  text = text.replace(/<svg[\s\S]*?<\/svg>/g, "");
+  text = text.replace(/<[^>]+>/g, "");
+
+  // 5. Strip Markdown formatting indicators
+  text = text.replace(/^#+\s+/gm, ""); // headings
+  text = text.replace(/\*\*([^*]+)\*\*/g, "$1"); // bold
+  text = text.replace(/\*([^*]+)\*/g, "$1"); // italic
+  text = text.replace(/__([^_]+)__/g, "$1"); // bold
+  text = text.replace(/_([^_]+)_/g, "$1"); // italic
+  text = text.replace(/`([^`]+)`/g, "$1"); // inline code
+  text = text.replace(/^\s*[-*+]\s+/gm, ""); // list bullets
+  text = text.replace(/^\s*>\s+/gm, ""); // blockquotes
+  text = text.replace(/```[a-z]*\n([\s\S]*?)```/g, "$1"); // standard code block wrappers
+
+  // 6. Strip Emojis using unicode-aware regex
+  text = text.replace(/\p{Emoji}/gu, "");
+
+  // 7. Compress Whitespace: trim lines, remove empty lines, collapse spaces
+  const compressedLines = text
+    .split("\n")
+    .map((line) => line.trim().replace(/\s+/g, " "))
+    .filter((line) => line.length > 0);
+
+  return compressedLines.join("\n");
+}
+
 // Helper to write a PDF file using jsPDF
 function generatePDF(title: string, files: string[], outputPath: string) {
   const doc = new jsPDF({
@@ -246,26 +284,22 @@ generatePDF(
   path.join(publicDir, "DevOps-Full-Documentation.pdf")
 );
 
-// ── 2. Generate Consolidated llm.txt File ──
-let llmText = `========================================================================
-HOOX TRADING PLATFORM CONSOLIDATED SPEC & SYSTEM INTELLIGENCE
-Generated: ${new Date().toISOString()}
-========================================================================\n\n`;
+// ── 2. Generate Consolidated & Minified llm.txt File ──
+let llmText = `HOOX TRADING PLATFORM CONSOLIDATED SYSTEM INTELLIGENCE SPEC\n`;
 
 function appendToLlmText(files: string[]) {
   for (const file of files) {
     const filePath = path.join(docsDir, file);
     if (!fs.existsSync(filePath)) continue;
     const content = fs.readFileSync(filePath, "utf-8");
-    llmText += `\n\n========================================================================\n`;
-    llmText += `FILE PATH: docs/${file}\n`;
-    llmText += `========================================================================\n\n`;
-    llmText += sanitizeContent(content);
+    llmText += `\nFILE: docs/${file}\n`;
+    llmText += minifyLlmText(content);
+    llmText += `\n`;
   }
 }
 
 appendToLlmText(enduserFiles);
 appendToLlmText(devopsFiles);
 
-fs.writeFileSync(path.join(publicDir, "llm.txt"), llmText, "utf-8");
-console.log("Generated: llm.txt");
+fs.writeFileSync(path.join(publicDir, "llm.txt"), llmText.trim(), "utf-8");
+console.log("Generated minified: llm.txt");
