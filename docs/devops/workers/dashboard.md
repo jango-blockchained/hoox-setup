@@ -13,19 +13,22 @@ The **Hoox Dashboard** is the web-based command center of the trading platform. 
 
 When deploying the dashboard, the monorepo uses `@opennextjs/cloudflare` to convert standard Node.js server-side features into Edge-compliant JavaScript:
 
-```
-[Next.js 16 App Source]
-          │
-          ▼ (bun run opennext:build)
-[Turbopack / Webpack Bundler]
-          │
-          ├─────────────────────────┐
-          ▼                         ▼
-[.open-next/worker.js]    [.open-next/assets/]
-(Server-Side Rendering)   (Images, CSS, JS chunks)
-          │                         │
-          ▼ (wrangler deploy)        ▼ (ASSETS binding)
-[Cloudflare V8 Isolate]   [Cloudflare global CDN]
+```mermaid
+graph TD
+    Src["💻 Next.js 16 App Source"] -->|bun run opennext:build| Bundler["⚙️ Turbopack / Webpack Bundler"]
+
+    Bundler -->|Server-Side Rendering| WorkerJS["📄 .open-next/worker.js"]
+    Bundler -->|Static Assets| Assets["📁 .open-next/assets/"]
+
+    WorkerJS -->|wrangler deploy| V8["⚡ Cloudflare V8 Isolate"]
+    Assets -->|ASSETS binding| CDN["🌐 Cloudflare Global CDN"]
+
+    style Src fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style Bundler fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style WorkerJS fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Assets fill:#1e293b,stroke:#10b981,stroke-width:1
+    style V8 fill:#1e293b,stroke:#ef4444,stroke-width:2
+    style CDN fill:#1e293b,stroke:#ef4444,stroke-width:2
 ```
 
 - **Server Isolate** (`.open-next/worker.js`): Handles Server-Side Rendering (SSR), React Server Components (RSC) hydration, API routes, and cookies encryption.

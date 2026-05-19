@@ -13,13 +13,14 @@ By placing your deployment behind Cloudflare Access, you can enforce Multi-Facto
 
 ## 🏗️ The Zero Trust Protective Boundary
 
-```
-[Public Web Browser] ──► [Cloudflare Edge (WAF / Access Gate)]
-                                      │
-                         (MFA & GitHub SSO Validation)
-                                      │
-                                      ▼
-                        [Next.js Dashboard Isolate]
+```mermaid
+graph TD
+    Client["🌐 Public Web Browser"] -->|Request| Gate["🧱 Cloudflare Edge<br/>WAF / Access Gate"]
+    Gate -->|MFA & GitHub SSO Validation| Dash["🖥️ Next.js Dashboard Isolate"]
+
+    style Client fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style Gate fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style Dash fill:#1e293b,stroke:#10b981,stroke-width:2
 ```
 
 - **Zero Public Exposure**: The dashboard isolate does not evaluate public logins directly.

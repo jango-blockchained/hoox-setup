@@ -13,14 +13,16 @@ Our test suite is powered natively by **Bun's high-speed test runner**, comprisi
 
 ## 🎚️ The 4 QA Testing Layers
 
-```
-[ Unit Tests (1,458 Assertions) ]  ──► Mock V8 isolates, verify calculations & middlewares.
-                 │
-[ Integration Tests (34 Assertions) ] ──► Miniflare 3 local sandboxes (CORS, router stacks).
-                 │
-[ E2E Smoke Tests (5 Assertions) ]  ──► CLI lifecycle audits & TUI process spawn/exit traps.
-                 │
-[ Live Resource Tests (77 Assertions) ] ──► Real Cloudflare account D1, KV, Queue execution.
+```mermaid
+graph TD
+    UT["📦 Unit Tests<br/>(1,458 Assertions)"] -->|Next Layer| IT["🔗 Integration Tests<br/>(34 Assertions)"]
+    IT -->|Next Layer| E2E["🚀 E2E Smoke Tests<br/>(5 Assertions)"]
+    E2E -->|Next Layer| LT["🟢 Live Resource Tests<br/>(77 Assertions)"]
+
+    style UT fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style IT fill:#1e293b,stroke:#10b981,stroke-width:2
+    style E2E fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style LT fill:#1e293b,stroke:#ef4444,stroke-width:2
 ```
 
 ---

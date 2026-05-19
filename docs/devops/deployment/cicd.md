@@ -13,18 +13,24 @@ This guide provides the complete specification and production-grade YAML workflo
 
 ## 🏗️ The Continuous Integration & Deployment Pipeline Flow
 
-The automation workflow executes a series of strict quality gates. A failure at any step halts the pipeline and blocks deployment:
+```mermaid
+graph TD
+    Push["👾 Git Push: main"] -->|Step 1| Checkout["📥 Checkout submodules"]
+    Checkout -->|Step 2| Install["🧅 Bun Install & Cache"]
+    Install -->|Step 3| Lint["🔍 Code Formatting & Lint"]
+    Lint -->|Step 4| Typecheck["⚙️ tsc Typecheck"]
+    Typecheck -->|Step 5| Test["🧪 Bun Test Suite"]
+    Test -->|Step 6| Deploy["🚀 Sequenced Edge Deployment"]
+    Deploy -->|Step 7| Notify["💬 Telegram Notification"]
 
-```
-[Git Push: main] ──► [1. Checkout submodules] ──► [2. Bun Install & Cache]
-                                                          │
-   ┌──────────────────────────────────────────────────────┘
-   ▼
-[3. Code Formatting & Lint] ──► [4. tsc Typecheck] ──► [5. Bun Test Suite]
-                                                               │
-   ┌───────────────────────────────────────────────────────────┘
-   ▼
-[6. Sequenced Edge Deployment] ──► [7. Telegram Success Notification]
+    style Push fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style Checkout fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Install fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Lint fill:#1e293b,stroke:#f59e0b,stroke-width:1
+    style Typecheck fill:#1e293b,stroke:#f59e0b,stroke-width:1
+    style Test fill:#1e293b,stroke:#f59e0b,stroke-width:1
+    style Deploy fill:#1e293b,stroke:#ef4444,stroke-width:2
+    style Notify fill:#1e293b,stroke:#10b981,stroke-width:1
 ```
 
 ---

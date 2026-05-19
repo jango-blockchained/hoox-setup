@@ -11,22 +11,24 @@ The **`hoox`** gateway is the public-facing entry point of the trading ecosystem
 
 ## 🏗️ Architectural Topology
 
-```
-[External Webhook] ──► [Cloudflare WAF / Firewall]
-                                │
-                        (IP & Auth Checks)
-                                │
-                                ▼
-                       [Gateway (hoox)] (Publicly Accessible Isolate)
-                                │
-               ┌────────────────┴────────────────┐
-               │ V8 Isolate Service Bindings     │
-               │ (Private, Encrypted, Zero-TCP)  │
-               └────────────────┬────────────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              ▼                 ▼                 ▼
-       [trade-worker]     [telegram-worker]  [analytics-worker]
+```mermaid
+graph TD
+    Alert["🔔 External Webhook"] -->|Signal| WAF["🧱 Cloudflare WAF / Firewall"]
+    WAF -->|IP & Auth Checks| Gateway["🔐 Gateway: hoox<br/>Public Isolate"]
+    Gateway -->|V8 Service Bindings<br/>Private, Encrypted, Zero-TCP| Compute["Background Nodes"]
+
+    subgraph Compute ["Background Compute Isolates"]
+        Trade["📈 trade-worker"]
+        Tele["💬 telegram-worker"]
+        Anal["📊 analytics-worker"]
+    end
+
+    style Alert fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style WAF fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style Gateway fill:#1e293b,stroke:#ef4444,stroke-width:2
+    style Trade fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Tele fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Anal fill:#1e293b,stroke:#10b981,stroke-width:1
 ```
 
 ---

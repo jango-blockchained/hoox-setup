@@ -2081,22 +2081,6 @@ The Hoox Terminal UI (TUI) is a full-screen, keyboard-driven operations center b
 ---
 ️ Architectural Blueprint
 The cockpit is designed as a modular Single Page Terminal Application (SPTA), structured around three decoupled layers:
-``
-┌────────────────────────────────────────────────────────┐
-│ OpenTUI Renderer (main.tsx) │
-│ (Handles alternate screen buffer, mouse/Kitty keyboard) │
-└──────────────────────────┬─────────────────────────────┘
-▼
-┌────────────────────────────────────────────────────────┐
-│ AppRoot Component (app.tsx) │
-│ (Manages Sidebar, TabBar, StatusBar, Command Palette) │
-└──────────────────────────┬─────────────────────────────┘
-▼
-┌────────────────────────────────────────────────────────┐
-│ Active View Component (e.g. Dashboard / ConfigEditor) │
-│ (Individually sandboxed in custom ErrorBoundaries) │
-└────────────────────────────────────────────────────────┘
-`
 ---
 ️ Store Architecture & State Flow
 TUI state is managed using three specialized Zustand stores combined with Immer middleware to allow safe, mutating updates to deeply nested state trees:
@@ -2112,30 +2096,6 @@ Persistence: Automatically serialized and saved to disk at ~/.hoox/config.json.
 ---
 Connection Resilience State Machine
 The TUI maintains a strict connection lifecycle to track connectivity to the local API server or remote worker tunnels:
-`
-┌─────────────────┐
-│ OFFLINE │
-└────────┬────────┘
-│
-Reconnection attempt
-│
-▼
-┌─────────────────┐
-│ POLLING │◄──────┐
-└────────┬────────┘ │
-│ │
-Success │ Failure │
-▼ │
-┌─────────────────┐ │
-│ CONNECTED │ │
-└────────┬────────┘ │
-│ │
-Loss │ │ Exponential
-▼ │ Backoff
-┌─────────────────┐ │ (s to s)
-│ RECONNECTING │───────┘
-└─────────────────┘
-`
 Exponential Backoff Intervals
 If the API connection drops out:
 . The status bar immediately transitions to a yellow/orange pulsing RECONNECTING dot.
@@ -2173,7 +2133,7 @@ If an uncaught exception or unhandled promise rejection occurs at the root level
 [Safe Mode]: Disables heavy analytics feeds and WASM syntax highlighting to restore operations in minimal capacity.
 [Report Bug]: Automatically exports the error trace and logs to a file at logs/crash-report.log.
 ---
-Tip: Adding custom components or views? Ensure all JSX elements comply with OpenTUI's native terminal components (using only lowercase intrinsic tags like , , and ). Absolute layout dimensions must be integers representing terminal characters or "%"` values.
+Tip: Adding custom components or views? Ensure all JSX elements comply with OpenTUI's native terminal components (using only lowercase intrinsic tags like `, , and ). Absolute layout dimensions must be integers representing terminal characters or "%"` values.
 Next Steps
 DevOps Setup & Operations Manual — Complete runbook, variable matrices, and troubleshooting.
 Architecture & Edge Topology — In-depth architectural outlines and Service Bindings routing maps.
@@ -2488,24 +2448,9 @@ Hoox operates a multi-tier edge storage topology to balance high-speed read/writ
 ---
 . The Multi-Tier Storage Architecture
 Hoox segregates data into four distinct edge storage tiers based on consistency, read/write latency, and size constraints:
-``
-[Incoming Request Pipeline]
-│
-┌───────────────────────┼───────────────────────┐
-▼ ▼ ▼
-[Durable Objects] [CONFIG_KV] [D SQLite]
-(Strong Consistency) (Eventual Consistency) (Relational Acid)
-(Idempotency Locks) (sub-ms reads, s write) (ms SQL queries)
-│ │ │
-└───────────────────────┼───────────────────────┘
-▼
-[R Object Storage]
-(Zero-Egress Bucket)
-(Heavy JSON Fills / PDFs)
-`
 | Storage primitive | Engine Technology | Consistency Model | Read Latency | Write Latency | Ideal Use Case |
 | :------------------ | :------------------ | :------------------- | :----------: | :-----------: | :----------------------------------------------------------- |
-| Durable Objects | In-Memory Mutex | Strong Consistency | Danger: Never attempt to run raw migration files directly on your production D database without first running a backup. Ensure your database status is fully tracked and synchronized using Drizzle migrations: hoox db migrate --remote`.
+| Durable Objects | In-Memory Mutex | Strong Consistency | Danger: Never attempt to run raw migration files directly on your production D database without first running a backup. Ensure your database status is fully tracked and synchronized using Drizzle migrations: hoox db migrate --remote.
 Next Steps
 Internal Endpoints Mapping — Map out exposed ports, URLs, and service bindings.
 Wrangler Setup & Tooling — Configure Wrangler to bind local D and KV instances for dev testing.
@@ -2648,27 +2593,10 @@ hoox Gateway Isolate Profile
 The hoox gateway is the public-facing entry point of the trading ecosystem. Running as an ultra-low-latency Cloudflare Worker, the gateway is responsible for authorizing incoming trade signals (TradingView alerts, email routing, manual commands), executing rate-limiting checks, locking transaction trace IDs via Durable Objects to prevent duplicate fills, and routing validated events privately to background compute nodes.
 ---
 ️ Architectural Topology
-``
-[External Webhook] ──► [Cloudflare WAF / Firewall]
-│
-(IP & Auth Checks)
-│
-▼
-[Gateway (hoox)] (Publicly Accessible Isolate)
-│
-┌────────────────┴────────────────┐
-│ V Isolate Service Bindings │
-│ (Private, Encrypted, Zero-TCP) │
-└────────────────┬────────────────┘
-│
-┌─────────────────┼─────────────────┐
-▼ ▼ ▼
-[trade-worker] [telegram-worker] [analytics-worker]
-`
 ---
 . Declared Wrangler Configurations & Bindings
 The gateway's wrangler.jsonc defines its private service binding links and resource bounds:
-`jsonc
+``jsonc
 {
 "name": "hoox",
 "main": "src/index.ts",
@@ -3799,26 +3727,12 @@ The Hoox Dashboard is the web-based command center of the trading platform. Rath
 ---
 ️ Next.js to Cloudflare Edge Architecture
 When deploying the dashboard, the monorepo uses @opennextjs/cloudflare to convert standard Node.js server-side features into Edge-compliant JavaScript:
-``
-[Next.js App Source]
-│
-▼ (bun run opennext:build)
-[Turbopack / Webpack Bundler]
-│
-├─────────────────────────┐
-▼ ▼
-[.open-next/worker.js] [.open-next/assets/]
-(Server-Side Rendering) (Images, CSS, JS chunks)
-│ │
-▼ (wrangler deploy) ▼ (ASSETS binding)
-[Cloudflare V Isolate] [Cloudflare global CDN]
-`
 Server Isolate (.open-next/worker.js): Handles Server-Side Rendering (SSR), React Server Components (RSC) hydration, API routes, and cookies encryption.
 Static Assets (.open-next/assets/): Houses all static assets, which are bound to the worker via ASSETS bindings to serve static pages at sub-millisecond CDN latency.
 ---
 . Declared Wrangler Configurations & Bindings
 The dashboard's wrangler.jsonc maps out its internal service links to extract D databases metrics and agent status updates:
-`jsonc
+``jsonc
 {
 "name": "hoox-dashboard",
 "main": ".open-next/worker.js",
@@ -3983,22 +3897,10 @@ Automating your deployment pipeline ensures that every commit pushed to your rep
 This guide provides the complete specification and production-grade YAML workflow for implementing GitHub Actions integration pipelines.
 ---
 ️ The Continuous Integration & Deployment Pipeline Flow
-The automation workflow executes a series of strict quality gates. A failure at any step halts the pipeline and blocks deployment:
-``
-[Git Push: main] ──► [. Checkout submodules] ──► [. Bun Install & Cache]
-│
-┌──────────────────────────────────────────────────────┘
-▼
-[. Code Formatting & Lint] ──► [. tsc Typecheck] ──► [. Bun Test Suite]
-│
-┌───────────────────────────────────────────────────────────┘
-▼
-[. Sequenced Edge Deployment] ──► [. Telegram Success Notification]
-`
 ---
 Complete GitHub Actions Workflow (deploy.yml)
 Create a YAML workflow file inside your repository at .github/workflows/deploy.yml:
-`yaml
+``yaml
 name: "Hoox Production CI/CD Pipeline"
 on:
 push:
@@ -4168,14 +4070,6 @@ While the Hoox dashboard features a highly secure, custom cookie-based authentic
 By placing your deployment behind Cloudflare Access, you can enforce Multi-Factor Authentication (MFA), restrict access to specific GitHub/Google SSO identities, evaluate device posture, and drop malicious scanner payloads at the DNS level before they ever hit your workers.
 ---
 ️ The Zero Trust Protective Boundary
-``
-[Public Web Browser] ──► [Cloudflare Edge (WAF / Access Gate)]
-│
-(MFA & GitHub SSO Validation)
-│
-▼
-[Next.js Dashboard Isolate]
-`
 Zero Public Exposure: The dashboard isolate does not evaluate public logins directly.
 MFA Gate: Users are intercepted by a secure Cloudflare authentication card at the nearest edge PoP.
 Zero Cost: Cloudflare's Zero Trust free tier includes up to users, which is more than enough for a personal algorithmic trading desk.
@@ -4215,7 +4109,7 @@ To ensure that only TradingView's official servers can fire signals to your /web
 . And: IP Source Address | Operator: is not in | Value: (Paste TradingView's official IP ranges here, which are automatically synced by running the hoox waf configure --TradingView-only command).
 . Action: Block (or Challenge).
 . Save. All unauthorized traffic hitting /webhook is dropped instantly at the DNS edge, preventing any V compute load.
-`bash
+``bash
 Automated WAF setup via CLI
 hoox waf configure --TradingView-only
 `
@@ -4264,19 +4158,10 @@ To protect live capital and ensure robust order routing, Hoox mandates a rigorou
 Our test suite is powered natively by Bun's high-speed test runner, comprising test files and , individual test assertions split into four distinct diagnostic layers.
 ---
 ️ The QA Testing Layers
-``
-[ Unit Tests (, Assertions) ] ──► Mock V isolates, verify calculations & middlewares.
-│
-[ Integration Tests ( Assertions) ] ──► Miniflare local sandboxes (CORS, router stacks).
-│
-[ EE Smoke Tests ( Assertions) ] ──► CLI lifecycle audits & TUI process spawn/exit traps.
-│
-[ Live Resource Tests ( Assertions) ] ──► Real Cloudflare account D, KV, Queue execution.
-`
 ---
 Running Tests: CLI Commands
 A. Core Platform Verification (Excluding Live)
-`bash
+``bash
 . Run all unit, integration, and EE smoke tests in parallel
 bun test
 . Run the suite and output a detailed V coverage report

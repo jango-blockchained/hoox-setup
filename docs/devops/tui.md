@@ -13,21 +13,15 @@ The **Hoox Terminal UI (TUI)** is a full-screen, keyboard-driven operations cent
 
 The cockpit is designed as a modular **Single Page Terminal Application (SPTA)**, structured around three decoupled layers:
 
-```
-┌────────────────────────────────────────────────────────┐
-│ OpenTUI Renderer (main.tsx)                            │
-│ (Handles alternate screen buffer, mouse/Kitty keyboard) │
-└──────────────────────────┬─────────────────────────────┘
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ AppRoot Component (app.tsx)                            │
-│ (Manages Sidebar, TabBar, StatusBar, Command Palette)  │
-└──────────────────────────┬─────────────────────────────┘
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ Active View Component (e.g. Dashboard / ConfigEditor)  │
-│ (Individually sandboxed in custom ErrorBoundaries)      │
-└────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    Renderer["🖥️ OpenTUI Renderer (main.tsx)<br/>Handles alternate screen buffer, mouse/Kitty keyboard"] -->
+    AppRoot["⚙️ AppRoot Component (app.tsx)<br/>Manages Sidebar, TabBar, StatusBar, Command Palette"] -->
+    ActiveView["📺 Active View Component (e.g. Dashboard / ConfigEditor)<br/>Individually sandboxed in custom ErrorBoundaries"]
+
+    style Renderer fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style AppRoot fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style ActiveView fill:#1e293b,stroke:#10b981,stroke-width:2
 ```
 
 ---
@@ -57,29 +51,19 @@ TUI state is managed using three specialized **Zustand stores** combined with **
 
 The TUI maintains a strict connection lifecycle to track connectivity to the local API server or remote worker tunnels:
 
-```
-             ┌─────────────────┐
-             │     OFFLINE     │
-             └────────┬────────┘
-                      │
-            Reconnection attempt
-                      │
-                      ▼
-             ┌─────────────────┐
-             │     POLLING     │◄──────┐
-             └────────┬────────┘       │
-                      │                │
-             Success  │  Failure       │
-                      ▼                │
-             ┌─────────────────┐       │
-             │    CONNECTED    │       │
-             └────────┬────────┘       │
-                      │                │
-                Loss  │                │  Exponential
-                      ▼                │  Backoff
-             ┌─────────────────┐       │  (1s to 16s)
-             │  RECONNECTING   │───────┘
-             └─────────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> OFFLINE
+    OFFLINE --> POLLING : Reconnection attempt
+    POLLING --> CONNECTED : Success
+    CONNECTED --> RECONNECTING : Connection Loss
+    RECONNECTING --> POLLING : Exponential Backoff<br/>(1s to 16s)
+    POLLING --> OFFLINE : Failure (after 5 retries)
+
+    style OFFLINE fill:#1e293b,stroke:#ef4444,stroke-width:2
+    style POLLING fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style CONNECTED fill:#1e293b,stroke:#10b981,stroke-width:2
+    style RECONNECTING fill:#1e293b,stroke:#a855f7,stroke-width:2
 ```
 
 ### Exponential Backoff Intervals

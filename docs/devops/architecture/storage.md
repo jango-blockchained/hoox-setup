@@ -13,20 +13,21 @@ Hoox operates a **multi-tier edge storage topology** to balance high-speed read/
 
 Hoox segregates data into four distinct edge storage tiers based on consistency, read/write latency, and size constraints:
 
-```
-                  [Incoming Request Pipeline]
-                               │
-       ┌───────────────────────┼───────────────────────┐
-       ▼                       ▼                       ▼
-[Durable Objects]        [CONFIG_KV]             [D1 SQLite]
-(Strong Consistency)  (Eventual Consistency)  (Relational Acid)
-(Idempotency Locks)   (sub-ms reads, 10s write) (5ms SQL queries)
-       │                       │                       │
-       └───────────────────────┼───────────────────────┘
-                               ▼
-                        [R2 Object Storage]
-                       (Zero-Egress Bucket)
-                      (Heavy JSON Fills / PDFs)
+```mermaid
+graph TD
+    Pipeline["📥 Incoming Request Pipeline"] -->|Route| DO["💎 Durable Objects<br/>Strong Consistency<br/>(Idempotency Locks)"]
+    Pipeline -->|Route| KV["⚡ CONFIG_KV<br/>Eventual Consistency<br/>(sub-ms reads, 10s write)"]
+    Pipeline -->|Route| D1["🗄️ D1 SQLite<br/>Relational ACID<br/>(5ms SQL queries)"]
+
+    DO -->|Persist / Log| R2["📦 R2 Object Storage<br/>Zero-Egress Bucket<br/>(Heavy JSON Fills / PDFs)"]
+    KV -->|Persist / Log| R2
+    D1 -->|Persist / Log| R2
+
+    style Pipeline fill:#1e293b,stroke:#3b82f6,stroke-width:2
+    style DO fill:#1e293b,stroke:#f59e0b,stroke-width:2
+    style KV fill:#1e293b,stroke:#10b981,stroke-width:2
+    style D1 fill:#1e293b,stroke:#ef4444,stroke-width:2
+    style R2 fill:#1e293b,stroke:#a855f7,stroke-width:2
 ```
 
 | Storage primitive   | Engine Technology   | Consistency Model    | Read Latency | Write Latency | Ideal Use Case                                               |
