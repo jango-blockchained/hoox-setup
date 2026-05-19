@@ -28,23 +28,19 @@ const logicalOrder: Record<string, string[]> = {
     "communication",
     "bindings",
     "storage",
+    "endpoints",
+    "design-system",
   ],
-  development: ["local-dev-setup", "testing-standards", "debugging-techniques"],
+  development: ["local-dev", "testing", "debugging"],
   deployment: [
     "installation-flow",
+    "production",
     "zero-trust",
-    "operations-manual",
-    "production-guide",
-    "monitoring-observability",
-    "cicd-pipeline",
+    "cicd",
+    "monitoring",
   ],
-  api: [
-    "endpoints",
-    "public-endpoints",
-    "request-payloads",
-    "response-standards",
-  ],
-  operations: ["tui-dev", "cli-dev"],
+  api: ["endpoints", "payloads", "responses"],
+  operations: ["setup_and_operations", "tui", "cli_features"],
 };
 
 // Logical section sorting order
@@ -74,11 +70,26 @@ export function buildNavigation(
     if (parts.length < 2) continue; // Skip top-level files (e.g. root files)
 
     const audiencePrefix = parts[0]; // "enduser" or "devops"
-    const sectionKey = parts[1]; // "getting-started", "concepts", etc.
+    let sectionKey = parts[1]; // "getting-started", "concepts", etc.
     const slugName = parts[parts.length - 1]; // "quick-start", etc.
 
     // Skip home/index pages in the dynamic item lists since home is hardcoded in header/sidebar
     if (slugName === "home" || slugName === "index") continue;
+
+    // ── Custom Section Mapping for Root Directory Files ──
+    if (parts.length === 2) {
+      if (
+        slugName === "setup_and_operations" ||
+        slugName === "tui" ||
+        slugName === "cli_features"
+      ) {
+        sectionKey = "operations";
+      } else if (slugName === "installation-flow") {
+        sectionKey = "deployment";
+      } else {
+        sectionKey = "operations";
+      }
+    }
 
     // Use audience-specific namespace for sectionKey so we don't mix them
     const sectionNamespace = `${audiencePrefix}:${sectionKey}`;
@@ -91,7 +102,7 @@ export function buildNavigation(
       title:
         entry.title ||
         slugName
-          .split("-")
+          .split(/[_-]/) // Split on both underscores and hyphens
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" "),
       slug: cleanId,
