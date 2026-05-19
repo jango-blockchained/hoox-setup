@@ -86,6 +86,49 @@ function sanitizeContent(content: string): string {
   return content.replace(/^---[\s\S]*?---/, "").trim();
 }
 
+// ── NEW: Deep Unicode & Emoji Stripper for jsPDF (Monospace Courier bounds) ──
+function cleanForPDF(text: string): string {
+  // Strip emojis using unicode-aware regex
+  let cleaned = text.replace(/\p{Emoji_Presentation}/gu, "");
+  cleaned = cleaned.replace(/\p{Emoji}/gu, "");
+  cleaned = cleaned.replace(/\p{Emoji_Modifier_Base}/gu, "");
+  cleaned = cleaned.replace(/\p{Emoji_Modifier}/gu, "");
+  cleaned = cleaned.replace(/\p{Emoji_Component}/gu, "");
+  cleaned = cleaned.replace(/\p{Extended_Pictographic}/gu, "");
+
+  // Replace common unicode characters with ASCII equivalents
+  cleaned = cleaned
+    .replace(/[\u2018\u2019]/g, "'") // smart single quotes
+    .replace(/[\u201C\u201D]/g, '"') // smart double quotes
+    .replace(/[\u2013\u2014]/g, "-") // en/em dashes
+    .replace(/\u2022/g, "*") // bullet point
+    .replace(/\u2026/g, "...") // ellipsis
+    .replace(/├/g, "|")
+    .replace(/└/g, "|")
+    .replace(/│/g, "|")
+    .replace(/──►/g, "-->")
+    .replace(/─/g, "-")
+    .replace(/┌/g, "+")
+    .replace(/┐/g, "+")
+    .replace(/┘/g, "+")
+    .replace(/└/g, "+")
+    .replace(/┬/g, "+")
+    .replace(/┴/g, "+")
+    .replace(/┼/g, "+")
+    .replace(/¶/g, "")
+    .replace(/§/g, "")
+    .replace(/©/g, "(c)")
+    .replace(/®/g, "(r)")
+    .replace(/™/g, "tm")
+    .replace(/€/g, "EUR")
+    .replace(/£/g, "GBP");
+
+  // Finally strip any remaining non-ASCII characters to prevent rendering artifacts
+  /* eslint-disable-next-line no-control-regex */
+  cleaned = cleaned.replace(/[^\x00-\x7F]/g, "");
+  return cleaned;
+}
+
 // ── NEW: Deep Plain Text Minifier & Compression for LLMs ──
 function minifyLlmText(content: string): string {
   // 1. Remove frontmatter
@@ -142,7 +185,7 @@ function generatePDF(title: string, files: string[], outputPath: string) {
   doc.setFontSize(24);
   doc.text("HOOX TRADING PLATFORM", margin, 60);
   doc.setFontSize(16);
-  doc.text(title.toUpperCase(), margin, 75);
+  doc.text(cleanForPDF(title.toUpperCase()), margin, 75);
   doc.setFont("courier", "normal");
   doc.setFontSize(10);
   doc.text(`Generated: ${new Date().toISOString().split("T")[0]}`, margin, 95);
@@ -170,8 +213,7 @@ function generatePDF(title: string, files: string[], outputPath: string) {
       );
       if (titleMatch) fileTitle = titleMatch[1];
     }
-    // Clean emojis using unicode-aware regex
-    const cleanTitle = fileTitle.replace(/\p{Emoji}/gu, "").trim();
+    const cleanTitle = cleanForPDF(fileTitle).trim();
     doc.text(`- ${cleanTitle.toUpperCase()}`, margin, y);
     y += 6;
     if (y > 275) {
@@ -200,8 +242,7 @@ function generatePDF(title: string, files: string[], outputPath: string) {
       );
       if (titleMatch) fileTitle = titleMatch[1];
     }
-    // Clean emojis using unicode-aware regex
-    const cleanTitle = fileTitle.replace(/\p{Emoji}/gu, "").trim();
+    const cleanTitle = cleanForPDF(fileTitle).trim();
 
     doc.setFont("courier", "bold");
     doc.setFontSize(12);
@@ -210,26 +251,43 @@ function generatePDF(title: string, files: string[], outputPath: string) {
 
     // Parse lines
     const lines = cleanContent.split("\n");
-    doc.setFont("courier", "normal");
-    doc.setFontSize(9.5);
 
     let inCodeBlock = false;
+    let inMermaid = false;
 
     for (let line of lines) {
       line = line.trimEnd();
 
-      // Check code block
+      // Check code block / Mermaid blocks
       if (line.startsWith("```")) {
+        if (line.startsWith("```mermaid")) {
+          inMermaid = true;
+          continue;
+        }
+        if (inMermaid) {
+          inMermaid = false;
+          continue;
+        }
         inCodeBlock = !inCodeBlock;
         continue;
       }
 
+      // Completely skip rendering Mermaid blocks inside PDF
+      if (inMermaid) {
+        continue;
+      }
+
+      let currentFontType: string;
+      let currentFontSize: number;
+
       if (inCodeBlock) {
-        doc.setFont("courier", "bold");
+        currentFontType = "bold";
+        currentFontSize = 8.5; // Slightly smaller to prevent code line wrap
         // Prefix code lines with direct shell symbols
         line = `  ${line}`;
       } else {
-        doc.setFont("courier", "normal");
+        currentFontType = "normal";
+        currentFontSize = 9.5;
       }
 
       // Check headings
@@ -238,14 +296,18 @@ function generatePDF(title: string, files: string[], outputPath: string) {
         isHeading = true;
         const level = (line.match(/^#+/) || ["#"])[0].length;
         line = line.replace(/^#+\s*/, "").toUpperCase();
-        doc.setFont("courier", "bold");
-        doc.setFontSize(level === 1 ? 14 : level === 2 ? 12 : 10.5);
-      } else {
-        doc.setFontSize(9.5);
+        currentFontType = "bold";
+        currentFontSize = level === 1 ? 14 : level === 2 ? 12 : 10.5;
       }
 
+      // Clean the line text of non-ASCII and emojis before passing to splitTextToSize
+      const cleanedLine = cleanForPDF(line);
+
+      doc.setFont("courier", currentFontType);
+      doc.setFontSize(currentFontSize);
+
       // Split text to fit width
-      const wrappedLines = doc.splitTextToSize(line, contentWidth);
+      const wrappedLines = doc.splitTextToSize(cleanedLine, contentWidth);
       for (const wrappedLine of wrappedLines) {
         doc.text(wrappedLine, margin, y);
         y += isHeading ? 7 : inCodeBlock ? 5 : 5.5;
@@ -258,9 +320,11 @@ function generatePDF(title: string, files: string[], outputPath: string) {
           // Header on new page
           doc.setFont("courier", "bold");
           doc.setFontSize(8);
-          doc.text(`HOOX SPEC  │  ${cleanTitle.toUpperCase()}`, margin, y - 10);
-          doc.setFont("courier", inCodeBlock ? "bold" : "normal");
-          doc.setFontSize(isHeading ? 11 : 9.5);
+          doc.text(`HOOX SPEC  |  ${cleanTitle.toUpperCase()}`, margin, y - 10);
+
+          // Re-apply style and size
+          doc.setFont("courier", currentFontType);
+          doc.setFontSize(currentFontSize);
         }
       }
     }
