@@ -90,7 +90,10 @@ TypeScript interfaces, compiler settings, Bun test specs, and HTTP schemas:
 
 > **Tip:** First time deploying a Hoox workspace to production? Start with the **[Production Deployment Manual](deployment/production.md)** to verify your Cloudflare Account permissions and execute sequencial deployments seamlessly.
 
-### 🔗 Quick Links
+### 🔗 Quick Links & Offline Reference
 
 - **[End-User Documentation Hub](../home.md)** — Standard setup, cURL webhooks, and TradingView Pine Scripts.
 - **[Hoox Git Submodules](https://github.com/jango-blockchained/hoox-setup)** — Central monorepo codebase.
+- **[Download Enduser Full PDF Manual](/hoox-setup/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
+- **[Download DevOps Full PDF Manual](/hoox-setup/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
+- **[View Consolidated LLM Context Text](/hoox-setup/llm.txt)** — Giant single-file text format for AI/LLM models.

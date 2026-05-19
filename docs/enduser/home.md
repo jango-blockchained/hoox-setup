@@ -72,4 +72,14 @@ Deep specifications, schema registries, and command-line manual trees:
 
 ---
 
+## 📥 Offline Reference & AI Context
+
+Download our consolidated specifications or view complete text packages for feeding into LLMs:
+
+- **[Download Enduser Full PDF Manual](/hoox-setup/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
+- **[Download DevOps Full PDF Manual](/hoox-setup/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
+- **[View Consolidated LLM Context Text](/hoox-setup/llm.txt)** — Giant single-file text format for AI/LLM models.
+
+---
+
 > **Tip:** Looking for deep engineering plans, DDL SQL schemas, or CI/CD deployment workflows? Check out the **[DevOps & Architecture Manual](../devops/home.md)** for developer-centric operator blueprints!
