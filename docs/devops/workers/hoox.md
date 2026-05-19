@@ -1,106 +1,169 @@
 ---
-title: "Hoox Gateway Worker"
+title: "hoox Gateway Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox public gateway, covering ingress WAF rules, Durable Object idempotency stores, and Service Binding configurations."
 ---
 
-# Hoox Gateway Worker
+# 🔐 hoox Gateway Isolate Profile
 
-**Last Updated:** April 2026
+The **`hoox`** gateway is the public-facing entry point of the trading ecosystem. Running as an ultra-low-latency Cloudflare Worker, the gateway is responsible for authorizing incoming trade signals (TradingView alerts, email routing, manual commands), executing rate-limiting checks, locking transaction trace IDs via Durable Objects to prevent duplicate fills, and routing validated events privately to background compute nodes.
 
-A Cloudflare® Worker service that acts as the **primary gateway** for external requests (e.g., TradingView alerts, UI actions). This worker validates incoming requests, optionally performs security checks (like IP allow-listing), and forwards them to the appropriate internal worker services using Cloudflare® Service Bindings.
+---
 
-## Features
+## 🏗️ Architectural Topology
 
-- Acts as a single entry point for various external triggers.
-- Validates external API keys (`apiKey` field).
-- Optional IP address allow-listing (checks `CF-Connecting-IP` header, configurable via KV).
-- Determines the target internal worker based on the request payload's `target` field.
-- Forwards requests to internal workers using **Service Bindings** (defined in `wrangler.jsonc`).
-- Returns responses from internal workers, wrapped with gateway context.
-- **Queue Producer**: Sends trades to `trade-execution` queue for async processing.
-- **Queue Modes**: `queue_failover` (default) or `queue_everywhere` (configurable via KV).
-- **Idempotency**: Prevents duplicate trades using Durable Objects.
-- **Rate Limiting**: In-memory rate limiting (10 trades/minute).
+```
+[External Webhook] ──► [Cloudflare WAF / Firewall]
+                                │
+                        (IP & Auth Checks)
+                                │
+                                ▼
+                       [Gateway (hoox)] (Publicly Accessible Isolate)
+                                │
+               ┌────────────────┴────────────────┐
+               │ V8 Isolate Service Bindings     │
+               │ (Private, Encrypted, Zero-TCP)  │
+               └────────────────┬────────────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              ▼                 ▼                 ▼
+       [trade-worker]     [telegram-worker]  [analytics-worker]
+```
 
-## Setup
+---
 
-1.  Install dependencies:
-    ```bash
-    bun install
-    ```
-2.  Set your Cloudflare® account ID in `wrangler.jsonc`.
-3.  Configure Secrets (via Cloudflare® dashboard or `wrangler secret put`):
-    - `WEBHOOK_API_KEY_BINDING`: The secret key expected in the `apiKey` field of incoming external requests.
-    - `INTERNAL_KEY_BINDING`: A shared secret key used for authentication _between_ this worker and the target workers it calls via service bindings. The target workers must also have this secret configured.
-4.  Configure KV Namespaces (if using configurable features like IP allow-listing):
-    ```bash
-    npx wrangler kv:namespace create CONFIG_KV
-    ```
-5.  Update `wrangler.jsonc` with necessary bindings (Secrets, KV, Service Bindings). Example:
-    ```jsonc
+## ⚡ 1. Declared Wrangler Configurations & Bindings
+
+The gateway's `wrangler.jsonc` defines its private service binding links and resource bounds:
+
+```jsonc
+{
+  "name": "hoox",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "placement": {
+    "mode": "smart",
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+  },
+  "kv_namespaces": [
     {
-      "name": "hoox",
-      "main": "src/index.ts",
-      "compatibility_date": "2025-03-07",
-      "compatibility_flags": ["nodejs_compat"],
-      "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-      "secrets": ["WEBHOOK_API_KEY_BINDING", "INTERNAL_KEY_BINDING"],
-      "kv_namespaces": [
-        {
-          "binding": "CONFIG_KV",
-          "id": "<CONFIG_KV_ID>",
-          "preview_id": "<CONFIG_KV_PREVIEW_ID>",
-        },
-      ],
-      "services": [
-        { "binding": "TRADE_SERVICE", "service": "trade-worker" },
-        { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
-      ],
-      "observability": {
-        "enabled": true,
-        "head_sampling_rate": 1,
-      },
-      "queues": {
-        "producers": [{ "queue": "trade-execution", "binding": "TRADE_QUEUE" }],
-      },
-      "durable_objects": {
-        "bindings": [
-          { "name": "IDEMPOTENCY_STORE", "class_name": "IdempotencyStore" },
-        ],
-        "migrations": [
-          { "tag": "v1", "new_sqlite_classes": ["IdempotencyStore"] },
-        ],
-      },
-    }
-    ```
-6.  Update the corresponding `worker-configuration.d.ts` file.
-7.  For local development, create a `.dev.vars` file and define the secrets/variables:
-    ```.dev.vars
-    # Mock secret bindings for local dev:
-    WEBHOOK_API_KEY_BINDING="your_external_api_key"
-    INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    ```
-
-## Development
-
-Run locally:
-
-```bash
-bun run dev
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d",
+    },
+    {
+      "binding": "SESSIONS_KV",
+      "id": "ff70a58b492e45d79880a7a8213c745c",
+    },
+  ],
+  "services": [
+    { "binding": "TRADE_SERVICE", "service": "trade-worker" },
+    { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
+    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" },
+  ],
+  "queues": {
+    "producers": [{ "queue": "trade-execution", "binding": "TRADE_QUEUE" }],
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "IDEMPOTENCY_STORE", "class_name": "IdempotencyStore" },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["IdempotencyStore"],
+    },
+  ],
+}
 ```
-
-Deploy:
-
-```bash
-bun run deploy
-```
-
-## API Interface
-
-### Incoming Request (External -> Webhook Receiver)
-
-- **Method:** `POST`
-- **Endpoint:** `/`
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## 🔑 2. Environmental Variables & Encrypted Secrets
+
+For security, build-time credentials are never stored in plain text. They are bound at deploy time as encrypted secrets:
+
+- **`WEBHOOK_API_KEY`**: The custom authentication passkey expected inside incoming signal payloads.
+- **`INTERNAL_KEY_BINDING`**: The shared bearer authorization token used by `requireInternalAuth` middleware to invoke internal V8 isolates.
+
+### Local Development Mocking (`.dev.vars`)
+
+When running tests or starting local Wrangler dev, create a gitignored `.dev.vars` file in the gateway directory:
+
+```bash
+WEBHOOK_API_KEY=dev_webhook_auth_passkey
+INTERNAL_KEY_BINDING=dev_shared_internal_security_key
+```
+
+---
+
+## 🛜 3. API Route Specifications
+
+The gateway exposes three public entryways:
+
+### A. Ingest Signal Webhook
+
+- **Endpoint**: `/webhook`
+- **Method**: `POST`
+- **JSON Payload**:
+  ```json
+  {
+    "apiKey": "dev_webhook_auth_passkey",
+    "exchange": "bybit",
+    "action": "LONG",
+    "symbol": "BTCUSDT",
+    "quantity": 0.01,
+    "leverage": 10,
+    "idempotencyKey": "uuid-9b1deb4d-3b7d"
+  }
+  ```
+- **Success Response (200 OK)**:
+  ```json
+  {
+    "success": true,
+    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "exchange": "bybit",
+    "symbol": "BTCUSDT",
+    "action": "LONG",
+    "result": { "orderId": "18049284739", "status": "Filled" }
+  }
+  ```
+
+---
+
+### B. Telegram Bot Update Webhook
+
+- **Endpoint**: `/telegram-webhook`
+- **Method**: `POST`
+- **JSON Payload**: Standard encrypted update structure forwarded by Telegram's webhook servers.
+
+---
+
+### C. Gateway Health Diagnostics
+
+- **Endpoint**: `/health`
+- **Method**: `GET`
+- **Success Response (200 OK)**:
+  ```json
+  {
+    "status": "ok",
+    "timestamp": 1779261050000,
+    "bindings": {
+      "d1": "connected",
+      "kv": "connected",
+      "queue": "active"
+    }
+  }
+  ```
+
+---
+
+> **Tip:** If exchange APIs experience high latency or go offline, the gateway intercepts the timeout error, serializes the payload, and pushes it to the `TRADE_QUEUE` producer in less than **2 milliseconds**, returning a `"status": "Enqueued"` (202 Accepted) response to TradingView.
+
+### 🔗 Next Steps
+
+- **[trade-worker Spec](trade-worker.md)** — Review how trade executions, order math, and margin settings compile on the edge.
+- **[D1 Database Operations](../guides/database-ops.md)** — Manage schema migrations, query ledgers, and execute SQL scripts.

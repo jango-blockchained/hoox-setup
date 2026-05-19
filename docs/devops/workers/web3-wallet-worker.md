@@ -1,129 +1,144 @@
 ---
-title: "Web3 Wallet Worker"
+title: "web3-wallet-worker Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox EVM & DeFi On-Chain Wallet Worker, covering mnemonics, private keys, and smart contract signature routing."
 ---
-# Web3 Wallet Worker
 
-**Last Updated:** April 2026
+# 🌐 web3-wallet-worker Isolate Profile
 
-A Cloudflare® Worker service designed to manage interactions with Web3 wallets (e.g., signing transactions, querying balances). This worker accepts requests via a standardized `/process` endpoint, typically from the `hoox` or other authenticated internal services.
+The **`web3-wallet-worker`** is the on-chain gateway of the Hoox trading ecosystem. Running as an isolated private micro-worker, this service is responsible for securely managing EVM mnemonics and private keys (bound as encrypted Workers Secrets), querying multi-chain gas limits and token balances, executing native/ERC-20 transfers, and signing smart contract swap payloads (e.g. Uniswap/1inch routers) via JSON-RPC providers.
 
-## Features
+---
 
-- Securely handles wallet operations.
-- Interfaces with blockchain networks via RPC endpoints.
-- Secure authentication via shared internal key.
-- Uses encrypted storage for sensitive keys or seed phrases (using Cloudflare® Secrets).
+## ⚡ 1. Declared Wrangler Configurations & Bindings
 
-## Prerequisites
+The `web3-wallet-worker` does not expose a public URL, communicating internally via V8 Service Bindings. Its `wrangler.jsonc` specifies:
 
-- Node.js >= 16
-- Bun
-- Wrangler CLI
-- Cloudflare® Workers account
-- RPC endpoint URL for the desired blockchain network.
-- Wallet private key or seed phrase (to be stored securely).
-
-## Setup
-
-1.  Install dependencies:
-    ```bash
-    bun install
-    ```
-2.  Set your Cloudflare® account ID in `wrangler.jsonc`.
-3.  Configure Secrets (via Cloudflare® dashboard Secrets Store or `wrangler secret put`):
-    - `INTERNAL_KEY_BINDING`: The **shared** secret key used for authentication with the `hoox` or other internal services.
-    - `WALLET_PRIVATE_KEY` or `WALLET_SEED_PHRASE`: Your wallet's sensitive information. **Store this securely!**
-    - `RPC_URL`: The URL for the blockchain RPC endpoint.
-4.  Update `wrangler.jsonc` with appropriate bindings and variables. Example:
-    ```jsonc
+```jsonc
+{
+  "name": "web3-wallet-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "vars": {
+    "DEFAULT_CHAIN": "ethereum",
+  },
+  "kv_namespaces": [
     {
-      "name": "web3-wallet-worker",
-      "main": "src/index.ts",
-      "compatibility_date": "2025-03-07",
-      "compatibility_flags": ["nodejs_compat"],
-      "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-      "vars": {
-        "RPC_URL": null,
-      },
-      "secrets": ["INTERNAL_KEY_BINDING", "WALLET_PRIVATE_KEY"],
-    }
-    ```
-5.  Update the corresponding `worker-configuration.d.ts` file.
-6.  For local development, create a `.dev.vars` file and define the secrets/variables:
-    ```.dev.vars
-    # Mock secret bindings and variables for local dev:
-    INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    WALLET_PRIVATE_KEY="your_test_wallet_private_key"
-    RPC_URL="http://localhost:8545"
-    ```
-
-## Development
-
-Run locally:
-
-```bash
-bun run dev
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d",
+    },
+  ],
+  "secrets": [
+    "INTERNAL_KEY_BINDING",
+    "WALLET_MNEMONIC_SECRET",
+    "WALLET_PK_SECRET",
+    "RPC_PROVIDER_URL",
+  ],
+}
 ```
 
-Deploy:
+---
+
+## 🔑 2. Environmental Variables & Encrypted Secrets
+
+- **`WALLET_PK_SECRET`**: Encrypted private key used for single-account execution.
+- **`WALLET_MNEMONIC_SECRET`**: Encrypted 12 or 24-word HD wallet seed phrase used to derive multiple accounts.
+- **`RPC_PROVIDER_URL`**: High-availability HTTP Ethereum / EVM RPC provider (e.g., Infura, Alchemy, or QuickNode).
+- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from internal compute nodes.
+
+### Local Development Mocking (`.dev.vars`)
 
 ```bash
-bun run deploy
+WALLET_PK_SECRET=0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+WALLET_MNEMONIC_SECRET="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+RPC_PROVIDER_URL=http://localhost:8545
+INTERNAL_KEY_BINDING=dev_shared_internal_security_key
 ```
 
-## API Interface
+---
 
-This worker **only** accepts requests from authenticated internal services (like `hoox`) on the `/process` endpoint.
+## 🔌 3. Internal REST API Specification
 
-- **Method:** `POST`
-- **Endpoint:** `/process`
-- **Content-Type:** `application/json`
-- **Expected Request Body:**
+### A. Execute On-Chain Transaction
 
+- **Endpoint**: `/process`
+- **Method**: `POST`
+- **Headers**: `X-Internal-Auth-Key: <INTERNAL_KEY_BINDING>`
+- **JSON Payload**:
   ```json
   {
-    "requestId": "<uuid_from_caller>",
-    "internalAuthKey": "YOUR_INTERNAL_SHARED_SECRET",
+    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "payload": {
       "action": "sendTransaction",
-      "network": "ethereum",
-      "to": "0xRecipientAddress...",
-      "value": "0.1",
-      "data": "0x...",
-      "message": "Sign this message"
+      "chain": "arbitrum",
+      "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+      "value": "0.05",
+      "data": "0xa9059cbb000000000000000000000000...",
+      "gasLimit": 100000
     }
   }
   ```
-
-- **Response Format:**
-
-  **Success:**
-
+- **Success Response (200 OK)**:
   ```json
   {
     "success": true,
-    "result": { ... },
+    "result": {
+      "txHash": "0x53a9284739ebfd10482da73cbcfd10482da73cbcfd10482da73cbcfd10482ab",
+      "nonce": 142,
+      "gasUsed": 64205,
+      "effectiveGasPrice": "24000000000"
+    },
     "error": null
   }
   ```
 
-  **Error:**
+---
 
+### B. Query Token Balance
+
+- **Endpoint**: `/process`
+- **Method**: `POST`
+- **JSON Payload**:
   ```json
   {
-    "success": false,
-    "result": null,
-    "error": "<Error message describing the failure>"
+    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "payload": {
+      "action": "getBalance",
+      "chain": "polygon",
+      "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+      "tokenAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+    }
+  }
+  ```
+- **Success Response (200 OK)**:
+  ```json
+  {
+    "success": true,
+    "result": {
+      "balance": "1485.50",
+      "symbol": "USDT",
+      "decimals": 6
+    },
+    "error": null
   }
   ```
 
-## Security
+---
 
-- All requests _must_ be received on the `/process` endpoint.
-- Requests _must_ include a valid `internalAuthKey` in the body, matching the `INTERNAL_KEY_BINDING` secret.
-- Private keys/seed phrases are stored securely using Cloudflare® Workers Secrets and **should never be hardcoded**.
-- Ensure the RPC URL is trusted.
+## 🛡️ 4. On-Chain Security Best Practices
+
+Operating hot wallets on public blockchain networks introduces extreme security vectors:
+
+- **Harden Private Keys**: **Never** write keys to wrangler config files or print them in telemetry logs. Always provision keys via encrypted Cloudflare Secrets.
+- **Gas Price Limit Traps**: To prevent severe loss during network congestion or flash crashes, the worker enforces a **gas limit trap**—if current network gas price exceeds your KV configured limit (`web3:max_gas_price_gwei`), transactions are dropped before signing to prevent massive fee consumption.
+- **Isolate Access**: All calls must originate internally via Service Bindings. The wallet worker does not bind to public ports, meaning external scrapers cannot send raw transaction payloads or try to brute-force auth codes.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+> **Tip:** Testing on-chain logic locally? Use the Docker runtime stack (`hoox dev start --runtime docker`) to launch an isolated Hardhat/Anvil node container and test private wallet swaps on a simulated local EVM fork safely!
+
+### 🔗 Next Steps
+
+- **[trade-worker Profile](trade-worker.md)** — Review how execution orders route transactions to EVM wallet nodes.
+- **[D1 Database Operations](../guides/database-ops.md)** — Manage your SQLite schemas and sync positions logs.

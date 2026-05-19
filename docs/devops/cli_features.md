@@ -1,126 +1,75 @@
 ---
-title: "Hoox CLI Features & Commands"
+title: "CLI Architecture & Features"
+description: "Detailed specification of the Hoox Command-Line Interface, monorepo workspaces compilation, and task-management engines."
 ---
 
-# Hoox CLI Features & Commands
+# 🛠️ CLI Architecture & Features
 
-The `hoox` CLI is the central management tool for the Hoox Trading System (28 test files, 15 command groups, 50+ subcommands).
+The **`hoox` CLI** (`packages/cli`) is the unified lifecycle engine of the trading platform monorepo. It governs local sandboxes, compiles TypeScript structures, coordinates Cloudflare infrastructure resources, deploys edge isolates, manages encrypted secrets, and executes self-healing diagnostics.
 
-## Quick Reference
+---
+
+## 🏗️ Monorepo Workspace Design
+
+The CLI is integrated into our monorepo using **Bun Workspaces**, which link local packages together. This design ensures that the CLI binary can resolve and load local shared types (`@jango-blockchained/hoox-shared`) and TUI components (`packages/tui`) instantly without network downloads or pre-compilation overhead:
 
 ```
-hoox
-├── init          Interactive setup wizard
-├── clone         Clone worker repos as submodules
-├── dev           Local development (native/docker)
-├── deploy        Deploy workers, dashboard, telegram webhook, KV config
-├── infra         Manage D1, KV, R2, Queues, Vectorize, Analytics
-├── config        Manage config, env vars, KV keys, secrets
-├── check         Validate prerequisites, setup, health
-├── db            D1 database operations (apply, migrate, query, export, reset)
-├── monitor       Health checks, trades, logs, kill switch, queue, backup
-├── repair        Diagnosis, repair, guided rebuild
-├── logs          Stream worker logs
-├── test          Run CI pipeline
-├── waf           Manage WAF rules
-└── dashboard     Dashboard operations
+hoox-setup/ (Monorepo Root)
+├── packages/
+│   ├── cli/       # CLI Source code (entry binary: bin/hoox.js)
+│   ├── tui/       # OpenTUI dashboard source code
+│   └── shared/    # Common libraries (auth, router, error models)
+├── workers/
+│   └── ...        # Edge V8 isolates
+└── package.json   # Root workspace manager
 ```
 
-## Initialization & Setup
+---
 
-- `hoox init`: Interactive setup wizard. Guides through Cloudflare credentials, AI provider integration (OpenAI, Anthropic, Google AI, Home Assistant), worker configuration, and exchange API keys.
-- `hoox clone [name]`: Clone worker repositories as git submodules.
-- `hoox check prerequisites`: 7 tool/account/repository checks — bun, git, node, wrangler, cloudflare-auth, docker, repository.
-- `hoox check setup`: Full environment validation.
-- `hoox check health`: Worker health endpoint probing.
+## ⚡ 1. Command-Line Core Architectures
 
-## Infrastructure Management
+The CLI binary parses terminal instructions using the following architectural layers:
 
-- `hoox infra provision`: Auto-provision all infrastructure from wrangler.jsonc (D1 + KV + R2 + Queues).
-- `hoox infra d1 list|create|delete`: D1 SQL databases.
-- `hoox infra kv list|create|delete`: KV namespaces.
-- `hoox infra r2 list|create|delete`: R2 object storage buckets.
-- `hoox infra queues list|create|delete`: Cloudflare Queues.
-- `hoox infra vectorize list|create|delete`: Vectorize vector database indexes.
-- `hoox infra analytics list|create`: Analytics Engine datasets.
+### A. Command Dispatcher (`packages/cli/src/index.ts`)
 
-## Configuration
+Intercepts all incoming arguments (e.g. `hoox infra provision`), evaluates global flags (`--json`, `--quiet`), validates configuration integrity, and delegates execution to target command modules under `src/commands/`.
 
-- `hoox config env init`: Interactive setup for 31 environment variables across 8 sections (Cloudflare Account, Internal Auth, Telegram, AI Providers, Exchanges, Email, Wallet, Dashboard).
-- `hoox config env show`: Display environment variables (secrets redacted).
-- `hoox config env validate`: Check all required vars are set.
-- `hoox config env generate-dev-vars`: Generate per-worker `.dev.vars` from `.env.local`.
-- `hoox config kv set|get|list|delete`: KV key management for CONFIG_KV namespace.
-- `hoox config kv apply-manifest`: Set all 16 manifest keys to defaults.
-- `hoox config kv manifest`: Show expected key manifest.
-- `hoox config show|set`: View or update `wrangler.jsonc`.
-- `hoox secrets update-cf|check|sync`: Cloudflare secret management.
+### B. Cloudflare API Adapters (`src/adapters/`)
 
-## Deployment
+Translates command intentions (like `hoox infra d1 create`) into parameterized Cloudflare API REST payloads, bypassing wrangler wrappers when high-performance execution is needed.
 
-- `hoox deploy all [--auto] [--rebuild]`: Deploy all workers + dashboard in correct dependency order.
-  - `--auto`: Skip dashboard rebuild prompt, use existing build.
-  - `--rebuild`: Force rebuild dashboard.
-- `hoox deploy workers`: Workers only (skip dashboard).
-- `hoox deploy worker <name>`: Single worker.
-- `hoox deploy dashboard [--rebuild]`: Build and deploy Next.js dashboard via OpenNext.
-- `hoox deploy telegram-webhook [--token] [--secret-token] [--subdomain]`: Set Telegram bot webhook post-deployment. Reads tokens from `.env.local` by default or CLI flags.
-- `hoox deploy update-internal-urls`: Update dashboard `wrangler.jsonc` with current worker service URLs.
-- `hoox deploy kv-config`: Apply KV manifest defaults to CONFIG_KV namespace.
+### C. State Engine (`src/core/`)
 
-## Database Operations
+Tracks active project profiles, enabled worker matrices, and workspace configuration formats (`wrangler.jsonc` vs. `wrangler.toml`).
 
-- `hoox db apply [--remote]`: Apply schema.sql to D1.
-- `hoox db migrate [--remote]`: Run tracking migrations.
-- `hoox db list [--remote]`: List all D1 tables.
-- `hoox db query <sql> [--remote]`: Execute read-only SQL queries.
-- `hoox db export`: Export D1 to timestamped `.sql` file.
-- `hoox db reset --confirm`: Drop and recreate D1 (DESTRUCTIVE).
+---
 
-## Monitoring
+## 🔒 2. Declarative Config Mapping & Validation
 
-- `hoox monitor status`: Probe all worker `/health` endpoints.
-- `hoox monitor trades [N]`: Query recent trades from D1 (default: 10, max: 100).
-- `hoox monitor logs [worker]`: Recent system logs from D1 `system_logs` table.
-- `hoox monitor kill-switch show|on|off`: Emergency trading halt via `trade:kill_switch` KV key.
-- `hoox monitor queue-depth`: List queues via wrangler.
-- `hoox monitor backup`: Export D1 database to timestamped `.sql`.
+To prevent configuration drift, the CLI enforces strict type validation on `wrangler.jsonc` files:
 
-## Repair & Recovery
+1. **Config Interfaces**: Built-in parsers validate configuration files against type-safe TypeScript interfaces (`Config` and `WorkerConfig`) defined in `src/core/types.ts`.
+2. **Setup Verification (`hoox check setup`)**: Compares active workspace profiles against example files, audits environment variables keys, and scans for missing bindings, outputting formatted terminal reports.
 
-- `hoox repair check`: 5-step comprehensive system check (submodules, deps, TypeScript, infra, secrets).
-- `hoox repair worker <name>`: Redeploy a single worker.
-- `hoox repair infra`: Verify D1, KV, R2, Queues exist.
-- `hoox repair secrets`: Re-upload all secrets from `.dev.vars`.
-- `hoox repair kv`: Reset CONFIG_KV keys to manifest defaults.
-- `hoox repair db`: Re-apply schema + tracking migrations.
-- `hoox repair rebuild`: Interactive guided rebuild — backup, delete/recreate D1, deploy all, apply schema, reset KV.
+---
 
-## Worker Management
+## 🛜 3. Self-Healing & Diagnostics Engine
 
-- `hoox dev start [--runtime native|docker]`: Start all workers locally. Prompts for runtime (Native via wrangler or Docker via compose). Saves preference to `wrangler.jsonc.dev.runtime`.
-- `hoox dev worker <name>`: Start a single worker.
-- `hoox dev dashboard`: Start the Next.js dashboard dev server.
+One of the CLI's most powerful features is its **guided repair framework** (`hoox repair` command groups):
 
-## Logs & Diagnostics
+- **Diagnostic Probes**: The `hoox repair check` command runs a 5-step checklist (verifying submodule checkouts, NPM/Bun package resolutions, TypeScript variables, Cloudflare zone links, and encrypted credentials).
+- **Automated Recovery**: If a missing resource is identified (e.g. a D1 database ID is bound in `wrangler.jsonc` but the database doesn't exist on your Cloudflare account), the repair engine prompts you and provisions it automatically:
 
-- `hoox logs download <workerName>`: Async download of worker logs from R2 bucket, with fallback to `wrangler tail`.
-- `hoox logs tail <workerName>`: Tail worker logs in real-time.
-- `hoox waf`: Configure Cloudflare WAF rules (IP allowlists, rate limiting).
-- `hoox test`: Run CI pipeline (lint → typecheck → test → build).
+```bash
+# Provision missing Cloudflare bindings and repair system states
+hoox repair infra
+```
 
-## Global Options
+---
 
-All commands support:
+> **Tip:** Every single command supports the `--json` global flag. This outputs machine-parseable JSON payloads (e.g. `hoox monitor status --json`), allowing you to integrate the CLI with external telemetry dashboards or alert scripts effortlessly!
 
-- `--json`: Machine-parseable JSON output.
-- `--quiet`: Minimal output (for scripting).
+### 🔗 Next Steps
 
-## Background System Processes
-
-While the CLI manages the development lifecycle, the deployed system runs several critical background tasks automatically on Cloudflare's edge:
-
-1. **Housekeeping Cron (`agent-worker`)** — Every 5 minutes: portfolio monitoring, trailing stop checks, worker health validation.
-2. **Idempotency Store (`hoox` gateway)** — Durable Object deduplication for incoming webhooks — prevents duplicate trade signals.
-3. **Kill Switch Evaluation** — Read from `CONFIG_KV` on every request. Immediately halts all trade execution without redeployment.
-4. **Queue Processing (`trade-execution`)** — High-availability queue bridging gateway and trade-worker with automatic failover and retry.
+- **[CLI Reference Manual](../../enduser/reference/cli-commands.md)** — Review the complete command tree, positional arguments, and flags.
+- **[Wrangler Setup & Tooling](development/local-dev.md)** — Configure Wrangler to bind local D1 and KV instances for dev testing.

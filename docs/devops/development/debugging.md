@@ -1,59 +1,103 @@
 ---
-title: "🐛 Debugging"
-description: "Tools and techniques for debugging Hoox workers"
+title: "Edge Debugging & Telemetry"
+description: "Detailed system troubleshooting guide, covering local console logging, production wrangler tailing telemetry, and distributed trace ID tracking."
 ---
 
-# 🐛 Debugging
+# 🐛 Edge Debugging & Telemetry
 
-> Tools and techniques for debugging Hoox workers
+Debugging globally distributed serverless microservices presents unique operational challenges. Because code runs on Cloudflare's edge V8 isolates without a persistent server host, traditional step-through debugging is replaced by **structured logging, real-time edge telemetry tailing, and distributed tracing**.
 
-## Local Debugging
-
-When running locally with `hoox workers dev <worker-name>`, standard `console.log` statements will output directly to your terminal.
-
-If you encounter issues with inter-worker communication, ensure that:
-
-1. Both workers are running.
-2. The ports align with what Wrangler expects.
-3. The `internalAuthKey` matches between `.dev.vars` files.
-
-## Production Debugging
-
-Cloudflare® provides `wrangler tail` to view real-time logs from your deployed workers.
-
-```bash
-# View logs for the hoox gateway
-npx wrangler tail hoox
-
-# View logs for the trade worker
-npx wrangler tail trade-worker
-```
-
-### Logging Best Practices
-
-- Always use structured JSON logs when possible.
-- Include the `requestId` in logs to trace a single request across multiple workers.
-- Avoid logging sensitive information such as API keys or user passwords.
-
-## Common Issues
-
-### 1. `Worker error: 401 Unauthorized`
-
-Check that your `INTERNAL_KEY_BINDING` matches across all workers.
-
-### 2. `D1_ERROR: no such table`
-
-You haven't run the database migrations. Ensure your database is initialized:
-
-```bash
-npx wrangler d1 execute DB --local --file=schema.sql
-```
-
-## Next Steps
-
-- [Testing](testing.md)
-- [Production Setup](../deployment/production.md)
+This document is your engineering runbook for debugging and resolving runtime anomalies in the Hoox monorepo.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## ⚡ 1. Real-Time Telemetry: Tailing Production Logs
+
+Cloudflare’s **`wrangler tail`** engine establishes an active, secure WebSocket stream straight from Cloudflare's global edge nodes to your terminal, printing every `console.log`, exception trace, and HTTP status code in real-time.
+
+You can trigger this streaming telemetry via the Hoox CLI or Wrangler:
+
+```bash
+# A. Recommended: Stream live console logs for a specific worker via Hoox CLI
+hoox logs tail trade-worker
+
+# B. Stream gateway traffic in real-time
+hoox logs tail hoox
+
+# C. Alternatively, invoke Wrangler directly for custom configurations
+npx wrangler tail hoox --config workers/hoox/wrangler.jsonc
+```
+
+---
+
+## 📝 2. Distributed Tracing: The `requestId` Standard
+
+Because a single TradingView alert flows through multiple workers (Gateway → trade-worker → d1-worker → telegram-worker), locating a specific transaction log in a sea of concurrent entries is impossible without a unified trace parameter.
+
+### The RequestId Protocol
+
+1. **Generation**: The `hoox` gateway generates a unique, cryptographically secure **UUIDv4** immediately upon receiving a webhook payload. This is set as the `requestId` in the transaction context.
+2. **Propagation**: Every internal service binding call transmits this UUID as the `X-Request-Id` HTTP header.
+3. **Structured Ingestion**: When logging error telemetry or writing trade fills to R2 and D1 databases, workers attach the `requestId` as a dedicated index column.
+4. **Unified Auditing**: You can audit an entire transaction's lifecycle across all 9 workers by running a single database query filtering by the trace ID:
+
+```sql
+SELECT created_at, worker, message, severity
+FROM system_logs
+WHERE request_id = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+ORDER BY created_at ASC
+```
+
+---
+
+## 🛡️ 3. Operational Runbooks for Common Edge Failures
+
+### A. Symptom: `401 Unauthorized` on Internal Worker Calls
+
+- **Diagnostics**: The calling worker gets a `401 Unauthorized` response when querying internal services like `d1-worker` or `trade-worker`.
+- **Primary Root Cause**: The `INTERNAL_KEY_BINDING` secret does not match between the calling worker and the target worker.
+- **Resolution**:
+  1. Inspect the secret existence on both workers: `hoox secrets check`.
+  2. If mismatched, re-inject the secret globally using one command:
+     ```bash
+     hoox secrets set INTERNAL_KEY_BINDING "your_secure_shared_internal_key"
+     ```
+
+---
+
+### B. Symptom: `502 Bad Gateway` on Webhook Routes
+
+- **Diagnostics**: An incoming signal returns a 502 error instantly.
+- **Primary Root Cause**: A Service Binding target declared in the gateway's `wrangler.jsonc` has not been deployed yet.
+- **Resolution**:
+  1. Run the dependency check: `hoox check health`.
+  2. Redeploy the entire stack in the correct dependency order:
+     ```bash
+     hoox deploy all --auto
+     ```
+
+---
+
+### C. Symptom: `D1_ERROR: no such table`
+
+- **Diagnostics**: Worker database transactions fail with table missing errors.
+- **Primary Root Cause**: Relational SQLite schemas were never initialized on your production D1 instance.
+- **Resolution**:
+  1. Initialize database tables and run pending drizzle migrations:
+     ```bash
+     hoox db apply --remote
+     hoox db migrate --remote
+     ```
+
+---
+
+### D. Symptom: KV Configuration Propagation Delays
+
+- **Diagnostics**: You toggled a KV configuration (e.g. turned `trade:kill_switch = false`), but some incoming signals are still being rejected.
+- **Primary Root Cause**: Cloudflare KV is eventually consistent. Updates can take up to 10 seconds to propagate to all global edge locations.
+- **Resolution**: Wait 10-15 seconds for cache validation to settle globally. Do not trigger rapid test webhooks immediately after modifying configuration keys.
+
+### 🔗 Next Steps
+
+- **[Testing Framework & QA Standards](testing.md)** — Run local unit and integration tests using Bun's native test runner.
+- **[Self-Healing & System Repair](../guides/repair.md)** — Run diagnostics, targeted component repairs, and full system rebuilds.

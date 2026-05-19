@@ -1,6 +1,8 @@
 ---
-title: "Agent Worker - Hoox Autonomous AI & Risk Manager"
+title: "agent-worker Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox Agent Cron Worker, covering multi-provider AI Gateway configurations, vision analysis, and risk protection loops."
 ---
+
 # Agent Worker - Hoox Autonomous AI & Risk Manager
 
 **Last Updated:** May 2026 (Post-Enhancement)

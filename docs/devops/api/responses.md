@@ -1,77 +1,136 @@
 ---
-title: "📨 API Responses"
-description: "Standardized response formats for inter-worker communication"
+title: "Standard Response Schemas"
+description: "High-integrity JSON response templates, success envelopes, edge error codes, and shared error middleware specs."
 ---
-# 📨 API Responses
 
-> Standardized response formats for inter-worker communication
+# 📨 Standard Response Schemas
 
-## Standard Response Wrapper
+To ensure predictable error handling and parsing across all microservices, Hoox enforces a **strict response contract**. Every worker responds with a standardized JSON envelope containing tracing details, operation status, results payload, and detailed error models.
 
-All workers return a consistent JSON response format to ensure predictable error handling and parsing across the system.
+This document details the exact JSON templates, types, and error factories utilized in the monorepo.
+
+---
+
+## 🛡️ 1. Standard Response Envelope
+
+Every HTTP response returned by an edge worker is encapsulated within a unified JSON envelope:
+
+```typescript
+export interface ResponseEnvelope<T> {
+  success: boolean; // Absolute state of the operation
+  requestId: string; // UUIDv4 trace ID mapped from request
+  result?: T; // Operation success metadata payload
+  error?: {
+    // Detail model present only if success = false
+    code: string; // Unique machine-parseable error token
+    message: string; // Human-readable error description
+    details?: any; // Optional specific array of field issues
+  };
+}
+```
+
+---
+
+## 🏆 2. Success Response Templates
+
+### A. Trade Execution Fill Success (`trade-worker` - 200 OK)
 
 ```json
 {
   "success": true,
-  "requestId": "uuid-v4-string",
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "result": {
-    // Service-specific response data
+    "orderId": "18049284739",
+    "status": "Filled",
+    "executedQty": 0.005,
+    "price": 68425.5,
+    "timestamp": 1779261050000
   },
-  "error": null,
-  "message": "Operation completed successfully"
+  "error": null
 }
 ```
 
-## Success Responses
+---
 
-### Trade Worker Success
+### B. Telegram Push Success (`telegram-worker` - 200 OK)
 
 ```json
 {
   "success": true,
-  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "result": {
-    "orderId": "123456789",
-    "status": "FILLED",
-    "executedPrice": 64230.5
-  }
-}
-```
-
-### Telegram Worker Success
-
-```json
-{
-  "success": true,
-  "requestId": "550e8400-e29b-41d4-a716-446655440000",
-  "result": {
-    "messageId": 402,
+    "messageId": 482904,
     "delivered": true
-  }
+  },
+  "error": null
 }
 ```
 
-## Error Responses
+---
 
-When an operation fails, the `success` flag is `false`, and the `error` field contains the error message or code.
+## 🚨 3. Error Models & Edge Error Codes
+
+When a worker operation fails, the `success` flag is set to `false`, the `result` field is omitted or set to `null`, and the `error` model is fully populated:
+
+### A. 400 Bad Request (JSON Validation Error)
 
 ```json
 {
   "success": false,
-  "requestId": "550e8400-e29b-41d4-a716-446655440000",
-  "error": "INSUFFICIENT_FUNDS",
-  "message": "Account balance is too low to execute this trade."
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid JSON payload structure.",
+    "details": [{ "field": "quantity", "issue": "Must be greater than zero." }]
+  }
 }
 ```
 
-### Common Error Codes
+---
 
-- `UNAUTHORIZED`: Invalid or missing `internalAuthKey` or API key.
-- `INVALID_PAYLOAD`: The request payload was missing required fields or incorrectly formatted.
-- `SERVICE_UNAVAILABLE`: The target worker or external API (e.g., Exchange) is down.
-- `RATE_LIMITED`: Too many requests.
+### B. 409 Conflict (Idempotency Mutex Intercept)
 
-## Next Steps
+```json
+{
+  "success": false,
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "error": {
+    "code": "DUPLICATE_REQUEST",
+    "message": "Order rejected. Durable Object locked: trace ID already processed in the last 24 hours."
+  }
+}
+```
 
-- [API Endpoints](endpoints.md)
-- [API Payloads](payloads.md)
+---
+
+## 🛠️ 4. Shared `Errors` Factory Middleware
+
+To enforce this response contract without writing redundant JSON wrappers in every worker, we use the standardized `Errors` factory from the shared monorepo package `@jango-blockchained/hoox-shared/errors`:
+
+```typescript
+import { Errors } from "@jango-blockchained/hoox-shared/errors";
+
+// 1. Validation Failures (400 Bad Request)
+if (!payload.symbol) {
+  return Errors.badRequest("Symbol is a required parameter.");
+}
+
+// 2. Secret Key Mismatch (401 Unauthorized)
+if (requestHeaderKey !== env.INTERNAL_KEY_BINDING) {
+  return Errors.unauthorized("Access Denied: Invalid X-Internal-Auth-Key.");
+}
+
+// 3. System Exceptions (500 Internal Server Error)
+try {
+  await database.write(data);
+} catch (err: any) {
+  return Errors.internal(`Database write exception: ${err.message}`);
+}
+```
+
+These factory methods automatically serialize the exception, attach the active `requestId` from the context, set the correct HTTP status code, and return a compliant `Response` object.
+
+### 🔗 Next Steps
+
+- **[API Endpoint Directory](endpoints.md)** — Analyze REST routes, headers, and endpoints mappings.
+- **[Request Payload Schemas](payloads.md)** — Check JSON request payload specifications and typescript interfaces.

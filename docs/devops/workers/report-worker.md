@@ -1,55 +1,131 @@
 ---
-title: "📄 report-worker"
-description: "Automated PDF portfolio reports via Cloudflare Browser Rendering"
+title: "report-worker Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox PDF Report Worker, covering Cloudflare Browser Rendering APIs, Puppeteer Chrome automation, and R2 bucketing."
 ---
-# 📄 report-worker
 
-> Automated PDF portfolio reports via Cloudflare Browser Rendering
+# 📄 report-worker Isolate Profile
 
-## Overview
+The **`report-worker`** is the automated document compiler of the Hoox trading platform. Deployed as a scheduled cron isolate, this worker runs twice daily (at 06:00 and 18:00 UTC) to pull D1 transactional stats, construct a highly styled HTML5 portfolio report, spin up a serverless **Cloudflare Browser Rendering** Chrome instance to compile the page into a PDF buffer, offload the file to R2, and push a private download link to your Telegram.
 
-`report-worker` generates twice-daily PDF portfolio performance reports. It converts portfolio metrics into styled HTML, renders to PDF via the Cloudflare Browser Rendering REST API, stores in R2, and delivers links via Telegram.
+---
 
-## Features
+## ⚡ 1. Declared Wrangler Configurations & Bindings
 
-- **Cron-Triggered**: Runs at 06:00 + 18:00 UTC on a `ScheduledEvent` handler
-- **Styled HTML→PDF**: Professional report layout with portfolio value, daily/total P&L, win rate, open positions
-- **R2 Storage**: PDFs stored in `trade-reports` bucket with date-based keys (`reports/daily-{timestamp}.pdf`)
-- **Telegram Delivery**: Report links sent via `TELEGRAM_SERVICE` service binding
-- **Graceful Fallback**: Returns text placeholder when `CF_API_TOKEN` not configured
-
-## Configuration
+The `report-worker` mounts storage buckets, notification bindings, and is triggered by Cloudflare's background cron engine:
 
 ```jsonc
 {
   "name": "report-worker",
-  "triggers": { "crons": ["0 8 * * *", "0 18 * * *"] },
-  "r2_buckets": [{ "binding": "REPORTS_BUCKET", "bucket_name": "trade-reports" }],
-  "services": [{ "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" }],
-  "vars": { "CF_API_TOKEN_BINDING": null },
-  "placement": { "mode": "smart" },
-  "observability": { "enabled": true, "head_sampling_rate": 1 }
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "placement": {
+    "mode": "smart",
+  },
+  "triggers": {
+    "crons": ["0 6 * * *", "0 18 * * *"], // Runs twice daily
+  },
+  "r2_buckets": [
+    {
+      "binding": "REPORTS_BUCKET",
+      "bucket_name": "trade-reports",
+    },
+  ],
+  "services": [
+    { "binding": "D1_SERVICE", "service": "d1-worker" },
+    { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
+  ],
+  "secrets": [
+    "INTERNAL_KEY_BINDING",
+    "CF_API_TOKEN", // Required to call Browser Rendering REST API
+  ],
 }
 ```
 
-## Env Interface
+---
+
+## 🔑 2. Environmental Variables & Encrypted Secrets
+
+- **`CF_API_TOKEN`**: Your Cloudflare API Token with `Account.Browser Rendering` and `Account.R2` write permissions.
+- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from other V8 isolates.
+
+---
+
+## 🌐 3. Browser Rendering & PDF Print Pipeline
+
+When the Cron schedule triggers, `report-worker` runs the following programmatic pipeline:
+
+### Step 1: Data Aggregation & HTML Compilation
+
+The worker pings `D1_SERVICE` to retrieve P&L, win rate, and total daily fees, inserting the metrics into a styled HTML5 template utilizing Tailwind CSS and CSS Grid styling:
+
+```html
+<div class="card">
+  <h2>Daily P&L</h2>
+  <p class="pnl-green">+$1,234.50</p>
+</div>
+```
+
+---
+
+### Step 2: Cloudflare Chrome Isolate Print
+
+Pushes the HTML template to Cloudflare's headless Chrome rendering pool via the REST API:
 
 ```typescript
-interface Env {
-  REPORTS_BUCKET: R2Bucket;
-  TELEGRAM_SERVICE: Fetcher;
-  CF_API_TOKEN_BINDING: string; // Cloudflare API token with Browser Rendering + R2 write
-}
+const response = await fetch(
+  `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/browser-rendering/pdf`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.CF_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      html: htmlContent,
+      options: {
+        format: "A4",
+        printBackground: true,
+        margin: { top: "1cm", bottom: "1cm", left: "1cm", right: "1cm" },
+      },
+    }),
+  }
+);
 ```
 
-## 📂 Files
+---
 
-| File | Purpose |
-|------|---------|
-| `src/index.ts` | Cron handler, HTML→PDF conversion, R2 storage |
-| `wrangler.jsonc.example` | Configuration template |
+### Step 3: R2 Storage & Expiration
 
-## Related
+1. The API compiles the page and returns a raw PDF binary stream.
+2. The worker uploads the stream to the `REPORTS_BUCKET` R2 storage bucket using a unique, date-hashed key:
+   `reports/daily-pnl-2026-05-19.pdf`
+3. A lifecycle rule on the R2 bucket automatically purges reports older than 30 days to maintain storage cleanliness.
 
-- [System Overview](../architecture/overview.md)
-- [Bindings Reference](../architecture/bindings.md)
+---
+
+### Step 4: Dispatch Telegram Alert
+
+Calls `TELEGRAM_SERVICE` to send the link:
+
+```typescript
+await env.TELEGRAM_SERVICE.fetch("https://telegram-worker/alert", {
+  method: "POST",
+  headers: { "X-Internal-Auth-Key": env.INTERNAL_KEY_BINDING },
+  body: JSON.stringify({
+    chatId: env.TELEGRAM_CHAT_ID_DEFAULT,
+    message:
+      "<b>📄 Daily P&L PDF Report Compiled!</b>\nDownload link: <a href='https://reports.cryptolinx.workers.dev/daily-pnl-2026-05-19.pdf'>Download PDF</a>",
+  }),
+});
+```
+
+---
+
+> **Tip:** If `CF_API_TOKEN` is not configured, the worker gracefully fails by compiling a rich text-only P&L summary and pushing it directly via Telegram instead of generating a PDF, guaranteeing continuous operations without hard crashes.
+
+### 🔗 Next Steps
+
+- **[telegram-worker Profile](telegram-worker.md)** — Review push alert configurations and webhook tunnels.
+- **[D1 Database Operations](../guides/database-ops.md)** — Manage Drizzle schemas and execute custom queries.

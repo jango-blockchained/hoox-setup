@@ -1,75 +1,140 @@
 ---
-title: "📦 API Payloads"
-description: "Standardized request payloads for inter-worker communication"
+title: "Request Payload Schemas"
+description: "High-integrity JSON request payload specifications, TypeScript interfaces, and validation rules across Hoox microservices."
 ---
-# 📦 API Payloads
 
-> Standardized request payloads for inter-worker communication
+# 📦 Request Payload Schemas
 
-## Standard Request Wrapper
+To maintain robust data routing and prevent runtime failures, Hoox enforces a strict **payload contract** across all internal and public service boundaries. All incoming requests are validated by active JSON Schema or Zod middleware before entering V8 execution loops.
 
-When workers communicate with each other via Service Bindings, they wrap their requests in a standard envelope:
+This document details the exact JSON schemas, TypeScript interfaces, and validation rules for all primary request payloads.
+
+---
+
+## 🛡️ 1. Standard Request Envelope
+
+Every service-to-service invocation (via Service Bindings) wraps its business parameters inside a standardized **Request Envelope** containing distributed tracing indices:
+
+```typescript
+export interface RequestEnvelope<T> {
+  requestId: string; // Unique UUIDv4 distributed trace ID
+  payload: T; // Service-specific payload
+}
+```
 
 ```json
 {
-  "requestId": "uuid-v4-string",
-  "internalAuthKey": "secret-key",
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "payload": {
-    // Service-specific payload
+    "symbol": "BTCUSDT",
+    "quantity": 0.005
   }
 }
 ```
 
-## Service-Specific Payloads
+---
 
-### Trade Worker (`TRADE_SERVICE`)
+## 📈 2. Trade Execution Payloads (`trade-worker`)
 
-**Process Trade:**
+The execution engine processes two primary types of order payloads:
 
-```json
-{
-  "exchange": "mexc",
-  "action": "LONG",
-  "symbol": "BTC_USDT",
-  "quantity": 0.01
+### A. Centralized Exchange Order Payload (`/webhook` & `/process`)
+
+```typescript
+export interface CexOrderPayload {
+  exchange: "binance" | "bybit" | "mexc"; // Target exchange
+  action: "LONG" | "SHORT" | "CLOSE"; // Margin position action
+  symbol: string; // Standardized asset ticker (e.g. "BTCUSDT")
+  quantity: number; // Order size in contracts or tokens
+  leverage?: number; // Optional margin leverage multiplier
+  price?: number; // Optional execution limit price
+  orderType?: "MARKET" | "LIMIT"; // Default: MARKET
 }
 ```
 
-### Telegram Worker (`TELEGRAM_SERVICE`)
+```json
+{
+  "exchange": "bybit",
+  "action": "LONG",
+  "symbol": "BTCUSDT",
+  "quantity": 0.01,
+  "leverage": 10,
+  "orderType": "MARKET"
+}
+```
 
-**Send Notification:**
+---
+
+### B. On-Chain DeFi Swap Payload (`/dex`)
+
+```typescript
+export interface DexSwapPayload {
+  chain: "ethereum" | "arbitrum" | "polygon"; // EVM target network
+  to: string; // Recipient address or Uniswap Router
+  value: string; // Transaction value in Wei (as string)
+  data: string; // Encoded contract call data bytes
+  gasLimit?: number; // Optional transaction gas limit
+}
+```
 
 ```json
 {
-  "chatId": "123456789",
-  "message": "Trade executed successfully: LONG BTC_USDT",
+  "chain": "arbitrum",
+  "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+  "value": "100000000000000000",
+  "data": "0xa9059cbb000000000000000000000000..."
+}
+```
+
+---
+
+## 🗄️ 3. Database SQL Query Payloads (`d1-worker`)
+
+The SQLite database proxy accepts parameterized SQL statements to protect against SQL injections:
+
+### A. Execute Single SQL Statement
+
+```typescript
+export interface SqlQueryPayload {
+  query: string; // Parameterized SQL statement
+  params: Array<string | number | boolean | null>; // Binding values
+}
+```
+
+```json
+{
+  "query": "SELECT * FROM trades WHERE symbol = ? AND status = ?",
+  "params": ["BTCUSDT", "Filled"]
+}
+```
+
+---
+
+## 💬 4. Telegram Notification Payloads (`telegram-worker`)
+
+Used to push structured alerts and charts to your mobile device:
+
+```typescript
+export interface TelegramAlertPayload {
+  chatId: string; // Target Telegram Chat ID
+  message: string; // Formatted message content
+  parseMode?: "HTML" | "MarkdownV2"; // Default: HTML
+}
+```
+
+```json
+{
+  "chatId": "987654321",
+  "message": "<b>Alert:</b> Position filled at 68,420.",
   "parseMode": "HTML"
 }
 ```
 
-### D1 Worker (`D1_SERVICE`)
+---
 
-**Execute Query:**
+> **Tip:** Adding new fields to a payload schema? Remember to update the corresponding type interfaces in `@jango-blockchained/hoox-shared/types` to ensure complete type safety across all workers!
 
-```json
-{
-  "query": "INSERT INTO system_logs (level, message) VALUES (?, ?)",
-  "params": ["INFO", "Trade executed"]
-}
-```
+### 🔗 Next Steps
 
-### Home Assistant Worker (`HOME_ASSISTANT_SERVICE`)
-
-**Process Action:**
-
-```json
-{
-  "action": "light.turn_on",
-  "entity_id": "light.living_room"
-}
-```
-
-## Next Steps
-
-- [API Endpoints](endpoints.md)
-- [API Responses](responses.md)
+- **[API Endpoint Directory](endpoints.md)** — Analyze REST routes, headers, and endpoints mappings.
+- **[Standard Response Schemas](responses.md)** — Check success envelopes and error models.

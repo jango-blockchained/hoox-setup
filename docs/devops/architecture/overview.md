@@ -1,153 +1,159 @@
 ---
-title: "🏗️ Architecture Overview"
-description: "Understanding the Hoox system design — 9 workers, 12+ Cloudflare services, all on Free plan"
+title: "System Topology & Overview"
+description: "High-level architectural blueprint of the Hoox trading ecosystem, detailing edge microservice layouts, and multi-layered security models."
 ---
 
-# 🏗️ Architecture Overview
+# 🏗️ System Topology & Overview
 
-> Understanding the Hoox system design — 9 workers, 12+ Cloudflare services, all on Free plan
+Hoox is an enterprise-grade, serverless algorithmic trading platform built entirely on **Cloudflare's Edge V8 isolates** and globally distributed resources. By using a modular, service-oriented architecture, Hoox decomposes complex trading processes into ten highly specialized micro-workers.
 
-## High-Level Architecture
+These workers communicate privately in microseconds, auto-scale globally near exchange servers, and store transaction logs in localized databases—all while running within Cloudflare's $0 free tiers.
 
-Hoox is a **service-oriented** platform where multiple Cloudflare® Workers communicate via:
+---
 
-1. **Service Bindings** — Direct worker-to-worker calls (microsecond latency)
-2. **Shared Resources** — KV, D1, R2, Vectorize, Durable Objects, Queues
-3. **Smart Placement** — Workers auto-deploy to edge node closest to exchange APIs
+## 🗺️ High-Level System Architecture
 
-## System Diagram
+The ecosystem splits public-facing ingress points from private internal compute layers:
 
 ```mermaid
 graph TB
-    subgraph "External World"
-        TV["📊 TradingView"]
-        TG["💬 Telegram"]
-        EM["📧 Email"]
+    %% ── Styling ──────────────────────────────────────────────────────
+    classDef external fill:#f5f5f5,stroke:#999,stroke-width:2,color:#333
+    classDef waf fill:#fff8e1,stroke:#f9a825,stroke-width:2
+    classDef worker fill:#e8f5e9,stroke:#43a047,stroke-width:2,color:#1b5e20
+    classDef storage fill:#e3f2fd,stroke:#1e88e5,stroke-width:2,color:#0d47a1
+    classDef compute fill:#f3e5f5,stroke:#8e24aa,stroke-width:2,color:#4a148c
+    classDef dash fill:#fff3e0,stroke:#ef6c00,stroke-width:2,color:#bf360c
+
+    %% ── Ingress Layer ────────────────────────────────────────────────
+    subgraph Ingress["🌐 Public Ingress Layer"]
+        TV["📊 TradingView Webhooks"]:::external
+        TG["💬 Telegram Bot Commands"]:::external
+        EM["📧 Email Signal Senders"]:::external
+        WAF["🧱 Cloudflare WAF / Firewall"]:::waf
+        GW["🔐 hoox Gateway Isolate"]:::worker
     end
 
-    subgraph "Edge Workers (9)"
-        hoox["🔐 hoox<br/>Gateway"]
-        trade["📈 trade-worker<br/>Execution"]
-        agent["🧠 agent-worker<br/>AI Risk"]
-        telegram["💬 telegram-worker<br/>Notifications"]
-        d1["🗄️ d1-worker<br/>SQL"]
-        web3["🌐 web3-wallet<br/>DeFi"]
-        email["📧 email-worker<br/>Parser"]
-        analytics["📊 analytics-worker<br/>Metrics"]
-        report["📄 report-worker<br/>PDF Reports"]
+    %% ── Private Compute Layer ────────────────────────────────────────
+    subgraph Compute["⚡ Private Internal Edge Compute"]
+        TW["📈 trade-worker (Execution Engine)"]:::worker
+        D1W["🗄️ d1-worker (SQL Hub)"]:::worker
+        AW["🧠 agent-worker (AI Risk Manager)"]:::worker
+        TGW["💬 telegram-worker (Notifications)"]:::worker
+        EMW["📧 email-worker (Email Parser)"]:::worker
+        W3W["🌐 web3-wallet (DeFi Swaps)"]:::worker
+        ANW["📊 analytics-worker (observability)"]:::worker
+        RPW["📄 report-worker (PDF Generator)"]:::worker
     end
 
-    subgraph "Cloudflare® Services"
-        KV[(KV Config)]
-        DB[(D1 Database)]
-        R2[(R2 Storage)]
-        Q[Queue]
-        DO[Durable Objects]
-        AI[Workers AI]
-        VEC[Vectorize]
-        BR[Browser Rendering]
-        AE[Analytics Engine]
+    %% ── Storage & Resource Layer ─────────────────────────────────────
+    subgraph Storage["💾 Persistent Edge Storage"]
+        KV[("KV Config Namespace")]:::storage
+        DB[("D1 SQLite Database")]:::storage
+        R2[("R2 Logs & PDF Bucket")]:::storage
+        VEC[("Vectorize RAG Index")]:::storage
+        DO{{"🔒 Durable Objects mutex"}}:::compute
+        Q{{"📨 Queues Queue"}}:::compute
+        BR{{"🌐 Browser Rendering Chrome"}}:::compute
     end
 
-    TV -->|Webhook| hoox
-    TG -->|Bot| telegram
-    EM -->|SMTP| email
+    %% ── Flow Connections ─────────────────────────────────────────────
+    TV --> WAF
+    WAF --> GW
+    EM --> EMW
+    TG --> TGW
 
-    hoox -->|TRADE_SERVICE| trade
-    hoox -->|TELEGRAM| telegram
-    hoox -->|Queue| Q
-    hoox -->|DO| DO
-    hoox -->|Analytics| analytics
-    hoox --> KV
-    hoox --> AI
+    GW -->|Service Binding| TW
+    GW -->|Service Binding| TGW
+    GW -->|Service Binding| ANW
+    GW -->|Durable Object Lock| DO
+    GW -->|Queue Failover| Q
 
-    trade -->|D1_SERVICE| d1
-    trade -->|TELEGRAM| telegram
-    trade -->|Analytics| analytics
-    trade --> DB
-    trade --> R2
-    trade --> AI
+    TW -->|Service Binding| D1W
+    TW -->|Service Binding| TGW
+    TW -->|Service Binding| ANW
+    TW -->|DeFi Execution| W3W
+    TW -.->|Config Read| KV
+    TW -.->|Write Trade Logs| R2
 
-    agent -->|Cron */5| trade
-    agent -->|D1_SERVICE| d1
-    agent -->|TELEGRAM| telegram
-    agent --> AI
+    D1W -.->|SQLite queries| DB
+    TGW -.->|Semantic RAG search| VEC
+    TGW -->|Service Binding| ANW
 
-    telegram -->|Analytics| analytics
-    telegram --> AI
-    telegram --> VEC
+    AW -->|Cron 5m / Position Scale| TW
+    AW -->|Service Binding| TGW
+    AW -->|Service Binding| D1W
 
-    report -->|Cron 06+18| R2
-    report -->|TELEGRAM| telegram
-    report -.->|REST API| BR
+    RPW -->|Cron 2x/day / Render PDFs| BR
+    RPW -.->|Save Reports| R2
+    RPW -->|Push PDF Link| TGW
 ```
 
-## Worker Map
+---
 
-| Worker             | Role                     | Cron     | Public | Smart Placement | Observability |
-| ------------------ | ------------------------ | -------- | ------ | --------------- | ------------- |
-| hoox               | Gateway entry point      | No       | ✅     | ✅              | ✅            |
-| trade-worker       | Multi-exchange execution | No       | ❌     | ✅              | ✅            |
-| agent-worker       | AI risk manager          | ✅ \*/5  | ❌     | ✅              | ✅            |
-| telegram-worker    | Notifications            | No       | ❌     | ✅              | ✅            |
-| d1-worker          | Database operations      | No       | ❌     | ✅              | ✅            |
-| web3-wallet-worker | DeFi/on-chain            | No       | ❌     | —               | —             |
-| email-worker       | Email parsing            | No       | ❌     | —               | —             |
-| analytics-worker   | Time-series analytics    | No       | ❌     | —               | —             |
-| report-worker      | PDF reports              | ✅ 06+18 | ❌     | ✅              | ✅            |
+## 📊 Comprehensive Micro-Worker Catalog
 
-## Component Responsibilities
+| Worker Name            |  Runtime Scope   | Cron Trigger |    Public Routing    |      Smart Placement       | Primary Observability |
+| :--------------------- | :--------------: | :----------: | :------------------: | :------------------------: | :-------------------: |
+| **`hoox`**             |  Gateway Router  |      No      | **Yes** (`/webhook`) |    **Yes** (Fast path)     | Time-series Telemetry |
+| **`trade-worker`**     | Order Execution  |      No      |    No (Isolated)     | **Yes** (Exchange Proxied) |    Execution Logs     |
+| **`agent-worker`**     | Risk Management  |  Cron `*/5`  |    No (Isolated)     | **Yes** (Account Auditing) |      Alert Logs       |
+| **`telegram-worker`**  |  Alerts & Chat   |      No      |    No (Isolated)     |  **Yes** (Telegram APIs)   |     Command Logs      |
+| **`d1-worker`**        |  SQLite Manager  |      No      |    No (Isolated)     |   **Yes** (SQLite Bound)   |     Query Latency     |
+| **`report-worker`**    |  Puppeteer PDF   | Cron `06,18` |    No (Isolated)     |  **Yes** (Rendering APIs)  |     Print Status      |
+| **`email-worker`**     |   IMAP Parsing   |  Cron `*/5`  |    No (Isolated)     |             No             |   Parse Statistics    |
+| **`web3-wallet`**      | DeFi Swap Engine |      No      |    No (Isolated)     |             No             |     Tx Sign Logs      |
+| **`analytics-worker`** |  Observability   |      No      |    No (Isolated)     |             No             |    Metrics Dataset    |
 
-### hoox (Gateway)
+---
 
-- Validates API keys + IP allowlist + KV-backed rate limiting
-- Real DO idempotency (SQLite-backed, alarm cleanup)
-- Routes to internal workers via Service Bindings
-- Analytics tracking on every API call
+## 🛡️ The 5-Layer Security Architecture
 
-### trade-worker
-
-- Executes trades on Binance, Bybit, MEXC
-- Dynamic exchange routing via CONFIG_KV (no redeploy)
-- R2 log offloading to preserve D1 write limits
-- Smart Placement deploys closest to exchange servers
-
-### agent-worker
-
-- 5-min cron: trailing stops, kill switch, health summaries
-- Multi-provider AI gateway (5 providers, fallback chain)
-- Vision analysis, reasoning models, SSE streaming
-
-### telegram-worker
-
-- Notifications + command processing
-- RAG via Vectorize embeddings
-- File uploads to R2, AI-powered responses
-
-### d1-worker
-
-- Centralized SQLite database service
-- Signal storage, trade history, position tracking
-
-### report-worker
-
-- Twice-daily PDF reports via Browser Rendering REST API
-- HTML→PDF conversion, R2 storage, Telegram delivery
-
-## Security Layers
+Security is designed as concentric protective corridors:
 
 ```
-Layer 1: WAF — IP allowlist + rate limiting (edge-level)
-Layer 2: API Key Validation — Secret binding comparison
-Layer 3: Service Binding Auth — Internal workers zero public endpoints
-Layer 4: Internal Key Validation — Worker-to-worker auth header (standardized as INTERNAL_KEY_BINDING across all workers)
-Layer 5: Idempotency — DO prevents duplicate trades on retry
+[ WAF: IP Range Allow-list ] -> [ Gateway: Webhook Passkey ] -> [ Isolation: Service Bindings ] -> [ Worker Auth: INTERNAL_KEY ] -> [ Mutex: Durable Objects ]
 ```
 
-> **Auth Standardization:** All internal workers (`hoox`, `trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`, `email-worker`) now use the same `INTERNAL_KEY_BINDING` binding name with the shared `requireInternalAuth` middleware from `@jango-blockchained/hoox-shared/middleware`.
+### Layer 1: Edge-Level Firewall & WAF
 
-## Next Steps
+Cloudflare’s global WAF drop connections immediately at the edge if:
 
-- [Worker Communication](communication.md)
-- [Data Flow](data-flow.md)
-- [Bindings Reference](bindings.md)
+- The payload does not originate from verified TradingView webhook IP ranges.
+- The request rate exceeds threshold ceilings (10 requests/minute).
+
+---
+
+### Layer 2: Webhook Passkey Authentication
+
+The `hoox` gateway validates that the payload `apiKey` string exactly matches the encrypted `webhooks:api_key` stored inside your `CONFIG_KV` namespace. Mismatched signals are instantly dropped with a `401 Unauthorized` response.
+
+---
+
+### Layer 3: Service Binding Encrypted Isolation
+
+Internal workers (`trade-worker`, `d1-worker`, `agent-worker`) expose **zero** public HTTP endpoints. They cannot be targeted or accessed from the public internet. They can only be invoked internally by other V8 isolates using Cloudflare **Service Bindings**.
+
+---
+
+### Layer 4: Standardized Internal Authorization
+
+To prevent internal bypass or privilege escalation, all internal microservice boundaries enforce a strict **bearer authorization check**:
+
+- All internal workers (`hoox`, `trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`) are bound to the same `INTERNAL_KEY_BINDING` secret.
+- Every service-to-service invocation is audited by the shared `requireInternalAuth` middleware from `@jango-blockchained/hoox-shared/middleware`, dropping unauthorized calls.
+
+---
+
+### Layer 5: Durable Object Idempotency Locks
+
+If the network drops after an order fill, TradingView will resend the webhook. The gateway uses a single-threaded **Durable Object** to lock the request trace ID. If the transaction ID has already been logged, the duplicate is dropped before hitting exchange APIs, preventing double-ordering.
+
+---
+
+> **Tip:** Smart Placement is enabled across all critical execution paths. This ensures that even though your webhook might hit a Cloudflare edge node in London, the actual transaction logic automatically shifts to Frankfurt or Tokyo (wherever the exchange APIs reside), eliminating network slippage entirely.
+
+### 🔗 Next Steps
+
+- **[Worker Communication Specifications](communication.md)** — Deep dive into service bindings, zero-TCP routing, and V8 engines.
+- **[Data Flow Maps](data-flow.md)** — Step-by-step sequence charts of trade executions and cron risk evaluations.

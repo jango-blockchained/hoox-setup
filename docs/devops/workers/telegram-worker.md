@@ -1,169 +1,132 @@
 ---
-title: "Telegram Worker"
+title: "telegram-worker Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox Telegram Notification & Command Worker, covering RAG vectorized indexes, R2 uploads, and alert payloads."
 ---
 
-# Telegram Worker
+# 💬 telegram-worker Isolate Profile
 
-**Last Updated:** April 2026
+The **`telegram-worker`** serves as the dynamic communicator of the Hoox trading ecosystem. Running as an isolated edge microservice, it parses incoming chat commands forwarded from Telegram's webhooks, executes retrieval-augmented generation (RAG) queries via Vectorize, analyzes screenshots using AI vision models, and dispatches real-time HTML/Markdown formatting order alerts to your mobile.
 
-A Cloudflare® Worker service that handles interactions with the Telegram Bot API. It can send messages, process incoming commands (via webhook or polling), and potentially leverage other Cloudflare® services like R2, AI, and Vectorize.
+---
 
-## Features
+## ⚡ 1. Declared Wrangler Configurations & Bindings
 
-- Sends formatted messages (HTML/Markdown) to specified Telegram chats.
-- Can be configured to receive and process incoming commands (e.g., `/ask`, `/search`).
-- Secure authentication via shared internal key when receiving requests from other workers (e.g., `hoox`).
-- Secure authentication for incoming Telegram webhooks using a secret URL path.
-- Potential integration with:
-  - **R2:** Storing/retrieving user uploads or generated files (`UPLOADS_BUCKET`).
-  - **Workers AI:** Processing commands, generating responses, RAG (`AI` binding).
-  - **Vectorize:** Storing embeddings for RAG/semantic search (`VECTORIZE_INDEX`).
-  - **KV:** Storing user preferences or configuration (`CONFIG_KV`).
+The `telegram-worker` mounts multiple storage and vector search services to implement AI-powered chatbot features. Its `wrangler.jsonc` specifies:
 
-## Prerequisites
-
-- Node.js >= 16
-- Bun
-- Wrangler CLI
-- Cloudflare® Workers account
-- Telegram Bot Token (obtained from @BotFather).
-
-## Setup
-
-1.  Install dependencies:
-    ```bash
-    bun install
-    ```
-2.  Set your Cloudflare® account ID in `wrangler.jsonc`.
-3.  Configure Secrets (via Cloudflare® dashboard Secrets Store or `wrangler secret put`):
-    - `INTERNAL_KEY_BINDING`: The **shared** secret key used for authentication with other internal workers.
-    - `TG_BOT_TOKEN_BINDING`: Your Telegram Bot Token.
-    - `TELEGRAM_CHAT_ID_DEFAULT`: The default Telegram Chat ID for outbound messages if none is specified.
-    - `TELEGRAM_WEBHOOK_SECRET`: A secure, random string used to authenticate incoming webhook requests from Telegram.
-4.  Update `wrangler.jsonc` with appropriate bindings and variables. Example:
-    ```jsonc
+```jsonc
+{
+  "name": "telegram-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "placement": {
+    "mode": "smart",
+  },
+  "kv_namespaces": [
     {
-      "name": "telegram-worker",
-      "main": "src/index.ts",
-      "compatibility_date": "2025-03-07",
-      "compatibility_flags": ["nodejs_compat"],
-      "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-      "secrets": [
-        "INTERNAL_KEY_BINDING",
-        "TG_BOT_TOKEN_BINDING",
-        "TELEGRAM_CHAT_ID_DEFAULT",
-        "TELEGRAM_WEBHOOK_SECRET",
-      ],
-      "kv_namespaces": [
-        { "binding": "CONFIG_KV", "id": "...", "preview_id": "..." },
-      ],
-      "r2_buckets": [
-        { "binding": "UPLOADS_BUCKET", "bucket_name": "user-uploads" },
-      ],
-      "vectorize": [
-        { "binding": "VECTORIZE_INDEX", "index_name": "my-rag-index" },
-      ],
-      "ai": {
-        "binding": "AI",
-      },
-      "observability": {
-        "enabled": true,
-        "head_sampling_rate": 1,
-      },
-    }
-    ```
-5.  Update the corresponding `worker-configuration.d.ts` file.
-6.  Set the Telegram webhook (replace `<WORKER_URL>` and `<SECRET_PATH>`):
-    ```bash
-    curl "https://api.telegram.org/bot<YOUR_TELEGRAM_BOT_TOKEN>/setWebhook?url=<WORKER_URL>/telegram/<TELEGRAM_WEBHOOK_SECRET>"
-    ```
-7.  For local development, create a `.dev.vars` file and define the secrets/variables:
-    ```.dev.vars
-    # Mock secrets for local dev:
-    INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    TG_BOT_TOKEN_BINDING="your_telegram_bot_token"
-    TELEGRAM_CHAT_ID_DEFAULT="your_default_telegram_chat_id"
-    TELEGRAM_WEBHOOK_SECRET="your_local_webhook_secret"
-    ```
-
-## Development
-
-Run locally:
-
-```bash
-bun run dev
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS_BUCKET",
+      "bucket_name": "user-uploads",
+    },
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE_INDEX",
+      "index_name": "rag-index",
+    },
+  ],
+  "ai": {
+    "binding": "AI",
+  },
+  "secrets": [
+    "INTERNAL_KEY_BINDING",
+    "TG_BOT_TOKEN_BINDING",
+    "TELEGRAM_CHAT_ID_DEFAULT",
+    "TELEGRAM_WEBHOOK_SECRET",
+  ],
+}
 ```
 
-_Note: Receiving Telegram webhooks locally requires a tunneling service like `cloudflared tunnel`._
+---
 
-Deploy:
+## 🔑 2. Environmental Variables & Encrypted Secrets
+
+- **`TG_BOT_TOKEN_BINDING`**: Private HTTP bot token generated by `@BotFather`.
+- **`TELEGRAM_CHAT_ID_DEFAULT`**: Your authorized Chat ID acting as a fallback receiver and admin lock.
+- **`TELEGRAM_WEBHOOK_SECRET`**: A secure, random token appended to the webhook URL path to validate that the request originated from Telegram’s servers.
+- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from `hoox` or `trade-worker`.
+
+### Local Development Mocking (`.dev.vars`)
 
 ```bash
-bun run deploy
+TG_BOT_TOKEN_BINDING=mock_telegram_bot_token
+TELEGRAM_CHAT_ID_DEFAULT=987654321
+TELEGRAM_WEBHOOK_SECRET=local_secure_route_token
+INTERNAL_KEY_BINDING=dev_shared_internal_security_key
 ```
 
-## API Interface
+---
 
-### 1. Internal Processing Request (`/process`)
+## 🔌 3. Internal REST API Specification
 
-This worker accepts requests from authenticated internal services (like `hoox`) on the `/process` endpoint, typically for sending notifications.
+### A. Dispatch Notification Endpoint
 
-- **Method:** `POST`
-- **Endpoint:** `/process`
-- **Content-Type:** `application/json`
-- **Expected Request Body:**
-
+- **Endpoint**: `/alert`
+- **Method**: `POST`
+- **Headers**: `X-Internal-Auth-Key: <INTERNAL_KEY_BINDING>`
+- **JSON Payload**:
   ```json
   {
-    "requestId": "<uuid_from_caller>",
-    "internalAuthKey": "YOUR_INTERNAL_SHARED_SECRET",
+    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "payload": {
-      "message": "<b>Trade Alert!</b>\nSymbol: <code>BTCUSDT</code>\nAction: LONG",
-      "chatId": "123456789",
+      "chatId": "987654321",
+      "message": "<b>📈 Bybit LONG Filled!</b>\nSymbol: <code>BTCUSDT</code>\nPrice: <code>$68,425.50</code>\nQuantity: <code>0.005</code>",
       "parseMode": "HTML"
     }
   }
   ```
-
-- **Response Format:**
-
-  **Success:**
-
+- **Success Response (200 OK)**:
   ```json
   {
     "success": true,
-    "result": { ... },
+    "result": { "messageId": 482904 },
     "error": null
   }
   ```
 
-  **Error:**
+---
 
-  ```json
-  {
-    "success": false,
-    "result": null,
-    "error": "<Error message>"
-  }
-  ```
+### B. Telegram Ingress Webhook Route
 
-### 2. Telegram Webhook (`/telegram/<TELEGRAM_WEBHOOK_SECRET>`)
+Receives chat commands, `/start` signals, and image binaries.
 
-Handles incoming updates (messages, commands) from Telegram.
-
-- **Method:** `POST`
-- **Endpoint:** `/telegram/<TELEGRAM_WEBHOOK_SECRET>`
-
-## Message Formatting
-
-The worker typically defaults to sending messages with `parse_mode` set to `HTML`. You can include HTML tags like `<b>`, `<i>`, `<code>`, `<pre>`, `<a>` in the `message` field. `MarkdownV2` can also be specified.
-
-## Security
-
-- Internal requests to `/process` _must_ include a valid `internalAuthKey`.
-- Incoming Telegram webhooks are authenticated using the secret path segment (`TELEGRAM_WEBHOOK_SECRET`).
-- The Telegram Bot Token and other secrets are stored securely using Cloudflare® Workers Secrets.
+- **Endpoint**: `/telegram/<TELEGRAM_WEBHOOK_SECRET>`
+- **Method**: `POST`
+- **JSON Payload**: Standard Telegram update JSON schema.
+- **Access Control**: The worker extracts the incoming `message.chat.id`. If it does not match your authorized `TELEGRAM_CHAT_ID_DEFAULT` secret, the payload is silently dropped with a `200 OK` return to Telegram to prevent malicious commands.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## 🧠 4. AI-Powered Chatbot & RAG Mechanics
+
+The bot does not just return static responses. When you send a natural language question (e.g., _"What is my average entry price on SOL?"_):
+
+1. **Embedding Generation**: The worker calls `env.AI` to generate high-dimensional text embeddings for your prompt using the `@cf/baai/bge-base-en-v1.5` model.
+2. **Vector Query**: Passes the vector to `env.VECTORIZE_INDEX` to retrieve semantically related transaction rows and market summaries from past trades.
+3. **Context Construction**: Formats the matched history into a rich LLM context window.
+4. **LLM Inference**: Invokes LLaMA-3 instruct via `env.AI` using your multi-provider API keys to generate a highly informed financial summary.
+
+---
+
+> **Tip:** Secure your bot webhook instantly after deployment: `hoox deploy telegram-webhook`. The CLI automatically queries your secrets, makes the HTTP setup call to Telegram's servers, and validates the TLS tunnel!
+
+### 🔗 Next Steps
+
+- **[hoox Gateway Profile](hoox.md)** — Review how incoming commands route to the gateway.
+- **[Setting Up Telegram Bot Alerts](../../tutorials/telegram-bot.md)** — Step-by-step tutorial for BotFather configuration.

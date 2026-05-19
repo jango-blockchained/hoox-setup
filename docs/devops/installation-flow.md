@@ -1,297 +1,162 @@
 ---
-title: "Cloudflare® Workers Installation Flow"
-description: "**Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations."
+title: "Cloudflare® Workers Setup Flow"
+description: "Detailed system onboarding, toolchain validation steps, wrangler.jsonc schemas, and Secret Store binding architectures."
 ---
-# Cloudflare® Workers Installation Flow
 
-This document outlines the installation and setup process for the Cloudflare® Workers in this project.
+# 🚀 Cloudflare® Workers Setup Flow
 
-## Overview
+This document details the step-by-step installation, bootstrapping, and validation workflows executed by the Hoox CLI during project initialization.
 
-This project uses a series of scripts to manage and deploy multiple Cloudflare® Workers. The installation process is handled by a wizard that guides you through the necessary steps to configure and deploy all the workers.
+> **Developer Note:** The Hoox CLI enforces strict type validation for all configuration files via the `Config` and `WorkerConfig` TypeScript interfaces defined in `packages/cli/src/core/types.ts`. Avoid using `as any` or type bypasses when extending wrangler parameters to prevent build-time CLI crashes.
 
-## Prerequisites
+---
 
-Before starting the installation, ensure you have:
+## 🏗️ Interactive Setup Wizard (`hoox init`)
 
-- [Bun](https://bun.sh/) installed
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) installed (`bun install -g wrangler`)
-- A Cloudflare® account with:
-  - Account ID
-  - API Token with appropriate permissions
-  - Secret Store set up (See the [Secrets Management](#secrets-management) section)
-
-## Installation Steps
-
-The installation wizard guides you through 7 steps:
-
-1. **Check Dependencies**: Verifies that bun and wrangler are installed.
-2. **Configure Global Settings**: Sets up global configuration parameters:
-   - Cloudflare® API Token
-   - Cloudflare® Account ID
-   - Cloudflare® Secret Store ID
-   - Subdomain prefix for workers (e.g., "my-app" → worker-name.my-app.workers.dev)
-3. **Select Workers**: Choose which workers to enable from the available workers in the `workers/` directory.
-4. **Setup D1 Database**: If any worker requires a D1 database, it will be set up during this step.
-5. **Save Configuration**: Saves all your settings to `wrangler.jsonc`.
-6. **Configure Secrets**: Guides you through setting up secrets for your workers.
-7. **Initial Deployment**: Optionally deploys all enabled workers.
-
-## Running the Installation Wizard
-
-To start the installation process, run:
+To start the system bootstrap, run the init wizard from the monorepo root:
 
 ```bash
 hoox init
-# or with the full command
-hoox init
 ```
 
-The installation wizard will:
+The setup wizard guides you through 7 critical onboarding phases:
 
-1. Detect the `wrangler.jsonc` configuration format
-2. Guide you through the setup process step by step
-3. Save your progress in `.install-wizard-state.json`, so you can continue from where you left off if needed
-4. Save the final configuration to `wrangler.jsonc`
+### Phase 1: Toolchain Diagnostics
 
-### Configuration File
+Probes your machine to verify that essential developer tools are accessible:
 
-The system uses `wrangler.jsonc` as the central configuration file:
+- **Bun**: Used for monorepo package management, CLI binaries execution, and fast unit testing.
+- **Git**: Used to verify recursive cloning of worker submodules.
+- **Wrangler**: Cloudflare's CLI used to login, tail logs, and upload V8 isolates.
 
-- If `wrangler.jsonc` already exists, the wizard will use and update that file
-- If it doesn't exist, the wizard will create one from `wrangler.jsonc.example`
-- The format choice is stored in the wizard state file for consistency during the setup process
+---
 
-## Validating Your Setup
+### Phase 2: Global Configuration Mapping
 
-After installation, or any time you want to check if your configuration is valid, you can run:
+Configures your master workspace credentials stored in `.env.local` and `wrangler.jsonc`:
+
+- **Cloudflare API Token**: Generates and checks permissions.
+- **Cloudflare Account ID**: Uniquely identifies your hosting space.
+- **Subdomain Prefix**: Defines the worker routing domain (e.g. `hoox` routes to `https://hoox.alpha-trading.workers.dev`).
+
+---
+
+### Phase 3: Microservice Profile Selection
+
+Lets you selectively enable or disable specific workers from the `workers/` directory based on your trading intent (e.g., cross-margin futures execution vs. Web3 DeFi wallet swaps). Disabling unnecessary workers saves deployment bandwidth and keeps resource bindings clean.
+
+---
+
+### Phase 4: SQLite Database Provisioning
+
+Checks if enabled workers require persistent D1 storage. If yes, it creates the database and initializes database schemas:
 
 ```bash
-hoox check-setup
-# or with the full command
-hoox check-setup
+# Done automatically by the wizard
+wrangler d1 create trade-data-db
 ```
 
-This command verifies:
+---
 
-- All required configuration files exist
-- Configuration files are properly formatted
-- Configuration structure matches between actual and example files
-- All enabled workers have the necessary directory structure and configuration
-- Secret Store bindings are properly configured for workers that need them
+### Phase 5: Manifest Compilation
 
-The validation tool provides a detailed report with color-coded results to help you identify and fix any issues.
+Consolidates all chosen parameters and writes your central `wrangler.jsonc` file, mapping out variables and bindings for every worker.
 
-## Configuration Files
+---
 
-> **Note for Agents/Developers:** The system enforces strict typing for all configuration files via the `Config` and `WorkerConfig` interfaces in `packages/cli/src/types.ts`. Avoid using `as any` when parsing or updating configurations.
+### Phase 6: Workers Secrets Injection
 
-### wrangler.jsonc / wrangler.jsonc.example
+Secures sensitive credentials (exchange API keys, Telegram tokens, AI API keys) by encrypting and uploading them to Cloudflare as encrypted Workers Secrets.
 
-The project uses JSONC (JSON with Comments) as its configuration format:
+---
+
+### Phase 7: Initial Rollout
+
+Compiles, lint-checks, type-checks, and deploys all enabled workers to Cloudflare's edge in the correct mathematical dependency sequence.
+
+---
+
+## 🔎 Configuration Files Spec
+
+The Hoox platform uses a dual configuration file architecture to track workspace states:
+
+### A. wrangler.jsonc (Central Settings)
+
+This file represents the declarative single source of truth for your monorepo's active workers:
 
 ```jsonc
 {
   "global": {
-    /* Cloudflare® API Token - get this from your Cloudflare® dashboard */
-    "cloudflare_api_token": "your_api_token",
-    "cloudflare_account_id": "your_account_id",
-    "cloudflare_secret_store_id": "your_secret_store_id",
-    "subdomain_prefix": "your-prefix",
+    "cloudflare_account_id": "debc6545e63bea36be059cbc82d80ec8",
+    "subdomain_prefix": "cryptolinx",
   },
   "workers": {
     "d1-worker": {
       "enabled": true,
       "path": "workers/d1-worker",
-      "vars": {
-        "database_name": "my-database",
-      },
-      "secrets": [],
+      "vars": { "database_name": "trade-data-db" },
+    },
+    "trade-worker": {
+      "enabled": true,
+      "path": "workers/trade-worker",
+      "secrets": ["BYBIT_API_KEY", "BYBIT_API_SECRET", "TELEGRAM_BOT_TOKEN"],
     },
   },
 }
 ```
 
-### .install-wizard-state.json
+---
 
-This is a temporary file created during the installation process to track progress. It is deleted upon successful completion of the wizard.
+### B. .install-wizard-state.json (Onboarding State)
 
-## Secrets Management
+During the interactive setup, the CLI caches your current step and intermediate inputs inside `.install-wizard-state.json` at your project root.
 
-This project uses Cloudflare®'s Secret Store for managing sensitive information. The Secret Store is a centralized location for storing secrets that can be safely accessed by your workers.
+- **State Recovery**: If your terminal session is disconnected or wrangler login prompts timeout, you can run `hoox init` again. The CLI will detect the state file and seamlessly resume your onboarding from the last incomplete step.
+- **Auto-Cleanup**: Upon final completion of Phase 7, the state file is automatically purged to keep your root directory clean.
 
-### Setting Up Secret Store
+---
 
-1. Create a Secret Store using Wrangler:
+## 🔒 Secret Bindings Architecture
 
-   ```bash
-   npx wrangler secrets-store store create <your-store-name>
-   ```
+Hoox utilizes Cloudflare's hardware-secured **Secret Store** to bind environment credentials to V8 isolates without exposing them in git history.
 
-2. List your stores to find the Secret Store ID:
+### Local Mocking (`.dev.vars`)
 
-   ```bash
-   npx wrangler secrets-store store list
-   ```
+During local development, wrangler dev looks for a local, gitignored file called `.dev.vars` inside each worker's directory to simulate secrets:
 
-3. Add your Secret Store ID to `wrangler.jsonc` under the `cloudflare_secret_store_id` field.
-
-### Adding Secrets
-
-For each worker that requires secrets:
-
-1. Define the secret names in the worker's section in `wrangler.jsonc` under the `secrets` array.
-2. Add the secret to your Secret Store:
-   ```bash
-   npx wrangler secrets-store secret put <secret-name> --store-id <store-id>
-   ```
-
-### Secret Bindings
-
-The setup process automatically configures Secret Store bindings in each worker's configuration file.
-
-For wrangler.toml files, bindings follow this convention:
-
-```toml
-[secrets_store_secrets]
-[[secrets_store_secrets]]
-binding = "SECRET_NAME_BINDING"
-store_id = "your_secret_store_id"
-secret_name = "your_secret_name"
+```bash
+# workers/trade-worker/.dev.vars
+BYBIT_API_KEY=mock_bybit_development_key
+BYBIT_API_SECRET=mock_bybit_development_secret
 ```
 
-For wrangler.jsonc files, bindings follow this convention:
+---
+
+### Production Secret Bindings
+
+When deploying to production, wrangler binds these variables using direct encrypted environments in your worker's wrangler configuration:
 
 ```json
 {
   "secrets_store": {
     "bindings": [
       {
-        "binding": "SECRET_NAME_BINDING",
-        "store_id": "your_secret_store_id",
-        "secret_name": "your_secret_name"
+        "binding": "BYBIT_API_KEY_BINDING",
+        "store_id": "48433bc559a943f09d9d6c622e188fd5",
+        "secret_name": "BYBIT_API_KEY"
       }
     ]
   }
 }
 ```
 
-## Worker Configuration
-
-Each worker is configured with:
-
-### Configuration Files
-
-The installation script supports both configuration formats:
-
-- **wrangler.jsonc**: The newer JSON-based configuration format with comments (preferred)
-- **wrangler.toml**: The older TOML-based configuration format
-
-The script will automatically detect which format is used for each worker and update it accordingly. If both files exist, wrangler.jsonc will be prioritized.
-
-### Bindings
-
-- **Secret Store Bindings**: Automatically configured based on the `secrets` array in `wrangler.jsonc`
-- **D1 Bindings**: Set up for workers that need database access
-- **Other Bindings**: Must be manually configured in each worker's wrangler configuration file
-
-### Environment Variables
-
-Environment variables can be set in `wrangler.jsonc` under each worker's `vars` object:
-
-```jsonc
-{
-  "workers": {
-    "d1-worker": {
-      "vars": { "database_name": "my-database", "api_version": "v1" },
-    },
-  },
-}
-```
-
-These are added to the worker's configuration file during setup.
-
-## Managing Workers
-
-After installation, you can use the following commands to manage your workers:
-
-- **Setup (without deploying)**:
-
-  ```bash
-  hoox workers setup
-  # or with the full command
-  hoox workers setup
-  ```
-
-- **Deploy**:
-
-  ```bash
-  hoox workers deploy
-  # or with the full command
-  hoox workers deploy
-  ```
-
-- **Run Dev Server**:
-
-  ```bash
-  hoox workers dev <worker-name>
-  # or with the full command
-  hoox workers dev <worker-name>
-  ```
-
-- **Check Status**:
-
-  ```bash
-  hoox workers status
-  # or with the full command
-  hoox workers status
-  ```
-
-- **Run Tests**:
-  ```bash
-  bun run tests
-  # or with the full command
-  hoox workers test [worker-name]
-  ```
-
-## Clone Worker Repositories
-
-This project supports two ways of initializing your worker directories:
-
-1. **Clone the main repository with all worker repositories** (using Git submodules)
-2. **Clone only the main repository and then selectively clone worker repositories**
-
-If you've cloned only the main repository without workers, you can use the worker clone command:
-
-```bash
-hoox workers clone
-# or with the full command
-hoox workers clone
-```
-
-This command will:
-
-1. Check if the workers directory exists and create it if needed
-2. Provide a list of available worker repositories to clone
-3. Allow you to select specific workers or clone all of them
-4. Clone the selected workers as Git submodules by default
-
-Options:
-
-- Use `--direct` to clone repositories directly instead of as submodules:
-  ```bash
-  hoox workers clone --direct
-  ```
-
-**Note:** When you run `hoox init`, the wizard will automatically detect if you have no worker directories and prompt you to clone them.
-
-## Troubleshooting
-
-- **Wizard Interrupted**: The wizard saves progress in `.install-wizard-state.json`. Simply run `hoox init` again to continue.
-- **Secret Binding Issues**: Verify secrets exist in your Secret Store with `wrangler secrets-store secret list --store-id <your-store-id>`
-- **Check Worker Status**: Use `hoox workers status` to see if any workers are misconfigured
-- **Deployment Failures**: Check the Cloudflare® dashboard for errors or run `wrangler tail <worker-name>` to view logs
+This guarantees that secrets are never logged, never cached in plain text on disk, and are only accessible inside your worker's sandboxed execution isolate memory.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+> **Tip:** Made a configuration mistake or changed your subdomain? You can re-run `hoox check-setup` at any time to execute high-integrity type validation and ensure all bindings and configurations match production examples perfectly!
+
+### 🔗 Next Steps
+
+- **[DevOps Setup & Operations Manual](setup_and_operations.md)** — Dive into complete operations, variable matrices, and troubleshooting.
+- **[Terminal UI Cockpit](tui.md)** — Run, hot-reload, and monitor your local workers via TUI.

@@ -1,141 +1,131 @@
 ---
-title: "Cloudflare® Workers Bindings & Environment Variables"
+title: "Infrastructure Bindings Index"
+description: "Comprehensive registry of all Cloudflare Workers Service Bindings, KV caches, SQLite databases, Durable Objects, and Queue pipelines."
 ---
 
-# Cloudflare® Workers Bindings & Environment Variables
+# 🧬 Infrastructure Bindings Index
 
-This document provides a comprehensive reference for all bindings, environment variables, and secrets used in the Cloudflare® Workers project.
-
-## Table of Contents
-
-- [Secrets & Environment Variables](#secrets--environment-variables)
-- [Service Bindings](#service-bindings)
-- [KV Namespace Bindings](#kv-namespace-bindings)
-- [Queue Bindings](#queue-bindings)
-- [Durable Object Bindings](#durable-object-bindings)
-- [R2 Bucket Bindings](#r2-bucket-bindings)
-- [D1 Database Bindings](#d1-database-bindings)
-- [AI Bindings](#ai-bindings)
-- [Vectorize Bindings](#vectorize-bindings)
-- [Browser Bindings](#browser-bindings)
-
-## Secrets & Environment Variables
-
-| Variable                  | Type   | Workers                             | Description                                                |
-| ------------------------- | ------ | ----------------------------------- | ---------------------------------------------------------- |
-| `INTERNAL_KEY_BINDING`    | Secret | telegram-worker, hoox, trade-worker | Internal auth key for worker-to-worker communication       |
-| `TG_BOT_TOKEN_BINDING`    | Secret | telegram-worker                     | Telegram Bot API token                                     |
-| `TG_CHAT_ID_BINDING`      | Secret | telegram-worker                     | Telegram chat ID for notifications                         |
-| `TELEGRAM_SECRET_TOKEN`   | Secret | telegram-worker                     | Webhook verification token for Telegram                    |
-| `WEBHOOK_API_KEY_BINDING` | Secret | hoox                                | API key for webhook endpoints                              |
-| `CF_API_TOKEN_BINDING`    | Secret | report-worker                       | CF API token with Browser Rendering + R2 write permissions |
-| `MEXC_KEY_BINDING`        | Secret | trade-worker                        | MEXC exchange API key                                      |
-| `MEXC_SECRET_BINDING`     | Secret | trade-worker                        | MEXC exchange API secret                                   |
-| `BINANCE_KEY_BINDING`     | Secret | trade-worker                        | Binance exchange API key                                   |
-| `BINANCE_SECRET_BINDING`  | Secret | trade-worker                        | Binance exchange API secret                                |
-| `BYBIT_KEY_BINDING`       | Secret | trade-worker                        | Bybit exchange API key                                     |
-| `BYBIT_SECRET_BINDING`    | Secret | trade-worker                        | Bybit exchange API secret                                  |
-
-## Service Bindings
-
-| Binding            | Worker                                  | Connected Service | Description           |
-| ------------------ | --------------------------------------- | ----------------- | --------------------- |
-| `TRADE_SERVICE`    | hoox, agent, email                      | trade-worker      | Trading functionality |
-| `TELEGRAM_SERVICE` | hoox, trade, agent, web3-wallet, report | telegram-worker   | Notifications         |
-| `D1_SERVICE`       | trade, agent, report, dashboard         | d1-worker         | Database operations   |
-| `AGENT_SERVICE`    | dashboard                               | agent-worker      | AI risk management    |
-
-## KV Namespace Bindings
-
-| Binding       | Worker                                             | Description                           |
-| ------------- | -------------------------------------------------- | ------------------------------------- |
-| `CONFIG_KV`   | hoox, trade, agent, telegram, d1, dashboard, email | Routing, IP lists, rate limiter state |
-| `SESSIONS_KV` | hoox                                               | Webhook session storage               |
-
-## Queue Bindings
-
-| Binding       | Worker       | Queue Name      | Type     | Description                          |
-| ------------- | ------------ | --------------- | -------- | ------------------------------------ |
-| `TRADE_QUEUE` | hoox         | trade-execution | Producer | Sends trades for async processing    |
-| `TRADE_QUEUE` | trade-worker | trade-execution | Consumer | Receives and processes queued trades |
-
-## Durable Object Bindings
-
-| Binding             | Worker | Class Name       | Description                                   |
-| ------------------- | ------ | ---------------- | --------------------------------------------- |
-| `IDEMPOTENCY_STORE` | hoox   | IdempotencyStore | Real DO with SQLite, TTL dedup, alarm cleanup |
-
-## R2 Bucket Bindings
-
-| Binding              | Worker          | Bucket Name      | Description           |
-| -------------------- | --------------- | ---------------- | --------------------- |
-| `REPORTS_BUCKET`     | trade-worker    | trade-reports    | Trade reports         |
-| `REPORTS_BUCKET`     | report-worker   | trade-reports    | PDF portfolio reports |
-| `SYSTEM_LOGS_BUCKET` | trade-worker    | hoox-system-logs | Verbose exchange logs |
-| `UPLOADS_BUCKET`     | telegram-worker | user-uploads     | User uploaded files   |
-
-## D1 Database Bindings
-
-| Binding | Worker       | Database Name   | Description       |
-| ------- | ------------ | --------------- | ----------------- |
-| `DB`    | d1-worker    | hoox-trading-db | Main database     |
-| `DB`    | trade-worker | trade-data-db   | Trade operations  |
-| `DB`    | agent-worker | hoox-trading-db | Portfolio queries |
-
-## AI Bindings
-
-| Binding | Worker                              | Description                    |
-| ------- | ----------------------------------- | ------------------------------ |
-| `AI`    | hoox, agent, telegram, trade-worker | Workers AI (LLaMA 3 inference) |
-
-## Vectorize Bindings
-
-| Binding           | Worker                       | Index Name   | Description                          |
-| ----------------- | ---------------------------- | ------------ | ------------------------------------ |
-| `VECTORIZE_INDEX` | hoox, telegram, trade-worker | my-rag-index | Vector database for RAG applications |
-
-## Browser Rendering
-
-Report-worker uses the Cloudflare Browser Rendering **REST API** (no binding needed):
-
-```
-POST https://api.cloudflare.com/client/v4/accounts/{id}/browser-rendering/pdf
-Authorization: Bearer {CF_API_TOKEN}
-Body: { html: "...", options: { format: "A4" } }
-```
-
-## Local Development Ports
-
-For `wrangler dev` or Docker Compose:
-
-| Worker             | Port |
-| ------------------ | ---- |
-| hoox (Gateway)     | 8787 |
-| trade-worker       | 8789 |
-| telegram-worker    | 8791 |
-| d1-worker          | 8792 |
-| web3-wallet-worker | 8793 |
-| dashboard          | 8794 |
-| agent-worker       | 8795 |
-| email-worker       | 8796 |
-| report-worker      | 8797 |
-
-## Configuration
-
-Each worker contains a `.dev.vars` file for local development which should be populated with the appropriate values. These files should not be committed to the repository.
-
-Example setup for `.dev.vars` files can be found in the corresponding `.dev.vars.example` files in each worker directory.
-
-## Setting Up Secrets
-
-For production deployment, secrets should be set using the Wrangler CLI:
-
-```bash
-wrangler secret put SECRET_NAME
-```
-
-This will securely store the secret and make it available to the worker at runtime.
+In Cloudflare’s serverless architecture, **bindings** represent the declarative bridges linking your isolate compute logic to other internal microservices and storage platforms. This document serves as the absolute, production-grade reference registry for all resource bindings configured in the Hoox monorepo.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## 1. Secrets & Environment Variables Matrix
+
+These parameters represent encrypted variables injected directly into V8 execution isolates at runtime.
+
+| Variable Name                 |  Type  | Bound Workers                                                          | Operational Impact                                                                                        |
+| :---------------------------- | :----: | :--------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `INTERNAL_KEY_BINDING`        | Secret | `hoox`, `trade-worker`, `d1-worker`, `telegram-worker`, `email-worker` | Cryptographic auth key used by the `requireInternalAuth` middleware to validate service-to-service calls. |
+| `TG_BOT_TOKEN_BINDING`        | Secret | `telegram-worker`                                                      | Secret bot token issued by `@BotFather` to authenticate Telegram API commands and alerts.                 |
+| `TELEGRAM_SECRET_TOKEN`       | Secret | `telegram-worker`                                                      | Webhook verification token to authorize Telegram push events.                                             |
+| `WEBHOOK_API_KEY`             | Secret | `hoox`                                                                 | General passkey validated during incoming webhook signal requests.                                        |
+| `BYBIT_API_KEY` / `_SECRET`   | Secret | `trade-worker`                                                         | Credentials used to execute cryptographically signed order routes to Bybit's APIs.                        |
+| `BINANCE_API_KEY` / `_SECRET` | Secret | `trade-worker`                                                         | Credentials used to execute trade routes to Binance's APIs.                                               |
+| `MEXC_API_KEY` / `_SECRET`    | Secret | `trade-worker`                                                         | Credentials used to execute trade routes to MEXC's APIs.                                                  |
+| `CF_API_TOKEN`                | Secret | `report-worker`                                                        | Access token used to invoke the Cloudflare Puppeteer Browser Rendering APIs.                              |
+
+---
+
+## 2. Service Bindings (Compute Connectors)
+
+Service Bindings link workers' V8 runtimes together locally in memory, with microsecond latency and zero external internet hops.
+
+| Binding Name       | Ingesting Worker                                             | Target Service    | Purpose                                                    |
+| :----------------- | :----------------------------------------------------------- | :---------------- | :--------------------------------------------------------- |
+| `TRADE_SERVICE`    | `hoox`, `agent-worker`, `email-worker`                       | `trade-worker`    | Handles leverage calculation, size scaling, and execution. |
+| `TELEGRAM_SERVICE` | `hoox`, `trade-worker`, `agent-worker`, `report-worker`      | `telegram-worker` | Dispatches real-time alerts and parses slash commands.     |
+| `D1_SERVICE`       | `trade-worker`, `agent-worker`, `report-worker`, `dashboard` | `d1-worker`       | Serves as the high-integrity proxy SQL data manager.       |
+| `AGENT_SERVICE`    | `dashboard`                                                  | `agent-worker`    | Triggers risk audits, chat streams, and telemetry updates. |
+
+---
+
+## 3. KV Namespace Caches
+
+Key-Value caches store parameters that require sub-millisecond read access.
+
+| Binding Name  | Bound Workers               | Purpose                                                                       |
+| :------------ | :-------------------------- | :---------------------------------------------------------------------------- |
+| `CONFIG_KV`   | **All Workers** + Dashboard | Primary cache for the 16-key runtime manifest, rate-limiter, and Kill Switch. |
+| `SESSIONS_KV` | `hoox` Gateway              | Stores active webhook session credentials and token cookie states.            |
+
+---
+
+## 4. Asynchronous Queues
+
+Queues guarantee message delivery during times of heavy exchange network congestion or API rate limits.
+
+| Binding Name  | Ingesting Worker |    Queue Name     |     Type     | Operational Action                                          |
+| :------------ | :--------------- | :---------------: | :----------: | :---------------------------------------------------------- |
+| `TRADE_QUEUE` | `hoox` Gateway   | `trade-execution` | **Producer** | Serializes and enqueues signal payloads during failover.    |
+| `TRADE_QUEUE` | `trade-worker`   | `trade-execution` | **Consumer** | Pulls enqueued signals and retries executions with backoff. |
+
+---
+
+## 5. SQLite-Backed Durable Objects
+
+Durable Objects enforce exactly-once execution, preventing catastrophic double-trading.
+
+| Binding Name        | Bound Worker   | Target Class Name  | Purpose                                                                   |
+| :------------------ | :------------- | :----------------- | :------------------------------------------------------------------------ |
+| `IDEMPOTENCY_STORE` | `hoox` Gateway | `IdempotencyStore` | Mutex locking engine with local SQLite and auto-alarm garbage collection. |
+
+---
+
+## 6. R2 Object Storage Buckets
+
+R2 Buckets store heavy files with zero bandwidth egress retrieval fees.
+
+| Binding Name         | Bound Workers                   | Bucket Name        | Target Asset Payload                            |
+| :------------------- | :------------------------------ | :----------------- | :---------------------------------------------- |
+| `REPORTS_BUCKET`     | `trade-worker`, `report-worker` | `trade-reports`    | Compiled PDF daily/weekly portfolio reports.    |
+| `SYSTEM_LOGS_BUCKET` | `trade-worker`                  | `hoox-system-logs` | Verbose exchange API request-response logs.     |
+| `UPLOADS_BUCKET`     | `telegram-worker`               | `user-uploads`     | User chart screenshots and conversation images. |
+
+---
+
+## 7. D1 SQLite Databases
+
+| Binding Name | Bound Workers | Database Instance Name | Purpose                                       |
+| :----------- | :------------ | :--------------------- | :-------------------------------------------- |
+| `DB`         | `d1-worker`   | `trade-data-db`        | Primary transactional trade database storage. |
+
+---
+
+## 8. Workers AI & Vectorize Indexes
+
+| Binding Name      | Bound Workers                                             | Target Asset Name | Operational Purpose                               |
+| :---------------- | :-------------------------------------------------------- | :---------------- | :------------------------------------------------ |
+| `AI`              | `hoox`, `trade-worker`, `agent-worker`, `telegram-worker` | Edge LLM Models   | Runs LLaMA-3 inference, risk analysis, and chat.  |
+| `VECTORIZE_INDEX` | `telegram-worker`                                         | `rag-index`       | Custom semantic search vector DB for RAG queries. |
+
+---
+
+## 🌐 9. Puppeteer Browser Rendering
+
+The `report-worker` invokes Cloudflare’s Browser Rendering Chrome isolates using a secure **REST API** (no binding required):
+
+- **Route**: `POST https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering/pdf`
+- **Headers**:
+  ```http
+  Authorization: Bearer <CF_API_TOKEN_BINDING>
+  Content-Type: application/json
+  ```
+- **JSON Payload**:
+  ```json
+  {
+    "html": "<html>...</html>",
+    "options": {
+      "format": "A4",
+      "printBackground": true
+    }
+  }
+  ```
+
+---
+
+> **Tip:** Adding new bindings to your workers? Always update your `wrangler.jsonc` manifest at the workspace root, and then execute `hoox deploy update-internal-urls` to sync bindings and URLs globally!
+
+### 🔗 Next Steps
+
+- **[Storage & SQLite DDL](storage.md)** — Dive into Drizzle schemas, R2 bucket configurations, and database rules.
+- **[Production Deployments](../deployment/production.md)** — Learn how Wrangler compiles and maps these bindings to the live edge.

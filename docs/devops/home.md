@@ -1,63 +1,95 @@
 ---
 title: "⚙️ DevOps Manual"
-description: "Infrastructure, deployment, and operations reference for Hoox operators"
+description: "Infrastructure provisioning, deployment sequences, secret management, and edge operations reference for Hoox administrators."
 ---
 
 # ⚙️ DevOps Manual
 
-> Infrastructure provisioning, deployment sequences, secret management, and operations for the Hoox edge trading platform.
+> **Welcome to the Hoox DevOps & System Operations Manual.** This manual is the primary, production-grade reference for system administrators, security engineers, and platform operators responsible for provisioning edge databases, orchestrating secure V8 service bindings, deploying multi-exchange execution workers, auditing secrets, and monitoring system health.
 
-**For end-user documentation:** See [User Guide](../home.md)
+```mermaid
+graph TD
+    subgraph "Public Entryways"
+        GW[hoox Gateway Isolate]
+        DASH[dashboard Next.js OpenNext]
+    end
+    subgraph "Private V8 Compute Layer"
+        TW[trade-worker Execution Engine]
+        D1W[d1-worker SQL Hub]
+        TGW[telegram-worker Alerts]
+        AW[agent-worker AI Risk Monitor]
+    end
+    subgraph "Edge Data Storage Layer"
+        D1[(D1 SQLite Database)]
+        KV[(CONFIG_KV Namespace)]
+        R2[(R2 Log offload Bucket)]
+    end
+
+    GW -->|Service Binding| TW
+    GW -->|Service Binding| TGW
+    TW -->|Service Binding| D1W
+    AW -->|Service Binding| TW
+    D1W -.->|SQLite read/write| D1
+    TW -.->|Config Read| KV
+    TW -.->|Log Offload| R2
+    DASH -->|Service Binding| GW
+```
 
 ---
 
-## 📋 Operations Guide
+## 🗺️ Operator's System Directory
 
-- [Complete Setup & Operations](setup_and_operations.md) — Full system setup, environment matrix, deployment sequence, repair procedures, troubleshooting
-- [TUI Operations](tui.md) — Terminal UI for monitoring, service management, and configuration
+The DevOps manual is structured into five core architectural operational layers:
 
-## 🏗️ Architecture
+### 1. 📋 Operations & Setup Runbooks
 
-- [System Overview](architecture/overview.md)
-- [Worker Communication](architecture/communication.md)
-- [Data Flow](architecture/data-flow.md)
-- [Bindings & Environment](architecture/bindings.md)
+Complete guides for bootstrapping environments, managing interactive terminal dashboards, and diagnosing local runner configurations:
 
-## ⚙️ Workers
+- **[Operations & Troubleshooting](setup_and_operations.md)** — Core operations manual, 31-key environment variable matrices, and diagnostic codes.
+- **[Core Installation Flow](installation-flow.md)** — Guided, step-by-step local machine and edge provision setup.
+- **[Terminal UI Cockpit Development](tui.md)** — Code architectures, stores, and operations of the OpenTUI monitor.
 
-- [hoox Gateway](workers/hoox.md)
-- [trade-worker](workers/trade-worker.md)
-- [agent-worker](workers/agent-worker.md)
-- [telegram-worker](workers/telegram-worker.md)
-- [d1-worker](workers/d1-worker.md)
-- [web3-wallet-worker](workers/web3-wallet-worker.md)
-- [email-worker](workers/email-worker.md)
-- [analytics-worker](workers/analytics-worker.md)
-- [report-worker](workers/report-worker.md)
-- [dashboard](workers/dashboard.md)
+### 2. 🏗️ Architectural Specifications
 
-## 🚢 Deployment
+Deep dives into latency structures, isolation parameters, and bindings linkages:
 
-- [Production Setup](deployment/production.md)
-- [CI/CD Pipeline](deployment/cicd.md)
-- [Monitoring](deployment/monitoring.md)
+- **[System Topology Overview](architecture/overview.md)** — Architectural layout, regional edge clustering, and scaling limits.
+- **[Isolate Communication](architecture/communication.md)** — Deep dive into Service Bindings, zero-TCP routing, and V8 engines.
+- **[Data Flow Architecture](architecture/data-flow.md)** — Flowcharts for trade execution, backup queues, and cron risk monitoring.
+- **[Bindings Matrix](architecture/bindings.md)** — Exact mapping of D1, KV, Queues, R2, and Service Bindings.
+- **[Storage Engineering](storages.md)** — Persistent storage boundaries, SQLite DDL parameters, and R2 buckets.
+- **[Internal Endpoints Map](endpoints.md)** — Sub-millisecond binding paths and routing maps.
 
-## 💻 Development
+### 3. ⚙️ Edge Worker Microservices (10 Profiles)
 
-- [Local Development](development/local-dev.md)
-- [Testing](development/testing.md)
-- [Debugging](development/debugging.md)
+Individual developer profiles for each running isolate, cataloging bindings, custom middlewares, and API formats:
 
-## 🔌 API Reference
+- **[hoox Gateway](workers/hoox.md)** · **[trade-worker](workers/trade-worker.md)** · **[agent-worker](workers/agent-worker.md)** · **[telegram-worker](workers/telegram-worker.md)**
+- **[d1-worker](workers/d1-worker.md)** · **[web3-wallet-worker](workers/web3-wallet-worker.md)** · **[email-worker](workers/email-worker.md)** · **[analytics-worker](workers/analytics-worker.md)**
+- **[report-worker](workers/report-worker.md)** · **[dashboard (Next.js OpenNext)](workers/dashboard.md)**
 
-- [Endpoints](api/endpoints.md)
-- [Payloads](api/payloads.md)
-- [Responses](api/responses.md)
+### 4. 🚢 Deployment, WAF, & CI/CD Pipelines
 
-## 📚 Reference
+Rollout manuals, Access gates, and GitHub Actions telemetry:
 
-- [CLI Features](cli_features.md)
-- [Bindings Reference](bindings.md)
-- [Storage Architecture](storages.md)
-- [Endpoints Reference](endpoints.md)
-- [Zero Trust Setup](zero_trust_setup.md)
+- **[Production Deployment](deployment/production.md)** — Wrangler commands, Account provisioning, and production variables.
+- **[CI/CD Workflow pipelines](deployment/cicd.md)** — GitHub Actions secrets, syntax tests, and automated edge uploads.
+- **[Monitoring & Telemetry](deployment/monitoring.md)** — Live wrangler logs streaming and custom Analytics Engine metrics.
+- **[Cloudflare Zero Trust Corridor](zero_trust_setup.md)** — Setting up Access client corridors, IP firewalls, and WAF rules.
+
+### 💻 5. Developer & API Reference
+
+TypeScript interfaces, compiler settings, Bun test specs, and HTTP schemas:
+
+- **[Wrangler Dev Setup](development/local-dev.md)** · **[Testing Standards](development/testing.md)** · **[Debugging Runbook](development/debugging.md)**
+- **[Exposed API Routes](api/endpoints.md)** · **[Request Payloads](api/payloads.md)** · **[Standard Responses](api/responses.md)**
+- **[CLI Commands Engine](cli_features.md)** — Command-line argument parsing, binary execution, and JSON flags.
+
+---
+
+> **Tip:** First time deploying a Hoox workspace to production? Start with the **[Production Deployment Manual](deployment/production.md)** to verify your Cloudflare Account permissions and execute sequencial deployments seamlessly.
+
+### 🔗 Quick Links
+
+- **[End-User Documentation Hub](../home.md)** — Standard setup, cURL webhooks, and TradingView Pine Scripts.
+- **[Hoox Git Submodules](https://github.com/jango-blockchained/hoox-setup)** — Central monorepo codebase.

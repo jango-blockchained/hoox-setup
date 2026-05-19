@@ -1,232 +1,162 @@
 ---
-title: "Trade Worker"
+title: "trade-worker Isolate Profile"
+description: "Comprehensive engineering specification for the Hoox Trade Execution Worker, covering multi-exchange client architectures, HMAC signing, and D1 database ledgers."
 ---
 
-# Trade Worker
+# 📈 trade-worker Isolate Profile
 
-**Last Updated:** May 2026
+The **`trade-worker`** is the execution engine of the Hoox trading platform. Deployed as a private compute isolate behind the edge firewall, this worker is responsible for calculating order parameters, executing leverage scaling, performing cryptographic HMAC-SHA256 signature calculations, placing trades on Bybit, Binance, and MEXC, and offloading transactional metrics.
 
-A Cloudflare® Worker service for executing cryptocurrency trades, logging signals, and potentially leveraging AI/RAG for strategy analysis. This worker interacts directly with exchange APIs, D1, R2, and potentially AI services.
+---
 
-## Features
+## ⚡ 1. Declared Wrangler Configurations & Bindings
 
-- Multi-exchange support (e.g., Binance, MEXC, Bybit - depending on implemented clients).
-- Secure authentication for internal requests via shared key (`INTERNAL_KEY_BINDING`).
-- Direct D1 database integration for storing trade signals, history, etc. (`DB` binding).
-- Direct R2 integration for storing reports or logs (`REPORTS_BUCKET` binding).
-- Optional Workers AI / Vectorize integration for RAG or strategy analysis (`AI`, `VECTORIZE_INDEX` bindings).
-- Position management.
-- Error handling and logging.
-- **Queue Consumer**: Consumes trades from `trade-execution` queue.
-- **Retry Logic**: 5 attempts with exponential backoff (0s, 30s, 1m, 5m, 15m).
-- **Dead Letter Handling**: Failed trades logged to D1 after max retries.
+The `trade-worker` does not expose a public URL, communicating internally via V8 Service Bindings. Its `wrangler.jsonc` maps out its critical storage, queue, and database hooks:
 
-## Prerequisites
-
-- Node.js >= 16
-- Bun
-- Wrangler CLI
-- Cloudflare® Workers account
-- Cloudflare® D1 Database access
-- Cloudflare® R2 access
-- API keys for desired exchanges.
-
-## Setup
-
-1.  Install dependencies:
-    ```bash
-    bun install
-    ```
-2.  Set your Cloudflare® account ID in `wrangler.jsonc`.
-3.  Create necessary D1 database(s) and R2 bucket(s):
-    ```bash
-    # Example D1 database for trade data
-    npx wrangler d1 create trade-data-db
-    # Example R2 bucket for reports
-    npx wrangler r2 bucket create trade-reports
-    ```
-4.  Apply D1 schema(s):
-    ```bash
-    npx wrangler d1 execute trade-data-db --file=./schema.sql
-    ```
-5.  Configure Secrets (via Cloudflare® dashboard or `wrangler secret put`):
-    - `INTERNAL_KEY_BINDING`: The **shared** secret key for internal authentication.
-    - `MEXC_KEY_BINDING`, `MEXC_SECRET_BINDING`: If using MEXC.
-    - `BINANCE_KEY_BINDING`, `BINANCE_SECRET_BINDING`: If using Binance.
-    - `BYBIT_KEY_BINDING`, `BYBIT_SECRET_BINDING`: If using Bybit.
-6.  Update `wrangler.jsonc` with all necessary bindings (D1, R2, KV, Secrets, AI, Vectorize). Example:
-    ```jsonc
+```jsonc
+{
+  "name": "trade-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "placement": {
+    "mode": "smart",
+  },
+  "d1_databases": [
     {
-      "name": "trade-worker",
-      "main": "src/index.ts",
-      "compatibility_date": "2025-03-07",
-      "compatibility_flags": ["nodejs_compat"],
-      "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "trade-data-db",
-          "database_id": "<YOUR_D1_DB_ID>",
-        },
-      ],
-      "r2_buckets": [
-        { "binding": "REPORTS_BUCKET", "bucket_name": "trade-reports" },
-      ],
-      "kv_namespaces": [
-        { "binding": "CONFIG_KV", "id": "...", "preview_id": "..." },
-      ],
-      "queues": {
-        "consumers": [{ "queue": "trade-execution" }],
+      "binding": "DB",
+      "database_name": "trade-data-db",
+      "database_id": "c5917667a21745e390ff969f32b1847a",
+    },
+  ],
+  "r2_buckets": [
+    { "binding": "REPORTS_BUCKET", "bucket_name": "trade-reports" },
+    { "binding": "SYSTEM_LOGS_BUCKET", "bucket_name": "hoox-system-logs" },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CONFIG_KV",
+      "id": "c5917667a21745e390ff969f32b1847d",
+    },
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "trade-execution",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
       },
-      "secrets": [
-        "INTERNAL_KEY_BINDING",
-        "MEXC_KEY_BINDING",
-        "MEXC_SECRET_BINDING",
-        "BINANCE_KEY_BINDING",
-        "BINANCE_SECRET_BINDING",
-        "BYBIT_KEY_BINDING",
-        "BYBIT_SECRET_BINDING",
-      ],
-      "observability": {
-        "enabled": true,
-        "head_sampling_rate": 1,
-      },
-    }
-    ```
-7.  Update the corresponding `worker-configuration.d.ts` file.
-8.  For local development, create a `.dev.vars` file and define secrets/variables:
-    ```.dev.vars
-    # Mock secret bindings for local dev:
-    INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    MEXC_KEY_BINDING="your_mexc_key"
-    MEXC_SECRET_BINDING="your_mexc_secret"
-    ```
-
-## Development
-
-Run locally:
-
-```bash
-bun run dev --local
+    ],
+  },
+  "secrets": [
+    "INTERNAL_KEY_BINDING",
+    "BYBIT_API_KEY",
+    "BYBIT_API_SECRET",
+    "BINANCE_API_KEY",
+    "BINANCE_API_SECRET",
+    "MEXC_API_KEY",
+    "MEXC_SECRET_BINDING",
+  ],
+}
 ```
 
-Deploy:
+---
 
-```bash
-bun run deploy
+## 🔀 2. The Provider-Based `ExchangeRouter` Pattern
+
+To support multiple centralized exchanges with different API schemas while maintaining a clean code structure, `trade-worker` implements a **Provider Composition Pattern**:
+
+### A. Generic Exchange Provider Interface
+
+The client abstraction is defined inside the shared monorepo package `@jango-blockchained/hoox-shared/types`:
+
+```typescript
+export interface IExchangeProvider<TClient, TEnv> {
+  readonly name: string;
+  createClient(env: TEnv): TClient;
+  hasCredentials(env: TEnv): boolean;
+}
 ```
 
-## API Interface
+### B. Dynamic Runtime Routing
 
-This worker primarily exposes two types of endpoints:
+The `ExchangeRouter` evaluates the incoming symbol and parses settings in `CONFIG_KV` in sub-milliseconds:
 
-### 1. Internal Processing Endpoint (`/process`)
+1. **Default Path**: Routes trades to the default CEX declared in `exchanges:default_routing` (typically `bybit`).
+2. **Dynamic Symbol Redirects**: Parses overrides in KV (e.g. `exchanges:routing:SOLUSDT = binance`). If present, the router bypasses Bybit and instantiates the `BinanceProvider` instantly without redeploying code.
 
-Accepts requests from authenticated internal services (like `hoox`) to perform actions like placing trades.
+---
 
-- **Method:** `POST`
-- **Endpoint:** `/process`
-- **Content-Type:** `application/json`
-- **Expected Request Body:**
+## 🔌 3. Internal REST API Specification
 
+### A. Process Order Pipeline
+
+Invoked by the `hoox` gateway or the `TRADE_QUEUE` consumer batch runner.
+
+- **Endpoint**: `/process`
+- **Method**: `POST`
+- **Headers**: `X-Internal-Auth-Key: <INTERNAL_KEY_BINDING>`
+- **JSON Payload**:
   ```json
   {
-    "requestId": "<uuid_from_caller>",
-    "internalAuthKey": "YOUR_INTERNAL_SHARED_SECRET",
+    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "payload": {
-      "exchange": "binance",
+      "exchange": "bybit",
       "action": "LONG",
       "symbol": "BTCUSDT",
-      "quantity": 0.001,
-      "price": 65000,
-      "orderType": "MARKET",
-      "leverage": 20
+      "quantity": 0.005,
+      "leverage": 10
     }
   }
   ```
-
-- **Response Format:**
-
-  **Success:**
-
+- **Success Response (200 OK)**:
   ```json
   {
     "success": true,
-    "result": { ... },
+    "result": {
+      "orderId": "18049284739",
+      "status": "Filled",
+      "price": 68425.5
+    },
     "error": null
   }
   ```
 
-  **Error:**
+---
 
-  ```json
-  {
-    "success": false,
-    "result": null,
-    "error": "<Error message>"
-  }
-  ```
+## 🛡️ 4. Standardized Exception Handling
 
-### 2. Data API Endpoints (e.g., `/api/signals`)
-
-Provides direct access to data stored by the worker.
-
-- **Method:** `POST` (for creating signals), `GET` (for retrieving signals)
-- **Endpoint:** `/api/signals`
-
-## Exchange Clients
-
-The worker uses dedicated client implementations for each supported exchange (e.g., `binance-client.ts`, `mexc-client.ts`, `bybit-client.ts`). These handle exchange-specific API requirements.
-
-### Exchange Router
-
-The `ExchangeRouter` class routes trade signals to the appropriate exchange client. It uses a provider-based architecture:
-
-- **Generic Provider Interface** — `IExchangeProvider<TClient, TEnv>` is defined in `@jango-blockchained/hoox-shared` and is reusable across workers.
-- **Local Providers** — `BinanceProvider`, `MexcProvider`, `BybitProvider` implement the interface with trade-worker-specific client construction.
-- **Dynamic Routing** — Symbol-to-exchange mappings can be overridden via `CONFIG_KV` without code redeployment.
-- **Composition Pattern** — The trade-worker `ExchangeRouter` wraps the shared generic `ExchangeRouter` and extends it with KV-based dynamic routing.
-
-```typescript
-// Provider structure
-class BinanceProvider implements IExchangeProvider<IExchangeClient, Env> {
-  readonly name = "binance";
-  createClient(env: Env): IExchangeClient {
-    /* ... */
-  }
-  hasCredentials(env: Env): boolean {
-    /* ... */
-  }
-}
-```
-
-## Database Interaction
-
-The worker uses its `DB` binding to interact directly with the configured D1 database for storing and retrieving trade signals, history, configurations, etc.
-
-## Security
-
-- Internal requests to `/process` _must_ include a valid `internalAuthKey`.
-- Exchange API keys/secrets are stored securely using Cloudflare® Workers Secrets.
-- D1 interactions use parameterized queries to prevent SQL injection.
-
-## Error Handling
-
-The worker uses the standardized `Errors.*` factory from `@jango-blockchained/hoox-shared` for all error responses, ensuring consistent JSON error format across all workers:
+All execution rejects and validation failures are intercepted by the `trade-worker` error middleware and formatted using the shared `Errors` factory from `@jango-blockchained/hoox-shared/errors`:
 
 ```typescript
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
-// Standardized error responses
-Errors.badRequest("Invalid payload"); // 400
-Errors.unauthorized("Invalid key"); // 401
-Errors.forbidden("Access denied"); // 403
-Errors.notFound("Resource not found"); // 404
-Errors.internal("Processing failed"); // 500
-```
+// 1. Parameter Validation Failure
+if (quantity <= 0) {
+  return Errors.badRequest("Quantity parameter must be greater than zero.");
+}
 
-Error handling covers authentication failures, invalid parameters, exchange API errors, network issues, and database interaction failures.
+// 2. Exchange Signature Timeout
+if (timestampExpired) {
+  return Errors.unauthorized(
+    "Timestamp verification failed. Check system NTP sync."
+  );
+}
+
+// 3. API Execution Rejects
+try {
+  await exchange.placeOrder(order);
+} catch (err: any) {
+  return Errors.internal(`Exchange API Reject: ${err.message}`);
+}
+```
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+> **Tip:** If the exchange API rejects an order due to account rate-limiting, the queue consumer automatically returns a retry flag. Cloudflare Queues will back off and re-route the batch at intervals starting at 30 seconds, protecting your strategy from missed fills.
+
+### 🔗 Next Steps
+
+- **[hoox Gateway Profile](hoox.md)** — Review WAF rules and Durable Object idempotency locks.
+- **[D1 Database Operations](../guides/database-ops.md)** — Manage Drizzle schemas, migrations, and query operations.

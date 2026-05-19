@@ -1,214 +1,146 @@
 ---
-title: "🧪 Testing"
-description: "Validating functionality of Hoox workers"
+title: "Testing Framework & QA Standards"
+description: "Detailed QA operations guide, covering Bun test suites, Miniflare integration testing, E2E cli lifecycles, and live Cloudflare resource audits."
 ---
 
-# 🧪 Testing
+# 🧪 Testing Framework & QA Standards
 
-> Validating functionality of Hoox workers
+To protect live capital and ensure robust order routing, Hoox mandates a rigorous testing pipeline. With money on the line, we verify every contract calculation, rate-limiting gate, and database query.
 
-## Overview
+Our test suite is powered natively by **Bun's high-speed test runner**, comprising **106 test files** and **1,574 individual test assertions** split into four distinct diagnostic layers.
 
-All tests use **Bun**'s native test runner (`bun test`). There are **106 test files** with **1,574 individual test assertions** across 4 test types:
+---
 
-| Type            | Files | Assertions | Description                                                                     |
-| :-------------- | :---: | :--------: | :------------------------------------------------------------------------------ |
-| **Unit**        |  92   |   1,458    | Isolated function/component tests per package and worker                        |
-| **Integration** |   2   |     34     | Cross-component tests (TUI navigation, gateway middleware stack)                |
-| **E2E**         |   2   |     5      | Full-system smoke tests (TUI subprocess, CLI lifecycle)                         |
-| **Live**        |  10   |     77     | Cloudflare credential-dependent integration tests (D1, KV, R2, Queues, AI, API) |
+## 🎚️ The 4 QA Testing Layers
 
-## Running Tests
+```
+[ Unit Tests (1,458 Assertions) ]  ──► Mock V8 isolates, verify calculations & middlewares.
+                 │
+[ Integration Tests (34 Assertions) ] ──► Miniflare 3 local sandboxes (CORS, router stacks).
+                 │
+[ E2E Smoke Tests (5 Assertions) ]  ──► CLI lifecycle audits & TUI process spawn/exit traps.
+                 │
+[ Live Resource Tests (77 Assertions) ] ──► Real Cloudflare account D1, KV, Queue execution.
+```
 
-### All Tests (excluding live)
+---
+
+## ⚡ Running Tests: CLI Commands
+
+### A. Core Platform Verification (Excluding Live)
 
 ```bash
-# From repo root — runs all unit, integration, and e2e tests
+# 1. Run all unit, integration, and E2E smoke tests in parallel
 bun test
 
-# With coverage report
+# 2. Run the suite and output a detailed V8 coverage report
 bun test --coverage
-
-# Excluding TUI e2e smoke test (which requires TUI binary)
-bun test --path-ignore-patterns 'packages/tui/test/e2e/**'
 ```
 
-### Test by Category
+### B. Workspace-Specific Targeted Runs
+
+To optimize developer feedback loops, you can target specific workspaces or workers:
 
 ```bash
-# Integration tests
-bun run test:integration        # tests/integration/
+# Run CLI commands tests only (packages/cli/)
+bun run test:cli
 
-# E2E tests
-bun run test:e2e                # tests/e2e/ + tests/e2e.test.ts
+# Run Terminal UI tests only (packages/tui/)
+bun run test:tui
 
-# Live tests (requires Cloudflare credentials in tests/live/.env)
-bun run test:live               # tests/live/ --jobs 1
+# Run shared helper tests only (packages/shared/)
+bun run test:shared
+
+# Run all edge workers unit tests (workers/*)
+bun run test:workers
+
+# Run a single specific test file with hot-reload watch mode
+bun test workers/agent-worker/src/index.test.ts --watch
 ```
 
-### Test by Workspace
+### C. Advanced Integration & Live Runs
 
 ```bash
-# CLI
-bun run test:cli                # packages/cli/
+# Run Miniflare 3 gateway integration tests
+bun run test:integration
 
-# TUI
-bun run test:tui                # packages/tui/
+# Run E2E CLI lifecycle smoke tests
+bun run test:e2e
 
-# Shared package
-bun run test:shared             # packages/shared/
-
-# All workers (including dashboard)
-bun run test:workers            # workers/
+# Run live Cloudflare API integration tests (requires tests/live/.env credentials)
+bun run test:live --jobs 1
 ```
 
-### Test Single Worker
+---
 
-```bash
-# From repo root
-bun test workers/agent-worker/
-bun test workers/hoox/
+## 🔒 Type-Safe Mocking Specifications (No `as any`)
 
-# Or cd into the worker directory
-cd workers/trade-worker && bun test
-```
-
-### Watch Mode
-
-```bash
-bun test packages/cli --watch
-```
-
-## Test Inventory
-
-| #   | Workspace                        |  Files  | Assertions | Type(s)                                       |
-| --- | -------------------------------- | :-----: | :--------: | :-------------------------------------------- |
-| 1   | **`packages/cli`**               |   28    |    386     | Unit                                          |
-| 2   | **`packages/shared`**            |   12    |    170     | Unit                                          |
-| 3   | **`packages/tui`**               |   19    |    455     | 17 Unit · 1 Integration · 1 E2E               |
-| 4   | **`workers/hoox`**               |    5    |     78     | Unit                                          |
-| 5   | **`workers/trade-worker`**       |   11    |    169     | Unit                                          |
-| 6   | **`workers/agent-worker`**       |    5    |     77     | Unit                                          |
-| 7   | **`workers/d1-worker`**          |    1    |     9      | Unit                                          |
-| 8   | **`workers/telegram-worker`**    |    1    |     31     | Unit                                          |
-| 9   | **`workers/email-worker`**       |    3    |     25     | Unit                                          |
-| 10  | **`workers/analytics-worker`**   |    4    |     42     | Unit                                          |
-| 11  | **`workers/web3-wallet-worker`** |    1    |     7      | Unit                                          |
-| 12  | **`workers/dashboard`**          |    4    |     37     | Unit                                          |
-| 13  | **`workers/report-worker`**      |    0    |     0      | —                                             |
-|     | **Workspace subtotal**           | **94**  | **1,486**  |                                               |
-| 14  | **`tests/integration/`**         |    1    |     10     | Integration (gateway)                         |
-| 15  | **`tests/e2e/`**                 |    1    |     1      | E2E (CLI lifecycle)                           |
-| 16  | **`tests/live/`**                |   10    |     77     | Live (Cloudflare API, D1, KV, R2, Queues, AI) |
-|     | **TOTAL**                        | **106** | **1,574**  | **92 Unit · 2 Integration · 2 E2E · 10 Live** |
-
-## Mocking Bindings
-
-Cloudflare® bindings must be mocked during local testing. We use standard JavaScript stubs to mock `env.SERVICE.fetch` or `env.KV.get`.
+To enforce strict TypeScript compiler safety, test files **must never** utilize `as any` to bypass types when mock-binding resources. Always cast stubs using `as unknown as Env`:
 
 ```typescript
 import { describe, it, expect } from "bun:test";
 import type { Env } from "../src/index";
 
-describe("hoox Gateway", () => {
-  it("should forward trade requests to trade-worker", async () => {
+describe("trade-worker Gateway Router Mocking", () => {
+  it("should securely mock internal service binding fetchers", async () => {
+    // 1. Construct a type-safe mock environment structure
     const mockEnv = {
-      TRADE_SERVICE: {
-        fetch: async (url: any, options: any) => {
-          return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-          });
+      INTERNAL_KEY_BINDING: "local_secret_token_183",
+      TELEGRAM_SERVICE: {
+        fetch: async (url: string, init?: RequestInit) => {
+          // Verify auth headers exist
+          const headers = init?.headers as Record<string, string>;
+          if (headers["X-Internal-Auth-Key"] !== "local_secret_token_183") {
+            return new Response(JSON.stringify({ success: false }), {
+              status: 401,
+            });
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              messageId: 4829,
+            }),
+            { status: 200 }
+          );
         },
-      },
+      } as Fetcher,
     } as unknown as Env;
 
-    // Test logic here
+    // 2. Execute assertions
+    const res = await mockEnv.TELEGRAM_SERVICE.fetch(
+      "https://telegram-worker/alert",
+      {
+        method: "POST",
+        headers: {
+          "X-Internal-Auth-Key": "local_secret_token_183",
+        },
+      }
+    );
+
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(data.messageId).toBe(4829);
   });
 });
 ```
 
-### Type Safety in Tests
-
-Enforce strict TypeScript typing — **do not use `as any`**. Cast mock objects securely using `as unknown as Env`.
-
-## Integration Tests
-
-Integration tests use **Miniflare 3** directly (via `bun:test`, not vitest) to simulate Cloudflare Workers with service bindings.
-
-```bash
-bun run test:integration
-```
-
-Integration tests live in `tests/integration/` and cover:
-
-- Gateway middleware stack (auth → validation → CORS → routing)
-- Worker service binding communication (planned: hoox→d1, trade-worker→d1, agent→trade)
-
-## E2E Tests
-
-E2E tests validate full-system workflows:
-
-```bash
-bun run test:e2e
-```
-
-| File                                  | What it tests                                 |
-| :------------------------------------ | :-------------------------------------------- |
-| `tests/e2e.test.ts`                   | CLI lifecycle (init → config → check)         |
-| `packages/tui/test/e2e/smoke.test.ts` | TUI subprocess launch, render, and clean exit |
-
-## Live Tests
-
-Live tests require Cloudflare credentials and hit real Cloudflare APIs:
-
-```bash
-bun run test:live
-```
-
-Set credentials in `tests/live/.env`:
-
-```
-CLOUDFLARE_API_TOKEN=...
-CLOUDFLARE_ACCOUNT_ID=...
-HOOX_D1_DATABASE=...
-```
-
-## Build Commands
-
-```bash
-# Build all packages that need it (CLI + TUI) + typecheck
-bun run build
-
-# Individual builds
-bun run build:cli          # packages/cli → dist/
-bun run build:tui          # packages/tui → dist/
-bun run build:dashboard    # workers/dashboard → next build
-bun run build:docs         # pages/docs → astro build
-
-# TypeScript typecheck (all workspaces)
-bun run typecheck
-```
-
-## Coverage
-
-We use `bun test --coverage` for code coverage. The CI pipeline enforces a minimum 80% coverage threshold.
-
-```bash
-# Full coverage
-bun test --coverage
-
-# Per workspace
-bun test packages/cli --coverage
-bun test workers/hoox --coverage
-```
-
-> **Note:** Coverage numbers from isolated file runs will differ from full-suite runs.
-
-## Next Steps
-
-- [Local Development](local-dev.md)
-- [Debugging](debugging.md)
-
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## 🚢 Continuous Integration Gates & Coverage Targets
+
+Our GitHub Actions workflow enforces two strict quality gates before any code is approved for production deployment:
+
+1. **TypeScript Type Safety**: All workspaces must compile without errors using `tsc --noEmit`.
+2. **Coverage Thresholds**: The monorepo enforces a **minimum 80% coverage threshold** across all core execution paths (`packages/cli`, `packages/shared`, `workers/hoox`, `workers/trade-worker`).
+
+```bash
+# Check your local workspace coverage statistics
+bun test packages/shared/ --coverage
+```
+
+### 🔗 Next Steps
+
+- **[Debugging Telemetry Runbook](debugging.md)** — Learn how to trace active V8 memory, tail logs, and audit SQL execution.
+- **[Local Development Setup](local-dev.md)** — Configure Wrangler and Docker compose to run testbeds.

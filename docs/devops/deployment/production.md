@@ -1,50 +1,109 @@
 ---
-title: "🚀 Production Deployment"
-description: "Taking your Hoox setup live"
+title: "Production Deployment Runbook"
+description: "High-integrity production deployment guide, covering API token configurations, custom routes mapping, and edge isolate hardening strategies."
 ---
-# 🚀 Production Deployment
 
-> Taking your Hoox setup live
+# 🚀 Production Deployment Runbook
 
-## Prerequisites
+Deploying the Hoox trading ecosystem to production requires absolute operational rigor. Because the platform executes real-world trades using private capital, every V8 isolate, environment binding, and routing domain must be locked down, optimized for speed, and insulated against external failures.
 
-Before deploying to production, ensure you have:
-
-1. Valid Cloudflare® Account & API Token.
-2. Production secrets generated and uploaded to Cloudflare® Secret Store.
-3. A fully configured `wrangler.jsonc`.
-
-## Deployment Commands
-
-The management script simplifies deployment:
-
-```bash
-# Deploy all enabled workers
-hoox workers deploy
-
-# Deploy a specific worker
-hoox workers deploy trade-worker
-```
-
-## Secret Management
-
-Production secrets should NEVER be committed to version control. They are managed via Cloudflare® Secret Store.
-
-```bash
-# Upload a secret to Cloudflare®
-hoox secrets update-cf <SECRET_NAME> <worker-name>
-```
-
-## Custom Domains
-
-By default, workers are deployed to `<worker-name>.<your-subdomain>.workers.dev`.
-You can map these to custom domains via the Cloudflare® Dashboard under **Workers & Pages > custom domains**.
-
-## Next Steps
-
-- [CI/CD](cicd.md)
-- [Monitoring](monitoring.md)
+This runbook guides you through production prerequisites, manual and automated deployment commands, custom domain routing, and edge hardening strategies.
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
+## 🏁 1. Production Rollout Pre-Flight Checklist
+
+Before rolling out updates to Cloudflare’s live edge networks:
+
+- **API Token Scoping**: Confirm your active Cloudflare API Token inherits the strict minimal permission sets (`Account.D1: Edit`, `Account.KV: Edit`, `Account.Queues: Edit`, `Account.Workers: Edit`, and `Zone.DNS: Edit` if mapping custom routing paths).
+- **Workspace Diagnostic Sweep**: Run the automated pre-flight check to verify that all git submodules, local dependencies, and TypeScript variables compile without warnings:
+  ```bash
+  hoox check prerequisites
+  hoox test
+  ```
+- **Exchange Credentials Check**: Ensure you have created dedicated exchange API keys with **Withdrawal permissions turned OFF (disabled)** to enforce least-privilege security.
+
+---
+
+## ⚡ 2. Production Rollout Invocations
+
+The Hoox CLI automates the entire deployment sequence, compiling the shared libraries, deploying database schemas, synchronizing configuration manifests, and uploading workers in the correct dependency sequence:
+
+```bash
+# 1. Execute full sequenced deployment
+hoox deploy all --auto
+
+# 2. Deploy a single specific worker (e.g. after a trade execution update)
+hoox deploy worker trade-worker
+```
+
+### Dashboard OpenNext Compilation
+
+```bash
+# Build and deploy the Next.js Dashboard via OpenNext
+hoox deploy dashboard
+```
+
+_This command runs Turbopack, bundles server-side assets into `.open-next/worker.js`, maps static files to the `ASSETS` CDN binding, and uploads the dashboard to Cloudflare._
+
+---
+
+## 🌐 3. Custom Domain & Routing Mapping
+
+By default, deployed workers are assigned subdomains under Cloudflare's shared domain (e.g., `https://hoox.alpha-trading.workers.dev`).
+
+For production, it is highly recommended to map your public gateway and dashboard to a **custom domain** under your own Cloudflare zone. This reduces DNS lookup latencies and enables custom SSL and WAF configurations.
+
+To map custom routes, add the `routes` array inside your worker's `wrangler.jsonc` file:
+
+```jsonc
+// In workers/hoox/wrangler.jsonc
+{
+  "routes": [
+    {
+      "pattern": "api.my-trading-empire.com/webhook",
+      "custom_domain": true,
+    },
+  ],
+}
+```
+
+Deploying this configuration automatically updates your Cloudflare DNS zone records, maps the domain to your V8 isolate, and registers a universal SSL certificate near-instantaneously.
+
+---
+
+## 🛡️ 4. Edge Isolate Hardening Strategies
+
+To protect your live production deployments from attacks and latency spikes:
+
+### A. Enable Smart Placement
+
+Verify that every execution worker contains the smart placement var inside its `wrangler.jsonc`. This shifts the CPU isolate geographically close to exchange servers (e.g. Frankfurt for Bybit, Tokyo for Binance):
+
+```json
+"placement": {
+  "mode": "smart"
+}
+```
+
+### B. Restrict CORS Origin Policies
+
+The public `/webhook` route inside the `hoox` gateway must **only** accept POST requests from authorized endpoints. Disable all CORS headers to prevent cross-origin script injections from browsers.
+
+### C. Deploy WAF Rate Limit Traps
+
+Use the Hoox CLI to provisionZone-level rate limiters on Cloudflare’s global edge network, dropping packet floods before they load the V8 isolates:
+
+```bash
+# Provision a strict rate-limit rule (e.g., max 10 requests/minute to /webhook)
+hoox waf configure --limit-requests
+```
+
+---
+
+> **Tip:** Made an emergency change? You don't need a full rebuild. If the change was a configuration setting or a trade symbol routing change, simply update the KV store: `hoox config kv set <key> <value>`. The update will propagate globally in under 10 seconds!
+
+### 🔗 Next Steps
+
+- **[CI/CD Pipelines Reference](cicd.md)** — Automate edge deployments using GitHub Actions.
+- **[Observability & Time-Series Monitoring](monitoring.md)** — Stream console logs and check analytics datasets.

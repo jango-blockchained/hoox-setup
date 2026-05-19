@@ -1,107 +1,147 @@
 ---
-title: "🌊 Data Flow"
-description: "Deep dive into the data flow across 9 Hoox workers"
+title: "🌊 System Data Routing Spec"
+description: "Comprehensive data routing, transaction sequence diagrams, time-series metrics pipelines, and global storage mapping."
 ---
-# 🌊 Data Flow
 
-> Deep dive into the data flow across 9 Hoox workers
+# 🌊 System Data Routing Spec
 
-## 1. Webhook to Trading Flow
+Hoox operates as a highly orchestrated **distributed event loop**. Because execution logic is split into isolated compute nodes, data flows recursively through multiple V8 transitions, asynchronous queues, time-series datasets, and database ledgers.
 
-Primary flow: TradingView webhook → trade execution → notification → analytics.
+This document provides complete, low-level technical specifications and Mermaid sequence diagrams for our four primary data routing pipelines: Webhook Trade execution, AI Risk management, PDF browser rendering, and Observability tracking.
+
+---
+
+## 1. Webhook to Trade Execution Flow (High-Speed Path)
+
+This is the primary transaction pipeline. When a trade signal is received, the system validates the payload, locks the trace ID, executes the order at the edge closest to the exchange, records the fill, and alerts the user.
 
 ```mermaid
 sequenceDiagram
-    participant TV as TradingView
-    participant Hoox as hoox (Gateway)
-    participant Trade as trade-worker
+    autonumber
+    actor TV as Signal Source (TradingView)
+    participant GW as hoox Gateway
+    participant DO as IdempotencyStore (Durable Object)
+    participant TW as trade-worker
     participant D1 as d1-worker
     participant TG as telegram-worker
     participant AE as analytics-worker
 
-    TV->>Hoox: POST /webhook (Trading Signal)
-    Hoox->>Hoox: Validate API Key
-    Hoox->>Hoox: KV rate limiter check
-    Hoox->>Hoox: DO idempotency check
-    Hoox->>Trade: TRADE_SERVICE.fetch()
-    Trade->>Trade: Parse Signal & Execute on Exchange
-    Trade->>D1: D1_SERVICE.fetch() (Log Trade)
-    Trade-->>Hoox: Return Trade Result
-    Hoox->>TG: TELEGRAM_SERVICE.fetch() (Notification)
-    TG-->>Hoox: Return Notification Result
-    Hoox->>AE: ANALYTICS_SERVICE (Track API Call)
-    Hoox-->>TV: 200 OK (Summary)
+    TV->>GW: POST /webhook (Ingest raw JSON signal)
+    Note over GW: Extract Trace ID & check KV Rate Limiter
+    GW->>DO: lockTransaction(traceId) (SQLite atomic mutex check)
+    alt Mutex Lock Denied (Trace ID Already Logged)
+        DO-->>GW: Fail (Conflict: Duplicate Request)
+        GW-->>TV: 409 Conflict (Duplicate Request)
+    else Mutex Lock Granted (Unique Request)
+        DO->>GW: Lock Acquired (Success)
+        GW->>TW: Service Binding invoke: POST /webhook (X-Internal-Auth-Key)
+        Note over TW: Fetch encrypted Secrets & calculate HMAC-SHA256 signature
+        TW->>D1: Service Binding invoke: POST /query (Write "TRADE_PENDING" row)
+        TW->>TW: Send Order to Centralized Exchange API
+        Note over TW: Exchange fills order & returns status details
+        TW->>D1: Service Binding invoke: POST /query (Update Status to "Filled")
+        TW->>TG: Service Binding invoke: POST /alert (Format alert template)
+        TG-->>TV: Dispatch Telegram Push Alert to User's phone
+        TW-->>GW: Return Executed Order JSON
+        GW->>AE: Service Binding invoke: POST /track (Log latency & status metrics)
+        GW-->>TV: 200 OK (Filled order metadata)
+    end
 ```
 
-## 2. AI Risk Management Flow
+---
 
-Agent-worker runs every 5 minutes to monitor positions and manage risk.
+## 2. Autonomous AI Risk Monitoring Flow (Cron Cycle)
+
+Running on a strict **5-minute Cron schedule**, the risk management loop queries SQLite records, audits active exposures, calculates trailing stop deviations, and manages emergency halts.
 
 ```mermaid
 sequenceDiagram
-    participant Agent as agent-worker
-    participant Trade as trade-worker
-    participant D1 as d1-worker
+    autonumber
+    participant Cron as Cloudflare Cron Trigger
+    participant AW as agent-worker (AI Risk Manager)
+    participant D1 as d1-worker (SQL Hub)
+    participant TW as trade-worker (Execution)
+    participant TG as telegram-worker (Alerts)
+
+    Cron->>AW: Fire trigger: */5 * * * *
+    AW->>D1: Service Binding invoke: POST /query (Get open margin positions)
+    D1-->>AW: Return position matrices (Average price, leverage, unrealized P&L)
+    Note over AW: Evaluate Max Daily Drawdown threshold against balance
+    alt Drawdown Limit Hit (USDT Daily loss > max_daily_drawdown_percent)
+        Note over AW: EMERGENCY HALT TRIGGERED 🚨
+        AW->>AW: Set trade:kill_switch = true in CONFIG_KV
+        AW->>TW: Service Binding invoke: POST /close-all (Flatten all active exposure)
+        TW-->>AW: All positions flattened successfully
+        AW->>TG: Service Binding invoke: POST /alert (Dispatch Emergency Alert)
+        TG-->>AW: User notified on phone
+    else Normal Operation (Within Safe Margins)
+        Note over AW: Calculate Trailing Stop-Loss price deviations
+        alt Deviation Triggered (Price crossed dynamic stop-loss boundary)
+            AW->>TW: Service Binding invoke: POST /order (Close target position)
+            TW-->>AW: Order filled
+            AW->>TG: Service Binding invoke: POST /alert (Stop-Loss Triggered Notification)
+        end
+    end
+```
+
+---
+
+## 3. PDF Portfolio Report Rendering Flow
+
+Runs twice daily to automate HTML dashboard rendering, compile PDFs via Puppeteer on the edge, offload to R2 storage, and dispatch download corridors.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cron as Cloudflare Cron Trigger
+    participant RP as report-worker
+    participant BR as Browser Rendering API (Chrome Isolate)
+    participant R2 as R2 Object Storage Bucket
     participant TG as telegram-worker
-    participant AI as Workers AI
 
-    Agent->>Agent: Cron: */5 * * * *
-    Agent->>D1: Query open positions
-    D1-->>Agent: Position data
-    Agent->>AI: Analyze risk (LLaMA 3)
-    AI-->>Agent: Risk assessment
-    Agent->>Trade: Adjust stops / scale out
-    Agent->>TG: Send health summary
+    Cron->>RP: Fire trigger: 06:00 & 18:00 UTC
+    RP->>RP: Query D1 P&L history & compile HTML5 template
+    RP->>BR: POST /browser-rendering/pdf (HTML string payload)
+    Note over BR: Spin up headless Puppeteer Chrome & render viewport
+    BR-->>RP: Return compiled PDF Buffer stream
+    RP->>R2: PutObject: reports/daily-report-{timestamp}.pdf
+    RP->>TG: Service Binding invoke: POST /alert (P&L report link)
+    TG-->>RP: Dispatch report download link to user
 ```
 
-## 3. PDF Report Flow
+---
 
-Report-worker generates PDFs twice daily via Browser Rendering.
+## 4. Observability & Time-Series Analytics Flow
+
+To maintain complete cross-worker telemetry without blocking critical order threads, Hoox routes analytics data points asynchronously to a dedicated metrics warehouse.
 
 ```mermaid
 sequenceDiagram
-    participant Report as report-worker
-    participant BR as Browser Rendering API
-    participant R2 as R2 Bucket
-    participant TG as telegram-worker
+    autonumber
+    participant W as Any Compute Worker (hoox, trade, agent, etc.)
+    participant AN as analytics-worker (SQL Analytics Ingest)
+    participant AE as Cloudflare Analytics Engine
 
-    Report->>Report: Cron: 06:00 + 18:00 UTC
-    Report->>Report: Build HTML report
-    Report->>BR: POST /browser-rendering/pdf
-    BR-->>Report: PDF Buffer
-    Report->>R2: Store PDF (reports/daily-*.pdf)
-    Report->>TG: Send report link
+    W->>AN: Service Binding invoke: POST /track/api-call (Trace ID, latencyMs, success)
+    Note over AN: Sanitize metrics inputs & format structural time-series logs
+    AN->>AE: writeDataPoint({ blobs: [worker, endpoint], doubles: [latencyMs] })
+    Note over AE: Persistent logging in time-series warehouse for Next.js dashboard
 ```
 
-## 4. Analytics Flow
+---
 
-Every API call across all workers is tracked for observability.
+## 💾 5. Global Data Persistence Mapping
 
-```mermaid
-sequenceDiagram
-    participant W as Any Worker
-    participant AE as analytics-worker
-    participant EE as Analytics Engine
+| Storage Platform | Namespace / Database Name      | Data Payload Details                                           | Associated Compute Workers                  |
+| :--------------- | :----------------------------- | :------------------------------------------------------------- | :------------------------------------------ |
+| **D1 Database**  | `trade-data-db` (SQLite)       | Executed fills, open position matrices, Drizzle tracking logs. | `d1-worker`, `trade-worker`, `agent-worker` |
+| **CONFIG_KV**    | `CONFIG_KV` (Key-Value)        | 16-key global runtime manifest, emergency Kill Switch.         | **All Workers** + Next.js Dashboard         |
+| **SESSIONS_KV**  | `SESSIONS_KV` (Key-Value)      | Session access states and API authorization cookies.           | `hoox` Gateway                              |
+| **R2 Storage**   | `trade-reports` (S3 Bucket)    | Compiled PDF portfolio reports.                                | `report-worker`                             |
+| **R2 Storage**   | `hoox-system-logs` (S3 Bucket) | Verbose JSON exchange API payloads (REST & WebSocket logs).    | `trade-worker`                              |
+| **Vectorize**    | `my-rag-index` (Vector DB)     | Semantic chat and history vector embeddings.                   | `telegram-worker`                           |
 
-    W->>AE: POST /track/api-call {worker, endpoint, latencyMs, success}
-    AE->>AE: Validate payload
-    AE->>EE: writeDataPoint({blobs, doubles, indexes})
-```
+### 🔗 Next Steps
 
-## 5. Data Persistence
-
-| Storage | Data | Workers |
-|---------|------|---------|
-| D1 Database | Trade logs, positions, signals | d1-worker, trade-worker, agent-worker |
-| KV (CONFIG_KV) | Routing rules, IP lists, rate limiter state | All workers |
-| KV (SESSIONS_KV) | Webhook sessions | hoox |
-| R2 (trade-reports) | Trade reports, PDFs | trade-worker, report-worker |
-| R2 (user-uploads) | User file uploads | telegram-worker |
-| R2 (hoox-system-logs) | Verbose exchange logs | trade-worker |
-| Vectorize | AI embeddings for RAG | telegram-worker, hoox |
-| Analytics Engine | Time-series API metrics | analytics-worker |
-
-## Next Steps
-
-- [System Overview](overview.md)
-- [Worker Communication](communication.md)
+- **[Bindings Catalog](bindings.md)** — Check wrangler settings and resource declarations.
+- **[Storage Engineering Manual](storage.md)** — Dive into Drizzle database schemas and SQLite properties.
