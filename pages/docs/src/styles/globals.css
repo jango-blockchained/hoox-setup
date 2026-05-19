@@ -46,6 +46,7 @@
   --success-foreground: oklch(0.08 0 0);
   --warning: oklch(0.8 0.15 80);
   --warning-foreground: oklch(0.08 0 0);
+  --radius: 0.5rem;
 }
 
 /* Light mode — derived from dark palette */
@@ -87,6 +88,7 @@ html:not(.dark) {
   --success-foreground: oklch(0.97 0 0);
   --warning: oklch(0.75 0.15 80);
   --warning-foreground: oklch(0.08 0 0);
+  --radius: 0.5rem;
 }
 
 @theme inline {
@@ -205,16 +207,13 @@ html:not(.dark) ::selection {
 
 /* ── Full-width prose ──
  *
- * Removes the traditional max-w-3xl constraint.
  * Content fills the available space between sidebar and ToC.
- * At very wide viewports, a comfortable max-width is applied
- * to prevent line-length issues.
+ * No max-width constraint — code blocks, tables, and text
+ * expand naturally in the available column space.
  */
 
 article.prose {
-  /* Comfortable max reading width at ultra-wide viewports,
-     but still lets code blocks and tables use the full space */
-  max-width: 80ch;
+  max-width: none;
 }
 
 /* Allow wide elements (code blocks, tables, mermaid) to overflow

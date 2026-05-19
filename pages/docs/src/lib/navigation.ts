@@ -43,13 +43,12 @@ export function buildNavigation(
 
   const sections: NavSection[] = [];
   const sectionIcons: Record<string, string> = {
-    root: "📄",
-    "getting-started": "🚀",
-    guides: "📘",
-    concepts: "🧠",
-    reference: "📖",
-    tutorials: "🎯",
-    devops: "⚙️",
+    "getting-started": "rocket",
+    guides: "book",
+    concepts: "lightbulb",
+    reference: "book-open",
+    tutorials: "target",
+    devops: "gear",
   };
 
   const audienceMap: Record<string, "user" | "devops"> = {

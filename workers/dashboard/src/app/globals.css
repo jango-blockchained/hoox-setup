@@ -41,6 +41,7 @@
   --success-foreground: oklch(0.08 0 0);
   --warning: oklch(0.8 0.15 80);
   --warning-foreground: oklch(0.08 0 0);
+  --radius: 0.5rem;
 }
 
 @theme inline {
