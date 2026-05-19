@@ -39,26 +39,34 @@ bun run preview  # preview built site
 pages/docs/
 ├── src/
 │   ├── pages/
-│   │   ├── index.astro        # Home page (renders docs/home.md)
+│   │   ├── index.astro        # Home page (renders docs/enduser/home.md)
 │   │   └── [...slug].astro    # Catch-all for all other docs
 │   ├── layouts/DocLayout.astro
 │   ├── components/            # Header, Sidebar, MobileNav, Footer, TOC, Search
 │   ├── styles/globals.css     # Tailwind v4 + shadcn theme tokens
 │   └── lib/
-│       ├── navigation.ts      # Builds sidebar from content collection
+│       ├── navigation.ts      # Dynamic nested sidebar compiler (2-level namespace sorting)
 │       └── utils.ts           # cn() helper
 ├── astro.config.ts            # base: /hoox-setup/, output: static
 └── package.json
 ```
 
+## Navigation Chrome & Emojis Policy
+
+To ensure visual alignment with `DESIGN.md`:
+
+- Emojis are **strictly prohibited** in the navigation sidebar or mobile navigation chrome.
+- The sidebar and mobile nav render clean, monochromatic **flat inline SVGs** matching section keys (e.g. `getting-started` -> `rocket`, `guides` -> `book`, `concepts` -> `lightbulb`).
+- Emojis are fully authorized inside the markdown page content bodies and titles to retain expressive readability.
+
 ## Common Gotchas
 
-| Issue | Fix |
-|-------|-----|
-| Empty page content | Add frontmatter to the `.md` file |
-| CSS not loading | Check `base` in `astro.config.ts` matches GitHub Pages path |
-| Import outside project root | Use `astro:content` loader, not direct `import` |
-| Sidebar missing new doc | Add `title` frontmatter — doc appears in correct section by directory |
+| Issue                       | Fix                                                                   |
+| --------------------------- | --------------------------------------------------------------------- |
+| Empty page content          | Add frontmatter to the `.md` file                                     |
+| CSS not loading             | Check `base` in `astro.config.ts` matches GitHub Pages path           |
+| Import outside project root | Use `astro:content` loader, not direct `import`                       |
+| Sidebar missing new doc     | Add `title` frontmatter — doc appears in correct section by directory |
 
 ## 📂 Codebase References
 

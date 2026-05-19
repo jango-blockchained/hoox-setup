@@ -57,8 +57,9 @@ Deep dives into latency structures, isolation parameters, and bindings linkages:
 - **[Isolate Communication](architecture/communication.md)** — Deep dive into Service Bindings, zero-TCP routing, and V8 engines.
 - **[Data Flow Architecture](architecture/data-flow.md)** — Flowcharts for trade execution, backup queues, and cron risk monitoring.
 - **[Bindings Matrix](architecture/bindings.md)** — Exact mapping of D1, KV, Queues, R2, and Service Bindings.
-- **[Storage Engineering](storages.md)** — Persistent storage boundaries, SQLite DDL parameters, and R2 buckets.
-- **[Internal Endpoints Map](endpoints.md)** — Sub-millisecond binding paths and routing maps.
+- **[Storage Engineering](architecture/storage.md)** — Persistent storage boundaries, SQLite DDL parameters, and R2 buckets.
+- **[Internal Endpoints Map](architecture/endpoints.md)** — Sub-millisecond binding paths and routing maps.
+- **[Visual Tokens & Design System](architecture/design-system.md)** — Monochromatic token mappings and visual SVGs catalog.
 
 ### 3. ⚙️ Edge Worker Microservices (10 Profiles)
 
@@ -75,7 +76,7 @@ Rollout manuals, Access gates, and GitHub Actions telemetry:
 - **[Production Deployment](deployment/production.md)** — Wrangler commands, Account provisioning, and production variables.
 - **[CI/CD Workflow pipelines](deployment/cicd.md)** — GitHub Actions secrets, syntax tests, and automated edge uploads.
 - **[Monitoring & Telemetry](deployment/monitoring.md)** — Live wrangler logs streaming and custom Analytics Engine metrics.
-- **[Cloudflare Zero Trust Corridor](zero_trust_setup.md)** — Setting up Access client corridors, IP firewalls, and WAF rules.
+- **[Cloudflare Zero Trust Corridor](deployment/zero-trust.md)** — Setting up Access client corridors, IP firewalls, and WAF rules.
 
 ### 💻 5. Developer & API Reference
 
