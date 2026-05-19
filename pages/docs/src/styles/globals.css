@@ -389,3 +389,39 @@ article.prose dt {
 article.prose dd {
   @apply text-muted-foreground pl-4 border-l-2 border-border;
 }
+
+/* ── Rich Custom Callout Containers ── */
+
+.callout {
+  @apply my-6 flex gap-3 rounded-lg border p-4 text-sm leading-relaxed;
+}
+
+.callout-info {
+  @apply border-blue-500/30 bg-blue-500/5 text-blue-200/90;
+}
+
+.callout-warning {
+  @apply border-amber-500/30 bg-amber-500/5 text-amber-200/90;
+}
+
+.callout-danger {
+  @apply border-red-500/30 bg-red-500/5 text-red-200/90;
+}
+
+.callout-tip {
+  @apply border-emerald-500/30 bg-emerald-500/5 text-emerald-200/90;
+}
+
+.callout-icon {
+  @apply flex size-5 shrink-0 select-none items-center justify-center mt-0.5;
+}
+
+/* ── Callout stylings for standard Blockquotes ── */
+article.prose blockquote {
+  @apply my-6 border-l-4 py-3.5 pl-5 pr-5 not-italic text-sm text-foreground/90 rounded-r-lg bg-muted/20 border-accent/40;
+  border-image: none;
+}
+
+article.prose blockquote p strong:first-child {
+  @apply mr-1.5 text-accent font-semibold font-mono uppercase tracking-wide text-xs;
+}
