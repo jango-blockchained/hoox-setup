@@ -39,7 +39,7 @@ const { sections, currentSlug } = Astro.props;
         "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors shrink-0",
         (!currentSlug || currentSlug === "home")
           ? "bg-accent text-accent-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
       <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -68,7 +68,7 @@ const { sections, currentSlug } = Astro.props;
                   "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
                   currentSlug === item.slug
                     ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <span class="truncate">{item.title}</span>
