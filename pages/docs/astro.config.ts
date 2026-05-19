@@ -23,6 +23,11 @@ export default defineConfig({
       alias: {
         "@": path.resolve(__dirname, "src"),
       },
+      // Vite 8.0.10+ / Rolldown regression: @tailwindcss/vite passes
+      // resolve.tsconfigPaths to Rolldown's binding layer which doesn't
+      // recognize the field. Explicitly disable to prevent the crash.
+      // Tracked upstream: https://github.com/vitejs/vite/issues/22322
+      tsconfigPaths: false,
     },
   },
   build: {
