@@ -10,9 +10,25 @@
 
 **Spec:** `.opencode/specs/2026-05-19-landing-page-design-migration.md`
 
+**Context loading (BEFORE starting any task):**
+Each task should load relevant context by running `ctx pack` or using `ctx_get_relevant_context` in OpenCode. The output provides file paths, relationships, and memory directives relevant to the files being modified.
+
+- **Phase 1 (docs) query:** `"pages/docs design migration: update globals.css with oklch colors, swap fonts to IBM Plex + Bebas Neue, add noise overlay and grid background"`
+- **Phase 2 (dashboard) query:** `"workers/dashboard design migration: replace HSL with oklch colors in globals.css, swap Geist fonts for IBM Plex + Bebas Neue, refactor AmbientBackground to use grid+noise"`
+
+Use `ctx pack --budget 4000` or `ctx_get_relevant_context` with the query string and `budget: 4000` to load context before editing.
+
 ---
 
 ## Phase 1: Docs Site (`pages/docs/`)
+
+> **Context:** Run this before starting Phase 1 tasks:
+>
+> ```
+> ctx pack "pages/docs design migration: update globals.css with oklch colors, swap fonts to IBM Plex + Bebas Neue, add noise overlay and grid background" --budget 4000
+> ```
+>
+> Or in OpenCode: `ctx_get_relevant_context({ query: "...", budget: 4000 })`
 
 ### Task 1: Swap font packages
 
@@ -423,6 +439,14 @@ This is the biggest single change. Replace the entire `globals.css` content with
 ---
 
 ## Phase 2: Dashboard (`workers/dashboard/`)
+
+> **Context:** Run this before starting Phase 2 tasks:
+>
+> ```
+> ctx pack "workers/dashboard design migration: replace HSL with oklch colors in globals.css, swap Geist fonts for IBM Plex + Bebas Neue, refactor AmbientBackground to use grid+noise" --budget 4000
+> ```
+>
+> Or in OpenCode: `ctx_get_relevant_context({ query: "...", budget: 4000 })`
 
 ### Task 6: Swap dashboard font packages
 
