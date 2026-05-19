@@ -126,6 +126,32 @@ export class RepairService {
       steps.push({ step: "Secrets", success: false, error: String(err) });
     }
 
+    // Step 6: Worker config schema validation
+    try {
+      const { SchemaService } =
+        await import("../../services/schema/schema-service.js");
+      const svc = new SchemaService();
+      const results = svc.validateAll();
+      const totalErrors = results.reduce(
+        (sum, r) => sum + r.errors.filter((e) => e.severity === "error").length,
+        0
+      );
+      steps.push({
+        step: "Worker config schema",
+        success: totalErrors === 0,
+        message:
+          totalErrors === 0
+            ? "All workers match manifest"
+            : `${totalErrors} schema issue(s) found`,
+      });
+    } catch (err) {
+      steps.push({
+        step: "Worker config schema",
+        success: false,
+        error: String(err),
+      });
+    }
+
     const passed = steps.filter((s) => s.success).length;
     const failed = steps.filter((s) => !s.success).length;
     return {

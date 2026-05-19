@@ -73,8 +73,8 @@ describe("BASE_WORKERS", () => {
 });
 
 describe("BASE_SECRETS", () => {
-  it("has secrets for hoox and trade-worker", () => {
+  it("has secrets for hoox and agent-worker", () => {
     expect(BASE_SECRETS.hoox).toContain("WEBHOOK_API_KEY_BINDING");
-    expect(BASE_SECRETS["trade-worker"]).toContain("API_SERVICE_KEY");
+    expect(BASE_SECRETS["agent-worker"]).toContain("INTERNAL_KEY_BINDING");
   });
 });

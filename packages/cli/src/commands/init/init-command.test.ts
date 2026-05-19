@@ -460,9 +460,9 @@ describe("init command", () => {
         select: "full", // full preset includes integrations
         confirmSequence: [true, false, false],
         group: {
-          BINANCE_API_KEY: "binance-key-123",
-          BINANCE_API_SECRET: "binance-secret-123",
-          TELEGRAM_BOT_TOKEN: "tg-bot-token-123",
+          BINANCE_KEY_BINDING: "binance-key-123",
+          BINANCE_SECRET_BINDING: "binance-secret-123",
+          TG_BOT_TOKEN_BINDING: "tg-bot-token-123",
         },
       };
 
@@ -483,7 +483,7 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          TELEGRAM_BOT_TOKEN: "tg-token-abc",
+          TG_BOT_TOKEN_BINDING: "tg-token-abc",
         },
       };
 
@@ -616,9 +616,9 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          BINANCE_API_KEY: "bk",
-          BINANCE_API_SECRET: "bs",
-          TELEGRAM_BOT_TOKEN: "tgt",
+          BINANCE_KEY_BINDING: "bk",
+          BINANCE_SECRET_BINDING: "bs",
+          TG_BOT_TOKEN_BINDING: "tgt",
         },
       };
 
@@ -627,10 +627,10 @@ describe("init command", () => {
       const workersJsonc = captured.writes["wrangler.jsonc"];
       expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"trade-worker"');
-      expect(workersJsonc).toContain('"BINANCE_API_KEY"');
-      expect(workersJsonc).toContain('"BINANCE_API_SECRET"');
+      expect(workersJsonc).toContain('"BINANCE_KEY_BINDING"');
+      expect(workersJsonc).toContain('"BINANCE_SECRET_BINDING"');
       expect(workersJsonc).toContain('"telegram-worker"');
-      expect(workersJsonc).toContain('"TELEGRAM_BOT_TOKEN"');
+      expect(workersJsonc).toContain('"TG_BOT_TOKEN_BINDING"');
     });
 
     it("includes AI provider (OpenAI) integration from full preset", async () => {
@@ -641,7 +641,7 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          AGENT_OPENAI_KEY: "sk-openai-123",
+          AGENT_INTERNAL_KEY: "sk-openai-123",
         },
       };
 
@@ -650,7 +650,7 @@ describe("init command", () => {
       const workersJsonc = captured.writes["wrangler.jsonc"];
       expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"agent-worker"');
-      expect(workersJsonc).toContain('"AGENT_OPENAI_KEY"');
+      expect(workersJsonc).toContain('"AGENT_INTERNAL_KEY"');
     });
 
     it("includes wallet integration from full preset", async () => {
@@ -681,10 +681,10 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          BINANCE_API_KEY: "bk",
-          BINANCE_API_SECRET: "bs",
-          MEXC_API_KEY: "mk",
-          MEXC_API_SECRET: "ms",
+          BINANCE_KEY_BINDING: "bk",
+          BINANCE_SECRET_BINDING: "bs",
+          MEXC_KEY_BINDING: "mk",
+          MEXC_SECRET_BINDING: "ms",
         },
       };
 
@@ -693,8 +693,8 @@ describe("init command", () => {
       const workersJsonc = captured.writes["wrangler.jsonc"];
       expect(workersJsonc).toBeDefined();
       expect(workersJsonc).toContain('"trade-worker"');
-      expect(workersJsonc).toContain('"BINANCE_API_KEY"');
-      expect(workersJsonc).toContain('"MEXC_API_KEY"');
+      expect(workersJsonc).toContain('"BINANCE_KEY_BINDING"');
+      expect(workersJsonc).toContain('"MEXC_KEY_BINDING"');
       // Should only appear once
       const tradeWorkerCount =
         workersJsonc.match(/"trade-worker"/g)?.length ?? 0;
@@ -751,7 +751,7 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          TELEGRAM_BOT_TOKEN: "tg-secret-value",
+          TG_BOT_TOKEN_BINDING: "tg-secret-value",
         },
       };
 
@@ -760,7 +760,7 @@ describe("init command", () => {
       const devVarsPath = "workers/telegram-worker/.dev.vars";
       const devVars = captured.writes[devVarsPath];
       expect(devVars).toBeDefined();
-      expect(devVars).toContain("TELEGRAM_BOT_TOKEN=tg-secret-value");
+      expect(devVars).toContain("TG_BOT_TOKEN_BINDING=tg-secret-value");
       expect(devVars).toContain("NEVER commit this file");
     });
 
@@ -788,7 +788,7 @@ describe("init command", () => {
         select: "full",
         confirmSequence: [true, false, false],
         group: {
-          AGENT_OPENAI_KEY: "sk-openai-real-value",
+          AGENT_INTERNAL_KEY: "sk-openai-real-value",
         },
       };
 
@@ -797,7 +797,7 @@ describe("init command", () => {
       const devVarsPath = "workers/agent-worker/.dev.vars";
       const devVars = captured.writes[devVarsPath];
       expect(devVars).toBeDefined();
-      expect(devVars).toContain("AGENT_OPENAI_KEY=sk-openai-real-value");
+      expect(devVars).toContain("AGENT_INTERNAL_KEY=sk-openai-real-value");
       expect(devVars).toContain("NEVER commit this file");
     });
 

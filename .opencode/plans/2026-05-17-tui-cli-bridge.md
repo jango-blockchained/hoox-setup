@@ -20,7 +20,7 @@
 
 This is the foundation all other tasks depend on.
 
-- [ ] **Step 1.1: Add CLI types to types.ts**
+- [x] **Step 1.1: Add CLI types to types.ts**
 
 Open `packages/tui/src/types.ts` and add before the closing of the type exports:
 
@@ -47,7 +47,7 @@ export interface CliCommandState {
 }
 ```
 
-- [ ] **Step 1.2: Write test for CliBridge**
+- [x] **Step 1.2: Write test for CliBridge**
 
 Create `packages/tui/test/services/cli-bridge.test.ts`:
 
@@ -92,7 +92,7 @@ describe("CliBridge", () => {
 });
 ```
 
-- [ ] **Step 1.3: Implement CliBridge**
+- [x] **Step 1.3: Implement CliBridge**
 
 Create `packages/tui/src/services/cli-bridge.ts`:
 
@@ -417,7 +417,7 @@ class CliBridge_ {
 export const cliBridge = new CliBridge_();
 ```
 
-- [ ] **Step 1.4: Verify CliBridge resolves binary and runs**
+- [x] **Step 1.4: Verify CliBridge resolves binary and runs**
 
 ```bash
 cd packages/tui && bun test test/services/cli-bridge.test.ts -t "resolves binary"
@@ -425,7 +425,7 @@ cd packages/tui && bun test test/services/cli-bridge.test.ts -t "resolves binary
 
 Expected: PASS or — if hoox isn't installed globally — the test should still pass because the monorepo fallback finds `packages/cli/bin/hoox.js`.
 
-- [ ] **Step 1.5: Run all CliBridge tests**
+- [x] **Step 1.5: Run all CliBridge tests**
 
 ```bash
 cd packages/tui && bun test test/services/cli-bridge.test.ts
@@ -433,7 +433,7 @@ cd packages/tui && bun test test/services/cli-bridge.test.ts
 
 Expected: All 4 tests PASS.
 
-- [ ] **Step 1.6: Commit**
+- [x] **Step 1.6: Commit**
 
 ```bash
 git add packages/tui/src/services/cli-bridge.ts packages/tui/src/types.ts packages/tui/test/services/cli-bridge.test.ts
@@ -450,14 +450,14 @@ git commit -m "feat(tui): add CliBridge service for executing hoox CLI commands"
 
 ServiceManager has [Deploy All], [Restart All] bulk buttons and per-worker [Deploy]/[Restart] buttons. Currently all are no-op stubs.
 
-- [ ] **Step 2.1: Read the current service-manager.tsx to understand button handler structure**
+- [x] **Step 2.1: Read the current service-manager.tsx to understand button handler structure**
 
 ```bash
 bun x tsc --noEmit packages/tui/src/components/views/service-manager.tsx 2>/dev/null || true
 # Read the file to find current handler implementations
 ```
 
-- [ ] **Step 2.2: Add import and deploy state to ServiceManager**
+- [x] **Step 2.2: Add import and deploy state to ServiceManager**
 
 Add to imports at the top of `service-manager.tsx`:
 
@@ -474,7 +474,7 @@ const [deploying, setDeploying] = useState<string | null>(null); // worker name 
 const [deployProgress, setDeployProgress] = useState<string>("");
 ```
 
-- [ ] **Step 2.3: Wire the [Deploy All] handler**
+- [x] **Step 2.3: Wire the [Deploy All] handler**
 
 Replace the current `handleDeployAll` no-op (or add it if missing) with:
 
@@ -511,7 +511,7 @@ const handleDeployAll = async () => {
 };
 ```
 
-- [ ] **Step 2.4: Wire per-worker [Deploy] handlers**
+- [x] **Step 2.4: Wire per-worker [Deploy] handlers**
 
 Replace the per-worker deploy action with:
 
@@ -548,15 +548,15 @@ const handleDeployWorker = async (name: string) => {
 };
 ```
 
-- [ ] **Step 2.5: Wire [Restart All] to cliBridge.rebuild()**
+- [x] **Step 2.5: Wire [Restart All] to cliBridge.rebuild()**
 
 Similar pattern to deploy all — calls `cliBridge.rebuild()` and shows progress.
 
-- [ ] **Step 2.6: Wire per-worker [Restart] to cliBridge.repairWorker()**
+- [x] **Step 2.6: Wire per-worker [Restart] to cliBridge.repairWorker()**
 
 Similar pattern — calls `cliBridge.repairWorker(name)` and shows progress.
 
-- [ ] **Step 2.7: Update the JSX to show progress indicator when deploying**
+- [x] **Step 2.7: Update the JSX to show progress indicator when deploying**
 
 Find the button render area and add deploy state display:
 
@@ -577,11 +577,11 @@ onMouseUp={() => handleDeployWorker(worker.name)}
 )}
 ```
 
-- [ ] **Step 2.8: Toggle deploy button disabled/loading state**
+- [x] **Step 2.8: Toggle deploy button disabled/loading state**
 
 Set button text to `[DEPLOYING...]` and disabled color while `deploying` matches, so users can't re-trigger.
 
-- [ ] **Step 2.9: Build to verify**
+- [x] **Step 2.9: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
@@ -589,7 +589,7 @@ cd packages/tui && bun run build 2>&1 | tail -5
 
 Expected: "Bundled N modules in Xms" — no build errors.
 
-- [ ] **Step 2.10: Commit**
+- [x] **Step 2.10: Commit**
 
 ```bash
 git add packages/tui/src/components/views/service-manager.tsx
@@ -606,11 +606,11 @@ git commit -m "feat(tui): wire ServiceManager deploy/restart buttons to CliBridg
 
 Dashboard shows system health overview. Currently depends on polling from `serviceStore.fetchWorkers()` which goes through the REST API. Supplement with CLI health check for validation.
 
-- [ ] **Step 3.1: Read dashboard.tsx to understand current health display**
+- [x] **Step 3.1: Read dashboard.tsx to understand current health display**
 
 Find where health data is rendered and where the refresh/poll logic lives.
 
-- [ ] **Step 3.2: Add CLI health check on mount + refresh action**
+- [x] **Step 3.2: Add CLI health check on mount + refresh action**
 
 Add to imports:
 
@@ -621,21 +621,21 @@ import { useServiceStore } from "@jango-blockchained/hoox-shared";
 
 Add a `useEffect` that runs `cliBridge.checkHealth()` on mount and a `refreshHealth` callback for manual refresh. Parse the JSON response and feed it into the service store or local state.
 
-- [ ] **Step 3.3: Add a visual refresh action**
+- [x] **Step 3.3: Add a visual refresh action**
 
 Add a clickable `[REFRESH]` label (or repurpose an existing one) that calls `cliBridge.monitorStatus()` and updates the displayed metrics.
 
-- [ ] **Step 3.4: Handle offline gracefully**
+- [x] **Step 3.4: Handle offline gracefully**
 
 If the CLI health check fails (no API available), preserve the existing SSE/polling fallback behavior. The bridge result's `success: false` triggers an alert but doesn't crash the view.
 
-- [ ] **Step 3.5: Build to verify**
+- [x] **Step 3.5: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 3.6: Commit**
+- [x] **Step 3.6: Commit**
 
 ```bash
 git add packages/tui/src/components/views/dashboard.tsx
@@ -652,21 +652,21 @@ git commit -m "feat(tui): wire Dashboard health check to CliBridge"
 
 WorkersOverview shows a 2-column card grid with worker info and action buttons.
 
-- [ ] **Step 4.1: Read workers-overview.tsx to find action button handlers**
+- [x] **Step 4.1: Read workers-overview.tsx to find action button handlers**
 
-- [ ] **Step 4.2: Import cliBridge + add deploy state**
+- [x] **Step 4.2: Import cliBridge + add deploy state**
 
 Same pattern as Task 2 — `deploying` state, per-worker deploy handler.
 
-- [ ] **Step 4.3: Wire each card's action button**
+- [x] **Step 4.3: Wire each card's action button**
 
 Each card's deploy/restart button calls `cliBridge.deployWorker(name)` or `cliBridge.rebuild()`.
 
-- [ ] **Step 4.4: Show per-card progress**
+- [x] **Step 4.4: Show per-card progress**
 
 Add a small progress indicator row inside each card when that card's worker is deploying.
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 ```bash
 git add packages/tui/src/components/views/workers-overview.tsx
@@ -683,23 +683,23 @@ git commit -m "feat(tui): wire WorkersOverview action buttons to CliBridge"
 
 WorkerDetail has 4 panes: Metrics, Live Logs, Durable Objects, Config Preview.
 
-- [ ] **Step 5.1: Read worker-detail.tsx to understand current data sources**
+- [x] **Step 5.1: Read worker-detail.tsx to understand current data sources**
 
-- [ ] **Step 5.2: Replace static config preview with live data**
+- [x] **Step 5.2: Replace static config preview with live data**
 
 Add `cliBridge.configShow()` call on mount. Parse the JSON response and display the config relevant to the selected worker.
 
-- [ ] **Step 5.3: Add log fallback for when SSE is unavailable**
+- [x] **Step 5.3: Add log fallback for when SSE is unavailable**
 
 If `connectionStatus` is not `"connected"`, fall back to `cliBridge.workerLogs(workerId)` for log display.
 
-- [ ] **Step 5.4: Build to verify**
+- [x] **Step 5.4: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add packages/tui/src/components/views/worker-detail.tsx
@@ -716,9 +716,9 @@ git commit -m "feat(tui): wire WorkerDetail logs and config to CliBridge"
 
 LogsViewer has [Export] and [Clear] buttons with `// TODO` comment stubs.
 
-- [ ] **Step 6.1: Read logs-viewer.tsx to find the stub handlers**
+- [x] **Step 6.1: Read logs-viewer.tsx to find the stub handlers**
 
-- [ ] **Step 6.2: Implement [Export] handler**
+- [x] **Step 6.2: Implement [Export] handler**
 
 Replace the `// TODO` export handler with:
 
@@ -757,7 +757,7 @@ const handleExport = async () => {
 };
 ```
 
-- [ ] **Step 6.3: Implement [Clear] handler**
+- [x] **Step 6.3: Implement [Clear] handler**
 
 Replace the `// TODO` clear handler with:
 
@@ -777,13 +777,13 @@ const handleClear = async () => {
 };
 ```
 
-- [ ] **Step 6.4: Build to verify**
+- [x] **Step 6.4: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add packages/tui/src/components/views/logs-viewer.tsx
@@ -800,9 +800,9 @@ git commit -m "feat(tui): wire LogsViewer export and clear to CliBridge"
 
 SetupWizard Step 6 (Deploy) currently writes config and navigates to dashboard. Add actual `hoox deploy all` execution.
 
-- [ ] **Step 7.1: Read the current handleDeploy in setup-wizard.tsx**
+- [x] **Step 7.1: Read the current handleDeploy in setup-wizard.tsx**
 
-- [ ] **Step 7.2: Import cliBridge and add deploy state**
+- [x] **Step 7.2: Import cliBridge and add deploy state**
 
 ```typescript
 import { cliBridge } from "../../services/cli-bridge";
@@ -815,7 +815,7 @@ const [deploying, setDeploying] = useState(false);
 const [deployLog, setDeployLog] = useState("");
 ```
 
-- [ ] **Step 7.3: Update handleDeploy**
+- [x] **Step 7.3: Update handleDeploy**
 
 Replace the existing `handleDeploy` to call deploy before navigating:
 
@@ -856,17 +856,17 @@ const handleDeploy = async () => {
 };
 ```
 
-- [ ] **Step 7.4: Add deploy progress display to Step 6 JSX**
+- [x] **Step 7.4: Add deploy progress display to Step 6 JSX**
 
 In the `StepDeploy` component, when `deploying` is true, show progress instead of the summary view.
 
-- [ ] **Step 7.5: Build to verify**
+- [x] **Step 7.5: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 7.6: Commit**
+- [x] **Step 7.6: Commit**
 
 ```bash
 git add packages/tui/src/components/views/setup-wizard.tsx
@@ -883,9 +883,9 @@ git commit -m "feat(tui): wire SetupWizard deploy step to CliBridge"
 
 Settings has Clear Cache, Export Data, Import Data stubs.
 
-- [ ] **Step 8.1: Read settings.tsx to find stub handlers**
+- [x] **Step 8.1: Read settings.tsx to find stub handlers**
 
-- [ ] **Step 8.2: Implement Clear Cache**
+- [x] **Step 8.2: Implement Clear Cache**
 
 ```typescript
 const handleClearCache = async () => {
@@ -906,21 +906,21 @@ const handleClearCache = async () => {
 };
 ```
 
-- [ ] **Step 8.3: Implement Export Data**
+- [x] **Step 8.3: Implement Export Data**
 
 Call `cliBridge.configShow()` and write the JSON response to `~/.hoox/config-export-<timestamp>.json`.
 
-- [ ] **Step 8.4: Implement Import Data**
+- [x] **Step 8.4: Implement Import Data**
 
 Read a JSON file, parse it, call `cliBridge.exec(["config", "set", key, value])` for each key.
 
-- [ ] **Step 8.5: Build to verify**
+- [x] **Step 8.5: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 8.6: Commit**
+- [x] **Step 8.6: Commit**
 
 ```bash
 git add packages/tui/src/components/views/settings.tsx
@@ -937,15 +937,15 @@ git commit -m "feat(tui): wire Settings cache/export/import to CliBridge"
 
 ConfigEditor has file load/save with Bun I/O. Add validation via CLI after save.
 
-- [ ] **Step 9.1: Read config-editor.tsx to find save handler**
+- [x] **Step 9.1: Read config-editor.tsx to find save handler**
 
-- [ ] **Step 9.2: Import cliBridge**
+- [x] **Step 9.2: Import cliBridge**
 
 ```typescript
 import { cliBridge } from "../../services/cli-bridge";
 ```
 
-- [ ] **Step 9.3: Add validation after save**
+- [x] **Step 9.3: Add validation after save**
 
 After the existing `Bun.write` in the save handler, call:
 
@@ -959,17 +959,17 @@ if (!validationResult.success) {
 }
 ```
 
-- [ ] **Step 9.4: Display validation errors**
+- [x] **Step 9.4: Display validation errors**
 
 Add a status line below the editor that shows validation errors in red when present.
 
-- [ ] **Step 9.5: Build to verify**
+- [x] **Step 9.5: Build to verify**
 
 ```bash
 cd packages/tui && bun run build 2>&1 | tail -5
 ```
 
-- [ ] **Step 9.6: Commit**
+- [x] **Step 9.6: Commit**
 
 ```bash
 git add packages/tui/src/components/views/config-editor.tsx
@@ -987,7 +987,7 @@ git commit -m "feat(tui): wire ConfigEditor validate-on-save to CliBridge"
 
 Some views call `useServiceStore.getState().addAlert(...)`. Verify that `addAlert` exists in the service store actions.
 
-- [ ] **Step 10.1: Check if service-store exports addAlert**
+- [x] **Step 10.1: Check if service-store exports addAlert**
 
 ```bash
 rg "addAlert" packages/shared/stores/service-store.ts
@@ -1003,11 +1003,11 @@ addAlert: (alert: Alert) => {
 },
 ```
 
-- [ ] **Step 10.2: Verify `Alert` type has `source` field**
+- [x] **Step 10.2: Verify `Alert` type has `source` field**
 
 Check `packages/shared/types.ts` for the `Alert` type. If `source` doesn't exist, add it as optional `source?: string`.
 
-- [ ] **Step 10.3: Commit if changes needed**
+- [x] **Step 10.3: Commit if changes needed**
 
 ```bash
 git add packages/shared/stores/service-store.ts packages/shared/types.ts
@@ -1018,7 +1018,7 @@ git commit -m "fix(shared): add addAlert action and Alert.source field"
 
 ### Task 11: Final Verification
 
-- [ ] **Step 11.1: Run all TUI tests**
+- [x] **Step 11.1: Run all TUI tests**
 
 ```bash
 cd packages/tui && bun test 2>&1 | tail -30
@@ -1026,7 +1026,7 @@ cd packages/tui && bun test 2>&1 | tail -30
 
 Expected: Same baseline as before (301 pass, 26 fail, 6 errors — all pre-existing).
 
-- [ ] **Step 11.2: Build TUI bundle**
+- [x] **Step 11.2: Build TUI bundle**
 
 ```bash
 cd packages/tui && bun run build 2>&1
@@ -1034,7 +1034,7 @@ cd packages/tui && bun run build 2>&1
 
 Expected: "Bundled N modules in Xms" — no errors.
 
-- [ ] **Step 11.3: Run shared tests**
+- [x] **Step 11.3: Run shared tests**
 
 ```bash
 cd packages/shared && bun test 2>&1 | tail -10
@@ -1042,6 +1042,6 @@ cd packages/shared && bun test 2>&1 | tail -10
 
 Expected: All 144 tests pass.
 
-- [ ] **Step 11.4: Final summary**
+- [x] **Step 11.4: Final summary**
 
 All CLI commands are now wired into TUI views via the CliBridge.

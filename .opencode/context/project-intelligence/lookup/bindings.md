@@ -6,33 +6,33 @@
 
 ## Binding Types
 
-| Type            | Binding Prefix    | Example                 | Used By (all 10 workers)            |
-| --------------- | ----------------- | ----------------------- | ----------------------------------- |
-| Service Binding | `*_SERVICE`       | `TRADE_SERVICE`         | hoox, trade, agent, telegram, d1, web3, email, report, dashboard |
-| KV Namespace    | `*_KV`            | `CONFIG_KV`             | hoox, trade, agent, telegram, d1, email, dashboard |
-| R2 Bucket       | `*_BUCKET`        | `REPORTS_BUCKET`        | trade, telegram, report             |
-| Queue           | `*_QUEUE`         | `TRADE_QUEUE`           | hoox (producer), trade (consumer)   |
-| Durable Object  | `*_STORE`         | `IDEMPOTENCY_STORE`     | hoox                                |
-| D1 Database     | `DB`              | `DB`                    | trade, agent, d1                    |
-| Workers AI      | `AI`              | `AI`                    | hoox, agent, telegram               |
-| Vectorize       | `*_INDEX`         | `VECTORIZE_INDEX`       | hoox, telegram                      |
-| Analytics Engine| `ANALYTICS_ENGINE`| `ANALYTICS_ENGINE`      | analytics-worker                    |
-| Browser         | `BROWSER`         | (REST API)              | report-worker (via CF API)          |
+| Type             | Binding Prefix     | Example             | Used By (all 10 workers)                                         |
+| ---------------- | ------------------ | ------------------- | ---------------------------------------------------------------- |
+| Service Binding  | `*_SERVICE`        | `TRADE_SERVICE`     | hoox, trade, agent, telegram, d1, web3, email, report, dashboard |
+| KV Namespace     | `*_KV`             | `CONFIG_KV`         | hoox, trade, agent, telegram, d1, email, dashboard               |
+| R2 Bucket        | `*_BUCKET`         | `REPORTS_BUCKET`    | trade, telegram, report                                          |
+| Queue            | `*_QUEUE`          | `TRADE_QUEUE`       | hoox (producer), trade (consumer)                                |
+| Durable Object   | `*_STORE`          | `IDEMPOTENCY_STORE` | hoox                                                             |
+| D1 Database      | `DB`               | `DB`                | trade, agent, d1                                                 |
+| Workers AI       | `AI`               | `AI`                | hoox, agent, telegram                                            |
+| Vectorize        | `*_INDEX`          | `VECTORIZE_INDEX`   | hoox, telegram                                                   |
+| Analytics Engine | `ANALYTICS_ENGINE` | `ANALYTICS_ENGINE`  | analytics-worker                                                 |
+| Browser          | `BROWSER`          | (REST API)          | report-worker (via CF API)                                       |
 
 ## Service Binding Mesh
 
-| Worker             | Calls (Service Bindings)                                  | Called By                                   |
-| ------------------ | --------------------------------------------------------- | ------------------------------------------- |
-| hoox               | `ANALYTICS_SERVICE`, `TRADE_SERVICE`, `TELEGRAM_SERVICE`  | — (public gateway)                          |
-| trade-worker       | `D1_SERVICE`, `TELEGRAM_SERVICE`, `ANALYTICS_SERVICE`     | hoox, agent-worker, email-worker            |
-| agent-worker       | `D1_SERVICE`, `TRADE_SERVICE`, `TELEGRAM_SERVICE`         | dashboard                                   |
-| telegram-worker    | `ANALYTICS_SERVICE`                                       | hoox, trade, agent, web3, report            |
-| d1-worker          | `ANALYTICS_SERVICE`                                       | trade, agent, dashboard                     |
-| web3-wallet-worker | `TELEGRAM_SERVICE`, `ANALYTICS_SERVICE`                   | — (manual/API triggered)                    |
-| email-worker       | `TRADE_SERVICE`, `ANALYTICS_SERVICE`                      | — (cron/email triggered)                    |
-| analytics-worker   | (none — pure Analytics Engine)                            | hoox, trade, telegram, d1, web3, email      |
-| report-worker      | `D1_SERVICE`, `TELEGRAM_SERVICE`                          | — (cron triggered)                          |
-| dashboard          | `D1_SERVICE`, `AGENT_SERVICE`                             | — (public UI via OpenNext)                  |
+| Worker             | Calls (Service Bindings)            | Called By                        |
+| ------------------ | ----------------------------------- | -------------------------------- |
+| hoox               | `TRADE_SERVICE`, `TELEGRAM_SERVICE` | — (public gateway)               |
+| trade-worker       | `D1_SERVICE`, `TELEGRAM_SERVICE`    | hoox, agent-worker, email-worker |
+| agent-worker       | `TRADE_SERVICE`, `TELEGRAM_SERVICE` | dashboard                        |
+| telegram-worker    | (none)                              | hoox, trade, agent, web3, report |
+| d1-worker          | (none)                              | trade, agent, report, dashboard  |
+| web3-wallet-worker | `TELEGRAM_SERVICE`                  | — (manual/API triggered)         |
+| email-worker       | `TRADE_SERVICE`                     | — (cron/email triggered)         |
+| analytics-worker   | (none — pure Analytics Engine)      | — (no callers — API token auth)  |
+| report-worker      | `D1_SERVICE`, `TELEGRAM_SERVICE`    | — (cron triggered)               |
+| dashboard          | `D1_SERVICE`, `AGENT_SERVICE`       | — (public UI via OpenNext)       |
 
 ## Common Patterns
 
@@ -64,19 +64,19 @@
 
 ## Feature Matrix
 
-| Feature         | hoox | trade | telegram | agent | d1 | web3 | email | analytics | report | dashboard |
-| --------------- | ---- | ----- | -------- | ----- | -- | ---- | ----- | --------- | ------ | --------- |
-| Service Binding | ✅   | ✅    | ✅       | ✅    | ✅ | ✅   | ✅    | —         | ✅     | ✅        |
-| D1 Storage      | —    | ✅    | —        | ✅    | ✅ | —    | —     | —         | ✅     | —         |
-| R2 Storage      | —    | ✅    | ✅       | —     | —  | —    | —     | —         | ✅     | —         |
-| KV Storage      | ✅   | ✅    | ✅       | ✅    | ✅ | —    | ✅    | —         | —      | ✅        |
-| Queue           | ✅ P | ✅ C  | —        | —     | —  | —    | —     | —         | —      | —         |
-| Durable Object  | ✅   | —     | —        | —     | —  | —    | —     | —         | —      | —         |
-| Workers AI      | ✅   | —     | ✅       | ✅    | —  | —    | —     | —         | —      | —         |
-| Vectorize       | ✅   | —     | ✅       | —     | —  | —    | —     | —         | —      | —         |
-| Analytics Engine| —    | —     | —        | —     | —  | —    | —     | ✅        | —      | —         |
-| Smart Placement | ✅   | ✅    | ✅       | ✅    | ✅ | ✅   | ✅    | ✅        | ✅     | —         |
-| Observability   | ✅   | ✅    | ✅       | ✅    | ✅ | ✅   | ✅    | ✅        | ✅     | ✅        |
+| Feature          | hoox | trade | telegram | agent | d1  | web3 | email | analytics | report | dashboard |
+| ---------------- | ---- | ----- | -------- | ----- | --- | ---- | ----- | --------- | ------ | --------- |
+| Service Binding  | ✅   | ✅    | ✅       | ✅    | ✅  | ✅   | ✅    | —         | ✅     | ✅        |
+| D1 Storage       | —    | ✅    | —        | ✅    | ✅  | —    | —     | —         | ✅     | —         |
+| R2 Storage       | —    | ✅    | ✅       | —     | —   | —    | —     | —         | ✅     | —         |
+| KV Storage       | ✅   | ✅    | ✅       | ✅    | ✅  | —    | ✅    | —         | —      | ✅        |
+| Queue            | ✅ P | ✅ C  | —        | —     | —   | —    | —     | —         | —      | —         |
+| Durable Object   | ✅   | —     | —        | —     | —   | —    | —     | —         | —      | —         |
+| Workers AI       | ✅   | —     | ✅       | ✅    | —   | —    | —     | —         | —      | —         |
+| Vectorize        | ✅   | —     | ✅       | —     | —   | —    | —     | —         | —      | —         |
+| Analytics Engine | —    | —     | —        | —     | —   | —    | —     | ✅        | —      | —         |
+| Smart Placement  | ✅   | ✅    | ✅       | ✅    | ✅  | ✅   | ✅    | ✅        | ✅     | —         |
+| Observability    | ✅   | ✅    | ✅       | ✅    | ✅  | ✅   | ✅    | ✅        | ✅     | ✅        |
 
 ## 📂 Codebase References
 

@@ -106,3 +106,14 @@ coverage/
 .npmrc
 r2-test-object_*
 wrangler.jsonc.save
+
+# CTX cache artifacts
+.ctx/cache/
+.ctx/packs/
+.ctx/stats/
+
+# Rename backups
+.hoox-rename-backups/
+
+# Wizard state
+.wizard-state.json

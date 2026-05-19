@@ -511,7 +511,7 @@ describe("config keys", () => {
     const internalKeyFile = Bun.file(".keys/internal_service_key.env");
     expect(await internalKeyFile.exists()).toBe(true);
     const content = await internalKeyFile.text();
-    expect(content).toMatch(/^INTERNAL_SERVICE_KEY=[a-f0-9]{64}\n$/);
+    expect(content).toMatch(/^INTERNAL_KEY_BINDING=[a-f0-9]{64}\n$/);
   });
 
   it("lists generated key files", async () => {
@@ -575,7 +575,7 @@ describe("config keys", () => {
     const file = Bun.file(".keys/webhook_api_key.env");
     expect(await file.exists()).toBe(true);
     const content = await file.text();
-    const match = content.match(/^WEBHOOK_API_KEY=([a-f0-9]+)\n$/);
+    const match = content.match(/^WEBHOOK_API_KEY_BINDING=([a-f0-9]+)\n$/);
     expect(match).not.toBeNull();
     // Service keys are 32 bytes = 64 hex chars
     expect(match![1].length).toBe(64);

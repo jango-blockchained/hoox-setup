@@ -18,7 +18,7 @@ Set up a Telegram bot to receive trade notifications and send commands.
 Set the bot token:
 
 ```bash
-hoox secrets update-cf TELEGRAM_BOT_TOKEN telegram-worker
+hoox secrets update-cf TG_BOT_TOKEN_BINDING telegram-worker
 ```
 
 ## Step 3: Deploy the Webhook

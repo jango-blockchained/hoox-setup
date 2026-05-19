@@ -48,7 +48,7 @@ const REQUIRED_SECRETS = [
   {
     group: "Internal Auth Keys",
     worker: "trade-worker",
-    secret: "API_SERVICE_KEY",
+    secret: "API_SERVICE_KEY_BINDING",
     desc: "Internal Auth Key",
   },
   {
@@ -72,31 +72,31 @@ const REQUIRED_SECRETS = [
   {
     group: "Exchange API Keys",
     worker: "trade-worker",
-    secret: "BINANCE_API_KEY",
+    secret: "BINANCE_KEY_BINDING",
     desc: "Binance Exchange API Key",
   },
   {
     group: "Exchange API Keys",
     worker: "trade-worker",
-    secret: "BINANCE_API_SECRET",
+    secret: "BINANCE_SECRET_BINDING",
     desc: "Binance Exchange Secret",
   },
   {
     group: "Exchange API Keys",
     worker: "trade-worker",
-    secret: "MEXC_API_KEY",
+    secret: "MEXC_KEY_BINDING",
     desc: "MEXC Exchange API Key",
   },
   {
     group: "Exchange API Keys",
     worker: "trade-worker",
-    secret: "MEXC_API_SECRET",
+    secret: "MEXC_SECRET_BINDING",
     desc: "MEXC Exchange Secret",
   },
   {
     group: "Exchange API Keys",
     worker: "trade-worker",
-    secret: "BYBIT_API_KEY",
+    secret: "BYBIT_KEY_BINDING",
     desc: "Bybit Exchange API Key",
   },
   {
@@ -108,19 +108,19 @@ const REQUIRED_SECRETS = [
   {
     group: "Notification Services",
     worker: "telegram-worker",
-    secret: "TELEGRAM_BOT_TOKEN",
+    secret: "TG_BOT_TOKEN_BINDING",
     desc: "Telegram Bot Token",
   },
   {
     group: "External Webhooks",
     worker: "email-worker",
-    secret: "EMAIL_USER",
+    secret: "EMAIL_USER_BINDING",
     desc: "Email IMAP Username",
   },
   {
     group: "External Webhooks",
     worker: "email-worker",
-    secret: "EMAIL_PASS",
+    secret: "EMAIL_PASS_BINDING",
     desc: "Email IMAP Password",
   },
 ];

@@ -1,6 +1,7 @@
 ---
 title: "Telegram Worker"
 ---
+
 # Telegram Worker
 
 **Last Updated:** April 2026
@@ -36,7 +37,7 @@ A Cloudflare® Worker service that handles interactions with the Telegram Bot AP
 2.  Set your Cloudflare® account ID in `wrangler.jsonc`.
 3.  Configure Secrets (via Cloudflare® dashboard Secrets Store or `wrangler secret put`):
     - `INTERNAL_KEY_BINDING`: The **shared** secret key used for authentication with other internal workers.
-    - `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
+    - `TG_BOT_TOKEN_BINDING`: Your Telegram Bot Token.
     - `TELEGRAM_CHAT_ID_DEFAULT`: The default Telegram Chat ID for outbound messages if none is specified.
     - `TELEGRAM_WEBHOOK_SECRET`: A secure, random string used to authenticate incoming webhook requests from Telegram.
 4.  Update `wrangler.jsonc` with appropriate bindings and variables. Example:
@@ -49,7 +50,7 @@ A Cloudflare® Worker service that handles interactions with the Telegram Bot AP
       "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
       "secrets": [
         "INTERNAL_KEY_BINDING",
-        "TELEGRAM_BOT_TOKEN",
+        "TG_BOT_TOKEN_BINDING",
         "TELEGRAM_CHAT_ID_DEFAULT",
         "TELEGRAM_WEBHOOK_SECRET",
       ],
@@ -80,7 +81,7 @@ A Cloudflare® Worker service that handles interactions with the Telegram Bot AP
     ```.dev.vars
     # Mock secrets for local dev:
     INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    TELEGRAM_BOT_TOKEN="your_telegram_bot_token"
+    TG_BOT_TOKEN_BINDING="your_telegram_bot_token"
     TELEGRAM_CHAT_ID_DEFAULT="your_default_telegram_chat_id"
     TELEGRAM_WEBHOOK_SECRET="your_local_webhook_secret"
     ```

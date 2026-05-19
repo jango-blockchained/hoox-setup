@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/errors | Priority: medium | Version: 3.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/errors | Priority: medium | Version: 3.1 | Updated: 2026-05-14 -->
 
 # Common Errors
 
@@ -18,7 +18,7 @@ Error: The 'node:path' module is not supported in Edge Workers
 401 Unauthorized between workers
 ```
 
-**Fix**: Ensure `INTERNAL_KEY` is set in both `.dev.vars` and `wrangler secret put`
+**Fix**: Ensure `INTERNAL_KEY_BINDING` is set in both `.dev.vars` and `wrangler secret put`
 
 ## Error: Service Binding not found
 
@@ -45,6 +45,7 @@ Type 'string' is not assignable to type 'never'
 **Cause**: Wrangler generated types (`worker-configuration.d.ts`) are stale after `wrangler.jsonc` changes (new bindings, renamed vars, etc.)
 
 **Fix**: Regenerate types from any directory:
+
 ```bash
 npx wrangler types --config workers/<name>/wrangler.jsonc
 ```
@@ -96,7 +97,7 @@ const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", payload);
 
 ```typescript
 import { requireInternalAuth } from "@jango-blockchained/hoox-shared/middleware";
-const authError = requireInternalAuth(request, env, "INTERNAL_KEY");
+const authError = requireInternalAuth(request, env, "INTERNAL_KEY_BINDING");
 if (authError) return authError;
 ```
 

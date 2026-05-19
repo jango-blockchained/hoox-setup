@@ -27,6 +27,5 @@ The `.opencode/` directory is the central project-knowledge hub. This doc set in
 | `.opencode/context/tui/standards.md`                    | TUI coding standards                   | high     |
 | `.opencode/context/tui/patterns.md`                     | TUI development patterns (10 patterns) | high     |
 | `.opencode/specs/2026-05-14-tui-architecture-design.md` | TUI architecture design document       | high     |
-| `.opencode/tasks/tui-dashboard/`                        | TUI implementation tasks (20 subtasks) | medium   |
 | `.opencode/skills/opentui-project.md`                   | OpenTUI development skill              | high     |
 | `.opencode/skills/opentui-cloudflare-mixed.md`          | Mixed TUI + Cloudflare skill           | medium   |

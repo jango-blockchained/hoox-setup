@@ -15,17 +15,9 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import {
-  Colors,
-  useUIStore,
-  useServiceStore,
-} from "@jango-blockchained/hoox-shared";
-import {
-  restoreSession,
-  saveSession,
-  formatRelativeTimeFromTime as formatRelativeTime,
-} from "@jango-blockchained/hoox-shared";
-import type { SessionState, ViewId } from "@jango-blockchained/hoox-shared";
+import { useServiceStore, useUIStore } from "@jango-blockchained/hoox-shared";
+import { restoreSession, saveSession } from "@jango-blockchained/hoox-shared";
+import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 // ─── View imports ────────────────────────────────────────────────────────────
 
@@ -44,6 +36,8 @@ import {
 } from "./components/shared/crash-screen";
 import { CommandPalette } from "./components/shared/command-palette";
 import type { CommandEntry } from "./components/shared/command-palette";
+import { StatusBar } from "./components/layout/statusbar";
+import { Sidebar } from "./components/layout/sidebar";
 
 // ─── View registry ───────────────────────────────────────────────────────────
 
@@ -161,161 +155,6 @@ const PALETTE_COMMANDS: CommandEntry[] = [
     aliases: ["exit", "close"],
   },
 ];
-
-// ─── StatusBar sub-component ─────────────────────────────────────────────────
-
-/**
- * StatusBar — bottom bar showing connection status, stale data indicator,
- * and last-updated timestamp.
- */
-function StatusBar() {
-  const connectionStatus = useServiceStore((s) => s.connectionStatus);
-  const lastUpdated = useServiceStore((s) => s.lastUpdated);
-  const lastError = useServiceStore((s) => s.lastError);
-  const retryCount = useServiceStore((s) => s.retryCount);
-  const reconnectDelay = useServiceStore((s) => s.reconnectDelay);
-  const disconnectedAt = useServiceStore((s) => s.disconnectedAt);
-
-  const statusLabel: Record<string, string> = {
-    connected: "CONNECTED",
-    polling: "POLLING",
-    reconnecting: "RECONNECTING",
-    offline: "OFFLINE",
-  };
-
-  const statusColor: Record<string, string> = {
-    connected: Colors.success,
-    polling: Colors.accent,
-    reconnecting: Colors.warning,
-    offline: Colors.error,
-  };
-
-  const relativeTime = lastUpdated > 0 ? formatRelativeTime(lastUpdated) : "—";
-
-  // Build the status line
-  const parts: string[] = [];
-
-  // Connection status with color
-  parts.push(
-    `[${statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}]`
-  );
-
-  // Reconnecting detail
-  if (connectionStatus === "reconnecting") {
-    parts.push(`retry ${retryCount}/5 (${reconnectDelay}ms)`);
-  }
-
-  // Stale data indicator when offline
-  if (connectionStatus === "offline" || connectionStatus === "reconnecting") {
-    parts.push(`Last updated: ${relativeTime}`);
-  } else {
-    parts.push(`Updated: ${relativeTime}`);
-  }
-
-  // Error hint
-  if (lastError && connectionStatus !== "connected") {
-    const truncated =
-      lastError.length > 40 ? lastError.slice(0, 37) + "…" : lastError;
-    parts.push(`| ${truncated}`);
-  }
-
-  return (
-    <box
-      flexDirection="row"
-      height={1}
-      justifyContent="space-between"
-      paddingLeft={1}
-      paddingRight={1}
-      backgroundColor={Colors.card}
-    >
-      <box flexDirection="row" gap={1}>
-        <text fg={Colors["muted-foreground"]} dim>
-          ┌
-        </text>
-        <text fg={statusColor[connectionStatus] ?? Colors.muted}>
-          {parts.join("  ")}
-        </text>
-        <text fg={Colors["muted-foreground"]} dim>
-          ┐
-        </text>
-      </box>
-      <text fg={Colors["text-dim"]}>^P PALETTE · ^B SIDEBAR · ^Q QUIT</text>
-    </box>
-  );
-}
-
-// ─── Sidebar sub-component ───────────────────────────────────────────────────
-
-/**
- * Sidebar — left navigation panel with view links.
- * Each item is clickable via onMouseUp.
- * Active view is highlighted with the accent color.
- */
-function Sidebar() {
-  const activeView = useUIStore((s) => s.activeView);
-  const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
-  const setView = useUIStore((s) => s.setView);
-
-  if (!sidebarExpanded) return null;
-
-  const items: { id: ViewId; label: string; shortcut: string }[] = [
-    { id: "dashboard", label: "DASHBOARD", shortcut: "1" },
-    { id: "workers", label: "WORKERS", shortcut: "2" },
-    { id: "worker-detail", label: "DETAIL", shortcut: "3" },
-    { id: "trade-monitor", label: "TRADES", shortcut: "4" },
-    { id: "logs-viewer", label: "LOGS", shortcut: "5" },
-    { id: "service-manager", label: "SERVICES", shortcut: "6" },
-    { id: "config-editor", label: "CONFIG", shortcut: "7" },
-    { id: "setup-wizard", label: "SETUP", shortcut: "8" },
-    { id: "settings", label: "SETTINGS", shortcut: "9" },
-  ];
-
-  return (
-    <box
-      flexDirection="column"
-      width={18}
-      padding={1}
-      gap={0}
-      border={true}
-      borderStyle="single"
-      borderColor={Colors.border}
-      backgroundColor={Colors.card}
-    >
-      {/* Brand header — HUD-style with accent bracket decoration */}
-      <text fg={Colors.accent} bold>
-        ┌ HOOX ┐
-      </text>
-      <text fg={Colors["muted-foreground"]} dim>
-        ─────────────────
-      </text>
-
-      {/* Navigation items */}
-      {items.map((item) => {
-        const isActive = item.id === activeView;
-        return (
-          <box flexDirection="row" gap={1} key={item.id}>
-            <text fg={isActive ? Colors.accent : Colors.muted} dim>
-              {isActive ? "▸" : " "}
-            </text>
-            <text
-              fg={isActive ? Colors.accent : Colors.foreground}
-              bold={isActive}
-              onMouseUp={() => setView(item.id)}
-            >
-              {item.label}
-            </text>
-          </box>
-        );
-      })}
-
-      {/* Shortcut hints */}
-      <box flexGrow={1} />
-      <text fg={Colors.dim} dim>
-        Ctrl+1-9 to switch
-      </text>
-    </box>
-  );
-}
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 

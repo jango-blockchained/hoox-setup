@@ -2,6 +2,8 @@
  * Worker presets, dependency resolution, and integration definitions.
  *
  * Migrated from packages/cli/src/commands/init/types.ts
+ * Secret names updated to match the canonical Worker Manifest Schema
+ * (see packages/shared/src/schemas/registry.ts).
  * Pure data — no runtime dependencies, Worker-compatible.
  */
 import type { WorkerPreset, IntegratedService } from "./types";
@@ -96,8 +98,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Binance Exchange",
     workerName: "trade-worker",
     secrets: {
-      BINANCE_API_KEY: "Binance API Key",
-      BINANCE_API_SECRET: "Binance API Secret",
+      BINANCE_KEY_BINDING: "Binance API Key",
+      BINANCE_SECRET_BINDING: "Binance API Secret",
     },
   },
   {
@@ -105,8 +107,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "MEXC Exchange",
     workerName: "trade-worker",
     secrets: {
-      MEXC_API_KEY: "MEXC API Key",
-      MEXC_API_SECRET: "MEXC API Secret",
+      MEXC_KEY_BINDING: "MEXC API Key",
+      MEXC_SECRET_BINDING: "MEXC API Secret",
     },
   },
   {
@@ -114,8 +116,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Bybit Exchange",
     workerName: "trade-worker",
     secrets: {
-      BYBIT_API_KEY: "Bybit API Key",
-      BYBIT_API_SECRET: "Bybit API Secret",
+      BYBIT_KEY_BINDING: "Bybit API Key",
+      BYBIT_SECRET_BINDING: "Bybit API Secret",
     },
   },
   {
@@ -132,10 +134,10 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Email Signal Parsing",
     workerName: "email-worker",
     secrets: {
-      EMAIL_HOST: "Email Host (IMAP server)",
-      EMAIL_USER: "Email Username",
-      EMAIL_PASS: "Email Password",
-      INTERNAL_KEY: "Internal Auth Key",
+      INTERNAL_KEY_BINDING: "Internal Auth Key",
+      EMAIL_HOST_BINDING: "Email Host (IMAP server)",
+      EMAIL_USER_BINDING: "Email Username",
+      EMAIL_PASS_BINDING: "Email Password",
     },
     vars: { USE_IMAP: "false" },
   },
@@ -144,7 +146,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Telegram Notifications",
     workerName: "telegram-worker",
     secrets: {
-      TELEGRAM_BOT_TOKEN: "Telegram Bot Token",
+      TG_BOT_TOKEN_BINDING: "Telegram Bot Token",
     },
   },
   {
@@ -152,7 +154,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "OpenAI (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_OPENAI_KEY: "OpenAI API Key",
+      AGENT_INTERNAL_KEY: "OpenAI API Key",
     },
   },
   {
@@ -160,7 +162,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Anthropic (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_ANTHROPIC_KEY: "Anthropic API Key",
+      AGENT_INTERNAL_KEY: "Anthropic API Key",
     },
   },
   {
@@ -168,7 +170,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Google AI (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_GOOGLE_KEY: "Google AI API Key",
+      AGENT_INTERNAL_KEY: "Google AI API Key",
     },
   },
   {
@@ -206,7 +208,6 @@ export const BASE_WORKERS: Record<
  */
 export const BASE_SECRETS: Record<string, string[]> = {
   hoox: ["WEBHOOK_API_KEY_BINDING"],
-  "agent-worker": ["AGENT_INTERNAL_KEY"],
+  "agent-worker": ["AGENT_INTERNAL_KEY", "INTERNAL_KEY_BINDING"],
   "analytics-worker": ["CLOUDFLARE_API_TOKEN"],
-  "trade-worker": ["API_SERVICE_KEY"],
 };

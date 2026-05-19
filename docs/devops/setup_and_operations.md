@@ -140,31 +140,33 @@ hoox clone my-hoox-app
 
 > **CRITICAL:** All production secrets must be set via `wrangler secret put` or `hoox secrets update-cf`. Never commit secrets to version control.
 
-| Secret Name               | Worker(s)                           | Set Via               | Required For | Description                            |
-| ------------------------- | ----------------------------------- | --------------------- | ------------ | -------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`    | analytics-worker, CLI               | `wrangler secret put` | Production   | CF API token for Analytics SQL queries |
-| `WEBHOOK_API_KEY_BINDING` | hoox                                | `wrangler secret put` | Production   | External webhook auth key              |
-| `INTERNAL_KEY_BINDING`    | hoox, trade-worker, telegram-worker | `wrangler secret put` | Production   | Inter-worker auth                      |
-| `AGENT_INTERNAL_KEY`      | agent-worker                        | `wrangler secret put` | Production   | Agent worker auth                      |
-| `API_SERVICE_KEY`         | trade-worker                        | `wrangler secret put` | Production   | Trade worker service key               |
-| `BINANCE_API_KEY`         | trade-worker                        | `wrangler secret put` | Optional     | Binance exchange API                   |
-| `BINANCE_API_SECRET`      | trade-worker                        | `wrangler secret put` | Optional     | Binance exchange secret                |
-| `MEXC_API_KEY`            | trade-worker                        | `wrangler secret put` | Optional     | MEXC exchange API                      |
-| `MEXC_API_SECRET`         | trade-worker                        | `wrangler secret put` | Optional     | MEXC exchange secret                   |
-| `BYBIT_API_KEY`           | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange API                     |
-| `BYBIT_API_SECRET`        | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange secret                  |
-| `TELEGRAM_BOT_TOKEN`      | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token                     |
-| `TELEGRAM_SECRET_TOKEN`   | telegram-worker                     | `wrangler secret put` | Optional     | Telegram webhook secret                |
-| `TG_BOT_TOKEN_BINDING`    | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token (binding)           |
-| `TG_CHAT_ID_BINDING`      | telegram-worker                     | `wrangler secret put` | Optional     | Default Telegram chat ID               |
-| `WALLET_PK_SECRET`        | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet private key                     |
-| `WALLET_MNEMONIC_SECRET`  | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet mnemonic phrase                 |
-| `EMAIL_HOST`              | email-worker                        | `wrangler secret put` | Optional     | Email IMAP host                        |
-| `EMAIL_USER`              | email-worker                        | `wrangler secret put` | Optional     | Email username                         |
-| `EMAIL_PASS`              | email-worker                        | `wrangler secret put` | Optional     | Email password                         |
-| `INTERNAL_KEY`            | email-worker                        | `wrangler secret put` | Optional     | Email worker auth                      |
-| `D1_INTERNAL_KEY`         | d1-worker (header check)            | `wrangler secret put` | Optional     | D1 worker API auth                     |
-| `HA_TOKEN_BINDING`        | hoox                                | `wrangler secret put` | Optional     | Home Assistant token                   |
+| Secret Name                     | Worker(s)                                                    | Set Via               | Required For | Description                            |
+| ------------------------------- | ------------------------------------------------------------ | --------------------- | ------------ | -------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`          | analytics-worker, CLI                                        | `wrangler secret put` | Production   | CF API token for Analytics SQL queries |
+| `WEBHOOK_API_KEY_BINDING`       | hoox                                                         | `wrangler secret put` | Production   | External webhook auth key              |
+| `INTERNAL_KEY_BINDING`          | hoox, trade-worker, telegram-worker, d1-worker, email-worker | `wrangler secret put` | Production   | Inter-worker auth                      |
+| `AGENT_INTERNAL_KEY`            | agent-worker                                                 | `wrangler secret put` | Production   | Agent worker auth                      |
+| `API_SERVICE_KEY_BINDING`       | trade-worker                                                 | `wrangler secret put` | Production   | Trade worker service key               |
+| `TELEGRAM_INTERNAL_KEY_BINDING` | trade-worker                                                 | `wrangler secret put` | Production   | Trade→Telegram outbound auth           |
+| `BINANCE_KEY_BINDING`           | trade-worker                                                 | `wrangler secret put` | Optional     | Binance exchange API                   |
+| `BINANCE_SECRET_BINDING`        | trade-worker                                                 | `wrangler secret put` | Optional     | Binance exchange secret                |
+| `MEXC_KEY_BINDING`              | trade-worker                                                 | `wrangler secret put` | Optional     | MEXC exchange API                      |
+| `MEXC_SECRET_BINDING`           | trade-worker                                                 | `wrangler secret put` | Optional     | MEXC exchange secret                   |
+| `BYBIT_KEY_BINDING`             | trade-worker                                                 | `wrangler secret put` | Optional     | Bybit exchange API                     |
+| `BYBIT_SECRET_BINDING`          | trade-worker                                                 | `wrangler secret put` | Optional     | Bybit exchange secret                  |
+| `TG_BOT_TOKEN_BINDING`          | telegram-worker                                              | `wrangler secret put` | Optional     | Telegram bot token                     |
+| `TELEGRAM_SECRET_TOKEN`         | telegram-worker                                              | `wrangler secret put` | Optional     | Telegram webhook secret                |
+| `TG_CHAT_ID_BINDING`            | telegram-worker                                              | `wrangler secret put` | Optional     | Default Telegram chat ID               |
+| `WALLET_PK_SECRET`              | web3-wallet-worker                                           | `wrangler secret put` | Optional     | Wallet private key                     |
+| `WALLET_MNEMONIC_SECRET`        | web3-wallet-worker                                           | `wrangler secret put` | Optional     | Wallet mnemonic phrase                 |
+| `EMAIL_HOST_BINDING`            | email-worker                                                 | `wrangler secret put` | Optional     | Email IMAP host                        |
+| `EMAIL_USER_BINDING`            | email-worker                                                 | `wrangler secret put` | Optional     | Email username                         |
+| `EMAIL_PASS_BINDING`            | email-worker                                                 | `wrangler secret put` | Optional     | Email password                         |
+| `CF_API_TOKEN_BINDING`          | report-worker                                                | `wrangler secret put` | Production   | CF API token for Browser Rendering API |
+| `HA_TOKEN_BINDING`              | hoox                                                         | `wrangler secret put` | Optional     | Home Assistant token                   |
+| `DASHBOARD_USER`                | dashboard                                                    | `wrangler secret put` | Production   | Dashboard admin username               |
+| `DASHBOARD_PASS`                | dashboard                                                    | `wrangler secret put` | Production   | Dashboard admin password               |
+| `SESSION_SECRET`                | dashboard                                                    | `wrangler secret put` | Production   | Dashboard session encryption key       |
 
 ### 3.2 Environment Variables by File
 
@@ -178,25 +180,23 @@ CLOUDFLARE_SECRET_STORE_ID="48433bc559a943f09d9d6c622e188fd5"
 SUBDOMAIN_PREFIX="cryptolinx"
 
 # === INTERNAL AUTH KEYS ===
-D1_INTERNAL_KEY="<generate-secure-random-string>"
+INTERNAL_KEY_BINDING="<generate-secure-random-string>"
 TRADE_INTERNAL_KEY="<generate-secure-random-string>"
 AGENT_INTERNAL_KEY="<generate-secure-random-string>"
 
 # === TELEGRAM ===
-TELEGRAM_BOT_TOKEN="<your-bot-token>"
+TG_BOT_TOKEN_BINDING="<your-bot-token>"
 
 # === AI PROVIDERS (optional) ===
-AGENT_OPENAI_KEY="sk-..."
-AGENT_ANTHROPIC_KEY="sk-ant-..."
-AGENT_GOOGLE_KEY="..."
+AGENT_INTERNAL_KEY="sk-..."
 
 # === EXCHANGE API KEYS (optional) ===
-BINANCE_API_KEY="..."
-BINANCE_API_SECRET="..."
-MEXC_API_KEY="..."
-MEXC_API_SECRET="..."
-BYBIT_API_KEY="..."
-BYBIT_API_SECRET="..."
+BINANCE_KEY_BINDING="..."
+BINANCE_SECRET_BINDING="..."
+MEXC_KEY_BINDING="..."
+MEXC_SECRET_BINDING="..."
+BYBIT_KEY_BINDING="..."
+BYBIT_SECRET_BINDING="..."
 
 # === DASHBOARD AUTH ===
 DASHBOARD_USER="admin"
@@ -238,20 +238,20 @@ DASHBOARD_PASS=admin
       "enabled": true,
       "path": "workers/telegram-worker",
       "vars": {},
-      "secrets": ["TELEGRAM_BOT_TOKEN"],
+      "secrets": ["TG_BOT_TOKEN_BINDING"],
     },
     "trade-worker": {
       "enabled": true,
       "path": "workers/trade-worker",
       "vars": {},
       "secrets": [
-        "API_SERVICE_KEY",
-        "BINANCE_API_KEY",
-        "BINANCE_API_SECRET",
-        "MEXC_API_KEY",
-        "MEXC_API_SECRET",
-        "BYBIT_API_KEY",
-        "BYBIT_API_SECRET",
+        "API_SERVICE_KEY_BINDING",
+        "BINANCE_KEY_BINDING",
+        "BINANCE_SECRET_BINDING",
+        "MEXC_KEY_BINDING",
+        "MEXC_SECRET_BINDING",
+        "BYBIT_KEY_BINDING",
+        "BYBIT_SECRET_BINDING",
       ],
     },
     "web3-wallet-worker": {
@@ -276,7 +276,12 @@ DASHBOARD_PASS=admin
       "enabled": true,
       "path": "workers/email-worker",
       "vars": { "USE_IMAP": "false" },
-      "secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"],
+      "secrets": [
+        "EMAIL_HOST_BINDING",
+        "EMAIL_USER_BINDING",
+        "EMAIL_PASS_BINDING",
+        "INTERNAL_KEY_BINDING",
+      ],
     },
     "analytics-worker": {
       "enabled": true,
@@ -700,7 +705,7 @@ hoox workers deploy --all
 
 ```bash
 # Set Telegram webhook after telegram-worker is deployed
-curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+curl -X POST "https://api.telegram.org/bot<TG_BOT_TOKEN_BINDING>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://telegram-worker.<SUBDOMAIN_PREFIX>.workers.dev/webhook/<TELEGRAM_SECRET_TOKEN>",
@@ -750,10 +755,10 @@ hoox workers update-internal-urls
     },
   ],
   "vars": {
-    "D1_WORKER_URL": "https://d1-worker.cryptolinx.workers.dev",
+    "D1_SERVICE": "https://d1-worker.cryptolinx.workers.dev",
     "AGENT_SERVICE_URL": "https://agent-worker.cryptolinx.workers.dev",
     "TRADE_SERVICE_URL": "https://trade-worker.cryptolinx.workers.dev",
-    "TELEGRAM_SERVICE_URL": "https://telegram-worker.cryptolinx.workers.dev",
+    "TELEGRAM_SERVICE": "https://telegram-worker.cryptolinx.workers.dev",
   },
 }
 ```
@@ -796,21 +801,21 @@ bun run pages:deploy
 
 ### 8.5 Dashboard Environment Variables
 
-| Variable                | Required | Description                         |
-| ----------------------- | -------- | ----------------------------------- |
-| `DASHBOARD_USER`        | Yes      | Login username                      |
-| `DASHBOARD_PASS`        | Yes      | Login password                      |
-| `SESSION_SECRET`        | Yes      | Cookie signing secret (32+ chars)   |
-| `AUTH_TYPE`             | No       | `basic`, `cf-access`, or `none`     |
-| `CF_ACCESS_TEAM_NAME`   | No       | CF Access team (if using cf-access) |
-| `D1_WORKER_URL`         | Yes      | D1 worker service URL               |
-| `TRADE_SERVICE_URL`     | Yes      | Trade worker service URL            |
-| `AGENT_SERVICE_URL`     | Yes      | Agent worker service URL            |
-| `TELEGRAM_SERVICE_URL`  | Yes      | Telegram worker service URL         |
-| `D1_INTERNAL_KEY`       | Yes      | Auth key for D1 worker              |
-| `AGENT_INTERNAL_KEY`    | Yes      | Auth key for agent worker           |
-| `TELEGRAM_INTERNAL_KEY` | No       | Auth key for telegram worker        |
-| `API_SERVICE_KEY`       | No       | General API service key             |
+| Variable                  | Required | Description                         |
+| ------------------------- | -------- | ----------------------------------- |
+| `DASHBOARD_USER`          | Yes      | Login username                      |
+| `DASHBOARD_PASS`          | Yes      | Login password                      |
+| `SESSION_SECRET`          | Yes      | Cookie signing secret (32+ chars)   |
+| `AUTH_TYPE`               | No       | `basic`, `cf-access`, or `none`     |
+| `CF_ACCESS_TEAM_NAME`     | No       | CF Access team (if using cf-access) |
+| `D1_SERVICE`              | Yes      | D1 worker service URL               |
+| `TRADE_SERVICE_URL`       | Yes      | Trade worker service URL            |
+| `AGENT_SERVICE_URL`       | Yes      | Agent worker service URL            |
+| `TELEGRAM_SERVICE`        | Yes      | Telegram worker service URL         |
+| `INTERNAL_KEY_BINDING`    | Yes      | Auth key for D1 worker              |
+| `AGENT_INTERNAL_KEY`      | Yes      | Auth key for agent worker           |
+| `TELEGRAM_INTERNAL_KEY`   | No       | Auth key for telegram worker        |
+| `API_SERVICE_KEY_BINDING` | No       | General API service key             |
 
 ---
 
@@ -902,7 +907,7 @@ curl https://trade-worker.<SUBDOMAIN_PREFIX>.workers.dev/health
 
 # Check signals endpoint
 curl https://trade-worker.<SUBDOMAIN_PREFIX>.workers.dev/api/signals \
-  -H "Authorization: Bearer <API_SERVICE_KEY>"
+  -H "Authorization: Bearer <API_SERVICE_KEY_BINDING>"
 ```
 
 #### 10.2.3 Agent Worker Health
@@ -921,7 +926,7 @@ curl https://agent-worker.<SUBDOMAIN_PREFIX>.workers.dev/status
 # Test D1 query
 curl -X POST https://d1-worker.<SUBDOMAIN_PREFIX>.workers.dev/query \
   -H "Content-Type: application/json" \
-  -H "X-Internal-Auth-Key: <D1_INTERNAL_KEY>" \
+  -H "X-Internal-Auth-Key: <INTERNAL_KEY_BINDING>" \
   --data '{"query":"SELECT 1"}'
 ```
 

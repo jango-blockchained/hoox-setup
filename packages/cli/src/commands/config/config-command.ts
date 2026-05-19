@@ -204,7 +204,7 @@ EXAMPLES:
   hoox config show                    Display current configuration
   hoox config set workers.agent-worker.enabled false
   hoox config secrets list            List secrets for a worker
-  hoox config secrets set trade-worker BINANCE_API_KEY
+  hoox config secrets set trade-worker BINANCE_KEY_BINDING
   hoox config keys generate           Generate new internal keys`
     );
 
@@ -454,7 +454,7 @@ The command will prompt for the secret value (hidden input).
 It writes to the worker's .dev.vars file and syncs to Cloudflare.
 
 EXAMPLES:
-  hoox config secrets set trade-worker BINANCE_API_KEY
+  hoox config secrets set trade-worker BINANCE_KEY_BINDING
   hoox config secrets set agent-worker OPENAI_KEY`
     )
     .action(async (workerName: string, secretName: string) => {
@@ -529,7 +529,7 @@ ARGUMENTS:
 This removes the secret from Cloudflare and from the worker's .dev.vars file.
 
 EXAMPLES:
-  hoox config secrets delete trade-worker BINANCE_API_KEY`
+  hoox config secrets delete trade-worker BINANCE_KEY_BINDING`
     )
     .action(async (workerName: string, secretName: string) => {
       const opts = formatOpts(program);
@@ -718,11 +718,11 @@ EXAMPLES:
       `Generate new internal auth keys and save to .keys/ directory.
 
 Creates the following keys:
-  - INTERNAL_SERVICE_KEY   (32 char)
-  - WEBHOOK_API_KEY        (32 char)
+  - INTERNAL_KEY_BINDING   (32 char)
+  - WEBHOOK_API_KEY_BINDING        (32 char)
   - AGENT_INTERNAL_KEY     (32 char)
-  - TELEGRAM_BOT_TOKEN     (16 char)
-  - INTERNAL_KEY           (32 char)
+  - TG_BOT_TOKEN_BINDING   (16 char)
+  - INTERNAL_KEY_BINDING   (32 char)
 
 WARNING: Add .keys/ to your .gitignore to avoid committing secrets!
 
@@ -739,11 +739,10 @@ EXAMPLES:
         }
 
         const keys: Record<string, string> = {
-          INTERNAL_SERVICE_KEY: generateKey(),
-          WEBHOOK_API_KEY: generateKey(),
+          INTERNAL_KEY_BINDING: generateKey(),
+          WEBHOOK_API_KEY_BINDING: generateKey(),
           AGENT_INTERNAL_KEY: generateKey(),
-          TELEGRAM_BOT_TOKEN: generateKey(16),
-          INTERNAL_KEY: generateKey(),
+          TG_BOT_TOKEN_BINDING: generateKey(16),
         };
 
         for (const [name, value] of Object.entries(keys)) {

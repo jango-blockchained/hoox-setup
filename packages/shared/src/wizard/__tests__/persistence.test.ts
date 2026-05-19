@@ -15,7 +15,7 @@ describe("persistence", () => {
       },
       selectedWorkers: ["hoox", "d1-worker"],
       selectedIntegrations: ["binance"],
-      secrets: { binance: { BINANCE_API_KEY: "key123" } },
+      secrets: { binance: { BINANCE_KEY_BINDING: "key123" } },
       preset: "minimal",
       startedAt: 1000,
       updatedAt: 2000,
@@ -27,7 +27,7 @@ describe("persistence", () => {
     expect(parsed.cloudflareConfig?.apiToken).toBe("tok_xxx");
     expect(parsed.selectedWorkers).toContain("hoox");
     expect(parsed.selectedIntegrations).toContain("binance");
-    expect(parsed.secrets?.binance?.BINANCE_API_KEY).toBe("key123");
+    expect(parsed.secrets?.binance?.BINANCE_KEY_BINDING).toBe("key123");
     expect(parsed.preset).toBe("minimal");
   });
 

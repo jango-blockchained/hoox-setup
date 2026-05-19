@@ -146,6 +146,7 @@ import { registerDbCommand } from "./commands/db/index.js";
 import { registerMonitorCommand } from "./commands/monitor/index.js";
 import { registerRepairCommand } from "./commands/repair/index.js";
 import { registerUpdateCommand } from "./commands/update/index.js";
+import { registerSchemaCommand } from "./commands/schema/index.js";
 import { registerTUICommand } from "./commands/tui/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
@@ -174,6 +175,7 @@ registerDashboardCommand(program);
 registerDbCommand(program);
 registerMonitorCommand(program);
 registerRepairCommand(program);
+registerSchemaCommand(program);
 registerUpdateCommand(program);
 registerTUICommand(program);
 

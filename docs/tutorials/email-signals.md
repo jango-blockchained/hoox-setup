@@ -12,9 +12,9 @@ Configure Hoox to parse trading signals from email messages.
 Set your email credentials:
 
 ```bash
-hoox secrets update-cf EMAIL_HOST email-worker
-hoox secrets update-cf EMAIL_USER email-worker
-hoox secrets update-cf EMAIL_PASS email-worker
+hoox secrets update-cf EMAIL_HOST_BINDING email-worker
+hoox secrets update-cf EMAIL_USER_BINDING email-worker
+hoox secrets update-cf EMAIL_PASS_BINDING email-worker
 ```
 
 ## Step 2: Configure Parsing Rules

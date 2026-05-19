@@ -1,6 +1,7 @@
 ---
 title: "Hoox Gateway Worker"
 ---
+
 # Hoox Gateway Worker
 
 **Last Updated:** April 2026
@@ -76,7 +77,7 @@ A Cloudflare® Worker service that acts as the **primary gateway** for external 
     ```.dev.vars
     # Mock secret bindings for local dev:
     WEBHOOK_API_KEY_BINDING="your_external_api_key"
-    INTERNAL_KEY="your_shared_internal_secret"
+    INTERNAL_KEY_BINDING="your_shared_internal_secret"
     ```
 
 ## Development

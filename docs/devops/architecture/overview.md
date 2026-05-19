@@ -144,7 +144,7 @@ Layer 4: Internal Key Validation — Worker-to-worker auth header (standardized 
 Layer 5: Idempotency — DO prevents duplicate trades on retry
 ```
 
-> **Auth Standardization:** All internal workers (`trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`) now use the same `INTERNAL_KEY_BINDING` binding name with the shared `requireInternalAuth` middleware from `@jango-blockchained/hoox-shared/middleware`.
+> **Auth Standardization:** All internal workers (`hoox`, `trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`, `email-worker`) now use the same `INTERNAL_KEY_BINDING` binding name with the shared `requireInternalAuth` middleware from `@jango-blockchained/hoox-shared/middleware`.
 
 ## Next Steps
 

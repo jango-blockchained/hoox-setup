@@ -1,4 +1,4 @@
-<!-- Context: project-intelligence/examples | Priority: high | Version: 3.0 | Updated: 2026-05-14 -->
+<!-- Context: project-intelligence/examples | Priority: high | Version: 3.1 | Updated: 2026-05-14 -->
 
 # API Patterns
 
@@ -20,7 +20,9 @@ import { createRouter } from "@jango-blockchained/hoox-shared/router";
 import { withRequestLog } from "@jango-blockchained/hoox-shared/middleware";
 import { healthCheck } from "@jango-blockchained/hoox-shared/health";
 
-interface Env { /* worker-specific bindings */ }
+interface Env {
+  /* worker-specific bindings */
+}
 
 const router = createRouter<Env>();
 
@@ -31,7 +33,7 @@ router.get("/health", async (req, env, ctx) => {
 
 // Protected endpoint with requireInternalAuth
 router.post("/process", async (req, env, ctx) => {
-  const authError = requireInternalAuth(req, env, "INTERNAL_KEY");
+  const authError = requireInternalAuth(req, env, "INTERNAL_KEY_BINDING");
   if (authError) return authError;
   // ... handler logic
 });
@@ -52,7 +54,7 @@ All internal workers use the shared `requireInternalAuth()` middleware:
 import { requireInternalAuth } from "@jango-blockchained/hoox-shared/middleware";
 
 // Returns Response (401) if unauthorized, null if authorized
-const authError = requireInternalAuth(request, env, "INTERNAL_KEY");
+const authError = requireInternalAuth(request, env, "INTERNAL_KEY_BINDING");
 if (authError) return authError;
 ```
 
@@ -67,12 +69,22 @@ import { serviceFetch } from "@jango-blockchained/hoox-shared/service-bindings";
 const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", payload);
 
 // POST with extra headers
-const response = await serviceFetch(env.D1_SERVICE, "/query", { query, params }, {
-  headers: { "X-Request-ID": requestId },
-});
+const response = await serviceFetch(
+  env.D1_SERVICE,
+  "/query",
+  { query, params },
+  {
+    headers: { "X-Request-ID": requestId },
+  }
+);
 
 // GET request (no body)
-const response = await serviceFetch(env.D1_SERVICE, "/api/balances", undefined, { method: "GET" });
+const response = await serviceFetch(
+  env.D1_SERVICE,
+  "/api/balances",
+  undefined,
+  { method: "GET" }
+);
 ```
 
 Convention: URL path matches the target worker's route. Uses `http://internal{path}` URL scheme.
@@ -99,6 +111,7 @@ router.get("/health", async (req, env, ctx) => {
 ```
 
 Response format:
+
 ```json
 {
   "success": true,
@@ -122,15 +135,15 @@ Response format:
 
 ## Endpoint Quick Ref
 
-| Worker             | Endpoints                                            | Methods      |
-| ------------------ | ---------------------------------------------------- | ------------ |
-| hoox               | `/`, `/health`                                       | POST, GET    |
-| trade-worker       | `/process`, `/webhook`, `/health`, `/api/signals`, `/report` | POST, GET |
-| telegram-worker    | `/process`, `/webhook`, `/health`                    | POST, GET    |
-| agent-worker       | `/agent/status`, `/agent/risk-override`, `/agent/chat`, `/agent/health`, `/health` + more | GET, POST |
+| Worker             | Endpoints                                                                                      | Methods   |
+| ------------------ | ---------------------------------------------------------------------------------------------- | --------- |
+| hoox               | `/`, `/health`                                                                                 | POST, GET |
+| trade-worker       | `/process`, `/webhook`, `/health`, `/api/signals`, `/report`                                   | POST, GET |
+| telegram-worker    | `/process`, `/webhook`, `/health`                                                              | POST, GET |
+| agent-worker       | `/agent/status`, `/agent/risk-override`, `/agent/chat`, `/agent/health`, `/health` + more      | GET, POST |
 | d1-worker          | `/query`, `/batch`, `/health`, `/api/settings`, `/api/balances`, `/api/positions`, `/api/logs` | POST, GET |
-| web3-wallet-worker | `/`, `/health`                                       | GET          |
-| email-worker       | `*`, `/health`                                       | POST, GET    |
+| web3-wallet-worker | `/`, `/health`                                                                                 | GET       |
+| email-worker       | `*`, `/health`                                                                                 | POST, GET |
 
 ## 📂 Codebase References
 

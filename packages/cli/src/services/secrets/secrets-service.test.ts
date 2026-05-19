@@ -33,12 +33,16 @@ const WORKERS_JSONC = JSON.stringify({
     "telegram-worker": {
       enabled: true,
       path: "workers/telegram-worker",
-      secrets: ["TELEGRAM_BOT_TOKEN"],
+      secrets: ["TG_BOT_TOKEN_BINDING"],
     },
     "trade-worker": {
       enabled: true,
       path: "workers/trade-worker",
-      secrets: ["API_SERVICE_KEY", "BINANCE_API_KEY", "BINANCE_API_SECRET"],
+      secrets: [
+        "API_SERVICE_KEY_BINDING",
+        "BINANCE_KEY_BINDING",
+        "BINANCE_SECRET_BINDING",
+      ],
     },
     "d1-worker": {
       enabled: true,
@@ -106,16 +110,16 @@ describe("SecretsService", () => {
     it("returns correct secret names for a worker that has secrets", async () => {
       const svc = await createService();
       expect(svc.listSecrets("trade-worker")).toEqual([
-        "API_SERVICE_KEY",
-        "BINANCE_API_KEY",
-        "BINANCE_API_SECRET",
+        "API_SERVICE_KEY_BINDING",
+        "BINANCE_KEY_BINDING",
+        "BINANCE_SECRET_BINDING",
       ]);
     });
 
     it("returns single secret for telegram-worker", async () => {
       const svc = await createService();
       expect(svc.listSecrets("telegram-worker")).toEqual([
-        "TELEGRAM_BOT_TOKEN",
+        "TG_BOT_TOKEN_BINDING",
       ]);
     });
 
@@ -143,11 +147,11 @@ describe("SecretsService", () => {
       const all = svc.listAllSecrets();
 
       expect(Object.keys(all)).toHaveLength(2);
-      expect(all["telegram-worker"]).toEqual(["TELEGRAM_BOT_TOKEN"]);
+      expect(all["telegram-worker"]).toEqual(["TG_BOT_TOKEN_BINDING"]);
       expect(all["trade-worker"]).toEqual([
-        "API_SERVICE_KEY",
-        "BINANCE_API_KEY",
-        "BINANCE_API_SECRET",
+        "API_SERVICE_KEY_BINDING",
+        "BINANCE_KEY_BINDING",
+        "BINANCE_SECRET_BINDING",
       ]);
     });
 
@@ -175,9 +179,9 @@ describe("SecretsService", () => {
         expect(result.worker).toBe("trade-worker");
         expect(result.allSet).toBe(false);
         expect(result.missing).toEqual([
-          "API_SERVICE_KEY",
-          "BINANCE_API_KEY",
-          "BINANCE_API_SECRET",
+          "API_SERVICE_KEY_BINDING",
+          "BINANCE_KEY_BINDING",
+          "BINANCE_SECRET_BINDING",
         ]);
         expect(result.secrets).toHaveLength(3);
         for (const s of result.secrets) {
@@ -193,7 +197,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=abc123\nBINANCE_API_KEY=xyz789\nBINANCE_API_SECRET=sec456\n"
+          "API_SERVICE_KEY_BINDING=abc123\nBINANCE_KEY_BINDING=xyz789\nBINANCE_SECRET_BINDING=sec456\n"
         );
 
         const svc = await createService();
@@ -217,7 +221,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=binance-real-key\nBINANCE_API_SECRET=your_secret\n"
+          "API_SERVICE_KEY_BINDING=placeholder_api_service_key\nBINANCE_KEY_BINDING=binance-real-key\nBINANCE_SECRET_BINDING=your_secret\n"
         );
 
         const svc = await createService();
@@ -226,10 +230,10 @@ describe("SecretsService", () => {
 
         const result = await svc.checkLocalSecrets("trade-worker");
         expect(result.allSet).toBe(false);
-        // Only BINANCE_API_KEY should be set (not placeholder)
-        expect(result.missing).toContain("API_SERVICE_KEY");
-        expect(result.missing).toContain("BINANCE_API_SECRET");
-        expect(result.missing).not.toContain("BINANCE_API_KEY");
+        // Only BINANCE_KEY_BINDING should be set (not placeholder)
+        expect(result.missing).toContain("API_SERVICE_KEY_BINDING");
+        expect(result.missing).toContain("BINANCE_SECRET_BINDING");
+        expect(result.missing).not.toContain("BINANCE_KEY_BINDING");
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -240,7 +244,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "# This is a comment\nAPI_SERVICE_KEY=real-key\n\n# Another comment\nBINANCE_API_KEY=another-key\nBINANCE_API_SECRET=third-key\n"
+          "# This is a comment\nAPI_SERVICE_KEY_BINDING=real-key\n\n# Another comment\nBINANCE_KEY_BINDING=another-key\nBINANCE_SECRET_BINDING=third-key\n"
         );
 
         const svc = await createService();
@@ -280,7 +284,7 @@ describe("SecretsService", () => {
         // Verify file content
         const content = await Bun.file(join(dir, ".dev.vars")).text();
         expect(content).toContain(
-          "TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token"
+          "TG_BOT_TOKEN_BINDING=placeholder_tg_bot_token_binding"
         );
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -323,7 +327,7 @@ describe("SecretsService", () => {
 
         const content = await Bun.file(join(dir, ".dev.vars")).text();
         expect(content).toContain(
-          "TELEGRAM_BOT_TOKEN=placeholder_telegram_bot_token"
+          "TG_BOT_TOKEN_BINDING=placeholder_tg_bot_token_binding"
         );
         expect(content).not.toContain("OLD_KEY");
       } finally {
@@ -340,7 +344,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "TELEGRAM_BOT_TOKEN=my-real-token\n"
+          "TG_BOT_TOKEN_BINDING=my-real-token\n"
         );
 
         const svc = await createService();
@@ -357,8 +361,8 @@ describe("SecretsService", () => {
         );
 
         const result = await svc.syncToCloudflare("telegram-worker");
-        expect(expectOk(result)).toEqual(["TELEGRAM_BOT_TOKEN"]);
-        expect(called).toEqual([["TELEGRAM_BOT_TOKEN", "my-real-token"]]);
+        expect(expectOk(result)).toEqual(["TG_BOT_TOKEN_BINDING"]);
+        expect(called).toEqual([["TG_BOT_TOKEN_BINDING", "my-real-token"]]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -369,7 +373,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "API_SERVICE_KEY=placeholder_api_service_key\nBINANCE_API_KEY=real-binance-key\nBINANCE_API_SECRET=generate_something\n"
+          "API_SERVICE_KEY_BINDING=placeholder_api_service_key\nBINANCE_KEY_BINDING=real-binance-key\nBINANCE_SECRET_BINDING=generate_something\n"
         );
 
         const svc = await createService();
@@ -386,10 +390,10 @@ describe("SecretsService", () => {
 
         const result = await svc.syncToCloudflare("trade-worker");
         const errMsg = expectErr(result);
-        // Only BINANCE_API_KEY was synced — but errors exist, so overall result is error
-        expect(errMsg).toContain("API_SERVICE_KEY");
-        expect(errMsg).toContain("BINANCE_API_SECRET");
-        expect(called).toEqual([["BINANCE_API_KEY", "real-binance-key"]]);
+        // Only BINANCE_KEY_BINDING was synced — but errors exist, so overall result is error
+        expect(errMsg).toContain("API_SERVICE_KEY_BINDING");
+        expect(errMsg).toContain("BINANCE_SECRET_BINDING");
+        expect(called).toEqual([["BINANCE_KEY_BINDING", "real-binance-key"]]);
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
@@ -412,9 +416,9 @@ describe("SecretsService", () => {
 
         const result = await svc.syncToCloudflare("trade-worker");
         const errMsg = expectErr(result);
-        expect(errMsg).toContain("API_SERVICE_KEY");
-        expect(errMsg).toContain("BINANCE_API_KEY");
-        expect(errMsg).toContain("BINANCE_API_SECRET");
+        expect(errMsg).toContain("API_SERVICE_KEY_BINDING");
+        expect(errMsg).toContain("BINANCE_KEY_BINDING");
+        expect(errMsg).toContain("BINANCE_SECRET_BINDING");
         expect(called).toHaveLength(0);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -430,7 +434,10 @@ describe("SecretsService", () => {
     it("handles wrangler failures gracefully", async () => {
       const dir = tmpDir();
       try {
-        writeFileSync(join(dir, ".dev.vars"), "TELEGRAM_BOT_TOKEN=my-token\n");
+        writeFileSync(
+          join(dir, ".dev.vars"),
+          "TG_BOT_TOKEN_BINDING=my-token\n"
+        );
 
         const svc = await createService();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -478,7 +485,7 @@ describe("SecretsService", () => {
       try {
         writeFileSync(
           join(dir, ".dev.vars"),
-          "   TELEGRAM_BOT_TOKEN   =   my-token   \n"
+          "   TG_BOT_TOKEN_BINDING   =   my-token   \n"
         );
 
         const svc = await createService();

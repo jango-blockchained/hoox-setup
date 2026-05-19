@@ -20,6 +20,7 @@ hoox init
 ```
 
 Follow the prompts:
+
 - Enter your Cloudflare Account ID
 - Paste your API Token
 - Choose a subdomain prefix (e.g., `mytrading`)
@@ -28,8 +29,8 @@ Follow the prompts:
 ## Step 2: Set Up Exchange Keys
 
 ```bash
-hoox secrets update-cf BINANCE_API_KEY trade-worker
-hoox secrets update-cf BINANCE_API_SECRET trade-worker
+hoox secrets update-cf BINANCE_KEY_BINDING trade-worker
+hoox secrets update-cf BINANCE_SECRET_BINDING trade-worker
 ```
 
 (Repeat for MEXC or Bybit keys as needed.)

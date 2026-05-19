@@ -473,6 +473,8 @@ function DataPanel({
 export function SettingsView() {
   const [activePanel, setActivePanel] = useState(0);
   const [activeItem, setActiveItem] = useState(0);
+  const [importing, setImporting] = useState(false);
+  const [importPath, setImportPath] = useState("");
 
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs);
@@ -552,15 +554,78 @@ export function SettingsView() {
   }, []);
 
   const handleImportData = useCallback(async () => {
-    useServiceStore.getState().addAlert({
-      id: `import-${Date.now()}`,
-      type: "config",
-      severity: "info",
-      message: "Import: select a config file to restore",
-      timestamp: Date.now(),
-      acknowledged: false,
-    });
+    setImporting(true);
+    setImportPath("");
   }, []);
+
+  const handleImportConfirm = useCallback(async () => {
+    if (!importPath.trim()) return;
+    try {
+      const f = Bun.file(importPath.trim());
+      const exists = await f.exists();
+      if (!exists) {
+        useServiceStore.getState().addAlert({
+          id: `import-err-${Date.now()}`,
+          type: "config",
+          severity: "error",
+          message: `File not found: ${importPath.trim()}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        setImporting(false);
+        return;
+      }
+      const text = await f.text();
+      const config = JSON.parse(text);
+
+      // Validate it has expected shape
+      if (typeof config !== "object" || config === null) {
+        throw new Error("Config must be a JSON object");
+      }
+
+      // Apply config values if they match known keys
+      if (typeof config.theme === "string")
+        updateConfig({ theme: config.theme });
+      if (typeof config.refreshIntervalMs === "number")
+        updateConfig({ refreshIntervalMs: config.refreshIntervalMs });
+      if (typeof config.defaultView === "string")
+        updateConfig({ defaultView: config.defaultView });
+      if (typeof config.soundEnabled === "boolean")
+        updateConfig({ soundEnabled: config.soundEnabled });
+      if (
+        typeof config.notifications === "object" &&
+        config.notifications !== null
+      ) {
+        for (const key of Object.keys(config.notifications)) {
+          if (typeof config.notifications[key] === "boolean") {
+            toggleNotification(key as keyof NotificationPreferences);
+          }
+        }
+      }
+      if (config.activeExchanges)
+        updateConfig({ activeExchanges: config.activeExchanges });
+
+      useServiceStore.getState().addAlert({
+        id: `import-${Date.now()}`,
+        type: "config",
+        severity: "info",
+        message: `Config imported from ${importPath.trim()}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch (err) {
+      useServiceStore.getState().addAlert({
+        id: `import-err-${Date.now()}`,
+        type: "config",
+        severity: "error",
+        message: `Import failed: ${err instanceof Error ? err.message : String(err)}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    }
+    setImporting(false);
+    setImportPath("");
+  }, [importPath, updateConfig, toggleNotification]);
 
   const handleCheckSetup = useCallback(async () => {
     try {
@@ -601,6 +666,20 @@ export function SettingsView() {
   // ── Keyboard handling ───────────────────────────────────────────────────────
 
   useKeyboard((key) => {
+    // Import mode overrides
+    if (importing) {
+      if (key.name === "return" || key.name === "enter") {
+        handleImportConfirm();
+        return;
+      }
+      if (key.name === "escape") {
+        setImporting(false);
+        setImportPath("");
+        return;
+      }
+      return; // block other keys during import
+    }
+
     // Tab: cycle panels
     if (key.name === "tab") {
       setActivePanel((p) => (p + 1) % PANEL_COUNT);
@@ -759,6 +838,41 @@ export function SettingsView() {
             />
           </PanelBox>
         </box>
+
+        {/* Import path input overlay */}
+        {importing && (
+          <box
+            flexDirection="row"
+            gap={1}
+            paddingTop={1}
+            paddingLeft={1}
+            paddingRight={1}
+            backgroundColor={Colors.card}
+          >
+            <text fg={Colors.accent} bold>
+              Import path:
+            </text>
+            <input
+              id="import-path"
+              placeholder="~/.hoox/config.json"
+              width={40}
+              textColor={Colors.foreground}
+              cursorColor={Colors.accent}
+              onInput={(v: string) => setImportPath(v)}
+              value={importPath}
+            />
+            <text
+              fg={importPath.trim() ? Colors.accent : Colors.muted}
+              bold={!!importPath.trim()}
+              onMouseUp={importPath.trim() ? handleImportConfirm : undefined}
+            >
+              [Import]
+            </text>
+            <text fg={Colors.muted} onMouseUp={() => setImporting(false)}>
+              [Cancel]
+            </text>
+          </box>
+        )}
       </box>
     </ErrorBoundary>
   );

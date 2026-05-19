@@ -1,0 +1,101 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"global": {
+		"cloudflare_api_token": "<USE_WRANGLER_SECRET_PUT>",
+		"cloudflare_account_id": "<YOUR_ACCOUNT_ID>",
+		"cloudflare_secret_store_id": "<YOUR_SECRET_STORE_ID>",
+		"subdomain_prefix": "<YOUR_PREFIX>"
+	},
+	"workers": {
+		"analytics-worker": {
+			"enabled": true,
+			"path": "workers/analytics-worker",
+			"vars": {},
+			"secrets": ["CLOUDFLARE_API_TOKEN"]
+		},
+		"d1-worker": {
+			"enabled": true,
+			"path": "workers/d1-worker",
+			"vars": {
+				"database_name": "my-database"
+			}
+		},
+		"telegram-worker": {
+			"enabled": true,
+			"path": "workers/telegram-worker",
+			"vars": {},
+			"secrets": ["TELEGRAM_BOT_TOKEN"]
+		},
+		"web3-wallet-worker": {
+			"enabled": true,
+			"path": "workers/web3-wallet-worker",
+			"vars": {},
+			"secrets": ["WALLET_MNEMONIC_SECRET", "WALLET_PK_SECRET"]
+		},
+		"email-worker": {
+			"enabled": true,
+			"path": "workers/email-worker",
+			"vars": {
+				"USE_IMAP": "false"
+			},
+			"secrets": ["EMAIL_HOST", "EMAIL_USER", "EMAIL_PASS", "INTERNAL_KEY"]
+		},
+		"trade-worker": {
+			"enabled": true,
+			"path": "workers/trade-worker",
+			"vars": {},
+			"secrets": [
+				"API_SERVICE_KEY",
+				"BINANCE_API_KEY",
+				"BINANCE_API_SECRET",
+				"MEXC_API_KEY",
+				"MEXC_API_SECRET",
+				"BYBIT_API_KEY",
+				"BYBIT_API_SECRET"
+			]
+		},
+		"agent-worker": {
+			"enabled": true,
+			"path": "workers/agent-worker",
+			"vars": {},
+			"secrets": ["AGENT_INTERNAL_KEY"]
+		},
+		"hoox": {
+			"enabled": true,
+			"path": "workers/hoox",
+			"vars": {},
+			"secrets": ["WEBHOOK_API_KEY_BINDING"]
+		},
+		"report-worker": {
+			"enabled": true,
+			"path": "workers/report-worker",
+			"vars": {}
+		},
+		"dashboard": {
+			"enabled": true,
+			"path": "workers/dashboard",
+			"vars": {},
+			"secrets": [
+				"DASHBOARD_USER",
+				"DASHBOARD_PASS",
+				"SESSION_SECRET",
+				"D1_INTERNAL_KEY",
+				"AGENT_INTERNAL_KEY",
+				"TRADE_INTERNAL_KEY",
+				"TELEGRAM_INTERNAL_KEY",
+				"API_SERVICE_KEY"
+			]
+		}
+	},
+	"dev": {
+		"runtime": "docker"
+	},
+	"d1_databases": [
+		{
+			"binding": "my_database",
+			"database_name": "my-database",
+			"database_id": "<YOUR_DATABASE_ID>",
+			"remote": true
+		}
+	]
+}

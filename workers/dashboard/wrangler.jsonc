@@ -16,11 +16,7 @@
     {
       "binding": "CONFIG_KV",
       "id": "c5917667a21745e390ff969f32b1847d"
-    },
-    {
-      "binding": "NEXT_INC_CACHE_KV",
-      "id": "e899951fcf724f75aa4316b3a8a01cb0"
-    },
+    }
   ],
   "services": [
     {
@@ -33,4 +29,7 @@
     }
   ],
   "vars": {},
+  "ai": {
+    "binding": "AI"
+  }
 }

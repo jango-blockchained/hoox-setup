@@ -1,6 +1,7 @@
 ---
 title: "Cloudflare® Workers Bindings & Environment Variables"
 ---
+
 # Cloudflare® Workers Bindings & Environment Variables
 
 This document provides a comprehensive reference for all bindings, environment variables, and secrets used in the Cloudflare® Workers project.
@@ -20,37 +21,36 @@ This document provides a comprehensive reference for all bindings, environment v
 
 ## Secrets & Environment Variables
 
-| Variable                  | Type   | Workers                             | Description                                                    |
-| ------------------------- | ------ | ----------------------------------- | -------------------------------------------------------------- |
-| `INTERNAL_KEY_BINDING`    | Secret | telegram-worker, hoox, trade-worker | Internal auth key for worker-to-worker communication           |
-| `TG_BOT_TOKEN_BINDING`    | Secret | telegram-worker                     | Telegram Bot API token                                         |
-| `TG_CHAT_ID_BINDING`      | Secret | telegram-worker                     | Telegram chat ID for notifications                             |
-| `TELEGRAM_SECRET_TOKEN`   | Secret | telegram-worker                     | Webhook verification token for Telegram                        |
-| `WEBHOOK_API_KEY_BINDING` | Secret | hoox                                | API key for webhook endpoints                                  |
-| `CF_API_TOKEN_BINDING`    | Secret | report-worker                       | CF API token with Browser Rendering + R2 write permissions     |
-| `MEXC_KEY_BINDING`        | Secret | trade-worker                        | MEXC exchange API key                                          |
-| `MEXC_SECRET_BINDING`     | Secret | trade-worker                        | MEXC exchange API secret                                       |
-| `BINANCE_KEY_BINDING`     | Secret | trade-worker                        | Binance exchange API key                                       |
-| `BINANCE_SECRET_BINDING`  | Secret | trade-worker                        | Binance exchange API secret                                    |
-| `BYBIT_KEY_BINDING`       | Secret | trade-worker                        | Bybit exchange API key                                         |
-| `BYBIT_SECRET_BINDING`    | Secret | trade-worker                        | Bybit exchange API secret                                      |
+| Variable                  | Type   | Workers                             | Description                                                |
+| ------------------------- | ------ | ----------------------------------- | ---------------------------------------------------------- |
+| `INTERNAL_KEY_BINDING`    | Secret | telegram-worker, hoox, trade-worker | Internal auth key for worker-to-worker communication       |
+| `TG_BOT_TOKEN_BINDING`    | Secret | telegram-worker                     | Telegram Bot API token                                     |
+| `TG_CHAT_ID_BINDING`      | Secret | telegram-worker                     | Telegram chat ID for notifications                         |
+| `TELEGRAM_SECRET_TOKEN`   | Secret | telegram-worker                     | Webhook verification token for Telegram                    |
+| `WEBHOOK_API_KEY_BINDING` | Secret | hoox                                | API key for webhook endpoints                              |
+| `CF_API_TOKEN_BINDING`    | Secret | report-worker                       | CF API token with Browser Rendering + R2 write permissions |
+| `MEXC_KEY_BINDING`        | Secret | trade-worker                        | MEXC exchange API key                                      |
+| `MEXC_SECRET_BINDING`     | Secret | trade-worker                        | MEXC exchange API secret                                   |
+| `BINANCE_KEY_BINDING`     | Secret | trade-worker                        | Binance exchange API key                                   |
+| `BINANCE_SECRET_BINDING`  | Secret | trade-worker                        | Binance exchange API secret                                |
+| `BYBIT_KEY_BINDING`       | Secret | trade-worker                        | Bybit exchange API key                                     |
+| `BYBIT_SECRET_BINDING`    | Secret | trade-worker                        | Bybit exchange API secret                                  |
 
 ## Service Bindings
 
-| Binding                | Worker              | Connected Service  | Description                             |
-| ---------------------- | ------------------- | ------------------ | --------------------------------------- |
-| `ANALYTICS_SERVICE`    | hoox, trade, telegram, email | analytics-worker | Track API call metrics         |
-| `TRADE_SERVICE`        | hoox, agent, telegram | trade-worker     | Trading functionality                   |
-| `TELEGRAM_SERVICE`     | hoox, trade, agent, web3-wallet, report | telegram-worker | Notifications          |
-| `D1_SERVICE`           | trade, agent        | d1-worker          | Database operations                      |
-| `WEBHOOK_RECEIVER_API` | telegram-worker     | hoox               | Webhook handling                         |
+| Binding            | Worker                                  | Connected Service | Description           |
+| ------------------ | --------------------------------------- | ----------------- | --------------------- |
+| `TRADE_SERVICE`    | hoox, agent, email                      | trade-worker      | Trading functionality |
+| `TELEGRAM_SERVICE` | hoox, trade, agent, web3-wallet, report | telegram-worker   | Notifications         |
+| `D1_SERVICE`       | trade, agent, report, dashboard         | d1-worker         | Database operations   |
+| `AGENT_SERVICE`    | dashboard                               | agent-worker      | AI risk management    |
 
 ## KV Namespace Bindings
 
-| Binding       | Worker                                      | Description                               |
-| ------------- | ------------------------------------------- | ----------------------------------------- |
+| Binding       | Worker                                             | Description                           |
+| ------------- | -------------------------------------------------- | ------------------------------------- |
 | `CONFIG_KV`   | hoox, trade, agent, telegram, d1, dashboard, email | Routing, IP lists, rate limiter state |
-| `SESSIONS_KV` | hoox                                        | Webhook session storage                   |
+| `SESSIONS_KV` | hoox                                               | Webhook session storage               |
 
 ## Queue Bindings
 
@@ -61,38 +61,38 @@ This document provides a comprehensive reference for all bindings, environment v
 
 ## Durable Object Bindings
 
-| Binding             | Worker | Class Name       | Description                                      |
-| ------------------- | ------ | ---------------- | ------------------------------------------------ |
-| `IDEMPOTENCY_STORE` | hoox   | IdempotencyStore | Real DO with SQLite, TTL dedup, alarm cleanup     |
+| Binding             | Worker | Class Name       | Description                                   |
+| ------------------- | ------ | ---------------- | --------------------------------------------- |
+| `IDEMPOTENCY_STORE` | hoox   | IdempotencyStore | Real DO with SQLite, TTL dedup, alarm cleanup |
 
 ## R2 Bucket Bindings
 
-| Binding          | Worker          | Bucket Name     | Description                         |
-| ---------------- | --------------- | --------------- | ----------------------------------- |
-| `REPORTS_BUCKET` | trade-worker    | trade-reports   | Trade reports                       |
-| `REPORTS_BUCKET` | report-worker   | trade-reports   | PDF portfolio reports               |
-| `SYSTEM_LOGS_BUCKET` | trade-worker | hoox-system-logs | Verbose exchange logs              |
-| `UPLOADS_BUCKET` | telegram-worker | user-uploads    | User uploaded files                 |
+| Binding              | Worker          | Bucket Name      | Description           |
+| -------------------- | --------------- | ---------------- | --------------------- |
+| `REPORTS_BUCKET`     | trade-worker    | trade-reports    | Trade reports         |
+| `REPORTS_BUCKET`     | report-worker   | trade-reports    | PDF portfolio reports |
+| `SYSTEM_LOGS_BUCKET` | trade-worker    | hoox-system-logs | Verbose exchange logs |
+| `UPLOADS_BUCKET`     | telegram-worker | user-uploads     | User uploaded files   |
 
 ## D1 Database Bindings
 
-| Binding | Worker              | Database Name   | Description                    |
-| ------- | ------------------- | --------------- | ------------------------------ |
-| `DB`    | d1-worker           | hoox-trading-db | Main database                  |
-| `DB`    | trade-worker        | trade-data-db   | Trade operations               |
-| `DB`    | agent-worker        | hoox-trading-db | Portfolio queries              |
+| Binding | Worker       | Database Name   | Description       |
+| ------- | ------------ | --------------- | ----------------- |
+| `DB`    | d1-worker    | hoox-trading-db | Main database     |
+| `DB`    | trade-worker | trade-data-db   | Trade operations  |
+| `DB`    | agent-worker | hoox-trading-db | Portfolio queries |
 
 ## AI Bindings
 
-| Binding | Worker                              | Description                                   |
-| ------- | ----------------------------------- | --------------------------------------------- |
-| `AI`    | hoox, agent, telegram, trade-worker | Workers AI (LLaMA 3 inference)                |
+| Binding | Worker                              | Description                    |
+| ------- | ----------------------------------- | ------------------------------ |
+| `AI`    | hoox, agent, telegram, trade-worker | Workers AI (LLaMA 3 inference) |
 
 ## Vectorize Bindings
 
-| Binding           | Worker                        | Index Name   | Description                          |
-| ----------------- | ----------------------------- | ------------ | ------------------------------------ |
-| `VECTORIZE_INDEX` | hoox, telegram, trade-worker  | my-rag-index | Vector database for RAG applications |
+| Binding           | Worker                       | Index Name   | Description                          |
+| ----------------- | ---------------------------- | ------------ | ------------------------------------ |
+| `VECTORIZE_INDEX` | hoox, telegram, trade-worker | my-rag-index | Vector database for RAG applications |
 
 ## Browser Rendering
 

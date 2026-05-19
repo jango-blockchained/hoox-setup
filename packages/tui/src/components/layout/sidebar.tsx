@@ -1,139 +1,77 @@
 /** @jsxImportSource @opentui/react */
 
-import { useState } from "react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
-import { VIEW_ORDER, viewIndex, type ViewId } from "../../types";
+import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
+import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 /**
- * Sidebar — 4-column navigation panel.
+ * Sidebar — left navigation panel with view links.
+ * Each item is clickable via onMouseUp.
+ * Active view is highlighted with the accent color.
  *
- * Composed of:
- *   LogoMark  — 'H' in an orange-bordered box
- *   NavDots   — one clickable dot per view (10 total)
- *   ProgressBar — accent fill bar + fraction text
- *
- * Expandable on hover / Ctrl+B via UI store.
+ * Extracted from app.tsx to follow TUI 150-line component standard.
  */
+export function Sidebar() {
+  const activeView = useUIStore((s) => s.activeView);
+  const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
+  const setView = useUIStore((s) => s.setView);
 
-// ---- LogoMark ------------------------------------------------------------------------
+  if (!sidebarExpanded) return null;
 
-function LogoMark({ expanded }: { expanded: boolean }) {
+  const items: { id: ViewId; label: string; shortcut: string }[] = [
+    { id: "dashboard", label: "DASHBOARD", shortcut: "1" },
+    { id: "workers", label: "WORKERS", shortcut: "2" },
+    { id: "worker-detail", label: "DETAIL", shortcut: "3" },
+    { id: "trade-monitor", label: "TRADES", shortcut: "4" },
+    { id: "logs-viewer", label: "LOGS", shortcut: "5" },
+    { id: "service-manager", label: "SERVICES", shortcut: "6" },
+    { id: "config-editor", label: "CONFIG", shortcut: "7" },
+    { id: "setup-wizard", label: "SETUP", shortcut: "8" },
+    { id: "settings", label: "SETTINGS", shortcut: "9" },
+  ];
+
   return (
     <box
-      width={3}
-      height={3}
+      flexDirection="column"
+      width={18}
+      padding={1}
+      gap={0}
       border={true}
       borderStyle="single"
-      justifyContent="center"
-      alignItems="center"
-      padding={0}
+      borderColor={Colors.border}
+      backgroundColor={Colors.card}
     >
-      <text fg={Colors.accent.toHex()} bold>
-        {expanded ? "HOOX" : "H"}
+      {/* Brand header */}
+      <text fg={Colors.accent} bold>
+        ┌ HOOX ┐
       </text>
-    </box>
-  );
-}
+      <text fg={Colors["muted-foreground"]} dim>
+        ─────────────────
+      </text>
 
-// ---- NavDots -------------------------------------------------------------------------
-
-interface NavDotsProps {
-  activeView: ViewId;
-  onNavigate: (view: ViewId) => void;
-}
-
-function NavDots({ activeView, onNavigate }: NavDotsProps) {
-  return (
-    <box flexDirection="column" gap={0} padding={0} justifyContent="center">
-      {VIEW_ORDER.map((view) => {
-        const isActive = view === activeView;
+      {/* Navigation items */}
+      {items.map((item) => {
+        const isActive = item.id === activeView;
         return (
-          <box
-            key={view}
-            width={4}
-            height={1}
-            justifyContent="center"
-            alignItems="center"
-          >
+          <box flexDirection="row" gap={1} key={item.id}>
+            <text fg={isActive ? Colors.accent : Colors.muted} dim>
+              {isActive ? "▸" : " "}
+            </text>
             <text
-              fg={isActive ? Colors.accent.toHex() : Colors.muted.toHex()}
+              fg={isActive ? Colors.accent : Colors.foreground}
               bold={isActive}
-              dim={!isActive}
-              onMouseUp={() => onNavigate(view)}
+              onMouseUp={() => setView(item.id)}
             >
-              {isActive ? "●" : "○"}
+              {item.label}
             </text>
           </box>
         );
       })}
-    </box>
-  );
-}
 
-// ---- ProgressBar ---------------------------------------------------------------------
-
-interface ProgressBarProps {
-  current: number; // 0-based active view index
-  total: number;
-}
-
-function ProgressBar({ current, total }: ProgressBarProps) {
-  const filled = Math.round(((current + 1) / total) * 10);
-  const bar = "█".repeat(filled) + "░".repeat(10 - filled);
-
-  return (
-    <box flexDirection="column" width={4} gap={0} padding={0}>
-      <text fg={Colors.accent.toHex()}>{bar}</text>
-      <text fg={Colors.muted.toHex()} dim>
-        {current + 1}/{total}
+      {/* Shortcut hints */}
+      <box flexGrow={1} />
+      <text fg={Colors.dim} dim>
+        Ctrl+1-9 to switch
       </text>
-    </box>
-  );
-}
-
-// ---- Sidebar (composed) --------------------------------------------------------------
-
-export function Sidebar() {
-  const [hovered, setHovered] = useState(false);
-
-  const activeView = useUIStore((s) => s.activeView);
-  const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
-  const setActiveView = useUIStore((s) => s.setActiveView);
-
-  const expanded = sidebarExpanded || hovered;
-
-  function handleNavigate(view: ViewId) {
-    setActiveView(view);
-  }
-
-  return (
-    <box
-      width={4}
-      flexDirection="column"
-      justifyContent="space-between"
-      paddingTop={1}
-      paddingBottom={1}
-      gap={1}
-      border={true}
-      borderStyle="single"
-      backgroundColor={Colors.card.toHex()}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Top section: Logo + Dots */}
-      <box flexDirection="column" gap={1} alignItems="center">
-        <LogoMark expanded={expanded} />
-        <NavDots activeView={activeView} onNavigate={handleNavigate} />
-      </box>
-
-      {/* Bottom section: Progress */}
-      <box flexDirection="column" alignItems="center" gap={0}>
-        <ProgressBar
-          current={viewIndex(activeView)}
-          total={VIEW_ORDER.length}
-        />
-      </box>
     </box>
   );
 }

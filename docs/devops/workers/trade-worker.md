@@ -51,9 +51,9 @@ A Cloudflare® Worker service for executing cryptocurrency trades, logging signa
     ```
 5.  Configure Secrets (via Cloudflare® dashboard or `wrangler secret put`):
     - `INTERNAL_KEY_BINDING`: The **shared** secret key for internal authentication.
-    - `MEXC_API_KEY`, `MEXC_API_SECRET`: If using MEXC.
-    - `BINANCE_API_KEY`, `BINANCE_API_SECRET`: If using Binance.
-    - `BYBIT_API_KEY`, `BYBIT_API_SECRET`: If using Bybit.
+    - `MEXC_KEY_BINDING`, `MEXC_SECRET_BINDING`: If using MEXC.
+    - `BINANCE_KEY_BINDING`, `BINANCE_SECRET_BINDING`: If using Binance.
+    - `BYBIT_KEY_BINDING`, `BYBIT_SECRET_BINDING`: If using Bybit.
 6.  Update `wrangler.jsonc` with all necessary bindings (D1, R2, KV, Secrets, AI, Vectorize). Example:
     ```jsonc
     {
@@ -80,12 +80,12 @@ A Cloudflare® Worker service for executing cryptocurrency trades, logging signa
       },
       "secrets": [
         "INTERNAL_KEY_BINDING",
-        "MEXC_API_KEY",
-        "MEXC_API_SECRET",
-        "BINANCE_API_KEY",
-        "BINANCE_API_SECRET",
-        "BYBIT_API_KEY",
-        "BYBIT_API_SECRET",
+        "MEXC_KEY_BINDING",
+        "MEXC_SECRET_BINDING",
+        "BINANCE_KEY_BINDING",
+        "BINANCE_SECRET_BINDING",
+        "BYBIT_KEY_BINDING",
+        "BYBIT_SECRET_BINDING",
       ],
       "observability": {
         "enabled": true,
@@ -98,8 +98,8 @@ A Cloudflare® Worker service for executing cryptocurrency trades, logging signa
     ```.dev.vars
     # Mock secret bindings for local dev:
     INTERNAL_KEY_BINDING="your_shared_internal_secret"
-    MEXC_API_KEY="your_mexc_key"
-    MEXC_API_SECRET="your_mexc_secret"
+    MEXC_KEY_BINDING="your_mexc_key"
+    MEXC_SECRET_BINDING="your_mexc_secret"
     ```
 
 ## Development

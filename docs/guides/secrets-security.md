@@ -11,7 +11,7 @@ Secrets (exchange API keys, Telegram tokens, internal auth keys) are stored at C
 
 ```bash
 # Set a secret
-hoox secrets update-cf BINANCE_API_KEY trade-worker
+hoox secrets update-cf BINANCE_KEY_BINDING trade-worker
 
 # Check which secrets are set
 hoox secrets check
@@ -25,6 +25,7 @@ hoox secrets update-cf
 Internal workers (trade-worker, d1-worker) have no public endpoints. They can only be reached through Cloudflare Service Bindings — private, encrypted connections between your workers.
 
 The only public entry points are:
+
 - **hoox gateway** — receives webhooks
 - **dashboard** — UI interface
 - **Telegram bot** — command processing

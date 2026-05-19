@@ -5,7 +5,7 @@ describe("EnvService", () => {
   describe("getDefinitions", () => {
     it("returns all known env var definitions", () => {
       const defs = EnvService.getDefinitions();
-      expect(defs.length).toBe(31);
+      expect(defs.length).toBe(28);
       expect(defs.some((d) => d.name === "CLOUDFLARE_API_TOKEN")).toBe(true);
     });
 
@@ -50,16 +50,25 @@ describe("EnvService", () => {
   describe("getWorkerDevVars", () => {
     it("maps vars to correct workers", () => {
       const vars = {
-        AGENT_OPENAI_KEY: "sk-123",
-        TELEGRAM_BOT_TOKEN: "tg-456",
-        D1_INTERNAL_KEY: "d1-789",
+        AGENT_INTERNAL_KEY: "sk-123",
+        TG_BOT_TOKEN_BINDING: "tg-456",
+        INTERNAL_KEY_BINDING: "d1-789",
+        DASHBOARD_USER: "admin",
+        DASHBOARD_PASS: "pass",
+        TELEGRAM_INTERNAL_KEY: "tg-int-key",
       };
       const result = EnvService.getWorkerDevVars(vars);
       expect(result["workers/agent-worker"]).toBeDefined();
-      expect(result["workers/agent-worker"].AGENT_OPENAI_KEY).toBe("sk-123");
+      expect(result["workers/agent-worker"].AGENT_INTERNAL_KEY).toBe("sk-123");
       expect(result["workers/telegram-worker"]).toBeDefined();
-      expect(result["workers/telegram-worker"].TELEGRAM_BOT_TOKEN).toBe(
+      expect(result["workers/telegram-worker"].TG_BOT_TOKEN_BINDING).toBe(
         "tg-456"
+      );
+      expect(result["workers/dashboard"]).toBeDefined();
+      expect(result["workers/dashboard"].DASHBOARD_USER).toBe("admin");
+      expect(result["workers/dashboard"].DASHBOARD_PASS).toBe("pass");
+      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY).toBe(
+        "tg-int-key"
       );
     });
 
@@ -69,7 +78,7 @@ describe("EnvService", () => {
     });
 
     it("omits empty-string vars", () => {
-      const result = EnvService.getWorkerDevVars({ D1_INTERNAL_KEY: "" });
+      const result = EnvService.getWorkerDevVars({ INTERNAL_KEY_BINDING: "" });
       expect(Object.keys(result).length).toBe(0);
     });
 
@@ -77,14 +86,18 @@ describe("EnvService", () => {
       const vars = {
         WEBHOOK_API_KEY_BINDING: "webhook-key",
         HA_TOKEN_BINDING: "ha-token",
-        API_SERVICE_KEY: "api-key",
+        API_SERVICE_KEY_BINDING: "api-key",
         TELEGRAM_SECRET_TOKEN: "tg-secret",
         WALLET_MNEMONIC_SECRET: "mnemonic",
         WALLET_PK_SECRET: "pk",
-        EMAIL_HOST: "imap.example.com",
-        EMAIL_USER: "user",
-        EMAIL_PASS: "pass",
-        INTERNAL_KEY: "int-key",
+        EMAIL_HOST_BINDING: "imap.example.com",
+        EMAIL_USER_BINDING: "user",
+        EMAIL_PASS_BINDING: "pass",
+        INTERNAL_KEY_BINDING: "int-key",
+        DASHBOARD_USER: "admin",
+        DASHBOARD_PASS: "pass",
+        SESSION_SECRET: "secret-32-char-min-for-session",
+        TELEGRAM_INTERNAL_KEY: "tg-int-key",
       };
       const result = EnvService.getWorkerDevVars(vars);
       expect(result["workers/hoox"]).toBeDefined();
@@ -92,7 +105,9 @@ describe("EnvService", () => {
         "webhook-key"
       );
       expect(result["workers/hoox"].HA_TOKEN_BINDING).toBe("ha-token");
-      expect(result["workers/trade-worker"].API_SERVICE_KEY).toBe("api-key");
+      expect(result["workers/trade-worker"].API_SERVICE_KEY_BINDING).toBe(
+        "api-key"
+      );
       expect(result["workers/telegram-worker"].TELEGRAM_SECRET_TOKEN).toBe(
         "tg-secret"
       );
@@ -101,8 +116,17 @@ describe("EnvService", () => {
         "mnemonic"
       );
       expect(result["workers/email-worker"]).toBeDefined();
-      expect(result["workers/email-worker"].EMAIL_HOST).toBe(
+      expect(result["workers/email-worker"].EMAIL_HOST_BINDING).toBe(
         "imap.example.com"
+      );
+      expect(result["workers/dashboard"]).toBeDefined();
+      expect(result["workers/dashboard"].DASHBOARD_USER).toBe("admin");
+      expect(result["workers/dashboard"].DASHBOARD_PASS).toBe("pass");
+      expect(result["workers/dashboard"].SESSION_SECRET).toBe(
+        "secret-32-char-min-for-session"
+      );
+      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY).toBe(
+        "tg-int-key"
       );
     });
   });
@@ -133,12 +157,12 @@ describe("EnvService", () => {
         CLOUDFLARE_API_TOKEN: "cfut_xxx",
         CLOUDFLARE_ACCOUNT_ID: "abc123",
         SUBDOMAIN_PREFIX: "myapp",
-        D1_INTERNAL_KEY: "d1-key",
         TRADE_INTERNAL_KEY: "trade-key",
         AGENT_INTERNAL_KEY: "agent-key",
         WEBHOOK_API_KEY_BINDING: "webhook-key",
         INTERNAL_KEY_BINDING: "int-key",
-        API_SERVICE_KEY: "api-key",
+        API_SERVICE_KEY_BINDING: "api-key",
+        TELEGRAM_INTERNAL_KEY: "tg-key",
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass123",
         SESSION_SECRET: "a".repeat(32),
@@ -152,12 +176,11 @@ describe("EnvService", () => {
         CLOUDFLARE_API_TOKEN: "tok",
         CLOUDFLARE_ACCOUNT_ID: "id",
         SUBDOMAIN_PREFIX: "p",
-        D1_INTERNAL_KEY: "k",
         TRADE_INTERNAL_KEY: "k",
         AGENT_INTERNAL_KEY: "k",
         WEBHOOK_API_KEY_BINDING: "wk",
         INTERNAL_KEY_BINDING: "ik",
-        API_SERVICE_KEY: "ak",
+        API_SERVICE_KEY_BINDING: "ak",
         DASHBOARD_USER: "u",
         DASHBOARD_PASS: "p",
         SESSION_SECRET: "short",

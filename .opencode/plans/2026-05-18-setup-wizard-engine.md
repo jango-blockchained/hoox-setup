@@ -20,7 +20,7 @@
 - Create: `packages/shared/src/wizard/provisioner.ts`
 - Create: `packages/shared/src/wizard/index.ts`
 
-- [ ] **Step 1: Define core types**
+- [x] **Step 1: Define core types**
 
 `packages/shared/src/wizard/types.ts`:
 
@@ -122,7 +122,7 @@ export interface ValidationResult {
 }
 ```
 
-- [ ] **Step 2: Define Provisioner interface**
+- [x] **Step 2: Define Provisioner interface**
 
 `packages/shared/src/wizard/provisioner.ts`:
 
@@ -135,7 +135,7 @@ export interface Provisioner {
 }
 ```
 
-- [ ] **Step 3: Create barrel export**
+- [x] **Step 3: Create barrel export**
 
 `packages/shared/src/wizard/index.ts`:
 
@@ -164,7 +164,7 @@ export {
 } from "./presets";
 ```
 
-- [ ] **Step 4: Update shared barrel export**
+- [x] **Step 4: Update shared barrel export**
 
 Add to `packages/shared/src/index.ts` (before the Zustand stores section):
 
@@ -193,12 +193,12 @@ export {
 } from "./wizard";
 ```
 
-- [ ] **Step 5: Run typecheck**
+- [x] **Step 5: Run typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass (no errors related to new files)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/shared/src/wizard/ packages/shared/src/index.ts
@@ -214,7 +214,7 @@ git commit -m "feat(shared): add wizard engine types and interfaces"
 - Create: `packages/shared/src/wizard/engine.ts`
 - Create: `packages/shared/src/wizard/__tests__/engine.test.ts`
 
-- [ ] **Step 1: Write engine tests**
+- [x] **Step 1: Write engine tests**
 
 `packages/shared/src/wizard/__tests__/engine.test.ts`:
 
@@ -339,12 +339,12 @@ describe("WizardEngine", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `bun test packages/shared/src/wizard/__tests__/engine.test.ts`
 Expected: FAIL (engine.ts doesn't exist yet)
 
-- [ ] **Step 3: Implement WizardEngine**
+- [x] **Step 3: Implement WizardEngine**
 
 `packages/shared/src/wizard/engine.ts`:
 
@@ -749,17 +749,17 @@ export class WizardEngine {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `bun test packages/shared/src/wizard/__tests__/engine.test.ts`
 Expected: PASS (all tests)
 
-- [ ] **Step 5: Run typecheck**
+- [x] **Step 5: Run typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/shared/src/wizard/engine.ts packages/shared/src/wizard/__tests__/
@@ -775,7 +775,7 @@ git commit -m "feat(shared): implement wizard engine state machine"
 - Create: `packages/shared/src/wizard/presets.ts`
 - Create: `packages/shared/src/wizard/__tests__/presets.test.ts`
 
-- [ ] **Step 1: Write preset tests**
+- [x] **Step 1: Write preset tests**
 
 `packages/shared/src/wizard/__tests__/presets.test.ts`:
 
@@ -856,12 +856,12 @@ describe("BASE_WORKERS", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `bun test packages/shared/src/wizard/__tests__/presets.test.ts`
 Expected: FAIL (presets.ts doesn't exist yet)
 
-- [ ] **Step 3: Implement presets**
+- [x] **Step 3: Implement presets**
 
 `packages/shared/src/wizard/presets.ts`:
 
@@ -953,8 +953,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Binance Exchange",
     workerName: "trade-worker",
     secrets: {
-      BINANCE_API_KEY: "Binance API Key",
-      BINANCE_API_SECRET: "Binance API Secret",
+      BINANCE_KEY_BINDING: "Binance API Key",
+      BINANCE_SECRET_BINDING: "Binance API Secret",
     },
   },
   {
@@ -962,8 +962,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "MEXC Exchange",
     workerName: "trade-worker",
     secrets: {
-      MEXC_API_KEY: "MEXC API Key",
-      MEXC_API_SECRET: "MEXC API Secret",
+      MEXC_KEY_BINDING: "MEXC API Key",
+      MEXC_SECRET_BINDING: "MEXC API Secret",
     },
   },
   {
@@ -971,8 +971,8 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Bybit Exchange",
     workerName: "trade-worker",
     secrets: {
-      BYBIT_API_KEY: "Bybit API Key",
-      BYBIT_API_SECRET: "Bybit API Secret",
+      BYBIT_KEY_BINDING: "Bybit API Key",
+      BYBIT_SECRET_BINDING: "Bybit API Secret",
     },
   },
   {
@@ -989,10 +989,10 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Email Signal Parsing",
     workerName: "email-worker",
     secrets: {
-      EMAIL_HOST: "Email Host (IMAP server)",
-      EMAIL_USER: "Email Username",
-      EMAIL_PASS: "Email Password",
-      INTERNAL_KEY: "Internal Auth Key",
+      EMAIL_HOST_BINDING: "Email Host (IMAP server)",
+      EMAIL_USER_BINDING: "Email Username",
+      EMAIL_PASS_BINDING: "Email Password",
+      INTERNAL_KEY_BINDING: "Internal Auth Key",
     },
     vars: { USE_IMAP: "false" },
   },
@@ -1001,7 +1001,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Telegram Notifications",
     workerName: "telegram-worker",
     secrets: {
-      TELEGRAM_BOT_TOKEN: "Telegram Bot Token",
+      TG_BOT_TOKEN_BINDING: "Telegram Bot Token",
     },
   },
   {
@@ -1009,7 +1009,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "OpenAI (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_OPENAI_KEY: "OpenAI API Key",
+      AGENT_INTERNAL_KEY: "OpenAI API Key",
     },
   },
   {
@@ -1017,7 +1017,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Anthropic (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_ANTHROPIC_KEY: "Anthropic API Key",
+      AGENT_INTERNAL_KEY: "Anthropic API Key",
     },
   },
   {
@@ -1025,7 +1025,7 @@ export const INTEGRATIONS: IntegratedService[] = [
     label: "Google AI (AI Agent)",
     workerName: "agent-worker",
     secrets: {
-      AGENT_GOOGLE_KEY: "Google AI API Key",
+      AGENT_INTERNAL_KEY: "Google AI API Key",
     },
   },
   {
@@ -1066,26 +1066,26 @@ export const BASE_SECRETS: Record<string, string[]> = {
   hoox: ["WEBHOOK_API_KEY_BINDING"],
   "agent-worker": ["AGENT_INTERNAL_KEY"],
   "analytics-worker": ["CLOUDFLARE_API_TOKEN"],
-  "trade-worker": ["API_SERVICE_KEY"],
+  "trade-worker": ["API_SERVICE_KEY_BINDING"],
 };
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `bun test packages/shared/src/wizard/__tests__/presets.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Run all engine + preset tests**
+- [x] **Step 5: Run all engine + preset tests**
 
 Run: `bun test packages/shared/src/wizard/`
 Expected: All pass
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/shared/src/wizard/presets.ts packages/shared/src/wizard/__tests__/presets.test.ts
@@ -1102,7 +1102,7 @@ git commit -m "feat(shared): add worker presets, dependency resolution, and inte
 - Create: `packages/shared/src/wizard/__tests__/persistence.test.ts`
 - Modify: `packages/shared/src/wizard/index.ts` (add re-export)
 
-- [ ] **Step 1: Write persistence tests**
+- [x] **Step 1: Write persistence tests**
 
 `packages/shared/src/wizard/__tests__/persistence.test.ts`:
 
@@ -1124,7 +1124,7 @@ describe("persistence", () => {
       },
       selectedWorkers: ["hoox", "d1-worker"],
       selectedIntegrations: ["binance"],
-      secrets: { binance: { BINANCE_API_KEY: "key123" } },
+      secrets: { binance: { BINANCE_KEY_BINDING: "key123" } },
       preset: "minimal",
       startedAt: 1000,
       updatedAt: 2000,
@@ -1136,12 +1136,12 @@ describe("persistence", () => {
     expect(parsed.cloudflareConfig?.apiToken).toBe("tok_xxx");
     expect(parsed.selectedWorkers).toContain("hoox");
     expect(parsed.selectedIntegrations).toContain("binance");
-    expect(parsed.secrets?.binance?.BINANCE_API_KEY).toBe("key123");
+    expect(parsed.secrets?.binance?.BINANCE_KEY_BINDING).toBe("key123");
   });
 });
 ```
 
-- [ ] **Step 2: Implement persistence**
+- [x] **Step 2: Implement persistence**
 
 `packages/shared/src/wizard/persistence.ts`:
 
@@ -1169,7 +1169,7 @@ export function deserializeState(json: string): WizardState {
 export const WIZARD_STATE_PATH = ".wizard-state.json";
 ```
 
-- [ ] **Step 3: Add re-export to wizard/index.ts**
+- [x] **Step 3: Add re-export to wizard/index.ts**
 
 Add to `packages/shared/src/wizard/index.ts`:
 
@@ -1181,12 +1181,12 @@ export {
 } from "./persistence";
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `bun test packages/shared/src/wizard/`
 Expected: All pass
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/shared/src/wizard/persistence.ts packages/shared/src/wizard/__tests__/persistence.test.ts packages/shared/src/wizard/index.ts
@@ -1204,7 +1204,7 @@ git commit -m "feat(shared): add wizard state persistence module"
 - Create: `packages/cli/src/commands/init/cli-provisioner.ts`
 - Modify: `packages/cli/src/commands/init/init-command.test.ts`
 
-- [ ] **Step 1: Create CLI provisioner**
+- [x] **Step 1: Create CLI provisioner**
 
 `packages/cli/src/commands/init/cli-provisioner.ts`:
 
@@ -1280,7 +1280,7 @@ export class CLIProvisioner implements Provisioner {
 }
 ```
 
-- [ ] **Step 2: Write CLI provisioner test**
+- [x] **Step 2: Write CLI provisioner test**
 
 `packages/cli/src/commands/init/__tests__/cli-provisioner.test.ts`:
 
@@ -1304,7 +1304,7 @@ describe("CLIProvisioner", () => {
 });
 ```
 
-- [ ] **Step 3: Refactor init-command.ts to use engine**
+- [x] **Step 3: Refactor init-command.ts to use engine**
 
 Rewrite `packages/cli/src/commands/init/init-command.ts` to:
 
@@ -1363,7 +1363,7 @@ engine.execute({});
 // Clean up state file
 ```
 
-- [ ] **Step 4: Update CLI types.ts**
+- [x] **Step 4: Update CLI types.ts**
 
 `packages/cli/src/commands/init/types.ts`:
 
@@ -1371,17 +1371,17 @@ engine.execute({});
 - Add `--resume` flag to `InitOptions`
 - Keep `InitOptions`, `WorkersJsonConfig` (though config type is now shared)
 
-- [ ] **Step 5: Run CLI tests**
+- [x] **Step 5: Run CLI tests**
 
 Run: `bun test packages/cli/src/commands/init/`
 Expected: Pass
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/cli/src/commands/init/
@@ -1397,7 +1397,7 @@ git commit -m "feat(cli): refactor hoox init to use shared wizard engine with pr
 - Modify: `packages/tui/src/components/views/setup-wizard.tsx`
 - Modify: `packages/tui/src/components/views/setup-wizard.test.tsx`
 
-- [ ] **Step 1: Integrate wizard engine into TUI component**
+- [x] **Step 1: Integrate wizard engine into TUI component**
 
 Replace the local `WizardFormData` state management with `WizardEngine` instance.
 Map existing OpenTUI form steps to engine step execution.
@@ -1424,7 +1424,7 @@ const handleNext = () => {
 };
 ```
 
-- [ ] **Step 2: Add config save step**
+- [x] **Step 2: Add config save step**
 
 In the DEPLOY step (step 6), before calling `cliBridge.deployAll()`:
 
@@ -1437,7 +1437,7 @@ engine.execute({});
 setWizardState(engine.getState());
 ```
 
-- [ ] **Step 3: Map TUI form fields to engine input**
+- [x] **Step 3: Map TUI form fields to engine input**
 
 Map the existing form fields to engine step inputs:
 
@@ -1447,21 +1447,21 @@ Map the existing form fields to engine step inputs:
 - Notifications → part of integration selection
 - Deploy → builds config, deploys
 
-- [ ] **Step 4: Update tests**
+- [x] **Step 4: Update tests**
 
 Update `setup-wizard.test.tsx` to test engine integration.
 
-- [ ] **Step 5: Run TUI tests**
+- [x] **Step 5: Run TUI tests**
 
 Run: `bun test packages/tui/src/components/views/setup-wizard.test.tsx`
 Expected: Pass
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/tui/src/components/views/setup-wizard.tsx packages/tui/src/components/views/setup-wizard.test.tsx
@@ -1472,27 +1472,27 @@ git commit -m "feat(tui): refactor SetupWizard to use shared wizard engine with 
 
 ### Task 7: Final integration & testing
 
-- [ ] **Step 1: Run full lint**
+- [x] **Step 1: Run full lint**
 
 Run: `bun run lint`
 Expected: Pass
 
-- [ ] **Step 2: Run full typecheck**
+- [x] **Step 2: Run full typecheck**
 
 Run: `bun run typecheck`
 Expected: Pass
 
-- [ ] **Step 3: Run all tests**
+- [x] **Step 3: Run all tests**
 
 Run: `bun test`
 Expected: All pass
 
-- [ ] **Step 4: Run build check**
+- [x] **Step 4: Run build check**
 
 Run: `bun run build`
 Expected: Pass
 
-- [ ] **Step 5: Commit final**
+- [x] **Step 5: Commit final**
 
 ```bash
 git add -A && git commit -m "feat: complete shared wizard engine integration across CLI and TUI"

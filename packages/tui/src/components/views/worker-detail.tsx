@@ -4,10 +4,10 @@
  *
  * Layout:
  *   - Breadcrumb header: "← BACK | {worker.name} | {StatusDot} {status}"
- *   - 2×2 grid of panes:
- *     1. Metrics   — uptime, CPU avg/p99, memory, throttling, invocations, errors, P50 latency
+ *   - 4-pane layout:
+ *     1. Metrics   — uptime, CPU avg/p99, memory, requests, errors (from WorkerInfo)
  *     2. Live Logs — streaming log entries from store, auto-scroll, Space to pause, color-coded
- *     3. Durable Objects — list with name + status (OK/ERROR)
+ *     3. Durable Objects — list with name + status (derived from DO count)
  *     4. Config Preview — read-only key:value grid
  *   - Tab cycles focus between panes
  *   - Esc returns to workers overview via UI store goBack()
@@ -100,44 +100,33 @@ function BreadcrumbHeader({ worker }: { worker: Worker }) {
 function MetricsPane({ worker }: { worker: Worker }) {
   const metrics = useServiceStore((s) => s.metrics);
 
-  // Derived values with sensible fallbacks
-  const cpuAvg = worker.cpu.toFixed(1);
-  const cpuP99 = Math.min(worker.cpu * 1.8, 100).toFixed(1); // estimated p99
-  const throttlingPct =
-    worker.cpu > 80 ? ((worker.cpu - 80) * 5).toFixed(1) : "0.0";
-  const memoryLimitMB = 128; // Cloudflare default
-  const p50Latency =
-    worker.cpu > 60 ? (10 + (worker.cpu - 60) * 0.5).toFixed(0) : "10";
+  // Use real WorkerInfo fields where available, derived fallbacks otherwise
+  const cpuAvg = worker.cpuAvgMs.toFixed(1);
+  const cpuP99 = worker.cpuP99Ms.toFixed(1);
+  const memMB = worker.memoryMB;
+  const memLimitMB = worker.memoryLimitMB;
+  const requests = worker.requests24h;
+  const errors = worker.errors24h;
 
   const rows: [string, string, string][] = [
     ["Uptime", formatUptime(worker.uptime), Colors.success],
     [
       "CPU Avg",
-      `${cpuAvg}%`,
-      worker.cpu > 80
+      `${cpuAvg}ms`,
+      Number(cpuAvg) > 80
         ? Colors.error
-        : worker.cpu > 60
+        : Number(cpuAvg) > 60
           ? Colors.warning
           : Colors.success,
     ],
-    ["CPU P99", `${cpuP99}%`, Colors.muted],
+    ["CPU P99", `${cpuP99}ms`, Colors.muted],
     [
       "Memory",
-      `${worker.memory} MB / ${memoryLimitMB} MB`,
-      worker.memory > 100 ? Colors.warning : Colors.success,
+      `${memMB} MB / ${memLimitMB} MB`,
+      memMB > 100 ? Colors.warning : Colors.success,
     ],
-    [
-      "Throttling",
-      `${throttlingPct}%`,
-      throttlingPct !== "0.0" ? Colors.error : Colors.success,
-    ],
-    ["Invocations", worker.requests.toLocaleString(), Colors.info],
-    ["Errors", "0", Colors.success],
-    [
-      "P50 Latency",
-      `${p50Latency} ms`,
-      Number(p50Latency) > 100 ? Colors.warning : Colors.success,
-    ],
+    ["Requests (24h)", requests.toLocaleString(), Colors.info],
+    ["Errors (24h)", `${errors}`, errors > 0 ? Colors.error : Colors.success],
   ];
 
   return (
@@ -273,17 +262,17 @@ function LogLine({ log }: { log: Log }) {
  * Durable Objects pane — list of DOs with name and status.
  */
 function DurableObjectsPane({ worker }: { worker: Worker }) {
-  // Mock DO data derived from worker
+  // Derive DO display from real count and worker name
   const dos = useMemo(() => {
+    // WorkerInfo tells us how many DOs exist but not their names
+    const count = Math.max(0, worker.durableObjects);
     const names = worker.name
       ? [`${worker.name}-state`, `${worker.name}-cache`, `${worker.name}-queue`]
       : [];
-    return names
-      .slice(0, Math.max(1, worker.durableObjectCount))
-      .map((name, i) => ({
-        name,
-        status: worker.status === "down" ? ("ERROR" as const) : ("OK" as const),
-      }));
+    return names.slice(0, Math.max(1, count)).map((name) => ({
+      name,
+      status: worker.status === "down" ? ("ERROR" as const) : ("OK" as const),
+    }));
   }, [worker]);
 
   return (

@@ -545,12 +545,12 @@ async function doTelegramWebhook(
     let botToken = token;
     if (!botToken) {
       const envVars = await EnvService.loadDotEnvAsync(".env.local");
-      botToken = envVars["TELEGRAM_BOT_TOKEN"];
+      botToken = envVars["TG_BOT_TOKEN_BINDING"];
     }
     if (!botToken) {
       formatError(
         new CLIError(
-          "Telegram bot token not found. Provide --token or set TELEGRAM_BOT_TOKEN in .env.local",
+          "Telegram bot token not found. Provide --token or set TG_BOT_TOKEN_BINDING in .env.local",
           ExitCode.ERROR
         ),
         fmt

@@ -16,7 +16,7 @@ export type { Result };
 // ---------------------------------------------------------------------------
 
 export interface SecretStatus {
-  /** Name of the secret (e.g. "TELEGRAM_BOT_TOKEN"). */
+  /** Name of the secret (e.g. "TG_BOT_TOKEN_BINDING"). */
   name: string;
   /** Whether the secret has a real (non-placeholder) value set. */
   set: boolean;

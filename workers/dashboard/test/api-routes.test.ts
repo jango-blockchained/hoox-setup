@@ -183,8 +183,8 @@ describe("Settings API Route", () => {
       } as any)
     );
 
-    process.env.D1_WORKER_URL = "http://d1-worker";
-    process.env.D1_INTERNAL_KEY = "internal-key";
+    process.env.D1_SERVICE = "http://d1-worker";
+    process.env.INTERNAL_KEY_BINDING = "internal-key";
 
     const response = await settingsRoute.GET();
     const body = await response.json();
@@ -269,8 +269,8 @@ describe("Settings API Route", () => {
       } as any)
     );
 
-    process.env.D1_WORKER_URL = "http://d1-worker";
-    process.env.D1_INTERNAL_KEY = "internal-key";
+    process.env.D1_SERVICE = "http://d1-worker";
+    process.env.INTERNAL_KEY_BINDING = "internal-key";
 
     const request = new Request("http://localhost/api/settings", {
       method: "POST",

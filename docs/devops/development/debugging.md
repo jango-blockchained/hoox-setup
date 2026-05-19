@@ -2,6 +2,7 @@
 title: "🐛 Debugging"
 description: "Tools and techniques for debugging Hoox workers"
 ---
+
 # 🐛 Debugging
 
 > Tools and techniques for debugging Hoox workers
@@ -38,7 +39,7 @@ npx wrangler tail trade-worker
 
 ### 1. `Worker error: 401 Unauthorized`
 
-Check that your `INTERNAL_KEY` matches across all workers.
+Check that your `INTERNAL_KEY_BINDING` matches across all workers.
 
 ### 2. `D1_ERROR: no such table`
 

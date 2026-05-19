@@ -158,6 +158,10 @@ export {
   WIZARD_STATE_PATH,
 } from "./wizard";
 
+// ── Worker Manifest Schema ──────────────────────────────────────────────
+
+export * from "./schemas/index.js";
+
 // Zustand stores
 export { useUIStore } from "../stores/ui-store";
 export { useServiceStore } from "../stores/service-store";

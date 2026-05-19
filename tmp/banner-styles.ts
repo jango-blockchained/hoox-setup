@@ -1,0 +1,205 @@
+#!/usr/bin/env bun
+/**
+ * Hoox CLI — 10 Static Banner Font Styles
+ * Run: bun run tmp/banner-styles.ts
+ */
+
+const TAGLINE = "Cloudflare Workers Platform";
+const VERSION = "0.3.0";
+
+const ansi = {
+  cyan: (s: string) => `\x1b[36m${s}\x1b[39m`,
+  boldCyan: (s: string) => `\x1b[1;36m${s}\x1b[0m`,
+  dim: (s: string) => `\x1b[2m${s}\x1b[22m`,
+  green: (s: string) => `\x1b[32m${s}\x1b[39m`,
+  yellow: (s: string) => `\x1b[33m${s}\x1b[39m`,
+  magenta: (s: string) => `\x1b[35m${s}\x1b[39m`,
+  accent: (s: string) => `\x1b[36;1m${s}\x1b[0m`,
+  heading: (s: string) => `\x1b[1;36m${s}\x1b[0m`,
+  white: (s: string) => `\x1b[37m${s}\x1b[39m`,
+  gray: (s: string) => `\x1b[90m${s}\x1b[39m`,
+  blue: (s: string) => `\x1b[34m${s}\x1b[39m`,
+  red: (s: string) => `\x1b[31m${s}\x1b[39m`,
+};
+
+function tagline(): string {
+  const bw = 54;
+  const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 2) / 2);
+  return ` ${" ".repeat(gap)}${ansi.dim(TAGLINE)} ${ansi.dim(`v${VERSION}`)}`;
+}
+
+function hr(ch = "─", n = 52): string {
+  return ansi.dim(ch.repeat(n));
+}
+
+function show(
+  n: number,
+  name: string,
+  lines: string[],
+  opts?: { bw?: number; pad?: number; color?: (s: string) => string }
+) {
+  const c = opts?.color ?? ansi.heading;
+  const bw = opts?.bw ?? 54;
+  const pad = opts?.pad ?? 1;
+
+  const top = ` ${ansi.dim("┌")}${ansi.dim("─").repeat(bw - 2)}${ansi.dim("┐")}`;
+  const bottom = ` ${ansi.dim("└")}${ansi.dim("─").repeat(bw - 2)}${ansi.dim("┘")}`;
+  const sp = " ".repeat(pad);
+
+  console.log(
+    `\n${ansi.gray("───")} ${ansi.white(`${n}. ${name}`)} ${ansi.gray("───")}\n`
+  );
+  console.log(top);
+  lines.forEach((l) => console.log(` ${sp}${c(l)}${sp}`));
+  console.log(hr("─", bw));
+  console.log(tagline());
+  console.log(bottom);
+  console.log();
+}
+
+// ── 1. LEGACY (existing) ──────────────────────────────────────────
+
+show(1, "Legacy", [
+  "██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗",
+  "██║  ██║██╔═══██╗██╔═══██╗╚██╗██╔╝",
+  "███████║██║   ██║██║   ██║ ╚███╔╝ ",
+  "██╔══██║██║   ██║██║   ██║ ██╔██╗ ",
+  "██║  ██║╚██████╔╝╚██████╔╝██╔╝ ██╗",
+  "╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
+]);
+
+// ── 2. HORIZON (existing) ─────────────────────────────────────────
+
+show(
+  2,
+  "Horizon",
+  [
+    "╔═══╗ ╔═══╗ ╔═══╗ ╔═══╗",
+    "║ ║ ║ ║   ║ ║   ║ ║ ║ ║",
+    "║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║",
+    "║ ╚═╝ ║ ╚═╝ ║ ║ ║ ║ ╚═╝",
+    "║     ║     ║ ╚═╝ ║     ",
+    "╚═════╝ ╚═════╝ ╚═══╝ ╚═════╝",
+  ],
+  { bw: 58, color: ansi.accent }
+);
+
+// ── 3. SIGNAL (existing) ──────────────────────────────────────────
+
+show(
+  3,
+  "Signal",
+  [
+    "  _   _           _   _   ",
+    " | | | | ___   __| | | | ",
+    " | |_| |/ _ \\ / _` | | | ",
+    " |  _  | (_) | (_| | | | ",
+    " |_| |_|\\___/ \\__,_| |_| ",
+  ],
+  { bw: 48, color: (s) => ansi.heading(s.slice(0, 26)) + ansi.dim(s.slice(26)) }
+);
+
+// ── 4. MINIMAL (existing) ─────────────────────────────────────────
+
+show(4, "Minimal", ["  H   O   O   X  "], { bw: 40, pad: 3 });
+
+// ── 5. CYBER — digital 7-segment style ────────────────────────────
+
+show(
+  5,
+  "Cyber",
+  [
+    " ╻ ╻╺┳╸╺┳╸╺┳╸",
+    " ┃ ┃ ┃  ┃  ┃ ",
+    " ┃ ┃ ┃  ┃  ┃ ",
+    " ┃ ┃ ┃  ┃  ┃ ",
+    " ┗━┛ ╹  ╹  ╹",
+  ],
+  { bw: 40, color: ansi.green }
+);
+
+// ── 6. SLANT — italic / slanted ASCII ─────────────────────────────
+
+show(
+  6,
+  "Slant",
+  [
+    "   ╱╻   ╱╲   ╱╲   ╱╲",
+    "  ╱ ┃  ╱  ╲ ╱  ╲ ╱  ╲",
+    " ╱  ┃ ╱    ╲    ╲╱    ╲",
+    "╱   ┃╱      ╲    ╲      ╲",
+    "    ╹       ╱     ╱      ╱",
+    "           ╱     ╱      ╱",
+  ],
+  { bw: 54, color: ansi.magenta }
+);
+
+// ── 7. BRAILLE — braille dot patterns ─────────────────────────────
+
+show(
+  7,
+  "Braille",
+  [
+    "⣿⡀⣿⡀  ⣿⣿⣿  ⣿⣿⣿  ⣿⣿⡿",
+    "⣿⡀⣿⡀  ⣿⡀⣿  ⣿⡀⣿  ⣿⡀⣿",
+    "⣿⣿⣿⡀  ⣿⣿⣿  ⣿⣿⣿  ⣿⣿⣿",
+    "⣿⡀⣿⡀  ⣿⡀⣿  ⣿⡀⣿  ⣿⡀⣿",
+    "⣿⡀⣿⡀  ⣿⣿⣿  ⣿⣿⣿  ⣿⣿⿁",
+  ],
+  { bw: 54, color: ansi.yellow }
+);
+
+// ── 8. TALL — skinny tall letters ─────────────────────────────────
+
+show(
+  8,
+  "Tall",
+  [
+    "╻ ╻  ╻   ╻   ╻",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "┃ ┃  ┃   ┃   ┃",
+    "╹ ╹  ╹   ╹   ╹",
+  ],
+  { bw: 36, color: ansi.blue }
+);
+
+// ── 9. DOTTY — pixel-dense block art ──────────────────────────────
+
+show(
+  9,
+  "Dotty",
+  [
+    "████  ████  ████  ████ ",
+    "█  █  █  █  █  █  █  █ ",
+    "████  █  █  █  █  ████ ",
+    "█  █  █  █  █  █  █ █  ",
+    "█  █  ████  ████  █  █ ",
+  ],
+  { color: ansi.boldCyan }
+);
+
+// ── 10. DOUBLE — double-line box style ────────────────────────────
+
+show(
+  10,
+  "Double",
+  [
+    "╔╗ ╔╗ ╔══╗ ╔══╗ ╔══╗",
+    "║║ ║║ ║  ║ ║  ║ ║  ║",
+    "║╚═╝║ ║  ║ ║  ║ ║  ║",
+    "║╔╗ ║ ║  ║ ║  ║ ║  ║",
+    "║║╚═╝ ╚══╝ ╚══╝ ╚══╝",
+    "╚╝                        ",
+  ],
+  { bw: 58, color: ansi.accent }
+);
+
+// ── Summary ───────────────────────────────────────────────────────
+
+console.log(`\n${ansi.green("  ✓")} 10 static banner styles shown.`);
+console.log(ansi.dim("  Run again: bun run tmp/banner-styles.ts\n"));
