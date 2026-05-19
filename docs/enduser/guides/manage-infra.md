@@ -1,91 +1,123 @@
 ---
-title: "Manage Infrastructure"
-description: "Provision and manage D1, KV, R2, Queues, and Vectorize"
+title: "Infrastructure Management"
+description: "How to provision and manage Cloudflare D1 databases, KV namespaces, R2 buckets, Queues, and Vectorize indexes using hoox infra."
 ---
 
-# Manage Infrastructure
+# 🛠️ Infrastructure Management
 
-> **What is infrastructure?** Hoox uses several Cloudflare services to run. This guide covers how to create, configure, and manage them using `hoox infra`.
+Hoox is fully serverless, using Cloudflare’s distributed services as its compute and storage engine. Managing these resources—such as provisioning D1 databases, registering KV config buckets, setting up S3-compatible R2 storage, and mounting asynchronous Queues—is done directly via the **`hoox infra`** command group.
 
-## Quick Provisioning
+This guide is your operations manual for provisioning, inspecting, and managing Hoox edge infrastructure.
+
+---
+
+## ⚡ 1. One-Click Quick Provisioning
+
+When setting up your trading workspace for the first time, you do not need to manually configure resources in Cloudflare’s dashboard. The Hoox CLI automatically parses your enabled workers' configurations and spins up the entire infrastructure stack in one command:
 
 ```bash
-# Auto-provision everything defined in wrangler.jsonc
+# Auto-provision all required KV, D1, R2, Vectorize, and Queue resources
 hoox infra provision
 ```
 
-This creates D1 databases, KV namespaces, R2 buckets, Queues, and Vectorize indexes in one command.
+This command performs a dependency audit and calls Cloudflare's APIs to provision:
 
-## D1 Database (SQLite at the Edge)
+1. **D1 SQLite Database** (`hoox-db`).
+2. **CONFIG_KV** Namespace bucket.
+3. **`trade-execution`** messaging Queue.
+4. **`trade-reports`** and **`system-logs`** R2 object storage buckets.
+5. **`rag-index`** Vectorize vector search database.
 
-Stores trade history, positions, balances, and system logs.
+---
+
+## 🗄️ 2. D1 Database Administration
+
+D1 databases store your critical transactional data (ledger, positions, balance history).
 
 ```bash
-# List databases
+# A. List all active D1 databases in your Cloudflare account
 hoox infra d1 list
 
-# Create a database
-hoox infra d1 create my-database
+# B. Create a new custom database instance
+hoox infra d1 create my-custom-db
 
-# Delete a database
-hoox infra d1 delete my-database
+# C. Delete a database instance (destructive)
+hoox infra d1 delete my-custom-db
 ```
 
-> **What is D1?** A SQLite database that lives at the network edge. Queries complete in milliseconds because your data is close to your workers. See [Cloudflare Services](../concepts/cloudflare-services.md).
+> **Note:** Once a D1 database is created, the CLI will output its unique `database_id` (a 36-character UUID). You must ensure this ID is bound in your worker's `wrangler.jsonc` file so the worker V8 isolate can establish a connection at runtime.
 
-## KV Namespace (Global Config Store)
+---
 
-Holds runtime settings like kill switch state, API routing rules, and rate limiter data.
+## 🔑 3. KV Configuration Namespace Management
+
+KV stores are used to manage fast-path configurations, global parameters, and the kill switch.
 
 ```bash
-# List namespaces
+# A. List all KV namespaces in your account
 hoox infra kv list
 
-# Create a namespace
+# B. Create a new KV namespace (e.g. for staging or production)
 hoox infra kv create CONFIG_KV
+
+# C. Apply the default 16-key configuration manifest to your active namespace
+hoox config kv apply-manifest
 ```
 
-> **What is KV?** A global key-value store that propagates worldwide in seconds. Perfect for settings that change without redeploying.
+---
 
-## R2 Buckets (Object Storage)
+## 📨 4. Asynchronous Queues Setup
 
-Holds trade reports, system logs, and user uploads.
-
-```bash
-# List buckets
-hoox infra r2 list
-
-# Create a bucket
-hoox infra r2 create trade-reports
-```
-
-> **What is R2?** S3-compatible storage with zero egress fees. Download as much as you want — no bandwidth charges.
-
-## Queues (Async Messaging)
-
-Reliable message delivery between workers. If an exchange API is down, the queue retries with backoff.
+Queues guarantee order delivery during periods of extreme exchange rate limits or network congestion.
 
 ```bash
-# List queues
+# A. List all active Cloudflare Queues
 hoox infra queues list
 
-# Create a queue
+# B. Create the trade execution queue
 hoox infra queues create trade-execution
 ```
 
-## Vectorize (Vector Database)
+### Queue Parameters & Throttling
 
-Powers the Telegram bot's memory — lets it recall past conversations and trades.
+During provisioning, Hoox configures the queue with:
+
+- **Retry Backoff**: 30 seconds initial delay, scaling exponentially up to 15 minutes.
+- **Message Retention**: 4 days (ensuring messages are preserved even during prolonged exchange maintenance events).
+
+---
+
+## 📦 5. R2 Object Storage Administration
+
+R2 is an S3-compatible, zero-egress fee object storage service used to offload heavy JSON payloads and PDF portfolio reports.
 
 ```bash
-# List indexes
-hoox infra vectorize list
+# A. List all R2 buckets
+hoox infra r2 list
 
-# Create an index
-hoox infra vectorize create my-rag-index
+# B. Create the trade-reports bucket
+hoox infra r2 create trade-reports
 ```
 
-## Next Steps
+---
 
-- [Database Operations](database-ops.md) — Query and manage your D1 data
-- [Cloudflare Services Explained](../concepts/cloudflare-services.md) — Deep dive into each service
+## 🧠 6. Vectorize RAG Index Management
+
+Vectorize indexes house high-dimensional vector embeddings that power semantic search and Telegram AI bot memory.
+
+```bash
+# A. List all Vectorize indexes
+hoox infra vectorize list
+
+# B. Create a vector index with specific dimensions (e.g. 1536 for OpenAI embeddings)
+hoox infra vectorize create rag-index --dimensions 1536 --metric cosine
+```
+
+---
+
+> **Warning:** Destroying resources via `hoox infra <service> delete` is highly destructive and irreversible. Deleting a D1 database instantly wipes your trading records; deleting a KV bucket drops all configurations and triggers immediate gateway errors. Always backup ledgers before running deletions!
+
+### 🔗 Next Steps
+
+- **[Database Migrations & SQL](database-ops.md)** — Run queries, manage drizzle schemas, and restore backups.
+- **[Take-to-Production Deployments](deploy-workers.md)** — Deploy your compiled workers and bind V8 isolates globally.

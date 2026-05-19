@@ -1,43 +1,106 @@
 ---
-title: "Secrets & Security"
-description: "Manage API keys, secrets, and access control"
+title: "Secrets & Network Security"
+description: "How to manage encrypted Cloudflare Worker Secrets, secure Zero Trust service boundaries, and configure edge firewalls and IP allowlists."
 ---
 
-# Secrets & Security
+# 🔐 Secrets & Network Security
 
-## Managing Secrets
+Security is the most critical component of the Hoox trading platform. When deploying automated execution scripts, your capital and API credentials must be protected against malicious exploits, unauthorized webhook payloads, and network interceptions.
 
-Secrets (exchange API keys, Telegram tokens, internal auth keys) are stored at Cloudflare — never in your repository.
+This guide outlines our **Zero Trust security architecture**, encrypted secret management procedures, and edge-level firewall protection runbooks.
 
-```bash
-# Set a secret
-hoox secrets update-cf BINANCE_KEY_BINDING trade-worker
+---
 
-# Check which secrets are set
-hoox secrets check
+## 🛡️ 1. Zero Trust Network Isolation
 
-# Sync all secrets from configuration
-hoox secrets update-cf
+Traditional trading systems expose database and exchange execution APIs to the public internet (secured by simple HTTP headers or ports). This creates an active attack surface.
+
+Hoox implements a strict **Zero Trust microservice isolation topology**:
+
+```
+[Public Internet] ───► [Cloudflare WAF / Firewall]
+                                │
+                        (IP & Auth Checks)
+                                │
+                                ▼
+                       [Gateway (hoox)] (Publicly Accessible Node)
+                                │
+               ┌────────────────┴────────────────┐
+               │ V8 Isolate Service Bindings     │
+               │ (Private, Encrypted, Zero-TCP)  │
+               └────────────────┬────────────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              ▼                 ▼                 ▼
+       [trade-worker]      [d1-worker]      [agent-worker]
+       (No Public URL)   (No Public URL)   (No Public URL)
+              │                 │                 │
+     (Exchange Orders)   (SQLite Queries)   (AI Risk Audits)
 ```
 
-## Zero Trust Architecture
+- **No Public Endpoints**: The `trade-worker`, `d1-worker`, and `agent-worker` literally **do not exist** on the public internet. They have no public IP addresses or URLs.
+- **V8 Service Bindings**: Communication between the public gateway (`hoox`) and internal compute nodes is routed entirely inside Cloudflare's secure V8 engine isolates. Your trade routing data, database queries, and private logs never travel over the public internet, eliminating TLS decryption and packet-sniffing risks.
 
-Internal workers (trade-worker, d1-worker) have no public endpoints. They can only be reached through Cloudflare Service Bindings — private, encrypted connections between your workers.
+---
 
-The only public entry points are:
+## 🔑 2. Encrypted Secret Management via CLI
 
-- **hoox gateway** — receives webhooks
-- **dashboard** — UI interface
-- **Telegram bot** — command processing
+API keys, exchange secrets, and Telegram bot tokens are never committed to git repositories or written in plain-text configuration files. Instead, they are stored directly on Cloudflare’s hardware-secured key vaults.
 
-## Best Practices
+The Hoox CLI features deep encryption integrations to automate secret provisioning:
 
-1. **Never commit secrets** — `.env.local` and `.dev.vars` are gitignored
-2. **Use `hoox secrets update-cf`** — never pass secrets as CLI arguments
-3. **Rotate exchange keys every 90 days**
-4. **Use least privilege** — create exchange API keys with trading-only permissions
-5. **Kill switch** — `hoox monitor kill-switch on` halts all trading instantly
+```bash
+# 1. Inject a secure exchange credential (e.g. Bybit Secret)
+hoox secrets set BYBIT_API_SECRET "your_private_signature_here"
 
-## Next Steps
+# 2. Check the synchronization status of all required edge secrets
+hoox secrets check
+```
 
-- [Monitor Trading](monitor-trading.md) — Watch for suspicious activity
+### The Secrets Diagnostic Report
+
+Running `hoox secrets check` queries Cloudflare's API to confirm that the key binding exists on the edge, without ever exposing or decrypting the actual values in your terminal:
+
+```
+┌────────────────────────────────────────────────────────┐
+│               Cloudflare Edge Secrets Audit            │
+├────────────────────────────────────────────────────────┤
+│  BYBIT_API_KEY ........... ✅ PRESENT (Active)          │
+│  BYBIT_API_SECRET ........ ✅ PRESENT (Active)          │
+│  TELEGRAM_BOT_TOKEN ...... ✅ PRESENT (Active)          │
+│  OPENAI_API_KEY .......... ⚠️ MISSING (Optional)       │
+│                                                        │
+│  Audit Result: SECURE (All required secrets bound)     │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧱 3. Webhook Firewall & TradingView IP Allow-listing
+
+To ensure that only TradingView's official servers can fire signals to your `/webhook` gateway:
+
+1. **Passkey Verification**: The gateway checks the `apiKey` property inside the JSON payload against your secure manifest in `CONFIG_KV`.
+2. **Cloudflare WAF (Web Application Firewall)**: Since TradingView publishes their official IP ranges, you can configure Cloudflare's edge firewall to block all webhook traffic that does not originate from these verified IPs.
+
+```bash
+# Auto-configure WAF rules to lock the /webhook route to TradingView IPs
+hoox waf configure --TradingView-only
+```
+
+---
+
+## 📋 4. Security Best Practices Checklist
+
+- **Least Privilege API Keys**: When creating API keys on Bybit, Binance, or MEXC, **never** enable "Withdrawal" permissions. Only check "Trade" and "Account Read" permissions.
+- **Credential Rotation**: Automatically rotate your exchange API keys every 90 days. Deleting old keys and injecting new ones takes less than 60 seconds with `hoox secrets set`.
+- **Zero-Commit Rule**: Verify that your `.env.local` and `.dev.vars` files are registered in your workspace's `.gitignore` file to prevent accidental pushes to public repos.
+- **Emergency Response**: If you suspect a strategy error or exchange anomaly, immediately halt all execution via the CLI:
+  ```bash
+  hoox monitor kill-switch on
+  ```
+
+### 🔗 Next Steps
+
+- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+- **[Local Development & Testing](local-development.md)** — Run local wrangler sandboxes with securely encrypted `.dev.vars`.

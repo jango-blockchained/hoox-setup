@@ -1,60 +1,102 @@
 ---
-title: "TradingView Webhook"
-description: "Connect TradingView alerts to Hoox"
+title: "TradingView Webhook Integration"
+description: "How to configure TradingView alerts, write copy-paste Pine Script v5 indicators, and link webhook signals to your edge gateway."
 ---
 
-# TradingView Webhook
+# 📊 TradingView Webhook Integration
 
-Connect a TradingView alert to automatically execute trades through Hoox.
+Connecting **TradingView Alerts** directly to your Hoox edge gateway is the most common way to automate your trading strategies. By combining TradingView's advanced charting engines with Hoox's low-latency edge execution, you can trigger orders instantly based on mathematical indicators, chart patterns, or custom Pine Script v5 logic.
 
-## Step 1: Get Your Gateway URL
+This tutorial walks you through writing a Pine Script v5 script, setting up a TradingView webhook alert, and testing executions.
 
-After deployment, your gateway is at:
+---
 
+## 💻 Step 1: Writing a Pine Script v5 Signal Indicator
+
+To trigger clean trade alerts, use TradingView's **Pine Script v5**. Below is a copy-paste indicator script that evaluates a Moving Average Cross strategy and generates standardized trade alert signals:
+
+```pinescript
+//@version=5
+indicator("Hoox EMA Cross Signals", overlay=true)
+
+// 1. Inputs & Parameters
+fastLength = input.int(9, title="Fast EMA Length")
+slowLength = input.int(21, title="Slow EMA Length")
+
+// 2. Indicators Calculation
+fastEMA = ta.ema(close, fastLength)
+slowEMA = ta.ema(close, slowLength)
+
+plot(fastEMA, color=color.blue, title="Fast EMA")
+plot(slowEMA, color=color.orange, title="Slow EMA")
+
+// 3. Trade Conditions
+longCondition = ta.crossover(fastEMA, slowEMA)
+shortCondition = ta.crossunder(fastEMA, slowEMA)
+
+plotshape(longCondition, title="Long Cross", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(shortCondition, title="Short Cross", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
+// 4. Alert Payloads Construction (JSON compliant)
+longAlertJson = '{"apiKey": "your-hoox-webhook-passkey", "exchange": "bybit", "action": "LONG", "symbol": "BTCUSDT", "quantity": 0.001, "leverage": 10}'
+shortAlertJson = '{"apiKey": "your-hoox-webhook-passkey", "exchange": "bybit", "action": "SHORT", "symbol": "BTCUSDT", "quantity": 0.001, "leverage": 10}'
+
+// 5. Trigger Alerts
+if (longCondition)
+    alert(longAlertJson, alert.freq_once_per_bar_close)
+
+if (shortCondition)
+    alert(shortAlertJson, alert.freq_once_per_bar_close)
 ```
-https://hoox.your-prefix.workers.dev
-```
 
-Replace `your-prefix` with the subdomain prefix you chose during `hoox init`.
+> **Tip:** Replace `"your-hoox-webhook-passkey"` in your Pine Script with the actual passkey configured in your `CONFIG_KV` store (`webhooks:api_key`). This is a critical security step—the gateway will reject any alerts with mismatched keys with a `401 Unauthorized` error.
 
-## Step 2: Create a TradingView Alert
+---
 
-1. Open a chart in TradingView
-2. Click the alarm clock icon (Alerts)
-3. Click "Create Alert"
-4. Set your condition (e.g., price crosses a moving average)
-5. In the "Webhook URL" field, enter your gateway URL
-6. In the "Message" field, enter the JSON payload:
+## 🔔 Step 2: Creating the TradingView Webhook Alert
 
-```json
-{
-  "apiKey": "your-api-key",
-  "exchange": "mexc",
-  "action": "LONG",
-  "symbol": "BTC_USDT",
-  "quantity": 0.01
-}
-```
+Once your script is saved and added to your chart:
 
-7. Click "Create"
+1. Click the **Alarm Clock (Alerts)** icon on the top right panel in TradingView.
+2. Select **Condition**: Choose your indicator `"Hoox EMA Cross Signals"` and select `"Any Alert Function Call"` (this directs TradingView to parse the custom JSON payloads from the `alert()` functions inside your script).
+3. Under **Expiration**: Select your alert lifespan (Premium accounts support Open-Ended alerts).
+4. Navigate to the **Notifications** Tab:
+   - Check the **Webhook URL** box.
+   - Paste your public Hoox Gateway endpoint URL:
+     `https://hoox.alpha-trading.workers.dev/webhook`
+5. Navigate to the **Settings** Tab:
+   - In the **Message** box, type: `{{strategy.order.alert_message}}` (if using a Backtesting Strategy) or leave it blank (if using an Indicator, as the JSON payload is already defined inside our `alert()` function).
+6. Click **Create**.
 
-## Step 3: Test the Alert
+---
 
-Trigger the alert condition manually or wait for it to fire. Check the result:
+## 🔍 Step 3: Verifying Execution in Production
 
-```bash
-hoox monitor trades
-```
+When the Moving Average crossover occurs on your chart:
 
-## Troubleshooting
+1. TradingView compiles the JSON payload and POSTs it to your edge gateway.
+2. The `hoox` gateway validates the signature and routes the order to Bybit.
+3. Check the transaction directly in your terminal:
+   ```bash
+   hoox monitor trades
+   ```
+4. Stream live gateway telemetry logs to verify execution latency:
+   ```bash
+   hoox logs tail hoox
+   ```
 
-| Problem                          | Fix                                                       |
-| -------------------------------- | --------------------------------------------------------- |
-| Alert fires but no trade appears | Check gateway logs: `hoox logs tail hoox`                 |
-| "401 Unauthorized"               | Verify your API key: `hoox secrets check`                 |
-| Wrong exchange                   | Check exchange API keys are set: `hoox secrets update-cf` |
+---
 
-## Next Steps
+## 🛠️ Webhook Troubleshooting Runbook
 
-- [Telegram Bot](telegram-bot.md) &mdash; Get notified when trades execute
-- [API Reference](../reference/api-endpoints.md) &mdash; Full endpoint documentation
+| Symptom / Error                       | Primary Cause                           | Resolution                                                                                                                                    |
+| :------------------------------------ | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Alert fires but no trade executes** | Mismatched API keys or WAF block.       | Run `hoox logs tail hoox` to stream traffic. Check if the client IP was dropped by Cloudflare WAF.                                            |
+| **`401 Unauthorized`**                | Incorrect `apiKey` in Pine Script.      | Run `hoox config kv get webhooks:api_key` to check your key. Paste the exact string into your Pine Script alert payload.                      |
+| **`409 Conflict`**                    | Double-alert fired within the same bar. | Adjust the alert frequency in Pine Script: use `alert.freq_once_per_bar_close` instead of `alert.freq_all` to prevent rapid-fire retries.     |
+| **`Invalid Symbol` API reject**       | Symbol format mismatch.                 | Hoox automatically converts variations (like `BTC-USDT` or `btc/usdt`) to `BTCUSDT`, but ensure your script sends standard uppercase symbols. |
+
+### 🔗 Next Steps
+
+- **[Setting Up Telegram Alerts](telegram-bot.md)** — Integrate Telegram notifications to get fills pushed directly to your phone.
+- **[API Endpoint Reference](../reference/api-endpoints.md)** — Review full request schemas and status codes.

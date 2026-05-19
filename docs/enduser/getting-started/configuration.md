@@ -1,73 +1,141 @@
 ---
-title: "Configuration"
-description: "Environment variables, secrets, and settings reference"
+title: "Platform Configuration"
+description: "Master reference for environment variables, Cloudflare secrets, wrangler V8 profiles, and dynamic KV runtime manifests."
 ---
 
-# Configuration
+# ⚙️ Platform Configuration
 
-## Environment Variables
+Hoox uses a dual-layer configuration topology: a **declarative build-time environment layer** (managed via local files and Cloudflare Secrets) and an **instantaneous runtime configuration layer** (managed via Cloudflare KV key-value databases). This ensures maximum agility: deploy secure code once, and adjust trading parameters or flip kill switches in real-time without redeploying code.
 
-Hoox uses a `.env.local` file at the project root for local configuration. Copy the template to get started:
+---
+
+## 1. Declarative Environment Variables (`.env.local`)
+
+For local operations, build-time variables, and workspace linking, Hoox loads a `.env.local` file at your project root.
+
+Copy the secure template during initialization:
 
 ```bash
 cp .env.example .env.local
 ```
 
-### Required Variables
+The Hoox environment is split into 5 core logical sections. Below is the comprehensive dictionary of key configuration parameters:
 
-| Variable                | Description                                          |
-| ----------------------- | ---------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`  | Cloudflare API token with Worker/Account permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID                           |
-| `SUBDOMAIN_PREFIX`      | Prefix for worker subdomains (e.g., `mytrading`)     |
+### A. ⚡ Cloudflare Core Infrastructure
 
-### Optional Variables
+| Parameter               | Required | Description                                                          | Example                            |
+| :---------------------- | :------: | :------------------------------------------------------------------- | :--------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | **Yes**  | API token with `D1`, `KV`, `Queue`, and `Workers` write permissions. | `cf_pat_abc123...`                 |
+| `CLOUDFLARE_ACCOUNT_ID` | **Yes**  | Your unique 32-character Cloudflare dashboard account hash.          | `debc6545e63bea36be059cbc82d80ec8` |
+| `SUBDOMAIN_PREFIX`      | **Yes**  | Subdomain prefix under which your public gateway routes compile.     | `hoox-edge`                        |
 
-See `.env.example` for the full list of optional variables: Telegram bot tokens, AI provider keys, exchange API keys, dashboard credentials.
+### B. 💱 Exchange API Keys (Securely Redacted)
 
-## Managing Configuration via CLI
+These credentials must be injected as secure encrypted environment variables into your Cloudflare Worker isolates. The Hoox CLI automates this injection.
+
+- **Binance**:
+  - `BINANCE_API_KEY` — Your read/write exchange account trade permission key.
+  - `BINANCE_API_SECRET` — Private secret key used to HMAC-SHA256 sign order payloads.
+- **Bybit**:
+  - `BYBIT_API_KEY` — Order routing account key.
+  - `BYBIT_API_SECRET` — Order signing private key.
+- **MEXC**:
+  - `MEXC_API_KEY` — Order routing account key.
+  - `MEXC_API_SECRET` — Order signing private key.
+
+### C. 💬 Telegram Bot Alerts
+
+| Parameter            | Required | Description                                                            | Example                 |
+| :------------------- | :------: | :--------------------------------------------------------------------- | :---------------------- |
+| `TELEGRAM_BOT_TOKEN` |    No    | HTTP API authentication token provided by Telegram's BotFather.        | `123456789:ABCdefGh...` |
+| `TELEGRAM_CHAT_ID`   |    No    | The numeric chat ID of the user, group, or channel where alerts route. | `987654321`             |
+
+### D. 🧠 Multi-Provider AI Credentials
+
+Used to power autonomous risk assessments, Telegram conversation loops, and time-series summaries in `agent-worker`.
+
+- `OPENAI_API_KEY` — Access key for OpenAI GPT models.
+- `ANTHROPIC_API_KEY` — Access key for Anthropic Claude models.
+- `GOOGLE_AI_API_KEY` — Access key for Google Gemini models.
+
+---
+
+## 2. Managing Environment & Secrets via CLI
+
+To prevent plain-text exposure and ensure proper edge variable binding, **never** manually paste sensitive keys into `wrangler.jsonc` files. Instead, utilize the high-integrity `hoox config env` command groups:
 
 ```bash
-# Interactive env setup
+# 1. Start the guided terminal config wizard
 hoox config env init
 
-# View current config (secrets redacted)
+# 2. View active workspace configuration (sensitive credentials automatically redacted)
 hoox config env show
 
-# Validate required variables
+# 3. Validate env file structure against required platform variables
 hoox config env validate
 
-# Generate per-worker dev vaults
+# 4. Generate local decrypted .dev.vars files for every enabled worker
 hoox config env generate-dev-vars
 ```
 
-## Worker Configuration (`wrangler.jsonc`)
+> **Note:** Decrypted `.dev.vars` files contain local environment credentials and are excluded from git history via `.gitignore` automatically. Running `hoox config env generate-dev-vars` ensures that local worker testing via `bun run dev` has access to simulated credentials safely.
 
-The central `wrangler.jsonc` file controls which workers are enabled and their settings:
+---
+
+## 3. Worker Configurations (`wrangler.jsonc`)
+
+Each worker in the monorepo has a standard `wrangler.jsonc` file at its directory root. These configurations declare:
+
+1. **Service Bindings**: Connects gateway routes (`hoox`) to internal compute units (`trade-worker`, `d1-worker`) directly via microsecond V8 isolates—no TCP/TLS overhead, no public routes.
+2. **Resource Bindings**: Declares which D1 databases, R2 storage buckets, and KV configurations are linked.
+3. **Execution Mode**: Toggles latency-saving features like **Smart Placement** (`"placement": { "mode": "smart" }`).
+
+You can inspect, check, or change worker toggle status directly:
 
 ```bash
-# Show current config
+# Print complete microservice enabled/disabled status tree
 hoox config show
 
-# Update configuration
-hoox config set workers.hoox.enabled true
+# Declaratively enable/disable specific workers in the manifest
+hoox config set workers.web3-wallet-worker.enabled false
 ```
 
-## KV Configuration (Runtime Settings)
+---
 
-Some settings can be changed without redeploying:
+## 4. Runtime KV Configuration (Sub-millisecond Settings)
+
+One of Hoox's core architectural features is **instant runtime parameter updates**. By using Cloudflare KV, certain settings can be modified globally in sub-milliseconds and take effect on the very next signal execution—without rebuilding or redeploying any worker.
+
+Hoox manages a standard **16-key runtime manifest** inside the `CONFIG_KV` namespace. Below are the most critical runtime parameters:
+
+| KV Key                             |   Type    |     Default      | Description                                                                                    |
+| :--------------------------------- | :-------: | :--------------: | :--------------------------------------------------------------------------------------------- |
+| `trade:kill_switch`                | `boolean` |     `false`      | **Global Kill Switch**. If set to `true`, all incoming trade execution loops immediately halt. |
+| `trade:max_daily_drawdown_percent` | `number`  |       `5`        | Maximum daily drawdown before the AI Risk Manager flips the kill switch.                       |
+| `webhooks:queue_mode`              | `string`  | `queue_failover` | Trade delivery behavior: `direct_only`, `queue_failover`, or `queue_everywhere`.               |
+| `exchanges:default_routing`        | `string`  |     `bybit`      | Default centralized exchange router. Options: `binance`, `bybit`, `mexc`.                      |
+
+### Managing KV Settings via CLI
 
 ```bash
-# Check kill switch status
+# Get the current value of the Global Kill Switch
 hoox config kv get trade:kill_switch
 
-# Set maximum daily drawdown
-hoox config kv set trade:max_daily_drawdown_percent 10
+# Manually trigger a global trading halt
+hoox config kv set trade:kill_switch true
 
-# Apply all default settings
+# Restore trading by flipping the switch back
+hoox config kv set trade:kill_switch false
+
+# Declaratively apply default manifest variables to Cloudflare KV
 hoox config kv apply-manifest
 ```
 
-## Next Steps
+---
 
-- [Deploy Workers](../guides/deploy-workers.md) — Deploy your configured system
+> **Tip:** Changed exchange configurations or toggled the kill switch? There is **no need** to redeploy. The changes are distributed across Cloudflare's 330+ global edge locations near-instantaneously!
+
+### 🔗 Next Steps
+
+- **[5-Minute Quick Start Guide](quick-start.md)** — Launch local worker runners and execute a simulated webhook trade signal.
+- **[Deploying to Production](../guides/deploy-workers.md)** — Deploy and bind all workers in the correct dependency sequence.

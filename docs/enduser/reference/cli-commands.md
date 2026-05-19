@@ -1,135 +1,151 @@
 ---
-title: "CLI Commands"
-description: "Complete reference for the hoox command-line interface"
+title: "CLI Commands Reference"
+description: "Comprehensive CLI directory detailing all 15 command groups, 50+ subcommands, global flags, and positional options for the hoox binary."
 ---
 
-# CLI Commands
+# 🛠️ CLI Commands Reference
 
-The `hoox` CLI has 15 command groups and 50+ subcommands (28 test files, part of the 106-test project suite).
+The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development, provisioning, deployment, monitoring, and self-healing pipelines. This reference provides the complete command tree, positional arguments, optional flags, and concrete examples for all 15 command groups.
 
-## Quick Reference
+---
 
-```
-hoox
-├── init          Interactive setup wizard
-├── clone         Clone worker repos as git submodules
-├── dev           Local development (native or Docker)
-├── deploy        Deploy workers, dashboard, Telegram webhook, KV config
-├── infra         Manage D1, KV, R2, Queues, Vectorize, Analytics
-├── config        Manage wrangler.jsonc, env vars, KV keys, secrets
-├── check         Validate prerequisites, setup, and worker health
-├── db            D1 database operations (apply, migrate, query, export, reset)
-├── monitor       Health checks, recent trades, kill switch, logs, backup
-├── repair        System check, per-component repair, guided rebuild
-├── logs          Stream and filter worker logs
-├── test          Run CI pipeline (lint &rarr; typecheck &rarr; test &rarr; build)
-└── waf           Manage Cloudflare WAF rules
-```
+## 🗺️ Global Flags
 
-## Setup & Init
+These options are registered globally and can be appended to any command:
+
+| Flag        | Description                                                         | Example                         |
+| :---------- | :------------------------------------------------------------------ | :------------------------------ |
+| `--json`    | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox monitor status --json`    |
+| `--quiet`   | Suppresses headers, banners, and interactive prompts.               | `hoox deploy kv-config --quiet` |
+| `--help`    | Prints complete parameter and option listings.                      | `hoox infra d1 --help`          |
+| `--version` | Outputs active CLI package build version.                           | `hoox --version`                |
+
+---
+
+## 🗂️ Command Groups Directory
 
 ```
-hoox init                          Interactive setup wizard
-hoox clone [name]                  Bootstrap project from template
-hoox check prerequisites           Validate tools and accounts
-hoox check setup                   Full environment validation
-hoox check health                  Probe worker health endpoints
+hoox                                 Launch TUI (when run with no args)
+├── init                             Interactive multi-phase setup wizard
+├── clone [name]                     Bootstrap workspace from template
+├── dev                              Local development execution engine
+│   ├── start                        Start all workers (native or Docker)
+│   ├── worker <name>                Start a single worker
+│   └── dashboard                    Start Next.js dashboard dev server
+├── deploy                           Edge deployment pipelines
+│   ├── all                          Roll out all workers + dashboard in sequence
+│   ├── worker <name>                Deploy a single edge worker
+│   ├── dashboard                    Deploy Next.js dashboard via OpenNext
+│   ├── telegram-webhook             Register Telegram bot webhook API
+│   ├── update-internal-urls         Bind inter-worker Service Binding URLs
+│   └── kv-config                    Synchronize KV manifest variables
+├── infra                            Cloudflare resource provisioning IaC
+│   ├── provision                    Auto-provision all required services
+│   ├── d1 [list/create/delete]      Manage D1 databases
+│   ├── kv [list/create/delete]      Manage KV namespaces
+│   ├── r2 [list/create/delete]      Manage R2 object storage buckets
+│   ├── queues [list/create/delete]  Manage Cloudflare Queues
+│   └── vectorize [create/delete]    Manage vector search indexes
+├── config                           Workspace and environmental variables
+│   ├── env [init/show/validate]     Manage .env.local build variables
+│   ├── kv [set/get/list/delete]     Get/Set dynamic KV runtime parameters
+│   └── show/set                     View or set wrangler.jsonc values
+├── check                            Toolchain and route diagnostic suite
+│   ├── prerequisites                Validate local machine tool installs
+│   ├── setup                        Audit .env configurations
+│   └── health                       Probe worker /health endpoints
+├── db                               SQLite D1 Database administration
+│   ├── apply                    Apply DDL schemas to D1
+│   ├── migrate                  Run schema migrations
+│   ├── list                     Display active SQLite tables
+│   ├── query <sql>              Execute custom SQL reads
+│   ├── export                   Dump database as a secure SQL file
+│   └── reset                    Destructive truncate of all tables
+├── monitor                          Observability and emergency controls
+│   ├── status                       Probe active worker health routes
+│   ├── trades [N]                   Aggregate recent filled transactions
+│   ├── logs [worker]                Tail and inspect time-series logs
+│   ├── queue-depth                  Audit message counts in queues
+│   ├── backup                       Backup SQL ledger to backups/
+│   └── kill-switch [show/on/off]    Emergency global trading halt
+├── repair                           System diagnostics & self-healing
+│   ├── check                        Run 5-step checklist
+│   ├── worker <name>                Rebuild a degraded worker
+│   ├── infra                        Verify and repair missing edge bindings
+│   ├── secrets                      Re-sync hardware secrets
+│   ├── kv                           Restore KV manifest defaults
+│   ├── db                           Re-apply Drizzle migrations
+│   └── rebuild                      Full destructive interactive rebuild
+├── logs                             Time-series log extraction
+│   ├── tail <worker>                Stream live edge logging console
+│   └── download <worker>            Download logs to a local file
+├── test                             Run verification pipeline (CI)
+└── waf                              Auto-configure Cloudflare WAF firewall rules
 ```
 
-## Development
+---
 
-```
-hoox dev start [--runtime native|docker]    Start all workers
-hoox dev worker <name>                      Start single worker
-hoox dev dashboard                          Start Next.js dashboard
-```
+## 🚀 Key Commands Detail & Examples
 
-## Deployment
+### A. Initialization & Bootstrap
 
-```
-hoox deploy all [--auto] [--rebuild]                    Deploy all workers + dashboard
-hoox deploy worker <name>                                Deploy single worker
-hoox deploy dashboard [--rebuild]                        Build and deploy dashboard
-hoox deploy telegram-webhook [--token] [--secret-token]  Set Telegram webhook
-hoox deploy update-internal-urls                         Update dashboard service URLs
-hoox deploy kv-config                                    Apply KV manifest defaults
+```bash
+# Onboard a new machine, configure accounts and select worker profile
+hoox init
+
+# Verify that git, bun, wrangler, and docker are correctly configured
+hoox check prerequisites
 ```
 
-## Infrastructure
+### B. Local Development
 
-```
-hoox infra provision              Auto-provision all resources from config
-hoox infra d1 list|create|delete  D1 database operations
-hoox infra kv list|create|delete  KV namespace operations
-hoox infra r2 list|create|delete  R2 bucket operations
-hoox infra queues list|create|delete  Queue operations
-hoox infra vectorize list|create|delete  Vectorize operations
-hoox infra analytics list|create  Analytics Engine operations
+```bash
+# Start all workers in a Docker container stack
+hoox dev start --runtime docker
+
+# Start only the Next.js frontend developer server
+hoox dev dashboard
 ```
 
-## Configuration
+### C. Edge Provisioning & Deployment
 
-```
-hoox config env init              Interactive env variable setup
-hoox config env show              Display env vars (secrets redacted)
-hoox config env validate          Check all required vars set
-hoox config env generate-dev-vars Generate per-worker .dev.vars
-hoox config kv set|get|list|delete  KV key management
-hoox config kv apply-manifest     Set all manifest keys to defaults
-hoox config show|set              View/update wrangler.jsonc
-hoox secrets update-cf|check|sync  Cloudflare secret management
+```bash
+# Provision all databases, buckets, and queues on your Cloudflare account
+hoox infra provision
+
+# Deploy the entire microservices stack in sequence, automatically updating URLs
+hoox deploy all --auto
 ```
 
-## Database
+### D. Operational Monitoring & Emergency halting
 
-```
-hoox db apply [--remote]          Apply schema.sql to D1
-hoox db migrate [--remote]        Run tracking migrations
-hoox db list [--remote]           List all D1 tables
-hoox db query <sql> [--remote]    Execute read-only SQL
-hoox db export                    Export D1 to .sql file
-hoox db reset --confirm           Drop and recreate D1 (DESTRUCTIVE)
-```
+```bash
+# Emergency Halt: halt all trade signals globally in under 10 seconds
+hoox config kv set trade:kill_switch true
 
-## Monitoring
-
-```
-hoox monitor status               Probe all worker /health endpoints
-hoox monitor trades [N]           Query recent trades (default: 10)
-hoox monitor logs [worker]        Show recent system logs
-hoox monitor kill-switch show|on|off  Emergency trading halt
-hoox monitor queue-depth          List queues and depths
-hoox monitor backup               Export D1 database
+# Audit active trade history table
+hoox monitor trades 25
 ```
 
-## Repair
+### E. Database Administration
 
-```
-hoox repair check                 Comprehensive 5-step system check
-hoox repair worker <name>         Redeploy single worker
-hoox repair infra                 Verify infrastructure exists
-hoox repair secrets               Re-upload all secrets
-hoox repair kv                    Reset KV keys to defaults
-hoox repair db                    Re-apply schema + migrations
-hoox repair rebuild               Full guided rebuild (DESTRUCTIVE)
+```bash
+# Query the total sum of fees paid today across Bybit
+hoox db query "SELECT SUM(fee) FROM trades WHERE created_at >= date('now')" --remote
 ```
 
-## Logs & Diagnostics
+### F. Self-Healing & Diagnostics
 
-```
-hoox logs download <worker>       Download worker logs
-hoox logs tail <worker>           Stream logs in real-time
-hoox test                         Run CI pipeline
-hoox waf                          Manage WAF rules
+```bash
+# Run a full workspace system audit
+hoox repair check
 ```
 
-## Global Options
+---
 
-All commands support:
+> **Tip:** Every single subcommand is fully documented locally! Append `--help` to any command (e.g. `hoox config env --help`) to view advanced positional arguments and specific flag options instantly.
 
-| Option    | Description                   |
-| --------- | ----------------------------- |
-| `--json`  | Machine-parseable JSON output |
-| `--quiet` | Minimal output for scripting  |
+### 🔗 Next Steps
 
-> **Full reference:** [CLI Features & Commands](../devops/cli_features.md) for detailed descriptions of all subcommands.
+- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+- **[API Endpoint Reference](api-endpoints.md)** — Analyze REST routes, schemas, and gateway error structures.

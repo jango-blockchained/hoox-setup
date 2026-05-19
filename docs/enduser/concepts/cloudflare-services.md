@@ -1,62 +1,90 @@
 ---
-title: "Cloudflare Services Explained"
-description: "D1, KV, R2, Queues, Vectorize, Durable Objects in plain English"
+title: "Cloudflare Services Map"
+description: "How D1 edge-SQLite, KV, R2, Queues, Durable Objects, Vectorize, and Browser Rendering power our distributed edge monorepo."
 ---
 
-# Cloudflare Services Explained
+# 🗂️ Cloudflare Services Map
 
-Hoox uses several Cloudflare services under the hood. Here's what each one does in plain English.
+Hoox is built natively on a **serverless microservice architecture** powered by a suite of fully integrated Cloudflare® services. By offloading database scaling, messaging retry loops, file storage, and AI inference to Cloudflare's global infrastructure, Hoox runs with **zero server maintenance, ultra-low latency, and $0 monthly costs** on the free tier.
 
-## D1 (Edge Database)
+Here is an architectural map of how each service functions in the Hoox monorepo.
 
-**What it is:** A SQLite database that lives at the network edge.
+---
 
-**What Hoox uses it for:** Storing trade history, positions, balances, and system logs.
+## 🗄️ 1. D1 Database (Edge SQL Engine)
 
-**Why it matters:** Queries complete in milliseconds because your data is as close to your workers as possible. No need to manage a separate database server.
+- **Concept**: A serverless, globally distributed SQLite database engine natively hosted at Cloudflare's edge locations.
+- **Hoox Implementation**: Used to store critical transactional data, including executed trades ledger, historical win rates, daily asset balances, and position tracking tables.
+- **Why it Matters**:
+  - Writes are atomic and ACID-compliant.
+  - Queries complete in under 5 milliseconds because the database runs in the same V8 isolate context as your worker logic.
+  - No need to host, secure, patch, or configure connection pools for a separate database server (like PostgreSQL or MySQL).
 
-→ [Database Operations Guide](../guides/database-ops.md)
+---
 
-## KV (Key-Value Store)
+## 🔑 2. KV Store (Sub-Millisecond Key-Value Configuration)
 
-**What it is:** A global key-value store that propagates updates worldwide in seconds.
+- **Concept**: A highly available, globally distributed key-value store optimized for high-read/low-write operations.
+- **Hoox Implementation**: Houses the global 16-key runtime manifest, including the **Global Kill Switch** (`trade:kill_switch`), exchange routing paths, rate-limiter profiles, and authorized client IP ranges.
+- **Why it Matters**:
+  - Read operations are cached directly at Cloudflare's edge nodes, delivering sub-millisecond lookups.
+  - Updates propagate worldwide in under 10 seconds. You can toggle settings in your terminal, and the change affects every worker globally in seconds, without code redeployment.
 
-**What Hoox uses it for:** Runtime settings — kill switch state, exchange routing rules, rate limiter data.
+---
 
-**Why it matters:** You can change settings without redeploying. Flip the kill switch from any terminal and it takes effect globally within seconds.
+## 📨 3. Cloudflare Queues (Asynchronous Messaging Guard)
 
-→ [Configuration Guide](../getting-started/configuration.md)
+- **Concept**: A high-integrity, serverless message broker guaranteeing at-least-once delivery with built-in retry schedules.
+- **Hoox Implementation**: Acts as an asynchronous buffer and retry buffer for signal executions (`queue_failover` mode).
+- **Why it Matters**:
+  - If a centralized exchange (like Bybit or Binance) undergoes system maintenance or experiences rate limits, the Hoox Gateway intercepts the API error, serializes the trade payload, and enqueues it.
+  - The queue automatically retries execution with an exponential backoff schedule (`30s` → `1m` → `5m` → `15m` → `30m`). Your trades never get lost due to internet dropouts or API errors.
 
-## R2 (Object Storage)
+---
 
-**What it is:** S3-compatible storage with zero egress fees.
+## 🔒 4. Durable Objects (Distributed Coordination & Idempotency)
 
-**What Hoox uses it for:** Trade reports, system logs, user uploads, PDF reports.
+- **Concept**: Single-threaded, in-memory compute isolates containing persistent local storage, ensuring that exactly one instance of an object runs globally.
+- **Hoox Implementation**: Drives the Gateway's **Idempotency Engine** inside `workers/hoox`.
+- **Why it Matters**:
+  - When TradingView fires multiple retries for the same alert (due to a transient network timeout), Durable Objects intercept the request, acquire an atomic mutex lock, and evaluate the trade's unique hash.
+  - Prevents disastrous duplicate trades (e.g. accidentally buying the same spot position twice) during moments of high market congestion.
 
-**Why it matters:** You can download as much data as you want without bandwidth charges.
+---
 
-## Queues (Async Messaging)
+## 📦 5. R2 Object Storage (Zero-Egress Asset Vault)
 
-**What it is:** Reliable message delivery between workers with automatic retry.
+- **Concept**: A fully S3-compatible, serverless object storage bucket featuring **zero bandwidth egress fees**.
+- **Hoox Implementation**: Stores large data payloads, verbose exchange API request/response packets, and compiled HTML/PDF reports.
+- **Why it Matters**:
+  - Offloading heavy system logging to R2 saves massive write capacity on your D1 SQL database, keeping your database compact and responsive.
+  - Zero-egress pricing means you can retrieve, export, and audit your historic trade logs as many times as you like without incurring network charges.
 
-**What Hoox uses it for:** Trade execution queue — if an exchange API is down, the queue retries with backoff (starting at 30 seconds, up to 15 minutes).
+---
 
-**Why it matters:** Trades don't get lost during exchange API outages or network partitions.
+## 🧠 6. Vectorize & Workers AI (Embedded RAG & LLMs)
 
-## Vectorize (Vector Database)
+- **Concept**: A serverless vector search database and an on-demand edge AI inference engine running specialized open-source models (like LLaMA 3, Qwen, and Mistral).
+- **Hoox Implementation**: Integrates with the Telegram Bot (`telegram-worker`) to provide semantic trade analysis and context-aware natural language conversations.
+- **Why it Matters**:
+  - User chat queries are converted into high-dimensional vector embeddings, searched against historical trades inside `Vectorize`, and fed into `Workers AI` as context.
+  - Deliver highly intelligent, context-aware risk analysis directly on your mobile chat without calling expensive external APIs.
 
-**What it is:** A database for AI-powered search and retrieval.
+---
 
-**What Hoox uses it for:** Powers the Telegram bot's memory — it can recall past conversations and trades for context-aware responses.
+## 🌐 7. Browser Rendering (Edge Puppeteer Renderer)
 
-## Durable Objects
+- **Concept**: Serverless Chrome instances running at Cloudflare's edge, allowing developers to automate browser actions, interact with websites, and convert web elements to documents.
+- **Hoox Implementation**: Deployed in `report-worker` to generate twice-daily, styled PDF portfolio reports.
+- **Why it Matters**:
+  - Reads D1 database P&L records, renders a beautiful, secure HTML5 dashboard report, captures it via Puppeteer, converts it to PDF, saves the file to R2, and links it directly in your Telegram alert.
+  - Completely automated, running entirely in the background near-instantaneously.
 
-**What it is:** Tiny single-threaded servers that maintain state.
+---
 
-**What Hoox uses it for:** Idempotency — ensuring every webhook is processed exactly once, even if it arrives twice due to a network retry.
+> **Tip:** Every single one of these services is supported by the Hoox CLI! You can check database tables using `hoox db query`, provision R2 buckets with `hoox infra r2 create`, and sync your KV manifest using `hoox config kv apply-manifest` instantly.
 
-**Why it matters:** Prevents duplicate trades without you having to think about it.
+### 🔗 Next Steps
 
-→ [Idempotency](idempotency.md)
-
-> **Deep dive:** [Infrastructure Bindings](../devops/bindings.md) | [Storage Architecture](../devops/storages.md)
+- **[Idempotency Mechanics](idempotency.md)** — Dive into the V8 Durable Objects coordination engine.
+- **[AI Risk Manager](ai-risk-manager.md)** — Understand how autonomous edge cron jobs evaluate drawdowns and manage trailing stops.

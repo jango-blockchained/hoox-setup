@@ -1,61 +1,162 @@
 ---
-title: "Installation"
-description: "Install the Hoox CLI and bootstrap your trading project"
+title: "Installation Guide"
+description: "Prepare your local machine, install the hoox CLI tool, bootstrap workspaces, and verify system prerequisites."
 ---
 
-# Installation
+# 🏁 Installation Guide
 
-## Prerequisites
+This guide walks you through preparing your environment, installing the `@jango-blockchained/hoox-cli` tool, cloning the microservices monorepo recursively, and validating your local system prerequisites.
 
-- **Bun** ≥1.2: `curl -fsSL https://bun.sh | bash`
-- **Cloudflare account**: [Sign up free](https://dash.cloudflare.com/)
+---
 
-## Option A: Install via Package Manager (Recommended)
+## 📋 System Prerequisites
+
+Before installing the Hoox command-line workspace, ensure your system meets the following standard software requirements:
+
+### 1. 🧅 Bun JavaScript Runtime (Version ≥ 1.2)
+
+Hoox uses **Bun** as its primary package manager, script runner, and native testing engine. Bun's blazing-fast startup time and zero-config TypeScript compilation are critical to our local developer feedback loops.
+
+- **macOS / Linux**:
+  ```bash
+  curl -fsSL https://bun.sh | bash
+  ```
+- **Windows (via Powershell)**:
+  ```powershell
+  powershell -c "irm https://bun.sh/install.ps1 | iex"
+  ```
+
+### 2. ⚡ Cloudflare Account & Wrangler CLI
+
+All Hoox workers are compiled to run on **Cloudflare's Edge V8 isolates**. You will need a free Cloudflare account:
+
+- **Account**: [Register a free account](https://dash.cloudflare.com/) (the free tier provides 100,000 requests/day, D1 database, KV storage, Queues, R2, and vector search—costing $0/month).
+- **Cloudflare CLI**: Ensure you have `wrangler` installed globally (though Hoox manages local wrangler operations automatically, having it indexed globally is recommended):
+  ```bash
+  bun add -g wrangler
+  ```
+
+### 3. 🐳 Docker & Docker Compose (Optional)
+
+If you prefer running the entire Hoox local trading workspace in fully isolated container environments with one command, ensure you have **Docker Desktop** installed and running:
+
+- Check status: `docker compose version`
+
+---
+
+## 📦 Option A: Install via Package Manager (Recommended)
+
+To install the global management CLI tool directly from npm/bun registry to manage new workspaces:
 
 ```bash
+# Install globally using Bun
 bun add -g @jango-blockchained/hoox-cli
 ```
 
-## Option B: Build from Source
+Once installed, verify that the `hoox` command is registered globally in your system path:
 
 ```bash
-git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
-cd hoox-setup
+hoox --version
+```
+
+---
+
+## 🛠️ Option B: Build & Run from Source
+
+If you plan to contribute to the Hoox CLI packages or prefer working directly inside a monolithic source clone:
+
+```bash
+# 1. Clone the parent repository with git submodules recursively
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
+cd hoox-trading
+
+# 2. Install all monorepo workspace dependencies via Bun
 bun install
-# CLI is available at packages/cli/bin/hoox.js
+
+# 3. Verify the locally linked CLI runs from root
+bun run build:cli
+./packages/cli/bin/hoox.js --help
 ```
 
-## Bootstrap Your Project
+> **Warning:** You MUST use `git clone --recursive` or run `git submodule update --init --recursive` after cloning. If you omit submodules, the worker directories under `workers/` will be empty and deployments will fail.
+
+---
+
+## 🚀 Bootstrapping Your Trading Workspace
+
+Now, initialize your new algorithmic trading workspace. This compiles directories, configures workspace settings, and sets up Git tracking.
 
 ```bash
-hoox clone my-trading-app
-cd my-trading-app
+# Bootstrap your trading folder
+hoox clone my-trading-empire
+cd my-trading-empire
 ```
 
-This clones all worker repositories as git submodules and sets up the workspace.
+This command automatically structures your directories as a clean monorepo:
 
-## Initialize Configuration
+```
+my-trading-empire/
+├── packages/
+│   ├── cli/       # Workspace CLI management binaries
+│   ├── tui/       # 9-view Terminal UI monitoring cockpit
+│   └── shared/    # Reusable routers, rate-limiters, & errors
+├── workers/
+│   ├── hoox/      # Gateway, rate-limiter, DO idempotency lock
+│   ├── trade-worker/    # Multi-exchange execution engine
+│   └── ...        # Other analytical and web3 wallet workers
+└── package.json
+```
+
+---
+
+## 🪄 Running the Interactive Setup Wizard
+
+With your folder structured, execute the interactive bootstrap wizard:
 
 ```bash
 hoox init
 ```
 
-The interactive wizard will:
+The CLI wizard will guide you through 4 critical setup phases:
 
-1. Check dependencies (bun, wrangler, git)
-2. Prompt for Cloudflare credentials
-3. Configure which workers to enable
-4. Create required secrets
+1. **Toolchain Validation**: Probes your machine for `bun`, `git`, `wrangler`, and `docker` configurations.
+2. **Cloudflare Authentication**: Prompts for your Cloudflare API token (with `Account.D1`, `Account.KV`, `Account.Workers` permissions) and Account ID.
+3. **Microservice Profile Selection**: Lets you declaratively toggle which edge workers to enable (e.g., enable Gateway and Trade Worker, disable Web3 Wallet if you only trade centralized exchanges).
+4. **Local Credentials Encryption**: Generates safe local `.dev.vars` matrices and sets up initial KV configuration structures.
 
-## Verify Installation
-
-```bash
-hoox check prerequisites
-hoox --version
-hoox --help
+```
+┌────────────────────────────────────────────────────────┐
+│               hoox Setup & Initialization              │
+├────────────────────────────────────────────────────────┤
+│  ✔ bun (v1.2.1) found                                  │
+│  ✔ wrangler (v3.50.0) found                            │
+│  ✔ git found                                           │
+│  ✔ Cloudflare Credentials Verified                      │
+│                                                        │
+│  Enable central Gateway Worker? [Y/n]: y               │
+│  Enable Multi-Exchange trade-worker? [Y/n]: y          │
+│  Enable agent-worker AI Risk Manager? [Y/n]: y         │
+└────────────────────────────────────────────────────────┘
 ```
 
-## Next Steps
+---
 
-- [Quick Start](quick-start.md) — Send your first trade in 5 minutes
-- [Configuration](configuration.md) — Environment variables and settings
+## 🔍 Verifying Local Prerequisites
+
+Verify that all dependencies and Cloudflare edge routes are accessible:
+
+```bash
+# Perform detailed pre-flight diagnostic checklist
+hoox check prerequisites
+```
+
+If all diagnostic checks pass, you are ready to proceed with configuration!
+
+---
+
+> **Tip:** Got installation issues? Run `hoox repair check` to automatically analyze common path resolution issues, missing environment variables, or node-gyp build failures, and recover your local workspace seamlessly.
+
+### 🔗 Next Steps
+
+- **[Configuration Matrix](configuration.md)** — Map out your 31-key environment variables and 16-key KV registries.
+- **[5-Minute Quick Start Guide](quick-start.md)** — Execute your first simulated edge trade in under 5 minutes.

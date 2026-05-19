@@ -1,27 +1,104 @@
 ---
-title: "Configuration Reference"
-description: "All environment variables, KV keys, and manifests"
+title: "Configuration Dictionary"
+description: "Exhaustive matrix of all 31 environment variable keys and 16 Cloudflare KV dynamic manifest parameters."
 ---
 
-# Configuration Reference
+# ⚙️ Configuration Dictionary
 
-## Environment Variables
+This document serves as the absolute, exhaustive reference dictionary for every environment variable, encrypted Workers Secret, and dynamic KV runtime setting utilized in the Hoox trading ecosystem.
 
-| Variable                | Required | Description                                  |
-| ----------------------- | -------- | -------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`  | Yes      | Cloudflare API token with Worker permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Yes      | Your Cloudflare account ID                   |
-| `SUBDOMAIN_PREFIX`      | Yes      | Prefix for worker subdomains                 |
+---
 
-See `.env.example` for the full list of 31+ variables including optional Telegram, AI provider, exchange, email, and wallet keys.
+## 1. Environment Variables & Secrets Matrix (31 Keys)
 
-## KV Configuration Keys
+These parameters are configured in your local `.env.local` file for building/deploying or injected as encrypted **Workers Secrets** for runtime isolate compute.
 
-| Key                                    | Type    | Default | Description                |
-| -------------------------------------- | ------- | ------- | -------------------------- |
-| `trade:kill_switch`                    | boolean | false   | Emergency halt all trading |
-| `trade:max_daily_drawdown_percent`     | number  | 10      | Max loss before auto-stop  |
-| `webhook:tradingview:ip_check_enabled` | boolean | false   | Validate TradingView IPs   |
-| `routing:dynamic:enabled`              | boolean | false   | Dynamic exchange routing   |
+### A. Core Platform & Infrastructure
 
-> **Full reference:** [Environment Matrix](../devops/setup_and_operations.md#3-complete-environment-matrix) | [KV Keys](../devops/setup_and_operations.md#33-kv-configuration-keys) | [Getting Started Config](../getting-started/configuration.md)
+| Variable                | Required |   Type   |   Default    | Description                                                           |
+| :---------------------- | :------: | :------: | :----------: | :-------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | **Yes**  | `string` |      —       | Cloudflare API Token with Workers, D1, and KV read/write permissions. |
+| `CLOUDFLARE_ACCOUNT_ID` | **Yes**  | `string` |      —       | Your 32-character Cloudflare Dashboard Account hash.                  |
+| `SUBDOMAIN_PREFIX`      | **Yes**  | `string` |      —       | Subdomain prefix under which public worker gateways deploy.           |
+| `NODE_ENV`              |    No    | `string` | `production` | Environment profile: `development`, `staging`, or `production`.       |
+| `HOOX_API_URL`          |    No    | `string` |      —       | Local API target URL (automatically configured during dev runs).      |
+
+---
+
+### B. Exchange API Credentials (Encrypted Secrets)
+
+| Variable             | Required |   Type   |     Scope      | Description                                |
+| :------------------- | :------: | :------: | :------------: | :----------------------------------------- |
+| `BYBIT_API_KEY`      |    No    | `string` | `trade-worker` | Bybit order placement account credential.  |
+| `BYBIT_API_SECRET`   |    No    | `string` | `trade-worker` | Bybit HMAC-SHA256 private order signature. |
+| `BINANCE_API_KEY`    |    No    | `string` | `trade-worker` | Binance trade permission credential.       |
+| `BINANCE_API_SECRET` |    No    | `string` | `trade-worker` | Binance private HMAC order signature.      |
+| `MEXC_API_KEY`       |    No    | `string` | `trade-worker` | MEXC trade permission credential.          |
+| `MEXC_API_SECRET`    |    No    | `string` | `trade-worker` | MEXC private HMAC order signature.         |
+
+---
+
+### C. Telegram Bot Alerts & Telemetry
+
+| Variable             | Required |   Type   |       Scope       | Description                                               |
+| :------------------- | :------: | :------: | :---------------: | :-------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN` |    No    | `string` | `telegram-worker` | Telegram HTTP API bot auth token from `@BotFather`.       |
+| `TELEGRAM_CHAT_ID`   |    No    | `string` | `telegram-worker` | Authorized numeric Chat ID for pushed fills and commands. |
+
+---
+
+### D. Multi-Provider AI Credentials
+
+| Variable            | Required |   Type   |     Scope      | Description                      |
+| :------------------ | :------: | :------: | :------------: | :------------------------------- |
+| `OPENAI_API_KEY`    |    No    | `string` | `agent-worker` | OpenAI API access key.           |
+| `ANTHROPIC_API_KEY` |    No    | `string` | `agent-worker` | Anthropic Claude API access key. |
+| `GOOGLE_AI_API_KEY` |    No    | `string` | `agent-worker` | Google Gemini API access key.    |
+
+---
+
+### E. DeFi & Web3 Wallet Settings
+
+| Variable           | Required |   Type   |     Scope     | Description                                                   |
+| :----------------- | :------: | :------: | :-----------: | :------------------------------------------------------------ |
+| `ETH_MNEMONIC`     |    No    | `string` | `web3-wallet` | Secure 12 or 24-word seed phrase for on-chain contract swaps. |
+| `RPC_PROVIDER_URL` |    No    | `string` | `web3-wallet` | HTTP Ethereum / EVM JSON-RPC provider (e.g. Infura/Alchemy).  |
+
+---
+
+### F. Email Parsing Inbox Connection
+
+| Variable     | Required |   Type   |     Scope      | Description                                    |
+| :----------- | :------: | :------: | :------------: | :--------------------------------------------- |
+| `EMAIL_HOST` |    No    | `string` | `email-worker` | POP3/IMAP mailbox server address.              |
+| `EMAIL_USER` |    No    | `string` | `email-worker` | Target signal mailbox email address.           |
+| `EMAIL_PASS` |    No    | `string` | `email-worker` | Secure app password for signal mailbox access. |
+
+---
+
+## 2. Dynamic KV Manifest Settings (16 Keys)
+
+These runtime variables exist inside the `CONFIG_KV` namespace. They are accessed globally at sub-millisecond speeds and take effect instantly upon being modified.
+
+| KV Key                             |   Type    |     Default      | Operational Impact                                                      |
+| :--------------------------------- | :-------: | :--------------: | :---------------------------------------------------------------------- |
+| `trade:kill_switch`                | `boolean` |     `false`      | **Global emergency halt**. If `true`, all executions halt.              |
+| `trade:max_daily_drawdown_percent` | `number`  |      `5.0`       | Maximum daily loss before the AI Risk Manager triggers the kill switch. |
+| `webhooks:api_key`                 | `string`  |    `your_key`    | Public webhook passkey checked during signal ingestion.                 |
+| `webhooks:queue_mode`              | `string`  | `queue_failover` | Routing behavior: `direct_only`, `queue_failover`, `queue_everywhere`.  |
+| `exchanges:default_routing`        | `string`  |     `bybit`      | Default CEX fallback router: `binance`, `bybit`, or `mexc`.             |
+| `routing:dynamic:enabled`          | `boolean` |     `false`      | Enables/disables dynamically shifting routes based on symbols.          |
+| `email:scan_subject`               | `string`  |     `TRADE`      | Prefix required in signal email subjects.                               |
+| `email:coin_pattern`               | `string`  |   `(BTC\|ETH)`   | Regex expression used to extract asset tokens from email bodies.        |
+| `email:action_pattern`             | `string`  |  `(BUY\|SELL)`   | Regex expression used to resolve buy/sell actions in email bodies.      |
+| `email:authorized_senders`         |  `array`  |       `[]`       | List of email addresses authorized to submit trade signals.             |
+| `webhook:tradingview:ip_check`     | `boolean` |     `false`      | Toggles dropping payloads that don't originate from TradingView IPs.    |
+
+---
+
+> **Tip:** You can sync, check, or reset this entire KV manifest in one command: `hoox config kv apply-manifest`!
+
+### 🔗 Next Steps
+
+- **[5-Minute Quick Start Guide](quick-start.md)** — Deploy all workers and fire your first simulated webhook.
+- **[API Endpoint Reference](api-endpoints.md)** — Review full REST schemas, parameters, and error models.

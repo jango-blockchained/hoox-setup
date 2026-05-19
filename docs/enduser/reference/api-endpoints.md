@@ -1,70 +1,222 @@
 ---
-title: "API Endpoints"
-description: "Webhook and health endpoint reference"
+title: "API Endpoint Specification"
+description: "Complete REST API reference for the Hoox gateway, webhooks, health checks, AI chat streams, and edge error models."
 ---
 
-# API Endpoints
+# 🌐 API Endpoint Specification
 
-The Hoox gateway exposes the following HTTP endpoints for receiving trading signals.
+This document details the public REST API endpoints exposed by the Hoox gateway (`workers/hoox`). These endpoints are used to ingest automated trade signals, register Telegram bots, query AI metrics, and check serverless V8 isolate health status.
 
-## Main Webhook
+---
 
+## 🔒 Request Headers & Security Policy
+
+Every public HTTP request submitted to the Hoox gateway must include the following headers:
+
+```http
+Content-Type: application/json
+Accept: application/json
 ```
-POST /
-```
 
-Sends a trading signal to be executed. This is the primary endpoint used by TradingView alerts, custom scripts, and automation tools.
+### CORS & Origin Policies
 
-### Request
+For security, **Cross-Origin Resource Sharing (CORS)** is disabled by default on the `/webhook` route—it only accepts direct server-to-server POST requests (e.g. from TradingView or custom server scripts).
+
+To interact with the dashboard, the gateway verifies active authorization cookies and tokens inside the V8 engine context.
+
+---
+
+## 🎯 1. Ingest Trade Signal Webhook
+
+Receives, validates, and routes trade orders to exchange APIs.
+
+- **Endpoint**: `/webhook`
+- **Method**: `POST`
+
+### Request Payload (JSON Schema)
 
 ```json
 {
-  "apiKey": "your-api-key",
-  "exchange": "mexc",
+  "apiKey": "alpha_secure_key_18305",
+  "exchange": "bybit",
   "action": "LONG",
-  "symbol": "BTC_USDT",
-  "quantity": 0.01
+  "symbol": "BTCUSDT",
+  "quantity": 0.005,
+  "leverage": 10,
+  "idempotencyKey": "uuid-9b1deb4d-3b7d"
 }
 ```
 
-### Response
+### Response Models
+
+#### A. Success Path (Order Filled Instantly - 200 OK)
 
 ```json
 {
   "success": true,
-  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "exchange": "bybit",
+  "symbol": "BTCUSDT",
+  "action": "LONG",
   "result": {
-    "orderId": "exchange-order-id"
+    "orderId": "18049284739",
+    "status": "Filled",
+    "executedQty": 0.005,
+    "price": 68425.5,
+    "timestamp": 1779261050000
   }
 }
 ```
 
-### Parameters
+#### B. Queue Failover Path (Exchange Offline / Rate-limited - 202 Accepted)
 
-| Field       | Type   | Required | Description                                    |
-| ----------- | ------ | -------- | ---------------------------------------------- |
-| `apiKey`    | string | Yes      | Your gateway API key                           |
-| `exchange`  | string | Yes      | Target exchange: `binance`, `bybit`, or `mexc` |
-| `action`    | string | Yes      | `LONG`, `SHORT`, or `CLOSE`                    |
-| `symbol`    | string | Yes      | Trading pair (e.g., `BTC_USDT`, `ETH_USDT`)    |
-| `quantity`  | number | Yes      | Amount to trade                                |
-| `orderType` | string | No       | `market` (default) or `limit`                  |
-| `price`     | number | No       | Required if `orderType` is `limit`             |
-
-## Health Check
-
-```
-GET /health
-```
-
-Verifies the gateway is running and responsive.
-
-### Response
+If the exchange is down, the signal is enqueued for guaranteed asynchronous delivery.
 
 ```json
 {
-  "status": "ok"
+  "success": true,
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "status": "Enqueued",
+  "message": "Signal enqueued in trade-execution Queue for background execution retry."
 }
 ```
 
-> **Deep dive:** [Full API Reference](../devops/api/endpoints.md) | [Payloads](../devops/api/payloads.md) | [Responses](../devops/api/responses.md)
+---
+
+## 🟢 2. System Health Check
+
+Probes the gateway isolate, validating connections to D1 databases and CONFIG_KV caches.
+
+- **Endpoint**: `/health`
+- **Method**: `GET`
+
+### Success Response (200 OK)
+
+```json
+{
+  "status": "ok",
+  "timestamp": 1779261050000,
+  "bindings": {
+    "d1": "connected",
+    "kv": "connected",
+    "queue": "active"
+  }
+}
+```
+
+---
+
+## 🤖 3. Conversational AI Chat & Telemetry
+
+Integrates with the `agent-worker` Multi-Provider AI Gateway.
+
+### A. Conversational Chat Stream
+
+- **Endpoint**: `/agent/chat`
+- **Method**: `POST`
+- **Headers**: `Accept: text/event-stream` (Supports Server-Sent Events)
+
+#### Request Payload
+
+```json
+{
+  "prompt": "Evaluate my trade performance over the last 24 hours.",
+  "stream": true,
+  "provider": "anthropic"
+}
+```
+
+---
+
+### B. AI Gateway Telemetry
+
+- **Endpoint**: `/agent/usage`
+- **Method**: `GET`
+
+#### Response Payload (200 OK)
+
+```json
+{
+  "success": true,
+  "timestamp": 1779261050000,
+  "usage": {
+    "openai": { "inputTokens": 45180, "outputTokens": 8920, "costUSD": 0.183 },
+    "anthropic": {
+      "inputTokens": 18240,
+      "outputTokens": 4010,
+      "costUSD": 0.081
+    },
+    "workersAi": { "neuronsUsed": 842000, "costUSD": 0.0 }
+  }
+}
+```
+
+---
+
+## 🚨 4. Standard Platform Error Models
+
+When an API check fails, the gateway uses the shared `@jango-blockchained/hoox-shared` package to return a standardized JSON error format:
+
+### A. 400 Bad Request (Payload Validation Failure)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid JSON payload structure.",
+    "details": [
+      { "field": "quantity", "issue": "Must be greater than zero." },
+      {
+        "field": "exchange",
+        "issue": "Invalid exchange router. Options: binance, bybit, mexc."
+      }
+    ]
+  }
+}
+```
+
+### B. 401 Unauthorized (Invalid API Key / IP Address)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication failed. Mismatched apiKey or unauthorized origin IP."
+  }
+}
+```
+
+### C. 409 Conflict (Duplicate Request Intercepted)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "DUPLICATE_REQUEST",
+    "message": "Order rejected. Durable Object locked: trace ID already processed in the last 24 hours."
+  }
+}
+```
+
+### D. 503 Service Unavailable (Kill Switch Engaged)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "KILL_SWITCH_ACTIVE",
+    "message": "Trading halted globally. The emergency Global Kill Switch is currently turned ON in CONFIG_KV."
+  }
+}
+```
+
+---
+
+> **Tip:** Every error code is designed to map directly to a readable prompt in the Telegram bot and Next.js dashboard UI, allowing you to instantly diagnose execution problems.
+
+### 🔗 Next Steps
+
+- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+- **[CLI Commands Reference](cli-commands.md)** — Review all CLI commands, options, and JSON flags.

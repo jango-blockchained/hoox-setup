@@ -1,51 +1,75 @@
 ---
-title: "📚 Hoox Documentation"
-description: "User guide for the Hoox algorithmic trading CLI"
+title: "📚 Hoox Developer Hub"
+description: "Zero-Latency Algorithmic Trading Ecosystem on the Cloudflare Edge"
 ---
 
-# 📚 Hoox Documentation
+# 🚀 Welcome to the Hoox Developer Hub
 
-> User guide for the Hoox algorithmic trading CLI platform.
+> **Hoox** is a free, open-source, zero-latency algorithmic trading framework and automation engine deployed natively to the **Cloudflare® Edge Network**. By utilizing a distributed microservice architecture, Hoox processes trade signals, evaluates risk parameters, executes order routing, and fires Telegram notifications—all within milliseconds and directly from the edge nodes closest to exchange servers.
 
-## 👋 New to Hoox? Start Here
+```mermaid
+graph TD
+    TV[TradingView Alerts] -->|HTTPS Webhook| GW[hoox Gateway]
+    GW -->|Service Binding| TW[trade-worker]
+    GW -->|Service Binding| TGW[telegram-worker]
+    TW -->|Signed API Request| CentralizedEx[Centralized Exchanges: Binance / Bybit / MEXC]
+    TW -->|On-Chain Swap| Web3Wallet[DeFi Wallet Execution]
+    AW[agent-worker: Cron Risk Monitor] -->|Scale/Kill Switch| TW
+```
 
-- [Installation](getting-started/installation.md) — Install the CLI and bootstrap your project
-- [Quick Start](getting-started/quick-start.md) — Send your first trade in 5 minutes
-- [How Hoox Works](concepts/how-hoox-works.md) — High-level overview of signals, trades, and notifications
+---
 
-## 📘 Guides
+## 🗺️ Choose Your Path
 
-- [Deploy Workers](guides/deploy-workers.md) — Deploy and update your trading infrastructure
-- [Manage Infrastructure](guides/manage-infra.md) — D1, KV, R2, Queues via hoox infra
-- [Monitor Trading](guides/monitor-trading.md) — Health checks, kill switch, logs, and metrics
-- [Database Operations](guides/database-ops.md) — Schema, migrations, queries, and backups
-- [Repair & Recovery](guides/repair.md) — Diagnose and fix system issues
-- [Secrets & Security](guides/secrets-security.md) — Manage API keys and secrets
-- [Local Development](guides/local-development.md) — Develop with hot-reload, TUI, or Docker
-- [Terminal UI (TUI)](guides/tui.md) — Full-screen terminal operations center
+Whether you are a retail algorithmic trader setting up your first automated TradingView strategies, a quantitative analyst exploring low-latency DeFi order routing, or a DevOps engineer maintaining multi-exchange infrastructure, our docs are split into highly focused tracks:
 
-## 🧠 Concepts
+### 1. 🏁 Getting Started
 
-- [Cloudflare Services Explained](concepts/cloudflare-services.md) — D1, KV, R2, Queues, Vectorize in plain English
-- [Edge Architecture](concepts/edge-architecture.md) — What Cloudflare Workers means for latency
-- [Idempotency](concepts/idempotency.md) — How Durable Objects prevent duplicate trades
-- [Signals & Trades](concepts/signals-and-trades.md) — How a TradingView alert becomes an order
-- [AI Risk Manager](concepts/ai-risk-manager.md) — Automated portfolio monitoring and protection
+If you are brand new to the Hoox ecosystem, start here to prepare your machine, provision resources, and deploy your first live microservice in under 5 minutes:
 
-## 📖 Reference
+- **[Core Installation](getting-started/installation.md)** — Provision prerequisites (Bun runtime, Cloudflare credentials) and bootstrap a project.
+- **[Platform Configuration](getting-started/configuration.md)** — Declaratively define environment variables, JSON profile templates, and KV keys.
+- **[5-Minute Quick Start](getting-started/quick-start.md)** — Launch local worker runners and execute a simulated webhook trade signal.
 
-- [CLI Commands](reference/cli-commands.md) — Full command tree and flags
-- [API Endpoints](reference/api-endpoints.md) — Webhook HTTP API reference
-- [Configuration](getting-started/configuration.md) — Environment variables, secrets, and settings
+### 2. 🧠 Core Concepts
 
-## 🎯 Tutorials
+Understand the underlying technology, low-latency edge architecture, and security layers that protect your api keys:
 
-- [TradingView Webhook](tutorials/tradingview-webhook.md) — Connect TradingView alerts to Hoox
-- [Telegram Bot](tutorials/telegram-bot.md) — Set up notifications and commands
-- [Email Signals](tutorials/email-signals.md) — Configure email parsing for trade signals
+- **[How Hoox Works](concepts/how-hoox-works.md)** — The end-to-end lifecycle of a trade signal from webhook alert to order confirmation.
+- **[Edge-First Architecture](concepts/edge-architecture.md)** — Why V8 isolates and Cloudflare Workers outperform traditional VPS architectures by 30-60%.
+- **[Cloudflare Services Map](concepts/cloudflare-services.md)** — How D1, KV, R2, Queues, Vectorize, and Browser Rendering are integrated.
+- **[Idempotency & Durable Objects](concepts/idempotency.md)** — Preventing catastrophic double-execution and race conditions during high-frequency events.
+- **[Signals & Trade Routing](concepts/signals-and-trades.md)** — How parameters map from webhook JSON schemas to live exchange payloads.
+- **[AI Risk Manager](concepts/ai-risk-manager.md)** — The 5-minute autonomous risk scanner, trailing-stop mathematician, and account kill-switch.
 
-## 🔗 Quick Links
+### 3. 🛠️ Operational Guides
 
-- [GitHub Repository](https://github.com/jango-blockchained/hoox-setup)
-- [Report Issues](https://github.com/jango-blockchained/hoox-setup/issues)
-- [DevOps Manual](devops/home.md) — For operators and infrastructure engineers
+Practical runbooks and blueprints for daily operations, local development, and system health maintenance:
+
+- **[Local Dev & Workspaces](guides/local-development.md)** — Run, hot-reload, and test workers locally via Bun or Docker container stacks.
+- **[Terminal UI Operations](guides/tui.md)** — Launch and navigate the full-screen 9-view operations cockpit (`./hoox-tui`).
+- **[Edge Database Operations](guides/database-ops.md)** — Manage global SQLite schemas, track drizzle migrations, and run D1 queries.
+- **[Secrets & Network Security](guides/secrets-security.md)** — Secure Cloudflare Zero Trust corridors and encrypt sensitive API credentials.
+- **[Infrastructure Management](guides/manage-infra.md)** — Spin up and inspect KV, Queues, R2, and Vectorize indexes in one command.
+- **[Deploying to Production](guides/deploy-workers.md)** — Roll out code, bind V8 isolates, and deploy Next.js dashboard consoles.
+- **[Self-Healing & Repair](guides/repair.md)** — Diagnose connection dropouts, rotate API keys, and run interactive system repair tools.
+
+### 4. 🎓 Step-by-Step Tutorials
+
+Follow guided, end-to-end tutorials to integrate your trade sources and notification handlers:
+
+- **[TradingView Webhook Integration](tutorials/tradingview-webhook.md)** — Write customized Pine Script v5 indicators that ping the Hoox webhook receiver.
+- **[Telegram Bot Setup](tutorials/telegram-bot.md)** — Configure real-time order alerts, P&L reports, and secure chat commands.
+- **[Email Signal Routing](tutorials/email-signals.md)** — Configure email parsing services to convert raw inbox alerts into edge trade executions.
+
+### 5. 📖 Reference Material
+
+Deep specifications, schema registries, and command-line manual trees:
+
+- **[CLI Commands Index](reference/cli-commands.md)** — Complete options, positional arguments, and JSON flag trees for the `hoox` tool.
+- **[API Spec & REST Routes](reference/api-endpoints.md)** — HTTP endpoints, request payloads, response templates, and edge errors list.
+- **[Configuration Properties](getting-started/configuration.md)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
+
+---
+
+> **Tip:** Looking for deep engineering plans, DDL SQL schemas, or CI/CD deployment workflows? Check out the **[DevOps & Architecture Manual](../devops/home.md)** for developer-centric operator blueprints!

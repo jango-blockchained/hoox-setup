@@ -1,41 +1,86 @@
 ---
-title: "Email Signals"
-description: "Configure email parsing for trade signals"
+title: "Email Signal Routing"
+description: "How to configure the email-worker parsing microservice, set up regex scanning patterns, and securely route SMTP/IMAP signals."
 ---
 
-# Email Signals
+# 📧 Email Signal Routing
 
-Configure Hoox to parse trading signals from email messages.
+The **`email-worker`** is an ancillary input plugin that allows you to trigger automated trades via raw email alerts. While webhooks are the standard path, many legacy systems, charting platforms, or custom newsletters only distribute trade signals via email.
 
-## Step 1: Configure Email Settings
+This tutorial walks you through setting up `email-worker` credentials, configuring regex subject scanning patterns, and securely routing messages.
 
-Set your email credentials:
+---
 
-```bash
-hoox secrets update-cf EMAIL_HOST_BINDING email-worker
-hoox secrets update-cf EMAIL_USER_BINDING email-worker
-hoox secrets update-cf EMAIL_PASS_BINDING email-worker
-```
+## 🛜 1. Injecting Email Connection Credentials
 
-## Step 2: Configure Parsing Rules
-
-Set the email scanning patterns:
+To allow `email-worker` to log into your dedicated signals inbox, inject your SMTP/IMAP mailbox credentials as encrypted Workers Secrets:
 
 ```bash
-hoox config kv set email:scan_subject "TRADE SIGNAL"
-hoox config kv set email:coin_pattern "(BTC|ETH|SOL)"
-hoox config kv set email:action_pattern "(BUY|SELL)"
+# 1. Inject the IMAP/POP3 host address
+hoox secrets set EMAIL_HOST "imap.securemail.com"
+
+# 2. Inject the mailbox username/email address
+hoox secrets set EMAIL_USER "signals@my-trading-app.com"
+
+# 3. Inject the secure mailbox app password
+hoox secrets set EMAIL_PASS "your_app_password_here"
 ```
 
-## Step 3: Test
+> **Warning:** Always use a **dedicated** email address solely for trade signals. Never use your personal inbox. Additionally, configure your email provider (e.g., Gmail, Fastmail) to require an **App Password** rather than your master account credentials to ensure tight access control.
 
-Send an email to your configured address with the subject "TRADE SIGNAL" and the signal details in the body. Check if it was processed:
+---
+
+## 🔎 2. Configuring Regex Parsing Rules in KV
+
+Once `email-worker` establishes connection, it scans the inbox on a background schedule, evaluating incoming subjects and message bodies against **Regular Expression (regex)** patterns defined in `CONFIG_KV`:
 
 ```bash
-hoox monitor logs email-worker
+# A. Define the prefix pattern required in the email subject line
+hoox config kv set email:scan_subject "^TRADE SIGNAL:.*"
+
+# B. Define the regex pattern used to extract the target asset token
+hoox config kv set email:coin_pattern "(BTC|ETH|SOL|LINK|AVAX)"
+
+# C. Define the regex pattern used to resolve trade action
+hoox config kv set email:action_pattern "(LONG|SHORT|CLOSE|BUY|SELL)"
 ```
 
-## Next Steps
+### The Parsing Mechanism
 
-- [Monitor Trading](../guides/monitor-trading.md) &mdash; Watch all signal sources
-- [TradingView Webhook](tradingview-webhook.md) &mdash; Add TradingView alerts
+When an email is scanned:
+
+1. The worker matches the subject. If the subject is `"TRADE SIGNAL: Breakout Detected"`, the check passes.
+2. The worker scans the email body using the regex patterns:
+   - Body: `"...we are entering a LONG position on SOL/USDT..."`
+   - Hitting `email:coin_pattern` resolves: **`SOL`**
+   - Hitting `email:action_pattern` resolves: **`LONG`** (translated internally to `BUY`).
+3. Automatically triggers an order via the `trade-worker` service binding.
+
+---
+
+## 🛡️ 3. Security Audits: SPF & DKIM Validation
+
+To prevent malicious "spoofing" (e.g., an unauthorized sender trying to forge a trade signal to your inbox):
+
+- **Sender Validation**: The `email-worker` parses the email's headers and matches the sender's address against a safe allowlist in KV: `email:authorized_senders = ["alerts@tradingview.com"]`.
+- **DNS Verification**: The worker validates the **SPF (Sender Policy Framework)** and **DKIM (DomainKeys Identified Mail)** headers to verify that the message physically originated from the authorized domain and was not intercepted.
+
+---
+
+## 🧪 4. Testing Your Email Pipeline
+
+To verify that the email signal ingestion loop works perfectly:
+
+1. Compose a mock email from your authorized sender address.
+2. Subject: `TRADE SIGNAL: Cross Over`
+3. Body: `Action: SHORT, Symbol: ETHUSDT, Quantity: 0.05`
+4. Send to your dedicated inbox.
+5. In your terminal, tail the email worker's runtime logs to confirm the parse and order submission:
+   ```bash
+   hoox monitor logs email-worker
+   ```
+
+### 🔗 Next Steps
+
+- **[Real-Time Observability & Monitoring](../guides/monitor-trading.md)** — Audit executed fills, check logs, and inspect queues.
+- **[API Endpoint Reference](../reference/api-endpoints.md)** — Review full REST payloads and HTTP error returns.

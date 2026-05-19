@@ -1,59 +1,109 @@
 ---
-title: "Signals & Trades"
-description: "How a TradingView alert becomes an executed order"
+title: "Signals & Trade Spec"
+description: "Deep dive into signal validation schemas, payload translations, exchange side mapping, and D1 database transactional logs."
 ---
 
-# Signals & Trades
+# 📊 Signals & Trade Spec
 
-## End-to-End Flow
+This document details the exact specifications, JSON validation schemas, and internal translation logic that occurs when an external trade signal (such as a TradingView alert or Email parser) is ingested by the Hoox Gateway and mapped to an active exchange order.
 
-Here's exactly what happens when a TradingView alert fires:
+---
 
-### 1. Alert Created in TradingView
+## 1. Webhook Signal Ingestion Schema
 
-You create a TradingView alert with a webhook URL pointing to your Hoox gateway:
+Every signal received by the public gateway at `/webhook` must contain a valid, authenticated JSON payload. Below is the strict TypeScript interface and parameter schema validated by the gateway's validation middleware:
 
-```
-POST https://hoox.your-prefix.workers.dev
-```
-
-The webhook payload includes the signal details:
-
-```json
-{
-  "apiKey": "your-api-key",
-  "exchange": "mexc",
-  "action": "LONG",
-  "symbol": "BTC_USDT",
-  "quantity": 0.01
+```typescript
+export interface WebhookSignal {
+  apiKey: string; // Authentication token
+  exchange: "binance" | "bybit" | "mexc"; // Target exchange
+  action: "LONG" | "SHORT" | "CLOSE"; // Position intent
+  symbol: string; // Asset symbol (e.g. "BTCUSDT")
+  quantity: number; // Order size (amount of asset or contracts)
+  leverage?: number; // Optional leverage multiplier (default: 1)
+  idempotencyKey?: string; // Optional unique signature for dedup
 }
 ```
 
-### 2. Gateway Receives and Validates
+### Parameter Rules & Type Constraints
 
-The hoox gateway:
+- **`apiKey`**: Must match the encrypted `webhooks:api_key` hash in your `CONFIG_KV` namespace.
+- **`symbol`**: Parsed and standardized by Hoox to match exchange requirements. For example, Hoox automatically converts variations like `BTC-USDT`, `BTC_USDT`, and `btc/usdt` to the exchange-compliant flat uppercase format `BTCUSDT`.
+- **`quantity`**: Verified to be greater than zero.
+- **`leverage`**: Checked against exchange limits (e.g. `1` to `125` depending on exchange margin profiles).
 
-1. Validates the API key against the stored secret
-2. Checks the kill switch (is trading allowed?)
-3. Verifies rate limits (not more than 10 trades per minute)
-4. Checks idempotency (is this a duplicate?)
-5. Logs the signal for analytics
+---
 
-### 3. Routes to Trade Worker
+## 2. Dynamic Payload Translation & Side Mapping
 
-The gateway forwards the validated signal to the trade worker via a Cloudflare Queue (async, with retry).
+Exchanges do not understand actions like `LONG`, `SHORT`, or `CLOSE`. They process order instructions in terms of **`Side`** (`BUY` or `SELL`) and **`PositionSide`** (`LONG` or `SHORT` for multi-margin hedge modes).
 
-### 4. Trade Worker Executes
+The `trade-worker` parses the incoming signal and translates the business logic into exchange-specific API calls:
 
-The trade worker:
+### A. Translation Table (One-Way Margin / Spot)
 
-1. Looks up the exchange API credentials
-2. Formats the order for the exchange's API
-3. Sends the order
-4. Stores the result in D1
+| Action      | Position State        | Translated Exchange Side | Operation Type                                  |
+| :---------- | :-------------------- | :----------------------: | :---------------------------------------------- |
+| **`LONG`**  | Closed / No Position  |        **`BUY`**         | Opens a long position (spot or margin).         |
+| **`SHORT`** | Closed / No Position  |        **`SELL`**        | Opens a short position (margin/futures).        |
+| **`CLOSE`** | Long Position Active  |        **`SELL`**        | Closes and flattens an existing long position.  |
+| **`CLOSE`** | Short Position Active |        **`BUY`**         | Closes and flattens an existing short position. |
 
-### 5. Notification Sent
+### B. Dynamic Position Resolution
 
-A Telegram message is sent with the order details: symbol, side, quantity, price, and status.
+When the action is **`CLOSE`**, the `trade-worker` automatically performs a sub-millisecond edge check:
 
-> **Deep dive:** [Worker Communication](../devops/architecture/communication.md) | [API Endpoints](../reference/api-endpoints.md)
+1. Queries your local D1 transaction ledger to resolve the active position direction for the symbol.
+2. If no position is tracked locally, it performs a real-time portfolio balance check against the exchange's private position endpoint.
+3. Automatically sets the order quantity to match your current open exposure, ensuring a perfect, slippage-free execution that flattens the position without leaving residual micro-contracts.
+
+---
+
+## 3. Leverage Scaling & Order Math
+
+If the signal includes a `leverage` parameter greater than `1` (e.g., `"leverage": 10`), the `trade-worker` automatically executes a secure margin transition sequence:
+
+1. **Set Margin Mode**: Configures the symbol's margin structure (Isolated vs. Cross) via the exchange API, matching your manifest defaults.
+2. **Set Leverage Coefficient**: Submits a leverage update payload to the exchange prior to routing the order.
+3. **Calculate Collateral**: If the order size is defined in USDT terms, the worker scales the execution quantity mathematically:
+   $$\text{Contract Quantity} = \frac{\text{Order Size (USDT)} \times \text{Leverage}}{\text{Current Market Price}}$$
+4. **Precision Rounding**: Automatically rounds the calculated quantity down to match the exchange's strict asset decimal precision requirements, preventing API rejects.
+
+---
+
+## 4. D1 Database Transaction Ledger
+
+Every filled order is persistently written to your globally distributed edge SQLite table. The schema ensures a clean audit log:
+
+```sql
+CREATE TABLE trades (
+  id TEXT PRIMARY KEY,               -- UUID generated by trade-worker
+  request_id TEXT NOT NULL,          -- Distributed trace ID mapping to gateway
+  exchange TEXT NOT NULL,            -- "bybit", "binance", or "mexc"
+  symbol TEXT NOT NULL,              -- e.g. "BTCUSDT"
+  action TEXT NOT NULL,              -- "LONG", "SHORT", or "CLOSE"
+  side TEXT NOT NULL,                -- "BUY" or "SELL"
+  quantity REAL NOT NULL,            -- Filled asset quantity
+  price REAL NOT NULL,               -- Execution entry price
+  fee REAL NOT NULL,                 -- Exchange transaction fees
+  order_id TEXT NOT NULL,            -- Exchange-provided order hash
+  status TEXT NOT NULL,              -- "Filled", "Rejected", "Failed"
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+You can view this ledger at any time from your local terminal:
+
+```bash
+# Query the 10 most recent trades in your D1 database
+hoox db query "SELECT created_at, exchange, symbol, action, price, quantity FROM trades ORDER BY created_at DESC LIMIT 10"
+```
+
+---
+
+> **Tip:** By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of these steps. You can audit the latency breakdown (e.g., Gateway auth took `1.2ms`, Trade-worker signing took `0.8ms`, Bybit API roundtrip took `18.5ms`) directly in your Next.js dashboard!
+
+### 🔗 Next Steps
+
+- **[Autonomous AI Risk Management](ai-risk-manager.md)** — Learn how agent-worker tracks these D1 entries to manage trailing stops and drawdowns.
+- **[CLI Reference Manual](../reference/cli-commands.md)** — Review commands to manage D1 tables, perform dry runs, and tail logs.
