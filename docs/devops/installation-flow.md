@@ -88,7 +88,7 @@ This file represents the declarative single source of truth for your monorepo's 
 {
   "global": {
     "cloudflare_account_id": "debc6545e63bea36be059cbc82d80ec8",
-    "subdomain_prefix": "cryptolinx",
+    "subdomain_prefix": "hoox",
   },
   "workers": {
     "d1-worker": {

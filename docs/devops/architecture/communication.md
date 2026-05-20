@@ -27,7 +27,6 @@ Cloudflare Service Bindings allow one edge worker to call another **without ever
   "services": [
     { "binding": "TRADE_SERVICE", "service": "trade-worker" },
     { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
-    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" },
   ],
 }
 ```

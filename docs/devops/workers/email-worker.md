@@ -29,10 +29,7 @@ The `email-worker` does not expose any public endpoints, connecting internally t
       "id": "c5917667a21745e390ff969f32b1847d",
     },
   ],
-  "services": [
-    { "binding": "TRADE_SERVICE", "service": "trade-worker" },
-    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" },
-  ],
+  "services": [{ "binding": "TRADE_SERVICE", "service": "trade-worker" }],
   "secrets": [
     "INTERNAL_KEY_BINDING",
     "EMAIL_HOST_BINDING",

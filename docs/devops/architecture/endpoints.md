@@ -5,7 +5,11 @@ description: "High-integrity reference dictionary cataloging all internal REST a
 
 # 🔌 Internal Endpoints Map
 
-This document catalogs all internal REST, service-to-service, and queue endpoints exposed across the Hoox microservice monorepo. Because internal workers have zero public IP footprints and are completely isolated by Cloudflare’s Zero Trust service bindings, this map serves as the primary integration blueprint for routing, debugging, and dashboard interactions.
+> **📋 Canonical API Reference**: For complete endpoint specifications with request/response examples, see **[`docs/devops/api/endpoints.md`](../api/endpoints.md)**.
+>
+> This document provides architectural context and internal routing flow for the Hoox microservice monorepo.
+
+This document catalogs all internal REST, service-to-service, and queue endpoints exposed across the Hoox microservice monorepo. Because internal workers have zero public IP footprints and are completely isolated by Cloudflare's Zero Trust service bindings, this map serves as the primary integration blueprint for routing, debugging, and dashboard interactions.
 
 ---
 
@@ -35,6 +39,8 @@ graph TD
 
 ## 🗂️ Endpoints Directory by Worker
 
+> **See**: [`docs/devops/api/endpoints.md`](../api/endpoints.md) for complete endpoint specifications with request/response examples.
+
 Every internal HTTP request between V8 isolates must transmit the standard bearer header:
 `X-Internal-Auth-Key: <INTERNAL_KEY_BINDING>`
 
@@ -43,13 +49,15 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 ### 🔐 1. `hoox` (Gateway Router)
 
 - **Status**: Public Ingress Node
-- **Bindings Mounts**: `TRADE_SERVICE`, `TELEGRAM_SERVICE`, `ANALYTICS_SERVICE`, `CONFIG_KV`, `TRADE_QUEUE`
+- **Bindings Mounts**: `TRADE_SERVICE`, `TELEGRAM_SERVICE`, `CONFIG_KV`, `TRADE_QUEUE`
 
-| Route               | Method | Description                                      | Request Shape        | Success Response                |
-| :------------------ | :----: | :----------------------------------------------- | :------------------- | :------------------------------ |
-| `/webhook`          | `POST` | Primary webhook receiver for TradingView alerts. | `WebhookSignal` JSON | `200 OK` (Orderfilled metadata) |
-| `/health`           | `GET`  | Probes gateway, D1 connectivity, and DO status.  | N/A                  | `{"status": "ok"}`              |
-| `/telegram-webhook` | `POST` | Processes chat commands pushed from Telegram.    | Telegram Updates     | `200 OK`                        |
+| Route               | Method | Description                                      | Auth Required        |
+| :------------------ | :----: | :----------------------------------------------- | :------------------- |
+| `/webhook`          | `POST` | Primary webhook receiver for TradingView alerts. | API Key in payload   |
+| `/health`           | `GET`  | Probes gateway, D1 connectivity, and DO status.  | None                 |
+| `/telegram-webhook` | `POST` | Processes chat commands pushed from Telegram.    | Telegram secret path |
+
+> **Details**: See [`docs/devops/api/endpoints.md#ingress-webhook-endpoints`](../api/endpoints.md#-ingress-webhook-endpoints-workershoox)
 
 ---
 
@@ -58,12 +66,12 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 - **Status**: Private Compute Node (No Public URL)
 - **Bindings Mounts**: `D1_SERVICE`, `TELEGRAM_SERVICE`, `ANALYTICS_SERVICE`, `CONFIG_KV`
 
-| Route          | Method | Description                                       | Request Shape        | Success Response            |
-| :------------- | :----: | :------------------------------------------------ | :------------------- | :-------------------------- |
-| `/webhook`     | `POST` | Direct fast-path execution trigger.               | `WebhookSignal` JSON | `200 OK` (Fill detail JSON) |
-| `/dex`         | `POST` | Dispatches EVM orders on-chain via web3 wallet.   | DexTrade JSON        | `200 OK` (Tx Hash metadata) |
-| `/api/signals` | `GET`  | Retrieves recent signal logs from D1.             | Query params filters | `200 OK` (Array of signals) |
-| `/health`      | `GET`  | Probes CPU thread state and exchange connections. | N/A                  | `{"status": "ok"}`          |
+| Route          | Method | Description                                       | Auth Required     |
+| :------------- | :----: | :------------------------------------------------ | :---------------- |
+| `/webhook`     | `POST` | Direct fast-path execution trigger.               | Internal auth key |
+| `/dex`         | `POST` | Dispatches EVM orders on-chain via web3 wallet.   | Internal auth key |
+| `/api/signals` | `GET`  | Retrieves recent signal logs from D1.             | Internal auth key |
+| `/health`      | `GET`  | Probes CPU thread state and exchange connections. | None              |
 
 ---
 
@@ -72,12 +80,14 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 - **Status**: Private Data Proxy (No Public URL)
 - **Bindings Mounts**: `DB` (D1 SQLite database binding)
 
-| Route                  | Method | Description                                               | Request Shape                                     | Success Response                      |
-| :--------------------- | :----: | :-------------------------------------------------------- | :------------------------------------------------ | :------------------------------------ |
-| `/query`               | `POST` | Executes a single SQL query against the SQLite database.  | `{"query": "SELECT * FROM trades", "params": []}` | `{"success": true, "results": [...]}` |
-| `/batch`               | `POST` | Executes multiple transactional SQL operations.           | `{"queries": [{"query": "...", "params": []}]}`   | `{"success": true, "results": [...]}` |
-| `/api/dashboard/stats` | `GET`  | Computes aggregated Win Rate, drawdown, and daily totals. | N/A                                               | `{"success": true, "stats": {...}}`   |
-| `/{tableName}`         | `GET`  | Lists rows inside a specific SQLite table (with filters). | Query params                                      | `{"success": true, "rows": [...]}`    |
+| Route                  | Method | Description                                               | Auth Required     |
+| :--------------------- | :----: | :-------------------------------------------------------- | :---------------- |
+| `/query`               | `POST` | Executes a single SQL query against the SQLite database.  | Internal auth key |
+| `/batch`               | `POST` | Executes multiple transactional SQL operations.           | Internal auth key |
+| `/api/dashboard/stats` | `GET`  | Computes aggregated Win Rate, drawdown, and daily totals. | Internal auth key |
+| `/{tableName}`         | `GET`  | Lists rows inside a specific SQLite table (with filters). | Internal auth key |
+
+> **Details**: See [`docs/devops/api/endpoints.md#database-service-endpoints`](../api/endpoints.md#-database-service-endpoints-workersd1-worker)
 
 ---
 
@@ -86,24 +96,33 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 - **Status**: Private Compute Node (Runs primarily on Cron schedule `*/5 * * * *`)
 - **Bindings Mounts**: `TRADE_SERVICE`, `D1_SERVICE`, `TELEGRAM_SERVICE`, `AI`
 
-| Route           | Method | Description                                                | Request Shape                             | Success Response                    |
-| :-------------- | :----: | :--------------------------------------------------------- | :---------------------------------------- | :---------------------------------- |
-| `/agent/chat`   | `POST` | Starts a conversational market/risk query (SSE supported). | `{"prompt": "...", "stream": true}`       | `text/event-stream` stream          |
-| `/agent/vision` | `POST` | Analyzes image bytes using multimodal AI models.           | `{"image": "base64...", "prompt": "..."}` | `{"analysis": "..."}`               |
-| `/agent/status` | `GET`  | Returns active trailing stops and current drawdowns.       | N/A                                       | `{"status": "active", "stops": []}` |
-| `/health`       | `GET`  | Probes AI model availability and Cron loop timers.         | N/A                                       | `{"status": "ok"}`                  |
+| Route           | Method | Description                                                | Auth Required     |
+| :-------------- | :----: | :--------------------------------------------------------- | :---------------- |
+| `/agent/chat`   | `POST` | Starts a conversational market/risk query (SSE supported). | Internal auth key |
+| `/agent/vision` | `POST` | Analyzes image bytes using multimodal AI models.           | Internal auth key |
+| `/agent/status` | `GET`  | Returns active trailing stops and current drawdowns.       | Internal auth key |
+| `/health`       | `GET`  | Probes AI model availability and Cron loop timers.         | None              |
+
+> **Details**: See [`docs/devops/api/endpoints.md#ai-risk--chat-endpoints`](../api/endpoints.md#-ai-risk--chat-endpoints-workersagent-worker)
 
 ---
 
 ### 💬 5. `telegram-worker` (Push alerts)
 
 - **Status**: Private Compute Node
-- **Bindings Mounts**: `ANALYTICS_SERVICE`, `AI`, `VECTORIZE_INDEX`
+- **Bindings Mounts**: `AI`, `VECTORIZE_INDEX`
 
-| Route     | Method | Description                                           | Request Shape                         | Success Response    |
-| :-------- | :----: | :---------------------------------------------------- | :------------------------------------ | :------------------ |
-| `/alert`  | `POST` | Sends a push trade fill notification or daily digest. | `{"chatId": "...", "message": "..."}` | `{"success": true}` |
-| `/health` | `GET`  | Probes Telegram API connection.                       | N/A                                   | `{"status": "ok"}`  |
+| Route     | Method | Description                                           | Auth Required     |
+| :-------- | :----: | :---------------------------------------------------- | :---------------- |
+| `/alert`  | `POST` | Sends a push trade fill notification or daily digest. | Internal auth key |
+| `/health` | `GET`  | Probes Telegram API connection.                       | None              |
+
+---
+
+## 🔍 Quick Endpoint Lookup
+
+For a quick reference table of all endpoints without detailed descriptions, see:
+**[`.opencode/context/project-intelligence/lookup/endpoints.md`](../../.opencode/context/project-intelligence/lookup/endpoints.md)**
 
 ---
 
@@ -111,5 +130,6 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 
 ### 🔗 Next Steps
 
+- **[Complete API Reference](../api/endpoints.md)** — Full endpoint specifications with request/response examples.
 - **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
 - **[System Storage Architecture](storage.md)** — Deep dive into R2 logs offloading and Drizzle ORM schemas.

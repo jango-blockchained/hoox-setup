@@ -63,9 +63,9 @@ The dashboard's `wrangler.jsonc` maps out its internal service links to extract 
     { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
   ],
   "vars": {
-    "D1_SERVICE_URL": "https://d1-worker.cryptolinx.workers.dev",
-    "AGENT_SERVICE_URL": "https://agent-worker.cryptolinx.workers.dev",
-    "TELEGRAM_SERVICE_URL": "https://telegram-worker.cryptolinx.workers.dev",
+    "D1_SERVICE_URL": "https://d1-worker.hoox.example.com",
+    "AGENT_SERVICE_URL": "https://agent-worker.hoox.example.com",
+    "TELEGRAM_SERVICE_URL": "https://telegram-worker.hoox.example.com",
   },
   "secrets": [
     "DASHBOARD_USER",

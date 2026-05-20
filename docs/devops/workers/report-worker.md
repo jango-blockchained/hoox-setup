@@ -116,7 +116,7 @@ await env.TELEGRAM_SERVICE.fetch("https://telegram-worker/alert", {
   body: JSON.stringify({
     chatId: env.TELEGRAM_CHAT_ID_DEFAULT,
     message:
-      "<b>📄 Daily P&L PDF Report Compiled!</b>\nDownload link: <a href='https://reports.cryptolinx.workers.dev/daily-pnl-2026-05-19.pdf'>Download PDF</a>",
+      "<b>📄 Daily P&L PDF Report Compiled!</b>\nDownload link: <a href='https://reports.hoox.example.com/daily-pnl-2026-05-19.pdf'>Download PDF</a>",
   }),
 });
 ```

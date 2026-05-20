@@ -63,7 +63,6 @@ The gateway's `wrangler.jsonc` defines its private service binding links and res
   "services": [
     { "binding": "TRADE_SERVICE", "service": "trade-worker" },
     { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
-    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" },
   ],
   "queues": {
     "producers": [{ "queue": "trade-execution", "binding": "TRADE_QUEUE" }],
