@@ -67,8 +67,6 @@ export const icons = {
   arrow: "->",
   spinner: ["-", "\\", "|", "/"],
   dot: "●",
-  check: "v",
-  cross: "x",
 };
 
 // ── Display helpers ───────────────────────────────────────────────

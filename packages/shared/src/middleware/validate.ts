@@ -1,6 +1,8 @@
 /**
  * Validation middleware for Cloudflare Workers
  * Uses Zod for runtime schema validation.
+ *
+ * @available — Available for consumer use. Import from "@jango-blockchained/hoox-shared/middleware".
  */
 
 import { z } from "zod";

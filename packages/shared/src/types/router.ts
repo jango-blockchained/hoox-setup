@@ -18,6 +18,7 @@ export interface RouteDefinition<TEnv = Record<string, unknown>> {
   handler: Handler<TEnv>;
   middleware?: Handler<TEnv>[];
   params?: string[];
+  regex?: RegExp;
 }
 
 export interface Router<TEnv = Record<string, unknown>> {

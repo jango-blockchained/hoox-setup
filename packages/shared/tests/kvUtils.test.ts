@@ -4,11 +4,7 @@
  */
 
 import { describe, test, expect, mock } from "bun:test";
-import {
-  logKvTimestamp,
-  headersToObject,
-  kvTimestampMiddleware,
-} from "../src/kvUtils";
+import { logKvTimestamp, headersToObject } from "../src/kvUtils";
 
 /**
  * Creates a mock KV namespace for testing KV utility functions.
@@ -126,56 +122,6 @@ describe("KV Utilities", () => {
       expect(obj["x-one"]).toBe("1");
       expect(obj["x-two"]).toBe("2");
       expect(obj["x-three"]).toBe("3");
-    });
-  });
-
-  describe("kvTimestampMiddleware", () => {
-    test("returns a function", () => {
-      const middleware = kvTimestampMiddleware();
-      expect(typeof middleware).toBe("function");
-    });
-
-    test("returns an async function", () => {
-      const middleware = kvTimestampMiddleware();
-      // Verify it's a function that returns a promise (async)
-      const result = middleware({ env: {} }, async () => {});
-      expect(result).toBeInstanceOf(Promise);
-    });
-
-    test("calls logKvTimestamp and next()", async () => {
-      const kv = createMockKv();
-      const env = { REPORT_KV: kv };
-      let nextCalled = false;
-      const next = mock(async () => {
-        nextCalled = true;
-      });
-
-      const middleware = kvTimestampMiddleware();
-      await middleware({ env }, next);
-
-      // Verify KV was written to (logKvTimestamp effect)
-      expect(kv.put.mock.calls.length).toBe(1);
-      expect(kv.put.mock.calls[0][0] as string).toStartWith("timestamp_");
-
-      // Verify next was called
-      expect(nextCalled).toBe(true);
-    });
-
-    test("passes env to logKvTimestamp via c.env", async () => {
-      const kv = createMockKv();
-      const c = { env: { REPORT_KV: kv } };
-
-      let nextCalled = false;
-      const next = mock(async () => {
-        nextCalled = true;
-      });
-
-      const middleware = kvTimestampMiddleware();
-      await middleware(c, next);
-
-      // Verify KV write happened (proves env was passed through)
-      expect(kv.put.mock.calls.length).toBe(1);
-      expect(nextCalled).toBe(true);
     });
   });
 });

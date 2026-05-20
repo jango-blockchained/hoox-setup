@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { DashboardEnv } from "@/lib/env";
-import { Errors } from "@shared/errors";
+import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";

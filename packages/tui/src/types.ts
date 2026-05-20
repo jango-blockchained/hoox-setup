@@ -55,29 +55,6 @@ export interface ModalState {
   resolve?: (value: unknown) => void;
 }
 
-export interface BoxLayout {
-  flexDirection?: "row" | "column";
-  justifyContent?:
-    | "flex-start"
-    | "center"
-    | "flex-end"
-    | "space-between"
-    | "space-around";
-  alignItems?: "flex-start" | "center" | "flex-end" | "stretch";
-  width?: number | string;
-  height?: number | string;
-  flexGrow?: number;
-  padding?: number;
-  paddingTop?: number;
-  paddingBottom?: number;
-  paddingLeft?: number;
-  paddingRight?: number;
-  gap?: number;
-  border?: boolean;
-  borderStyle?: "single" | "rounded" | "double" | "bold";
-  backgroundColor?: string;
-}
-
 export interface ShortcutMap {
   [keys: string]: string;
 }

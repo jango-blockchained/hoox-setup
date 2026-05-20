@@ -1,6 +1,8 @@
 /**
  * Rate limiting middleware for Cloudflare Workers
  * Adapted from workers/agent-worker/src/middleware/rate-limit.ts
+ *
+ * @available — Available for consumer use. Import from "@jango-blockchained/hoox-shared/middleware".
  */
 
 import type { Env } from "../types";

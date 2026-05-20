@@ -167,14 +167,19 @@ export class D1Repository {
    */
   async upsertPosition(position: PositionRecord): Promise<D1QueryResult> {
     return this.execute(
-      `REPLACE INTO positions (id, exchange, symbol, side, size, status, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `REPLACE INTO positions (id, exchange, symbol, side, entry_price, mark_price, liquidation_price, leverage, size, unrealized_pnl, status, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         position.id,
         position.exchange,
         position.symbol,
         position.side,
+        position.entry_price ?? null,
+        position.mark_price ?? null,
+        position.liquidation_price ?? null,
+        position.leverage ?? null,
         position.size,
+        position.unrealized_pnl ?? null,
         position.status,
         position.updated_at,
       ]

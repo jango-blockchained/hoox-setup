@@ -49,10 +49,9 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
    */
   function matchPattern(
     path: string,
-    pattern: string,
+    regex: RegExp,
     paramNames: string[]
   ): RouteParams | null {
-    const regex = patternToRegex(pattern);
     const m = path.match(regex);
     if (!m) return null;
 
@@ -76,6 +75,7 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
     const route: RouteDefinition<TEnv> = { path, method, handler, middleware };
     if (paramNames.length > 0) {
       route.params = paramNames;
+      route.regex = patternToRegex(path);
     }
     routes.push(route);
   }
@@ -91,14 +91,19 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
     path: string,
     method: string
   ): { route: RouteDefinition<TEnv>; params?: RouteParams } | null {
-    // Fast path: exact match
-    const exact = routes.find((r) => r.path === path && r.method === method);
+    // Fast path: exact match (last registered wins)
+    const exact = routes.findLast
+      ? routes.findLast((r) => r.path === path && r.method === method)
+      : [...routes]
+          .reverse()
+          .find((r) => r.path === path && r.method === method);
     if (exact) return { route: exact };
 
-    // Pattern match: iterate routes with params
-    for (const route of routes) {
-      if (route.params && route.params.length > 0) {
-        const matched = matchPattern(path, route.path, route.params);
+    // Pattern match: iterate routes with params backwards (last registered wins)
+    for (let i = routes.length - 1; i >= 0; i--) {
+      const route = routes[i];
+      if (route.params && route.params.length > 0 && route.regex) {
+        const matched = matchPattern(path, route.regex, route.params);
         if (matched && route.method === method) {
           return { route, params: matched };
         }
@@ -155,8 +160,8 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
         // Check if path exists with a different method → 405
         const pathExists = routes.some((r) => {
           if (r.path === path) return true;
-          if (r.params && r.params.length > 0) {
-            return patternToRegex(r.path).test(path);
+          if (r.params && r.params.length > 0 && r.regex) {
+            return r.regex.test(path);
           }
           return false;
         });

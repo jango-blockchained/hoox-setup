@@ -92,7 +92,8 @@ export function createErrorResponse(
 
   const body: Record<string, unknown> = { success: false, error: message };
   if (typeof error !== "string" && error.code) body.code = error.code;
-  if (typeof error !== "string" && error.details) body.details = error.details;
+  if (typeof error !== "string" && error.details !== undefined)
+    body.details = error.details;
 
   return new Response(JSON.stringify(body), {
     status: statusCode,

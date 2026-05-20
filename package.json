@@ -72,7 +72,7 @@
     "rolldown": "^1.0.1",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.13",
-    "wrangler": "^4.92.0",
+    "wrangler": "^4.93.0",
     "zod": "^4.4.3"
   }
 }

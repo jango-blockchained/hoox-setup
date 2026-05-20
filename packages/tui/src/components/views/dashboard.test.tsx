@@ -9,12 +9,9 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
-import type {
-  WorkerInfo,
-  Alert,
-  SystemMetrics,
-} from "@jango-blockchained/hoox-shared";
+import type { Alert } from "@jango-blockchained/hoox-shared";
 
+import { makeWorker } from "../../test-utils";
 import { DashboardView } from "./dashboard";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -32,21 +29,6 @@ async function renderDashboard(): Promise<string> {
 }
 
 // ─── Test Data Factories ─────────────────────────────────────────────────────
-
-function makeWorker(overrides: Partial<WorkerInfo> = {}): WorkerInfo {
-  return {
-    id: `worker-${Math.random().toString(36).slice(2, 8)}`,
-    name: "test-worker",
-    status: "operational",
-    uptime: 3600,
-    cpu: 45,
-    memory: 256,
-    requests: 1000,
-    durableObjectCount: 3,
-    edgeCount: 5,
-    ...overrides,
-  };
-}
 
 function makeAlert(overrides: Partial<Alert> = {}): Alert {
   return {

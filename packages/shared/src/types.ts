@@ -195,7 +195,35 @@ export interface ProcessRequestBody<T = unknown> {
   payload: T;
 }
 
-// --- TUI / Dashboard display types ---
+// ─────────────────────────────────────────────────────────────────────────────
+// TUI / Dashboard display types (canonical definitions — see types.ts for re-exports)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** View identifier for TUI navigation. */
+export type ViewId =
+  | "dashboard"
+  | "workers"
+  | "worker-detail"
+  | "trade-monitor"
+  | "logs-viewer"
+  | "service-manager"
+  | "config-editor"
+  | "setup-wizard"
+  | "settings";
+
+/** Modal dialog state for the TUI. */
+export interface ModalState {
+  type: "confirm" | "alert" | "prompt" | "custom";
+  title: string;
+  message?: string;
+  data?: unknown;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}
+
+// ─── Worker ──────────────────────────────────────────────────────────────────
+
+export type WorkerStatus = "operational" | "degraded" | "down";
 
 /**
  * Information about a Cloudflare Worker for the TUI dashboard.
@@ -204,71 +232,89 @@ export interface ProcessRequestBody<T = unknown> {
 export interface WorkerInfo {
   id: string;
   name: string;
-  status: "operational" | "degraded" | "down";
+  status: WorkerStatus;
   /** Uptime in seconds */
   uptime: number;
-  /** Average CPU time in milliseconds */
-  cpuAvgMs: number;
-  /** P99 CPU time in milliseconds */
-  cpuP99Ms: number;
-  /** Current memory usage in MB */
-  memoryMB: number;
-  /** Memory limit in MB */
-  memoryLimitMB: number;
-  /** Requests in the last 24 hours */
-  requests24h: number;
-  /** Errors in the last 24 hours */
-  errors24h: number;
+  /** CPU usage percentage (0-100) */
+  cpu: number;
+  /** Memory usage in MB */
+  memory: number;
+  /** Total request count */
+  requests: number;
   /** Number of Durable Object instances */
-  durableObjects: number;
-  /** ISO 8601 timestamp of last deployment */
-  lastDeployed: string;
+  durableObjectCount: number;
+  /** Number of edge locations the worker is deployed to */
+  edgeCount: number;
+  /** Worker version string */
+  version?: string;
+  /** Last deployment timestamp in ms */
+  lastDeployed?: number;
 }
+
+// ─── Trade ───────────────────────────────────────────────────────────────────
+
+export type TradeSide = "buy" | "sell";
 
 /**
  * A single trade event for the TUI trade monitor.
  */
 export interface Trade {
   id: string;
+  symbol: string;
+  side: TradeSide;
+  price: number;
+  quantity: number;
   /** Unix timestamp in milliseconds */
   timestamp: number;
-  exchange: "binance" | "bybit" | "mexc";
-  side: "buy" | "sell";
-  symbol: string;
-  quantity: number;
-  price: number;
-  status: "filled" | "pending" | "rejected";
-  /** Latency in milliseconds */
-  latencyMs: number;
+  exchange: string;
+  /** Optional strategy identifier */
+  strategy?: string;
+  /** Profit/Loss for this trade */
+  pnl?: number;
 }
+
+// ─── Alert ───────────────────────────────────────────────────────────────────
+
+export type AlertSeverity = "info" | "warning" | "error" | "critical";
 
 /**
  * A system alert surfaced in the TUI dashboard.
  */
 export interface Alert {
   id: string;
-  severity: "critical" | "warning" | "info";
-  /** Optional linked worker ID */
-  workerId?: string;
+  /** Alert category/type identifier */
+  type: string;
+  severity: AlertSeverity;
   message: string;
   /** Unix timestamp in milliseconds */
   timestamp: number;
+  /** Optional linked worker ID */
+  workerId?: string;
   acknowledged: boolean;
+  /** Source of the alert */
+  source?: string;
 }
+
+// ─── Log ─────────────────────────────────────────────────────────────────────
+
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * A single log entry for the TUI logs viewer.
  */
 export interface LogEntry {
   id: string;
+  level: LogLevel;
+  message: string;
   /** Unix timestamp in milliseconds */
   timestamp: number;
-  level: "debug" | "info" | "warn" | "error";
   workerId?: string;
-  message: string;
+  source?: string;
   /** Optional structured metadata */
   metadata?: Record<string, unknown>;
 }
+
+// ─── Metrics ─────────────────────────────────────────────────────────────────
 
 /**
  * Aggregate system-level metrics for the TUI dashboard overview.
@@ -277,23 +323,43 @@ export interface SystemMetrics {
   /** Total number of configured workers */
   totalWorkers: number;
   /** Workers currently operational */
-  operationalWorkers: number;
-  /** Workers in degraded state */
-  degradedWorkers: number;
-  /** Workers currently down */
-  downWorkers: number;
-  /** Total trades in the last 24 hours */
-  trades24h: number;
-  /** Total errors in the last 24 hours */
-  errors24h: number;
-  /** Average latency across all workers (ms) */
-  avgLatencyMs: number;
+  onlineWorkers: number;
   /** Total P&L in USD */
   totalPnl: number;
   /** Active trading strategies count */
   activeStrategies: number;
+  /** Trades in the last 24 hours */
+  dailyTrades: number;
   /** AI agent calls in the last 24 hours */
-  aiCalls24h: number;
-  /** Unix timestamp in milliseconds */
-  timestamp: number;
+  aiCalls: number;
+  /** System uptime in seconds */
+  uptime: number;
+  /** Last update timestamp in ms */
+  lastUpdated: number;
+}
+
+// ─── Connection ──────────────────────────────────────────────────────────────
+
+/** Connection status for the TUI data-fetching state machine. */
+export type ConnectionStatus =
+  | "connected"
+  | "polling"
+  | "offline"
+  | "reconnecting";
+
+// ─── Config ──────────────────────────────────────────────────────────────────
+
+/** Log filtering preferences. */
+export interface LogFilter {
+  levels: LogLevel[];
+  workers: string[];
+  searchText: string;
+}
+
+/** Notification channel preferences. */
+export interface NotificationPreferences {
+  alerts: boolean;
+  trades: boolean;
+  debug: boolean;
+  system: boolean;
 }

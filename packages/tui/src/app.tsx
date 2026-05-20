@@ -15,7 +15,11 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import { useServiceStore, useUIStore } from "@jango-blockchained/hoox-shared";
+import {
+  useServiceStore,
+  useUIStore,
+  Colors,
+} from "@jango-blockchained/hoox-shared";
 import { restoreSession, saveSession } from "@jango-blockchained/hoox-shared";
 import type { ViewId } from "@jango-blockchained/hoox-shared";
 

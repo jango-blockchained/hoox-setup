@@ -60,11 +60,7 @@ export type {
   Position,
   IExchangeProvider,
 } from "./exchange-client";
-export {
-  logKvTimestamp,
-  headersToObject,
-  kvTimestampMiddleware,
-} from "./kvUtils";
+export { logKvTimestamp, headersToObject } from "./kvUtils";
 export type { EnvWithKV } from "./kvUtils";
 export { trackAnalytics } from "./analytics";
 export type { AnalyticsEnv } from "./analytics";
@@ -121,15 +117,21 @@ export { formatRelativeTime as formatRelativeTimeFromTime } from "./format-time"
 
 // TUI-specific types
 export type {
+  ViewId,
+  ModalState,
+  WorkerStatus,
   WorkerInfo,
+  TradeSide,
   Trade,
+  AlertSeverity,
   Alert,
+  LogLevel,
   LogEntry,
   SystemMetrics,
   ConnectionStatus,
-  LogLevel,
   LogFilter,
-} from "../../types";
+  NotificationPreferences,
+} from "./types";
 
 // ── Wizard engine ──────────────────────────────────────────────────────
 

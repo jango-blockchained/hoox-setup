@@ -16,7 +16,7 @@ export class KvSyncService {
     if (namespaceId) return namespaceId;
 
     try {
-      const proc = Bun.spawn(["wrangler", "kv:namespace", "list"], {
+      const proc = Bun.spawn(["wrangler", "kv", "namespace", "list"], {
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -46,7 +46,7 @@ export class KvSyncService {
 
   async list(namespaceId: string): Promise<Array<{ name: string }>> {
     const proc = Bun.spawn(
-      ["wrangler", "kv:key", "list", "--namespace-id", namespaceId],
+      ["wrangler", "kv", "key", "list", "--namespace-id", namespaceId],
       { stdout: "pipe", stderr: "pipe" }
     );
     const stdout = await new Response(proc.stdout).text();
@@ -71,7 +71,7 @@ export class KvSyncService {
 
   async get(namespaceId: string, key: string): Promise<string | null> {
     const proc = Bun.spawn(
-      ["wrangler", "kv:key", "get", "--namespace-id", namespaceId, key],
+      ["wrangler", "kv", "key", "get", "--namespace-id", namespaceId, key],
       { stdout: "pipe", stderr: "pipe" }
     );
     const stdout = await new Response(proc.stdout).text();
@@ -90,7 +90,16 @@ export class KvSyncService {
 
   async set(namespaceId: string, key: string, value: string): Promise<void> {
     const proc = Bun.spawn(
-      ["wrangler", "kv:key", "put", "--namespace-id", namespaceId, key, value],
+      [
+        "wrangler",
+        "kv",
+        "key",
+        "put",
+        "--namespace-id",
+        namespaceId,
+        key,
+        value,
+      ],
       { stdout: "pipe", stderr: "pipe" }
     );
     const exitCode = await proc.exited;
@@ -105,7 +114,7 @@ export class KvSyncService {
 
   async delete(namespaceId: string, key: string): Promise<void> {
     const proc = Bun.spawn(
-      ["wrangler", "kv:key", "delete", "--namespace-id", namespaceId, key],
+      ["wrangler", "kv", "key", "delete", "--namespace-id", namespaceId, key],
       { stdout: "pipe", stderr: "pipe" }
     );
     const exitCode = await proc.exited;

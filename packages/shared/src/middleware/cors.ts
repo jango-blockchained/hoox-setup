@@ -1,6 +1,8 @@
 /**
  * CORS middleware for Cloudflare Workers
  * Provides standardized CORS headers and preflight handling
+ *
+ * @available — Available for consumer use. Import from "@jango-blockchained/hoox-shared/middleware".
  */
 
 export interface CorsOptions {

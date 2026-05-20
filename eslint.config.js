@@ -86,9 +86,9 @@ export default [
     files: [
       "packages/cli/src/commands/housekeeping/index.ts",
       "packages/cli/src/commands/waf/waf-command.ts",
-      "pages/dashboard/src/lib/settings/loader.ts",
-      "pages/dashboard/src/lib/api.ts",
-      "pages/dashboard/src/components/dashboard/settings-form.tsx",
+      "workers/dashboard/src/lib/settings/loader.ts",
+      "workers/dashboard/src/lib/api.ts",
+      "workers/dashboard/src/components/dashboard/settings-form.tsx",
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
@@ -111,8 +111,8 @@ export default [
   },
   {
     files: [
-      "pages/dashboard/src/components/dashboard/setup-checklist.tsx",
-      "pages/dashboard/src/app/api/settings/route.ts",
+      "workers/dashboard/src/components/dashboard/setup-checklist.tsx",
+      "workers/dashboard/src/app/api/settings/route.ts",
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
