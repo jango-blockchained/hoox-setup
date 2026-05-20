@@ -33,18 +33,13 @@ pages/dashboard/.open-next/
 .keys/
 */.keys/
 .tmp/
-.tmp/*
+tmp/
 .cursor/
 .cursor/*
-.opencode/**
-!.opencode/context
-!.opencode/context/**
-!.opencode/plans
-!.opencode/plans/**
-!.opencode/specs
-!.opencode/specs/**
-!.opencode/tasks
-!.opencode/tasks/**
+.opencode/
+AGENTS.md
+DESIGN.md
+SKILL.md
 .agents/
 .agents/*
 .ai/
@@ -95,8 +90,7 @@ pages.jsonc
 
 # Superpowers
 .superpowers/
-# docs/superpowers/ - commented out to allow design specs
-# docs/superpowers/
+docs/superpowers/
 
 # Coverage output
 coverage/
