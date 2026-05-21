@@ -7,10 +7,7 @@
 
 import { Command } from "commander";
 import { toError } from "@jango-blockchained/hoox-shared";
-import {
-  FULL_LEGAL_NOTICE,
-  COPYRIGHT,
-} from "@jango-blockchained/hoox-shared/legal";
+import { COPYRIGHT } from "@jango-blockchained/hoox-shared/legal";
 import { CLIError, ExitCode } from "./utils/errors.js";
 import { formatError } from "./utils/formatters.js";
 import { theme } from "./utils/theme.js";
@@ -148,16 +145,8 @@ import { registerRepairCommand } from "./commands/repair/index.js";
 import { registerUpdateCommand } from "./commands/update/index.js";
 import { registerSchemaCommand } from "./commands/schema/index.js";
 import { registerTUICommand } from "./commands/tui/index.js";
+import { registerDisclaimerCommand } from "./commands/disclaimer/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
-
-// ── Legal / Disclaimer command ──────────────────────────────────────────
-
-program
-  .command("disclaimer")
-  .description("Display legal disclaimers and trademark information")
-  .action(() => {
-    console.log(FULL_LEGAL_NOTICE);
-  });
 
 // ── Command registration ────────────────────────────────────────────────
 
@@ -178,6 +167,7 @@ registerRepairCommand(program);
 registerSchemaCommand(program);
 registerUpdateCommand(program);
 registerTUICommand(program);
+registerDisclaimerCommand(program);
 
 // ---------------------------------------------------------------------------
 // preAction hooks — auto-check wrangler version before dev/deploy

@@ -94,8 +94,9 @@ The gateway exposes professional endpoints for secure inter-worker and external 
 
 - `POST /agent/chat` — Accepts user prompts and handles SSE (Server-Sent Events) streaming responses.
 - `POST /agent/vision` — Analyzes charts, balance screenshots, or trading signals from Base64 images.
-- `POST /agent/reasoning` — Interfaces with advanced reasoning models (like OpenAI `o1` or DeepSeek) to audit trading strategies and margin structures.
-- `GET /agent/usage` — Provides detailed token counting and cost metrics across all 5 providers.
+- `POST /agent/reasoning` — Extended thinking queries with reasoning models (o1, DeepSeek). Respects `thinking_effort` levels.
+- `GET /agent/usage` — Detailed token usage and cost metrics across all 5 providers, including per-provider input/output tokens and cumulative USD cost.
+- `GET /agent/health` — Health check for all AI providers — returns latency and status for each provider in the fallback chain.
 
 ---
 

@@ -147,5 +147,5 @@ hoox repair check
 
 ### 🔗 Next Steps
 
-- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+|- **[Configuration Dictionary](getting-started/configuration.md)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
 - **[API Endpoint Reference](api-endpoints.md)** — Analyze REST routes, schemas, and gateway error structures.

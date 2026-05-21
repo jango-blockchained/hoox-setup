@@ -95,5 +95,5 @@ Beyond static commands, `telegram-worker` is integrated with **Cloudflare Worker
 
 ### 🔗 Next Steps
 
-- **[Astro Docs Site Config](../getting-started/configuration.md)** — Review your system environment configurations.
-- **[Real-Time Observability & Monitoring](../guides/monitor-trading.md)** — Stream console logs and check queue depths.
+|- **[Alert Troubleshooting](../tutorials/tradingview-webhook.md#webhook-troubleshooting-runbook)** — Common TradingView webhook errors and resolutions.
+|- **[Platform Configuration Guide](../getting-started/configuration.md)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.

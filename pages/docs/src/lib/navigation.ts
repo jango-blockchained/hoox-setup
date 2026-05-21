@@ -40,7 +40,7 @@ const logicalOrder: Record<string, string[]> = {
     "monitoring",
   ],
   api: ["endpoints", "payloads", "responses"],
-  operations: ["setup_and_operations", "tui", "cli_features"],
+  operations: ["setup-and-operations", "tui", "cli-features"],
 };
 
 // Logical section sorting order
@@ -79,9 +79,9 @@ export function buildNavigation(
     // ── Custom Section Mapping for Root Directory Files ──
     if (parts.length === 2) {
       if (
-        slugName === "setup_and_operations" ||
+        slugName === "setup-and-operations" ||
         slugName === "tui" ||
-        slugName === "cli_features"
+        slugName === "cli-features"
       ) {
         sectionKey = "operations";
       } else if (slugName === "installation-flow") {

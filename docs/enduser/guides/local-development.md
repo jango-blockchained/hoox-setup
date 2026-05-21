@@ -65,14 +65,16 @@ docker compose --profile full up
 During local development, all enabled workers are assigned dedicated local ports, simulating service boundaries locally:
 
 | Worker                | Local Port | Endpoint URL            | Purpose                           |
-| :-------------------- | :--------: | :---------------------- | :-------------------------------- |
-| **`hoox`**            |   `8787`   | `http://localhost:8787` | Public Gateway & Webhook Receiver |
-| **`trade-worker`**    |   `8789`   | `http://localhost:8789` | Trade Execution Engine            |
-| **`telegram-worker`** |   `8791`   | `http://localhost:8791` | Telegram Bot Alerts & Commands    |
-| **`d1-worker`**       |   `8792`   | `http://localhost:8792` | SQLite Database Operations        |
-| **`web3-wallet`**     |   `8793`   | `http://localhost:8793` | On-Chain DeFi Execution           |
-| **`dashboard`**       |   `8794`   | `http://localhost:8794` | Next.js Dashboard Cockpit         |
-| **`agent-worker`**    |   `8795`   | `http://localhost:8795` | AI Risk Manager & Cron Engine     |
+|| :-------------------- | :--------: | :---------------------- | :-------------------------------- |
+|| **`hoox`**            |   `8787`   | `http://localhost:8787` | Public Gateway & Webhook Receiver |
+|| **`trade-worker`**    |   `8789`   | `http://localhost:8789` | Trade Execution Engine            |
+|| **`telegram-worker`** |   `8791`   | `http://localhost:8791` | Telegram Bot Alerts & Commands    |
+|| **`d1-worker`**       |   `8792`   | `http://localhost:8792` | SQLite Database Operations        |
+|| **`web3-wallet`**     |   `8793`   | `http://localhost:8793` | On-Chain DeFi Execution           |
+|| **`dashboard`**       |   `8794`   | `http://localhost:8794` | Next.js Dashboard Cockpit         |
+|| **`agent-worker`**    |   `8795`   | `http://localhost:8795` | AI Risk Manager & Cron Engine     |
+|| **`email-worker`**    |   `8796`   | `http://localhost:8796` | Email Signal Parsing              |
+|| **`report-worker`**   |   `8797`   | `http://localhost:8797` | PDF Portfolio Report Generator    |
 
 ---
 
@@ -124,5 +126,6 @@ The pipeline executes four verification steps in a strict dependency sequence:
 
 ### 🔗 Next Steps
 
-- **[Terminal UI Operations](tui.md)** — Launch the full-screen terminal cockpit (`./hoox-tui`) to monitor these local runs.
-- **[Database Migrations](database-ops.md)** — Set up, query, and migrate your local SQLite D1 database.
+- **[Testing Standards](testing.md)** — Run unit and integration tests using Bun's native test runner.
+- **[Terminal UI Operations](../guides/tui.md)** — Launch the full-screen terminal cockpit (`./hoox-tui`) to monitor these local runs.
+- **[Database Migrations](../database-ops.md)** — Set up, query, and migrate your local SQLite D1 database.

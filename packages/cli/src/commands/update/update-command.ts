@@ -5,71 +5,12 @@ import { UpdateService } from "../../services/update/index.js";
 import { formatError, getFormatOptions } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
-
-async function gitPull(cwd: string): Promise<string> {
-  const proc = Bun.spawn(["git", "pull", "--ff-only"], {
-    cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const exitCode = await proc.exited;
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-
-  if (exitCode !== 0) {
-    throw new Error(stderr.trim() || `git pull failed (exit ${exitCode})`);
-  }
-  return stdout.trim();
-}
-
-async function gitSubmoduleUpdate(
-  cwd: string,
-  submodulePath: string
-): Promise<string> {
-  const proc = Bun.spawn(
-    ["git", "submodule", "update", "--remote", "--init", "--", submodulePath],
-    {
-      cwd,
-      stdout: "pipe",
-      stderr: "pipe",
-    }
-  );
-  const exitCode = await proc.exited;
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-
-  if (exitCode !== 0) {
-    throw new Error(
-      stderr.trim() || `git submodule update failed (exit ${exitCode})`
-    );
-  }
-  return stdout.trim();
-}
-
-async function isGitRepo(cwd: string): Promise<boolean> {
-  const proc = Bun.spawn(["git", "rev-parse", "--is-inside-work-tree"], {
-    cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const exitCode = await proc.exited;
-  return exitCode === 0;
-}
-
-async function isSubmodule(
-  cwd: string,
-  submodulePath: string
-): Promise<boolean> {
-  const proc = Bun.spawn(["git", "submodule", "status", "--", submodulePath], {
-    cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const exitCode = await proc.exited;
-  if (exitCode !== 0) return false;
-  const out = (await new Response(proc.stdout).text()).trim();
-  return out.length > 0;
-}
+import {
+  gitPull,
+  gitSubmoduleUpdate,
+  isGitRepo,
+  isSubmodule,
+} from "../../utils/git.js";
 
 export function registerUpdateCommand(program: Command): void {
   program

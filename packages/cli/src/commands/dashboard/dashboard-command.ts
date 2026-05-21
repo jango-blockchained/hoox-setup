@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { ConfigService } from "../../services/config/index.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import {
-  formatSuccess,
-  formatError,
-  formatTable,
-} from "../../utils/formatters.js";
+import { formatSuccess, formatTable } from "../../utils/formatters.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import { theme, icons } from "../../utils/theme.js";
 import * as jsonc from "jsonc-parser";
@@ -101,28 +98,33 @@ export function registerDashboardCommand(program: Command): void {
     .command("update-urls")
     .description("Update dashboard wrangler.jsonc with current service URLs")
     .option("--dry-run", "Show changes without applying")
-    .action(async (options: { dryRun?: boolean }) => {
-      const opts: FormatOptions = {
-        json: program.opts<{ json?: boolean }>().json,
-        quiet: program.opts<{ quiet?: boolean }>().quiet,
-      };
+    .action(
+      withErrorHandling(
+        async (options: { dryRun?: boolean }) => {
+          const opts: FormatOptions = {
+            json: program.opts<{ json?: boolean }>().json,
+            quiet: program.opts<{ quiet?: boolean }>().quiet,
+          };
 
-      try {
-        const config = new ConfigService();
-        await config.load();
+          const config = new ConfigService();
+          await config.load();
 
-        const urls = getServiceUrls(config);
-        const dashboardPath = resolve(
-          process.cwd(),
-          "pages",
-          "dashboard",
-          "wrangler.jsonc"
-        );
+          const urls = getServiceUrls(config);
+          const dashboardPath = resolve(
+            process.cwd(),
+            "pages",
+            "dashboard",
+            "wrangler.jsonc"
+          );
 
-        updateWranglerVars(dashboardPath, urls, options.dryRun === true, opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+          updateWranglerVars(
+            dashboardPath,
+            urls,
+            options.dryRun === true,
+            opts
+          );
+        },
+        { service: "dashboard" }
+      )
+    );
 }

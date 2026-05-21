@@ -5,7 +5,7 @@
 [![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Runtime](https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&logo=bun)](https://bun.sh)
 [![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
-[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/devops/development/testing-standards.md)
+[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/devops/development/testing.md)
 [![License](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
 [![Main Repo](https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&logo=github)](https://github.com/jango-blockchained/hoox-setup)
 
@@ -168,7 +168,7 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, 28 test files). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
+The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, **106 test files** with **1,574 assertions**). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
 
 ### Complete Command Tree
 
@@ -611,13 +611,13 @@ bun test --coverage
 **Current Test Coverage:**
 
 - **packages/cli**: 381 tests across 26 files — 0 failures (100% pass rate)
-- **workers/hoox**: test suite in progress
-- **workers/trade-worker**: test suite in progress
-- **workers/agent-worker**: test suite in progress
+- **packages/shared**: unit tests covering shared utilities and exchange router logic
+- **packages/tui**: component tests for the OpenTUI terminal interface
+- **workers/**: 74 integration tests covering all 9 worker pipelines
 
-Built natively on Bun, Hoox features TypeScript type safety with strict mode enabled.
+> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Standards](docs/devops/development/testing.md) for detailed coverage reports and [Phase E Coverage Report](docs/coverage/PHASE_E_COVERAGE_REPORT.md) for the latest results.
 
-> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/devops/development/testing-standards.md) for detailed coverage reports.
+> **Note**: Coverage targets >80% for all critical execution paths. See [Testing Documentation](docs/devops/development/testing.md) for detailed coverage reports.
 
 ### 🌐 Live Integration Tests
 

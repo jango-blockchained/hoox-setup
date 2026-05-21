@@ -15,12 +15,12 @@ import * as p from "@clack/prompts";
 import { DbService } from "../../services/db/index.js";
 import {
   formatSuccess,
-  formatError,
   formatTable,
   formatJson,
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 /**
@@ -204,109 +204,109 @@ EXAMPLES:
     .command("apply")
     .description("Apply schema.sql to the database")
     .option("--file <path>", "Path to schema.sql file")
-    .action(async (options: { file?: string }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(
-          cmd.optsWithGlobals<{ remote?: boolean }>().remote
-        );
-        await handleApply(opts, dbName, remote, options.file);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (options: { file?: string }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          const remote = Boolean(
+            cmd.optsWithGlobals<{ remote?: boolean }>().remote
+          );
+          await handleApply(opts, dbName, remote, options.file);
+        },
+        { service: "db" }
+      )
+    );
 
   // -- migrate
   dbCmd
     .command("migrate")
     .description("Run tracking migrations")
-    .action(async (_, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(
-          cmd.optsWithGlobals<{ remote?: boolean }>().remote
-        );
-        await handleMigrate(opts, dbName, remote);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          const remote = Boolean(
+            cmd.optsWithGlobals<{ remote?: boolean }>().remote
+          );
+          await handleMigrate(opts, dbName, remote);
+        },
+        { service: "db" }
+      )
+    );
 
   // -- list
   dbCmd
     .command("list")
     .description("List database tables")
-    .action(async (_, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(
-          cmd.optsWithGlobals<{ remote?: boolean }>().remote
-        );
-        await handleList(opts, dbName, remote);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          const remote = Boolean(
+            cmd.optsWithGlobals<{ remote?: boolean }>().remote
+          );
+          await handleList(opts, dbName, remote);
+        },
+        { service: "db" }
+      )
+    );
 
   // -- query
   dbCmd
     .command("query <sql>")
     .description("Execute a SQL query")
-    .action(async (sql: string, _, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        const remote = Boolean(
-          cmd.optsWithGlobals<{ remote?: boolean }>().remote
-        );
-        await handleQuery(opts, dbName, sql, remote);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (sql: string, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          const remote = Boolean(
+            cmd.optsWithGlobals<{ remote?: boolean }>().remote
+          );
+          await handleQuery(opts, dbName, sql, remote);
+        },
+        { service: "db" }
+      )
+    );
 
   // -- export
   dbCmd
     .command("export")
     .description("Export database to .sql file")
     .option("--output <path>", "Output file path")
-    .action(async (options: { output?: string }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        await handleExport(opts, dbName, options.output);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (options: { output?: string }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          await handleExport(opts, dbName, options.output);
+        },
+        { service: "db" }
+      )
+    );
 
   // -- reset
   dbCmd
     .command("reset")
     .description("Drop and recreate the database (DESTRUCTIVE)")
     .option("--confirm", "Skip confirmation prompt")
-    .action(async (options: { confirm?: boolean }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      try {
-        const svc = new DbService();
-        const dbName = await resolveDb(cmd, svc);
-        await handleReset(opts, dbName, Boolean(options.confirm));
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (options: { confirm?: boolean }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          const svc = new DbService();
+          const dbName = await resolveDb(cmd, svc);
+          await handleReset(opts, dbName, Boolean(options.confirm));
+        },
+        { service: "db" }
+      )
+    );
 }

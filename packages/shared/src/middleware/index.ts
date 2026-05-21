@@ -11,6 +11,7 @@ export {
 export {
   requireAuth,
   requireInternalAuth,
+  createInternalAuthMiddleware,
   checkInternalAuth,
   type InternalAuthEnv,
 } from "./auth";

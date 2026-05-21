@@ -218,5 +218,5 @@ When an API check fails, the gateway uses the shared `@jango-blockchained/hoox-s
 
 ### 🔗 Next Steps
 
-- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+|- **[Request Payload Schemas](payloads.md)** — Analyze the complete JSON request schemas and TypeScript interfaces.
 - **[CLI Commands Reference](cli-commands.md)** — Review all CLI commands, options, and JSON flags.

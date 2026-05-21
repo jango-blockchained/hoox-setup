@@ -4,6 +4,7 @@
  */
 
 import type { Env } from "../types";
+import type { Handler } from "../types/router";
 
 /**
  * Constant-time string comparison to prevent timing attacks.
@@ -87,6 +88,23 @@ export function requireInternalAuth(
   }
 
   return null;
+}
+
+/**
+ * Create a middleware function for the router that enforces internal auth.
+ * Returns a Response (401) when unauthorized, or void when authorized.
+ *
+ * Usage: router.get("/path", handler, [createInternalAuthMiddleware()])
+ *
+ * @param keyName - The env binding name for the internal key (default: 'INTERNAL_KEY_BINDING')
+ */
+export function createInternalAuthMiddleware<TEnv extends InternalAuthEnv>(
+  keyName: string = "INTERNAL_KEY_BINDING"
+): Handler<TEnv> {
+  return (request: Request, env: TEnv) => {
+    const result = requireInternalAuth(request, env, keyName);
+    if (result) return result;
+  };
 }
 
 /**

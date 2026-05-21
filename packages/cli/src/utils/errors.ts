@@ -8,6 +8,7 @@ export const enum ExitCode {
   ERROR = 1,
   INVALID_USAGE = 2,
   INFRA_UNAVAILABLE = 3,
+  CommandFailed = -1,
 }
 
 export class CLIError extends Error {

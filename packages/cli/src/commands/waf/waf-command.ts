@@ -14,11 +14,8 @@ import type { Command } from "commander";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
 import type { WranglerResult } from "../../services/cloudflare/types.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import {
-  formatSuccess,
-  formatError,
-  formatTable,
-} from "../../utils/formatters.js";
+import { formatSuccess, formatTable } from "../../utils/formatters.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme, icons } from "../../utils/theme.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import type { WafStatus, WafRule, WafRuleInput } from "./types.js";
@@ -461,15 +458,15 @@ export function registerWafCommand(program: Command): void {
     .description(
       "Show WAF status (enabled/disabled, active rules, recent blocks)"
     )
-    .action(async (_, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.opts();
-      try {
-        await handleStatus(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.opts();
+          await handleStatus(opts);
+        },
+        { service: "waf" }
+      )
+    );
 
   // -- waf rules -------------------------------------------------------------
   const rules = waf.command("rules").description("Manage WAF firewall rules");
@@ -477,43 +474,43 @@ export function registerWafCommand(program: Command): void {
   rules
     .command("list")
     .description("List all WAF firewall rules")
-    .action(async (_, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
-      try {
-        await handleRulesList(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          await handleRulesList(opts);
+        },
+        { service: "waf" }
+      )
+    );
 
   rules
     .command("add <type> <value>")
     .description(
       "Add a WAF rule. Types: ip-allowlist, ip-blocklist, rate-limit, custom"
     )
-    .action(async (type: string, value: string, _, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
-      try {
-        await handleRulesAdd(type, value, opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (type: string, value: string, _, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          await handleRulesAdd(type, value, opts);
+        },
+        { service: "waf" }
+      )
+    );
 
   rules
     .command("remove <ruleId>")
     .description("Remove a WAF rule by ID")
-    .action(async (ruleId: string, _, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
-      try {
-        await handleRulesRemove(ruleId, opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (ruleId: string, _, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          await handleRulesRemove(ruleId, opts);
+        },
+        { service: "waf" }
+      )
+    );
 
   // -- waf mode --------------------------------------------------------------
   const mode = waf
@@ -523,26 +520,26 @@ export function registerWafCommand(program: Command): void {
   mode
     .command("enable")
     .description("Enable WAF protection on the zone")
-    .action(async (_, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
-      try {
-        await handleMode("on", opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          await handleMode("on", opts);
+        },
+        { service: "waf" }
+      )
+    );
 
   mode
     .command("disable")
     .description("Disable WAF protection on the zone")
-    .action(async (_, cmd: Command) => {
-      const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
-      try {
-        await handleMode("off", opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          await handleMode("off", opts);
+        },
+        { service: "waf" }
+      )
+    );
 }

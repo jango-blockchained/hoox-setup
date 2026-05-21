@@ -17361,66 +17361,14 @@ BT
 ET
 BT
 /F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 204.0947244094487587 Td
-(      "openai": { "inputTokens": , "outputTokens": , "costUSD": . },) Tj
+9.77499999999999
 ET
 BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 189.9214960629919915 Td
-(      "anthropic": {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 175.748267716535338 Td
-(        "inputTokens": ,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 161.5750393700786844 Td
-(        "outputTokens": ,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 147.4018110236219172 Td
-(        "costUSD": .) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 133.2285826771652637 Td
-(      },) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 119.0553543307086102 Td
-(      "workersAi": { "neuronsUsed": , "costUSD": . }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 104.882125984251843 Td
-(    }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 90.7088976377951894 Td
-(  }) Tj
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 82.2049606299211746 Td
+(sub-millisecond speeds and take effect instantly upon being modified.) Tj
 ET
 endstream
 endobj
@@ -17434,1379 +17382,230 @@ endobj
 endobj
 154 0 obj
 <<
-/Length 4752
+/Length 5112
 >>
 stream
 0.5670000000000001 w
 0 G
 BT
-/F6 8 Tf
+/F2 8 Tf
 9.1999999999999993 TL
-0 g
-42.5196850393700814 813.5435433070865656 Td
-(HOOX SPEC  |  API ENDPOINT SPECIFICATION) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 785.1970866141732586 Td
-(---) Tj
-ET
-BT
-/F6 12 Tf
-13.7999999999999989 TL
-0 g
-42.5196850393700814 754.0159842519684616 Td
-( . STANDARD PLATFORM ERROR MODELS) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 718.5829133858267141 Td
-(When an API check fails, the gateway uses the shared `@jango-blockchained/hoox-shared`) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 702.9923622047243725 Td
-(package to return a standardized JSON error format:) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 671.8112598425196893 Td
-(A.  BAD REQUEST \(PAYLOAD VALIDATION FAILURE\)) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 636.3781889763779418 Td
-(  {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 622.2049606299212883 Td
-(    "success": false,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 608.0317322834645211 Td
-(    "error": {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 593.8585039370078675 Td
-(      "code": "VALIDATION_ERROR",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 579.6852755905511003 Td
-(      "message": "Invalid JSON payload structure.",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 565.5120472440944468 Td
-(      "details": [) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 551.3388188976377933 Td
-(        { "field": "quantity", "issue": "Must be greater than zero." },) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 537.1655905511811397 Td
-(        {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 522.9923622047243725 Td
-(          "field": "exchange",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 508.8191338582676622 Td
-(          "issue": "Invalid exchange router. Options: binance, bybit, mexc.") Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 494.6459055118109518 Td
-(        }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 480.4726771653542983 Td
-(      ]) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 466.2994488188975879 Td
-(    }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 452.1262204724408775 Td
-(  }) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 422.3624409448818255 Td
-(B.  UNAUTHORIZED \(INVALID API KEY / IP ADDRESS\)) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 386.929370078740078 Td
-(  {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 372.7561417322834245 Td
-(    "success": false,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 358.5829133858267141 Td
-(    "error": {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 344.4096850393700038 Td
-(      "code": "UNAUTHORIZED",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 330.2364566929132934 Td
-(      "message": "Authentication failed. Mismatched apiKey or unauthorized origin IP.") Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 316.0632283464566399 Td
-(    }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 301.8899999999999864 Td
-(  }) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 272.1262204724408775 Td
-(C.  CONFLICT \(DUPLICATE REQUEST INTERCEPTED\)) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 236.69314960629913 Td
-(  {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 222.5199212598424765 Td
-(    "success": false,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 208.3466929133857093 Td
-(    "error": {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 194.1734645669290558 Td
-(      "code": "DUPLICATE_REQUEST",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 180.0002362204724022 Td
-(      "message": "Order rejected. Durable Object locked: trace ID already processed in the last ) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 165.827007874015635 Td
-(hours.") Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 151.6537795275589815 Td
-(    }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 137.480551181102328 Td
-(  }) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 107.7167716535432191 Td
-(D.  SERVICE UNAVAILABLE \(KILL SWITCH ENGAGED\)) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 72.2837007874014716 Td
-(  {) Tj
-ET
-endstream
-endobj
-155 0 obj
-<</Type /Page
-/Parent 1 0 R
-/Resources 2 0 R
-/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
-/Contents 156 0 R
->>
-endobj
-156 0 obj
-<<
-/Length 2145
->>
-stream
-0.5670000000000001 w
-0 G
-BT
-/F6 8 Tf
-9.1999999999999993 TL
-0 g
-42.5196850393700814 813.5435433070865656 Td
-(HOOX SPEC  |  API ENDPOINT SPECIFICATION) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 785.1970866141732586 Td
-(    "success": false,) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 771.0238582677164914 Td
-(    "error": {) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 756.8506299212598378 Td
-(      "code": "KILL_SWITCH_ACTIVE",) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 742.6774015748030706 Td
-(      "message": "Trading halted globally. The emergency Global Kill Switch is currently turned ON) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 728.5041732283464171 Td
-(in CONFIG_KV.") Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 714.3309448818897636 Td
-(    }) Tj
-ET
-BT
-/F6 8.5 Tf
-9.7749999999999986 TL
-0 g
-42.5196850393700814 700.15771653543311 Td
-(  }) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 670.3939370078740012 Td
-(---) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 639.212834645669318 Td
-(> Tip: Every error code is designed to map directly to a readable prompt in the Telegram) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 623.6222834645668627 Td
-(bot and Next.js dashboard UI, allowing you to instantly diagnose execution problems.) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 592.4411811023621794 Td
-( NEXT STEPS) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 557.0081102362204319 Td
-(- [Astro Docs Site Config]\(../getting-started/configuration.md\) - Map out your build-time) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 541.4175590551180903 Td
-(environment configurations.) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 525.827007874015635 Td
-(- [CLI Commands Reference]\(cli-commands.md\) - Review all CLI commands, options, and JSON) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 510.2364566929133503 Td
-(flags.) Tj
-ET
-endstream
-endobj
-157 0 obj
-<</Type /Page
-/Parent 1 0 R
-/Resources 2 0 R
-/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
-/Contents 158 0 R
->>
-endobj
-158 0 obj
-<<
-/Length 5416
->>
-stream
-0.5670000000000001 w
-0 G
-BT
-/F6 12 Tf
-13.7999999999999989 TL
-0 g
-42.5196850393700814 785.1970866141732586 Td
-([ SECTION: CONFIGURATION DICTIONARY ]) Tj
-ET
-BT
-/F6 14 Tf
-16.0999999999999979 TL
-0 g
-42.5196850393700814 756.8506299212598378 Td
-( CONFIGURATION DICTIONARY) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 721.4175590551180903 Td
-(This document serves as the absolute, exhaustive reference dictionary for every) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 705.8270078740157487 Td
-(environment variable, encrypted Workers Secret, and dynamic KV runtime setting utilized) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 690.2364566929134071 Td
-(in the Hoox trading ecosystem.) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 659.0553543307086102 Td
-(---) Tj
-ET
-BT
-/F6 12 Tf
-13.7999999999999989 TL
-0 g
-42.5196850393700814 627.8742519685039269 Td
-(. ENVIRONMENT VARIABLES & SECRETS MATRIX \( KEYS\)) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 592.4411811023621794 Td
-(These parameters are configured in your local `.env.local` file for building/deploying or) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 576.8506299212597241 Td
-(injected as encrypted Workers Secrets for runtime isolate compute.) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 545.6695275590550409 Td
-(A. CORE PLATFORM & INFRASTRUCTURE) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 510.2364566929133503 Td
-(| Variable                | Required |   Type   |   Default    | Description             ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 494.6459055118109518 Td
-(                                             |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 479.0553543307086102 Td
-(| :---------------------- | :------: | :------: | :----------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 463.4648031496062686 Td
-(:-------------------------------------------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 447.8742519685038701 Td
-(| `CLOUDFLARE_API_TOKEN`  | Yes  | `string` |      -       | Cloudflare API Token with) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 432.2837007874015285 Td
-(Workers, D, and KV read/write permissions. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 416.69314960629913 Td
-(| `CLOUDFLARE_ACCOUNT_ID` | Yes  | `string` |      -       | Your -character Cloudflare) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 401.1025984251967884 Td
-(Dashboard Account hash.                  |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 385.5120472440944468 Td
-(| `SUBDOMAIN_PREFIX`      | Yes  | `string` |      -       | Subdomain prefix under which) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 369.9214960629920483 Td
-(public worker gateways deploy.           |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 354.3309448818897067 Td
-(| `NODE_ENV`              |    No    | `string` | `production` | Environment profile:) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 338.7403937007873083 Td
-(`development`, `staging`, or `production`.       |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 323.1498425196849666 Td
-(| `HOOX_API_URL`          |    No    | `string` |      -       | Local API target URL) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 307.559291338582625 Td
-(\(automatically configured during dev runs\).      |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 276.3781889763778281 Td
-(---) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 245.1970866141731449 Td
-(B. EXCHANGE API CREDENTIALS \(ENCRYPTED SECRETS\)) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 209.7640157480313974 Td
-(| Variable             | Required |   Type   |     Scope      | Description              ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 194.1734645669290558 Td
-(                 |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 178.5829133858267141 Td
-(| :------------------- | :------: | :------: | :------------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 162.9923622047243725 Td
-(:----------------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 147.4018110236219172 Td
-(| `BYBIT_API_KEY`      |    No    | `string` | `trade-worker` | Bybit order placement) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 131.8112598425195756 Td
-(account credential.  |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 116.220708661417234 Td
-(| `BYBIT_API_SECRET`   |    No    | `string` | `trade-worker` | Bybit HMAC-SHA private) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 100.6301574803148924 Td
-(order signature. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 85.0396062992125508 Td
-(| `BINANCE_API_KEY`    |    No    | `string` | `trade-worker` | Binance trade permission) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 69.4490551181100955 Td
-(credential.       |) Tj
-ET
-endstream
-endobj
-159 0 obj
-<</Type /Page
-/Parent 1 0 R
-/Resources 2 0 R
-/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
-/Contents 160 0 R
->>
-endobj
-160 0 obj
-<<
-/Length 5484
->>
-stream
-0.5670000000000001 w
-0 G
-BT
-/F6 8 Tf
-9.1999999999999993 TL
-0 g
+0. g
 42.5196850393700814 813.5435433070865656 Td
 (HOOX SPEC  |  CONFIGURATION DICTIONARY) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 785.1970866141732586 Td
-(| `BINANCE_API_SECRET` |    No    | `string` | `trade-worker` | Binance private HMAC) Tj
+(| KV Key                             |   Type    |     Default      | Operational Impact                                                      |) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 769.6065354330708033 Td
-(order signature.      |) Tj
+(| :--------------------------------- | :-------: | :--------------: | :---------------------------------------------------------------------- |) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 754.0159842519684616 Td
-(| `MEXC_API_KEY`       |    No    | `string` | `trade-worker` | MEXC trade permission) Tj
+(| `trade:kill_switch`                | `boolean` |     `false`      | Global emergency halt. If `true`, all executions halt.      ) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 738.42543307086612 Td
-(credential.          |) Tj
+(       |) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 722.8348818897637784 Td
-(| `MEXC_API_SECRET`    |    No    | `string` | `trade-worker` | MEXC private HMAC order) Tj
+(| `trade:max_daily_drawdown_percent` | `number`  |      `.`       | Maximum daily loss before the AI Risk) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 707.2443307086614368 Td
-(signature.         |) Tj
+(Manager triggers the kill switch. |) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 691.6537795275589815 Td
+(| `webhooks:api_key`                 | `string`  |    `your_key`    | Public webhook passkey checked during signal) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 676.0632283464566399 Td
-(---) Tj
+(ingestion.                 |) Tj
 ET
 BT
-/F6 10.5 Tf
+/F1 10.5 Tf
 12.0749999999999993 TL
-0 g
-42.5196850393700814 644.8821259842519567 Td
-(C. TELEGRAM BOT ALERTS & TELEMETRY) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 609.4490551181102092 Td
-(| Variable             | Required |   Type   |       Scope       | Description           ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 593.8585039370078675 Td
-(                                   |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 578.2679527559055259 Td
-(| :------------------- | :------: | :------: | :---------------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 562.6774015748030706 Td
-(:-------------------------------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 547.086850393700729 Td
-(| `TELEGRAM_BOT_TOKEN` |    No    | `string` | `telegram-worker` | Telegram HTTP API bot) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 531.4962992125983874 Td
-(auth token from `@BotFather`.       |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 515.9057480314959321 Td
-(| `TELEGRAM_CHAT_ID`   |    No    | `string` | `telegram-worker` | Authorized numeric) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 500.3151968503936473 Td
-(Chat ID for pushed fills and commands. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 469.1340944881889072 Td
-(---) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 437.952992125984224 Td
-(D. MULTI-PROVIDER AI CREDENTIALS) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 402.5199212598424765 Td
-(| Variable            | Required |   Type   |     Scope      | Description               ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 386.929370078740078 Td
-(      |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 371.3388188976377364 Td
-(| :------------------ | :------: | :------: | :------------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 355.7482677165353948 Td
-(:------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 340.1577165354329964 Td
-(| `OPENAI_API_KEY`    |    No    | `string` | `agent-worker` | OpenAI API access key.    ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 324.5671653543306547 Td
-(      |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 308.9766141732283131 Td
-(| `ANTHROPIC_API_KEY` |    No    | `string` | `agent-worker` | Anthropic Claude API) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 293.3860629921258578 Td
-(access key. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 277.7955118110235162 Td
-(| `GOOGLE_AI_API_KEY` |    No    | `string` | `agent-worker` | Google Gemini API access) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 262.2049606299211746 Td
-(key.    |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 231.0238582677164914 Td
-(---) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 199.8427559055116944 Td
-(E. DEFI & WEB WALLET SETTINGS) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 164.4096850393699469 Td
-(| Variable           | Required |   Type   |     Scope     | Description                 ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 148.8191338582676053 Td
-(                                 |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 133.2285826771652637 Td
-(| :----------------- | :------: | :------: | :-----------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 117.6380314960629221 Td
-(:------------------------------------------------------------ |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 102.0474803149605805 Td
-(| `ETH_MNEMONIC`     |    No    | `string` | `web-wallet` | Secure  or -word seed phrase) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 86.4569291338581252 Td
-(for on-chain contract swaps. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 70.8663779527557836 Td
-(| `RPC_PROVIDER_URL` |    No    | `string` | `web-wallet` | HTTP Ethereum / EVM JSON-RPC) Tj
-ET
-endstream
-endobj
-161 0 obj
-<</Type /Page
-/Parent 1 0 R
-/Resources 2 0 R
-/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
-/Contents 162 0 R
->>
-endobj
-162 0 obj
-<<
-/Length 6166
->>
-stream
-0.5670000000000001 w
-0 G
-BT
-/F6 8 Tf
-9.1999999999999993 TL
-0 g
-42.5196850393700814 813.5435433070865656 Td
-(HOOX SPEC  |  CONFIGURATION DICTIONARY) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 785.1970866141732586 Td
-(provider \(e.g. Infura/Alchemy\).  |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 754.0159842519684616 Td
-(---) Tj
-ET
-BT
-/F6 10.5 Tf
-12.0749999999999993 TL
-0 g
-42.5196850393700814 722.8348818897637784 Td
-(F. EMAIL PARSING INBOX CONNECTION) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 687.4018110236220309 Td
-(| Variable     | Required |   Type   |     Scope      | Description                      ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 671.8112598425196893 Td
-(             |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 656.2207086614173477 Td
-(| :----------- | :------: | :------: | :------------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 640.6301574803148924 Td
-(:--------------------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 625.0396062992125508 Td
-(| `EMAIL_HOST` |    No    | `string` | `email-worker` | POP/IMAP mailbox server address. ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 609.4490551181102092 Td
-(            |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 593.8585039370078675 Td
-(| `EMAIL_USER` |    No    | `string` | `email-worker` | Target signal mailbox email) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 578.2679527559055259 Td
-(address.           |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 562.6774015748030706 Td
-(| `EMAIL_PASS` |    No    | `string` | `email-worker` | Secure app password for signal) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 547.086850393700729 Td
-(mailbox access. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 515.9057480314959321 Td
-(---) Tj
-ET
-BT
-/F6 12 Tf
-13.7999999999999989 TL
-0 g
-42.5196850393700814 484.7246456692913057 Td
-(. DYNAMIC KV MANIFEST SETTINGS \( KEYS\)) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 449.2915748031495582 Td
-(These runtime variables exist inside the `CONFIG_KV` namespace. They are accessed) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 433.7010236220471597 Td
-(globally at sub-millisecond speeds and take effect instantly upon being modified.) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 402.5199212598424765 Td
-(| KV Key                             |   Type    |     Default      | Operational Impact ) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 386.929370078740078 Td
-(                                                    |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 371.3388188976377364 Td
-(| :--------------------------------- | :-------: | :--------------: |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 355.7482677165353948 Td
-(:---------------------------------------------------------------------- |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 340.1577165354329964 Td
-(| `trade:kill_switch`                | `boolean` |     `false`      | Global emergency) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 324.5671653543306547 Td
-(halt. If `true`, all executions halt.              |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 308.9766141732283131 Td
-(| `trade:max_daily_drawdown_percent` | `number`  |      `.`       | Maximum daily loss) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 293.3860629921258578 Td
-(before the AI Risk Manager triggers the kill switch. |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 277.7955118110235162 Td
-(| `webhooks:api_key`                 | `string`  |    `your_key`    | Public webhook) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 262.2049606299211746 Td
-(passkey checked during signal ingestion.                 |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 246.614409448818833 Td
-(| `webhooks:queue_mode`              | `string`  | `queue_failover` | Routing behavior:) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 231.0238582677164914 Td
-(`direct_only`, `queue_failover`, `queue_everywhere`.  |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 215.4333070866141497 Td
-(| `exchanges:default_routing`        | `string`  |     `bybit`      | Default CEX) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 199.8427559055116944 Td
-(fallback router: `binance`, `bybit`, or `mexc`.             |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 184.2522047244093528 Td
-(| `routing:dynamic:enabled`          | `boolean` |     `false`      | Enables/disables) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 168.6616535433070112 Td
-(dynamically shifting routes based on symbols.          |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 153.0711023622046696 Td
-(| `email:scan_subject`               | `string`  |     `TRADE`      | Prefix required in) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 137.480551181102328 Td
-(signal email subjects.                               |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 121.8899999999998727 Td
-(| `email:coin_pattern`               | `string`  |   `\(BTC\\|ETH\)`   | Regex expression) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 106.2994488188975311 Td
-(used to extract asset tokens from email bodies.        |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 90.7088976377951894 Td
-(| `email:action_pattern`             | `string`  |  `\(BUY\\|SELL\)`   | Regex expression) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 75.1183464566928478 Td
-(used to resolve buy/sell actions in email bodies.      |) Tj
-ET
-endstream
-endobj
-163 0 obj
-<</Type /Page
-/Parent 1 0 R
-/Resources 2 0 R
-/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
-/Contents 164 0 R
->>
-endobj
-164 0 obj
-<<
-/Length 1893
->>
-stream
-0.5670000000000001 w
-0 G
-BT
-/F6 8 Tf
-9.1999999999999993 TL
-0 g
-42.5196850393700814 813.5435433070865656 Td
-(HOOX SPEC  |  CONFIGURATION DICTIONARY) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 785.1970866141732586 Td
-(| `email:authorized_senders`         |  `array`  |       `[]`       | List of email) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 769.6065354330708033 Td
-(addresses authorized to submit trade signals.             |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 754.0159842519684616 Td
-(| `webhook:tradingview:ip_check`     | `boolean` |     `false`      | Toggles dropping) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 738.42543307086612 Td
-(payloads that don't originate from TradingView IPs.    |) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 707.2443307086614368 Td
-(---) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 676.0632283464566399 Td
-(> Tip: You can sync, check, or reset this entire KV manifest in one command: `hoox config) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
+0. g
 42.5196850393700814 660.4726771653542983 Td
-(kv apply-manifest`!) Tj
+(| `webhooks:queue_mode`              | `string`  | `queue_failover` | Routing behavior: `direct_only`,) Tj
 ET
 BT
-/F6 10.5 Tf
+/F1 10.5 Tf
 12.0749999999999993 TL
-0 g
+0. g
+42.5196850393700814 644.8821259842519567 Td
+(`queue_failover`, `queue_everywhere`.  |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
 42.5196850393700814 629.291574803149615 Td
+(| `exchanges:default_routing`        | `string`  |     `bybit`      | Default CEX fallback router: `binance`, `bybit`, or) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 613.7010236220471597 Td
+(`mexc`.             |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 598.1104724409448181 Td
+(| `routing:dynamic:enabled`          | `boolean` |     `false`      | Enables/disables dynamically shifting routes) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 582.5199212598424765 Td
+(based on symbols.          |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 566.9293700787401349 Td
+(| `email:scan_subject`               | `string`  |     `TRADE`      | Prefix required in signal email subjects.                   ) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 551.3388188976377933 Td
+(           |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 535.748267716535338 Td
+(| `email:coin_pattern`               | `string`  |   `\(BTC\\|ETH\)`   | Regex expression used to extract asset tokens) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 520.1577165354329964 Td
+(from email bodies.        |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 504.5671653543306547 Td
+(| `email:action_pattern`             | `string`  |  `\(BUY\\|SELL\)`   | Regex expression used to resolve buy/sell actions) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 488.9766141732283131 Td
+(in email bodies.      |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 473.3860629921259147 Td
+(| `email:authorized_senders`         |  `array`  |       `[]`       | List of email addresses authorized to submit trade) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 457.795511811023573 Td
+(signals.             |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 442.2049606299212314 Td
+(| `webhook:tradingview:ip_check`     | `boolean` |     `false`      | Toggles dropping payloads that don't originate) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 426.614409448818833 Td
+(from TradingView IPs.    |) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 395.4333070866140929 Td
+(---) Tj
+ET
+BT
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 364.2522047244094097 Td
+(> Tip: You can sync, check, or reset this entire KV manifest in one command: `hoox config kv apply-manifest`!) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 333.0711023622046696 Td
 ( NEXT STEPS) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 593.8585039370078675 Td
-(- [-Minute Quick Start Guide]\(quick-start.md\) - Deploy all workers and fire your first) Tj
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 297.6380314960629221 Td
+(- [-Minute Quick Start Guide]\(quick-start.md\) - Deploy all workers and fire your first simulated webhook.) Tj
 ET
 BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 578.2679527559055259 Td
-(simulated webhook.) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 562.6774015748030706 Td
-(- [API Endpoint Reference]\(api-endpoints.md\) - Review full REST schemas, parameters, and) Tj
-ET
-BT
-/F5 9.5 Tf
-10.9249999999999989 TL
-0 g
-42.5196850393700814 547.086850393700729 Td
-(error models.) Tj
+/F1 10.5 Tf
+12.0749999999999993 TL
+0. g
+42.5196850393700814 282.0474803149605805 Td
+(- [API Endpoint Reference]\(api-endpoints.md\) - Review full REST schemas, parameters, and error models.) Tj
 ET
 endstream
 endobj
 1 0 obj
 <</Type /Pages
-/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R 67 0 R 69 0 R 71 0 R 73 0 R 75 0 R 77 0 R 79 0 R 81 0 R 83 0 R 85 0 R 87 0 R 89 0 R 91 0 R 93 0 R 95 0 R 97 0 R 99 0 R 101 0 R 103 0 R 105 0 R 107 0 R 109 0 R 111 0 R 113 0 R 115 0 R 117 0 R 119 0 R 121 0 R 123 0 R 125 0 R 127 0 R 129 0 R 131 0 R 133 0 R 135 0 R 137 0 R 139 0 R 141 0 R 143 0 R 145 0 R 147 0 R 149 0 R 151 0 R 153 0 R 155 0 R 157 0 R 159 0 R 161 0 R 163 0 R ]
-/Count 81
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R 67 0 R 69 0 R 71 0 R 73 0 R 75 0 R 77 0 R 79 0 R 81 0 R 83 0 R 85 0 R 87 0 R 89 0 R 91 0 R 93 0 R 95 0 R 97 0 R 99 0 R 101 0 R 103 0 R 105 0 R 107 0 R 109 0 R 111 0 R 113 0 R 115 0 R 117 0 R 119 0 R 121 0 R 123 0 R 125 0 R 127 0 R 129 0 R 131 0 R 133 0 R 135 0 R 137 0 R 139 0 R 141 0 R 143 0 R 145 0 R 147 0 R 149 0 R 151 0 R 153 0 R ]
+/Count 76
 >>
 endobj
-165 0 obj
+155 0 obj
 <<
 /Type /Font
 /BaseFont /Helvetica
@@ -18816,7 +17615,7 @@ endobj
 /LastChar 255
 >>
 endobj
-166 0 obj
+156 0 obj
 <<
 /Type /Font
 /BaseFont /Helvetica-Bold
@@ -18826,7 +17625,7 @@ endobj
 /LastChar 255
 >>
 endobj
-167 0 obj
+157 0 obj
 <<
 /Type /Font
 /BaseFont /Helvetica-Oblique
@@ -18836,7 +17635,7 @@ endobj
 /LastChar 255
 >>
 endobj
-168 0 obj
+158 0 obj
 <<
 /Type /Font
 /BaseFont /Helvetica-BoldOblique
@@ -18846,7 +17645,7 @@ endobj
 /LastChar 255
 >>
 endobj
-169 0 obj
+159 0 obj
 <<
 /Type /Font
 /BaseFont /Courier
@@ -18856,7 +17655,7 @@ endobj
 /LastChar 255
 >>
 endobj
-170 0 obj
+160 0 obj
 <<
 /Type /Font
 /BaseFont /Courier-Bold
@@ -18866,7 +17665,7 @@ endobj
 /LastChar 255
 >>
 endobj
-171 0 obj
+161 0 obj
 <<
 /Type /Font
 /BaseFont /Courier-Oblique
@@ -18876,7 +17675,7 @@ endobj
 /LastChar 255
 >>
 endobj
-172 0 obj
+162 0 obj
 <<
 /Type /Font
 /BaseFont /Courier-BoldOblique
@@ -18886,7 +17685,7 @@ endobj
 /LastChar 255
 >>
 endobj
-173 0 obj
+163 0 obj
 <<
 /Type /Font
 /BaseFont /Times-Roman
@@ -18896,7 +17695,7 @@ endobj
 /LastChar 255
 >>
 endobj
-174 0 obj
+164 0 obj
 <<
 /Type /Font
 /BaseFont /Times-Bold
@@ -18906,7 +17705,7 @@ endobj
 /LastChar 255
 >>
 endobj
-175 0 obj
+165 0 obj
 <<
 /Type /Font
 /BaseFont /Times-Italic
@@ -18916,7 +17715,7 @@ endobj
 /LastChar 255
 >>
 endobj
-176 0 obj
+166 0 obj
 <<
 /Type /Font
 /BaseFont /Times-BoldItalic
@@ -18926,7 +17725,7 @@ endobj
 /LastChar 255
 >>
 endobj
-177 0 obj
+167 0 obj
 <<
 /Type /Font
 /BaseFont /ZapfDingbats
@@ -18935,7 +17734,7 @@ endobj
 /LastChar 255
 >>
 endobj
-178 0 obj
+168 0 obj
 <<
 /Type /Font
 /BaseFont /Symbol
@@ -18948,32 +17747,32 @@ endobj
 <<
 /ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
 /Font <<
-/F1 165 0 R
-/F2 166 0 R
-/F3 167 0 R
-/F4 168 0 R
-/F5 169 0 R
-/F6 170 0 R
-/F7 171 0 R
-/F8 172 0 R
-/F9 173 0 R
-/F10 174 0 R
-/F11 175 0 R
-/F12 176 0 R
-/F13 177 0 R
-/F14 178 0 R
+/F1 155 0 R
+/F2 156 0 R
+/F3 157 0 R
+/F4 158 0 R
+/F5 159 0 R
+/F6 160 0 R
+/F7 161 0 R
+/F8 162 0 R
+/F9 163 0 R
+/F10 164 0 R
+/F11 165 0 R
+/F12 166 0 R
+/F13 167 0 R
+/F14 168 0 R
 >>
 /XObject <<
 >>
 >>
 endobj
-179 0 obj
+169 0 obj
 <<
 /Producer (jsPDF 4.2.1)
-/CreationDate (D:20260520011412+02'00')
+/CreationDate (D:20260521002907+02'00')
 >>
 endobj
-180 0 obj
+170 0 obj
 <<
 /Type /Catalog
 /Pages 1 0 R
@@ -18982,195 +17781,185 @@ endobj
 >>
 endobj
 xref
-0 181
+0 171
 0000000000 65535 f 
-0000372136 00000 n 
-0000374562 00000 n 
+0000349556 00000 n 
+0000351942 00000 n 
 0000000015 00000 n 
 0000000152 00000 n 
-0000000824 00000 n 
-0000000961 00000 n 
-0000003489 00000 n 
-0000003626 00000 n 
-0000009024 00000 n 
-0000009162 00000 n 
-0000015097 00000 n 
-0000015236 00000 n 
-0000017430 00000 n 
-0000017569 00000 n 
-0000022120 00000 n 
-0000022259 00000 n 
-0000026816 00000 n 
-0000026955 00000 n 
-0000032771 00000 n 
-0000032910 00000 n 
-0000035521 00000 n 
-0000035660 00000 n 
-0000040737 00000 n 
-0000040876 00000 n 
-0000046335 00000 n 
-0000046474 00000 n 
-0000052067 00000 n 
-0000052206 00000 n 
-0000056094 00000 n 
-0000056233 00000 n 
-0000060516 00000 n 
-0000060655 00000 n 
-0000065727 00000 n 
-0000065866 00000 n 
-0000071475 00000 n 
-0000071614 00000 n 
-0000072249 00000 n 
-0000072388 00000 n 
-0000077126 00000 n 
-0000077265 00000 n 
-0000082237 00000 n 
-0000082376 00000 n 
-0000085036 00000 n 
-0000085175 00000 n 
-0000090085 00000 n 
-0000090224 00000 n 
-0000095721 00000 n 
-0000095860 00000 n 
-0000098597 00000 n 
-0000098736 00000 n 
-0000103828 00000 n 
-0000103967 00000 n 
-0000109822 00000 n 
-0000109961 00000 n 
-0000114199 00000 n 
-0000114338 00000 n 
-0000119990 00000 n 
-0000120129 00000 n 
-0000126273 00000 n 
-0000126412 00000 n 
-0000131263 00000 n 
-0000131402 00000 n 
-0000136644 00000 n 
-0000136783 00000 n 
-0000142562 00000 n 
-0000142701 00000 n 
-0000147685 00000 n 
-0000147824 00000 n 
-0000152459 00000 n 
-0000152598 00000 n 
-0000158048 00000 n 
-0000158187 00000 n 
-0000160898 00000 n 
-0000161037 00000 n 
-0000165553 00000 n 
-0000165692 00000 n 
-0000171108 00000 n 
-0000171247 00000 n 
-0000175575 00000 n 
-0000175714 00000 n 
-0000180831 00000 n 
-0000180970 00000 n 
-0000186304 00000 n 
-0000186443 00000 n 
-0000190895 00000 n 
-0000191034 00000 n 
-0000195473 00000 n 
-0000195612 00000 n 
-0000200125 00000 n 
-0000200264 00000 n 
-0000200571 00000 n 
-0000200710 00000 n 
-0000205367 00000 n 
-0000205506 00000 n 
-0000210502 00000 n 
-0000210641 00000 n 
-0000213859 00000 n 
-0000213998 00000 n 
-0000219734 00000 n 
-0000219874 00000 n 
-0000225321 00000 n 
-0000225462 00000 n 
-0000228318 00000 n 
-0000228459 00000 n 
-0000233138 00000 n 
-0000233279 00000 n 
-0000237924 00000 n 
-0000238065 00000 n 
-0000241527 00000 n 
-0000241668 00000 n 
-0000246584 00000 n 
-0000246725 00000 n 
-0000251700 00000 n 
-0000251841 00000 n 
-0000256552 00000 n 
-0000256693 00000 n 
-0000262140 00000 n 
-0000262281 00000 n 
-0000267645 00000 n 
-0000267786 00000 n 
-0000271774 00000 n 
-0000271915 00000 n 
-0000277850 00000 n 
-0000277991 00000 n 
-0000283537 00000 n 
-0000283678 00000 n 
-0000288171 00000 n 
-0000288312 00000 n 
-0000292727 00000 n 
-0000292868 00000 n 
-0000298138 00000 n 
-0000298279 00000 n 
-0000301513 00000 n 
-0000301654 00000 n 
-0000306932 00000 n 
-0000307073 00000 n 
-0000311942 00000 n 
-0000312083 00000 n 
-0000312715 00000 n 
-0000312856 00000 n 
-0000318904 00000 n 
-0000319045 00000 n 
-0000326402 00000 n 
-0000326543 00000 n 
-0000331133 00000 n 
-0000331274 00000 n 
-0000331773 00000 n 
-0000331914 00000 n 
-0000336170 00000 n 
-0000336311 00000 n 
-0000340812 00000 n 
-0000340953 00000 n 
-0000345110 00000 n 
-0000345251 00000 n 
-0000350057 00000 n 
-0000350198 00000 n 
-0000352397 00000 n 
-0000352538 00000 n 
-0000358008 00000 n 
-0000358149 00000 n 
-0000363687 00000 n 
-0000363828 00000 n 
-0000370048 00000 n 
-0000370189 00000 n 
-0000372783 00000 n 
-0000372910 00000 n 
-0000373042 00000 n 
-0000373177 00000 n 
-0000373316 00000 n 
-0000373441 00000 n 
-0000373571 00000 n 
-0000373704 00000 n 
-0000373841 00000 n 
-0000373970 00000 n 
-0000374098 00000 n 
-0000374228 00000 n 
-0000374362 00000 n 
-0000374465 00000 n 
-0000374829 00000 n 
-0000374916 00000 n 
+0000000875 00000 n 
+0000001012 00000 n 
+0000003908 00000 n 
+0000004045 00000 n 
+0000009657 00000 n 
+0000009795 00000 n 
+0000015490 00000 n 
+0000015629 00000 n 
+0000017343 00000 n 
+0000017482 00000 n 
+0000022076 00000 n 
+0000022215 00000 n 
+0000026752 00000 n 
+0000026891 00000 n 
+0000032554 00000 n 
+0000032693 00000 n 
+0000034443 00000 n 
+0000034582 00000 n 
+0000039832 00000 n 
+0000039971 00000 n 
+0000045401 00000 n 
+0000045540 00000 n 
+0000051529 00000 n 
+0000051668 00000 n 
+0000053968 00000 n 
+0000054107 00000 n 
+0000058666 00000 n 
+0000058805 00000 n 
+0000064208 00000 n 
+0000064347 00000 n 
+0000068965 00000 n 
+0000069104 00000 n 
+0000073812 00000 n 
+0000073951 00000 n 
+0000078885 00000 n 
+0000079024 00000 n 
+0000081318 00000 n 
+0000081457 00000 n 
+0000086474 00000 n 
+0000086613 00000 n 
+0000092316 00000 n 
+0000092455 00000 n 
+0000093596 00000 n 
+0000093735 00000 n 
+0000099129 00000 n 
+0000099268 00000 n 
+0000105252 00000 n 
+0000105391 00000 n 
+0000108341 00000 n 
+0000108480 00000 n 
+0000113901 00000 n 
+0000114040 00000 n 
+0000120356 00000 n 
+0000120495 00000 n 
+0000125596 00000 n 
+0000125735 00000 n 
+0000130882 00000 n 
+0000131021 00000 n 
+0000136939 00000 n 
+0000137078 00000 n 
+0000140829 00000 n 
+0000140968 00000 n 
+0000145513 00000 n 
+0000145652 00000 n 
+0000151457 00000 n 
+0000151596 00000 n 
+0000152932 00000 n 
+0000153071 00000 n 
+0000157581 00000 n 
+0000157720 00000 n 
+0000163094 00000 n 
+0000163233 00000 n 
+0000166783 00000 n 
+0000166922 00000 n 
+0000172734 00000 n 
+0000172873 00000 n 
+0000177622 00000 n 
+0000177761 00000 n 
+0000182396 00000 n 
+0000182535 00000 n 
+0000186990 00000 n 
+0000187129 00000 n 
+0000188568 00000 n 
+0000188707 00000 n 
+0000193483 00000 n 
+0000193622 00000 n 
+0000198563 00000 n 
+0000198702 00000 n 
+0000201478 00000 n 
+0000201617 00000 n 
+0000207334 00000 n 
+0000207473 00000 n 
+0000213024 00000 n 
+0000213163 00000 n 
+0000215459 00000 n 
+0000215599 00000 n 
+0000220559 00000 n 
+0000220700 00000 n 
+0000225113 00000 n 
+0000225254 00000 n 
+0000228192 00000 n 
+0000228333 00000 n 
+0000233187 00000 n 
+0000233328 00000 n 
+0000238338 00000 n 
+0000238479 00000 n 
+0000242479 00000 n 
+0000242620 00000 n 
+0000247972 00000 n 
+0000248113 00000 n 
+0000253684 00000 n 
+0000253825 00000 n 
+0000256314 00000 n 
+0000256455 00000 n 
+0000262430 00000 n 
+0000262571 00000 n 
+0000268110 00000 n 
+0000268251 00000 n 
+0000271707 00000 n 
+0000271848 00000 n 
+0000276220 00000 n 
+0000276361 00000 n 
+0000281940 00000 n 
+0000282081 00000 n 
+0000283865 00000 n 
+0000284006 00000 n 
+0000289227 00000 n 
+0000289368 00000 n 
+0000294354 00000 n 
+0000294495 00000 n 
+0000300957 00000 n 
+0000301098 00000 n 
+0000308048 00000 n 
+0000308189 00000 n 
+0000312362 00000 n 
+0000312503 00000 n 
+0000316603 00000 n 
+0000316744 00000 n 
+0000321371 00000 n 
+0000321512 00000 n 
+0000325669 00000 n 
+0000325810 00000 n 
+0000330636 00000 n 
+0000330777 00000 n 
+0000332784 00000 n 
+0000332925 00000 n 
+0000338540 00000 n 
+0000338681 00000 n 
+0000344249 00000 n 
+0000344390 00000 n 
+0000350163 00000 n 
+0000350290 00000 n 
+0000350422 00000 n 
+0000350557 00000 n 
+0000350696 00000 n 
+0000350821 00000 n 
+0000350951 00000 n 
+0000351084 00000 n 
+0000351221 00000 n 
+0000351350 00000 n 
+0000351478 00000 n 
+0000351608 00000 n 
+0000351742 00000 n 
+0000351845 00000 n 
+0000352209 00000 n 
+0000352296 00000 n 
 trailer
 <<
-/Size 181
-/Root 180 0 R
-/Info 179 0 R
-/ID [ <7FA6ACA900070EE1DB4E7F57C9ED788A> <7FA6ACA900070EE1DB4E7F57C9ED788A> ]
+/Size 171
+/Root 170 0 R
+/Info 169 0 R
+/ID [ <FE2B3CDAB142115CAD0E38BCD5A60E46> <FE2B3CDAB142115CAD0E38BCD5A60E46> ]
 >>
 startxref
-375021
+352401
 %%EOF

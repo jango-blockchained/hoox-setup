@@ -229,7 +229,7 @@ article.prose .code-block-wrapper {
 /* ── Code blocks: Shiki syntax highlighting ── */
 
 article.prose pre {
-  @apply rounded-xl border border-border bg-[#0d1117] p-4 text-sm leading-relaxed;
+  @apply rounded-xl border border-border/80 bg-[#1c2128] p-5 text-sm leading-relaxed shadow-lg;
   overflow-x: auto;
   position: relative;
 }
@@ -237,7 +237,7 @@ article.prose pre {
 article.prose pre > code {
   @apply block bg-transparent p-0 text-inherit;
   font-family: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   tab-size: 2;
   counter-reset: line;
@@ -286,7 +286,9 @@ article.prose [data-slot="badge"] {
 
 .mermaid-wrapper {
   @apply my-6 flex justify-center rounded-xl border border-border bg-background p-6;
-  min-height: 220px;
+  min-height: 440px;
+  max-height: 800px;
+  overflow: auto;
 }
 
 .mermaid-wrapper svg {
@@ -351,7 +353,7 @@ article.prose h4 {
 
 article.prose p {
   @apply my-4 leading-relaxed text-muted-foreground;
-  @apply xl:text-[1.0625rem] xl:leading-relaxed;
+  @apply xl:text-[1.125rem] xl:leading-relaxed;
 }
 
 /* ── Lists ── */

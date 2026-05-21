@@ -81,6 +81,6 @@ To verify that the email signal ingestion loop works perfectly:
    ```
 
 ### 🔗 Next Steps
-
-- **[Real-Time Observability & Monitoring](../guides/monitor-trading.md)** — Audit executed fills, check logs, and inspect queues.
+|- **[Alert Troubleshooting](../tutorials/tradingview-webhook.md#webhook-troubleshooting-runbook)** — Common TradingView webhook errors and resolutions.
+|- **[Platform Configuration Guide](../getting-started/configuration.md)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
 - **[API Endpoint Reference](../reference/api-endpoints.md)** — Review full REST payloads and HTTP error returns.

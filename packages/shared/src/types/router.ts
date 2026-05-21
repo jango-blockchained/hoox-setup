@@ -10,7 +10,7 @@ export type Handler<TEnv = Record<string, unknown>> = (
   env: TEnv,
   ctx: ExecutionContext,
   params?: RouteParams
-) => Promise<Response>;
+) => Promise<Response | void>;
 
 export interface RouteDefinition<TEnv = Record<string, unknown>> {
   path: string;

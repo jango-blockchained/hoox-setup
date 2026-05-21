@@ -13,11 +13,8 @@ import * as p from "@clack/prompts";
 
 import { EnvService } from "../../services/env/index.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import {
-  formatSuccess,
-  formatError,
-  formatJson,
-} from "../../utils/formatters.js";
+import { formatSuccess, formatJson } from "../../utils/formatters.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 // ---------------------------------------------------------------------------
@@ -50,7 +47,7 @@ async function handleInit(opts: FormatOptions): Promise<void> {
     });
     if (p.isCancel(overwrite)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
     if (!overwrite) {
       p.outro("Setup cancelled. Existing .env.local preserved.");
@@ -89,7 +86,7 @@ async function handleInit(opts: FormatOptions): Promise<void> {
       }
       if (p.isCancel(value)) {
         p.cancel("Setup cancelled.");
-        process.exit(0);
+        process.exitCode = 0;
       }
       collected[def.name] = typeof value === "string" ? value : "";
     }
@@ -244,52 +241,52 @@ EXAMPLES:
   envCmd
     .command("init")
     .description("Interactive wizard to generate .env.local and .dev.vars")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        await handleInit(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          await handleInit(opts);
+        },
+        { service: "env" }
+      )
+    );
 
   envCmd
     .command("show")
     .description("Display current .env.local (secrets redacted)")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        await handleShow(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          await handleShow(opts);
+        },
+        { service: "env" }
+      )
+    );
 
   envCmd
     .command("validate")
     .description("Check required environment variables")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        await handleValidate(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          await handleValidate(opts);
+        },
+        { service: "env" }
+      )
+    );
 
   envCmd
     .command("generate-dev-vars")
     .description("Create per-worker .dev.vars from .env.local")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        await handleGenerateDevVars(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          await handleGenerateDevVars(opts);
+        },
+        { service: "env" }
+      )
+    );
 }

@@ -47,7 +47,7 @@ const enduserFiles = [
 
 const devopsFiles = [
   "devops/home.md",
-  "devops/setup_and_operations.md",
+  "devops/setup-and-operations.md",
   "devops/installation-flow.md",
   "devops/tui.md",
   "devops/architecture/overview.md",
@@ -77,7 +77,7 @@ const devopsFiles = [
   "devops/api/endpoints.md",
   "devops/api/payloads.md",
   "devops/api/responses.md",
-  "devops/cli_features.md",
+  "devops/cli-features.md",
 ];
 
 // Helper to sanitize markdown content
@@ -181,25 +181,27 @@ function generatePDF(title: string, files: string[], outputPath: string) {
   let y = 20;
 
   // Title Page
-  doc.setFont("courier", "bold");
-  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(28);
   doc.text("HOOX TRADING PLATFORM", margin, 60);
-  doc.setFontSize(16);
+  doc.setFontSize(18);
+  doc.setTextColor(100, 100, 100);
   doc.text(cleanForPDF(title.toUpperCase()), margin, 75);
-  doc.setFont("courier", "normal");
-  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
   doc.text(`Generated: ${new Date().toISOString().split("T")[0]}`, margin, 95);
   doc.text("Classification: Technical Documentation Spec", margin, 102);
-  doc.text("Design Style: Monospace Terminal Console layout", margin, 109);
+  doc.text("Design Style: Modern Technical Layout", margin, 109);
+  doc.setTextColor(0, 0, 0);
 
   // Table of Contents
   doc.addPage();
-  doc.setFont("courier", "bold");
-  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
   doc.text("TABLE OF CONTENTS", margin, y);
-  y += 12;
-  doc.setFont("courier", "normal");
-  doc.setFontSize(10);
+  y += 14;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
 
   for (const file of files) {
     const filePath = path.join(docsDir, file);
@@ -244,10 +246,12 @@ function generatePDF(title: string, files: string[], outputPath: string) {
     }
     const cleanTitle = cleanForPDF(fileTitle).trim();
 
-    doc.setFont("courier", "bold");
-    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(50, 50, 50);
     doc.text(`[ SECTION: ${cleanTitle.toUpperCase()} ]`, margin, y);
-    y += 10;
+    doc.setTextColor(0, 0, 0);
+    y += 12;
 
     // Parse lines
     const lines = cleanContent.split("\n");
@@ -281,13 +285,13 @@ function generatePDF(title: string, files: string[], outputPath: string) {
       let currentFontSize: number;
 
       if (inCodeBlock) {
-        currentFontType = "bold";
-        currentFontSize = 8.5; // Slightly smaller to prevent code line wrap
+        currentFontType = "normal";
+        currentFontSize = 9.0; // Slightly smaller to prevent code line wrap
         // Prefix code lines with direct shell symbols
         line = `  ${line}`;
       } else {
         currentFontType = "normal";
-        currentFontSize = 9.5;
+        currentFontSize = 10.5;
       }
 
       // Check headings
@@ -297,13 +301,14 @@ function generatePDF(title: string, files: string[], outputPath: string) {
         const level = (line.match(/^#+/) || ["#"])[0].length;
         line = line.replace(/^#+\s*/, "").toUpperCase();
         currentFontType = "bold";
-        currentFontSize = level === 1 ? 14 : level === 2 ? 12 : 10.5;
+        currentFontSize = level === 1 ? 16 : level === 2 ? 14 : 12;
       }
 
       // Clean the line text of non-ASCII and emojis before passing to splitTextToSize
       const cleanedLine = cleanForPDF(line);
 
-      doc.setFont("courier", currentFontType);
+      const fontFace = inCodeBlock ? "courier" : "helvetica";
+      doc.setFont(fontFace, currentFontType);
       doc.setFontSize(currentFontSize);
 
       // Split text to fit width
@@ -318,12 +323,12 @@ function generatePDF(title: string, files: string[], outputPath: string) {
           y = 20;
 
           // Header on new page
-          doc.setFont("courier", "bold");
+          doc.setFont("helvetica", "bold");
           doc.setFontSize(8);
           doc.text(`HOOX SPEC  |  ${cleanTitle.toUpperCase()}`, margin, y - 10);
 
           // Re-apply style and size
-          doc.setFont("courier", currentFontType);
+          doc.setFont(fontFace, currentFontType);
           doc.setFontSize(currentFontSize);
         }
       }

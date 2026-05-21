@@ -2,7 +2,11 @@ import { Command } from "commander";
 import { PrerequisitesService } from "../../services/prerequisites/index.js";
 import type { PrerequisitesReport } from "../../services/prerequisites/prerequisites-service.js";
 import { theme, icons } from "../../utils/theme.js";
-import { formatError, formatJson } from "../../utils/formatters.js";
+import {
+  getFormatOptions,
+  formatError,
+  formatJson,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
@@ -86,11 +90,7 @@ EXAMPLES:
     )
     .option("--tool <name>", "Only check a specific tool")
     .action(async (options: { tool?: string }, cmd: Command) => {
-      const rootCmd = cmd.parent?.parent as Command | undefined;
-      const opts: FormatOptions = {
-        json: Boolean(rootCmd?.optsWithGlobals()?.json),
-        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-      };
+      const opts = getFormatOptions(cmd);
       await handlePrerequisites(opts, options.tool);
     });
 }

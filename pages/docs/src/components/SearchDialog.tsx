@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
+  Command,
   CommandDialog,
   CommandInput,
   CommandList,
@@ -80,28 +81,30 @@ export default function SearchDialog() {
       title="Search Docs"
       description="Search the Hoox documentation"
     >
-      <CommandInput
-        placeholder="Search docs..."
-        value={query}
-        onValueChange={setQuery}
-      />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Pages">
-          {results.map((entry) => (
-            <CommandItem
-              key={entry.slug}
-              value={entry.slug}
-              onSelect={runSearch}
-            >
-              <span className="font-medium">{entry.title}</span>
-              <CommandShortcut className="ml-auto">
-                {entry.section}
-              </CommandShortcut>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
+      <Command shouldFilter={false} className="bg-transparent">
+        <CommandInput
+          placeholder="Search docs..."
+          value={query}
+          onValueChange={setQuery}
+        />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Pages">
+            {results.map((entry) => (
+              <CommandItem
+                key={entry.slug}
+                value={entry.slug}
+                onSelect={runSearch}
+              >
+                <span className="font-medium">{entry.title}</span>
+                <CommandShortcut className="ml-auto">
+                  {entry.section}
+                </CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </CommandDialog>
   );
 }

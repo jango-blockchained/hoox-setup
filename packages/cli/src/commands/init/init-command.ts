@@ -18,7 +18,11 @@ import {
 } from "@jango-blockchained/hoox-shared";
 import type { WorkersJsonConfig } from "@jango-blockchained/hoox-shared";
 import { CloudflareService } from "../../services/cloudflare/index.js";
-import { formatSuccess, formatError } from "../../utils/formatters.js";
+import {
+  getFormatOptions,
+  formatSuccess,
+  formatError,
+} from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { theme } from "../../utils/theme.js";
 import { CLIProvisioner } from "./cli-provisioner.js";
@@ -204,7 +208,7 @@ EXAMPLES:
     .option("--resume", "Resume from saved wizard state")
     .option("--accept-risk", "Skip the risk acknowledgment confirmation")
     .action(async (options: InitOptions) => {
-      const globalOpts = program.opts() as { json?: boolean; quiet?: boolean };
+      const globalOpts = getFormatOptions(program);
       const isNonInteractive = Boolean(options.token && options.account);
 
       try {
@@ -213,7 +217,7 @@ EXAMPLES:
         const message = err instanceof Error ? err.message : String(err);
         p.log.error(message);
         formatError(new CLIError(message, ExitCode.ERROR), globalOpts);
-        process.exit(ExitCode.ERROR);
+        process.exitCode = ExitCode.ERROR;
       }
     });
 }
@@ -244,7 +248,7 @@ export async function runInitCommand(
     const error = await validateApiToken(cf, token);
     if (error) {
       formatError(new CLIError(error, ExitCode.ERROR), globalOpts);
-      process.exit(ExitCode.ERROR);
+      process.exitCode = ExitCode.ERROR;
     }
     if (!globalOpts.quiet) {
       formatSuccess("Cloudflare API token validated", globalOpts);
@@ -296,7 +300,7 @@ export async function runInitCommand(
       });
       if (p.isCancel(resumed)) {
         p.cancel("Setup cancelled.");
-        process.exit(0);
+        process.exitCode = 0;
       }
       if (!resumed) {
         engine = null;
@@ -320,12 +324,12 @@ export async function runInitCommand(
 
     if (p.isCancel(accepted)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     if (!accepted) {
       p.outro("Setup cancelled. See DISCLAIMER.md for full terms.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     // Step 0: Prerequisites check (always passes — CLI is running)
@@ -350,7 +354,7 @@ export async function runInitCommand(
 
       if (p.isCancel(apiToken)) {
         p.cancel("Setup cancelled.");
-        process.exit(0);
+        process.exitCode = 0;
       }
 
       p.log.step("Validating Cloudflare API token...");
@@ -379,7 +383,7 @@ export async function runInitCommand(
     });
     if (p.isCancel(accountResult)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     const secretStoreResult = await p.text({
@@ -389,7 +393,7 @@ export async function runInitCommand(
     });
     if (p.isCancel(secretStoreResult)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     const prefixResult = await p.text({
@@ -403,7 +407,7 @@ export async function runInitCommand(
     });
     if (p.isCancel(prefixResult)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     engine.execute({
@@ -440,7 +444,7 @@ export async function runInitCommand(
 
     if (p.isCancel(presetChoice)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     engine.execute({ preset: presetChoice as string });
@@ -471,7 +475,7 @@ export async function runInitCommand(
 
       if (p.isCancel(shouldProvision)) {
         p.cancel("Setup cancelled.");
-        process.exit(0);
+        process.exitCode = 0;
       }
 
       if (shouldProvision) {
@@ -529,7 +533,7 @@ export async function runInitCommand(
         const collected = await p.group(groupFields, {
           onCancel: () => {
             p.cancel("Setup cancelled.");
-            process.exit(0);
+            process.exitCode = 0;
           },
         });
 
@@ -569,7 +573,7 @@ export async function runInitCommand(
 
     if (p.isCancel(shouldDeploy)) {
       p.cancel("Setup cancelled.");
-      process.exit(0);
+      process.exitCode = 0;
     }
 
     if (shouldDeploy) {

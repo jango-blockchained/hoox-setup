@@ -14,11 +14,11 @@ import { Command } from "commander";
 import { KvSyncService } from "../../services/kv/index.js";
 import {
   formatSuccess,
-  formatError,
   formatTable,
   formatJson,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
@@ -203,88 +203,88 @@ EXAMPLES:
   kvCmd
     .command("list")
     .description("List all keys in the KV namespace")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        const nsId = await resolveNs(cmd);
-        await handleList(opts, nsId);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          const nsId = await resolveNs(cmd);
+          await handleList(opts, nsId);
+        },
+        { service: "kv" }
+      )
+    );
 
   // -- get
   kvCmd
     .command("get <key>")
     .description("Get a key's value from the KV namespace")
-    .action(async (key: string, _, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        const nsId = await resolveNs(cmd);
-        await handleGet(opts, nsId, key);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (key: string, _, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          const nsId = await resolveNs(cmd);
+          await handleGet(opts, nsId, key);
+        },
+        { service: "kv" }
+      )
+    );
 
   // -- set
   kvCmd
     .command("set <key> <value>")
     .description("Set a key's value in the KV namespace")
-    .action(async (key: string, value: string, _, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        const nsId = await resolveNs(cmd);
-        await handleSet(opts, nsId, key, value);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (key: string, value: string, _, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          const nsId = await resolveNs(cmd);
+          await handleSet(opts, nsId, key, value);
+        },
+        { service: "kv" }
+      )
+    );
 
   // -- delete
   kvCmd
     .command("delete <key>")
     .description("Delete a key from the KV namespace")
-    .action(async (key: string, _, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        const nsId = await resolveNs(cmd);
-        await handleDelete(opts, nsId, key);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (key: string, _, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          const nsId = await resolveNs(cmd);
+          await handleDelete(opts, nsId, key);
+        },
+        { service: "kv" }
+      )
+    );
 
   // -- apply-manifest
   kvCmd
     .command("apply-manifest")
     .description("Apply manifest key defaults to the KV namespace")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        const nsId = await resolveNs(cmd);
-        await handleApplyManifest(opts, nsId);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          const nsId = await resolveNs(cmd);
+          await handleApplyManifest(opts, nsId);
+        },
+        { service: "kv" }
+      )
+    );
 
   // -- manifest
   kvCmd
     .command("manifest")
     .description("Show expected KV keys from manifest")
-    .action(async (_, cmd: Command) => {
-      const opts = formatOpts(cmd);
-      try {
-        await handleManifest(opts);
-      } catch (err) {
-        formatError(err instanceof Error ? err : String(err), opts);
-        process.exit(err instanceof CLIError ? err.code : ExitCode.ERROR);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = formatOpts(cmd);
+          await handleManifest(opts);
+        },
+        { service: "kv" }
+      )
+    );
 }

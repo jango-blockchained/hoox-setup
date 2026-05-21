@@ -45,7 +45,7 @@ The DevOps manual is structured into five core architectural operational layers:
 
 Complete guides for bootstrapping environments, managing interactive terminal dashboards, and diagnosing local runner configurations:
 
-- **[Operations & Troubleshooting](setup_and_operations.md)** — Core operations manual, 31-key environment variable matrices, and diagnostic codes.
+- **[Operations & Troubleshooting](setup-and-operations.md)** — Core operations manual, 31-key environment variable matrices, and diagnostic codes.
 - **[Core Installation Flow](installation-flow.md)** — Guided, step-by-step local machine and edge provision setup.
 - **[Terminal UI Cockpit Development](tui.md)** — Code architectures, stores, and operations of the OpenTUI monitor.
 
@@ -88,7 +88,7 @@ TypeScript interfaces, compiler settings, Bun test specs, and HTTP schemas:
 
 ---
 
-> **Tip:** First time deploying a Hoox workspace to production? Start with the **[Production Deployment Manual](deployment/production.md)** to verify your Cloudflare Account permissions and execute sequencial deployments seamlessly.
+'> **Tip:** First time deploying a Hoox workspace to production? Start with the **[Production Deployment Manual](deployment/production.md)** to verify your Cloudflare Account permissions and execute sequential deployments seamlessly.
 
 ### 🔗 Quick Links & Offline Reference
 

@@ -102,5 +102,5 @@ hoox waf configure --TradingView-only
 
 ### 🔗 Next Steps
 
-- **[Astro Docs Site Config](../getting-started/configuration.md)** — Map out your build-time environment configurations.
+|- **[Platform Configuration Guide](../getting-started/configuration.md)** — Map environment variables, secrets, and KV runtime settings.
 - **[Local Development & Testing](local-development.md)** — Run local wrangler sandboxes with securely encrypted `.dev.vars`.

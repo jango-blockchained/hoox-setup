@@ -23,6 +23,7 @@ import {
   formatTable,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { isGitTracked, gitUntrackFile } from "../../utils/git.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import type {
   CheckResult,
@@ -134,42 +135,6 @@ async function getWorkerDirs(): Promise<string[]> {
   } catch {
     return [];
   }
-}
-
-/**
- * Check if a file or directory is tracked by git in a given directory.
- */
-async function isGitTracked(dir: string, filename: string): Promise<boolean> {
-  try {
-    const proc = Bun.spawn(["git", "ls-files", "--error-unmatch", filename], {
-      cwd: dir,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    const exitCode = await proc.exited;
-    return exitCode === 0;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Run git rm --cached to untrack a file while keeping it locally.
- */
-async function gitUntrackFile(dir: string, filename: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const proc = Bun.spawn(["git", "rm", "--cached", filename], {
-      cwd: dir,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    proc.exited
-      .then((code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`git rm --cached failed with code ${code}`));
-      })
-      .catch(reject);
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1039,11 +1004,7 @@ EXAMPLES:
   hoox check setup --json`
     )
     .action(async (_, cmd: Command) => {
-      const rootCmd = cmd.parent?.parent as Command | undefined;
-      const opts: FormatOptions = {
-        json: Boolean(rootCmd?.optsWithGlobals()?.json),
-        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-      };
+      const opts = getFormatOptions(cmd);
       await handleSetup(opts);
     });
 
@@ -1072,11 +1033,7 @@ EXAMPLES:
     )
     .option("--fix", "Attempt automatic repair for detected issues")
     .action(async (options: { fix?: boolean }, cmd: Command) => {
-      const rootCmd = cmd.parent?.parent as Command | undefined;
-      const opts: FormatOptions = {
-        json: Boolean(rootCmd?.optsWithGlobals()?.json),
-        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-      };
+      const opts = getFormatOptions(cmd);
       await handleHealth(opts, Boolean(options.fix));
     });
 
@@ -1101,11 +1058,7 @@ EXAMPLES:
     )
     .option("--dry-run", "Preview changes without applying them")
     .action(async (options: { dryRun?: boolean }, cmd: Command) => {
-      const rootCmd = cmd.parent?.parent as Command | undefined;
-      const opts: FormatOptions = {
-        json: Boolean(rootCmd?.optsWithGlobals()?.json),
-        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-      };
+      const opts = getFormatOptions(cmd);
       await handleFix(opts, Boolean(options.dryRun));
     });
 
@@ -1134,11 +1087,7 @@ EXAMPLES:
   hoox check sg  # alias`
     )
     .action(async (_, cmd: Command) => {
-      const rootCmd = cmd.parent?.parent as Command | undefined;
-      const opts: FormatOptions = {
-        json: Boolean(rootCmd?.optsWithGlobals()?.json),
-        quiet: Boolean(rootCmd?.optsWithGlobals()?.quiet),
-      };
+      const opts = getFormatOptions(cmd);
       await handleSubmoduleGitignore(opts);
     });
 }

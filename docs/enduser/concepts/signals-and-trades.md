@@ -1,8 +1,3 @@
----
-title: "Signals & Trade Spec"
-description: "Deep dive into signal validation schemas, payload translations, exchange side mapping, and D1 database transactional logs."
----
-
 # 📊 Signals & Trade Spec
 
 This document details the exact specifications, JSON validation schemas, and internal translation logic that occurs when an external trade signal (such as a TradingView alert or Email parser) is ingested by the Hoox Gateway and mapped to an active exchange order.
@@ -15,22 +10,33 @@ Every signal received by the public gateway at `/webhook` must contain a valid, 
 
 ```typescript
 export interface WebhookSignal {
-  apiKey: string; // Authentication token
-  exchange: "binance" | "bybit" | "mexc"; // Target exchange
-  action: "LONG" | "SHORT" | "CLOSE"; // Position intent
-  symbol: string; // Asset symbol (e.g. "BTCUSDT")
-  quantity: number; // Order size (amount of asset or contracts)
-  leverage?: number; // Optional leverage multiplier (default: 1)
-  idempotencyKey?: string; // Optional unique signature for dedup
+  apiKey: string;         // Authentication token matching CONFIG_KV webhooks:api_key
+  exchange: "binance" | "bybit" | "mexc";   // Target exchange router
+  action: "LONG" | "SHORT" | "CLOSE";       // Position intent
+  symbol: string;         // Asset symbol (e.g. "BTCUSDT", "ETHUSDT")
+  quantity: number;       // Order size (amount of asset or contracts)
+  leverage?: number;      // Optional leverage multiplier (default: 1, max: 125)
+  idempotencyKey?: string; // Optional unique signature for dedup (auto-generated if omitted)
+  price?: number;         // Optional limit price (default: market price)
+  takeProfit?: number;    // Optional take-profit price target
+  stopLoss?: number;      // Optional stop-loss price target
 }
 ```
 
 ### Parameter Rules & Type Constraints
 
-- **`apiKey`**: Must match the encrypted `webhooks:api_key` hash in your `CONFIG_KV` namespace.
-- **`symbol`**: Parsed and standardized by Hoox to match exchange requirements. For example, Hoox automatically converts variations like `BTC-USDT`, `BTC_USDT`, and `btc/usdt` to the exchange-compliant flat uppercase format `BTCUSDT`.
-- **`quantity`**: Verified to be greater than zero.
-- **`leverage`**: Checked against exchange limits (e.g. `1` to `125` depending on exchange margin profiles).
+| Parameter | Type | Required | Constraints |
+|-----------|------|:--------:|-------------|
+| `apiKey` | `string` | **Yes** | Must match the encrypted `webhooks:api_key` hash in your `CONFIG_KV` namespace |
+| `exchange` | `string` | **Yes** | One of: `binance`, `bybit`, `mexc` — must match a configured exchange router |
+| `action` | `string` | **Yes** | One of: `LONG` (buy/open), `SHORT` (sell/open), `CLOSE` (flatten position) |
+| `symbol` | `string` | **Yes** | Parsed and standardized — `BTC-USDT`, `BTC_USDT`, and `btc/usdt` all become `BTCUSDT` |
+| `quantity` | `number` | **Yes** | Must be greater than zero; checked against exchange minimum order size |
+| `leverage` | `number` | No | Range: `1` to `125` depending on exchange margin profiles; defaults to `1` (spot) |
+| `idempotencyKey` | `string` | No | If omitted, auto-generated from `SHA256(symbol + exchange + action + timestamp)` |
+| `price` | `number` | No | Limit price; defaults to current market price if omitted |
+| `takeProfit` | `number` | No | Target exit price for automatic partial close |
+| `stopLoss` | `number` | No | Stop-loss trigger price; overrides agent-worker trailing stop if specified |
 
 ---
 
@@ -42,14 +48,27 @@ The `trade-worker` parses the incoming signal and translates the business logic 
 
 ### A. Translation Table (One-Way Margin / Spot)
 
-| Action      | Position State        | Translated Exchange Side | Operation Type                                  |
-| :---------- | :-------------------- | :----------------------: | :---------------------------------------------- |
-| **`LONG`**  | Closed / No Position  |        **`BUY`**         | Opens a long position (spot or margin).         |
-| **`SHORT`** | Closed / No Position  |        **`SELL`**        | Opens a short position (margin/futures).        |
-| **`CLOSE`** | Long Position Active  |        **`SELL`**        | Closes and flattens an existing long position.  |
-| **`CLOSE`** | Short Position Active |        **`BUY`**         | Closes and flattens an existing short position. |
+| Action | Position State | Translated Exchange Side | Operation Type |
+| :----- | :------------: | :----------------------: | :------------- |
+| **`LONG`** | Closed / No Position | **`BUY`** | Opens a long position (spot or margin) |
+| **`SHORT`** | Closed / No Position | **`SELL`** | Opens a short position (margin/futures) |
+| **`CLOSE`** | Long Position Active | **`SELL`** | Closes and flattens an existing long position |
+| **`CLOSE`** | Short Position Active | **`BUY`** | Closes and flattens an existing short position |
 
-### B. Dynamic Position Resolution
+### B. Hedge-Mode PositionSide Mapping
+
+When running in hedge mode (supported on Bybit and Binance futures), both LONG and SHORT positions can coexist:
+
+```
+Hedge Mode:
+  LONG PositionSide = LONG  → BUY opens LONG, SELL closes LONG
+  SHORT PositionSide = SHORT → SELL opens SHORT, BUY closes SHORT
+
+One-Way Mode:
+  BUY always opens/increases, SELL always closes/reduces
+```
+
+### C. Dynamic Position Resolution
 
 When the action is **`CLOSE`**, the `trade-worker` automatically performs a sub-millisecond edge check:
 
@@ -69,6 +88,14 @@ If the signal includes a `leverage` parameter greater than `1` (e.g., `"leverage
    $$\text{Contract Quantity} = \frac{\text{Order Size (USDT)} \times \text{Leverage}}{\text{Current Market Price}}$$
 4. **Precision Rounding**: Automatically rounds the calculated quantity down to match the exchange's strict asset decimal precision requirements, preventing API rejects.
 
+### Precision Table by Exchange
+
+| Exchange | Price Precision | Quantity Precision | Min Order Size |
+|----------|----------------|-------------------|----------------|
+| Binance | Varies by symbol | Varies by symbol | ~$10 equivalent |
+| Bybit | 0.1 – 0.001 | 3–6 decimal places | Varies by tier |
+| MEXC | 0.1 – 0.00000001 | 2–8 decimal places | ~$5 equivalent |
+
 ---
 
 ## 4. D1 Database Transaction Ledger
@@ -77,33 +104,67 @@ Every filled order is persistently written to your globally distributed edge SQL
 
 ```sql
 CREATE TABLE trades (
-  id TEXT PRIMARY KEY,               -- UUID generated by trade-worker
-  request_id TEXT NOT NULL,          -- Distributed trace ID mapping to gateway
-  exchange TEXT NOT NULL,            -- "bybit", "binance", or "mexc"
-  symbol TEXT NOT NULL,              -- e.g. "BTCUSDT"
-  action TEXT NOT NULL,              -- "LONG", "SHORT", or "CLOSE"
-  side TEXT NOT NULL,                -- "BUY" or "SELL"
-  quantity REAL NOT NULL,            -- Filled asset quantity
-  price REAL NOT NULL,               -- Execution entry price
-  fee REAL NOT NULL,                 -- Exchange transaction fees
-  order_id TEXT NOT NULL,            -- Exchange-provided order hash
-  status TEXT NOT NULL,              -- "Filled", "Rejected", "Failed"
+  id TEXT PRIMARY KEY,          -- UUID v4 generated by trade-worker
+  request_id TEXT NOT NULL,     -- Distributed trace ID from gateway
+  exchange TEXT NOT NULL,       -- 'bybit', 'binance', or 'mexc'
+  symbol TEXT NOT NULL,         -- e.g. 'BTCUSDT'
+  action TEXT NOT NULL,         -- 'LONG', 'SHORT', or 'CLOSE'
+  side TEXT NOT NULL,           -- 'BUY' or 'SELL' (exchange-side)
+  quantity REAL NOT NULL,       -- Filled asset quantity
+  price REAL NOT NULL,          -- Execution entry price (USDT)
+  leverage INTEGER DEFAULT 1,   -- Applied leverage multiplier
+  fee REAL NOT NULL,            -- Exchange transaction fees (USDT)
+  order_id TEXT NOT NULL,       -- Exchange-provided order hash
+  status TEXT NOT NULL,         -- 'Filled', 'Rejected', 'Failed', 'Partial'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE positions (
+  id TEXT PRIMARY KEY,
+  symbol TEXT NOT NULL UNIQUE,
+  side TEXT NOT NULL,           -- 'LONG' or 'SHORT'
+  quantity REAL NOT NULL,
+  entry_price REAL NOT NULL,
+  mark_price REAL,              -- Last known market price
+  leverage INTEGER DEFAULT 1,
+  unrealized_pnl REAL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-You can view this ledger at any time from your local terminal:
+You can query the ledger at any time from your local terminal:
 
 ```bash
 # Query the 10 most recent trades in your D1 database
 hoox db query "SELECT created_at, exchange, symbol, action, price, quantity FROM trades ORDER BY created_at DESC LIMIT 10"
+
+# Check open positions
+hoox db query "SELECT symbol, side, quantity, entry_price FROM positions WHERE quantity > 0"
 ```
 
 ---
 
-> **Tip:** By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of these steps. You can audit the latency breakdown (e.g., Gateway auth took `1.2ms`, Trade-worker signing took `0.8ms`, Bybit API roundtrip took `18.5ms`) directly in your Next.js dashboard!
+## 5. Queue Failover & Guaranteed Delivery
+
+When the exchange API returns an error (timeout, rate limit, HTTP 5xx), the gateway automatically enqueues the trade payload into **Cloudflare Queues** for guaranteed delivery:
+
+| Retry Attempt | Delay | Trigger Condition |
+|:------------:|:-----:|:-----------------:|
+| 1 | Immediate | First failure |
+| 2 | 30 seconds | Network timeout |
+| 3 | 1 minute | Rate limit (429) |
+| 4 | 5 minutes | Exchange error (502/503) |
+| 5 | 15 minutes | Extended maintenance |
+| 6 | 30 minutes | Final retry before logging as failed |
+
+After max retries, the trade is logged to D1 with `status = 'Failed'` — not lost, but visibly flagged for manual review.
+
+---
+
+> **Tip:** By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of each pipeline step. You can audit the latency breakdown (e.g., Gateway auth took `1.2ms`, Trade-worker signing took `0.8ms`, Bybit API roundtrip took `18.5ms`) directly in your Next.js dashboard!
 
 ### 🔗 Next Steps
 
-- **[Autonomous AI Risk Management](ai-risk-manager.md)** — Learn how agent-worker tracks these D1 entries to manage trailing stops and drawdowns.
+- **[Autonomous AI Risk Management](ai-risk-manager.md)** — Learn how agent-worker tracks D1 entries to manage trailing stops and drawdowns.
 - **[CLI Reference Manual](../reference/cli-commands.md)** — Review commands to manage D1 tables, perform dry runs, and tail logs.
+- **[Error Models & Status Codes](../reference/api-endpoints.md#d-standard-platform-error-models)** — Understand all gateway error responses.
