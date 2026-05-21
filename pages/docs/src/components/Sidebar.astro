@@ -75,19 +75,28 @@ const sectionSvgIcons: Record<string, string> = {
             <span class="text-accent/70" set:html={sectionSvgIcons[section.icon] || sectionSvgIcons.book} />
             <span>{section.title}</span>
           </div>
-          <div class="ml-1 flex flex-col gap-0.5 mt-0.5">
-            {section.items.map((item) => (
-              <a
-                href={`/hoox-setup/${item.slug}/`}
-                class={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors font-mono",
-                  currentSlug === item.slug
-                    ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                )}
-              >
-                <span class="truncate">{item.title}</span>
-              </a>
+          <div class="ml-1 flex flex-col mt-0.5 sidebar-nav-list">
+            {section.items.map((item, idx) => (
+              <div class="sidebar-nav-item relative flex">
+                <!-- Connector line -->
+                <div class="sidebar-connector flex flex-col items-center shrink-0" aria-hidden="true">
+                  <span class="sidebar-connector-dot mt-[13px] size-1.5 rounded-full border border-muted-foreground/30 bg-transparent"></span>
+                  {idx < section.items.length - 1 && (
+                    <span class="sidebar-connector-line w-px flex-1 bg-border/60"></span>
+                  )}
+                </div>
+                <a
+                  href={`/hoox-setup/${item.slug}/`}
+                  class={cn(
+                    "flex items-start gap-2 rounded-md px-3 py-1.5 text-sm leading-snug transition-colors font-mono flex-1 min-w-0",
+                    currentSlug === item.slug
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  )}
+                >
+                  <span class="[word-break:break-word] hyphens-auto">{item.title}</span>
+                </a>
+              </div>
             ))}
           </div>
         </div>

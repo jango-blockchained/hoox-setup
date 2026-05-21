@@ -152,6 +152,42 @@ html:not(.dark) .grid-bg {
   background-size: 60px 60px;
 }
 
+/* ── Sidebar navigation connector lines ── */
+
+.sidebar-nav-list {
+  position: relative;
+}
+
+.sidebar-nav-item:last-child .sidebar-connector-line {
+  display: none;
+}
+
+.sidebar-connector {
+  width: 16px;
+  margin-right: 2px;
+}
+
+.sidebar-connector-dot {
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav-item:hover .sidebar-connector-dot {
+  @apply border-accent/60 bg-accent/20;
+  box-shadow: 0 0 6px oklch(0.7 0.2 45 / 0.25);
+}
+
+.sidebar-nav-item a:hover + .sidebar-connector .sidebar-connector-dot,
+.sidebar-nav-item:hover > .sidebar-connector .sidebar-connector-dot {
+  @apply border-accent/60 bg-accent/20;
+}
+
+/* Active item connector glow */
+.sidebar-nav-item a.font-medium ~ .sidebar-connector .sidebar-connector-dot {
+  @apply border-accent bg-accent/30;
+  box-shadow: 0 0 8px oklch(0.7 0.2 45 / 0.35);
+}
+
 /* ── Custom selection color ── */
 ::selection {
   background: oklch(0.7 0.2 45);
@@ -229,18 +265,36 @@ article.prose .code-block-wrapper {
 /* ── Code blocks: Shiki syntax highlighting ── */
 
 article.prose pre {
-  @apply rounded-xl border border-border/80 bg-[#1c2128] p-5 text-sm leading-relaxed shadow-lg;
+  @apply rounded-xl border border-border/80 bg-[#282c34] p-5 text-sm leading-relaxed shadow-lg shadow-black/20;
   overflow-x: auto;
   position: relative;
 }
 
 article.prose pre > code {
-  @apply block bg-transparent p-0 text-inherit;
+  @apply block bg-transparent p-0;
   font-family: "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
   tab-size: 2;
   counter-reset: line;
+}
+
+/* Ensure Shiki inline token colors are preserved */
+article.prose pre > code .line,
+article.prose pre > code span {
+  color: inherit; /* fallback, but Shiki inline styles override */
+}
+
+article.prose pre > code .highlighted-word {
+  @apply bg-amber-500/10 rounded-sm px-1 py-0.5 -mx-1;
+}
+
+/* Language label badge on code blocks */
+article.prose pre::before {
+  content: attr(data-language);
+  @apply absolute top-0 right-0 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider rounded-bl-xl rounded-tr-xl;
+  color: oklch(0.7 0.2 45 / 0.7);
+  background: oklch(0.7 0.2 45 / 0.08);
 }
 
 /* Inline code */
@@ -285,9 +339,9 @@ article.prose [data-slot="badge"] {
 /* ── Mermaid diagrams ── */
 
 .mermaid-wrapper {
-  @apply my-6 flex justify-center rounded-xl border border-border bg-background p-6;
-  min-height: 440px;
-  max-height: 800px;
+  @apply my-6 flex justify-center rounded-xl border border-border bg-background p-4 sm:p-6;
+  min-height: 120px;
+  max-height: 90vh;
   overflow: auto;
 }
 
@@ -333,22 +387,22 @@ article.prose a {
  */
 
 article.prose h1 {
-  @apply mb-3 mt-10 text-3xl font-bold tracking-wider text-foreground uppercase;
+  @apply mb-4 mt-16 text-3xl font-bold tracking-wider text-foreground uppercase;
   @apply xl:text-4xl;
 }
 
 article.prose h2 {
-  @apply mb-3 mt-8 text-xl font-semibold tracking-wider text-foreground uppercase;
+  @apply mb-3 mt-14 text-xl font-semibold tracking-wider text-foreground uppercase;
   @apply xl:text-2xl;
 }
 
 article.prose h3 {
-  @apply mb-2 mt-6 text-lg font-medium text-foreground uppercase tracking-wide;
+  @apply mb-2 mt-10 text-lg font-medium text-foreground uppercase tracking-wide;
   @apply xl:text-xl;
 }
 
 article.prose h4 {
-  @apply mb-1 mt-4 text-base font-medium text-foreground uppercase tracking-wide;
+  @apply mb-1 mt-8 text-base font-medium text-foreground uppercase tracking-wide;
 }
 
 article.prose p {

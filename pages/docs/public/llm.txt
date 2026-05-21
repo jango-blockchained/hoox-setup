@@ -390,8 +390,7 @@ Signals & Trade Specifications — Analyze the complete JSON webhook and order f
 
 FILE: docs/enduser/concepts/edge-architecture.md
 Edge-First Architecture
-In algorithmic trading, latency is leverage. A delay of just milliseconds between a signal firing and an order arriving at the exchange can mean the difference between a highly profitable fill and severe price slippage.
-Hoox solves the latency problem by abandoning traditional server-centric architectures (like AWS, DigitalOcean, or standard VPS instances) and executing order logic natively on Cloudflare Edge Workers.
+Why running algorithmic trading bots on V isolates and Cloudflare's + global data centers cuts latency by % and eliminates slippage.
 ---
 ️ The Physics of Latency: Why Traditional VPS Bots Fail
 Traditional trading bots are deployed on a single virtual private server (VPS) in a fixed geographical data center (e.g., Virginia, USA).
@@ -406,16 +405,38 @@ The VPS Bottleneck (ms+ slippage)
 `
 The Hoox Edge Path (Under ms latency)
 . Signal Generation: A TradingView alert fires in London.
-. Edge Ingestion: The alert hits Cloudflare’s nearest London Point of Presence (PoP) in .ms.
+. Edge Ingestion: The alert hits Cloudflare's nearest London Point of Presence (PoP) in .ms.
 . V Isolate Processing: A sandboxed V isolate processes and validates the order instantly ( [London PoP] ── (ms Service Binding) ──> [Frankfurt Node] ── (ms) ──> [Bybit] = .ms Latency
-``
+`
 ---
 V Isolates vs. Traditional VMs / Containers
 Traditional architectures run on Virtual Machines or Docker containers. These runtimes carry significant memory overhead and introduce cold starts—the time required to spin up a container after inactivity.
 | Architectural Dimension | Traditional VM / Container (VPS) | Cloudflare Edge Worker (V Isolate) |
 | :---------------------- | :---------------------------------------: | :----------------------------------------: |
 | Boot Architecture | Heavy guest OS, Node runtime, npm modules | Sandboxed JavaScript V Engine runtime |
-| Cold-Start Delay | ,ms – ,ms (system stalls) | Tip: By removing VPS management, you do not just save latency—you also save operational overhead. Cloudflare natively manages automatic scaling, load balancing, SSL negotiation, and route failovers for free.
+| Cold-Start Delay | ,ms – ,ms (system stalls) | Note: Actual latency depends on exchange API server location, network conditions, and Cloudflare PoP availability. Measurements represent typical round-trip times observed in production.
+---
+️ Hardware-Level Security
+Because V isolates run in strictly isolated memory contexts managed directly by Google's Chromium V engine, your code is secure:
+Isolate Protection: Memory leaks, side-channel attacks, and adjacent tenant exploits are prevented at the V compiler level. Each tenant's code runs in a completely separate memory space with zero shared state.
+Microsecond Service Bindings: Communication between workers is processed entirely inside the local V runtime, meaning sensitive exchange payloads and API calls never travel over the public internet. This eliminates TLS decryption overhead and packet-sniffing risks.
+No Shared Filesystem: Unlike container-based approaches, V isolates have no persistent filesystem access — preventing supply-chain attacks via compromised dependencies writing to disk.
+Service Binding Architecture
+`
+[Public Request] → hoox (gateway:)
+│
+┌───────────┼───────────────┐
+│ │ │
+[SB:trade] [SB:d-worker] [SB:telegram]
+│ │ │
+trade-worker d-worker telegram-worker
+(port:) (port:) (port:)
+│ │
+[Exchange API] [D SQLite]
+`
+All SB:` prefixed connections occur inside the V engine with zero TCP handshakes. External connections (Exchange APIs, Telegram Bot API) use standard HTTPS egress.
+---
+Tip: By removing VPS management, you do not just save latency—you also save operational overhead. Cloudflare natively manages automatic scaling, load balancing, SSL negotiation, and route failovers for free.
 Next Steps
 Cloudflare Services Explained — Learn how D SQLite databases, KV, and Queues fit together on the edge.
 AI Risk Manager — Understand how autonomous risk checks run on global cron schedules.
@@ -482,10 +503,7 @@ AI Risk Manager — Understand how autonomous edge cron jobs evaluate drawdowns 
 
 FILE: docs/enduser/concepts/idempotency.md
 Idempotency & Durable Objects
-In automated financial systems, execution integrity is everything. If a network dropout occurs at the exact millisecond after your gateway submits an order to an exchange but before the exchange sends back a confirmation, a standard system faces a dilemma:
-If it assumes the order failed and retries, it risks executing duplicate trades (e.g. accidentally buying the same spot position twice, doubling leverage, and exposing your account to high liquidation risks).
-If it assumes the order succeeded and does nothing, it risks missing critical trade entries.
-Hoox solves this problem natively at the edge gateway layer using Cloudflare Durable Objects to enforce an absolute exactly-once execution policy (idempotency).
+How Hoox utilizes Cloudflare Durable Objects to guarantee exactly-once execution and prevent catastrophic duplicate orders during network dropouts.
 ---
 ️ The Danger: How Webhook Retries Lead to Double-Ordering
 Without idempotency, a typical signal failure sequence looks like this:
@@ -544,21 +562,28 @@ The Dedup & Cleanup Algorithm
 When a trade signal is fired, it must include a unique transaction signature.
 For TradingView webhooks, this is automatically generated as a combination of alert parameters and timestamps.
 If a client does not supply a transaction ID, the Hoox Gateway dynamically hashes the symbol, exchange, action, and timestamp to create a unique Idempotency Key.
----
 . Atomic Evaluation
 Before executing any order routing:
 . The gateway routes the request to the namespace-mapped Durable Object using the transaction ID as the binding key.
 . The Durable Object checks its internal state. Since DOs are single-threaded, there is zero risk of race conditions—if two identical HTTP requests hit Cloudflare simultaneously, they are processed sequentially inside the DO.
 . If the ID exists in the DO's SQLite log, the DO immediately intercepts the request and throws a Conflict exception, stopping the pipeline before hitting exchange APIs.
 . If unique, it registers the ID, saves the current timestamp, and returns a lock approval.
----
 . Automatic TTL & Storage Alarms
 To prevent the Durable Object's persistent storage from growing indefinitely and consuming unnecessary memory:
 The DO registers an atomic alarm scheduled for hours in the future.
 When the alarm fires, the DO runs an automatic garbage collection script that purges old IDs from its local storage.
 This ensures that while you are % protected against duplicates during network dropouts, your storage footprint remains lightweight.
+. Cold-Start Resilience
+When a DO instance has been idle (no requests for the TTL period), Cloudflare may evict it from memory. Upon the next request:
+. The DO is reconstructed from its persisted SQLite state on disk.
+. All previously recorded trace IDs are loaded back into memory.
+. The dedup check continues seamlessly — no data loss, no duplicate risk.
+This means idempotency protection survives worker restarts, cold starts, and infrastructure failovers without any manual intervention.
 ---
-Warning: Never disable idempotency check bindings in your wrangler.jsonc` file in production. The performance cost of pinging the DO is less than milliseconds, while the cost of a duplicate order could be catastrophic.
+Performance Impact
+| Metric | Value | Notes |
+|--------|-------|-------|
+| DO ping overhead | Warning: Never disable idempotency check bindings in your wrangler.jsonc` file in production. The performance cost of pinging the DO is less than milliseconds, while the cost of a duplicate order could be catastrophic.
 Next Steps
 Signals & Trade Specifications — Learn how to configure your Pine Script webhook payloads to transmit unique idempotency keys.
 Platform Security Guides — Deepen your understanding of Zero Trust headers and edge firewall configurations.
@@ -571,32 +596,52 @@ This document details the exact specifications, JSON validation schemas, and int
 Every signal received by the public gateway at /webhook must contain a valid, authenticated JSON payload. Below is the strict TypeScript interface and parameter schema validated by the gateway's validation middleware:
 ``typescript
 export interface WebhookSignal {
-apiKey: string; // Authentication token
-exchange: "binance" | "bybit" | "mexc"; // Target exchange
+apiKey: string; // Authentication token matching CONFIGKV webhooks:apikey
+exchange: "binance" | "bybit" | "mexc"; // Target exchange router
 action: "LONG" | "SHORT" | "CLOSE"; // Position intent
-symbol: string; // Asset symbol (e.g. "BTCUSDT")
+symbol: string; // Asset symbol (e.g. "BTCUSDT", "ETHUSDT")
 quantity: number; // Order size (amount of asset or contracts)
-leverage?: number; // Optional leverage multiplier (default: )
-idempotencyKey?: string; // Optional unique signature for dedup
+leverage?: number; // Optional leverage multiplier (default: , max: )
+idempotencyKey?: string; // Optional unique signature for dedup (auto-generated if omitted)
+price?: number; // Optional limit price (default: market price)
+takeProfit?: number; // Optional take-profit price target
+stopLoss?: number; // Optional stop-loss price target
 }
 `
 Parameter Rules & Type Constraints
-apiKey: Must match the encrypted webhooks:apikey hash in your CONFIGKV namespace.
-symbol: Parsed and standardized by Hoox to match exchange requirements. For example, Hoox automatically converts variations like BTC-USDT, BTCUSDT, and btc/usdt to the exchange-compliant flat uppercase format BTCUSDT.
-quantity: Verified to be greater than zero.
-leverage: Checked against exchange limits (e.g. to depending on exchange margin profiles).
+| Parameter | Type | Required | Constraints |
+|-----------|------|:--------:|-------------|
+| apiKey | string | Yes | Must match the encrypted webhooks:apikey hash in your CONFIGKV namespace |
+| exchange | string | Yes | One of: binance, bybit, mexc — must match a configured exchange router |
+| action | string | Yes | One of: LONG (buy/open), SHORT (sell/open), CLOSE (flatten position) |
+| symbol | string | Yes | Parsed and standardized — BTC-USDT, BTCUSDT, and btc/usdt all become BTCUSDT |
+| quantity | number | Yes | Must be greater than zero; checked against exchange minimum order size |
+| leverage | number | No | Range: to depending on exchange margin profiles; defaults to (spot) |
+| idempotencyKey | string | No | If omitted, auto-generated from SHA(symbol + exchange + action + timestamp) |
+| price | number | No | Limit price; defaults to current market price if omitted |
+| takeProfit | number | No | Target exit price for automatic partial close |
+| stopLoss | number | No | Stop-loss trigger price; overrides agent-worker trailing stop if specified |
 ---
 . Dynamic Payload Translation & Side Mapping
 Exchanges do not understand actions like LONG, SHORT, or CLOSE. They process order instructions in terms of Side (BUY or SELL) and PositionSide (LONG or SHORT for multi-margin hedge modes).
 The trade-worker parses the incoming signal and translates the business logic into exchange-specific API calls:
 A. Translation Table (One-Way Margin / Spot)
 | Action | Position State | Translated Exchange Side | Operation Type |
-| :---------- | :-------------------- | :----------------------: | :---------------------------------------------- |
-| LONG | Closed / No Position | BUY | Opens a long position (spot or margin). |
-| SHORT | Closed / No Position | SELL | Opens a short position (margin/futures). |
-| CLOSE | Long Position Active | SELL | Closes and flattens an existing long position. |
-| CLOSE | Short Position Active | BUY | Closes and flattens an existing short position. |
-B. Dynamic Position Resolution
+| :----- | :------------: | :----------------------: | :------------- |
+| LONG | Closed / No Position | BUY | Opens a long position (spot or margin) |
+| SHORT | Closed / No Position | SELL | Opens a short position (margin/futures) |
+| CLOSE | Long Position Active | SELL | Closes and flattens an existing long position |
+| CLOSE | Short Position Active | BUY | Closes and flattens an existing short position |
+B. Hedge-Mode PositionSide Mapping
+When running in hedge mode (supported on Bybit and Binance futures), both LONG and SHORT positions can coexist:
+`
+Hedge Mode:
+LONG PositionSide = LONG → BUY opens LONG, SELL closes LONG
+SHORT PositionSide = SHORT → SELL opens SHORT, BUY closes SHORT
+One-Way Mode:
+BUY always opens/increases, SELL always closes/reduces
+`
+C. Dynamic Position Resolution
 When the action is CLOSE, the trade-worker automatically performs a sub-millisecond edge check:
 . Queries your local D transaction ledger to resolve the active position direction for the symbol.
 . If no position is tracked locally, it performs a real-time portfolio balance check against the exchange's private position endpoint.
@@ -609,35 +654,68 @@ If the signal includes a leverage parameter greater than (e.g., "leverage": ), t
 . Calculate Collateral: If the order size is defined in USDT terms, the worker scales the execution quantity mathematically:
 $$\text{Contract Quantity} = \frac{\text{Order Size (USDT)} \times \text{Leverage}}{\text{Current Market Price}}$$
 . Precision Rounding: Automatically rounds the calculated quantity down to match the exchange's strict asset decimal precision requirements, preventing API rejects.
+Precision Table by Exchange
+| Exchange | Price Precision | Quantity Precision | Min Order Size |
+|----------|----------------|-------------------|----------------|
+| Binance | Varies by symbol | Varies by symbol | ~$ equivalent |
+| Bybit | . – . | – decimal places | Varies by tier |
+| MEXC | . – . | – decimal places | ~$ equivalent |
 ---
 . D Database Transaction Ledger
 Every filled order is persistently written to your globally distributed edge SQLite table. The schema ensures a clean audit log:
 `sql
 CREATE TABLE trades (
-id TEXT PRIMARY KEY, -- UUID generated by trade-worker
-requestid TEXT NOT NULL, -- Distributed trace ID mapping to gateway
-exchange TEXT NOT NULL, -- "bybit", "binance", or "mexc"
-symbol TEXT NOT NULL, -- e.g. "BTCUSDT"
-action TEXT NOT NULL, -- "LONG", "SHORT", or "CLOSE"
-side TEXT NOT NULL, -- "BUY" or "SELL"
+id TEXT PRIMARY KEY, -- UUID v generated by trade-worker
+requestid TEXT NOT NULL, -- Distributed trace ID from gateway
+exchange TEXT NOT NULL, -- 'bybit', 'binance', or 'mexc'
+symbol TEXT NOT NULL, -- e.g. 'BTCUSDT'
+action TEXT NOT NULL, -- 'LONG', 'SHORT', or 'CLOSE'
+side TEXT NOT NULL, -- 'BUY' or 'SELL' (exchange-side)
 quantity REAL NOT NULL, -- Filled asset quantity
-price REAL NOT NULL, -- Execution entry price
-fee REAL NOT NULL, -- Exchange transaction fees
+price REAL NOT NULL, -- Execution entry price (USDT)
+leverage INTEGER DEFAULT , -- Applied leverage multiplier
+fee REAL NOT NULL, -- Exchange transaction fees (USDT)
 orderid TEXT NOT NULL, -- Exchange-provided order hash
-status TEXT NOT NULL, -- "Filled", "Rejected", "Failed"
+status TEXT NOT NULL, -- 'Filled', 'Rejected', 'Failed', 'Partial'
 createdat TIMESTAMP DEFAULT CURRENTTIMESTAMP
 );
+CREATE TABLE positions (
+id TEXT PRIMARY KEY,
+symbol TEXT NOT NULL UNIQUE,
+side TEXT NOT NULL, -- 'LONG' or 'SHORT'
+quantity REAL NOT NULL,
+entryprice REAL NOT NULL,
+markprice REAL, -- Last known market price
+leverage INTEGER DEFAULT ,
+unrealizedpnl REAL DEFAULT ,
+updatedat TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
 `
-You can view this ledger at any time from your local terminal:
+You can query the ledger at any time from your local terminal:
 `bash
 Query the most recent trades in your D database
-hoox db query "SELECT createdat, exchange, symbol, action, price, quantity FROM trades ORDER BY created_at DESC LIMIT "
+hoox db query "SELECT createdat, exchange, symbol, action, price, quantity FROM trades ORDER BY createdat DESC LIMIT "
+Check open positions
+hoox db query "SELECT symbol, side, quantity, entry_price FROM positions WHERE quantity > "
 `
 ---
-Tip: By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of these steps. You can audit the latency breakdown (e.g., Gateway auth took .ms, Trade-worker signing took .ms, Bybit API roundtrip took .ms`) directly in your Next.js dashboard!
+. Queue Failover & Guaranteed Delivery
+When the exchange API returns an error (timeout, rate limit, HTTP xx), the gateway automatically enqueues the trade payload into Cloudflare Queues for guaranteed delivery:
+| Retry Attempt | Delay | Trigger Condition |
+|:------------:|:-----:|:-----------------:|
+| | Immediate | First failure |
+| | seconds | Network timeout |
+| | minute | Rate limit () |
+| | minutes | Exchange error (/) |
+| | minutes | Extended maintenance |
+| | minutes | Final retry before logging as failed |
+After max retries, the trade is logged to D with status = 'Failed' — not lost, but visibly flagged for manual review.
+---
+Tip: By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of each pipeline step. You can audit the latency breakdown (e.g., Gateway auth took .ms, Trade-worker signing took .ms, Bybit API roundtrip took .ms`) directly in your Next.js dashboard!
 Next Steps
-Autonomous AI Risk Management — Learn how agent-worker tracks these D entries to manage trailing stops and drawdowns.
+Autonomous AI Risk Management — Learn how agent-worker tracks D entries to manage trailing stops and drawdowns.
 CLI Reference Manual — Review commands to manage D tables, perform dry runs, and tail logs.
+Error Models & Status Codes — Understand all gateway error responses.
 
 FILE: docs/enduser/concepts/ai-risk-manager.md
 AI Risk Manager & AI Gateway
@@ -662,7 +740,7 @@ C. Max Daily Drawdown & Global Kill Switch
 If high volatility causes unexpected stop-outs, the agent-worker aggregates your real-time realized P&L:
 . Calculates cumulative daily loss:
 $$\text{Daily Drawdown \%} = \frac{\text{Starting Daily Balance} - \text{Current Balance}}{\text{Starting Daily Balance}} \times $$
-. If the drawdown exceeds your KV threshold (e.g. trade:maxdailydrawdownpercent is ), the agent-worker immediately triggers the Global Kill Switch by writing trade:killswitch = true to CONFIG_KV.
+. If the drawdown exceeds your KV threshold (e.g. trade:maxdailydrawdownpercent is ), the agent-worker immediately triggers the Global Kill Switch by writing trade:killswitch = true to CONFIGKV.
 . Calls the trade-worker service binding to submit immediate market close orders, flattening all active positions across all exchanges near-instantaneously.
 ``bash
 Check current Kill Switch status via CLI
@@ -691,8 +769,9 @@ B. Custom Telemetry & Chat Endpoints
 The gateway exposes professional endpoints for secure inter-worker and external integrations:
 POST /agent/chat — Accepts user prompts and handles SSE (Server-Sent Events) streaming responses.
 POST /agent/vision — Analyzes charts, balance screenshots, or trading signals from Base images.
-POST /agent/reasoning — Interfaces with advanced reasoning models (like OpenAI o or DeepSeek) to audit trading strategies and margin structures.
-GET /agent/usage` — Provides detailed token counting and cost metrics across all providers.
+POST /agent/reasoning — Extended thinking queries with reasoning models (o, DeepSeek). Respects thinkingeffort levels.
+GET /agent/usage — Detailed token usage and cost metrics across all providers, including per-provider input/output tokens and cumulative USD cost.
+GET /agent/health` — Health check for all AI providers — returns latency and status for each provider in the fallback chain.
 ---
 Tip: You can adjust all AI gateway defaults, Cron check intervals, and trailing deviations in real-time by writing to your KV configurations. No code deployments are ever required to tune your risk profile.
 Next Steps
@@ -739,14 +818,16 @@ docker compose --profile full up
 Local Port Mapping & Endpoint Access
 During local development, all enabled workers are assigned dedicated local ports, simulating service boundaries locally:
 | Worker | Local Port | Endpoint URL | Purpose |
-| :-------------------- | :--------: | :---------------------- | :-------------------------------- |
-| hoox | | http://localhost: | Public Gateway & Webhook Receiver |
-| trade-worker | | http://localhost: | Trade Execution Engine |
-| telegram-worker | | http://localhost: | Telegram Bot Alerts & Commands |
-| d-worker | | http://localhost: | SQLite Database Operations |
-| web-wallet | | http://localhost: | On-Chain DeFi Execution |
-| dashboard | | http://localhost: | Next.js Dashboard Cockpit |
-| agent-worker | | http://localhost: | AI Risk Manager & Cron Engine |
+|| :-------------------- | :--------: | :---------------------- | :-------------------------------- |
+|| hoox | | http://localhost: | Public Gateway & Webhook Receiver |
+|| trade-worker | | http://localhost: | Trade Execution Engine |
+|| telegram-worker | | http://localhost: | Telegram Bot Alerts & Commands |
+|| d-worker | | http://localhost: | SQLite Database Operations |
+|| web-wallet | | http://localhost: | On-Chain DeFi Execution |
+|| dashboard | | http://localhost: | Next.js Dashboard Cockpit |
+|| agent-worker | | http://localhost: | AI Risk Manager & Cron Engine |
+|| email-worker | | http://localhost: | Email Signal Parsing |
+|| report-worker | | http://localhost: | PDF Portfolio Report Generator |
 ---
 ️ Operating Individual Services
 If you only want to work on a single microservice rather than running the full stack, you can spin up individual modules:
@@ -781,6 +862,7 @@ Local CI Pipeline Succeeded!
 ---
 Note: Local unit tests utilize Bun's native test runner for instantaneous execution. You can target specific workspace folders or run files individually: bun test workers/trade-worker/src/index.test.ts.
 Next Steps
+Testing Standards — Run unit and integration tests using Bun's native test runner.
 Terminal UI Operations — Launch the full-screen terminal cockpit (./hoox-tui`) to monitor these local runs.
 Database Migrations — Set up, query, and migrate your local SQLite D database.
 
@@ -918,20 +1000,88 @@ FILE: docs/enduser/guides/database-ops.md
 Hoox utilizes Cloudflare D—a fully serverless, highly optimized SQLite database engine distributed globally across Cloudflare's edge network. This document serves as your operational runbook for executing database schemas, running schema migrations, querying transaction ledgers, and performing secure database backup and recovery.
 ---
 ️ The Core Database Tables
-The database schema defines five fundamental tables designed for trading operations:
-. trades: The primary ledger. Stores execution prices, contract quantities, timestamps, transaction fees, and exchange order IDs.
-. positions: Tracks open margin/futures exposure (average entry price, size, leverage, direction).
-. balances: Periodic snapshots of account equity, margin balance, and available free collateral.
-. tradesignals: Historical record of every raw incoming webhook alert before execution processing.
-. systemlogs: Crucial debug and error messages offloaded from compute nodes.
+The database schema defines five fundamental tables designed for trading operations, plus supporting indices for fast query performance:
+| Table | Purpose | Row Estimate (Active User) |
+|-------|---------|---------------------------|
+| trades | The primary ledger. Execution prices, contract quantities, timestamps, fees, and exchange order IDs. | ~,/mo |
+| positions | Tracks open margin/futures exposure (average entry price, size, leverage, direction). | ~– |
+| balances | Periodic snapshots of account equity, margin balance, and available free collateral. | ~/day |
+| tradesignals | Historical record of every raw incoming webhook alert before execution processing. | ~,/mo |
+| systemlogs | Crucial debug and error messages offloaded from compute nodes. | ~,/mo |
+Schema Details
+``sql
+-- Core trades ledger
+CREATE TABLE trades (
+id TEXT PRIMARY KEY,
+requestid TEXT NOT NULL,
+exchange TEXT NOT NULL, -- 'bybit', 'binance', 'mexc'
+symbol TEXT NOT NULL,
+action TEXT NOT NULL, -- 'LONG', 'SHORT', 'CLOSE'
+side TEXT NOT NULL, -- 'BUY' or 'SELL'
+quantity REAL NOT NULL,
+price REAL NOT NULL,
+leverage INTEGER DEFAULT ,
+fee REAL NOT NULL DEFAULT ,
+orderid TEXT NOT NULL,
+status TEXT NOT NULL, -- 'Filled', 'Rejected', 'Failed', 'Partial'
+createdat TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
+-- Active positions tracking
+CREATE TABLE positions (
+id TEXT PRIMARY KEY,
+symbol TEXT NOT NULL UNIQUE,
+side TEXT NOT NULL,
+quantity REAL NOT NULL,
+entryprice REAL NOT NULL,
+markprice REAL DEFAULT ,
+leverage INTEGER DEFAULT ,
+unrealizedpnl REAL DEFAULT ,
+updatedat TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
+-- Account balance snapshots
+CREATE TABLE balances (
+id TEXT PRIMARY KEY,
+totalbalance REAL NOT NULL,
+availablebalance REAL NOT NULL,
+unrealizedpnl REAL DEFAULT ,
+snapshottime TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
+-- Incoming signal audit trail
+CREATE TABLE tradesignals (
+id TEXT PRIMARY KEY,
+rawpayload TEXT NOT NULL,
+parsedsymbol TEXT,
+parsedaction TEXT,
+receivedat TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
+-- System diagnostic logs
+CREATE TABLE systemlogs (
+id TEXT PRIMARY KEY,
+level TEXT NOT NULL, -- 'info', 'warn', 'error'
+source TEXT NOT NULL, -- Worker name
+message TEXT NOT NULL,
+metadata TEXT, -- JSON blob of additional context
+createdat TIMESTAMP DEFAULT CURRENTTIMESTAMP
+);
+`
 ---
 Applying Schemas & Tables
 When launching a new workspace, you must initialize the required tables. The Hoox CLI handles this via declarative migration scripts:
-``bash
+`bash
 . Apply schema and seed initial tables to local dev SQLite
 hoox db apply
 . Deploy schema and seed tables directly to live production Cloudflare D
 hoox db apply --remote
+`
+Migration Files Location
+Migrations are stored in workers/d-worker/src/drizzle/ and are automatically versioned:
+`
+workers/d-worker/src/drizzle/
+├── initialschema.sql
+├── addleveragecolumn.sql
+├── balancessnapshottable.sql
+└── meta/
+└── snapshot.json
 `
 Warning: Running hoox db apply compiles migrations and seeds the database locally. For production deployment, you must append the --remote flag to execute operations directly on your active Cloudflare D instance.
 ---
@@ -942,10 +1092,17 @@ List all applied and pending database migrations in production
 hoox db migrate status --remote
 Apply all pending schema migrations sequentially to production D
 hoox db migrate --remote
+Rollback the most recent migration (use with caution)
+hoox db migrate rollback --remote
 `
 The migration engine tracks history inside a special dmigrations table, ensuring that migrations are never executed twice or applied in the wrong sequence.
+Migration Best Practices
+. Always write reversible migrations — include both UP and DOWN scripts
+. Never modify existing migrations — create new ones for schema changes
+. Test locally first — run hoox db apply without --remote to verify
+. Backup before migrating — export your production database first
 ---
-Inspecting & Querying Data from the CLI
+Querying Data from the CLI
 The Hoox CLI features a built-in SQL interface allowing you to run arbitrary queries directly against your local or remote database:
 `bash
 A. List all active tables in your production database
@@ -956,6 +1113,25 @@ C. Inspect the most recent trade fills with formatting
 hoox db query "SELECT createdat, symbol, action, price, quantity FROM trades ORDER BY createdat DESC LIMIT " --remote
 D. Check currently open positions on Bybit
 hoox db query "SELECT symbol, side, size, entryprice FROM positions WHERE size > " --remote
+E. Calculate daily P&L
+hoox db query "SELECT DATE(createdat) as day, SUM(CASE WHEN side='BUY' THEN -pricequantity ELSE pricequantity END) as dailypnl FROM trades WHERE status='Filled' GROUP BY day ORDER BY day DESC LIMIT " --remote
+F. Export trades as CSV
+hoox db query "SELECT FROM trades ORDER BY createdat DESC" --remote --format csv > tradesexport.csv
+`
+Useful Query Templates
+`sql
+-- Win rate calculation
+SELECT
+COUNT(CASE WHEN realizedpnl > THEN END) . / COUNT() AS winratepct
+FROM trades WHERE status = 'Filled';
+-- Average trade size by exchange
+SELECT exchange, AVG(quantity price) as avgtradesize
+FROM trades WHERE status = 'Filled'
+GROUP BY exchange;
+-- Hourly trading distribution (for optimal timing)
+SELECT strftime('%H', createdat) as hour, COUNT() as tradecount
+FROM trades WHERE status = 'Filled'
+GROUP BY hour ORDER BY hour;
 `
 ---
 Backup & Export Workflows
@@ -963,17 +1139,26 @@ To secure your historical P&L records, transaction ledger, and bot performance t
 `bash
 Export the entire D database as a clean SQL script
 hoox db export --remote
+Export to a specific file path
+hoox db export --remote --output backups/my-backup.sql
 `
 Export Output & Structure
 The export command creates a timestamped SQL dump inside your workspace directory:
 backups/db-backup----.sql
 This file contains standard DDL and DML commands:
 `sql
-PRAGMA foreign_keys=OFF;
+PRAGMA foreignkeys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS trades (...);
 INSERT INTO trades VALUES(...);
 COMMIT;
+`
+Restoring from Backup
+`bash
+. Create a fresh database first
+hoox infra d create hoox-db-backup
+. Apply the backup SQL
+bunx wrangler d execute hoox-db-backup --file=backups/db-backup---.sql
 `
 ---
 ️ Database Reset (Destructive Operations)
@@ -984,10 +1169,26 @@ hoox db reset --confirm
 Wipe all tables in the live production D database (USE WITH EXTREME CAUTION)
 hoox db reset --remote --confirm
 `
-Danger: Wiping your production D database is an irreversible operation. It will permanently delete all trade logs, position records, and asset histories. Always execute hoox db export --remote` before running a reset!
+Danger: Wiping your production D database is an irreversible operation. It will permanently delete all trade logs, position records, and asset histories. Always execute hoox db export --remote before running a reset!
+Soft Reset Alternative
+If you want to clear data but preserve schema structure:
+`bash
+Truncate all data tables while keeping schema intact
+hoox db query "DELETE FROM trades; DELETE FROM positions; DELETE FROM balances; DELETE FROM systemlogs;" --remote
+`
+---
+D Free Tier Limits & Monitoring
+| Resource | Free Tier Limit | Monitoring Command |
+|----------|----------------|-------------------|
+| Rows Read/Day | ,, | hoox db query "SELECT COUNT() FROM trades WHERE createdat >= date('now', '- day')" |
+| Rows Written/Day | , | hoox db query "SELECT COUNT() FROM trades WHERE createdat >= date('now', '- day')" |
+| Storage | GB | hoox db query "SELECT pagecount pagesize FROM pragmapagecount(), pragmapagesize()"` |
+| Max Connections | Concurrent | N/A — serverless, no connection pool |
+---
 Next Steps
 Local Development & Testing — Run your local V wrangler isolates with local D SQLite bindings.
 Infrastructure Management — Manage KV config namespaces, Queue parameters, and R storage buckets.
+Schema Reference — Detailed DDL documentation and storage engineering details.
 
 FILE: docs/enduser/guides/secrets-security.md
 Secrets & Network Security
@@ -1062,7 +1263,7 @@ Emergency Response: If you suspect a strategy error or exchange anomaly, immedia
 hoox monitor kill-switch on
 `
 Next Steps
-Astro Docs Site Config — Map out your build-time environment configurations.
+|- Platform Configuration Guide — Map environment variables, secrets, and KV runtime settings.
 Local Development & Testing — Run local wrangler sandboxes with securely encrypted .dev.vars`.
 
 FILE: docs/enduser/guides/manage-infra.md
@@ -1144,7 +1345,7 @@ Take-to-Production Deployments — Deploy your compiled workers and bind V isola
 
 FILE: docs/enduser/guides/deploy-workers.md
 Deploying to Production
-Deploying your algorithmic trading ecosystem to Cloudflare’s production edge requires careful orchestration. Because workers communicate internally using fast-path Service Bindings, they have strict compile-time and deploy-time dependencies.
+Deploying your algorithmic trading ecosystem to Cloudflare's production edge requires careful orchestration. Because workers communicate internally using fast-path Service Bindings, they have strict compile-time and deploy-time dependencies.
 This guide outlines our automated deployment sequence, Next.js OpenNext compilation steps, post-deployment URL bindings, and troubleshooting runbooks.
 ---
 ️ The Strict Deployment Dependency Chain
@@ -1160,6 +1361,15 @@ The Hoox CLI automates this dependency hierarchy:
 ▼
 [. Next.js Dashboard (OpenNext)]
 `
+Deployment Order Explained
+| Step | Worker | Why First? |
+|:----:|--------|-----------|
+| | D Schema | Database tables must exist before workers try to read/write |
+| | d-worker | SQL hub must be available for other workers' DB operations |
+| | trade-worker | Core execution engine — other workers depend on it |
+| | hoox Gateway | Public-facing router — needs all internal workers live |
+| | agent-worker + telegram-worker | Background services — can deploy independently |
+| | Dashboard (OpenNext) | Frontend — depends on gateway and all APIs |
 ---
 Deployment CLI Commands
 To execute a complete production rollout:
@@ -1168,8 +1378,18 @@ To execute a complete production rollout:
 hoox deploy all --auto
 . Deploy a single specific worker (e.g. after a custom logic update)
 hoox deploy worker trade-worker
+. Redeploy only the dashboard
+hoox deploy dashboard
 `
-Critical Post-Deployment Automation
+Deploy All Flags
+| Flag | Description | Example |
+|------|-------------|---------|
+| --auto | Automatically resolves dependency order | hoox deploy all --auto |
+| --skip-tests | Skip pre-deploy test suite | hoox deploy all --auto --skip-tests |
+| --dry-run | Preview deployment plan without uploading | hoox deploy all --auto --dry-run |
+| --workers-only | Skip dashboard deployment | hoox deploy all --auto --workers-only |
+---
+Critical Post-Deployment Steps
 Once hoox deploy all finishes uploading the workers, you must run three final scripts to link webhooks and sync environment databases:
 `bash
 A. Register your private Telegram Bot webhook with Cloudflare
@@ -1179,6 +1399,10 @@ hoox deploy update-internal-urls
 C. Sync and apply the default CONFIGKV manifest variables
 hoox deploy kv-config
 `
+Why These Steps Are Required
+. Telegram Webhook Registration — Tells Telegram's Bot API where to send user messages. Without this, your bot will be unreachable.
+. Internal URL Binding — After deployment, each worker gets a new URL. This command updates all Service Binding references so workers can find each other.
+. KV Manifest Sync — Ensures your runtime configuration (kill switch, rate limits, routing rules) matches the freshly deployed workers.
 ---
 ️ Next.js Dashboard Deployment (OpenNext)
 The Hoox Command Center is a modern Next.js web application that runs directly on Cloudflare Workers using the OpenNext adapter.
@@ -1190,7 +1414,16 @@ When you run hoox deploy dashboard:
 `bash
 Build and deploy the Next.js Dashboard to Cloudflare Workers
 hoox deploy dashboard
+Rebuild dashboard only (after UI changes)
+hoox deploy dashboard --force-rebuild
 `
+Dashboard Features
+Once deployed, the Command Center provides:
+Real-time portfolio value and P&L tracking
+Win rate statistics and trade history charts
+Live position monitoring with one-click close
+Risk settings adjustment (no redeploy needed)
+AI-powered trade analysis chat
 ---
 Routine Update & Upgrade Workflow
 To pull the latest platform releases, run local tests, and update your active production edge:
@@ -1201,22 +1434,35 @@ git pull --recurse-submodules
 bun install
 . Execute the full local CI verification pipeline
 hoox test
+. Run pre-deploy health check
+hoox repair check
 . Roll out updates globally to the Cloudflare Edge
+hoox deploy all --auto
+`
+Rollback Procedure
+If the new deployment causes issues:
+`bash
+. Revert git to previous release
+git checkout v.. or your previous tag
+. Redeploy the stable version
 hoox deploy all --auto
 `
 ---
 ️ Post-Deployment Troubleshooting Matrix
 | Error Code / Symptom | Primary Root Cause | Guided Resolution |
-| :---------------------------- | :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
+| :------------------- | :----------------- | :---------------- |
 | Bad Gateway | Service binding target is missing or has crashed. | Ensure the dependency worker (e.g., trade-worker) has been deployed successfully. Run hoox deploy all to rebuild all bonds. |
 | Service Unavailable | The Global Kill Switch is active in KV. | Verify switch state: hoox monitor kill-switch show. If safe, restore trading: hoox monitor kill-switch off. |
 | Unauthorized | Webhook request failed passkey check. | Audit KV authorization key: hoox config kv get webhooks:apikey. Verify the payload apiKey matches this value. |
-| Conflict` | Durable Object intercepted a duplicate trace ID. | Verify TV alert settings. Do not configure rapid-fire duplicate alerts within the same minute unless idempotency keys are unique. |
+| Conflict | Durable Object intercepted a duplicate trace ID. | Verify TV alert settings. Do not configure rapid-fire duplicate alerts within the same minute unless idempotency keys are unique. |
+| Dashboard shows | Next.js build failed or D schema mismatch. | Re-run hoox deploy dashboard and check logs: hoox logs tail dashboard. |
+| Telegram bot unresponsive | Webhook URL expired or token rotated. | Re-register: hoox deploy telegram-webhook and verify token: hoox secrets check`. |
 ---
 Tip: By utilizing Smart Placement in your production builds, Cloudflare will automatically route execution to the edge nodes located geographically closest to your exchanges (Frankfurt, Tokyo), ensuring high-speed fills!
 Next Steps
 Real-Time Observability & Monitoring — Audit live fills, tail console logs, and run health diagnostics.
 System Self-Healing & Repair — Rebuild broken bindings and recover from deployment anomalies.
+Infrastructure Management — Provision and inspect KV, Queues, R, and Vectorize indexes.
 
 FILE: docs/enduser/guides/repair.md
 ️ Self-Healing & Repair
@@ -1230,9 +1476,9 @@ hoox repair check
 `
 The diagnostics engine runs a strict, sequential analysis of your entire monorepo environment:
 `
-┌────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────┐
 │ hoox Repair Diagnostic Checklist │
-├────────────────────────────────────────────────────────┤
+├──────────────────────────────────────────────────────────────┤
 │ [Step ] Submodule Integrity ......... COMPLETED │
 │ [Step ] Dependency Resolutions ....... COMPLETED │
 │ [Step ] TypeScript Type Safety ...... COMPLETED │
@@ -1240,13 +1486,16 @@ The diagnostics engine runs a strict, sequential analysis of your entire monorep
 │ [Step ] Hardware Secrets Validation . COMPLETED │
 │ │
 │ Diagnostic Result: errors detected │
-└────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────┘
 `
-. Submodule Check: Verifies that all worker folders under workers/ are fully populated and registered in Git.
-. Dependency Check: Audits nodemodules across Bun workspaces for missing or duplicate libraries.
-. Type Safety Check: Compiles the CLI and shared packages to catch syntax or interface errors.
-. Edge Bindings Check: Connects to Cloudflare’s APIs to verify that your D, KV, and Queue namespaces physically exist on your account.
-. Secrets Check: Audits your Workers Secrets to ensure exchange keys and Telegram tokens are securely bound.
+Step Details
+| Step | Check | What It Validates |
+|:----:|-------|-------------------|
+| | Submodule Integrity | All worker folders under workers/ are fully populated and registered in Git |
+| | Dependency Resolution | nodemodules across Bun workspaces are complete with no missing or duplicate libraries |
+| | Type Safety | TypeScript compilation via tsc --noEmit catches syntax or interface errors |
+| | Edge Bindings | Connects to Cloudflare's API to verify D, KV, Queues, R, and Vectorize resources exist on your account |
+| | Secrets Validation | Audits your Workers Secrets to ensure all required exchange keys and tokens are securely bound |
 ---
 . Targeted Component Repairs
 If a diagnostic check fails, you do not need to redeploy the entire stack. You can run highly targeted repairs:
@@ -1257,38 +1506,81 @@ B. Re-audit and sync encrypted Workers Secrets to Cloudflare
 hoox repair secrets
 C. Reset the CONFIGKV configuration namespace to default variables
 hoox repair kv
-D. Re-apply drizzle DQL schemas and run pending D database migrations
+D. Re-apply Drizzle DQL schemas and run pending D database migrations
 hoox repair db
 E. Rebuild and redeploy a single, degraded worker
 hoox repair worker trade-worker
+F. Full interactive workspace rebuild (last resort)
+hoox repair rebuild
 `
+Repair Command Quick Reference
+| Command | Use Case | Safe? | Downtime? |
+|---------|----------|:-----:|:---------:|
+| hoox repair infra | Missing D/KV/Queue bindings on Cloudflare | Yes | None |
+| hoox repair secrets | Rotated API keys need re-binding | Yes | None |
+| hoox repair kv | Configuration drift, need factory defaults | ️ Caution | | Single worker crash or build failure | Yes | Seconds |
+| hoox repair rebuild | Catastrophic failure, full system reset | Destructive | Minutes |
 ---
 . Full System Interactive Rebuild
-In the event of a catastrophic system failure (e.g. lost Cloudflare credentials, corrupted SQLite files, or major monorepo drift), you can execute a full, interactive self-healing rebuild:
-`bash
+In the event of a catastrophic system failure (e.g., lost Cloudflare credentials, corrupted SQLite files, or major monorepo drift), execute a full interactive self-healing rebuild:
+``bash
 Execute an interactive, guided workspace rebuild
 hoox repair rebuild
 `
 The Rebuild Sequence
 When triggered, the CLI walks you through a structured recovery protocol:
-. D Database Backup: Automatically exports your current D ledger as a secure .sql file in backups/recovery-pre-rebuild.sql.
-. Infrastructure Tear-Down: Deletes corrupted D, KV, and Queue instances.
-. Fresh Provisioning: Recreates all database tables and config buckets on Cloudflare.
-. Sequenced Redeployment: Re-compiles and deploys all edge workers in correct dependency sequence.
-. Database Seeding: Restores your backup SQL data and re-applies schema migrations.
-. KV Sync: Applies the -key configuration manifest defaults.
+| Phase | Action | Automatic? |
+|:-----:|--------|:----------:|
+| | D Database Backup — Exports current ledger to backups/recovery-pre-rebuild.sql | Yes |
+| | Infrastructure Tear-Down — Deletes corrupted D, KV, and Queue instances | Yes |
+| | Fresh Provisioning — Recreates all database tables and config buckets on Cloudflare | Yes |
+| | Sequenced Redeployment — Re-compiles and deploys all edge workers in correct dependency order | Yes |
+| | Database Seeding — Restores backup SQL data and re-applies schema migrations | Yes |
+| | KV Sync — Applies the -key configuration manifest defaults | Yes |
 Danger: The hoox repair rebuild command performs destructive resets on D and KV instances. Ensure you carefully read the interactive prompts and confirm database backup completion before letting the script proceed!
 ---
 . Common Troubleshooting Scenarios
 | Symptom / Failure | Primary Root Cause | CLI Healing Action |
-| :----------------------------- | :---------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| bun install or build crashes | Git submodules are empty or out of sync. | git submodule update --init --recursive |
-| DERROR: no such table | SQLite D tables were not initialized. | hoox db apply --remote |
-| Internal Server Error | Missing or rotated exchange API secrets. | hoox secrets set BYBITAPIKEY "key" followed by hoox deploy update-internal-urls. |
-| Telegram Bot is mute | BotFather token is wrong, or webhook is unregistered. | hoox secrets set TELEGRAMBOT_TOKEN "token" followed by hoox deploy telegram-webhook`. |
+| :--- | :--- | :--- |
+| bun install or build crashes | Git submodules are empty or out of sync | git submodule update --init --recursive then hoox repair check |
+| DERROR: no such table | SQLite D tables were not initialized | hoox db apply --remote |
+| Internal Server Error | Missing or rotated exchange API secrets | hoox secrets set BYBITAPIKEY "key" then hoox deploy update-internal-urls |
+| Telegram Bot is mute | BotFather token is wrong, or webhook is unregistered | hoox secrets set TELEGRAMBOTTOKEN "token" then hoox deploy telegram-webhook |
+| Queue depth growing indefinitely | Exchange API consistently returning errors | Check exchange API key validity; hoox monitor queue-depth |
+| Dashboard at errors | Next.js build failed or D schema outdated | hoox repair db then hoox deploy dashboard |
+| All trades returning | Idempotency keys colliding from rapid duplicate webhooks | Verify TradingView alert.freqonceperbar_close setting; wait h for DO TTL cleanup |
+Emergency Decision Tree
+`
+Trading not working?
+│
+├─ Is the kill switch ON? → hoox monitor kill-switch show
+│ ├─ YES → hoox monitor kill-switch off
+│ └─ NO ↓
+│
+├─ Are workers healthy? → hoox monitor status
+│ ├─ Any FAILED? → hoox repair check
+│ └─ All OK ↓
+│
+├─ Are secrets bound? → hoox secrets check
+│ ├─ Any missing? → hoox secrets set
+│ └─ All present ↓
+│
+├─ Is queue depth > ? → hoox monitor queue-depth
+│ ├─ YES → Exchange API issue; check exchange status page
+│ └─ NO ↓
+│
+└─ Still stuck? → Open GitHub Issue with hoox logs tail output
+`
+---
+Pro Tips
+Scheduled Health Checks: Set up a cron job to run hoox repair check daily and email yourself the results.
+Pre-Deploy Checklist: Always run hoox repair check and hoox test before deploying to production.
+Secrets Rotation: Rotate exchange API keys quarterly. Use hoox secrets set` to update — no redeployment needed.
+---
 Next Steps
 Monitoring Operations Guide — Audit system status, tail console logs, and verify fills.
 CLI Reference Manual — Review all CLI commands, options, and JSON flags.
+Configuration Dictionary — Map all environment variables and KV manifest entries.
 
 FILE: docs/enduser/tutorials/tradingview-webhook.md
 TradingView Webhook Integration
@@ -1421,8 +1713,8 @@ Chart Image Audits: If you upload a screenshot of a trading chart or a portfolio
 ---
 Warning: The telegram-worker strictly filters all incoming messages. If a message originates from a Chat ID that does not match your authorized TELEGRAMCHATID` secret, it is silently dropped and logged as a security alert, ensuring your account remains % secure.
 Next Steps
-Astro Docs Site Config — Review your system environment configurations.
-Real-Time Observability & Monitoring — Stream console logs and check queue depths.
+|- Alert Troubleshooting — Common TradingView webhook errors and resolutions.
+|- Platform Configuration Guide — Comprehensive dictionary of all env keys and KV key-value items.
 
 FILE: docs/enduser/tutorials/email-signals.md
 Email Signal Routing
@@ -1476,7 +1768,8 @@ To verify that the email signal ingestion loop works perfectly:
 hoox monitor logs email-worker
 ``
 Next Steps
-Real-Time Observability & Monitoring — Audit executed fills, check logs, and inspect queues.
+|- Alert Troubleshooting — Common TradingView webhook errors and resolutions.
+|- Platform Configuration Guide — Comprehensive dictionary of all env keys and KV key-value items.
 API Endpoint Reference — Review full REST payloads and HTTP error returns.
 
 FILE: docs/enduser/reference/cli-commands.md
@@ -1594,7 +1887,7 @@ hoox repair check
 ---
 Tip: Every single subcommand is fully documented locally! Append --help to any command (e.g. hoox config env --help`) to view advanced positional arguments and specific flag options instantly.
 Next Steps
-Astro Docs Site Config — Map out your build-time environment configurations.
+|- Configuration Dictionary — Comprehensive dictionary of all env keys and KV key-value items.
 API Endpoint Reference — Analyze REST routes, schemas, and gateway error structures.
 
 FILE: docs/enduser/reference/api-endpoints.md
@@ -1760,7 +2053,7 @@ D. Service Unavailable (Kill Switch Engaged)
 ---
 Tip: Every error code is designed to map directly to a readable prompt in the Telegram bot and Next.js dashboard UI, allowing you to instantly diagnose execution problems.
 Next Steps
-Astro Docs Site Config — Map out your build-time environment configurations.
+|- Request Payload Schemas — Analyze the complete JSON request schemas and TypeScript interfaces.
 CLI Commands Reference — Review all CLI commands, options, and JSON flags.
 
 FILE: docs/enduser/reference/configuration.md
@@ -1872,7 +2165,7 @@ Wrangler Dev Setup · Testing Standards · Debugging Runbook
 Exposed API Routes · Request Payloads · Standard Responses
 CLI Commands Engine — Command-line argument parsing, binary execution, and JSON flags.
 ---
-Tip: First time deploying a Hoox workspace to production? Start with the Production Deployment Manual to verify your Cloudflare Account permissions and execute sequencial deployments seamlessly.
+'> Tip: First time deploying a Hoox workspace to production? Start with the Production Deployment Manual to verify your Cloudflare Account permissions and execute sequential deployments seamlessly.
 Quick Links & Offline Reference
 End-User Documentation Hub — Standard setup, cURL webhooks, and TradingView Pine Scripts.
 Hoox Git Submodules — Central monorepo codebase.
@@ -1880,96 +2173,1082 @@ Download Enduser Full PDF Manual — Complete concatenated offline guide.
 Download DevOps Full PDF Manual — Complete concatenated offline DevOps spec.
 View Consolidated LLM Context Text — Giant single-file text format for AI/LLM models.
 
-FILE: docs/devops/setup_and_operations.md
-Operations & Runbook
-This manual is the primary, production-grade operations runbook for Hoox administrators. It outlines the complete system topology, toolchain prerequisites, environment variables, sequential deployment protocols, and guided troubleshooting matrices.
+FILE: docs/devops/setup-and-operations.md
+Hoox Trading System — Complete Setup & Operations Guide
+Version: ..
+Last Updated: --
+Classification: Internal Operations Manual
+Audience: DevOps Engineers, Senior TypeScript Developers, System Administrators
 ---
-. Complete Environment Variables Matrix ( Keys)
-These variables are defined in .env.local for local building/deploying or injected as encrypted Workers Secrets for runtime isolate compute.
-A. Core Platform & Infrastructure
-CLOUDFLAREAPITOKEN: Cloudflare API Token with Workers, D, and KV read/write permissions.
-CLOUDFLAREACCOUNTID: Your unique -character Cloudflare dashboard account hash.
-SUBDOMAINPREFIX: Subdomain prefix under which your public gateway routes compile.
-NODEENV: Target environment profile: development, staging, or production.
-HOOXAPIURL: Local API target URL (automatically configured during dev runs).
-B. Exchange API Credentials (Encrypted Secrets)
-BYBITAPIKEY & BYBITAPISECRET: Bybit order placement account key and HMAC-SHA signature key.
-BINANCEAPIKEY & BINANCEAPISECRET: Binance trade permission key and private HMAC signature.
-MEXCAPIKEY & MEXCAPISECRET: MEXC trade permission key and private HMAC signature.
-C. Telegram Bot Alerts & Telemetry
-TELEGRAMBOTTOKEN: Telegram bot token from @BotFather.
-TELEGRAMCHATID: Authorized numeric Chat ID for pushed fills and commands.
-D. Multi-Provider AI Credentials
-OPENAIAPIKEY: OpenAI API access key.
-ANTHROPICAPIKEY: Anthropic Claude API access key.
-GOOGLEAIAPIKEY: Google Gemini API access key.
-E. DeFi & Web Wallet Settings
-ETHMNEMONIC: Secure or -word seed phrase for EVM swaps.
-RPCPROVIDERURL: HTTP Ethereum / EVM JSON-RPC provider (e.g. Infura/Alchemy).
-F. Email Parsing Inbox Connection
-EMAILHOST: POP/IMAP mailbox server address.
-EMAILUSER: Target signal mailbox email address.
-EMAILPASS: Secure app password for mailbox access.
+Table of Contents
+. System Overview
+. Pre-Flight Requirements
+. Complete Environment Matrix
+. Development Setup
+. Production Setup
+. Infrastructure Provisioning
+. Worker Deployment Sequence
+. Dashboard Setup & Deployment
+. Secret Management Reference
+. Validation & Health Checks
+. Repair & Recovery Procedures
+. Operational Runbook
+. Complete File Inventory
+. Troubleshooting Matrix
+---
+. System Overview
+. Architecture
+Hoox is an edge-deployed cryptocurrency trading system built on Cloudflare Workers. It consists of:
+| Layer | Components |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Gateway | hoox (webhook entrypoint, DO idempotency, KV-backed rate limiting) |
+| Execution | trade-worker (multi-exchange), web-wallet-worker (DeFi) |
+| Intelligence | agent-worker (AI risk manager, min cron, multi-provider AI gateway) |
+| Data | d-worker (centralized D database service) |
+| Notifications | telegram-worker (Telegram bot), email-worker (email signal parsing) |
+| Analytics | analytics-worker (Cloudflare Analytics Engine, cross-worker observability) |
+| Reporting | report-worker (Automated PDF reports via Browser Rendering, x daily cron) |
+| Dashboard | workers/dashboard (Next.js + OpenNext on Cloudflare Workers) |
+| CLI | packages/cli (management tool) |
+| Shared | packages/shared (types, router, middleware, utilities) |
+. Communication Flow
+``
+External Webhook → hoox → [Queue] → trade-worker → D (via d-worker)
+↓
+telegram-worker (notifications)
+↓
+analytics-worker (metrics)
+agent-worker (cron) → trade-worker / d-worker / telegram-worker
+email-worker (cron) → trade-worker
+`
+. Infrastructure Components
+| Service | Instance Name | Binding | Used By |
+| --------------------- | ------------------ | -------------------- | ------------------------------------------------- |
+| D Database | trade-data-db | DB | trade-worker, d-worker, agent-worker |
+| KV Namespace | CONFIGKV | CONFIGKV | ALL workers + dashboard (config + rate limiter) |
+| KV Namespace | SESSIONSKV | SESSIONSKV | hoox |
+| R Bucket | trade-reports | REPORTSBUCKET | trade-worker, report-worker |
+| R Bucket | hoox-system-logs | SYSTEMLOGSBUCKET | trade-worker |
+| R Bucket | user-uploads | UPLOADSBUCKET | telegram-worker |
+| Queue | trade-execution | TRADEQUEUE | hoox (producer), trade-worker (consumer) |
+| Vectorize | my-rag-index | VECTORIZEINDEX | hoox, trade-worker, telegram-worker |
+| Analytics Engine | hoox-analytics | (REST API) | analytics-worker (cross-worker data collection) |
+| Durable Objects | IdempotencyStore | IDEMPOTENCYSTORE | hoox (SQLite-backed, TTL+alarm cleanup) |
+| Browser Rendering | — | (REST API) | report-worker (PDF generation via CF API) |
+| AI | — | AI | hoox, trade-worker, telegram-worker, agent-worker |
+| Smart Placement | — | (wrangler config) | hoox, trade, agent, d, telegram, report |
+---
+. Pre-Flight Requirements
+. Required Accounts
+| Account | Purpose | URL |
+| ----------------------- | ---------------------------------- | --------------------------- |
+| Cloudflare Account | Worker hosting, D, KV, R, Queues | https://dash.cloudflare.com |
+| Telegram Bot | Notifications | Via @BotFather |
+| Exchange APIs | Trading execution | Binance, MEXC, Bybit |
+| AI Providers (optional) | Agent intelligence | OpenAI, Anthropic, Google |
+. Required Tools
+| Tool | Version | Installation Command | Verification |
+| ------------ | --------------------- | ----------------------------------- | -------------------- |
+| Bun | >=. | curl -fsSL https://bun.sh \| bash | bun --version |
+| Git | >=. | apt install git | git --version |
+| Wrangler CLI | latest | bun add -g wrangler | wrangler --version |
+| Node.js | >= (for some tools) | — | node --version |
+. Required Cloudflare Permissions
+Your Cloudflare API Token needs these permissions:
+| Permission | Scope | Why |
+| -------------------------- | ----- | ---------------- |
+| Cloudflare Workers Scripts | Edit | Deploy workers |
+| Account Workers Scripts | Edit | Deploy workers |
+| Account Workers KV Storage | Edit | Manage KV |
+| Account D | Edit | Manage databases |
+| Account R | Edit | Manage buckets |
+| Account Queues | Edit | Manage queues |
+| Account AI | Read | Use Workers AI |
+| Zone Settings | Read | DNS management |
+| Zone DNS | Edit | Custom domains |
+. Required Repository Access
+You need access to clone with submodules:
+`bash
+Main repository
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
+Or via CLI
+hoox clone my-hoox-app
+`
+---
+. Complete Environment Matrix
+. Secret Inventory
+CRITICAL: All production secrets must be set via wrangler secret put or hoox secrets update-cf. Never commit secrets to version control.
+| Secret Name | Worker(s) | Set Via | Required For | Description |
+| ------------------------- | ----------------------------------- | --------------------- | ------------ | -------------------------------------- |
+| CLOUDFLAREAPITOKEN | analytics-worker, CLI | wrangler secret put | Production | CF API token for Analytics SQL queries |
+| WEBHOOKAPIKEYBINDING | hoox | wrangler secret put | Production | External webhook auth key |
+| INTERNALKEYBINDING | hoox, trade-worker, telegram-worker | wrangler secret put | Production | Inter-worker auth |
+| AGENTINTERNALKEY | agent-worker | wrangler secret put | Production | Agent worker auth |
+| APISERVICEKEY | trade-worker | wrangler secret put | Production | Trade worker service key |
+| BINANCEAPIKEY | trade-worker | wrangler secret put | Optional | Binance exchange API |
+| BINANCEAPISECRET | trade-worker | wrangler secret put | Optional | Binance exchange secret |
+| MEXCAPIKEY | trade-worker | wrangler secret put | Optional | MEXC exchange API |
+| MEXCAPISECRET | trade-worker | wrangler secret put | Optional | MEXC exchange secret |
+| BYBITAPIKEY | trade-worker | wrangler secret put | Optional | Bybit exchange API |
+| BYBITAPISECRET | trade-worker | wrangler secret put | Optional | Bybit exchange secret |
+| TELEGRAMBOTTOKEN | telegram-worker | wrangler secret put | Optional | Telegram bot token |
+| TELEGRAMSECRETTOKEN | telegram-worker | wrangler secret put | Optional | Telegram webhook secret |
+| TGBOTTOKENBINDING | telegram-worker | wrangler secret put | Optional | Telegram bot token (binding) |
+| TGCHATIDBINDING | telegram-worker | wrangler secret put | Optional | Default Telegram chat ID |
+| WALLETPKSECRET | web-wallet-worker | wrangler secret put | Optional | Wallet private key |
+| WALLETMNEMONICSECRET | web-wallet-worker | wrangler secret put | Optional | Wallet mnemonic phrase |
+| EMAILHOST | email-worker | wrangler secret put | Optional | Email IMAP host |
+| EMAILUSER | email-worker | wrangler secret put | Optional | Email username |
+| EMAILPASS | email-worker | wrangler secret put | Optional | Email password |
+| INTERNALKEY | email-worker | wrangler secret put | Optional | Email worker auth |
+| DINTERNALKEY | d-worker (header check) | wrangler secret put | Optional | D worker API auth |
+| HATOKENBINDING | hoox | wrangler secret put | Optional | Home Assistant token |
+. Environment Variables by File
+.env.local (Project Root)
+`bash
+=== CLOUDFLARE ACCOUNT ===
+CLOUDFLAREAPITOKEN="cfut..."
+CLOUDFLAREACCOUNTID="debcebeabecbcdec"
+CLOUDFLARESECRETSTOREID="bcafddcefd"
+SUBDOMAINPREFIX="hoox"
+=== INTERNAL AUTH KEYS ===
+DINTERNALKEY=""
+TRADEINTERNALKEY=""
+AGENTINTERNALKEY=""
+=== TELEGRAM ===
+TELEGRAMBOTTOKEN=""
+=== AI PROVIDERS (optional) ===
+AGENTOPENAIKEY="sk-..."
+AGENTANTHROPICKEY="sk-ant-..."
+AGENTGOOGLEKEY="..."
+=== EXCHANGE API KEYS (optional) ===
+BINANCEAPIKEY="..."
+BINANCEAPISECRET="..."
+MEXCAPIKEY="..."
+MEXCAPISECRET="..."
+BYBITAPIKEY="..."
+BYBITAPISECRET="..."
+=== DASHBOARD AUTH ===
+DASHBOARDUSER="admin"
+DASHBOARDPASS=""
+SESSIONSECRET=""
+`
+workers/dashboard/.env.local (Dashboard Local Dev)
+`bash
+DASHBOARDUSER=admin
+DASHBOARDPASS=admin
+`
+workers/dashboard/.dev.vars (Wrangler Dev Mode)
+`bash
+DASHBOARDUSER=admin
+DASHBOARDPASS=admin
+`
+wrangler.jsonc (Central Configuration)
+`jsonc
+{
+"global": {
+"cloudflareapitoken": "",
+"cloudflareaccountid": "debcebeabecbcdec",
+"cloudflaresecretstoreid": "bcafddcefd",
+"subdomainprefix": "hoox",
+},
+"workers": {
+"d-worker": {
+"enabled": true,
+"path": "workers/d-worker",
+"vars": { "databasename": "my-database" },
+},
+"telegram-worker": {
+"enabled": true,
+"path": "workers/telegram-worker",
+"vars": {},
+"secrets": ["TELEGRAMBOTTOKEN"],
+},
+"trade-worker": {
+"enabled": true,
+"path": "workers/trade-worker",
+"vars": {},
+"secrets": [
+"APISERVICEKEY",
+"BINANCEAPIKEY",
+"BINANCEAPISECRET",
+"MEXCAPIKEY",
+"MEXCAPISECRET",
+"BYBITAPIKEY",
+"BYBITAPISECRET",
+],
+},
+"web-wallet-worker": {
+"enabled": true,
+"path": "workers/web-wallet-worker",
+"vars": {},
+"secrets": ["WALLETMNEMONICSECRET", "WALLETPKSECRET"],
+},
+"hoox": {
+"enabled": true,
+"path": "workers/hoox",
+"vars": {},
+"secrets": ["WEBHOOKAPIKEYBINDING"],
+},
+"agent-worker": {
+"enabled": true,
+"path": "workers/agent-worker",
+"vars": {},
+"secrets": ["AGENTINTERNALKEY"],
+},
+"email-worker": {
+"enabled": true,
+"path": "workers/email-worker",
+"vars": { "USEIMAP": "false" },
+"secrets": ["EMAILHOST", "EMAILUSER", "EMAILPASS", "INTERNALKEY"],
+},
+"analytics-worker": {
+"enabled": true,
+"path": "workers/analytics-worker",
+"vars": {},
+"secrets": ["CLOUDFLAREAPITOKEN"],
+},
+},
+"dev": {
+"runtime": "native", // "native" (wrangler) or "docker" (compose) — hoox dev start preference
+},
+}
+`
+. KV Configuration Keys
+These keys must be set in CONFIGKV namespace:
+| Key | Type | Default | Set By | Used By |
+| -------------------------------------------- | ------- | ------- | ------------ | ------------------ |
+| webhook:tradingview:ipcheckenabled | boolean | false | Manual | hoox |
+| webhook:allowedips | string | "" | Manual | hoox |
+| routing:dynamic:enabled | boolean | false | Manual | hoox |
+| trade:maxdailydrawdownpercent | number | | Manual | agent-worker |
+| trade:killswitch | boolean | false | Manual | agent-worker, hoox |
+| trade:watermark:{exchange}:{symbol}:{side} | number | — | agent-worker | agent-worker |
+| agent:openaikey | string | — | Manual | agent-worker |
+| agent:anthropickey | string | — | Manual | agent-worker |
+| agent:googlekey | string | — | Manual | agent-worker |
+| agent:azureapikey | string | — | Manual | agent-worker |
+| agent:azureendpoint | string | — | Manual | agent-worker |
+| email:scansubject | string | — | Manual | email-worker |
+| email:coinpattern | string | — | Manual | email-worker |
+| email:actionpattern | string | — | Manual | email-worker |
+| email:quantitymultiplier | number | | Manual | email-worker |
+| email:useimap | boolean | false | Manual | email-worker |
+---
+. Development Setup
+. Step : Clone Repository
+`bash
+Option A: Via CLI (Recommended)
+hoox clone my-hoox-app
+cd my-hoox-app
+Option B: Direct git clone
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git my-hoox-app
+cd my-hoox-app
+If submodules are missing
+git submodule update --init --recursive
+`
+. Step : Verify Submodules
+`bash
+Check all worker directories exist
+bun run check:worker-submodules
+Expected directories:
+workers/hoox
+workers/trade-worker
+workers/agent-worker
+workers/d-worker
+workers/telegram-worker
+workers/web-wallet-worker
+workers/email-worker
+workers/analytics-worker
+workers/report-worker
+`
+. Step : Install Dependencies
+`bash
+Install all workspace dependencies
+bun install
+Verify installation
+bun run lint ESLint check
+bun run typecheck TypeScript check
+`
+. Step : Configure Local Environment
+`bash
+Copy environment template
+cp .env.example .env.local
+Edit .env.local with your values
+At minimum, set:
+CLOUDFLAREAPITOKEN
+CLOUDFLAREACCOUNTID
+SUBDOMAINPREFIX
+`
+. Step : Authenticate Wrangler
+`bash
+Login to Cloudflare
+wrangler login
+Verify authentication
+wrangler whoami
+`
+. Step : Create Infrastructure (Local)
+For local development, some infrastructure is optional. You need:
+Required:
+D database (for trade data)
+KV namespace (for config)
+Optional for local dev:
+R buckets
+Queues
+Vectorize
+Analytics Engine
+`bash
+Create D database
+wrangler d create trade-data-db
+Create KV namespace
+wrangler kv:namespace create CONFIGKV
+wrangler kv:namespace create SESSIONSKV
+Note the IDs and update wrangler.jsonc files
+`
+. Step : Apply Database Schema
+`bash
+Apply trade worker schema to D
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql
+Apply tracking schema
+bun run migrate:tracking
+`
+. Step : Start Development
+`bash
+Start all workers (prompts for runtime: Native or Docker)
+hoox dev start
+Or force a specific runtime
+hoox dev start --runtime docker docker compose
+hoox dev start --runtime native wrangler dev
+Docker Compose directly (with profiles)
+docker compose --profile workers up workers only
+docker compose --profile full up workers + dashboard
+docker compose --profile dashboard up dashboard only
+Or start individual workers
+hoox dev worker [--runtime native|docker]
+hoox dev dashboard dashboard only
+TUI (interactive terminal UI)
+./hoox-tui
+`
+. Step : Dashboard Local Dev
+`bash
+Start dashboard dev server
+hoox dev dashboard
+Or manually
+cd workers/dashboard && bun run dev
+`
+The dashboard runs at http://localhost:.
+---
+. Production Setup
+. Phase : Account & Tooling
+. Create Cloudflare account
+. Generate API Token with required permissions (see Section .)
+. Install Bun, Wrangler CLI
+. Authenticate: wrangler login
+. Phase : Repository Setup
+`bash
+Clone with submodules
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
+cd hoox-setup
+Install dependencies
+bun install
+Verify structure
+bun run check:worker-submodules
+`
+. Phase : Infrastructure Provisioning
+See Section for detailed commands.
+. Phase : Configuration
+`bash
+Copy and edit environment
+cp .env.example .env.local
+Set all required values
+Update wrangler.jsonc
+Set your accountid
+Set your secretstoreid
+Set your subdomainprefix
+Enable/disable workers as needed
+`
+. Phase : Secret Deployment
+`bash
+Push all secrets to Cloudflare
+hoox secrets update-cf
+Or set individually per worker:
+wrangler secret put WEBHOOKAPIKEYBINDING --config workers/hoox/wrangler.jsonc
+wrangler secret put INTERNALKEYBINDING --config workers/hoox/wrangler.jsonc
+wrangler secret put AGENTINTERNALKEY --config workers/agent-worker/wrangler.jsonc
+... etc for all secrets
+`
+. Phase : Database Setup
+`bash
+Apply schema
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote
+Apply tracking schema
+bun run migrate:tracking
+`
+. Phase : KV Configuration
+`bash
+Set required KV keys
+wrangler kv:key put --namespace-id=caefffbd \
+"webhook:tradingview:ipcheckenabled" "false"
+wrangler kv:key put --namespace-id=caefffbd \
+"trade:killswitch" "false"
+wrangler kv:key put --namespace-id=caefffbd \
+"trade:maxdailydrawdownpercent" ""
+`
+. Phase : Worker Deployment
+See Section for the exact sequence.
+. Phase : Dashboard Deployment
+`bash
+cd workers/dashboard
+Build with OpenNext
+bun run opennext:build
+Deploy to Cloudflare Workers
+bun run opennext:deploy
+`
+. Phase : Verification
+See Section for validation procedures.
+---
+. Infrastructure Provisioning
+. D Database
+`bash
+Create database
+wrangler d create trade-data-db
+Note the databaseid from output
+Update in:
+workers/trade-worker/wrangler.jsonc
+workers/d-worker/wrangler.jsonc
+Apply schema
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote
+`
+Schema Tables:
+tradesignals — Incoming signal tracker
+trades — Executed trades log
+positions — Active & closed positions
+balances — Exchange balance snapshots
+systemlogs — System observability logs
+. KV Namespaces
+`bash
+Create CONFIGKV (shared across all workers)
+wrangler kv:namespace create CONFIGKV
+ID: caefffbd
+Create SESSIONSKV (for hoox gateway)
+wrangler kv:namespace create SESSIONSKV
+ID: ffabedaacc
+Update all wrangler.jsonc files with these IDs
+`
+. R Buckets
+`bash
+Create trade reports bucket
+wrangler r bucket create trade-reports
+Create system logs bucket
+wrangler r bucket create hoox-system-logs
+Create user uploads bucket
+wrangler r bucket create user-uploads
+`
+. Queue
+`bash
+Create trade execution queue
+wrangler queues create trade-execution
+`
+. Vectorize Index
+`bash
+Create RAG vector index
+wrangler vectorize create my-rag-index --dimensions= --metric=cosine
+`
+. Analytics Engine
+`bash
+Create analytics dataset
+Via Cloudflare Dashboard: Workers & Pages > Analytics Engine
+Name: hoox-analytics
+`
+. Durable Objects Migration
+The hoox worker requires a Durable Object migration:
+`jsonc
+// Already defined in workers/hoox/wrangler.jsonc
+"durableobjects": {
+"bindings": [
+{
+"name": "IDEMPOTENCYSTORE",
+"classname": "IdempotencyStore"
+}
+]
+},
+"migrations": [
+{
+"tag": "v",
+"newsqliteclasses": ["IdempotencyStore"]
+}
+]
+`
+This is automatically applied on first deploy.
 ---
 . Worker Deployment Sequence
-Because Hoox microservices communicate internally using fast-path Service Bindings, they have strict compile-time and deploy-time dependencies. Deploy workers in the following strict sequential hierarchy:
-``
-. analytics-worker (No dependencies)
-. report-worker (Depends on: analytics-worker)
-. d-worker (Depends on: analytics-worker)
-. telegram-worker (Depends on: trade-worker, hoox, analytics-worker)
-. web-wallet-worker (Depends on: telegram-worker, analytics-worker)
-. email-worker (Depends on: trade-worker, analytics-worker)
-. trade-worker (Depends on: d-worker, telegram-worker, analytics-worker)
-. agent-worker (Depends on: d-worker, trade-worker, telegram-worker, analytics-worker)
-. hoox Gateway (Depends on: trade-worker, telegram-worker, analytics-worker)
-. dashboard (Depends on: all services being live)
+IMPORTANT: Deploy order matters due to service bindings. A worker must be deployed before another worker can bind to it.
+. Deployment Order
 `
+. analytics-worker (no dependencies)
+. report-worker (depends on: analytics-worker)
+. d-worker (depends on: analytics-worker)
+. telegram-worker (depends on: trade-worker, hoox, analytics-worker)
+. web-wallet-worker (depends on: telegram-worker, analytics-worker)
+. email-worker (depends on: trade-worker, analytics-worker)
+. trade-worker (depends on: d-worker, telegram-worker, analytics-worker)
+. agent-worker (depends on: d-worker, trade-worker, telegram-worker, analytics-worker)
+. hoox (depends on: trade-worker, telegram-worker, analytics-worker)
+. dashboard (depends on: all services being live)
+`
+. Deployment Commands
 `bash
-Automated Sequenced Deployment via CLI
-hoox deploy all --auto
-Or deploy a single specific worker
-hoox deploy worker trade-worker
+Deploy all workers in correct order
+hoox workers deploy analytics-worker
+hoox workers deploy report-worker
+hoox workers deploy d-worker
+hoox workers deploy telegram-worker
+hoox workers deploy web-wallet-worker
+hoox workers deploy email-worker
+hoox workers deploy trade-worker
+hoox workers deploy agent-worker
+hoox workers deploy hoox
+Or deploy all enabled workers (CLI handles order)
+hoox workers deploy --all
+`
+. Post-Deployment: Telegram Webhook
+`bash
+Set Telegram webhook after telegram-worker is deployed
+curl -X POST "https://api.telegram.org/bot/setWebhook" \
+-H "Content-Type: application/json" \
+-d '{
+"url": "https://telegram-worker..workers.dev/webhook/",
+"secrettoken": ""
+}'
+`
+. Post-Deployment: Update Internal URLs
+`bash
+Update service URLs in dashboard wrangler.jsonc
+hoox workers update-internal-urls
 `
 ---
-. Secret Management Runbook
-Secrets are securely uploaded to Cloudflare's hardware key vaults using the CLI:
+. Dashboard Setup & Deployment
+. Configuration Files
+| File | Purpose |
+| --------------------------------------- | ------------------------------ |
+| workers/dashboard/next.config.ts | Next.js config (OpenNext init) |
+| workers/dashboard/wrangler.jsonc | Worker deployment config |
+| workers/dashboard/open-next.config.ts | OpenNext adapter config |
+| workers/dashboard/.env.local | Local dev credentials |
+| workers/dashboard/.dev.vars | Wrangler dev credentials |
+. Wrangler Configuration
+`jsonc
+// workers/dashboard/wrangler.jsonc
+{
+"name": "hoox-dashboard",
+"main": ".open-next/worker.js",
+"accountid": "debcebeabecbcdec",
+"compatibilitydate": "--",
+"compatibilityflags": ["nodejscompat"],
+"assets": {
+"directory": ".open-next/assets",
+"binding": "ASSETS",
+},
+"kvnamespaces": [
+{
+"binding": "CONFIGKV",
+"id": "caefffbd",
+},
+],
+"vars": {
+"DWORKERURL": "https://d-worker.hoox.workers.dev",
+"AGENTSERVICEURL": "https://agent-worker.hoox.workers.dev",
+"TRADESERVICEURL": "https://trade-worker.hoox.workers.dev",
+"TELEGRAMSERVICEURL": "https://telegram-worker.hoox.workers.dev",
+},
+}
+`
+. Local Development
 `bash
-Inject Bybit Credentials
-hoox secrets set BYBITAPIKEY "yourbybitkey"
-hoox secrets set BYBITAPISECRET "yourbybitsecret"
-Check active secret synchronization on Cloudflare
+cd workers/dashboard
+Install dashboard dependencies (if not done at root)
+bun install
+Set credentials
+cp .env.local.example .env.local
+Edit: DASHBOARDUSER, DASHBOARDPASS
+Start dev server
+bun run dev
+Access: http://localhost:
+`
+. Production Build & Deploy
+`bash
+cd workers/dashboard
+Install dependencies
+bun install
+Build with OpenNext
+bun run opennext:build
+Output: .open-next/worker.js and .open-next/assets
+Deploy to Cloudflare Workers
+bun run opennext:deploy
+Or from root:
+bun run pages:deploy
+`
+. Dashboard Environment Variables
+| Variable | Required | Description |
+| ----------------------- | -------- | ----------------------------------- |
+| DASHBOARDUSER | Yes | Login username |
+| DASHBOARDPASS | Yes | Login password |
+| SESSIONSECRET | Yes | Cookie signing secret (+ chars) |
+| AUTHTYPE | No | basic, cf-access, or none |
+| CFACCESSTEAMNAME | No | CF Access team (if using cf-access) |
+| DWORKERURL | Yes | D worker service URL |
+| TRADESERVICEURL | Yes | Trade worker service URL |
+| AGENTSERVICEURL | Yes | Agent worker service URL |
+| TELEGRAMSERVICEURL | Yes | Telegram worker service URL |
+| DINTERNALKEY | Yes | Auth key for D worker |
+| AGENTINTERNALKEY | Yes | Auth key for agent worker |
+| TELEGRAMINTERNALKEY | No | Auth key for telegram worker |
+| APISERVICEKEY | No | General API service key |
+---
+. Secret Management Reference
+. Setting Secrets via CLI
+`bash
+Set a secret for a specific worker
+wrangler secret put --config workers//wrangler.jsonc
+You will be prompted to enter the value (hidden input)
+Set secret via hoox CLI
+hoox secrets update-cf
+Set all secrets from wrangler.jsonc
+hoox secrets update-cf
+`
+. Local Development Secrets
+For local development with wrangler dev, create .dev.vars in each worker directory:
+`bash
+workers/hoox/.dev.vars
+WEBHOOKAPIKEYBINDING=dev-webhook-key
+INTERNALKEYBINDING=dev-internal-key
+workers/trade-worker/.dev.vars
+INTERNALKEYBINDING=dev-internal-key
+MEXCKEYBINDING=dev-mexc-key
+MEXCSECRETBINDING=dev-mexc-secret
+... etc
+`
+. Secret Security Best Practices
+. Never commit secrets — Use .gitignore for .env.local, .dev.vars, .keys/
+. Use wrangler secret put — Never pass secrets as CLI arguments
+. Rotate regularly — Exchange API keys every days
+. Use least privilege — Create exchange API keys with minimal permissions
+. Enable IP restrictions — Restrict exchange API keys to Cloudflare IP ranges
+. Monitor usage — Review analytics-worker logs for unusual patterns
+---
+. Validation & Health Checks
+. Automated Validation Commands
+`bash
+Check overall setup
+hoox check-setup
+Check secrets
 hoox secrets check
+Check worker status
+hoox workers status
+Run tests
+bun test
+bun run tests:coverage
+Type checking
+bun run typecheck
+bun run build
+Lint
+bun run lint
+`
+. Manual Health Checks
+.. Gateway Health
+`bash
+Check hoox gateway
+curl https://hoox..workers.dev/health
+Expected: {"status":"ok"}
+`
+.. Trade Worker Health
+`bash
+Check trade worker
+curl https://trade-worker..workers.dev/health
+Check signals endpoint
+curl https://trade-worker..workers.dev/api/signals \
+-H "Authorization: Bearer "
+`
+.. Agent Worker Health
+`bash
+Check agent health
+curl https://agent-worker..workers.dev/health
+Check status
+curl https://agent-worker..workers.dev/status
+`
+.. D Worker Health
+`bash
+Test D query
+curl -X POST https://d-worker..workers.dev/query \
+-H "Content-Type: application/json" \
+-H "X-Internal-Auth-Key: " \
+--data '{"query":"SELECT "}'
+`
+.. Telegram Worker Health
+`bash
+Check telegram worker
+curl https://telegram-worker..workers.dev/health
+`
+.. Analytics Worker Health
+`bash
+Track a test event
+curl -X POST https://analytics-worker..workers.dev/track/test \
+-H "Content-Type: application/json" \
+--data '{"event":"test","value":}'
+`
+.. Dashboard Health
+`bash
+Check dashboard
+curl https://hoox-dashboard..workers.dev/api/health
+`
+. Database Validation
+`bash
+List tables
+wrangler d execute trade-data-db --command="SELECT name FROM sqlitemaster WHERE type='table'" --remote
+Check tradesignals count
+wrangler d execute trade-data-db --command="SELECT COUNT() FROM tradesignals" --remote
+Check recent logs
+wrangler d execute trade-data-db --command="SELECT FROM systemlogs ORDER BY timestamp DESC LIMIT " --remote
+`
+. KV Validation
+`bash
+List KV keys
+wrangler kv:key list --namespace-id=caefffbd
+Check kill switch
+wrangler kv:key get --namespace-id=caefffbd "trade:killswitch"
+`
+. Complete System Validation Checklist
+[ ] All workers deployed and returning HTTP on /health
+[ ] D database has all required tables
+[ ] KV namespace has required configuration keys
+[ ] Secrets are set for all enabled workers
+[ ] Service bindings resolve correctly (no / errors)
+[ ] Queue is configured and consumer is registered
+[ ] Telegram webhook is set and responding
+[ ] Dashboard accessible and authenticated
+[ ] Analytics Engine receiving data points
+[ ] Cron triggers scheduled (agent-worker: every min, email-worker: every min)
+---
+. Repair & Recovery Procedures
+. Complete System Repair Checklist
+`bash
+. Verify repository integrity
+bun run check:worker-submodules
+bun run lint:scripts
+. Verify dependencies
+bun install
+. Verify TypeScript
+bun run typecheck
+. Verify tests
+bun test
+. Verify infrastructure exists
+wrangler d list
+wrangler kv:namespace list
+wrangler r bucket list
+wrangler queues list
+wrangler vectorize list
+. Verify secrets
+hoox secrets check
+. Verify worker status
+hoox workers status
+. Redeploy if needed
+hoox workers deploy --all
+`
+. Individual Worker Repair
+`bash
+Redeploy a single worker
+hoox workers deploy
+Check worker logs
+hoox workers logs
+Tail logs in real-time
+wrangler tail --config workers//wrangler.jsonc
+`
+. Database Repair
+`bash
+Reset database schema (WARNING: Destructive)
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote
+Apply tracking schema
+bun run migrate:tracking
+Check for missing tables
+wrangler d execute trade-data-db --command="SELECT name FROM sqlitemaster WHERE type='table'" --remote
+`
+. Secret Repair
+`bash
+If secrets are missing, re-upload all from wrangler.jsonc
+hoox secrets update-cf
+Or set individual secrets
+wrangler secret put --config workers//wrangler.jsonc
+`
+. KV Configuration Repair
+`bash
+Reset critical KV keys
+wrangler kv:key put --namespace-id=caefffbd "trade:killswitch" "false"
+wrangler kv:key put --namespace-id=caefffbd "webhook:tradingview:ipcheckenabled" "false"
+wrangler kv:key put --namespace-id=caefffbd "trade:maxdailydrawdownpercent" ""
+`
+. Dashboard Repair
+`bash
+cd workers/dashboard
+Rebuild
+bun run opennext:build
+Redeploy
+bun run opennext:deploy
+Clear browser cache and cookies if auth issues
+`
+. Complete Rebuild from Scratch
+`bash
+. Backup any important data from D/R
+. Delete and recreate D
+wrangler d delete trade-data-db
+wrangler d create trade-data-db
+. Delete and recreate KV (note: data loss)
+KV namespaces cannot be renamed, create new ones if needed
+. Redeploy all workers
+hoox workers deploy --all
+. Re-apply schema
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote
+. Reconfigure KV
+Set all required keys (see Section .)
+. Reconfigure Telegram webhook
+(see Section .)
+. Redeploy dashboard
+cd workers/dashboard && bun run opennext:build && bun run opennext:deploy
 `
 ---
-. Global Kill Switch & Emergency Operations
-The Global Kill Switch is your emergency brake. Stored inside the sub-millisecond CONFIGKV namespace, flipping this parameter instantly blocks all incoming trade signals globally in under seconds:
+. Operational Runbook
+. Daily Operations
 `bash
-View active state of the Kill Switch
-hoox monitor kill-switch show
-Emergency HALT - disable all trade execution immediately
-hoox monitor kill-switch on
-Resume normal operations
-hoox monitor kill-switch off
+Check system health
+hoox workers status
+Check recent trades
+wrangler d execute trade-data-db --command="SELECT FROM trades ORDER BY timestamp DESC LIMIT " --remote
+Check system logs
+wrangler d execute trade-data-db --command="SELECT FROM systemlogs ORDER BY timestamp DESC LIMIT " --remote
+`
+. Kill Switch Operations
+`bash
+Emergency stop all trading
+wrangler kv:key put --namespace-id=caefffbd "trade:killswitch" "true"
+Resume trading
+wrangler kv:key put --namespace-id=caefffbd "trade:killswitch" "false"
+`
+. Updating Workers
+`bash
+Pull latest code
+git pull --recurse-submodules
+Update dependencies
+bun install
+Run checks
+bun run lint
+bun run typecheck
+bun test
+Deploy updated workers
+hoox workers deploy --all
+Verify deployment
+hoox workers status
+`
+. Rotating Secrets
+`bash
+Generate new key
+hoox keys generate
+Update in Cloudflare
+hoox secrets update-cf
+Update any local .dev.vars files
+Verify functionality
+bun test
+`
+. Monitoring
+| Metric | How to Check |
+| ------------- | ---------------------------------------------------------------------- |
+| Worker errors | wrangler tail --config workers//wrangler.jsonc |
+| Trade volume | D SELECT COUNT() FROM trades WHERE timestamp > unixepoch() - |
+| Queue depth | Cloudflare Dashboard > Queues |
+| Analytics | Cloudflare Dashboard > Analytics Engine |
+| System logs | D systemlogs table |
+| Uptime | Cloudflare Dashboard > Workers |
+. Backup Procedures
+`bash
+Export D database
+wrangler d export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
+Export KV (manual script needed)
+R buckets can be synced with rclone
 `
 ---
-️ . Troubleshooting & Diagnostics
-Alt Alternate Screen Buffer Cleanup
-If you force-close the terminal and find that your prompt remains garbled, execute a terminal reset:
+. Complete File Inventory
+. Required Configuration Files
+| File | Purpose | Required |
+| ------------------ | ---------------------------- | -------- |
+| wrangler.jsonc | Central worker configuration | Yes |
+| .env.local | Local environment variables | Yes |
+| package.json | Root workspace manifest | Yes |
+| bunfig.toml | Bun test configuration | Yes |
+| tsconfig.json | TypeScript configuration | Yes |
+| vitest.config.ts | Integration test config | Yes |
+. Worker Configuration Files
+| Worker | Wrangler Config | Main Entry | Schema |
+| -------------------- | ------------------------------------------- | ----------------------------------------- | --------------------------------- |
+| hoox | workers/hoox/wrangler.jsonc | workers/hoox/src/index.ts | — |
+| trade-worker | workers/trade-worker/wrangler.jsonc | workers/trade-worker/src/index.ts | workers/trade-worker/schema.sql |
+| agent-worker | workers/agent-worker/wrangler.jsonc | workers/agent-worker/src/index.ts | — |
+| d-worker | workers/d-worker/wrangler.jsonc | workers/d-worker/src/index.ts | — |
+| telegram-worker | workers/telegram-worker/wrangler.jsonc | workers/telegram-worker/src/index.ts | — |
+| web-wallet-worker | workers/web-wallet-worker/wrangler.jsonc | workers/web-wallet-worker/src/index.ts | — |
+| email-worker | workers/email-worker/wrangler.jsonc | workers/email-worker/src/index.ts | — |
+| analytics-worker | workers/analytics-worker/wrangler.jsonc | workers/analytics-worker/src/index.ts | — |
+| report-worker | workers/report-worker/wrangler.jsonc | workers/report-worker/src/index.ts | — |
+. Dashboard Files
+| File | Purpose |
+| --------------------------------------- | ------------------------------------ |
+| workers/dashboard/next.config.ts | Next.js configuration |
+| workers/dashboard/wrangler.jsonc | Cloudflare Workers deployment config |
+| workers/dashboard/open-next.config.ts | OpenNext adapter configuration |
+| workers/dashboard/src/middleware.ts | Edge middleware (auth) |
+| workers/dashboard/.env.local | Local dev credentials |
+| workers/dashboard/.dev.vars | Wrangler dev credentials |
+. Package Files
+| Package | Main Export | Purpose |
+| ----------------- | -------------- | -------------------------------- |
+| packages/cli | bin/hoox.js | CLI management tool |
+| packages/shared | src/index.ts | Shared types, router, middleware |
+. Script Files
+| Script | Purpose |
+| ------------------------------------ | ------------------------------------- |
+| scripts/migrate-tracking.sh | D tracking schema migration |
+| scripts/check-script-paths.ts | Validate script paths |
+| scripts/check-worker-submodules.ts | Verify worker directories exist |
+| scripts/purge-credentials.sh | Git history credential purge |
+| hoox-tui | Terminal UI for local dev (if exists) |
+. Documentation Files
+| Document | Purpose |
+| --------------------------------------- | -------------------------- |
+| docs/home.md | Project home |
+| docs/getting-started/installation.md | Installation guide |
+| docs/getting-started/configuration.md | Configuration guide |
+| docs/deployment/production.md | Production deployment |
+| docs/development/local-dev.md | Local development |
+| docs/workers/.md | Per-worker documentation |
+| docs/architecture/.md | Architecture documentation |
+| docs/api/.md | API documentation |
+---
+. Troubleshooting Matrix
+| Symptom | Likely Cause | Solution |
+| ----------------------- | ------------------------- | --------------------------------------------------------------------------------------- |
+| bun install fails | Missing submodules | git submodule update --init --recursive |
+| wrangler login fails | Browser/auth issue | Try wrangler login --browser=false |
+| Worker deploy fails | Missing secrets | hoox secrets update-cf |
+| Bad Gateway | Service binding not found | Deploy dependency workers first (Section ) |
+| Unauthorized | Wrong API key | Check secret values with wrangler secret list |
+| Too Many Requests | Rate limiting | Check KV rate limit keys; increase limits |
+| D query fails | Schema not applied | Run wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote |
+| Telegram not receiving | Webhook not set | Run webhook setup (Section .) |
+| Dashboard error | Missing env vars | Check .env.local and .dev.vars |
+| TypeScript errors | Missing types | bun install to refresh @cloudflare/workers-types |
+| Tests fail | Missing test env | Check bunfig.toml test.env settings |
+| Queue not processing | Consumer not bound | Check trade-worker wrangler.jsonc queue consumer config |
+| Analytics missing | Dataset not created | Create hoox-analytics in Cloudflare Dashboard |
+| Kill switch not working | KV key missing | Set trade:killswitch in CONFIGKV |
+| Exchange API errors | Invalid keys | Regenerate and re-upload exchange secrets |
+| Build fails | TypeScript errors | bun run typecheck to identify issues |
+| OpenNext build fails | Missing assets | Ensure next.config.ts has initOpenNextCloudflareForDev() |
+---
+Appendix A: Quick Reference Commands
 `bash
-reset
-or
-tput reset
+Setup
+bun install
+hoox init
+hoox secrets update-cf
+Development
+hoox dev start Start all workers (choose runtime)
+hoox dev dashboard Dashboard only
+./hoox-tui Interactive TUI
+hoox workers dev Dev single worker
+bun run dev Dashboard dev
+Testing
+bun test Unit tests
+bun run tests:coverage Coverage
+bun run test:integration Integration tests
+Deployment
+hoox workers deploy Deploy all
+hoox workers deploy Deploy one
+bun run pages:deploy Deploy dashboard
+Operations
+hoox workers status Check status
+hoox workers logs View logs
+hoox check-setup Validate setup
+hoox secrets check Check secrets
+Database
+wrangler d execute trade-data-db --file=workers/trade-worker/schema.sql --remote
+bun run migrate:tracking
+KV
+wrangler kv:key put --namespace-id=
+wrangler kv:key list --namespace-id=
+Secrets
+wrangler secret put --config workers//wrangler.jsonc
+hoox secrets update-cf
+Health Checks
+curl https://..workers.dev/health
 `
-Bad Gateway
-Root Cause: Service binding target is missing or has crashed.
-Fix: Ensure the dependency worker (e.g. trade-worker) has been deployed successfully. Run hoox deploy all to rebuild all bonds.
-Service Unavailable
-Root Cause: The Global Kill Switch is active in KV.
-Fix: Verify switch state: hoox monitor kill-switch show. If safe, restore trading: hoox monitor kill-switch off`.
-Next Steps
-Astro Docs Site Config — Map out your build-time environment configurations.
-Architecture & Edge Topology — In-depth architectural outlines and Service Bindings routing maps.
+Appendix B: Directory Structure
+`
+hoox-setup/
+├── .opencode/ Project intelligence hub
+├── .env.local Local environment (gitignored)
+├── .env.example Environment template
+├── wrangler.jsonc Central worker config
+├── package.json Root workspace manifest
+├── bunfig.toml Bun config
+├── tsconfig.json TypeScript config
+├── vitest.config.ts Vitest config
+├── hoox-tui TUI launcher (if exists)
+│
+├── packages/
+│ ├── cli/ CLI tool
+│ │ ├── bin/hoox.js CLI entry
+│ │ └── src/
+│ │ ├── index.ts Command dispatcher
+│ │ ├── commands/ CLI commands
+│ │ ├── adapters/ Cloudflare/Bun adapters
+│ │ └── core/ Engine, observer, types
+│ └── shared/ Shared types/utilities
+│ └── src/
+│ ├── types.ts Core types
+│ ├── router.ts Custom router
+│ ├── middleware/ Auth, rate-limit, logger
+│ └── errors.ts Error factories
+│
+├── workers/
+│ ├── hoox/ Gateway worker
+│ ├── trade-worker/ Trading execution
+│ │ └── schema.sql D schema
+│ ├── agent-worker/ AI risk manager
+│ ├── d-worker/ Database service
+│ ├── telegram-worker/ Telegram notifications
+│ ├── web-wallet-worker/ DeFi operations
+│ ├── email-worker/ Email signal parsing
+│ ├── analytics-worker/ Analytics collection
+│ ├── report-worker/ PDF reports
+│ └── dashboard/ Next.js dashboard
+│ ├── next.config.ts
+│ ├── wrangler.jsonc
+│ ├── src/middleware.ts
+│ └── src/app/ Next.js app routes
+│
+├── scripts/
+│ ├── migrate-tracking.sh D tracking migration
+│ ├── check-worker-submodules.ts
+│ └── purge-credentials.sh Emergency credential purge
+│
+└── docs/ Documentation
+├── getting-started/
+├── deployment/
+├── development/
+├── workers/
+└── architecture/
+``
+---
+Document Version: ..
+Last Updated: --
+Maintainer: Hoox Development Team_
 
 FILE: docs/devops/installation-flow.md
 Cloudflare Workers Setup Flow
@@ -2021,7 +3300,7 @@ This file represents the declarative single source of truth for your monorepo's 
 {
 "global": {
 "cloudflareaccountid": "debcebeabecbcdec",
-"subdomainprefix": "cryptolinx",
+"subdomainprefix": "hoox",
 },
 "workers": {
 "d-worker": {
@@ -2205,7 +3484,6 @@ Latency Guarantee: Internal isolate transitions are completed in under microseco
 "services": [
 { "binding": "TRADESERVICE", "service": "trade-worker" },
 { "binding": "TELEGRAMSERVICE", "service": "telegram-worker" },
-{ "binding": "ANALYTICSSERVICE", "service": "analytics-worker" },
 ],
 }
 `
@@ -2316,7 +3594,7 @@ headers: { "X-Internal-Auth-Key": "secretlocaltestkey" },
 );
 const data = await res.json();
 expect(res.status).toBe();
-expect(data.orderId).toBe("mockorder_");
+expect(data.orderId).toBe("mockorder");
 });
 ``
 Next Steps
@@ -2355,36 +3633,31 @@ Storage Engineering Manual — Dive into Drizzle database schemas and SQLite pro
 
 FILE: docs/devops/architecture/bindings.md
 Infrastructure Bindings Index
-In Cloudflare’s serverless architecture, bindings represent the declarative bridges linking your isolate compute logic to other internal microservices and storage platforms. This document serves as the absolute, production-grade reference registry for all resource bindings configured in the Hoox monorepo.
+Canonical Reference: For the complete, up-to-date bindings reference, see docs/devops/bindings.md.
+This document provides architectural context and additional details about how bindings work in the Hoox monorepo.
+In Cloudflare's serverless architecture, bindings represent the declarative bridges linking your isolate compute logic to other internal microservices and storage platforms. This document serves as the architectural companion to the canonical bindings reference.
 ---
 . Secrets & Environment Variables Matrix
-These parameters represent encrypted variables injected directly into V execution isolates at runtime.
-| Variable Name | Type | Bound Workers | Operational Impact |
-| :---------------------------- | :----: | :--------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| INTERNALKEYBINDING | Secret | hoox, trade-worker, d-worker, telegram-worker, email-worker | Cryptographic auth key used by the requireInternalAuth middleware to validate service-to-service calls. |
-| TGBOTTOKENBINDING | Secret | telegram-worker | Secret bot token issued by @BotFather to authenticate Telegram API commands and alerts. |
-| TELEGRAMSECRETTOKEN | Secret | telegram-worker | Webhook verification token to authorize Telegram push events. |
-| WEBHOOKAPIKEY | Secret | hoox | General passkey validated during incoming webhook signal requests. |
-| BYBITAPIKEY / SECRET | Secret | trade-worker | Credentials used to execute cryptographically signed order routes to Bybit's APIs. |
-| BINANCEAPIKEY / SECRET | Secret | trade-worker | Credentials used to execute trade routes to Binance's APIs. |
-| MEXCAPIKEY / SECRET | Secret | trade-worker | Credentials used to execute trade routes to MEXC's APIs. |
-| CFAPITOKEN | Secret | report-worker | Access token used to invoke the Cloudflare Puppeteer Browser Rendering APIs. |
+See: docs/devops/bindings.mdsecrets--environment-variables for the complete list.
+These parameters represent encrypted variables injected directly into V execution isolates at runtime. Key secrets include:
+INTERNALKEYBINDING: Cryptographic auth key used by the requireInternalAuth middleware to validate service-to-service calls.
+TGBOTTOKENBINDING: Secret bot token issued by @BotFather to authenticate Telegram API commands and alerts.
+Exchange API Keys: Bybit, Binance, MEXC credentials for cryptographically signed order routes.
+CFAPITOKEN: Access token for Cloudflare Browser Rendering APIs.
 ---
 . Service Bindings (Compute Connectors)
-Service Bindings link workers' V runtimes together locally in memory, with microsecond latency and zero external internet hops.
-| Binding Name | Ingesting Worker | Target Service | Purpose |
-| :----------------- | :----------------------------------------------------------- | :---------------- | :--------------------------------------------------------- |
-| TRADESERVICE | hoox, agent-worker, email-worker | trade-worker | Handles leverage calculation, size scaling, and execution. |
-| TELEGRAMSERVICE | hoox, trade-worker, agent-worker, report-worker | telegram-worker | Dispatches real-time alerts and parses slash commands. |
-| DSERVICE | trade-worker, agent-worker, report-worker, dashboard | d-worker | Serves as the high-integrity proxy SQL data manager. |
-| AGENTSERVICE | dashboard | agent-worker | Triggers risk audits, chat streams, and telemetry updates. |
+See: docs/devops/bindings.mdservice-bindings for the complete list.
+Service Bindings link workers' V runtimes together locally in memory, with microsecond latency and zero external internet hops:
+TRADESERVICE: Handles leverage calculation, size scaling, and execution.
+TELEGRAMSERVICE: Dispatches real-time alerts and parses slash commands.
+DSERVICE: Serves as the high-integrity proxy SQL data manager.
+AGENTSERVICE: Triggers risk audits, chat streams, and telemetry updates.
 ---
 . KV Namespace Caches
-Key-Value caches store parameters that require sub-millisecond read access.
-| Binding Name | Bound Workers | Purpose |
-| :------------ | :-------------------------- | :---------------------------------------------------------------------------- |
-| CONFIGKV | All Workers + Dashboard | Primary cache for the -key runtime manifest, rate-limiter, and Kill Switch. |
-| SESSIONSKV | hoox Gateway | Stores active webhook session credentials and token cookie states. |
+See: docs/devops/bindings.mdkv-namespace-bindings for the complete list.
+Key-Value caches store parameters that require sub-millisecond read access:
+CONFIGKV: Primary cache for the -key runtime manifest, rate-limiter, and Kill Switch.
+SESSIONSKV: Stores active webhook session credentials and token cookie states.
 ---
 . Asynchronous Queues
 Queues guarantee message delivery during times of heavy exchange network congestion or API rate limits.
@@ -2400,27 +3673,29 @@ Durable Objects enforce exactly-once execution, preventing catastrophic double-t
 | IDEMPOTENCYSTORE | hoox Gateway | IdempotencyStore | Mutex locking engine with local SQLite and auto-alarm garbage collection. |
 ---
 . R Object Storage Buckets
-R Buckets store heavy files with zero bandwidth egress retrieval fees.
-| Binding Name | Bound Workers | Bucket Name | Target Asset Payload |
-| :------------------- | :------------------------------ | :----------------- | :---------------------------------------------- |
-| REPORTSBUCKET | trade-worker, report-worker | trade-reports | Compiled PDF daily/weekly portfolio reports. |
-| SYSTEMLOGSBUCKET | trade-worker | hoox-system-logs | Verbose exchange API request-response logs. |
-| UPLOADSBUCKET | telegram-worker | user-uploads | User chart screenshots and conversation images. |
+See: docs/devops/bindings.mdr-bucket-bindings for the complete list.
+R Buckets store heavy files with zero bandwidth egress retrieval fees:
+REPORTSBUCKET: Compiled PDF daily/weekly portfolio reports.
+SYSTEMLOGSBUCKET: Verbose exchange API request-response logs.
+UPLOADSBUCKET: User chart screenshots and conversation images.
 ---
 . D SQLite Databases
+See: docs/devops/bindings.mdd-database-bindings for the complete list.
 | Binding Name | Bound Workers | Database Instance Name | Purpose |
 | :----------- | :------------ | :--------------------- | :-------------------------------------------- |
 | DB | d-worker | trade-data-db | Primary transactional trade database storage. |
 ---
 . Workers AI & Vectorize Indexes
+See: docs/devops/bindings.mdai-bindings and docs/devops/bindings.mdvectorize-bindings for the complete list.
 | Binding Name | Bound Workers | Target Asset Name | Operational Purpose |
 | :---------------- | :-------------------------------------------------------- | :---------------- | :------------------------------------------------ |
 | AI | hoox, trade-worker, agent-worker, telegram-worker | Edge LLM Models | Runs LLaMA- inference, risk analysis, and chat. |
 | VECTORIZEINDEX | telegram-worker | rag-index | Custom semantic search vector DB for RAG queries. |
 ---
 . Puppeteer Browser Rendering
-The report-worker invokes Cloudflare’s Browser Rendering Chrome isolates using a secure REST API (no binding required):
-Route: POST https://api.cloudflare.com/client/v/accounts/{account_id}/browser-rendering/pdf
+See: docs/devops/bindings.mdbrowser-rendering for the complete details.
+The report-worker invokes Cloudflare's Browser Rendering Chrome isolates using a secure REST API (no binding required):
+Route: POST https://api.cloudflare.com/client/v/accounts/{accountid}/browser-rendering/pdf
 Headers:
 ``http
 Authorization: Bearer
@@ -2439,6 +3714,7 @@ JSON Payload:
 ---
 Tip: Adding new bindings to your workers? Always update your wrangler.jsonc manifest at the workspace root, and then execute hoox deploy update-internal-urls` to sync bindings and URLs globally!
 Next Steps
+Canonical Bindings Reference — Complete, up-to-date bindings table.
 Storage & SQLite DDL — Dive into Drizzle schemas, R bucket configurations, and database rules.
 Production Deployments — Learn how Wrangler compiles and maps these bindings to the live edge.
 
@@ -2457,64 +3733,75 @@ Wrangler Setup & Tooling — Configure Wrangler to bind local D and KV instances
 
 FILE: docs/devops/architecture/endpoints.md
 Internal Endpoints Map
-This document catalogs all internal REST, service-to-service, and queue endpoints exposed across the Hoox microservice monorepo. Because internal workers have zero public IP footprints and are completely isolated by Cloudflare’s Zero Trust service bindings, this map serves as the primary integration blueprint for routing, debugging, and dashboard interactions.
+Canonical API Reference: For complete endpoint specifications with request/response examples, see docs/devops/api/endpoints.md.
+This document provides architectural context and internal routing flow for the Hoox microservice monorepo.
+This document catalogs all internal REST, service-to-service, and queue endpoints exposed across the Hoox microservice monorepo. Because internal workers have zero public IP footprints and are completely isolated by Cloudflare's Zero Trust service bindings, this map serves as the primary integration blueprint for routing, debugging, and dashboard interactions.
 ---
 ️ Interactive Compute & Routing Flow
 All external webhooks flow through the public hoox gateway, which authenticates payloads and routes them to private workers inside localized V engine isolates:
 ---
 ️ Endpoints Directory by Worker
+See: docs/devops/api/endpoints.md for complete endpoint specifications with request/response examples.
 Every internal HTTP request between V isolates must transmit the standard bearer header:
 X-Internal-Auth-Key:
 ---
 . hoox (Gateway Router)
 Status: Public Ingress Node
-Bindings Mounts: TRADESERVICE, TELEGRAMSERVICE, ANALYTICSSERVICE, CONFIGKV, TRADEQUEUE
-| Route | Method | Description | Request Shape | Success Response |
-| :------------------ | :----: | :----------------------------------------------- | :------------------- | :------------------------------ |
-| /webhook | POST | Primary webhook receiver for TradingView alerts. | WebhookSignal JSON | OK (Orderfilled metadata) |
-| /health | GET | Probes gateway, D connectivity, and DO status. | N/A | {"status": "ok"} |
-| /telegram-webhook | POST | Processes chat commands pushed from Telegram. | Telegram Updates | OK |
+Bindings Mounts: TRADESERVICE, TELEGRAMSERVICE, CONFIGKV, TRADEQUEUE
+| Route | Method | Description | Auth Required |
+| :------------------ | :----: | :----------------------------------------------- | :------------------- |
+| /webhook | POST | Primary webhook receiver for TradingView alerts. | API Key in payload |
+| /health | GET | Probes gateway, D connectivity, and DO status. | None |
+| /telegram-webhook | POST | Processes chat commands pushed from Telegram. | Telegram secret path |
+Details: See docs/devops/api/endpoints.mdingress-webhook-endpoints
 ---
 . trade-worker (Execution Engine)
 Status: Private Compute Node (No Public URL)
 Bindings Mounts: DSERVICE, TELEGRAMSERVICE, ANALYTICSSERVICE, CONFIGKV
-| Route | Method | Description | Request Shape | Success Response |
-| :------------- | :----: | :------------------------------------------------ | :------------------- | :-------------------------- |
-| /webhook | POST | Direct fast-path execution trigger. | WebhookSignal JSON | OK (Fill detail JSON) |
-| /dex | POST | Dispatches EVM orders on-chain via web wallet. | DexTrade JSON | OK (Tx Hash metadata) |
-| /api/signals | GET | Retrieves recent signal logs from D. | Query params filters | OK (Array of signals) |
-| /health | GET | Probes CPU thread state and exchange connections. | N/A | {"status": "ok"} |
+| Route | Method | Description | Auth Required |
+| :------------- | :----: | :------------------------------------------------ | :---------------- |
+| /webhook | POST | Direct fast-path execution trigger. | Internal auth key |
+| /dex | POST | Dispatches EVM orders on-chain via web wallet. | Internal auth key |
+| /api/signals | GET | Retrieves recent signal logs from D. | Internal auth key |
+| /health | GET | Probes CPU thread state and exchange connections. | None |
 ---
 ️ . d-worker (SQLite Hub)
 Status: Private Data Proxy (No Public URL)
 Bindings Mounts: DB (D SQLite database binding)
-| Route | Method | Description | Request Shape | Success Response |
-| :--------------------- | :----: | :-------------------------------------------------------- | :------------------------------------------------ | :------------------------------------ |
-| /query | POST | Executes a single SQL query against the SQLite database. | {"query": "SELECT FROM trades", "params": []} | {"success": true, "results": [...]} |
-| /batch | POST | Executes multiple transactional SQL operations. | {"queries": [{"query": "...", "params": []}]} | {"success": true, "results": [...]} |
-| /api/dashboard/stats | GET | Computes aggregated Win Rate, drawdown, and daily totals. | N/A | {"success": true, "stats": {...}} |
-| /{tableName} | GET | Lists rows inside a specific SQLite table (with filters). | Query params | {"success": true, "rows": [...]} |
+| Route | Method | Description | Auth Required |
+| :--------------------- | :----: | :-------------------------------------------------------- | :---------------- |
+| /query | POST | Executes a single SQL query against the SQLite database. | Internal auth key |
+| /batch | POST | Executes multiple transactional SQL operations. | Internal auth key |
+| /api/dashboard/stats | GET | Computes aggregated Win Rate, drawdown, and daily totals. | Internal auth key |
+| /{tableName} | GET | Lists rows inside a specific SQLite table (with filters). | Internal auth key |
+Details: See docs/devops/api/endpoints.mddatabase-service-endpoints
 ---
 . agent-worker (AI Risk Manager)
 Status: Private Compute Node (Runs primarily on Cron schedule / )
 Bindings Mounts: TRADESERVICE, DSERVICE, TELEGRAMSERVICE, AI
-| Route | Method | Description | Request Shape | Success Response |
-| :-------------- | :----: | :--------------------------------------------------------- | :---------------------------------------- | :---------------------------------- |
-| /agent/chat | POST | Starts a conversational market/risk query (SSE supported). | {"prompt": "...", "stream": true} | text/event-stream stream |
-| /agent/vision | POST | Analyzes image bytes using multimodal AI models. | {"image": "base...", "prompt": "..."} | {"analysis": "..."} |
-| /agent/status | GET | Returns active trailing stops and current drawdowns. | N/A | {"status": "active", "stops": []} |
-| /health | GET | Probes AI model availability and Cron loop timers. | N/A | {"status": "ok"} |
+| Route | Method | Description | Auth Required |
+| :-------------- | :----: | :--------------------------------------------------------- | :---------------- |
+| /agent/chat | POST | Starts a conversational market/risk query (SSE supported). | Internal auth key |
+| /agent/vision | POST | Analyzes image bytes using multimodal AI models. | Internal auth key |
+| /agent/status | GET | Returns active trailing stops and current drawdowns. | Internal auth key |
+| /health | GET | Probes AI model availability and Cron loop timers. | None |
+Details: See docs/devops/api/endpoints.mdai-risk--chat-endpoints
 ---
 . telegram-worker (Push alerts)
 Status: Private Compute Node
-Bindings Mounts: ANALYTICSSERVICE, AI, VECTORIZEINDEX
-| Route | Method | Description | Request Shape | Success Response |
-| :-------- | :----: | :---------------------------------------------------- | :------------------------------------ | :------------------ |
-| /alert | POST | Sends a push trade fill notification or daily digest. | {"chatId": "...", "message": "..."} | {"success": true} |
-| /health | GET | Probes Telegram API connection. | N/A | {"status": "ok"} |
+Bindings Mounts: AI, VECTORIZEINDEX
+| Route | Method | Description | Auth Required |
+| :-------- | :----: | :---------------------------------------------------- | :---------------- |
+| /alert | POST | Sends a push trade fill notification or daily digest. | Internal auth key |
+| /health | GET | Probes Telegram API connection. | None |
+---
+Quick Endpoint Lookup
+For a quick reference table of all endpoints without detailed descriptions, see:
+.opencode/context/project-intelligence/lookup/endpoints.md
 ---
 Tip: Every internal-to-internal transaction automatically inherits the requestId trace UUID generated by the gateway. This trace ID is attached as the X-Request-Id header, allowing you to trace a single webhook alert across D database writes, R log outputs, and Telegram alerts instantly!
 Next Steps
+Complete API Reference — Full endpoint specifications with request/response examples.
 Astro Docs Site Config — Map out your build-time environment configurations.
 System Storage Architecture — Deep dive into R logs offloading and Drizzle ORM schemas.
 
@@ -2622,7 +3909,6 @@ The gateway's wrangler.jsonc defines its private service binding links and resou
 "services": [
 { "binding": "TRADESERVICE", "service": "trade-worker" },
 { "binding": "TELEGRAMSERVICE", "service": "telegram-worker" },
-{ "binding": "ANALYTICSSERVICE", "service": "analytics-worker" },
 ],
 "queues": {
 "producers": [{ "queue": "trade-execution", "binding": "TRADEQUEUE" }],
@@ -2702,7 +3988,7 @@ Success Response ( OK):
 }
 `
 ---
-Tip: If exchange APIs experience high latency or go offline, the gateway intercepts the timeout error, serializes the payload, and pushes it to the TRADE_QUEUE producer in less than milliseconds, returning a "status": "Enqueued"` ( Accepted) response to TradingView.
+Tip: If exchange APIs experience high latency or go offline, the gateway intercepts the timeout error, serializes the payload, and pushes it to the TRADEQUEUE producer in less than milliseconds, returning a "status": "Enqueued"` ( Accepted) response to TradingView.
 Next Steps
 trade-worker Spec — Review how trade executions, order math, and margin settings compile on the edge.
 D Database Operations — Manage schema migrations, query ledgers, and execute SQL scripts.
@@ -3437,10 +4723,7 @@ The email-worker does not expose any public endpoints, connecting internally to 
 "id": "caefffbd",
 },
 ],
-"services": [
-{ "binding": "TRADESERVICE", "service": "trade-worker" },
-{ "binding": "ANALYTICSSERVICE", "service": "analytics-worker" },
-],
+"services": [{ "binding": "TRADESERVICE", "service": "trade-worker" }],
 "secrets": [
 "INTERNALKEYBINDING",
 "EMAILHOSTBINDING",
@@ -3484,7 +4767,7 @@ A. Mailgun Webhook Router
 Endpoint: /webhook/mailgun
 Method: POST
 Headers: Mailgun-Signature, Mailgun-Timestamp, Mailgun-Token
-Security: The worker computes the HMAC-SHA signature of the timestamp and token using your MAILGUNAPIKEY secret. If the calculated signature doesn't match the header, the request is instantly rejected ( Unauthorized).
+Security: The worker computes the HMAC-SHA signature of the timestamp and token using your MAILGUNAPI_KEY secret. If the calculated signature doesn't match the header, the request is instantly rejected ( Unauthorized).
 ---
 B. Direct JSON Payload Ingestion
 Used primarily by administrative automation tools or local testing scripts.
@@ -3755,9 +5038,9 @@ The dashboard's wrangler.jsonc maps out its internal service links to extract D 
 { "binding": "TELEGRAMSERVICE", "service": "telegram-worker" },
 ],
 "vars": {
-"DSERVICEURL": "https://d-worker.cryptolinx.workers.dev",
-"AGENTSERVICEURL": "https://agent-worker.cryptolinx.workers.dev",
-"TELEGRAMSERVICEURL": "https://telegram-worker.cryptolinx.workers.dev",
+"DSERVICEURL": "https://d-worker.hoox.example.com",
+"AGENTSERVICEURL": "https://agent-worker.hoox.example.com",
+"TELEGRAMSERVICEURL": "https://telegram-worker.hoox.example.com",
 },
 "secrets": [
 "DASHBOARDUSER",
@@ -4406,7 +5689,207 @@ Success Response ( OK):
 `
 ---
 B. Execute Transactional Batch Statements
-Path: /bat"timestamp":
+Path: /batch
+Method: POST
+JSON Payload:
+`json
+{
+"requestId": "bdebd-bd-bad-bdd-bdbdcbd",
+"queries": [
+{
+"query": "INSERT INTO trades (id, symbol) VALUES (?, ?)",
+"params": ["t-", "ETHUSDT"]
+},
+{
+"query": "UPDATE positions SET size = size + . WHERE symbol = 'ETHUSDT'",
+"params": []
+}
+]
+}
+`
+Success Response ( OK):
+`json
+{
+"success": true,
+"results": [{ "meta": { "changes": } }, { "meta": { "changes": } }]
+}
+`
+---
+AI Risk & Chat Endpoints (workers/agent-worker)
+Bridges background risk audits and multi-provider AI chat streams.
+A. Conversational Chat Stream (Server-Sent Events)
+Path: /agent/chat
+Method: POST
+Headers: Accept: text/event-stream
+JSON Payload:
+`json
+{
+"prompt": "Summarize my trade history and average win rate today.",
+"stream": true,
+"provider": "anthropic"
+}
+`
+Success Response: Emits standard text/event-stream updates, terminating with data: [DONE].
+---
+B. Multimodal AI Vision Audit
+Path: /agent/vision
+Method: POST
+JSON Payload:
+`json
+{
+"imageBase": "iVBORwKGgoAAAANSUhEUgAA...",
+"prompt": "Evaluate this trading chart image for support and resistance levels."
+}
+`
+Success Response ( OK):
+`json
+{
+"success": true,
+"analysis": "Based on the provided chart screenshot, there is strong horizontal support at $,..."
+}
+``
+Next Steps
+Request Payload Schemas — Analyze the complete JSON request schemas and type rules.
+Standard Response Schemas — Check error factories and normal JSON envelopes.
+
+FILE: docs/devops/api/payloads.md
+Request Payload Schemas
+To maintain robust data routing and prevent runtime failures, Hoox enforces a strict payload contract across all internal and public service boundaries. All incoming requests are validated by active JSON Schema or Zod middleware before entering V execution loops.
+This document details the exact JSON schemas, TypeScript interfaces, and validation rules for all primary request payloads.
+---
+️ . Standard Request Envelope
+Every service-to-service invocation (via Service Bindings) wraps its business parameters inside a standardized Request Envelope containing distributed tracing indices:
+``typescript
+export interface RequestEnvelope {
+requestId: string; // Unique UUIDv distributed trace ID
+payload: T; // Service-specific payload
+}
+`
+`json
+{
+"requestId": "bdebd-bd-bad-bdd-bdbdcbd",
+"payload": {
+"symbol": "BTCUSDT",
+"quantity": .
+}
+}
+`
+---
+. Trade Execution Payloads (trade-worker)
+The execution engine processes two primary types of order payloads:
+A. Centralized Exchange Order Payload (/webhook & /process)
+`typescript
+export interface CexOrderPayload {
+exchange: "binance" | "bybit" | "mexc"; // Target exchange
+action: "LONG" | "SHORT" | "CLOSE"; // Margin position action
+symbol: string; // Standardized asset ticker (e.g. "BTCUSDT")
+quantity: number; // Order size in contracts or tokens
+leverage?: number; // Optional margin leverage multiplier
+price?: number; // Optional execution limit price
+orderType?: "MARKET" | "LIMIT"; // Default: MARKET
+}
+`
+`json
+{
+"exchange": "bybit",
+"action": "LONG",
+"symbol": "BTCUSDT",
+"quantity": .,
+"leverage": ,
+"orderType": "MARKET"
+}
+`
+---
+B. On-Chain DeFi Swap Payload (/dex)
+`typescript
+export interface DexSwapPayload {
+chain: "ethereum" | "arbitrum" | "polygon"; // EVM target network
+to: string; // Recipient address or Uniswap Router
+value: string; // Transaction value in Wei (as string)
+data: string; // Encoded contract call data bytes
+gasLimit?: number; // Optional transaction gas limit
+}
+`
+`json
+{
+"chain": "arbitrum",
+"to": "xbecdabeedeacdf",
+"value": "",
+"data": "xacbb..."
+}
+`
+---
+️ . Database SQL Query Payloads (d-worker)
+The SQLite database proxy accepts parameterized SQL statements to protect against SQL injections:
+A. Execute Single SQL Statement
+`typescript
+export interface SqlQueryPayload {
+query: string; // Parameterized SQL statement
+params: Array; // Binding values
+}
+`
+`json
+{
+"query": "SELECT FROM trades WHERE symbol = ? AND status = ?",
+"params": ["BTCUSDT", "Filled"]
+}
+`
+---
+. Telegram Notification Payloads (telegram-worker)
+Used to push structured alerts and charts to your mobile device:
+`typescript
+export interface TelegramAlertPayload {
+chatId: string; // Target Telegram Chat ID
+message: string; // Formatted message content
+parseMode?: "HTML" | "MarkdownV"; // Default: HTML
+}
+`
+`json
+{
+"chatId": "",
+"message": "Alert: Position filled at ,.",
+"parseMode": "HTML"
+}
+`
+---
+Tip: Adding new fields to a payload schema? Remember to update the corresponding type interfaces in @jango-blockchained/hoox-shared/types` to ensure complete type safety across all workers!
+Next Steps
+API Endpoint Directory — Analyze REST routes, headers, and endpoints mappings.
+Standard Response Schemas — Check success envelopes and error models.
+
+FILE: docs/devops/api/responses.md
+Standard Response Schemas
+To ensure predictable error handling and parsing across all microservices, Hoox enforces a strict response contract. Every worker responds with a standardized JSON envelope containing tracing details, operation status, results payload, and detailed error models.
+This document details the exact JSON templates, types, and error factories utilized in the monorepo.
+---
+️ . Standard Response Envelope
+Every HTTP response returned by an edge worker is encapsulated within a unified JSON envelope:
+``typescript
+export interface ResponseEnvelope {
+success: boolean; // Absolute state of the operation
+requestId: string; // UUIDv trace ID mapped from request
+result?: T; // Operation success metadata payload
+error?: {
+// Detail model present only if success = false
+code: string; // Unique machine-parseable error token
+message: string; // Human-readable error description
+details?: any; // Optional specific array of field issues
+};
+}
+`
+---
+. Success Response Templates
+A. Trade Execution Fill Success (trade-worker - OK)
+`json
+{
+"success": true,
+"requestId": "bdebd-bd-bad-bdd-bdbdcbd",
+"result": {
+"orderId": "",
+"status": "Filled",
+"executedQty": .,
+"price": .,
+"timestamp":
 },
 "error": null
 }
@@ -4474,4 +5957,49 @@ return Errors.internal(Database write exception: ${err.message});
 These factory methods automatically serialize the exception, attach the active requestId from the context, set the correct HTTP status code, and return a compliant Response` object.
 Next Steps
 API Endpoint Directory — Analyze REST routes, headers, and endpoints mappings.
-Request Payload Schemas — Check JSON request payload specifications and typescript interfaces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+Request Payload Schemas — Check JSON request payload specifications and typescript interfaces.
+
+FILE: docs/devops/cli-features.md
+️ CLI Architecture & Features
+The hoox CLI (packages/cli) is the unified lifecycle engine of the trading platform monorepo. It governs local sandboxes, compiles TypeScript structures, coordinates Cloudflare infrastructure resources, deploys edge isolates, manages encrypted secrets, and executes self-healing diagnostics.
+---
+️ Monorepo Workspace Design
+The CLI is integrated into our monorepo using Bun Workspaces, which link local packages together. This design ensures that the CLI binary can resolve and load local shared types (@jango-blockchained/hoox-shared) and TUI components (packages/tui) instantly without network downloads or pre-compilation overhead:
+``
+hoox-setup/ (Monorepo Root)
+├── packages/
+│ ├── cli/ CLI Source code (entry binary: bin/hoox.js)
+│ ├── tui/ OpenTUI dashboard source code
+│ └── shared/ Common libraries (auth, router, error models)
+├── workers/
+│ └── ... Edge V isolates
+└── package.json Root workspace manager
+`
+---
+. Command-Line Core Architectures
+The CLI binary parses terminal instructions using the following architectural layers:
+A. Command Dispatcher (packages/cli/src/index.ts)
+Intercepts all incoming arguments (e.g. hoox infra provision), evaluates global flags (--json, --quiet), validates configuration integrity, and delegates execution to target command modules under src/commands/.
+B. Cloudflare API Adapters (src/adapters/)
+Translates command intentions (like hoox infra d create) into parameterized Cloudflare API REST payloads, bypassing wrangler wrappers when high-performance execution is needed.
+C. State Engine (src/core/)
+Tracks active project profiles, enabled worker matrices, and workspace configuration formats (wrangler.jsonc vs. wrangler.toml).
+---
+. Declarative Config Mapping & Validation
+To prevent configuration drift, the CLI enforces strict type validation on wrangler.jsonc files:
+. Config Interfaces: Built-in parsers validate configuration files against type-safe TypeScript interfaces (Config and WorkerConfig) defined in src/core/types.ts.
+. Setup Verification (hoox check setup): Compares active workspace profiles against example files, audits environment variables keys, and scans for missing bindings, outputting formatted terminal reports.
+---
+. Self-Healing & Diagnostics Engine
+One of the CLI's most powerful features is its guided repair framework (hoox repair command groups):
+Diagnostic Probes: The hoox repair check command runs a -step checklist (verifying submodule checkouts, NPM/Bun package resolutions, TypeScript variables, Cloudflare zone links, and encrypted credentials).
+Automated Recovery: If a missing resource is identified (e.g. a D database ID is bound in wrangler.jsonc but the database doesn't exist on your Cloudflare account), the repair engine prompts you and provisions it automatically:
+`bash
+Provision missing Cloudflare bindings and repair system states
+hoox repair infra
+`
+---
+Tip: Every single command supports the --json global flag. This outputs machine-parseable JSON payloads (e.g. hoox monitor status --json`), allowing you to integrate the CLI with external telemetry dashboards or alert scripts effortlessly!
+Next Steps
+CLI Reference Manual — Review the complete command tree, positional arguments, and flags.
+Wrangler Setup & Tooling — Configure Wrangler to bind local D and KV instances for dev testing.
