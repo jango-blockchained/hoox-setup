@@ -30,7 +30,7 @@ export default function SearchDialog() {
 
   // Load search index once
   useEffect(() => {
-    fetch("/hoox-setup/search-index.json")
+    fetch("/search-index.json")
       .then((r) => r.json())
       .then((data) => setIndex(data))
       .catch(() => console.warn("Search index not available"));
@@ -71,7 +71,7 @@ export default function SearchDialog() {
 
   const runSearch = useCallback((value: string) => {
     setOpen(false);
-    window.location.href = `/hoox-setup/${value}/`;
+    window.location.href = `/${value}/`;
   }, []);
 
   return (
@@ -108,5 +108,3 @@ export default function SearchDialog() {
     </CommandDialog>
   );
 }
-
-

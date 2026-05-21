@@ -7,8 +7,7 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  site: "https://jango-blockchained.github.io",
-  base: "/hoox-setup",
+  site: "https://docs.hoox.sh",
   output: "static",
   integrations: [react()],
   markdown: {

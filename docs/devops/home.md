@@ -94,6 +94,8 @@ TypeScript interfaces, compiler settings, Bun test specs, and HTTP schemas:
 
 - **[End-User Documentation Hub](../home.md)** — Standard setup, cURL webhooks, and TradingView Pine Scripts.
 - **[Hoox Git Submodules](https://github.com/jango-blockchained/hoox-setup)** — Central monorepo codebase.
-- **[Download Enduser Full PDF Manual](/hoox-setup/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
-- **[Download DevOps Full PDF Manual](/hoox-setup/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
-- **[View Consolidated LLM Context Text](/hoox-setup/llm.txt)** — Giant single-file text format for AI/LLM models.
+- **[Download Enduser Full PDF Manual](/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
+
+- **[Download DevOps Full PDF Manual](/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
+
+- **[View Consolidated LLM Context Text](/llm.txt)** — Giant single-file text format for AI/LLM models.

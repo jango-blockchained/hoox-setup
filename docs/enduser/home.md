@@ -76,9 +76,11 @@ Deep specifications, schema registries, and command-line manual trees:
 
 Download our consolidated specifications or view complete text packages for feeding into LLMs:
 
-- **[Download Enduser Full PDF Manual](/hoox-setup/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
-- **[Download DevOps Full PDF Manual](/hoox-setup/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
-- **[View Consolidated LLM Context Text](/hoox-setup/llm.txt)** — Giant single-file text format for AI/LLM models.
+- **[Download Enduser Full PDF Manual](/Enduser-Full-Documentation.pdf)** — Complete concatenated offline guide.
+
+- **[Download DevOps Full PDF Manual](/DevOps-Full-Documentation.pdf)** — Complete concatenated offline DevOps spec.
+
+- **[View Consolidated LLM Context Text](/llm.txt)** — Giant single-file text format for AI/LLM models.
 
 ---
 
