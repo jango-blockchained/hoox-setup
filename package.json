@@ -43,7 +43,8 @@
     "prepare": "husky",
     "lint-staged": "lint-staged",
     "lint:scripts": "bun run ./scripts/check-script-paths.ts",
-    "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts"
+    "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts",
+    "start": "node server.js"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260516.1",
@@ -61,7 +62,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.4",
     "prettier": "^3.8.3",
-    "shadcn": "^4.7.0"
+    "shadcn": "^4.7.0",
+    "svgo": "^4.0.1"
   },
   "dependencies": {
     "@opentui-ui/dialog": "^0.1.2",
@@ -74,5 +76,22 @@
     "vite": "^8.0.13",
     "wrangler": "^4.93.0",
     "zod": "^4.4.3"
-  }
+  },
+  "description": "<div align=\"center\">",
+  "main": "eslint.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jango-blockchained/hoox-setup.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jango-blockchained/hoox-setup/issues"
+  },
+  "homepage": "https://github.com/jango-blockchained/hoox-setup#readme"
 }
