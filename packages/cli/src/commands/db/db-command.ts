@@ -19,7 +19,6 @@ import {
   formatJson,
   getFormatOptions,
 } from "../../utils/formatters.js";
-import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 

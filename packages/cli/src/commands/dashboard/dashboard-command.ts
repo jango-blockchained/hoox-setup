@@ -4,7 +4,7 @@ import { CLIError, ExitCode } from "../../utils/errors.js";
 import { formatSuccess, formatTable } from "../../utils/formatters.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
-import { theme, icons } from "../../utils/theme.js";
+import { theme } from "../../utils/theme.js";
 import * as jsonc from "jsonc-parser";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";

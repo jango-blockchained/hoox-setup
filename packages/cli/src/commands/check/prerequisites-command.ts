@@ -50,6 +50,7 @@ async function handlePrerequisites(
     if (opts.json) {
       formatJson(report, opts);
     } else if (opts.quiet) {
+      // quiet mode — no output
     } else {
       renderReport(report);
     }

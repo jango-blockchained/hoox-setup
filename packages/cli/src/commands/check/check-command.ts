@@ -22,7 +22,7 @@ import {
   formatError,
   formatTable,
 } from "../../utils/formatters.js";
-import { CLIError, ExitCode } from "../../utils/errors.js";
+import { ExitCode } from "../../utils/errors.js";
 import { isGitTracked, gitUntrackFile } from "../../utils/git.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import type {
@@ -103,13 +103,6 @@ function buildReport(categories: CheckCategory[]): CheckReport {
     categories,
     summary: { total, passed, failed, warnings },
   };
-}
-
-/**
- * Return a single-character icon for a check result.
- */
-function checkIcon(success: boolean): string {
-  return success ? icons.success : icons.error;
 }
 
 // ---------------------------------------------------------------------------
@@ -836,7 +829,7 @@ interface SubmoduleGitignoreResult {
  * - Untracks wrangler.jsonc if it's mistakenly tracked by git
  */
 async function checkSubmoduleGitignore(
-  opts: FormatOptions
+  _opts: FormatOptions
 ): Promise<SubmoduleGitignoreResult> {
   const workerDirs = await getWorkerDirs();
   const issues: string[] = [];
