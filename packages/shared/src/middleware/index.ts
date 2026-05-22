@@ -32,3 +32,9 @@ export {
   handleCorsPreflightRequest,
   type CorsOptions,
 } from "./cors";
+export {
+  secureHeaders,
+  wrapWithSecurityHeaders,
+  type SecurityHeadersOptions,
+  SECURITY_HEADERS_DEFAULTS,
+} from "./security-headers";

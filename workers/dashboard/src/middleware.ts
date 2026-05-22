@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { secureHeaders } from "@jango-blockchained/hoox-shared/middleware";
+
+/**
+ * Apply security headers to any NextResponse.
+ */
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  const headers = secureHeaders();
+  for (const [key, value] of Object.entries(headers)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +23,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/auth") ||
     pathname === "/favicon.ico"
   ) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   // CSRF protection for state-changing requests
@@ -19,25 +31,28 @@ export function middleware(request: NextRequest) {
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
     if (origin && host && !origin.includes(host)) {
-      return NextResponse.json(
-        { error: "CSRF: Origin mismatch" },
-        { status: 403 }
+      return withSecurityHeaders(
+        NextResponse.json({ error: "CSRF: Origin mismatch" }, { status: 403 })
       );
     }
   }
 
   const authType = process.env.AUTH_TYPE;
-  if (authType === "none") return NextResponse.next();
+  if (authType === "none") return withSecurityHeaders(NextResponse.next());
 
   // Validate required env vars
   if (!process.env.DASHBOARD_USER) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Server misconfigured: DASHBOARD_USER not set" },
-        { status: 500 }
+      return withSecurityHeaders(
+        NextResponse.json(
+          { error: "Server misconfigured: DASHBOARD_USER not set" },
+          { status: 500 }
+        )
       );
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return withSecurityHeaders(
+      NextResponse.redirect(new URL("/login", request.url))
+    );
   }
 
   const session = request.cookies.get("session")?.value;
@@ -45,17 +60,16 @@ export function middleware(request: NextRequest) {
 
   if (!session || session !== expectedUser) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withSecurityHeaders(
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      );
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return withSecurityHeaders(
+      NextResponse.redirect(new URL("/login", request.url))
+    );
   }
 
-  // Set security headers
-  const response = NextResponse.next();
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "DENY");
-
-  return response;
+  return withSecurityHeaders(NextResponse.next());
 }
 
 export const config = {
