@@ -145,7 +145,24 @@ bun run opennext:deploy
 
 > **Warning:** Framer Motion components and interactive visual elements used in Next.js pages **must** declare the `'use client'` directive at the top of the file. Under OpenNext, client-side pages cannot export metadata directly—move metadata definitions to separate `metadata.ts` files!
 
+### 🛡️ Security Headers
+
+The dashboard applies **7 security headers** on every response via the shared `@jango-blockchained/hoox-shared/middleware` `secureHeaders()` factory:
+
+| Header                      | Value                                 |
+| --------------------------- | ------------------------------------- |
+| `X-Content-Type-Options`    | `nosniff`                             |
+| `X-Frame-Options`           | `DENY`                                |
+| `X-XSS-Protection`          | `1; mode=block`                       |
+| `Referrer-Policy`           | `strict-origin-when-cross-origin`     |
+| `Permissions-Policy`        | All features disabled                 |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
+| `Content-Security-Policy`   | `default-src 'self'`                  |
+
+Headers are applied via the `withSecurityHeaders()` wrapper in `src/middleware.ts`, covering **all** return paths including static files, login pages, CSRF errors, and auth failures.
+
 ### 🔗 Next Steps
 
+- **[Security Testing & Hardening](../security/overview.md)** — Auth hardening, security tests, and CI/CD scanning.
 - **[agent-worker Profile](agent-worker.md)** — Review AI chat streaming and risk evaluation structures.
 - **[d1-worker Profile](d1-worker.md)** — Check REST schemas that feed database metrics to the dashboard.

@@ -168,7 +168,7 @@ Hoox uses Git submodules for each worker, allowing independent development and d
 
 ## 🛠️ The `@jango-blockchained/hoox-cli` & Workspaces
 
-The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, **106 test files** with **1,574 assertions**). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
+The Hoox setup is managed via a dedicated, locally linked CLI tool at `packages/cli` (15 command groups, 50+ subcommands, **~124 test files** with **~4,500 assertions** across the monorepo). By utilizing Bun Workspaces, all management commands are available via the `hoox` binary.
 
 ### Complete Command Tree
 
@@ -232,18 +232,22 @@ Hoox relies on **Bun** as its primary JavaScript runtime and package manager. Bu
 
 ## 🧪 Testing & Build
 
-All tests use **Bun**'s native test runner (`bun test`). **106 test files** with **1,574 individual test assertions** across 4 categories:
+All tests use **Bun**'s native test runner (`bun test`). **~124 test files** with **~4,500 individual test assertions** across 5 categories:
 
 | Type            | Files | Assertions | Description                                                   |
 | :-------------- | :---: | :--------: | :------------------------------------------------------------ |
 | **Unit**        |  92   |   1,458    | Isolated function/component tests per package and worker      |
 | **Integration** |   2   |     34     | Cross-component tests (TUI navigation, gateway middleware)    |
+| **Security**    |   3   |     40     | Auth bypass, security headers, fuzz testing                   |
 | **E2E**         |   2   |     5      | Full-system tests (TUI smoke, CLI lifecycle)                  |
 | **Live**        |  10   |     77     | Cloudflare credential-dependent (D1, KV, R2, Queues, API, AI) |
 
 ```bash
 # Run all tests (excluding live — needs Cloudflare credentials)
 bun test
+
+# Security tests
+bun run test:security
 
 # Integration tests
 bun run test:integration
@@ -520,21 +524,22 @@ Security is a foundational aspect of the Hoox system.
 
 ### Implemented Security Features
 
-| Feature                       | Description                                                 |
-| ----------------------------- | ----------------------------------------------------------- |
-| **CORS**                      | Disabled - same-origin only                                 |
-| **X-Frame-Options**           | DENY - prevents iframe embedding                            |
-| **X-Content-Type-Options**    | nosniff - prevents MIME sniffing                            |
-| **X-XSS-Protection**          | 1; mode=block                                               |
-| **Referrer-Policy**           | strict-origin-when-cross-origin                             |
-| **Permissions-Policy**        | Blocks accelerometer, camera, geolocation, microphone, etc. |
-| **Strict-Transport-Security** | max-age=31536000; includeSubDomains                         |
-| **Content-Security-Policy**   | default-src 'self'                                          |
-| **Idempotent Execution**      | Durable Objects prevent duplicate trades                    |
-| **Rate Limiting**             | 10 trades/minute protection                                 |
-| **IP Allow-listing**          | Optional IP filtering via KV                                |
-| **API Key Auth**              | Secret binding validation                                   |
-| **Kill Switch**               | Global trading pause via KV                                 |
+| Feature                       | Description                                                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **CORS**                      | Disabled - same-origin only                                                                                                        |
+| **X-Frame-Options**           | DENY - prevents iframe embedding                                                                                                   |
+| **X-Content-Type-Options**    | nosniff - prevents MIME sniffing                                                                                                   |
+| **X-XSS-Protection**          | 1; mode=block                                                                                                                      |
+| **Referrer-Policy**           | strict-origin-when-cross-origin                                                                                                    |
+| **Permissions-Policy**        | Blocks accelerometer, camera, geolocation, microphone, etc.                                                                        |
+| **Strict-Transport-Security** | max-age=31536000; includeSubDomains                                                                                                |
+| **Content-Security-Policy**   | default-src 'self'                                                                                                                 |
+| **Shared Middleware**         | All headers are applied via `@jango-blockchained/hoox-shared/middleware` `secureHeaders()` factory. Consistent across all workers. |
+| **Idempotent Execution**      | Durable Objects prevent duplicate trades                                                                                           |
+| **Rate Limiting**             | 10 trades/minute protection                                                                                                        |
+| **IP Allow-listing**          | Optional IP filtering via KV                                                                                                       |
+| **API Key Auth**              | Secret binding validation                                                                                                          |
+| **Kill Switch**               | Global trading pause via KV                                                                                                        |
 
 ### Security Layers
 

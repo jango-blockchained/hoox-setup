@@ -116,7 +116,7 @@ export async function handleRequest(
 }
 ```
 
-> **Standardization Alert:** Every single internal worker (`hoox`, `trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`, `email-worker`) binds the exact same secret name: `INTERNAL_KEY_BINDING`. This eliminates variable footprint drift and simplifies secret deployments across your workspace.
+> **Standardization Alert:** Every single internal worker (`hoox`, `trade-worker`, `d1-worker`, `agent-worker`, `telegram-worker`, `email-worker`, `analytics-worker`, `report-worker`, `web3-wallet-worker`, `dashboard`) binds the exact same secret name: `INTERNAL_KEY_BINDING`. This eliminates variable footprint drift and simplifies secret deployments across your workspace.
 
 ---
 

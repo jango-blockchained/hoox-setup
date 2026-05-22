@@ -7,20 +7,22 @@ description: "Detailed QA operations guide, covering Bun test suites, Miniflare 
 
 To protect live capital and ensure robust order routing, Hoox mandates a rigorous testing pipeline. With money on the line, we verify every contract calculation, rate-limiting gate, and database query.
 
-Our test suite is powered natively by **Bun's high-speed test runner**, comprising **106 test files** and **1,574 individual test assertions** split into four distinct diagnostic layers.
+Our test suite is powered natively by **Bun's high-speed test runner**, comprising **~124 test files** and **~4,500 individual test assertions** split across five diagnostic layers.
 
 ---
 
-## 🎚️ The 4 QA Testing Layers
+## 🎚️ The 5 QA Testing Layers
 
 ```mermaid
 graph TD
-    UT["📦 Unit Tests<br/>(1,458 Assertions)"] -->|Next Layer| IT["🔗 Integration Tests<br/>(34 Assertions)"]
-    IT -->|Next Layer| E2E["🚀 E2E Smoke Tests<br/>(5 Assertions)"]
+    UT["📦 Unit Tests<br/>(~4,000 Assertions)"] -->|Next Layer| IT["🔗 Integration Tests<br/>(34 Assertions)"]
+    IT -->|Next Layer| ST["🛡️ Security Tests<br/>(40 Assertions)"]
+    ST -->|Next Layer| E2E["🚀 E2E Smoke Tests<br/>(5 Assertions)"]
     E2E -->|Next Layer| LT["🟢 Live Resource Tests<br/>(77 Assertions)"]
 
     style UT fill:#1e293b,stroke:#3b82f6,stroke-width:2
     style IT fill:#1e293b,stroke:#10b981,stroke-width:2
+    style ST fill:#1e293b,stroke:#f59e0b,stroke-width:2
     style E2E fill:#1e293b,stroke:#f59e0b,stroke-width:2
     style LT fill:#1e293b,stroke:#ef4444,stroke-width:2
 ```
@@ -60,7 +62,19 @@ bun run test:workers
 bun test workers/agent-worker/src/index.test.ts --watch
 ```
 
-### C. Advanced Integration & Live Runs
+### C. Security & Fuzz Testing
+
+```bash
+# Run all security tests (auth bypass, security headers, fuzz)
+bun run test:security
+
+# Run specific security test files
+bun test tests/security/auth-bypass.test.ts
+bun test tests/security/security-headers.test.ts
+bun test tests/security/fuzz.test.ts
+```
+
+### D. Advanced Integration & Live Runs
 
 ```bash
 # Run Miniflare 3 gateway integration tests
@@ -71,6 +85,9 @@ bun run test:e2e
 
 # Run live Cloudflare API integration tests (requires tests/live/.env credentials)
 bun run test:live --jobs 1
+
+# Run k6 performance/load tests (requires k6 CLI)
+bun run test:load
 ```
 
 ---
@@ -132,10 +149,13 @@ describe("trade-worker Gateway Router Mocking", () => {
 
 ## 🚢 Continuous Integration Gates & Coverage Targets
 
-Our GitHub Actions workflow enforces two strict quality gates before any code is approved for production deployment:
+Our GitHub Actions workflows enforce the following quality gates:
 
 1. **TypeScript Type Safety**: All workspaces must compile without errors using `tsc --noEmit`.
 2. **Coverage Thresholds**: The monorepo enforces a **minimum 80% coverage threshold** across all core execution paths (`packages/cli`, `packages/shared`, `workers/hoox`, `workers/trade-worker`).
+3. **Dependency Audit**: `bun audit` runs after tests to detect known vulnerabilities (informational, doesn't block CI).
+4. **Secret Scanning**: `gitleaks` scans all commits for hardcoded secrets on every push/PR (informational).
+5. **CodeQL**: Weekly `security-and-quality` analysis for JavaScript/TypeScript.
 
 ```bash
 # Check your local workspace coverage statistics
@@ -144,5 +164,6 @@ bun test packages/shared/ --coverage
 
 ### 🔗 Next Steps
 
+- **[Security Testing & Hardening](../security/overview.md)** — Auth hardening, security tests, and CI/CD scanning.
 - **[Debugging Telemetry Runbook](debugging.md)** — Learn how to trace active V8 memory, tail logs, and audit SQL execution.
 - **[Local Development Setup](local-dev.md)** — Configure Wrangler and Docker compose to run testbeds.

@@ -20,8 +20,12 @@ graph TD
     Install -->|Step 3| Lint["🔍 Code Formatting & Lint"]
     Lint -->|Step 4| Typecheck["⚙️ tsc Typecheck"]
     Typecheck -->|Step 5| Test["🧪 Bun Test Suite"]
-    Test -->|Step 6| Deploy["🚀 Sequenced Edge Deployment"]
+    Test -->|Step 5b| Audit["🔒 bun audit \n(dependency vulns)"]
+    Audit -->|Step 6| Deploy["🚀 Sequenced Edge Deployment"]
     Deploy -->|Step 7| Notify["💬 Telegram Notification"]
+
+    SecretScan["🕵️ gitleaks \n(secret scanning)"] -.->|Parallel| Lint
+    CodeQL["🔬 CodeQL \n(weekly SAST)"] -.->|Parallel| Lint
 
     style Push fill:#1e293b,stroke:#3b82f6,stroke-width:2
     style Checkout fill:#1e293b,stroke:#10b981,stroke-width:1
@@ -29,6 +33,9 @@ graph TD
     style Lint fill:#1e293b,stroke:#f59e0b,stroke-width:1
     style Typecheck fill:#1e293b,stroke:#f59e0b,stroke-width:1
     style Test fill:#1e293b,stroke:#f59e0b,stroke-width:1
+    style Audit fill:#1e293b,stroke:#ef4444,stroke-width:1
+    style SecretScan fill:#1e293b,stroke:#a855f7,stroke-width:1
+    style CodeQL fill:#1e293b,stroke:#a855f7,stroke-width:1
     style Deploy fill:#1e293b,stroke:#ef4444,stroke-width:2
     style Notify fill:#1e293b,stroke:#10b981,stroke-width:1
 ```
@@ -130,11 +137,13 @@ jobs:
 
 ## 🔒 Managing Secrets & Variable Scopes
 
-To authorize GitHub to interact with your Cloudflare account, navigate to your repository’s **Settings > Secrets and variables > Actions** and register three Action Secrets:
+To authorize GitHub to interact with your Cloudflare account, navigate to your repository's **Settings > Secrets and variables > Actions** and register the following Action Secrets:
 
 1. **`CLOUDFLARE_API_TOKEN`**: A secure, scoped token with Workers, D1, KV, and DNS write permissions.
 2. **`CLOUDFLARE_ACCOUNT_ID`**: Your unique 32-character Cloudflare dashboard hash.
 3. **`SUBDOMAIN_PREFIX`**: The subdomain namespace chosen for your deployments.
+4. **`GITHUB_TOKEN`**: Auto-provided, used by gitleaks for PR annotations.
+5. **`INTERNAL_AUTH_KEY`**, **`HOOX_API_KEY`**, **`LOAD_TEST_BASE_URL`**: Required for nightly k6 load tests (see [Security Overview](../security/overview.md#environment-setup)).
 
 > **Note:** You **never** need to store worker-specific secrets (like Bybit API keys or Telegram Bot tokens) in GitHub Secrets. These are stored directly in Cloudflare's secured key vaults. The CI pipeline only deploys the code logic; the running edge isolates pull their credentials locally from Cloudflare’s hardware-level Secret Store at runtime.
 
