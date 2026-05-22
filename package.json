@@ -29,8 +29,8 @@
     "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",
     "generate-types": "tsc -p tsconfig.prod.json --declaration --emitDeclarationOnly --outDir types",
     "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'",
-    "tui": "./hoox-tui",
-    "dev": "./hoox-tui",
+    "tui": "bun run --cwd packages/tui src/main.tsx",
+    "dev": "bun run --cwd packages/tui src/main.tsx",
     "manage": "hoox",
     "hoox": "hoox",
     "hx": "hoox",
@@ -38,21 +38,20 @@
     "lint:fix": "eslint packages/ workers/*/src workers/*/test workers/dashboard/src --fix",
     "format": "prettier --write .",
     "migrate:tracking": "bun run ./scripts/migrate-tracking.sh",
-    "docker:dev": "docker-compose up --build",
+    "docker:dev": "docker compose up --build",
     "docker:dev:build": "docker build -f Dockerfile.dev . --tag hoox:dev",
     "docker:prod": "docker build -f Dockerfile.prod . --tag hoox:prod && docker run -p 8080:8080 hoox:prod",
-    "docker:down": "docker-compose down",
+    "docker:down": "docker compose down",
     "prepare": "husky",
     "lint-staged": "lint-staged",
     "lint:scripts": "bun run ./scripts/check-script-paths.ts",
     "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts",
-    "start": "node server.js"
+    "start": "bun run server.js"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
-    "@types/blessed": "^0.1.27",
-    "@types/commander": "^2.12.5",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.8.0",
     "@typescript-eslint/eslint-plugin": "^8.59.3",
     "@typescript-eslint/parser": "^8.59.3",
@@ -65,22 +64,15 @@
     "lint-staged": "^17.0.4",
     "prettier": "^3.8.3",
     "shadcn": "^4.7.0",
-    "svgo": "^4.0.1"
-  },
-  "dependencies": {
-    "@opentui-ui/dialog": "^0.1.2",
-    "@tailwindcss/vite": "^4.3.0",
-    "blessed": "^0.1.81",
-    "react": "^19.2.6",
-    "react-reconciler": "^0.33.0",
-    "rolldown": "^1.0.1",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.14",
-    "wrangler": "^4.93.1",
+    "wrangler": "^4.93.1"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
     "zod": "^4.4.3"
   },
-  "description": "<div align=\"center\">",
-  "main": "eslint.config.js",
+  "description": "HOOX — algorithmic trading terminal operations center",
   "directories": {
     "doc": "docs",
     "test": "tests"

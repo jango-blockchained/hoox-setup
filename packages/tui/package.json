@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@opentui-ui/dialog": "^0.1.2",
+    "@opentui-ui/toast": "^0.0.5",
     "@opentui/core": "^0.2.12",
     "@opentui/react": "^0.2.12",
     "immer": "^11.1.8",
@@ -20,7 +21,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@jango-blockchained/hoox-shared": "workspace:*"
