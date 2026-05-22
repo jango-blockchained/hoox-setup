@@ -1,0 +1,45 @@
+# Gitleaks configuration for Hoox monorepo
+# Extends default rules with project-specific allowlists
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Hoox project allowlist"
+paths = [
+  # Test files often contain fake secrets and mock data
+  '''tests/.*''',
+  '''\.test\.''',
+  '''\.spec\.''',
+  # Example/template files with placeholder values
+  '''\.example$''',
+  '''\.env\.example''',
+  '''wrangler\.jsonc\.example''',
+  # Documentation and changelog may reference secret patterns
+  '''CHANGELOG\.md''',
+  '''docs/.*''',
+  # Generated/dist files
+  '''dist/.*''',
+  '''\.next/.*''',
+  '''coverage/.*''',
+  # Node modules and lock files
+  '''node_modules/.*''',
+  '''bun\.lock''',
+  '''package-lock\.json''',
+  # OpenCode AI tooling config
+  '''\.opencode/.*''',
+  '''\.tmp/.*''',
+]
+
+regexes = [
+  # Git SHAs in documentation and changelogs
+  '''[0-9a-f]{7,40}''',
+  # Placeholder values used in examples
+  '''<USE_WRANGLER_SECRET_PUT>''',
+  '''YOUR_''',
+  '''your-''',
+  '''__SECRET__''',
+  '''placeholder''',
+  # Version strings that look like secrets
+  '''\d+\.\d+\.\d+''',
+]
