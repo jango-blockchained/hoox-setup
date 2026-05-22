@@ -112,9 +112,8 @@ test-models.ts
 .antigravitycli/
 .antigravitycli/*
 
-# Husky hooks (auto-installed by husky, not committed)
-.husky/
-.husky/*
+# Husky auto-generated internals (keep actual hook files)
+.husky/_/
 
 # CTX cache artifacts
 .ctx/
