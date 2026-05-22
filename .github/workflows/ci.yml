@@ -98,6 +98,10 @@ jobs:
           threshold: 80
         continue-on-error: true
 
+      - name: Run dependency audit
+        continue-on-error: true
+        run: bun audit
+
   build:
     needs: test
     runs-on: ubuntu-latest

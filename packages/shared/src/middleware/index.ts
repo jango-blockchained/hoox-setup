@@ -13,6 +13,7 @@ export {
   requireInternalAuth,
   createInternalAuthMiddleware,
   checkInternalAuth,
+  timingSafeEqual,
   type InternalAuthEnv,
 } from "./auth";
 export {

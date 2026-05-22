@@ -179,12 +179,13 @@ describe("requireInternalAuth", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null when no key configured (auth optional)", () => {
+  it("returns 401 when no key configured (fail closed)", () => {
     const env = {} as unknown as Env;
     const request = new Request("https://example.com");
 
     const result = requireInternalAuth(request, env);
-    expect(result).toBeNull();
+    expect(result).toBeInstanceOf(Response);
+    expect(result?.status).toBe(401);
   });
 
   it("returns 401 when key configured but header missing", async () => {
@@ -230,14 +231,15 @@ describe("requireInternalAuth", () => {
     expect(result?.status).toBe(401);
   });
 
-  it("returns null when custom key not configured (auth optional)", () => {
+  it("returns 401 when custom key not configured (fail closed)", () => {
     const env = {} as unknown as Env;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "any-key" },
     });
 
     const result = requireInternalAuth(request, env, "CUSTOM_KEY");
-    expect(result).toBeNull();
+    expect(result).toBeInstanceOf(Response);
+    expect(result?.status).toBe(401);
   });
 
   it("returns 401 response with correct Content-Type header", () => {

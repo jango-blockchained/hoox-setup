@@ -10,7 +10,7 @@ import type { Handler } from "../types/router";
  * Constant-time string comparison to prevent timing attacks.
  * Manually performs byte-wise XOR comparison to avoid early returns.
  */
-function timingSafeEqual(a: string, b: string): boolean {
+export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   const encoder = new TextEncoder();
   const aBuf = encoder.encode(a);
@@ -62,13 +62,13 @@ export interface InternalAuthEnv {
  * Require internal service-to-service authentication via X-Internal-Auth-Key header.
  * Use for endpoints called by other workers via Service Bindings.
  *
- * If the expected key is not configured in env, the request is allowed through
- * (auth is optional when no key is set).
+ * Fails closed: if the expected key is not configured in env, the request is rejected.
+ * This prevents accidental exposure of unprotected internal endpoints.
  *
  * @param request - The incoming request
  * @param env - Worker environment containing the expected key
  * @param keyName - The env binding name for the internal key (default: 'INTERNAL_KEY_BINDING')
- * @returns Response if unauthorized, null if authorized (or if no key configured)
+ * @returns Response if unauthorized, null if authorized
  */
 export function requireInternalAuth(
   request: Request,
@@ -76,8 +76,16 @@ export function requireInternalAuth(
   keyName: string = "INTERNAL_KEY_BINDING"
 ): Response | null {
   const expectedKey = env[keyName] as string | undefined;
-  // If no key is configured, auth is optional — allow through
-  if (!expectedKey) return null;
+  // Fail closed: if no key is configured, reject the request
+  if (!expectedKey) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: `Internal auth key ${keyName} not configured`,
+      }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const providedKey = request.headers.get("X-Internal-Auth-Key");
   if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
