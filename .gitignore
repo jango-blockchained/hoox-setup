@@ -101,10 +101,24 @@ coverage/
 r2-test-object_*
 wrangler.jsonc.save
 
+# Task and E2E summary files
+TASK*.md
+E2E*.md
+
+# Test model files
+test-models.ts
+
+# Antigravity CLI artifacts
+.antigravitycli/
+.antigravitycli/*
+
+# Husky hooks (auto-installed by husky, not committed)
+.husky/
+.husky/*
+
 # CTX cache artifacts
-.ctx/cache/
-.ctx/packs/
-.ctx/stats/
+.ctx/
+.ctx/*
 
 # Rename backups
 .hoox-rename-backups/
