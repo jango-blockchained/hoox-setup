@@ -17,6 +17,7 @@
     "test:integration": "bun test tests/integration/",
     "test:e2e": "bun test tests/e2e/ tests/e2e.test.ts",
     "test:load": "k6 run tests/load/webhook-flow.js && k6 run tests/load/d1-query-load.js && k6 run tests/load/system-mixed.js && k6 run tests/load/agent-cron-sim.js",
+    "test:security": "bun test tests/security/",
     "test:all": "bun run lint && bun run typecheck && bun test && bun test:live",
     "build": "bun run build:packages && bun run typecheck",
     "build:packages": "bun run build:cli && bun run build:tui",
