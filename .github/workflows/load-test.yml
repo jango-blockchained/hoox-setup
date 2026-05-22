@@ -1,0 +1,158 @@
+# Nightly Load Test Workflow
+# Runs k6 performance/load tests against deployed Cloudflare Workers.
+# Threshold failures are informational - they don't block PRs but
+# provide a signal for performance regressions.
+#
+# Triggered:
+#   - Nightly at 06:00 UTC weekdays (cron)
+#   - Manually via workflow_dispatch (with custom parameters)
+
+name: Load Test
+
+on:
+  schedule:
+    # Weekdays at 06:00 UTC (before market open in most timezones)
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Target base URL for load tests"
+        required: true
+        default: "https://hoox.cryptolinx.workers.dev"
+        type: string
+      internal_auth_key:
+        description: "Internal auth key for service-to-service requests"
+        required: false
+        default: ""
+        type: string
+      hoox_api_key:
+        description: "Webhook API key for hoox gateway"
+        required: false
+        default: ""
+        type: string
+      threshold_p95:
+        description: "p95 latency threshold in milliseconds"
+        required: false
+        default: "2000"
+        type: string
+      threshold_p99:
+        description: "p99 latency threshold in milliseconds"
+        required: false
+        default: "5000"
+        type: string
+
+env:
+  K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN || '' }}
+
+jobs:
+  load-test:
+    name: k6 Performance & Load Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          # Use latest stable k6 release
+          version: latest
+
+      - name: Run Webhook Flow Load Test
+        id: webhook-flow
+        continue-on-error: true
+        run: |
+          k6 run tests/load/webhook-flow.js \
+            --tag test=webhook-flow \
+            --tag ci_run=${{ github.run_id }} \
+            --summary-export /tmp/k6-reports/webhook-flow-summary.json \
+            -e BASE_URL="${{ inputs.base_url || secrets.LOAD_TEST_BASE_URL || 'https://hoox.cryptolinx.workers.dev' }}" \
+            -e INTERNAL_AUTH_KEY="${{ inputs.internal_auth_key || secrets.INTERNAL_AUTH_KEY || '' }}" \
+            -e HOOX_API_KEY="${{ inputs.hoox_api_key || secrets.HOOX_API_KEY || '' }}" \
+            -e THRESHOLD_P95="${{ inputs.threshold_p95 || '2000' }}" \
+            -e THRESHOLD_P99="${{ inputs.threshold_p99 || '5000' }}"
+        env:
+          K6_OUT: json=/tmp/k6-reports/webhook-flow.json
+
+      - name: Run D1 Query Load Test
+        id: d1-query-load
+        continue-on-error: true
+        run: |
+          k6 run tests/load/d1-query-load.js \
+            --tag test=d1-query-load \
+            --tag ci_run=${{ github.run_id }} \
+            --summary-export /tmp/k6-reports/d1-query-summary.json \
+            -e BASE_URL="${{ inputs.base_url || secrets.LOAD_TEST_BASE_URL || 'https://hoox.cryptolinx.workers.dev' }}" \
+            -e INTERNAL_AUTH_KEY="${{ inputs.internal_auth_key || secrets.INTERNAL_AUTH_KEY || '' }}" \
+            -e THRESHOLD_P95="${{ inputs.threshold_p95 || '500' }}" \
+            -e THRESHOLD_P99="${{ inputs.threshold_p99 || '1000' }}"
+        env:
+          K6_OUT: json=/tmp/k6-reports/d1-query.json
+
+      - name: Run Agent Cron Simulation Load Test
+        id: agent-cron-sim
+        continue-on-error: true
+        run: |
+          k6 run tests/load/agent-cron-sim.js \
+            --tag test=agent-cron-sim \
+            --tag ci_run=${{ github.run_id }} \
+            --summary-export /tmp/k6-reports/agent-cron-summary.json \
+            -e BASE_URL="${{ inputs.base_url || secrets.LOAD_TEST_BASE_URL || 'https://hoox.cryptolinx.workers.dev' }}" \
+            -e INTERNAL_AUTH_KEY="${{ inputs.internal_auth_key || secrets.INTERNAL_AUTH_KEY || '' }}" \
+            -e THRESHOLD_P95="${{ inputs.threshold_p95 || '1000' }}" \
+            -e THRESHOLD_P99="${{ inputs.threshold_p99 || '3000' }}"
+        env:
+          K6_OUT: json=/tmp/k6-reports/agent-cron.json
+
+      - name: Run Combined System Mixed Load Test
+        id: system-mixed
+        continue-on-error: true
+        run: |
+          k6 run tests/load/system-mixed.js \
+            --tag test=system-mixed \
+            --tag ci_run=${{ github.run_id }} \
+            --summary-export /tmp/k6-reports/system-mixed-summary.json \
+            -e BASE_URL="${{ inputs.base_url || secrets.LOAD_TEST_BASE_URL || 'https://hoox.cryptolinx.workers.dev' }}" \
+            -e INTERNAL_AUTH_KEY="${{ inputs.internal_auth_key || secrets.INTERNAL_AUTH_KEY || '' }}" \
+            -e HOOX_API_KEY="${{ inputs.hoox_api_key || secrets.HOOX_API_KEY || '' }}" \
+            -e THRESHOLD_P95="${{ inputs.threshold_p95 || '2000' }}" \
+            -e THRESHOLD_P99="${{ inputs.threshold_p99 || '3000' }}"
+        env:
+          K6_OUT: json=/tmp/k6-reports/system-mixed.json
+
+      - name: Upload k6 Reports as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test-reports-${{ github.run_id }}
+          path: /tmp/k6-reports/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Print Load Test Summary
+        if: always()
+        run: |
+          echo "========================================="
+          echo "  k6 Load Test Results Summary"
+          echo "========================================="
+          echo ""
+          for report in /tmp/k6-reports/*-summary.json; do
+            if [ -f "$report" ]; then
+              test_name=$(basename "$report" -summary.json)
+              echo "--- $test_name ---"
+              if command -v jq &> /dev/null; then
+                echo "  Thresholds passed: $(jq -r '.metrics.http_req_duration.passed' "$report" 2>/dev/null || echo 'N/A')"
+                echo "  p95: $(jq -r '.metrics.http_req_duration.p95 // "N/A"' "$report" 2>/dev/null)ms"
+                echo "  p99: $(jq -r '.metrics.http_req_duration.p99 // "N/A"' "$report" 2>/dev/null)ms"
+                echo "  Error rate: $(jq -r '.metrics.http_req_failed.rate // "N/A"' "$report" 2>/dev/null)"
+              else
+                cat "$report"
+              fi
+              echo ""
+            fi
+          done
+          echo "========================================="

@@ -43,6 +43,9 @@ export default [
         ...globals.node,
         ...globals.jest,
         Bun: "readonly",
+        // k6 load testing globals
+        __ENV: "readonly",
+        __ITER: "readonly",
       },
     },
     rules: {
