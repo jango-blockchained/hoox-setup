@@ -8,7 +8,7 @@ import type { ViewId, ModalState } from "../types";
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-interface UIState {
+export interface UIState {
   activeView: ViewId;
   sidebarExpanded: boolean;
   modal: ModalState | null;

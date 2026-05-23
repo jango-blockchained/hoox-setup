@@ -165,9 +165,9 @@ export {
 export * from "./schemas/index.js";
 
 // Zustand stores
-export { useUIStore } from "../stores/ui-store";
-export { useServiceStore } from "../stores/service-store";
-export { useConfigStore } from "../stores/config-store";
-export type { UIState } from "../stores/ui-store";
-export type { ServiceState } from "../stores/service-store";
-export type { ConfigState } from "../stores/config-store";
+export { useUIStore } from "./stores/ui-store";
+export { useServiceStore } from "./stores/service-store";
+export { useConfigStore } from "./stores/config-store";
+export type { UIState } from "./stores/ui-store";
+export type { ServiceState } from "./stores/service-store";
+export type { ConfigState } from "./stores/config-store";

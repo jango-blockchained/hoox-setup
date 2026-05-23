@@ -1,20 +1,83 @@
 {
   "name": "@jango-blockchained/hoox-shared",
-  "version": "1.0.7",
-  "description": "Shared utilities, types, and stores for HOOX CLI and TUI",
+  "version": "1.0.8",
+  "description": "Shared utilities, types, and stores for HOOX CLI, TUI, and Cloudflare Workers",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./stores/*": "./stores/*.ts",
-    "./middleware": "./src/middleware/index.ts",
-    "./d1": "./src/d1/index.ts",
-    "./*": "./src/*.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
+      "import": "./src/middleware/index.ts",
+      "default": "./dist/middleware/index.js"
+    },
+    "./d1": {
+      "types": "./dist/d1/index.d.ts",
+      "import": "./src/d1/index.ts",
+      "default": "./dist/d1/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./src/schemas/index.ts",
+      "default": "./dist/schemas/index.js"
+    },
+    "./wizard": {
+      "types": "./dist/wizard/index.d.ts",
+      "import": "./src/wizard/index.ts",
+      "default": "./dist/wizard/index.js"
+    },
+    "./stores/*": {
+      "types": "./dist/stores/*.d.ts",
+      "import": "./src/stores/*.ts",
+      "default": "./dist/stores/*.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "prepublishOnly": "bun run build && bun run typecheck",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
   },
   "dependencies": {
     "jsonc-parser": "^3.3.1",
     "zustand": "^5.0.0",
     "immer": "^11.1.8"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jango-blockchained/hoox-setup.git"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "trading",
+    "crypto",
+    "automation",
+    "hoox"
+  ],
+  "author": "Hoox Team",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.0"
   }
 }

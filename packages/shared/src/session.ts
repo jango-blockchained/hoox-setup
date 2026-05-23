@@ -12,7 +12,7 @@
 
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { ViewId } from "../types";
+import type { ViewId } from "./types";
 
 // ─── Session shape ───────────────────────────────────────────────────────────
 

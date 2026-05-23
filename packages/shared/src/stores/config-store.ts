@@ -87,7 +87,7 @@ const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-interface ConfigState {
+export interface ConfigState {
   theme: "dark" | "light";
   refreshIntervalMs: number;
   defaultView: ViewId;

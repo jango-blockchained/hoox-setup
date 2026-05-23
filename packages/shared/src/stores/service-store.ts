@@ -40,8 +40,6 @@ import type {
 
 /** Backoff sequence: 1s, 2s, 4s, 8s, 16s */
 const BACKOFF_SEQUENCE = [1000, 2000, 4000, 8000, 16000];
-/** Maximum backoff delay */
-const BACKOFF_MAX_MS = 16000;
 /** Maximum retry attempts before transitioning to offline */
 const MAX_RETRIES = 5;
 
@@ -54,7 +52,7 @@ function ringPush<T>(arr: T[], item: T, max: number): T[] {
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-interface ServiceState {
+export interface ServiceState {
   workers: WorkerInfo[];
   tradeStream: Trade[]; // ring buffer, newest last, max 500
   alerts: Alert[]; // max 100
@@ -148,7 +146,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
 
     // ── Async: fetch workers from hoox-setup REST API ──────────────────────
     fetchWorkers: async () => {
-      const { hooxFetch } = await import("../src/api-client");
+      const { hooxFetch } = await import("../api-client");
       try {
         const data = await hooxFetch<WorkerInfo[]>("/workers");
         set((state) => {
@@ -200,7 +198,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
 
     // ── Async: stream trades via SSE ───────────────────────────────────────
     streamTrades: async () => {
-      const { subscribeSSE } = await import("../src/sse");
+      const { subscribeSSE } = await import("../sse");
       try {
         await subscribeSSE<Trade>("/trades/stream", (trade) => {
           get().pushTrade(trade);
@@ -212,7 +210,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
 
     // ── Async: stream logs via SSE ─────────────────────────────────────────
     streamLogs: async () => {
-      const { subscribeSSE } = await import("../src/sse");
+      const { subscribeSSE } = await import("../sse");
       try {
         await subscribeSSE<LogEntry>("/logs/stream", (log) => {
           get().pushLog(log);

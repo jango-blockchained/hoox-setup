@@ -11,7 +11,7 @@
     "test": "bun test --path-ignore-patterns 'tests/live/**'",
     "test:live": "bun test tests/live/ --jobs 1",
     "test:cli": "bun test packages/cli/",
-    "test:tui": "bun test packages/tui/",
+    "test:tui": "bun test --preload ./packages/tui/src/test-setup.ts packages/tui/",
     "test:shared": "bun test packages/shared/",
     "test:workers": "bun test workers/",
     "test:integration": "bun test tests/integration/",
@@ -20,7 +20,8 @@
     "test:security": "bun test tests/security/",
     "test:all": "bun run lint && bun run typecheck && bun test && bun test:live",
     "build": "bun run build:packages && bun run typecheck",
-    "build:packages": "bun run build:cli && bun run build:tui",
+    "build:packages": "bun run build:shared && bun run build:cli && bun run build:tui",
+    "build:shared": "cd packages/shared && bun run build",
     "build:cli": "cd packages/cli && bun run build",
     "build:tui": "cd packages/tui && bun run build",
     "build:dashboard": "cd workers/dashboard && bun run build",
@@ -49,6 +50,7 @@
     "start": "bun run server.js"
   },
   "devDependencies": {
+    "@alegau/ctx-bin": "^0.2.5",
     "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
@@ -66,9 +68,10 @@
     "shadcn": "^4.7.0",
     "tailwindcss": "^4.3.0",
     "vite": "^8.0.14",
-    "wrangler": "^4.93.1"
+    "wrangler": "^4.94.0"
   },
   "dependencies": {
+    "radix-ui": "^1.4.3",
     "react": "^19.2.6",
     "zod": "^4.4.3"
   },

@@ -324,7 +324,7 @@ async function deployDashboard(
 
     if (action === "rebuild") {
       // Build + Deploy: bun run deploy (runs opennext:build && opennext:deploy)
-      const buildProc = Bun.spawn(["bun", "run", "opennext:deploy"], {
+      const buildProc = Bun.spawn(["bun", "run", "deploy"], {
         cwd: dashboardPath,
         stdout: "pipe",
         stderr: "pipe",
@@ -438,87 +438,6 @@ async function deployDashboard(
       error: message,
     };
   }
-}
-
-/**
- * Print a summary table of deploy results.
- * Excluded in quiet mode; uses JSON or box-drawn table depending on --json.
- */
-function printSummary(
-  results: DeployResult[],
-  opts: { json?: boolean; quiet?: boolean }
-): void {
-  if (opts.quiet) return;
-
-  // Separate workers from dashboard for different formatting
-  const workerResults = results.filter((r) => r.worker !== "dashboard");
-  const dashboardResult = results.find((r) => r.worker === "dashboard");
-
-  // Print worker deployments with verbose info
-  if (workerResults.length > 0) {
-    process.stdout.write(`\n${theme.heading("Workers Deployed")}\n`);
-    for (const r of workerResults) {
-      const icon = r.success
-        ? theme.success(icons.success)
-        : theme.error(icons.error);
-      const status = r.success ? "deployed" : "failed";
-      process.stdout.write(`${icon} ${r.worker}: ${status}\n`);
-
-      if (r.success && r.url) {
-        process.stdout.write(`   ${theme.dim("URL:")} ${r.url}\n`);
-      }
-      if (r.success && r.size) {
-        process.stdout.write(`   ${theme.dim("Size:")} ${r.size}\n`);
-      }
-      if (r.success && r.startupTime) {
-        process.stdout.write(`   ${theme.dim("Startup:")} ${r.startupTime}\n`);
-      }
-      if (r.success && r.versionId) {
-        process.stdout.write(
-          `   ${theme.dim("Version:")} ${r.versionId.slice(0, 8)}...\n`
-        );
-      }
-      if (!r.success && r.error) {
-        process.stdout.write(`   ${theme.error("Error:")} ${r.error}\n`);
-      }
-    }
-  }
-
-  // Print dashboard deployment
-  if (dashboardResult) {
-    process.stdout.write(`\n${theme.heading("Dashboard Deployed")}\n`);
-    const icon = dashboardResult.success
-      ? theme.success(icons.success)
-      : theme.error(icons.error);
-    const status = dashboardResult.success ? "deployed" : "failed";
-    process.stdout.write(`${icon} dashboard: ${status}\n`);
-
-    if (dashboardResult.success && dashboardResult.url) {
-      process.stdout.write(`   ${theme.dim("URL:")} ${dashboardResult.url}\n`);
-    }
-    if (dashboardResult.success && dashboardResult.size) {
-      process.stdout.write(
-        `   ${theme.dim("Size:")} ${dashboardResult.size}\n`
-      );
-    }
-    if (dashboardResult.success && dashboardResult.startupTime) {
-      process.stdout.write(
-        `   ${theme.dim("Startup:")} ${dashboardResult.startupTime}\n`
-      );
-    }
-    if (!dashboardResult.success && dashboardResult.error) {
-      process.stdout.write(
-        `   ${theme.error("Error:")} ${dashboardResult.error}\n`
-      );
-    }
-  }
-
-  // Summary line
-  const succeeded = results.filter((r) => r.success).length;
-  const failed = results.filter((r) => !r.success).length;
-  process.stdout.write(
-    `\n${theme.heading("Summary:")} ${succeeded} succeeded, ${failed} failed\n`
-  );
 }
 
 // ---------------------------------------------------------------------------
