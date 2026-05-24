@@ -39,12 +39,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Publish @jango-blockchained/hoox-shared to npm
-        run: |
-          cd packages/shared
-          # Override scope registry — repo .npmrc redirects @jango-blockchained
-          # to GitHub Packages, but this step targets the public npm registry.
-          npm config set @jango-blockchained:registry https://registry.npmjs.org
-          npm publish --access public --ignore-scripts
+        run: cd packages/shared && npm publish --access public --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -56,7 +51,7 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
 
       - name: Publish @jango-blockchained/hoox-shared to GitHub Packages
-        run: cd packages/shared && npm publish --access public --ignore-scripts
+        run: cd packages/shared && npm publish --access public --ignore-scripts --registry https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
