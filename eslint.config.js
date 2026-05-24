@@ -22,6 +22,7 @@ export default [
       "**/dist.bak/",
       ".agents/",
       ".worktrees/",
+      "packages/shared/scripts/",
     ],
   },
   js.configs.recommended,
@@ -62,7 +63,7 @@ export default [
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: null,
+        projectService: true,
       },
     },
     plugins: {
@@ -74,7 +75,7 @@ export default [
       // positives from Cloudflare Workers types (Fetcher, KVNamespace, etc.)
       "no-undef": "off",
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         {
           argsIgnorePattern: "^_",
         },
@@ -82,7 +83,7 @@ export default [
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-var-requires": "off",
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/ban-ts-comment": "error",
     },
   },
   {
