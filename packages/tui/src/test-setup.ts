@@ -73,7 +73,8 @@ mock.module("@opentui/core/testing", () => {
             `OpenTUI render library initialization failed: ${
               cause instanceof Error ? cause.message : String(cause)
             }. ` +
-              "Ensure @opentui/core native library is installed for your platform."
+              "Ensure @opentui/core native library is installed for your platform.",
+            { cause }
           );
         }
       },

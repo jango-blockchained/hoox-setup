@@ -85,9 +85,11 @@ class ApiClient {
     return (await response.json()) as T;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private asObject(value: unknown): Record<string, any> {
     return typeof value === "object" && value !== null
-      ? (value as Record<string, any>)
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (value as Record<string, any>)
       : {};
   }
 
