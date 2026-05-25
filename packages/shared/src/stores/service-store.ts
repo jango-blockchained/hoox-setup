@@ -169,6 +169,14 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
       } catch (error) {
         const msg =
           error instanceof Error ? error.message : "Unknown fetch error";
+        get().addAlert({
+          id: crypto.randomUUID(),
+          type: "connection",
+          severity: "error",
+          message: msg,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
         set((state) => {
           // Transition: connected/polling → reconnecting on failure
           if (
@@ -203,8 +211,18 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
         await subscribeSSE<Trade>("/trades/stream", (trade) => {
           get().pushTrade(trade);
         });
-      } catch {
-        // SSE connection failure — handled by connection state machine elsewhere
+      } catch (error) {
+        const msg =
+          error instanceof Error ? error.message : "SSE trade stream failed";
+        get().addAlert({
+          id: crypto.randomUUID(),
+          type: "connection",
+          severity: "error",
+          message: msg,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        get().handleConnectionFailure(msg);
       }
     },
 
@@ -215,8 +233,18 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
         await subscribeSSE<LogEntry>("/logs/stream", (log) => {
           get().pushLog(log);
         });
-      } catch {
-        // SSE connection failure — handled by connection state machine elsewhere
+      } catch (error) {
+        const msg =
+          error instanceof Error ? error.message : "SSE log stream failed";
+        get().addAlert({
+          id: crypto.randomUUID(),
+          type: "connection",
+          severity: "error",
+          message: msg,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        get().handleConnectionFailure(msg);
       }
     },
 
