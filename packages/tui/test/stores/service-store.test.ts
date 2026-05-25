@@ -35,7 +35,8 @@ const hooxFetchMock = mock(async (_path: string) => {
 });
 
 // Setup mock for the dynamic import in fetchWorkers
-mock.module("@jango-blockchained/hoox-shared", () => ({
+// Targets the relative path used by service-store.ts: import("../api-client")
+mock.module("../../../shared/src/api-client", () => ({
   hooxFetch: hooxFetchMock,
 }));
 
@@ -48,7 +49,8 @@ const subscribeSSEMock = mock(
   }
 );
 
-mock.module("@jango-blockchained/hoox-shared", () => ({
+// Targets the relative path used by service-store.ts: import("../sse")
+mock.module("../../../shared/src/sse", () => ({
   subscribeSSE: subscribeSSEMock,
 }));
 

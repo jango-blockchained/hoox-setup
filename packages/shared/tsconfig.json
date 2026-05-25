@@ -5,5 +5,5 @@
     "rootDir": "./src",
     "types": ["bun-types", "node", "@cloudflare/workers-types"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "tests/**/*", "types.ts"]
 }

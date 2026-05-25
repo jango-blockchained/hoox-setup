@@ -97,7 +97,6 @@ export function renderBannerSignal(): string {
 export function renderBannerMinimal(): string {
   const bw = 50;
   const rule = theme.dim("━").repeat(bw);
-  const inner = theme.dim("─").repeat(bw);
 
   const leftPad = Math.floor((bw - TAGLINE.length - VERSION.length - 8) / 2);
   const titleLine =

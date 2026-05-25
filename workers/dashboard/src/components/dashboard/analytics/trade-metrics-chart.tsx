@@ -26,7 +26,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const chartConfig = {

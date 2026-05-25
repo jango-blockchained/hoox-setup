@@ -24,7 +24,7 @@ import {
   YAxis,
   ReferenceLine,
 } from "recharts";
-import { TrendingUp, TrendingDown } from "lucide-react";
+// lucide-react icons used: none directly
 
 interface CandleData {
   time: string;

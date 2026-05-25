@@ -22,7 +22,7 @@ function createMockKv() {
       (
         key: string,
         value: string,
-        options?: { expirationTtl?: number }
+        _options?: { expirationTtl?: number }
       ): Promise<void> => {
         store.set(key, value);
         return Promise.resolve();

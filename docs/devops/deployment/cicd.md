@@ -27,17 +27,17 @@ graph TD
     SecretScan["🕵️ gitleaks \n(secret scanning)"] -.->|Parallel| Lint
     CodeQL["🔬 CodeQL \n(weekly SAST)"] -.->|Parallel| Lint
 
-    style Push fill:#1e293b,stroke:#3b82f6,stroke-width:2
-    style Checkout fill:#1e293b,stroke:#10b981,stroke-width:1
-    style Install fill:#1e293b,stroke:#10b981,stroke-width:1
-    style Lint fill:#1e293b,stroke:#f59e0b,stroke-width:1
-    style Typecheck fill:#1e293b,stroke:#f59e0b,stroke-width:1
-    style Test fill:#1e293b,stroke:#f59e0b,stroke-width:1
-    style Audit fill:#1e293b,stroke:#ef4444,stroke-width:1
-    style SecretScan fill:#1e293b,stroke:#a855f7,stroke-width:1
-    style CodeQL fill:#1e293b,stroke:#a855f7,stroke-width:1
-    style Deploy fill:#1e293b,stroke:#ef4444,stroke-width:2
-    style Notify fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Push fill:#CCCCCC,stroke:#3b82f6,stroke-width:2
+    style Checkout fill:#CCCCCC,stroke:#10b981,stroke-width:1
+    style Install fill:#CCCCCC,stroke:#10b981,stroke-width:1
+    style Lint fill:#CCCCCC,stroke:#f59e0b,stroke-width:1
+    style Typecheck fill:#CCCCCC,stroke:#f59e0b,stroke-width:1
+    style Test fill:#CCCCCC,stroke:#f59e0b,stroke-width:1
+    style Audit fill:#CCCCCC,stroke:#ef4444,stroke-width:1
+    style SecretScan fill:#CCCCCC,stroke:#a855f7,stroke-width:1
+    style CodeQL fill:#CCCCCC,stroke:#a855f7,stroke-width:1
+    style Deploy fill:#CCCCCC,stroke:#ef4444,stroke-width:2
+    style Notify fill:#CCCCCC,stroke:#10b981,stroke-width:1
 ```
 
 ---

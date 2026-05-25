@@ -1,12 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import {
   formatSuccess,
-  formatError,
   formatTable,
   formatJson,
   formatKeyValue,
 } from "./formatters.js";
-import { CLIError, ExitCode } from "./errors.js";
 
 /**
  * Helper: captures everything written to process.stdout.write into a string.

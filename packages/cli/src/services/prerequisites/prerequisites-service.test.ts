@@ -1,5 +1,19 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, beforeAll } from "bun:test";
 import { PrerequisitesService } from "./prerequisites-service.js";
+
+// Mock Cloudflare auth to avoid spawning real wrangler process that can hang
+beforeAll(() => {
+  PrerequisitesService.prototype.checkCloudflareAuth = async function () {
+    return {
+      name: "Cloudflare Auth",
+      category: "account" as const,
+      passed: false,
+      required: "authenticated",
+      version: "not authenticated",
+      hint: "Run: wrangler whoami",
+    };
+  };
+});
 
 describe("PrerequisitesService", () => {
   describe("checkBun", () => {

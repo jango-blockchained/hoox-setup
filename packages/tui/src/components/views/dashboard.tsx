@@ -18,7 +18,7 @@ import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
 import { cliBridge } from "../../services/cli-bridge";
-import type { Alert, AlertSeverity } from "@jango-blockchained/hoox-shared";
+import type { AlertSeverity } from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

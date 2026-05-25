@@ -23,11 +23,11 @@ graph TD
     KV -->|Persist / Log| R2
     D1 -->|Persist / Log| R2
 
-    style Pipeline fill:#1e293b,stroke:#3b82f6,stroke-width:2
-    style DO fill:#1e293b,stroke:#f59e0b,stroke-width:2
-    style KV fill:#1e293b,stroke:#10b981,stroke-width:2
-    style D1 fill:#1e293b,stroke:#ef4444,stroke-width:2
-    style R2 fill:#1e293b,stroke:#a855f7,stroke-width:2
+    style Pipeline fill:#CCCCCC,stroke:#3b82f6,stroke-width:2
+    style DO fill:#CCCCCC,stroke:#f59e0b,stroke-width:2
+    style KV fill:#CCCCCC,stroke:#10b981,stroke-width:2
+    style D1 fill:#CCCCCC,stroke:#ef4444,stroke-width:2
+    style R2 fill:#CCCCCC,stroke:#a855f7,stroke-width:2
 ```
 
 | Storage primitive   | Engine Technology   | Consistency Model    | Read Latency | Write Latency | Ideal Use Case                                               |

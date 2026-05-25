@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function SignalOutcomes() {

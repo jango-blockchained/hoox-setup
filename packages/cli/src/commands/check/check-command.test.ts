@@ -34,8 +34,6 @@ let tailMock: ReturnType<typeof mock>;
 let secretListMock: ReturnType<typeof mock>;
 
 let secretsCreateMock: ReturnType<typeof mock>;
-let checkLocalSecretsMock: ReturnType<typeof mock>;
-let listSecretsMock: ReturnType<typeof mock>;
 
 // Preserve originals for cleanup
 const origLoad = ConfigService.prototype.load;
@@ -123,14 +121,6 @@ beforeEach(() => {
       listSecrets: { value: mock(() => []) },
     })
   );
-
-  checkLocalSecretsMock = mock(async () => ({
-    worker: "test-worker",
-    secrets: [],
-    allSet: true,
-    missing: [],
-  }));
-  listSecretsMock = mock(() => ["API_KEY"]);
 
   // Apply stubs
   ConfigService.prototype.load = loadMock;

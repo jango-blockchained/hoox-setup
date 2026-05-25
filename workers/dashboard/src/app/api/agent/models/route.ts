@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";

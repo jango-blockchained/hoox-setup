@@ -18,8 +18,6 @@ import {
   requireField,
   optionalField,
 } from "../src/middleware/validate";
-import type { Result } from "../src/types";
-
 describe("Middleware", () => {
   describe("Logger", () => {
     test("should create logger instance", () => {

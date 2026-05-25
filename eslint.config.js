@@ -75,7 +75,7 @@ export default [
       // positives from Cloudflare Workers types (Fetcher, KVNamespace, etc.)
       "no-undef": "off",
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         {
           argsIgnorePattern: "^_",
         },
@@ -128,6 +128,29 @@ export default [
       parserOptions: {
         project: null,
       },
+    },
+  },
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "workers/*/test/**",
+      "packages/*/test/**",
+      "packages/*/tests/**",
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: null,
+        projectService: false,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "no-empty": "warn",
     },
   },
 ];

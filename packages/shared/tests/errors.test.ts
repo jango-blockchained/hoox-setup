@@ -9,7 +9,6 @@ import {
   Errors,
   toError,
   type AppError,
-  type ErrorResponse,
 } from "../src/errors";
 
 describe("Error Handling Utilities", () => {

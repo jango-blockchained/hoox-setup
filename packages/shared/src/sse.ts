@@ -92,7 +92,7 @@ export function subscribeSSE<T>(
             // SSE comments (lines starting with ":") and empty lines are ignored
           }
         }
-      } catch (error) {
+      } catch (_error) {
         if (aborted) break;
 
         onStatus?.("reconnecting");

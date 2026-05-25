@@ -50,7 +50,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import { toast } from "sonner";
+// toast not used directly
 import { z } from "zod";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -81,7 +81,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+// Input not used directly
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -101,8 +101,6 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { api } from "@/lib/api";
-
 export const schema = z
   .object({
     id: z.number().positive().int(),

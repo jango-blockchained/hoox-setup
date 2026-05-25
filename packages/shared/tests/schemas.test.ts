@@ -4,7 +4,6 @@
  */
 
 import { describe, test, expect } from "bun:test";
-import { z } from "zod";
 import {
   TradeActionSchema,
   WebhookPayloadSchema,

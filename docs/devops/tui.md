@@ -19,9 +19,9 @@ graph TD
     AppRoot["⚙️ AppRoot Component (app.tsx)<br/>Manages Sidebar, TabBar, StatusBar, Command Palette"] -->
     ActiveView["📺 Active View Component (e.g. Dashboard / ConfigEditor)<br/>Individually sandboxed in custom ErrorBoundaries"]
 
-    style Renderer fill:#1e293b,stroke:#3b82f6,stroke-width:2
-    style AppRoot fill:#1e293b,stroke:#f59e0b,stroke-width:2
-    style ActiveView fill:#1e293b,stroke:#10b981,stroke-width:2
+    style Renderer fill:#CCCCCC,stroke:#3b82f6,stroke-width:2
+    style AppRoot fill:#CCCCCC,stroke:#f59e0b,stroke-width:2
+    style ActiveView fill:#CCCCCC,stroke:#10b981,stroke-width:2
 ```
 
 ---
@@ -60,10 +60,10 @@ stateDiagram-v2
     RECONNECTING --> POLLING : Exponential Backoff<br/>(1s to 16s)
     POLLING --> OFFLINE : Failure (after 5 retries)
 
-    style OFFLINE fill:#1e293b,stroke:#ef4444,stroke-width:2
-    style POLLING fill:#1e293b,stroke:#f59e0b,stroke-width:2
-    style CONNECTED fill:#1e293b,stroke:#10b981,stroke-width:2
-    style RECONNECTING fill:#1e293b,stroke:#a855f7,stroke-width:2
+    style OFFLINE fill:#CCCCCC,stroke:#ef4444,stroke-width:2
+    style POLLING fill:#CCCCCC,stroke:#f59e0b,stroke-width:2
+    style CONNECTED fill:#CCCCCC,stroke:#10b981,stroke-width:2
+    style RECONNECTING fill:#CCCCCC,stroke:#a855f7,stroke-width:2
 ```
 
 ### Exponential Backoff Intervals

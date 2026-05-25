@@ -62,12 +62,10 @@ function mockSpawnWith(result: MockSpawnResult): void {
 
 /** Track spawn calls so we can assert on arguments. */
 let lastSpawnCmd: string[] = [];
-let lastSpawnCwd: string | undefined;
 
 function mockSpawnWithCapture(result: MockSpawnResult): void {
   const spawnMock = mock((cmd: string[], options?: { cwd?: string }) => {
     lastSpawnCmd = cmd;
-    lastSpawnCwd = options?.cwd;
     return result;
   });
   (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
@@ -79,7 +77,6 @@ function mockSpawnWithCapture(result: MockSpawnResult): void {
 
 beforeEach(() => {
   lastSpawnCmd = [];
-  lastSpawnCwd = undefined;
 });
 
 afterEach(() => {

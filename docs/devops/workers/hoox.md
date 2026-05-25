@@ -23,12 +23,12 @@ graph TD
         Anal["📊 analytics-worker"]
     end
 
-    style Alert fill:#1e293b,stroke:#3b82f6,stroke-width:2
-    style WAF fill:#1e293b,stroke:#f59e0b,stroke-width:2
-    style Gateway fill:#1e293b,stroke:#ef4444,stroke-width:2
-    style Trade fill:#1e293b,stroke:#10b981,stroke-width:1
-    style Tele fill:#1e293b,stroke:#10b981,stroke-width:1
-    style Anal fill:#1e293b,stroke:#10b981,stroke-width:1
+    style Alert fill:#CCCCCC,stroke:#3b82f6,stroke-width:2
+    style WAF fill:#CCCCCC,stroke:#f59e0b,stroke-width:2
+    style Gateway fill:#CCCCCC,stroke:#ef4444,stroke-width:2
+    style Trade fill:#CCCCCC,stroke:#10b981,stroke-width:1
+    style Tele fill:#CCCCCC,stroke:#10b981,stroke-width:1
+    style Anal fill:#CCCCCC,stroke:#10b981,stroke-width:1
 ```
 
 ---
