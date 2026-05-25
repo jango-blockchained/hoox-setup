@@ -13,7 +13,8 @@ if (!packagePath) {
   process.exit(1);
 }
 
-const packageJsonPath = path.join(packagePath, "package.json");
+const resolvedPackagePath = path.resolve(packagePath);
+const packageJsonPath = path.join(resolvedPackagePath, "package.json");
 if (!fs.existsSync(packageJsonPath)) {
   console.error(`package.json not found at ${packageJsonPath}`);
   process.exit(1);
@@ -23,7 +24,22 @@ if (!fs.existsSync(packageJsonPath)) {
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
 // Get all workspace package versions from the monorepo
-const monorepoRootPath = path.resolve(packagePath, "../..");
+// Find the monorepo root by looking for bun.lock or looking up parent directories
+let monorepoRootPath = resolvedPackagePath;
+while (monorepoRootPath !== path.dirname(monorepoRootPath)) {
+  if (fs.existsSync(path.join(monorepoRootPath, "bun.lock"))) {
+    break;
+  }
+  if (fs.existsSync(path.join(monorepoRootPath, "package.json"))) {
+    const rootPkg = JSON.parse(
+      fs.readFileSync(path.join(monorepoRootPath, "package.json"), "utf-8")
+    );
+    if (rootPkg.workspaces) {
+      break;
+    }
+  }
+  monorepoRootPath = path.dirname(monorepoRootPath);
+}
 const packagesDir = path.join(monorepoRootPath, "packages");
 const workersDir = path.join(monorepoRootPath, "workers");
 
