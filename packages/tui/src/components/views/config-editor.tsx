@@ -14,6 +14,9 @@
  *   - ↑↓: navigate file tree / scroll editor
  *   - Enter: select file in tree
  *   - Ctrl+S: save current file
+ *   - Ctrl+Z: undo last change
+ *   - Ctrl+Y: redo last change
+ *   - Ctrl+F: find in file
  *
  * File operations use Bun native I/O. Config directory path is resolved from
  * cwd (./config/) with a fallback to the hoox config dir (~/.hoox/config/).
@@ -22,7 +25,7 @@
  * 5 (Color Token Usage), 8 (ScrollBox).
  * Colors from @jango-blockchained/hoox-shared design tokens. No CSS, no DOM.
  */
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
@@ -483,8 +486,8 @@ export function detectFileType(path: string): FileType {
 function tokenizeLine(
   line: string,
   fileType: FileType,
-  lineNum: number,
-  syntaxErrors: SyntaxErrorEntry[]
+  _lineNum: number,
+  _syntaxErrors: SyntaxErrorEntry[]
 ): TokenSpan[] {
   if (fileType === "toml" || fileType === "env") {
     return tokenizeTomlLine(line);
@@ -658,7 +661,7 @@ function FileTree({
 
       {/* File tree items */}
       <scrollbox width="100%" flexGrow={1} border={false}>
-        {flatNodes.map(({ node, level }, idx) => {
+        {flatNodes.map(({ node, level }, _idx) => {
           const isSelected = node.path === selectedPath;
           const isFocused = node.path === focusedPath;
           const isUnsaved = node.type === "file" && unsavedPaths.has(node.path);
@@ -711,7 +714,7 @@ function CodeEditor({
   fileType,
   fileName,
   syntaxErrors,
-  scrollOffset,
+  scrollOffset: _scrollOffset,
 }: CodeEditorProps) {
   const lines = useMemo(() => content.split("\n"), [content]);
 
@@ -840,7 +843,7 @@ interface ActionBarProps {
 function ActionBar({
   unsavedCount,
   hasSelectedFile,
-  hasErrors,
+  hasErrors: _hasErrors,
   onSave,
   onValidate,
   onDiff,
@@ -930,6 +933,8 @@ export function ConfigEditor() {
   const [editorScrollOffset, setEditorScrollOffset] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [undoStack, setUndoStack] = useState<string[]>([]);
+  const [redoStack, setRedoStack] = useState<string[]>([]);
 
   // ── Derived ────────────────────────────────────────────────────────────
   const fileTree = useMemo(() => CONFIG_TREE_BLUEPRINT, []);
@@ -980,6 +985,22 @@ export function ConfigEditor() {
     },
     [fileContents]
   );
+
+  const prevContentRef = useRef(currentContent);
+  useEffect(() => {
+    if (!selectedFile || !currentContent) return;
+    if (
+      prevContentRef.current !== currentContent &&
+      prevContentRef.current !== ""
+    ) {
+      setUndoStack((stack) => {
+        const next = [...stack, prevContentRef.current];
+        return next.slice(-50);
+      });
+      setRedoStack([]);
+    }
+    prevContentRef.current = currentContent;
+  }, [currentContent, selectedFile]);
 
   const handleSave = useCallback(async () => {
     if (!selectedFile) return;
@@ -1062,9 +1083,75 @@ export function ConfigEditor() {
     setStatusMessage(`Formatted: ${selectedFile}`);
   }, [selectedFile, currentContent, fileType]);
 
+  const handleUndo = useCallback(() => {
+    if (undoStack.length === 0 || !selectedFile) return;
+    const prev = undoStack[undoStack.length - 1];
+    setUndoStack((s) => s.slice(0, -1));
+    setRedoStack((s) => [...s, currentContent]);
+    setFileContents((contents) => new Map(contents).set(selectedFile!, prev));
+    setUnsavedPaths((paths) => new Set(paths).add(selectedFile!));
+    setStatusMessage("Undo");
+  }, [undoStack, currentContent, selectedFile]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0 || !selectedFile) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((s) => s.slice(0, -1));
+    setUndoStack((s) => [...s, currentContent]);
+    setFileContents((prev) => new Map(prev).set(selectedFile!, next));
+    setUnsavedPaths((paths) => new Set(paths).add(selectedFile!));
+    setStatusMessage("Redo");
+  }, [redoStack, currentContent, selectedFile]);
+
+  const [findMode, setFindMode] = useState(false);
+  const [findQuery, setFindQuery] = useState("");
+
+  const handleFind = useCallback(() => {
+    setFindMode((p) => !p);
+    if (!findMode) {
+      setFindQuery("");
+      setStatusMessage("Find: type to search, Esc to close");
+    } else {
+      setStatusMessage("");
+    }
+  }, [findMode]);
+
   // ── Keyboard ───────────────────────────────────────────────────────────
 
   useKeyboard((key) => {
+    if (key.ctrl && key.name === "z") {
+      handleUndo();
+      return;
+    }
+    if (key.ctrl && key.name === "y") {
+      handleRedo();
+      return;
+    }
+    if (key.ctrl && key.name === "f") {
+      handleFind();
+      return;
+    }
+
+    if (findMode) {
+      if (key.name === "escape") {
+        setFindMode(false);
+        setStatusMessage("");
+        return;
+      }
+      if (key.name === "backspace" || key.name === "delete") {
+        setFindQuery((q) => q.slice(0, -1));
+        return;
+      }
+      if (key.name === "return") {
+        return;
+      }
+      if (key.sequence && key.sequence.length === 1 && key.sequence >= " ") {
+        setFindQuery((q) => q + key.sequence);
+        return;
+      }
+      return;
+    }
+
     if (key.name === "tab") {
       setActivePane((p) => (p === "tree" ? "editor" : "tree"));
     }
@@ -1094,7 +1181,6 @@ export function ConfigEditor() {
       }
     }
 
-    // Global: Ctrl+S to save
     if (key.ctrl && key.name === "s" && selectedFile) {
       handleSave();
     }
@@ -1153,6 +1239,20 @@ export function ConfigEditor() {
               ⚠
             </text>
             <text fg={Colors.error}>Validation: {validationError}</text>
+          </box>
+        )}
+
+        {findMode && (
+          <box flexDirection="row" gap={1} paddingLeft={1} paddingBottom={0}>
+            <text fg={Colors.accent} bold>
+              Find:
+            </text>
+            <text fg={Colors.foreground}>{findQuery}</text>
+            <text fg={Colors.muted} dim>
+              {findQuery
+                ? ` (${currentContent.toLowerCase().split(findQuery.toLowerCase()).length - 1} matches)`
+                : ""}
+            </text>
           </box>
         )}
 
