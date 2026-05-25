@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "bun run scripts/build-docs-extras.ts && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@astrojs/react": "5.0.5",
