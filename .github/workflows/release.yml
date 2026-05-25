@@ -29,12 +29,12 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run tests for CLI
-         # bun 1.3.13 has a bug where `bun test` exits code 1 despite
-         # all tests passing. The `|| true` prevents a false negative.
-         run: bun test packages/cli || true
+        # bun 1.3.13 has a bug where `bun test` exits code 1 despite
+        # all tests passing. The `|| true` prevents a false negative.
+        run: bun test packages/cli || true
 
-       - name: Run tests for shared package
-         run: bun test packages/shared || true
+      - name: Run tests for shared package
+        run: bun test packages/shared || true
 
       - name: Build project
         run: bun run build
