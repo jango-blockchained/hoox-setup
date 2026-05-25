@@ -7,12 +7,14 @@
 [submodule "workers/hoox"]
 	path = workers/hoox
 	url = https://github.com/jango-blockchained/hoox.git
+	branch = main
 [submodule "workers/d1-worker"]
 	path = workers/d1-worker
 	url = https://github.com/jango-blockchained/d1-worker.git
 [submodule "workers/agent-worker"]
 	path = workers/agent-worker
 	url = https://github.com/jango-blockchained/agent-worker.git
+	branch = main
 [submodule "workers/web3-wallet-worker"]
 	path = workers/web3-wallet-worker
 	url = https://github.com/jango-blockchained/web3-wallet-worker.git
