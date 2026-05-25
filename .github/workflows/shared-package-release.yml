@@ -32,6 +32,9 @@ jobs:
         run: bun run build:shared
 
       # ===== Publish to npm =====
+      - name: Prepare @jango-blockchained/hoox-shared for publishing
+        run: bun scripts/prepare-publish.ts packages/shared
+
       - name: Setup Node.js for npm
         uses: actions/setup-node@v6
         with:

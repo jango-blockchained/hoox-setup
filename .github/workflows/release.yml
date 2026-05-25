@@ -40,6 +40,9 @@ jobs:
         run: bun run build
 
       # ===== Publish to npm =====
+      - name: Prepare @jango-blockchained/hoox-cli for publishing
+        run: bun scripts/prepare-publish.ts packages/cli
+
       - name: Setup Node.js for npm
         uses: actions/setup-node@v6
         with:
