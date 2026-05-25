@@ -3,7 +3,7 @@
  * Centralizes error response creation across the monorepo
  */
 
-import type { AppError, ErrorResponse } from "./types/errors";
+import type { AppError } from "./types/errors";
 
 /**
  * Safely extract an error message from any caught value.

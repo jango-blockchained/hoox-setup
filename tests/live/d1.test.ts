@@ -13,11 +13,19 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, skipIfMissing, section, testResourceName } from "./helpers";
+import {
+  getConfig,
+  wrangler,
+  skipIfMissing,
+  section,
+  testResourceName,
+} from "./helpers";
 
 const TEST_TABLE = testResourceName("live_test_items");
 
-describe("D1 Database", () => {
+// Skip these live integration tests when no Cloudflare credentials available
+const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+(hasCloudflareEnv ? describe : describe.skip)("D1 Database", () => {
   let config: ReturnType<typeof getConfig>;
 
   beforeAll(async () => {
@@ -42,25 +50,46 @@ describe("D1 Database", () => {
   // Execute queries
   // -----------------------------------------------------------------------
 
-  test("SELECT 1 returns one row (health check)", { timeout: 60000 }, async () => {
-    section("Health check");
-    const result = await wrangler(["d1", "execute", config.d1Database, "--command", "SELECT 1", "--remote"]);
-    expect(result.ok).toBe(true);
-    expect(result.stdout).toContain("1");
-    console.log("  ✓ SELECT 1 works");
-  });
+  test(
+    "SELECT 1 returns one row (health check)",
+    { timeout: 60000 },
+    async () => {
+      section("Health check");
+      const result = await wrangler([
+        "d1",
+        "execute",
+        config.d1Database,
+        "--command",
+        "SELECT 1",
+        "--remote",
+      ]);
+      expect(result.ok).toBe(true);
+      expect(result.stdout).toContain("1");
+      console.log("  ✓ SELECT 1 works");
+    }
+  );
 
-  test("SELECT table_name FROM sqlite_master returns schema info", { timeout: 60000 }, async () => {
-    const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", "SELECT name AS table_name FROM sqlite_master WHERE type='table' LIMIT 5",
-      "--remote", "--json",
-    ]);
-    expect(result.ok).toBe(true);
-    const parsed = JSON.parse(result.stdout);
-    const results = parsed[0]?.results ?? [];
-    console.log(`  ✓ Found ${results.length} system table(s): ${results.map((r: { table_name: string }) => r.table_name).join(", ")}`);
-  });
+  test(
+    "SELECT table_name FROM sqlite_master returns schema info",
+    { timeout: 60000 },
+    async () => {
+      const result = await wrangler([
+        "d1",
+        "execute",
+        config.d1Database,
+        "--command",
+        "SELECT name AS table_name FROM sqlite_master WHERE type='table' LIMIT 5",
+        "--remote",
+        "--json",
+      ]);
+      expect(result.ok).toBe(true);
+      const parsed = JSON.parse(result.stdout);
+      const results = parsed[0]?.results ?? [];
+      console.log(
+        `  ✓ Found ${results.length} system table(s): ${results.map((r: { table_name: string }) => r.table_name).join(", ")}`
+      );
+    }
+  );
 
   // -----------------------------------------------------------------------
   // Table lifecycle
@@ -69,8 +98,11 @@ describe("D1 Database", () => {
   test(`CREATE TABLE ${TEST_TABLE}`, { timeout: 60000 }, async () => {
     section("Table lifecycle");
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `CREATE TABLE IF NOT EXISTS ${TEST_TABLE} (id INTEGER PRIMARY KEY, name TEXT NOT NULL, value REAL, created_at TEXT DEFAULT (datetime('now')))`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `CREATE TABLE IF NOT EXISTS ${TEST_TABLE} (id INTEGER PRIMARY KEY, name TEXT NOT NULL, value REAL, created_at TEXT DEFAULT (datetime('now')))`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);
@@ -79,8 +111,11 @@ describe("D1 Database", () => {
 
   test(`INSERT rows into ${TEST_TABLE}`, { timeout: 60000 }, async () => {
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `INSERT INTO ${TEST_TABLE} (name, value) VALUES ('alpha', 100.5), ('beta', 200.75), ('gamma', 300.0)`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `INSERT INTO ${TEST_TABLE} (name, value) VALUES ('alpha', 100.5), ('beta', 200.75), ('gamma', 300.0)`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);
@@ -89,9 +124,13 @@ describe("D1 Database", () => {
 
   test(`SELECT rows from ${TEST_TABLE}`, { timeout: 60000 }, async () => {
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `SELECT * FROM ${TEST_TABLE} ORDER BY id`,
-      "--remote", "--json",
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `SELECT * FROM ${TEST_TABLE} ORDER BY id`,
+      "--remote",
+      "--json",
     ]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
@@ -106,17 +145,24 @@ describe("D1 Database", () => {
 
   test(`UPDATE row in ${TEST_TABLE}`, { timeout: 60000 }, async () => {
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `UPDATE ${TEST_TABLE} SET value = 999.99 WHERE name = 'beta'`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `UPDATE ${TEST_TABLE} SET value = 999.99 WHERE name = 'beta'`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);
 
     // Verify update
     const verify = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `SELECT value FROM ${TEST_TABLE} WHERE name = 'beta'`,
-      "--remote", "--json",
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `SELECT value FROM ${TEST_TABLE} WHERE name = 'beta'`,
+      "--remote",
+      "--json",
     ]);
     const parsed = JSON.parse(verify.stdout);
     expect(parsed[0]?.results?.[0]?.value).toBe(999.99);
@@ -125,16 +171,23 @@ describe("D1 Database", () => {
 
   test(`DELETE row from ${TEST_TABLE}`, { timeout: 60000 }, async () => {
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `DELETE FROM ${TEST_TABLE} WHERE name = 'gamma'`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `DELETE FROM ${TEST_TABLE} WHERE name = 'gamma'`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);
 
     const verify = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `SELECT count(*) AS cnt FROM ${TEST_TABLE}`,
-      "--remote", "--json",
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `SELECT count(*) AS cnt FROM ${TEST_TABLE}`,
+      "--remote",
+      "--json",
     ]);
     const parsed = JSON.parse(verify.stdout);
     expect(parsed[0]?.results?.[0]?.cnt).toBe(2);
@@ -148,16 +201,23 @@ describe("D1 Database", () => {
   test("Batch INSERT via multiple statements", { timeout: 60000 }, async () => {
     section("Batch operations");
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `INSERT INTO ${TEST_TABLE} (name, value) VALUES ('delta', 400.25); INSERT INTO ${TEST_TABLE} (name, value) VALUES ('epsilon', 500.5)`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `INSERT INTO ${TEST_TABLE} (name, value) VALUES ('delta', 400.25); INSERT INTO ${TEST_TABLE} (name, value) VALUES ('epsilon', 500.5)`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);
 
     const verify = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `SELECT count(*) AS cnt FROM ${TEST_TABLE}`,
-      "--remote", "--json",
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `SELECT count(*) AS cnt FROM ${TEST_TABLE}`,
+      "--remote",
+      "--json",
     ]);
     const parsed = JSON.parse(verify.stdout);
     expect(parsed[0]?.results?.[0]?.cnt).toBe(4);
@@ -171,9 +231,13 @@ describe("D1 Database", () => {
   test("PRAGMA table_info returns schema", { timeout: 60000 }, async () => {
     section("Schema introspection");
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `PRAGMA table_info(${TEST_TABLE})`,
-      "--remote", "--json",
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `PRAGMA table_info(${TEST_TABLE})`,
+      "--remote",
+      "--json",
     ]);
     expect(result.ok).toBe(true);
     const parsed = JSON.parse(result.stdout);
@@ -184,7 +248,9 @@ describe("D1 Database", () => {
     expect(colNames).toContain("name");
     expect(colNames).toContain("value");
     expect(colNames).toContain("created_at");
-    console.log(`  ✓ Table has ${columns.length} columns: ${colNames.join(", ")}`);
+    console.log(
+      `  ✓ Table has ${columns.length} columns: ${colNames.join(", ")}`
+    );
   });
 
   // -----------------------------------------------------------------------
@@ -194,8 +260,11 @@ describe("D1 Database", () => {
   test(`DROP TABLE ${TEST_TABLE} (cleanup)`, { timeout: 60000 }, async () => {
     section("Cleanup");
     const result = await wrangler([
-      "d1", "execute", config.d1Database,
-      "--command", `DROP TABLE IF EXISTS ${TEST_TABLE}`,
+      "d1",
+      "execute",
+      config.d1Database,
+      "--command",
+      `DROP TABLE IF EXISTS ${TEST_TABLE}`,
       "--remote",
     ]);
     expect(result.ok).toBe(true);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the monitor command.
  *
@@ -35,16 +34,19 @@ beforeEach(() => {
   process.exitCode = 0;
 
   // Restore originals
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
-    origCheckAll;
-  (DbService.prototype as Record<string, unknown>).resolveDbName =
+  (
+    MonitorService.prototype as unknown as Record<string, unknown>
+  ).checkAllWorkerHealth = origCheckAll;
+  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
-  (DbService.prototype as Record<string, unknown>).query = origQuery;
-  (DbService.prototype as Record<string, unknown>).export = origExport;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
-    origResolveNs;
-  (KvSyncService.prototype as Record<string, unknown>).get = origGet;
-  (KvSyncService.prototype as Record<string, unknown>).set = origSet;
+  (DbService.prototype as unknown as Record<string, unknown>).query = origQuery;
+  (DbService.prototype as unknown as Record<string, unknown>).export =
+    origExport;
+  (
+    KvSyncService.prototype as unknown as Record<string, unknown>
+  ).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).get = origGet;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).set = origSet;
 
   // Fresh mocks
   checkAllWorkerHealthMock = mock(async () => ({
@@ -68,30 +70,36 @@ beforeEach(() => {
   setMock = mock(async (_nsId: string, _key: string, _value: string) => {});
 
   // Install mocks on prototypes
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
-    checkAllWorkerHealthMock;
-  (DbService.prototype as Record<string, unknown>).resolveDbName =
+  (
+    MonitorService.prototype as unknown as Record<string, unknown>
+  ).checkAllWorkerHealth = checkAllWorkerHealthMock;
+  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     resolveDbNameMock;
-  (DbService.prototype as Record<string, unknown>).query = queryMock;
-  (DbService.prototype as Record<string, unknown>).export = exportMock;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
-    resolveNamespaceIdMock;
-  (KvSyncService.prototype as Record<string, unknown>).get = getMock;
-  (KvSyncService.prototype as Record<string, unknown>).set = setMock;
+  (DbService.prototype as unknown as Record<string, unknown>).query = queryMock;
+  (DbService.prototype as unknown as Record<string, unknown>).export =
+    exportMock;
+  (
+    KvSyncService.prototype as unknown as Record<string, unknown>
+  ).resolveNamespaceId = resolveNamespaceIdMock;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).get = getMock;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).set = setMock;
 });
 
 afterEach(() => {
   mock.restore();
-  (MonitorService.prototype as Record<string, unknown>).checkAllWorkerHealth =
-    origCheckAll;
-  (DbService.prototype as Record<string, unknown>).resolveDbName =
+  (
+    MonitorService.prototype as unknown as Record<string, unknown>
+  ).checkAllWorkerHealth = origCheckAll;
+  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
-  (DbService.prototype as Record<string, unknown>).query = origQuery;
-  (DbService.prototype as Record<string, unknown>).export = origExport;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
-    origResolveNs;
-  (KvSyncService.prototype as Record<string, unknown>).get = origGet;
-  (KvSyncService.prototype as Record<string, unknown>).set = origSet;
+  (DbService.prototype as unknown as Record<string, unknown>).query = origQuery;
+  (DbService.prototype as unknown as Record<string, unknown>).export =
+    origExport;
+  (
+    KvSyncService.prototype as unknown as Record<string, unknown>
+  ).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).get = origGet;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).set = origSet;
 });
 
 async function importMonitorCommand(): Promise<{
@@ -185,7 +193,7 @@ describe("registerMonitorCommand", () => {
         throw new Error("Connection failed");
       });
       (
-        MonitorService.prototype as Record<string, unknown>
+        MonitorService.prototype as unknown as Record<string, unknown>
       ).checkAllWorkerHealth = checkAllWorkerHealthMock;
 
       const program = await createProgram();

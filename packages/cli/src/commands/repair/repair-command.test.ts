@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the repair command.
  *
@@ -12,7 +11,6 @@ import { RepairService } from "./repair-service.js";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
 import { DbService } from "../../services/db/db-service.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
-import { SecretsService } from "../../services/secrets/secrets-service.js";
 
 // Stubs
 let runSystemCheckMock: ReturnType<typeof mock>;
@@ -32,31 +30,39 @@ const origExport = DbService.prototype.export;
 const origReset = DbService.prototype.reset;
 const origResolveNs = KvSyncService.prototype.resolveNamespaceId;
 const origKvSet = KvSyncService.prototype.set;
-const origGetWorker = CloudflareService.prototype.deploy; // placeholder
-const origListWorkers = CloudflareService.prototype.deploy; // placeholder
 
 beforeEach(() => {
   mock.restore();
   process.exitCode = 0;
 
   // Restore originals
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
-    origRunSystemCheck;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
-  (CloudflareService.prototype as Record<string, unknown>).d1List = origD1List;
-  (CloudflareService.prototype as Record<string, unknown>).kvList = origKvList;
-  (CloudflareService.prototype as Record<string, unknown>).r2List = origR2List;
-  (CloudflareService.prototype as Record<string, unknown>).queueList =
-    origQueueList;
-  (DbService.prototype as Record<string, unknown>).resolveDbName =
+  (
+    RepairService.prototype as unknown as Record<string, unknown>
+  ).runSystemCheck = origRunSystemCheck;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    origDeploy;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).d1List =
+    origD1List;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).kvList =
+    origKvList;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).r2List =
+    origR2List;
+  (
+    CloudflareService.prototype as unknown as Record<string, unknown>
+  ).queueList = origQueueList;
+  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
-  (DbService.prototype as Record<string, unknown>).apply = origApply;
-  (DbService.prototype as Record<string, unknown>).migrate = origMigrate;
-  (DbService.prototype as Record<string, unknown>).export = origExport;
-  (DbService.prototype as Record<string, unknown>).reset = origReset;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
-    origResolveNs;
-  (KvSyncService.prototype as Record<string, unknown>).set = origKvSet;
+  (DbService.prototype as unknown as Record<string, unknown>).apply = origApply;
+  (DbService.prototype as unknown as Record<string, unknown>).migrate =
+    origMigrate;
+  (DbService.prototype as unknown as Record<string, unknown>).export =
+    origExport;
+  (DbService.prototype as unknown as Record<string, unknown>).reset = origReset;
+  (
+    KvSyncService.prototype as unknown as Record<string, unknown>
+  ).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).set =
+    origKvSet;
 
   // Fresh mocks
   runSystemCheckMock = mock(async () => ({
@@ -77,30 +83,42 @@ beforeEach(() => {
     data: { url: "https://test-worker.cryptolinx.workers.dev" },
   }));
 
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
-    runSystemCheckMock;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
+  (
+    RepairService.prototype as unknown as Record<string, unknown>
+  ).runSystemCheck = runSystemCheckMock;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    deployMock;
 });
 
 afterEach(() => {
   mock.restore();
-  (RepairService.prototype as Record<string, unknown>).runSystemCheck =
-    origRunSystemCheck;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
-  (CloudflareService.prototype as Record<string, unknown>).d1List = origD1List;
-  (CloudflareService.prototype as Record<string, unknown>).kvList = origKvList;
-  (CloudflareService.prototype as Record<string, unknown>).r2List = origR2List;
-  (CloudflareService.prototype as Record<string, unknown>).queueList =
-    origQueueList;
-  (DbService.prototype as Record<string, unknown>).resolveDbName =
+  (
+    RepairService.prototype as unknown as Record<string, unknown>
+  ).runSystemCheck = origRunSystemCheck;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    origDeploy;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).d1List =
+    origD1List;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).kvList =
+    origKvList;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).r2List =
+    origR2List;
+  (
+    CloudflareService.prototype as unknown as Record<string, unknown>
+  ).queueList = origQueueList;
+  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
-  (DbService.prototype as Record<string, unknown>).apply = origApply;
-  (DbService.prototype as Record<string, unknown>).migrate = origMigrate;
-  (DbService.prototype as Record<string, unknown>).export = origExport;
-  (DbService.prototype as Record<string, unknown>).reset = origReset;
-  (KvSyncService.prototype as Record<string, unknown>).resolveNamespaceId =
-    origResolveNs;
-  (KvSyncService.prototype as Record<string, unknown>).set = origKvSet;
+  (DbService.prototype as unknown as Record<string, unknown>).apply = origApply;
+  (DbService.prototype as unknown as Record<string, unknown>).migrate =
+    origMigrate;
+  (DbService.prototype as unknown as Record<string, unknown>).export =
+    origExport;
+  (DbService.prototype as unknown as Record<string, unknown>).reset = origReset;
+  (
+    KvSyncService.prototype as unknown as Record<string, unknown>
+  ).resolveNamespaceId = origResolveNs;
+  (KvSyncService.prototype as unknown as Record<string, unknown>).set =
+    origKvSet;
 });
 
 async function importRepairCommand(): Promise<{
@@ -194,8 +212,9 @@ describe("registerRepairCommand", () => {
       runSystemCheckMock = mock(async () => {
         throw new Error("Check failed");
       });
-      (RepairService.prototype as Record<string, unknown>).runSystemCheck =
-        runSystemCheckMock;
+      (
+        RepairService.prototype as unknown as Record<string, unknown>
+      ).runSystemCheck = runSystemCheckMock;
 
       const program = await createProgram();
       await program.parseAsync(["repair", "check"], { from: "user" });

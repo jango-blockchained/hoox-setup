@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the clone command.
  *
@@ -27,7 +26,6 @@ type MockSpawnResult = {
 
 const realSpawn = Bun.spawn;
 let origCwd: string;
-let lastSpawnCmd: string[] = [];
 
 function successSpawn(stdout = ""): MockSpawnResult {
   return {
@@ -57,9 +55,7 @@ function enqueueSpawn(result: MockSpawnResult): void {
 }
 
 function installSpawnMock(): void {
-  lastSpawnCmd = [];
-  const spawnMock = mock((cmd: string[], _opts?: { cwd?: string }) => {
-    lastSpawnCmd = [...cmd];
+  const spawnMock = mock((_cmd: string[], _opts?: { cwd?: string }) => {
     return spawnQueue.shift() ?? errorSpawn("unexpected spawn call", 127);
   });
   (Bun as Record<string, unknown>).spawn = spawnMock;
@@ -115,10 +111,12 @@ async function captureStdout(
 
   let output = "";
   const orig = process.stdout.write.bind(process.stdout);
-  (process.stdout as Record<string, unknown>).write = mock((chunk: string) => {
-    output += chunk;
-    return true;
-  });
+  (process.stdout as unknown as Record<string, unknown>).write = mock(
+    (chunk: string) => {
+      output += chunk;
+      return true;
+    }
+  );
 
   try {
     await program.parseAsync([...args], { from: "user" });
@@ -126,7 +124,7 @@ async function captureStdout(
     // exitOverride throws CommanderError — swallow
   }
 
-  (process.stdout as Record<string, unknown>).write = orig;
+  (process.stdout as unknown as Record<string, unknown>).write = orig;
   process.chdir(origCwd);
   return output;
 }

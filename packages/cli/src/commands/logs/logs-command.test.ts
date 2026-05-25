@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the logs command.
  *

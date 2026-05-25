@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the dev command.
  *
@@ -64,39 +63,39 @@ beforeEach(() => {
   process.exitCode = undefined;
 
   // Restore prototypes to originals
-  (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    origLoad;
+  (ConfigService.prototype as unknown as Record<string, unknown>).listWorkers =
     origListWorkers;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = origListEnabled;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
     origGetWorker;
-  (ConfigService.prototype as Record<string, unknown>).validate = origValidate;
-  (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
+  (ConfigService.prototype as unknown as Record<string, unknown>).validate =
+    origValidate;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).dev =
+    origDev;
 
   // Stub Bun.spawn to prevent actual process spawning during tests.
   // Uses individual property assignment (not globalThis.Bun = {...}) to
   // avoid "readonly property" errors in Bun 1.3.x.
-  (Bun as unknown as Record<string, unknown>).spawn = mock(() => ({
+  (Bun as unknown as unknown as Record<string, unknown>).spawn = mock(() => ({
     stdout: new Blob([]),
     stderr: new Blob([]),
     exited: Promise.resolve(0),
     stdin: { write: mock(() => {}), end: mock(() => {}) },
     kill: mock(() => {}),
   }));
-  (Bun as unknown as Record<string, unknown>).file = mock((_path: string) => ({
-    exists: mock(async () => true),
-  }));
-
   // Fresh mocks
   devMock = mock(async (_path: string, _port?: number) => ({
     ok: true as const,
-    data: { port: _port ?? 8787 },
+    value: { port: _port ?? 8787 },
   }));
 
-  loadMock = mock(async function () {
+  loadMock = mock(async function (this: ConfigService) {
     // Use a regular function so `this` refers to the ConfigService instance
-    (this as Record<string, unknown>).config = {};
+    (this as unknown as Record<string, unknown>).config = {};
     return {} as Record<string, unknown>;
   });
   listWorkersMock = mock(() => ["hoox", "trade-worker", "d1-worker"]);
@@ -114,52 +113,66 @@ beforeEach(() => {
   composeExistsMock = mock(async () => false);
 
   // Install mocks on prototypes
-  (ConfigService.prototype as Record<string, unknown>).load = loadMock;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    loadMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).listWorkers =
     listWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    listEnabledWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
-    getWorkerMock;
-  (ConfigService.prototype as Record<string, unknown>).validate = validateMock;
-  (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
-    getDevRuntimeMock;
-  (CloudflareService.prototype as Record<string, unknown>).dev = devMock;
   (
-    PrerequisitesService.prototype as Record<string, unknown>
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = listEnabledWorkersMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
+    getWorkerMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).validate =
+    validateMock;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).getDevRuntime = getDevRuntimeMock;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).dev =
+    devMock;
+  (
+    PrerequisitesService.prototype as unknown as Record<string, unknown>
   ).checkWranglerVersion = checkWranglerMock;
-  (DockerService.prototype as Record<string, unknown>).checkAvailability =
-    dockerCheckMock;
-  (DockerService.prototype as Record<string, unknown>).composeFileExists =
-    composeExistsMock;
+  (
+    DockerService.prototype as unknown as Record<string, unknown>
+  ).checkAvailability = dockerCheckMock;
+  (
+    DockerService.prototype as unknown as Record<string, unknown>
+  ).composeFileExists = composeExistsMock;
 });
 
 afterEach(() => {
   mock.restore();
 
   // Restore originals
-  (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listWorkers =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    origLoad;
+  (ConfigService.prototype as unknown as Record<string, unknown>).listWorkers =
     origListWorkers;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
-    origGetWorker;
-  (ConfigService.prototype as Record<string, unknown>).validate = origValidate;
-  (ConfigService.prototype as Record<string, unknown>).getDevRuntime =
-    origGetDevRuntime;
-  (CloudflareService.prototype as Record<string, unknown>).dev = origDev;
   (
-    PrerequisitesService.prototype as Record<string, unknown>
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = origListEnabled;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
+    origGetWorker;
+  (ConfigService.prototype as unknown as Record<string, unknown>).validate =
+    origValidate;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).getDevRuntime = origGetDevRuntime;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).dev =
+    origDev;
+  (
+    PrerequisitesService.prototype as unknown as Record<string, unknown>
   ).checkWranglerVersion = origCheckWrangler;
-  (DockerService.prototype as Record<string, unknown>).checkAvailability =
-    origDockerCheck;
-  (DockerService.prototype as Record<string, unknown>).composeFileExists =
-    origComposeExists;
+  (
+    DockerService.prototype as unknown as Record<string, unknown>
+  ).checkAvailability = origDockerCheck;
+  (
+    DockerService.prototype as unknown as Record<string, unknown>
+  ).composeFileExists = origComposeExists;
 
   // Restore Bun globals (individual property restore)
-  (Bun as unknown as Record<string, unknown>).spawn = origBunSpawn;
-  (Bun as unknown as Record<string, unknown>).file = origBunFile;
+  (Bun as unknown as unknown as Record<string, unknown>).spawn = origBunSpawn;
+  (Bun as unknown as unknown as Record<string, unknown>).file = origBunFile;
 });
 
 // ---------------------------------------------------------------------------
@@ -187,7 +200,8 @@ async function createProgram(): Promise<Command> {
 /** Make devMock return a failure for all subsequent calls. */
 function makeDevFail(error: string): void {
   devMock = mock(async () => ({ ok: false as const, error }));
-  (CloudflareService.prototype as Record<string, unknown>).dev = devMock;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).dev =
+    devMock;
 }
 
 // ---------------------------------------------------------------------------
@@ -237,7 +251,7 @@ describe("registerDevCommand", () => {
         valid: false,
         errors: ["global.cloudflare_account_id is required"],
       }));
-      (ConfigService.prototype as Record<string, unknown>).validate =
+      (ConfigService.prototype as unknown as Record<string, unknown>).validate =
         validateMock;
 
       const program = await createProgram();
@@ -248,8 +262,9 @@ describe("registerDevCommand", () => {
 
     it("handles no enabled workers gracefully", async () => {
       listEnabledWorkersMock = mock(() => []);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
@@ -259,8 +274,9 @@ describe("registerDevCommand", () => {
 
     it("starts all enabled workers on assigned ports", async () => {
       listEnabledWorkersMock = mock(() => ["hoox", "trade-worker"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "start"], { from: "user" });
@@ -306,8 +322,9 @@ describe("registerDevCommand", () => {
 
     it("handles unknown worker name", async () => {
       getWorkerMock = mock(() => undefined);
-      (ConfigService.prototype as Record<string, unknown>).getWorker =
-        getWorkerMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = getWorkerMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "worker", "nonexistent"], {
@@ -323,8 +340,9 @@ describe("registerDevCommand", () => {
         enabled: false,
         path: "workers/disabled-worker",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker =
-        getWorkerMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = getWorkerMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "worker", "disabled-worker"], {
@@ -341,8 +359,9 @@ describe("registerDevCommand", () => {
         enabled: true,
         path: "workers/hoox",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker =
-        getWorkerMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = getWorkerMock;
 
       const program = await createProgram();
       await program.parseAsync(["dev", "worker", "hoox"], { from: "user" });
@@ -356,9 +375,11 @@ describe("registerDevCommand", () => {
   describe("dev dashboard", () => {
     it("handles missing dashboard directory", async () => {
       // Override Bun.file for this test to say dashboard doesn't exist
-      (Bun as unknown as Record<string, unknown>).file = mock((_p: string) => ({
-        exists: mock(async () => false),
-      }));
+      (Bun as unknown as unknown as Record<string, unknown>).file = mock(
+        (_p: string) => ({
+          exists: mock(async () => false),
+        })
+      );
 
       const program = await createProgram();
       await program.parseAsync(["dev", "dashboard"], { from: "user" });
@@ -373,7 +394,8 @@ describe("registerDevCommand", () => {
     loadMock = mock(async () => {
       throw new Error("Config file not found");
     });
-    (ConfigService.prototype as Record<string, unknown>).load = loadMock;
+    (ConfigService.prototype as unknown as Record<string, unknown>).load =
+      loadMock;
 
     const program = await createProgram();
     await program.parseAsync(["dev", "start"], { from: "user" });

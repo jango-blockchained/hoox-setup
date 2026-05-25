@@ -1,5 +1,12 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock, afterEach } from "bun:test";
 import { DbService } from "./db-service.js";
+import { ConfigService } from "../config/config-service.js";
+
+const origLoad = ConfigService.prototype.load;
+
+afterEach(() => {
+  ConfigService.prototype.load = origLoad;
+});
 
 describe("DbService", () => {
   describe("resolveDbName", () => {
@@ -10,6 +17,11 @@ describe("DbService", () => {
     });
 
     it("falls back to default when no config exists", async () => {
+      // Mock ConfigService.load to throw (simulating no config)
+      ConfigService.prototype.load = mock(async () => {
+        throw new Error("Config file not found");
+      }) as typeof ConfigService.prototype.load;
+
       const svc = new DbService();
       const name = await svc.resolveDbName();
       expect(name).toBe("my-database");

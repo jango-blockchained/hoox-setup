@@ -12,7 +12,6 @@ import type {
   WorkerConfig,
   ProvisioningPlan,
   WorkerPresetName,
-  WizardCloudflareConfig,
   ProvisionResult,
 } from "./types";
 import {

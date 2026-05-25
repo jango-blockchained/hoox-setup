@@ -21,6 +21,7 @@ import {
   formatSuccess,
   formatError,
   formatTable,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
 import { isGitTracked, gitUntrackFile } from "../../utils/git.js";

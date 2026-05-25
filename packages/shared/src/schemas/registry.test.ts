@@ -36,7 +36,7 @@ describe("Worker Registry", () => {
   });
 
   it("workers with zero services should have empty calledBy", () => {
-    for (const [name, m] of Object.entries(WORKER_MANIFESTS)) {
+    for (const [, m] of Object.entries(WORKER_MANIFESTS)) {
       if (m.services.length === 0) {
         // Only workers that have no callers should have empty calledBy
         // Actually, calledBy is computed from other workers' services, not own services

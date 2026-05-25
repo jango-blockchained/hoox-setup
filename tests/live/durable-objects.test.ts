@@ -17,16 +17,26 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, cfApi, section, testResourceName } from "./helpers";
+import {
+  getConfig,
+  wrangler,
+  cfApi,
+  section,
+  testResourceName,
+} from "./helpers";
 import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const TEST_WORKER = testResourceName("do-test-worker");
 
 // In-memory idempotency store for testing
-interface IdempotencyEntry { storedAt: number; }
+interface IdempotencyEntry {
+  storedAt: number;
+}
 
-describe("Durable Objects", () => {
+// Skip these live integration tests when no Cloudflare credentials available
+const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+(hasCloudflareEnv ? describe : describe.skip)("Durable Objects", () => {
   let config: ReturnType<typeof getConfig>;
 
   beforeAll(async () => {
@@ -43,30 +53,34 @@ describe("Durable Objects", () => {
     const workerDir = `/tmp/${TEST_WORKER}`;
 
     // Create wrangler.jsonc for the test worker
-    const wranglerConfig = JSON.stringify({
-      name: TEST_WORKER,
-      main: "src/index.ts",
-      compatibility_date: "2025-03-07",
-      compatibility_flags: ["nodejs_compat"],
-      durable_objects: {
-        bindings: [
+    const wranglerConfig = JSON.stringify(
+      {
+        name: TEST_WORKER,
+        main: "src/index.ts",
+        compatibility_date: "2025-03-07",
+        compatibility_flags: ["nodejs_compat"],
+        durable_objects: {
+          bindings: [
+            {
+              name: "TEST_COUNTER",
+              class_name: "TestCounter",
+            },
+            {
+              name: "IDEMPOTENCY_STORE",
+              class_name: "TestIdempotencyStore",
+            },
+          ],
+        },
+        migrations: [
           {
-            name: "TEST_COUNTER",
-            class_name: "TestCounter",
-          },
-          {
-            name: "IDEMPOTENCY_STORE",
-            class_name: "TestIdempotencyStore",
+            tag: "v1",
+            new_sqlite_classes: ["TestCounter", "TestIdempotencyStore"],
           },
         ],
       },
-      migrations: [
-        {
-          tag: "v1",
-          new_sqlite_classes: ["TestCounter", "TestIdempotencyStore"],
-        },
-      ],
-    }, null, 2);
+      null,
+      2
+    );
 
     // Create the worker source
     const workerSrc = `
@@ -209,14 +223,18 @@ export default {
   test("DO initial count is 0", { timeout: 60000 }, async () => {
     section("DO counter operations");
     const result = await wrangler([
-      "wrangler", "tail", TEST_WORKER, "--format", "json",
+      "wrangler",
+      "tail",
+      TEST_WORKER,
+      "--format",
+      "json",
     ]);
     // Verify the worker is deployed and reachable via its URL
     const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/count`;
     try {
       const response = await fetch(url);
       expect(response.ok).toBe(true);
-      const data = await response.json() as { count: number };
+      const data = (await response.json()) as { count: number };
       expect(data.count).toBe(0);
       console.log("  ✓ Initial count is 0");
     } catch (err: unknown) {
@@ -231,7 +249,7 @@ export default {
     try {
       const response = await fetch(url);
       expect(response.ok).toBe(true);
-      const data = await response.json() as { count: number };
+      const data = (await response.json()) as { count: number };
       expect(data.count).toBeGreaterThan(0);
       console.log(`  ✓ Count incremented to ${data.count}`);
     } catch (err: unknown) {
@@ -249,7 +267,7 @@ export default {
 
       // Verify count
       const response = await fetch(url);
-      const data = await response.json() as { count: number };
+      const data = (await response.json()) as { count: number };
       expect(data.count).toBeGreaterThanOrEqual(3);
       console.log(`  ✓ DO state persisted (count = ${data.count})`);
     } catch (err: unknown) {
@@ -261,8 +279,10 @@ export default {
   test("DO reset returns to 0", { timeout: 60000 }, async () => {
     try {
       await fetch(`https://${TEST_WORKER}.cryptolinx.workers.dev/reset`);
-      const response = await fetch(`https://${TEST_WORKER}.cryptolinx.workers.dev/count`);
-      const data = await response.json() as { count: number };
+      const response = await fetch(
+        `https://${TEST_WORKER}.cryptolinx.workers.dev/count`
+      );
+      const data = (await response.json()) as { count: number };
       expect(data.count).toBe(0);
       console.log("  ✓ DO reset successful");
     } catch (err: unknown) {
@@ -279,112 +299,144 @@ export default {
   // IdempotencyStore operations
   // -----------------------------------------------------------------------
 
-  test("IdempotencyStore: checkAndStore returns true for new key", { timeout: 30000 }, async () => {
-    section("IdempotencyStore operations");
-    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-first-key`;
-    try {
-      const response = await fetch(url);
-      expect(response.ok).toBe(true);
-      const data = await response.json() as { ok: boolean; key: string };
-      expect(data.ok).toBe(true);
-      console.log("  ✓ First checkAndStore returns true");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Idempotency test skipped: ${message}`);
+  test(
+    "IdempotencyStore: checkAndStore returns true for new key",
+    { timeout: 30000 },
+    async () => {
+      section("IdempotencyStore operations");
+      const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-first-key`;
+      try {
+        const response = await fetch(url);
+        expect(response.ok).toBe(true);
+        const data = (await response.json()) as { ok: boolean; key: string };
+        expect(data.ok).toBe(true);
+        console.log("  ✓ First checkAndStore returns true");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Idempotency test skipped: ${message}`);
+      }
     }
-  });
+  );
 
-  test("IdempotencyStore: second call for same key is rejected (duplicate)", { timeout: 30000 }, async () => {
-    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-dup-key`;
-    try {
-      // First call — should succeed
-      const first = await fetch(url);
-      expect(first.ok).toBe(true);
-      const firstData = await first.json() as { ok: boolean };
-      expect(firstData.ok).toBe(true);
+  test(
+    "IdempotencyStore: second call for same key is rejected (duplicate)",
+    { timeout: 30000 },
+    async () => {
+      const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/check?key=live-test-dup-key`;
+      try {
+        // First call — should succeed
+        const first = await fetch(url);
+        expect(first.ok).toBe(true);
+        const firstData = (await first.json()) as { ok: boolean };
+        expect(firstData.ok).toBe(true);
 
-      // Second call — should be rejected (duplicate within TTL)
-      const second = await fetch(url);
-      const secondData = await second.json() as { ok: boolean };
-      expect(secondData.ok).toBe(false);
-      console.log("  ✓ Duplicate key correctly rejected");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Dedup test skipped: ${message}`);
+        // Second call — should be rejected (duplicate within TTL)
+        const second = await fetch(url);
+        const secondData = (await second.json()) as { ok: boolean };
+        expect(secondData.ok).toBe(false);
+        console.log("  ✓ Duplicate key correctly rejected");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Dedup test skipped: ${message}`);
+      }
     }
-  });
+  );
 
-  test("IdempotencyStore: expired returns false for stored key", { timeout: 30000 }, async () => {
-    const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
-    try {
-      // Store a key
-      await fetch(`${baseUrl}/idempotency/check?key=live-test-exp-key`);
+  test(
+    "IdempotencyStore: expired returns false for stored key",
+    { timeout: 30000 },
+    async () => {
+      const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
+      try {
+        // Store a key
+        await fetch(`${baseUrl}/idempotency/check?key=live-test-exp-key`);
 
-      // Check expired — should be false since just stored
-      const expiredResp = await fetch(`${baseUrl}/idempotency/expired?key=live-test-exp-key`);
-      const expiredData = await expiredResp.json() as { expired: boolean };
-      expect(expiredData.expired).toBe(false);
-      console.log("  ✓ Fresh key is not expired");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Expiry test skipped: ${message}`);
+        // Check expired — should be false since just stored
+        const expiredResp = await fetch(
+          `${baseUrl}/idempotency/expired?key=live-test-exp-key`
+        );
+        const expiredData = (await expiredResp.json()) as { expired: boolean };
+        expect(expiredData.expired).toBe(false);
+        console.log("  ✓ Fresh key is not expired");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Expiry test skipped: ${message}`);
+      }
     }
-  });
+  );
 
-  test("IdempotencyStore: expired returns true for unknown key", { timeout: 30000 }, async () => {
-    const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/expired?key=live-test-nonexistent`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json() as { expired: boolean };
-      expect(data.expired).toBe(true);
-      console.log("  ✓ Unknown key correctly reports expired");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Unknown key test skipped: ${message}`);
+  test(
+    "IdempotencyStore: expired returns true for unknown key",
+    { timeout: 30000 },
+    async () => {
+      const url = `https://${TEST_WORKER}.cryptolinx.workers.dev/idempotency/expired?key=live-test-nonexistent`;
+      try {
+        const response = await fetch(url);
+        const data = (await response.json()) as { expired: boolean };
+        expect(data.expired).toBe(true);
+        console.log("  ✓ Unknown key correctly reports expired");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Unknown key test skipped: ${message}`);
+      }
     }
-  });
+  );
 
-  test("IdempotencyStore: clear removes all keys", { timeout: 30000 }, async () => {
-    const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
-    try {
-      // Store multiple keys
-      await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-a`);
-      await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-b`);
+  test(
+    "IdempotencyStore: clear removes all keys",
+    { timeout: 30000 },
+    async () => {
+      const baseUrl = `https://${TEST_WORKER}.cryptolinx.workers.dev`;
+      try {
+        // Store multiple keys
+        await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-a`);
+        await fetch(`${baseUrl}/idempotency/check?key=live-test-clear-b`);
 
-      // Clear all
-      const clearResp = await fetch(`${baseUrl}/idempotency/clear`);
-      expect(clearResp.ok).toBe(true);
+        // Clear all
+        const clearResp = await fetch(`${baseUrl}/idempotency/clear`);
+        expect(clearResp.ok).toBe(true);
 
-      // Verify both are now expired
-      const expiredA = await fetch(`${baseUrl}/idempotency/expired?key=live-test-clear-a`);
-      const dataA = await expiredA.json() as { expired: boolean };
-      expect(dataA.expired).toBe(true);
+        // Verify both are now expired
+        const expiredA = await fetch(
+          `${baseUrl}/idempotency/expired?key=live-test-clear-a`
+        );
+        const dataA = (await expiredA.json()) as { expired: boolean };
+        expect(dataA.expired).toBe(true);
 
-      const expiredB = await fetch(`${baseUrl}/idempotency/expired?key=live-test-clear-b`);
-      const dataB = await expiredB.json() as { expired: boolean };
-      expect(dataB.expired).toBe(true);
+        const expiredB = await fetch(
+          `${baseUrl}/idempotency/expired?key=live-test-clear-b`
+        );
+        const dataB = (await expiredB.json()) as { expired: boolean };
+        expect(dataB.expired).toBe(true);
 
-      console.log("  ✓ Clear removed all keys");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Clear test skipped: ${message}`);
+        console.log("  ✓ Clear removed all keys");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Clear test skipped: ${message}`);
+      }
     }
-  });
+  );
 
-  test("Existing hoox IdempotencyStore DO is reachable", { timeout: 60000 }, async () => {
-    section("Existing DO (hoox IdempotencyStore)");
-    const doWorkerName = process.env.HOOX_DO_WORKER ?? "hoox";
-    try {
-      // Access the hoox worker's health endpoint
-      const url = `https://${doWorkerName}.cryptolinx.workers.dev/health`;
-      const response = await fetch(url);
-      expect(response.ok).toBe(true);
-      console.log(`  ✓ "${doWorkerName}" worker is reachable (has DO bindings)`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Existing worker not reachable: ${message}`);
+  test(
+    "Existing hoox IdempotencyStore DO is reachable",
+    { timeout: 60000 },
+    async () => {
+      section("Existing DO (hoox IdempotencyStore)");
+      const doWorkerName = process.env.HOOX_DO_WORKER ?? "hoox";
+      try {
+        // Access the hoox worker's health endpoint
+        const url = `https://${doWorkerName}.cryptolinx.workers.dev/health`;
+        const response = await fetch(url);
+        expect(response.ok).toBe(true);
+        console.log(
+          `  ✓ "${doWorkerName}" worker is reachable (has DO bindings)`
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Existing worker not reachable: ${message}`);
+      }
     }
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Cleanup
@@ -394,7 +446,10 @@ export default {
     section("Cleanup");
     // Delete test worker via Cloudflare REST API (wrangler deploy --delete is invalid)
     try {
-      await cfApi("DELETE", `/accounts/${getConfig().accountId}/workers/scripts/${TEST_WORKER}`);
+      await cfApi(
+        "DELETE",
+        `/accounts/${getConfig().accountId}/workers/scripts/${TEST_WORKER}`
+      );
       console.log(`  ✓ Undeployed test worker "${TEST_WORKER}"`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

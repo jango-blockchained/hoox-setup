@@ -260,6 +260,10 @@ function LogLine({ log }: { log: Log }) {
 
 /**
  * Durable Objects pane — list of DOs with name and status.
+ *
+ * NOTE: Accurate DO names require a DO namespace API endpoint
+ * that isn't currently exposed by the Workers API. Names here
+ * are inferred from the worker name as a best-effort display.
  */
 function DurableObjectsPane({ worker }: { worker: Worker }) {
   // Derive DO display from real count and worker name

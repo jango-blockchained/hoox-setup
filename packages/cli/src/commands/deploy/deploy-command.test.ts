@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Unit tests for the deploy command.
  *
@@ -43,17 +42,20 @@ beforeEach(() => {
   process.exitCode = undefined;
 
   // Reset prototypes to originals (in case a previous test didn't restore)
-  (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    origLoad;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = origListEnabled;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
     origGetWorker;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    origDeploy;
 
   // Fresh mocks
   deployMock = mock(async (_path: string, _env?: string) => ({
     ok: true as const,
-    data: { url: "https://test-worker.cryptolinx.workers.dev" },
+    value: { url: "https://test-worker.cryptolinx.workers.dev", rawOutput: "" },
   }));
 
   loadMock = mock(async () => ({}));
@@ -64,24 +66,30 @@ beforeEach(() => {
   }));
 
   // Install mocks on prototypes
-  (ConfigService.prototype as Record<string, unknown>).load = loadMock;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    listEnabledWorkersMock;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    loadMock;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = listEnabledWorkersMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
     getWorkerMock;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    deployMock;
 });
 
 afterEach(() => {
   mock.restore();
 
   // Restore originals
-  (ConfigService.prototype as Record<string, unknown>).load = origLoad;
-  (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-    origListEnabled;
-  (ConfigService.prototype as Record<string, unknown>).getWorker =
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    origLoad;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = origListEnabled;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
     origGetWorker;
-  (CloudflareService.prototype as Record<string, unknown>).deploy = origDeploy;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    origDeploy;
 });
 
 // ---------------------------------------------------------------------------
@@ -109,7 +117,8 @@ async function createProgram(): Promise<Command> {
 /** Make deployMock return a failure for all subsequent calls. */
 function makeDeployFail(error: string): void {
   deployMock = mock(async () => ({ ok: false as const, error }));
-  (CloudflareService.prototype as Record<string, unknown>).deploy = deployMock;
+  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
+    deployMock;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,8 +178,9 @@ describe("registerDeployCommand", () => {
         "hoox",
         "trade-worker",
       ]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -181,8 +191,9 @@ describe("registerDeployCommand", () => {
 
     it("handles no enabled workers gracefully", async () => {
       listEnabledWorkersMock = mock(() => []);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -192,8 +203,9 @@ describe("registerDeployCommand", () => {
 
     it("continues deploying remaining workers on partial failure", async () => {
       listEnabledWorkersMock = mock(() => ["a", "b", "c"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       let calls = 0;
       deployMock = mock(async () => {
@@ -201,10 +213,14 @@ describe("registerDeployCommand", () => {
         if (calls === 2) {
           return { ok: false as const, error: "deploy error" };
         }
-        return { ok: true as const, data: { url: "https://x.workers.dev" } };
+        return {
+          ok: true as const,
+          value: { url: "https://x.workers.dev", rawOutput: "" },
+        };
       });
-      (CloudflareService.prototype as Record<string, unknown>).deploy =
-        deployMock;
+      (
+        CloudflareService.prototype as unknown as Record<string, unknown>
+      ).deploy = deployMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers"], { from: "user" });
@@ -215,8 +231,9 @@ describe("registerDeployCommand", () => {
 
     it("passes --env to deploy", async () => {
       listEnabledWorkersMock = mock(() => ["single-worker"]);
-      (ConfigService.prototype as Record<string, unknown>).listEnabledWorkers =
-        listEnabledWorkersMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).listEnabledWorkers = listEnabledWorkersMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "workers", "--env", "staging"], {
@@ -264,8 +281,9 @@ describe("registerDeployCommand", () => {
         enabled: true,
         path: "workers/hoox",
       }));
-      (ConfigService.prototype as Record<string, unknown>).getWorker =
-        getWorkerMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = getWorkerMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "worker", "hoox"], { from: "user" });
@@ -275,8 +293,9 @@ describe("registerDeployCommand", () => {
 
     it("handles unknown worker name without calling deploy", async () => {
       getWorkerMock = mock(() => undefined);
-      (ConfigService.prototype as Record<string, unknown>).getWorker =
-        getWorkerMock;
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = getWorkerMock;
 
       const program = await createProgram();
       await program.parseAsync(["deploy", "worker", "nonexistent"], {
@@ -294,7 +313,8 @@ describe("registerDeployCommand", () => {
     loadMock = mock(async () => {
       throw new Error("Config file not found");
     });
-    (ConfigService.prototype as Record<string, unknown>).load = loadMock;
+    (ConfigService.prototype as unknown as Record<string, unknown>).load =
+      loadMock;
 
     const program = await createProgram();
     await program.parseAsync(["deploy", "workers"], { from: "user" });

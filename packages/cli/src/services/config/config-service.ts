@@ -1,11 +1,6 @@
 import { parse, printParseErrorCode } from "jsonc-parser";
 import type { ParseError } from "jsonc-parser";
-import type {
-  HooxConfig,
-  WorkerConfig,
-  GlobalConfig,
-  DevConfig,
-} from "./types";
+import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
 
 /**
  * Loads, parses, and validates the central wrangler.jsonc configuration.

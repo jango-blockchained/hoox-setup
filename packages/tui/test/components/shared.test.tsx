@@ -483,7 +483,6 @@ describe("Shared Components", () => {
     // ── Component Import ─────────────────────────────────────────────────
 
     it("CommandPalette component is importable", async () => {
-      // Dynamic import to verify component exists and exports correctly
       const mod = await import("@/components/shared/command-palette");
       expect(mod.CommandPalette).toBeDefined();
       expect(typeof mod.CommandPalette).toBe("function");

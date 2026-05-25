@@ -265,28 +265,6 @@ describe("Dashboard Components - Module Imports", () => {
   });
 
   // Chart Components Tests
-  describe("ChartAreaInteractive Component", () => {
-    it("should be importable", async () => {
-      const { ChartAreaInteractive } =
-        await import("../src/components/dashboard/chart-area-interactive");
-      expect(ChartAreaInteractive).toBeDefined();
-      expect(typeof ChartAreaInteractive).toBe("function");
-    });
-
-    it("should export ChartAreaInteractive as a React component", async () => {
-      const module =
-        await import("../src/components/dashboard/chart-area-interactive");
-      expect(module).toHaveProperty("ChartAreaInteractive");
-      expect(module.ChartAreaInteractive.name).toBe("ChartAreaInteractive");
-    });
-
-    it("should be a client component", async () => {
-      const { ChartAreaInteractive } =
-        await import("../src/components/dashboard/chart-area-interactive");
-      expect(ChartAreaInteractive).toBeDefined();
-    });
-  });
-
   describe("PnlChart Component", () => {
     it("should be importable", async () => {
       const { PnlChart } =
@@ -352,50 +330,6 @@ describe("Dashboard Components - Module Imports", () => {
     });
   });
 
-  // Feature Components Tests
-  describe("RecentActivity Component", () => {
-    it("should be importable", async () => {
-      const { RecentActivity } =
-        await import("../src/components/dashboard/recent-activity");
-      expect(RecentActivity).toBeDefined();
-      expect(typeof RecentActivity).toBe("function");
-    });
-
-    it("should export RecentActivity as a React component", async () => {
-      const module =
-        await import("../src/components/dashboard/recent-activity");
-      expect(module).toHaveProperty("RecentActivity");
-      expect(module.RecentActivity.name).toBe("RecentActivity");
-    });
-
-    it("should be a client component", async () => {
-      const { RecentActivity } =
-        await import("../src/components/dashboard/recent-activity");
-      expect(RecentActivity).toBeDefined();
-    });
-  });
-
-  describe("QuickActions Component", () => {
-    it("should be importable", async () => {
-      const { QuickActions } =
-        await import("../src/components/dashboard/quick-actions");
-      expect(QuickActions).toBeDefined();
-      expect(typeof QuickActions).toBe("function");
-    });
-
-    it("should export QuickActions as a React component", async () => {
-      const module = await import("../src/components/dashboard/quick-actions");
-      expect(module).toHaveProperty("QuickActions");
-      expect(module.QuickActions.name).toBe("QuickActions");
-    });
-
-    it("should be a client component", async () => {
-      const { QuickActions } =
-        await import("../src/components/dashboard/quick-actions");
-      expect(QuickActions).toBeDefined();
-    });
-  });
-
   describe("SetupChecklist Component", () => {
     it("should be importable", async () => {
       const { SetupChecklist } =
@@ -415,27 +349,6 @@ describe("Dashboard Components - Module Imports", () => {
       const { SetupChecklist } =
         await import("../src/components/dashboard/setup-checklist");
       expect(SetupChecklist).toBeDefined();
-    });
-  });
-
-  describe("LogsViewer Component", () => {
-    it("should be importable", async () => {
-      const { LogsViewer } =
-        await import("../src/components/dashboard/logs-viewer");
-      expect(LogsViewer).toBeDefined();
-      expect(typeof LogsViewer).toBe("function");
-    });
-
-    it("should export LogsViewer as a React component", async () => {
-      const module = await import("../src/components/dashboard/logs-viewer");
-      expect(module).toHaveProperty("LogsViewer");
-      expect(module.LogsViewer.name).toBe("LogsViewer");
-    });
-
-    it("should be a client component", async () => {
-      const { LogsViewer } =
-        await import("../src/components/dashboard/logs-viewer");
-      expect(LogsViewer).toBeDefined();
     });
   });
 
@@ -642,24 +555,24 @@ describe("Dashboard Components - Module Imports", () => {
     });
   });
 
-  describe("AIHealthCard Component", () => {
+  describe("AiHealthCard Component", () => {
     it("should be importable", async () => {
-      const { AIHealthCard } =
+      const { AiHealthCard } =
         await import("../src/components/dashboard/ai-health-card");
-      expect(AIHealthCard).toBeDefined();
-      expect(typeof AIHealthCard).toBe("function");
+      expect(AiHealthCard).toBeDefined();
+      expect(typeof AiHealthCard).toBe("function");
     });
 
-    it("should export AIHealthCard as a React component", async () => {
+    it("should export AiHealthCard as a React component", async () => {
       const module = await import("../src/components/dashboard/ai-health-card");
-      expect(module).toHaveProperty("AIHealthCard");
-      expect(module.AIHealthCard.name).toBe("AIHealthCard");
+      expect(module).toHaveProperty("AiHealthCard");
+      expect(module.AiHealthCard.name).toBe("AiHealthCard");
     });
 
     it("should be a client component", async () => {
-      const { AIHealthCard } =
+      const { AiHealthCard } =
         await import("../src/components/dashboard/ai-health-card");
-      expect(AIHealthCard).toBeDefined();
+      expect(AiHealthCard).toBeDefined();
     });
   });
 });

@@ -83,7 +83,7 @@ export class D1Repository {
           ? this.db.prepare(s.query).bind(...s.params)
           : this.db.prepare(s.query)
       );
-      const results = await this.db.batch(...prepared);
+      const results = await this.db.batch(prepared);
       return results.map((r: D1Result) => ({
         success: r.success,
         meta: r.meta

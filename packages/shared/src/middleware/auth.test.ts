@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from "bun:test";
 import { requireAuth, requireInternalAuth, checkInternalAuth } from "./auth";
+import type { InternalAuthEnv } from "./auth";
 import type { Env } from "../types";
 
 describe("timingSafeEqual", () => {
@@ -170,7 +171,9 @@ describe("requireAuth", () => {
 
 describe("requireInternalAuth", () => {
   it("returns null when valid internal key provided", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "internal-secret" },
     });
@@ -180,7 +183,7 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 when no key configured (fail closed)", () => {
-    const env = {} as unknown as Env;
+    const env = {} as unknown as InternalAuthEnv;
     const request = new Request("https://example.com");
 
     const result = requireInternalAuth(request, env);
@@ -189,7 +192,9 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 when key configured but header missing", async () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com");
 
     const result = requireInternalAuth(request, env);
@@ -200,7 +205,9 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 when key does not match", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "wrong-key" },
     });
@@ -211,7 +218,7 @@ describe("requireInternalAuth", () => {
   });
 
   it("supports custom key name parameter", () => {
-    const env = { CUSTOM_KEY: "custom-secret" } as unknown as Env;
+    const env = { CUSTOM_KEY: "custom-secret" } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "custom-secret" },
     });
@@ -221,7 +228,7 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 with custom key name when key does not match", () => {
-    const env = { CUSTOM_KEY: "custom-secret" } as unknown as Env;
+    const env = { CUSTOM_KEY: "custom-secret" } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "wrong-secret" },
     });
@@ -232,7 +239,7 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 when custom key not configured (fail closed)", () => {
-    const env = {} as unknown as Env;
+    const env = {} as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "any-key" },
     });
@@ -243,7 +250,9 @@ describe("requireInternalAuth", () => {
   });
 
   it("returns 401 response with correct Content-Type header", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "wrong-key" },
     });
@@ -253,7 +262,9 @@ describe("requireInternalAuth", () => {
   });
 
   it("uses timing-safe comparison to prevent timing attacks", () => {
-    const env = { INTERNAL_KEY_BINDING: "aaaaaaaaaa" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "aaaaaaaaaa",
+    } as unknown as InternalAuthEnv;
 
     // Mismatch at start
     const request1 = new Request("https://example.com", {
@@ -275,7 +286,9 @@ describe("requireInternalAuth", () => {
 
 describe("checkInternalAuth", () => {
   it("returns authorized true when valid key provided", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "internal-secret" },
     });
@@ -285,7 +298,7 @@ describe("checkInternalAuth", () => {
   });
 
   it("returns authorized false with error when key not configured", () => {
-    const env = {} as unknown as Env;
+    const env = {} as unknown as InternalAuthEnv;
     const request = new Request("https://example.com");
 
     const result = checkInternalAuth(request, env);
@@ -296,7 +309,9 @@ describe("checkInternalAuth", () => {
   });
 
   it("returns authorized false when key does not match", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "wrong-key" },
     });
@@ -306,7 +321,9 @@ describe("checkInternalAuth", () => {
   });
 
   it("returns authorized false when header is missing", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com");
 
     const result = checkInternalAuth(request, env);
@@ -314,7 +331,7 @@ describe("checkInternalAuth", () => {
   });
 
   it("supports custom key name parameter", () => {
-    const env = { CUSTOM_KEY: "custom-secret" } as unknown as Env;
+    const env = { CUSTOM_KEY: "custom-secret" } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "custom-secret" },
     });
@@ -324,7 +341,7 @@ describe("checkInternalAuth", () => {
   });
 
   it("returns error with custom key name when not configured", () => {
-    const env = {} as unknown as Env;
+    const env = {} as unknown as InternalAuthEnv;
     const request = new Request("https://example.com");
 
     const result = checkInternalAuth(request, env, "CUSTOM_KEY");
@@ -335,7 +352,7 @@ describe("checkInternalAuth", () => {
   });
 
   it("returns authorized false with custom key when key does not match", () => {
-    const env = { CUSTOM_KEY: "custom-secret" } as unknown as Env;
+    const env = { CUSTOM_KEY: "custom-secret" } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "wrong-secret" },
     });
@@ -345,7 +362,9 @@ describe("checkInternalAuth", () => {
   });
 
   it("uses timing-safe comparison to prevent timing attacks", () => {
-    const env = { INTERNAL_KEY_BINDING: "aaaaaaaaaa" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "aaaaaaaaaa",
+    } as unknown as InternalAuthEnv;
 
     // Mismatch at start
     const request1 = new Request("https://example.com", {
@@ -365,7 +384,9 @@ describe("checkInternalAuth", () => {
   });
 
   it("does not include error field when authorized", () => {
-    const env = { INTERNAL_KEY_BINDING: "internal-secret" } as unknown as Env;
+    const env = {
+      INTERNAL_KEY_BINDING: "internal-secret",
+    } as unknown as InternalAuthEnv;
     const request = new Request("https://example.com", {
       headers: { "X-Internal-Auth-Key": "internal-secret" },
     });

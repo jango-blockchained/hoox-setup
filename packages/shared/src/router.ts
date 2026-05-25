@@ -92,11 +92,12 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
     method: string
   ): { route: RouteDefinition<TEnv>; params?: RouteParams } | null {
     // Fast path: exact match (last registered wins)
-    const exact = routes.findLast
-      ? routes.findLast((r) => r.path === path && r.method === method)
-      : [...routes]
-          .reverse()
-          .find((r) => r.path === path && r.method === method);
+    // Use reduceRight to avoid depending on ES2023 findLast
+    const exact = routes.reduceRight(
+      (found, r) =>
+        found ?? (r.path === path && r.method === method ? r : null),
+      null as RouteDefinition<TEnv> | null
+    );
     if (exact) return { route: exact };
 
     // Pattern match: iterate routes with params backwards (last registered wins)
@@ -195,7 +196,14 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
       }
 
       // Pass extracted params as 4th argument (undefined for exact-match routes)
-      return match.route.handler(request, env, ctx, match.params);
+      const handlerResult = await match.route.handler(
+        request,
+        env,
+        ctx,
+        match.params
+      );
+      // If handler returned void (no response), return 204 No Content
+      return handlerResult ?? new Response(null, { status: 204 });
     },
   };
 }

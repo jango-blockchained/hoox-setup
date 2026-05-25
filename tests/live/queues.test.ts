@@ -6,11 +6,19 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, cfApi, section, testResourceName } from "./helpers";
+import {
+  getConfig,
+  wrangler,
+  cfApi,
+  section,
+  testResourceName,
+} from "./helpers";
 
 const TEST_QUEUE = testResourceName("live-test-queue");
 
-describe("Queues", () => {
+// Skip these live integration tests when no Cloudflare credentials available
+const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+(hasCloudflareEnv ? describe : describe.skip)("Queues", () => {
   let config: ReturnType<typeof getConfig>;
 
   beforeAll(async () => {
@@ -56,7 +64,9 @@ describe("Queues", () => {
       expect(result.success).toBe(true);
       console.log("  ✓ Sent 1 test message to queue");
     } catch (err: unknown) {
-      console.log(`  ⚠ Message send skipped: ${err instanceof Error ? err.message.slice(0, 80) : err}`);
+      console.log(
+        `  ⚠ Message send skipped: ${err instanceof Error ? err.message.slice(0, 80) : err}`
+      );
     }
   });
 

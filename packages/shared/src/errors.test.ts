@@ -711,16 +711,16 @@ describe("Error Handling Edge Cases", () => {
     expect(body.error).toBe(message);
   });
 
-  it("handles AppError with null details", async () => {
+  it("handles AppError with undefined details", async () => {
     const error = {
       message: "Error",
       status: 400,
       code: "TEST",
-      details: null as unknown,
+      details: undefined,
     };
     const response = createErrorResponse(error);
     const body = (await response.json()) as ResponseBody;
-    expect(body.details).toBeNull();
+    expect(body.details).toBeUndefined();
   });
 
   it("handles AppError with empty details object", async () => {

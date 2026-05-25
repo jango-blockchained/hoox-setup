@@ -8,7 +8,6 @@
  *  - process.exit        → captured exit codes
  */
 
-// @ts-nocheck — spyOn on module namespace requires type bypasses for strict signatures
 import {
   afterEach,
   beforeEach,
@@ -123,8 +122,6 @@ let customPasswordResponder: ((msg: string) => string | symbol) | null = null;
 // Mock: CloudflareService (prototype based — no mock.module, no leakage)
 // ---------------------------------------------------------------------------
 
-const origWhoami = CloudflareService.prototype.whoami;
-
 const mockWhoami = mock(
   async (): Promise<
     { ok: true; value: string } | { ok: false; error: string }
@@ -141,16 +138,19 @@ const mockWhoami = mock(
 import * as clack from "@clack/prompts";
 
 function installClackSpies(): void {
-  spyOn(clack, "intro").mockImplementation((msg: string) => {
-    captured.intro.push(msg);
+  spyOn(clack, "intro").mockImplementation((msg?: string) => {
+    captured.intro.push(msg ?? "");
   });
-  spyOn(clack, "outro").mockImplementation((msg: string) => {
-    captured.outro.push(msg);
+  spyOn(clack, "outro").mockImplementation((msg?: string) => {
+    captured.outro.push(msg ?? "");
   });
-  spyOn(clack, "note").mockImplementation((content: string, title?: string) => {
-    captured.note.push({ title: title ?? "", content });
-  });
+  spyOn(clack, "note").mockImplementation(
+    (content?: string, title?: string) => {
+      captured.note.push({ title: title ?? "", content: content ?? "" });
+    }
+  );
   spyOn(clack, "password").mockImplementation(
+    // @ts-expect-error — mock validate fn signature simplified vs clack's PasswordOptions
     async (opts: {
       message: string;
       validate?: (v: string) => string | void;
@@ -163,6 +163,7 @@ function installClackSpies(): void {
     }
   );
   spyOn(clack, "text").mockImplementation(
+    // @ts-expect-error — mock validate fn signature simplified vs clack's TextOptions
     async (opts: {
       message: string;
       placeholder?: string;
@@ -177,6 +178,7 @@ function installClackSpies(): void {
     }
   );
   spyOn(clack, "multiselect").mockImplementation(
+    // @ts-expect-error — clack's multiselect is generic, mock uses concrete types
     async (opts: {
       message: string;
       options: { value: string; label: string; hint?: string }[];
@@ -190,6 +192,7 @@ function installClackSpies(): void {
     }
   );
   spyOn(clack, "select").mockImplementation(
+    // @ts-expect-error — clack's select is generic, mock uses concrete types
     async (opts: {
       message: string;
       options: { value: string; label: string; hint?: string }[];
@@ -212,6 +215,7 @@ function installClackSpies(): void {
     }
   );
   spyOn(clack, "group").mockImplementation(
+    // @ts-expect-error — clack's group uses PromptGroup<T>, not Record<string, () => Promise<...>>
     async (
       fields: Record<string, () => Promise<string | symbol>>,
       groupOpts?: { onCancel?: () => void }
@@ -233,31 +237,33 @@ function installClackSpies(): void {
       return results;
     }
   );
-  spyOn(clack, "isCancel").mockImplementation((value: unknown) => {
-    return (
-      simulateCancel ||
-      (typeof value === "symbol" &&
-        Symbol.keyFor(value as symbol) === "clack.cancel")
-    );
+  spyOn(clack, "isCancel").mockImplementation(
+    (value: unknown): value is symbol => {
+      return (
+        simulateCancel ||
+        (typeof value === "symbol" &&
+          Symbol.keyFor(value as symbol) === "clack.cancel")
+      );
+    }
+  );
+  spyOn(clack, "cancel").mockImplementation((msg?: string) => {
+    captured.cancelMessages.push(msg ?? "");
   });
-  spyOn(clack, "cancel").mockImplementation((msg: string) => {
-    captured.cancelMessages.push(msg);
+  spyOn(clack.log, "info").mockImplementation((msg?: string) => {
+    captured.logInfo.push(msg ?? "");
   });
-  spyOn(clack.log, "info").mockImplementation((msg: string) =>
-    captured.logInfo.push(msg)
-  );
-  spyOn(clack.log, "step").mockImplementation((msg: string) =>
-    captured.logStep.push(msg)
-  );
-  spyOn(clack.log, "success").mockImplementation((msg: string) =>
-    captured.logSuccess.push(msg)
-  );
-  spyOn(clack.log, "warn").mockImplementation((msg: string) =>
-    captured.logWarn.push(msg)
-  );
-  spyOn(clack.log, "error").mockImplementation((msg: string) =>
-    captured.logError.push(msg)
-  );
+  spyOn(clack.log, "step").mockImplementation((msg?: string) => {
+    captured.logStep.push(msg ?? "");
+  });
+  spyOn(clack.log, "success").mockImplementation((msg?: string) => {
+    captured.logSuccess.push(msg ?? "");
+  });
+  spyOn(clack.log, "warn").mockImplementation((msg?: string) => {
+    captured.logWarn.push(msg ?? "");
+  });
+  spyOn(clack.log, "error").mockImplementation((msg?: string) => {
+    captured.logError.push(msg ?? "");
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -274,7 +280,7 @@ beforeEach(() => {
   customPasswordResponder = null;
   mockWhoami.mockImplementation(async () => ({
     ok: true,
-    data: "user@example.com",
+    value: "user@example.com",
   }));
 
   // Mock: CloudflareService prototype
@@ -376,7 +382,7 @@ describe("init command", () => {
         if (callCount === 1) {
           return { ok: false as const, error: "Invalid credentials" };
         }
-        return { ok: true as const, data: "user@example.com" };
+        return { ok: true as const, value: "user@example.com" };
       });
 
       // First password call returns bad token, second returns good token
@@ -526,28 +532,14 @@ describe("init command", () => {
         error: "Bad token",
       }));
 
-      // Override process.exit to capture and throw (halts execution)
-      let exitCode = -1;
-      process.exit = mock((code?: number) => {
-        exitCode = code ?? -1;
-        throw new Error("EXIT");
-      }) as unknown as typeof process.exit;
-
       const options: InitOptions = {
         token: "bad-token",
         account: "abc123def456abc123def456abc123de",
       };
 
-      const promise = runInitCommand(
-        options,
-        { json: false, quiet: true },
-        true
-      );
-      await promise.catch(() => {
-        /* expected */
-      });
+      await runInitCommand(options, { json: false, quiet: true }, true);
 
-      expect(exitCode).toBe(ExitCode.ERROR);
+      expect(process.exitCode).toBe(ExitCode.ERROR);
     });
 
     it("writes wrangler.jsonc in non-interactive mode", async () => {
@@ -829,26 +821,12 @@ describe("init command", () => {
 
   describe("cancellation handling", () => {
     it("exits on cancel during risk acknowledgment", async () => {
-      let exitCalled = false;
-      let exitCode = -1;
-      const exitMock = mock((code?: number) => {
-        exitCalled = true;
-        exitCode = code ?? -1;
-        throw new Error("EXIT"); // Must throw to stop execution flow
-      });
-      process.exit = exitMock as unknown as typeof process.exit;
+      // Make the first confirm return false (user declines the risk terms)
+      responses.confirmSequence = [false];
 
-      // First confirm (risk) is canceled
-      simulateCancel = true;
+      await runInitCommand({}, { json: false, quiet: true }, false);
 
-      try {
-        await runInitCommand({}, { json: false, quiet: true }, false);
-      } catch {
-        // expected — process.exit throws
-      }
-
-      expect(exitCalled).toBe(true);
-      expect(exitCode).toBe(0);
+      expect(process.exitCode).toBe(0);
     });
   });
 

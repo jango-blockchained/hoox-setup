@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import { Command } from "commander";
 import { registerTestCommand, runStep, printSummary } from "./test-command.js";
-import type { TestStepResult, TestSummary } from "./test-command.js";
-import { CLIError, ExitCode } from "../../utils/errors.js";
+import type { TestSummary } from "./test-command.js";
+import { ExitCode } from "../../utils/errors.js";
 
 // ---------------------------------------------------------------------------
 // Helpers

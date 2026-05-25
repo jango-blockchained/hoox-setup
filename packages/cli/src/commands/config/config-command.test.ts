@@ -508,7 +508,7 @@ describe("config keys", () => {
     expect(text).toContain(".keys/");
 
     // Verify files were created
-    const internalKeyFile = Bun.file(".keys/internal_service_key.env");
+    const internalKeyFile = Bun.file(".keys/internal_key_binding.env");
     expect(await internalKeyFile.exists()).toBe(true);
     const content = await internalKeyFile.text();
     expect(content).toMatch(/^INTERNAL_KEY_BINDING=[a-f0-9]{64}\n$/);
@@ -572,7 +572,7 @@ describe("config keys", () => {
     const capture = await runCommand(program, ["config", "keys", "generate"]);
     capture.restore();
 
-    const file = Bun.file(".keys/webhook_api_key.env");
+    const file = Bun.file(".keys/webhook_api_key_binding.env");
     expect(await file.exists()).toBe(true);
     const content = await file.text();
     const match = content.match(/^WEBHOOK_API_KEY_BINDING=([a-f0-9]+)\n$/);

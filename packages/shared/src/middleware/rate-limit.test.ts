@@ -53,7 +53,7 @@ class MockKV {
 describe("createRateLimiter", () => {
   it("creates a rate limiter with config", () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 10,
       windowSeconds: 60,
     });
@@ -64,7 +64,7 @@ describe("createRateLimiter", () => {
 
   it("has check and enforce methods", () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 10,
       windowSeconds: 60,
     });
@@ -76,7 +76,7 @@ describe("createRateLimiter", () => {
 describe("RateLimiter.check", () => {
   it("allows requests within limit", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 10,
       windowSeconds: 60,
     });
@@ -91,7 +91,7 @@ describe("RateLimiter.check", () => {
 
   it("returns remaining count", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 5,
       windowSeconds: 60,
     });
@@ -105,7 +105,7 @@ describe("RateLimiter.check", () => {
 
   it("rejects requests exceeding limit", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 2,
       windowSeconds: 60,
     });
@@ -128,7 +128,7 @@ describe("RateLimiter.check", () => {
 
   it("returns 0 remaining when limit exceeded", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -146,7 +146,7 @@ describe("RateLimiter.check", () => {
 
   it("includes retryAfter when limit exceeded", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -165,7 +165,7 @@ describe("RateLimiter.check", () => {
 
   it("tracks rate limit per IP address", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -192,7 +192,7 @@ describe("RateLimiter.check", () => {
 
   it("uses CF-Connecting-IP header for IP extraction", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -216,7 +216,7 @@ describe("RateLimiter.check", () => {
 
   it("uses 'unknown' IP when CF-Connecting-IP not provided", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -234,7 +234,7 @@ describe("RateLimiter.check", () => {
 
   it("supports custom key prefix", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 10,
       windowSeconds: 60,
       keyPrefix: "custom-prefix",
@@ -251,7 +251,7 @@ describe("RateLimiter.check", () => {
 describe("RateLimiter.enforce", () => {
   it("returns null when request allowed", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 10,
       windowSeconds: 60,
     });
@@ -265,7 +265,7 @@ describe("RateLimiter.enforce", () => {
 
   it("returns 429 response when limit exceeded", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -284,7 +284,7 @@ describe("RateLimiter.enforce", () => {
 
   it("includes error message in 429 response", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -303,7 +303,7 @@ describe("RateLimiter.enforce", () => {
 
   it("includes Retry-After header in 429 response", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -321,7 +321,7 @@ describe("RateLimiter.enforce", () => {
 
   it("includes retryAfter in response body", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -341,7 +341,7 @@ describe("RateLimiter.enforce", () => {
 
   it("sets Content-Type to application/json", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 60,
     });
@@ -359,7 +359,7 @@ describe("RateLimiter.enforce", () => {
 
   it("respects maxRequests configuration", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 3,
       windowSeconds: 60,
     });
@@ -380,7 +380,7 @@ describe("RateLimiter.enforce", () => {
 
   it("respects windowSeconds configuration", async () => {
     const kv = new MockKV();
-    const limiter = createRateLimiter(kv, {
+    const limiter = createRateLimiter(kv as any, {
       maxRequests: 1,
       windowSeconds: 1, // 1 second window
     });

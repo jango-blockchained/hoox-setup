@@ -8,7 +8,7 @@
  * Runs system checks on mount via Bun.spawn and displays results with
  * status indicators matching the landing page's HUD-style status display.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useConfigStore } from "@jango-blockchained/hoox-shared";
@@ -307,6 +307,12 @@ const defaultFormData = (): WizardFormData => ({
   },
 });
 
+/**
+ * Session persistence file path for wizard state.
+ * Survives TUI close/restart so users can resume where they left off.
+ */
+const WIZARD_SESSION_PATH = `${process.env.HOME ?? "~"}/.hoox/.wizard-session.json`;
+
 // ─── Validation Helpers ─────────────────────────────────────────────────────
 
 /** Basic format check for exchange API keys (non-empty, no whitespace at ends) */
@@ -328,6 +334,28 @@ function validateUrl(value: string): boolean {
 function maskSecret(value: string): string {
   if (value.length <= 8) return "•".repeat(value.length || 4);
   return value.slice(0, 4) + "••••" + value.slice(-4);
+}
+
+// ─── Session Persistence Helpers ─────────────────────────────────────────────
+
+/**
+ * Persist wizard step + form data + validation state to disk.
+ * Fire-and-forget; failures are non-fatal.
+ */
+function persistSession(
+  step: number,
+  data: WizardFormData,
+  validation: Record<string, ValidationState>
+) {
+  Bun.write(
+    WIZARD_SESSION_PATH,
+    JSON.stringify({ step, data, validation })
+  ).catch(() => {});
+}
+
+/** Clear saved wizard session (called after successful deploy). */
+function clearSessionFile() {
+  Bun.write(WIZARD_SESSION_PATH, "").catch(() => {});
 }
 
 // ─── Component Props ────────────────────────────────────────────────────────
@@ -355,6 +383,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const setView = useUIStore((s) => s.setView);
   const addAlert = useServiceStore((s) => s.addAlert);
+  const loadedRef = useRef(false);
 
   // ── Run system checks on mount ──────────────────────────────────────────
   const runChecks = useCallback(async () => {
@@ -397,6 +426,42 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
       } catch {
         /* non-fatal */
       }
+    })();
+  }, []);
+
+  // ── Restore wizard session from disk on mount ───────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const f = Bun.file(WIZARD_SESSION_PATH);
+        if (!(await f.exists())) return;
+        const raw = await f.text();
+        if (!raw) return;
+        const session = JSON.parse(raw);
+        if (typeof session.step !== "number" || !session.data) return;
+        // Merge saved data with defaults to handle any schema additions
+        const merged: WizardFormData = {
+          ...defaultFormData(),
+          ...session.data,
+          apiKeys: { ...defaultFormData().apiKeys, ...session.data.apiKeys },
+          exchanges: {
+            ...defaultFormData().exchanges,
+            ...session.data.exchanges,
+          },
+          ai: { ...defaultFormData().ai, ...session.data.ai },
+          strategy: { ...defaultFormData().strategy, ...session.data.strategy },
+          notifications: {
+            ...defaultFormData().notifications,
+            ...session.data.notifications,
+          },
+        };
+        setStep(session.step);
+        setData(merged);
+        if (session.validation) setValidation(session.validation);
+      } catch {
+        /* no saved session or corrupt file */
+      }
+      loadedRef.current = true;
     })();
   }, []);
 
@@ -488,24 +553,36 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   const handleNext = () => {
     if (step === 0) {
       if (!prereqsRunning) {
-        setStep(1);
+        const next = 1;
+        setStep(next);
+        persistSession(next, data, validation);
       }
       return;
     }
     if (validateStep() && step < TOTAL_SETUP_STEPS - 1) {
-      setStep((s) => s + 1);
+      const next = step + 1;
+      setStep(next);
+      persistSession(next, data, validation);
     }
   };
 
   /** Go back to previous step */
   const handleBack = () => {
-    if (step > 0) setStep((s) => s - 1);
+    if (step > 0) {
+      const prev = step - 1;
+      setStep(prev);
+      persistSession(prev, data, validation);
+    }
   };
 
   /** Skip current step (optional steps only) */
   const handleSkip = () => {
     if (step < TOTAL_SETUP_STEPS - 1) {
-      if (step === 2 || step === 4) setStep((s) => s + 1);
+      if (step === 2 || step === 4) {
+        const next = step + 1;
+        setStep(next);
+        persistSession(next, data, validation);
+      }
     }
   };
 
@@ -545,6 +622,7 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           acknowledged: false,
           source: "SetupWizard",
         });
+        clearSessionFile();
         setView("dashboard");
       } else {
         setDeployLog(

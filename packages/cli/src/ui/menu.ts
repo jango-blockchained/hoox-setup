@@ -17,7 +17,7 @@ import {
   isCancel,
   cancel,
 } from "@clack/prompts";
-import { renderBanner, renderCompactBanner, DISCLAIMER } from "./banner.js";
+import { renderBanner, DISCLAIMER } from "./banner.js";
 import { CLIError } from "../utils/errors.js";
 import { theme } from "../utils/theme.js";
 

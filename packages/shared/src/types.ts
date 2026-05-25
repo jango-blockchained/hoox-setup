@@ -148,8 +148,21 @@ export interface SettingsPayload {
 
 // --- Types needed by shared middleware and router ---
 
+/**
+ * Environment with bindings needed by the shared middleware.
+ * Workers that use `requireAuth`, `createRateLimiter`, etc. have these bindings.
+ *
+ * This is intentionally a closed interface (no index signature) so accessing
+ * unknown bindings is a compile error. Workers pass their extended Env types
+ * via structural typing.
+ */
 export interface Env {
-  [key: string]: any;
+  /** Internal API key for Bearer token auth (requireAuth) */
+  INTERNAL_API_KEY?: string;
+  /** KV namespace for rate limiting (createRateLimiter) */
+  CONFIG_KV?: KVNamespace;
+  /** Optional analytics service binding for tracking */
+  ANALYTICS_SERVICE?: Fetcher;
 }
 
 /**

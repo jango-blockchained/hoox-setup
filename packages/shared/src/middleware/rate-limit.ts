@@ -25,7 +25,7 @@ export interface RateLimiter {
 }
 
 export function createRateLimiter(
-  kv: Env["CONFIG_KV"],
+  kv: Exclude<Env["CONFIG_KV"], undefined>,
   config: RateLimitConfig
 ): RateLimiter {
   const prefix = config.keyPrefix ?? "rate-limit";

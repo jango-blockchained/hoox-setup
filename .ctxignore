@@ -1,8 +1,17 @@
+**node_modules/
 node_modules/
+.github/
+.husky/
+workers/**/node_modules/
+workers/**/.wrangler
 .venv/
 venv/
 dist/
 build/
 .git/
 *.min.js
+.wrangler/
+.antigravitycli/
+.keys/
+.worktrees/
 

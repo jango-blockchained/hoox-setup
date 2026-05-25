@@ -16,7 +16,13 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, cfApi, section, testResourceName } from "./helpers";
+import {
+  getConfig,
+  wrangler,
+  cfApi,
+  section,
+  testResourceName,
+} from "./helpers";
 import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
@@ -24,7 +30,9 @@ const FRONTEND_WORKER = testResourceName("ic-frontend");
 const MIDDLE_WORKER = testResourceName("ic-middle");
 const BACKEND_WORKER = testResourceName("ic-backend");
 
-describe("Worker Interconnection", () => {
+// Skip these live integration tests when no Cloudflare credentials available
+const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+(hasCloudflareEnv ? describe : describe.skip)("Worker Interconnection", () => {
   let config: ReturnType<typeof getConfig>;
 
   beforeAll(async () => {
@@ -40,12 +48,16 @@ describe("Worker Interconnection", () => {
     const dir = `/tmp/${BACKEND_WORKER}`;
     mkdirSync(join(dir, "src"), { recursive: true });
 
-    const wranglerConfig = JSON.stringify({
-      name: BACKEND_WORKER,
-      main: "src/index.ts",
-      compatibility_date: "2025-03-07",
-      compatibility_flags: ["nodejs_compat"],
-    }, null, 2);
+    const wranglerConfig = JSON.stringify(
+      {
+        name: BACKEND_WORKER,
+        main: "src/index.ts",
+        compatibility_date: "2025-03-07",
+        compatibility_flags: ["nodejs_compat"],
+      },
+      null,
+      2
+    );
 
     const workerSrc = `
 // Backend worker --- in-memory store
@@ -95,7 +107,9 @@ export default {
     writeFileSync(join(dir, "src", "index.ts"), workerSrc);
     const result = await wrangler(["deploy"], dir);
     if (!result.ok) {
-      console.log(`  ✗ Backend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+      console.log(
+        `  ✗ Backend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`
+      );
     }
     expect(result.ok).toBe(true);
     console.log("  ✓ Deployed backend worker");
@@ -105,22 +119,27 @@ export default {
   // Deploy middle worker (processing layer --- calls backend via service binding)
   // -----------------------------------------------------------------------
 
-  test("Deploy middle worker with service binding to backend", { timeout: 120000 }, async () => {
-    section("Deploy middle worker");
-    const dir = `/tmp/${MIDDLE_WORKER}`;
-    mkdirSync(join(dir, "src"), { recursive: true });
+  test(
+    "Deploy middle worker with service binding to backend",
+    { timeout: 120000 },
+    async () => {
+      section("Deploy middle worker");
+      const dir = `/tmp/${MIDDLE_WORKER}`;
+      mkdirSync(join(dir, "src"), { recursive: true });
 
-    const wranglerConfig = JSON.stringify({
-      name: MIDDLE_WORKER,
-      main: "src/index.ts",
-      compatibility_date: "2025-03-07",
-      compatibility_flags: ["nodejs_compat"],
-      services: [
-        { binding: "BACKEND_SERVICE", service: BACKEND_WORKER },
-      ],
-    }, null, 2);
+      const wranglerConfig = JSON.stringify(
+        {
+          name: MIDDLE_WORKER,
+          main: "src/index.ts",
+          compatibility_date: "2025-03-07",
+          compatibility_flags: ["nodejs_compat"],
+          services: [{ binding: "BACKEND_SERVICE", service: BACKEND_WORKER }],
+        },
+        null,
+        2
+      );
 
-    const workerSrc = `
+      const workerSrc = `
 // Middle worker --- validates then stores via backend binding
 const validActions = new Set(["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"]);
 
@@ -184,36 +203,44 @@ export default {
 };
 `;
 
-    writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
-    writeFileSync(join(dir, "src", "index.ts"), workerSrc);
-    const result = await wrangler(["deploy"], dir);
-    if (!result.ok) {
-      console.log(`  ✗ Middle deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+      writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
+      writeFileSync(join(dir, "src", "index.ts"), workerSrc);
+      const result = await wrangler(["deploy"], dir);
+      if (!result.ok) {
+        console.log(
+          `  ✗ Middle deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`
+        );
+      }
+      expect(result.ok).toBe(true);
+      console.log("  ✓ Deployed middle worker with backend binding");
     }
-    expect(result.ok).toBe(true);
-    console.log("  ✓ Deployed middle worker with backend binding");
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Deploy frontend worker (entry point --- calls middle via service binding)
   // -----------------------------------------------------------------------
 
-  test("Deploy frontend worker with service binding to middle", { timeout: 120000 }, async () => {
-    section("Deploy frontend worker");
-    const dir = `/tmp/${FRONTEND_WORKER}`;
-    mkdirSync(join(dir, "src"), { recursive: true });
+  test(
+    "Deploy frontend worker with service binding to middle",
+    { timeout: 120000 },
+    async () => {
+      section("Deploy frontend worker");
+      const dir = `/tmp/${FRONTEND_WORKER}`;
+      mkdirSync(join(dir, "src"), { recursive: true });
 
-    const wranglerConfig = JSON.stringify({
-      name: FRONTEND_WORKER,
-      main: "src/index.ts",
-      compatibility_date: "2025-03-07",
-      compatibility_flags: ["nodejs_compat"],
-      services: [
-        { binding: "MIDDLE_SERVICE", service: MIDDLE_WORKER },
-      ],
-    }, null, 2);
+      const wranglerConfig = JSON.stringify(
+        {
+          name: FRONTEND_WORKER,
+          main: "src/index.ts",
+          compatibility_date: "2025-03-07",
+          compatibility_flags: ["nodejs_compat"],
+          services: [{ binding: "MIDDLE_SERVICE", service: MIDDLE_WORKER }],
+        },
+        null,
+        2
+      );
 
-    const workerSrc = `
+      const workerSrc = `
 // Frontend worker --- receives HTTP, forwards to middle via service binding
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
@@ -264,121 +291,153 @@ export default {
 };
 `;
 
-    writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
-    writeFileSync(join(dir, "src", "index.ts"), workerSrc);
-    const result = await wrangler(["deploy"], dir);
-    if (!result.ok) {
-      console.log(`  ✗ Frontend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`);
+      writeFileSync(join(dir, "wrangler.jsonc"), wranglerConfig);
+      writeFileSync(join(dir, "src", "index.ts"), workerSrc);
+      const result = await wrangler(["deploy"], dir);
+      if (!result.ok) {
+        console.log(
+          `  ✗ Frontend deploy failed:\n    stderr: ${result.stderr.slice(0, 500)}`
+        );
+      }
+      expect(result.ok).toBe(true);
+      console.log("  ✓ Deployed frontend worker with middle binding");
     }
-    expect(result.ok).toBe(true);
-    console.log("  ✓ Deployed frontend worker with middle binding");
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Test the chain: health check through all 3 workers
   // -----------------------------------------------------------------------
 
-  test("Chain health check — frontend reaches middle and backend", { timeout: 30000 }, async () => {
-    section("Chain health check");
-    const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/health`;
-    try {
-      const response = await fetch(url);
-      expect(response.ok).toBe(true);
-      const data = await response.json() as { status: string; chain: { middle: { status: string } } };
-      expect(data.status).toBe("ok");
-      expect(data.chain.middle.status).toBe("ok");
-      console.log("  ✓ Full chain healthy (frontend -> middle -> backend)");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Chain health check skipped: ${message}`);
+  test(
+    "Chain health check — frontend reaches middle and backend",
+    { timeout: 30000 },
+    async () => {
+      section("Chain health check");
+      const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/health`;
+      try {
+        const response = await fetch(url);
+        expect(response.ok).toBe(true);
+        const data = (await response.json()) as {
+          status: string;
+          chain: { middle: { status: string } };
+        };
+        expect(data.status).toBe("ok");
+        expect(data.chain.middle.status).toBe("ok");
+        console.log("  ✓ Full chain healthy (frontend -> middle -> backend)");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Chain health check skipped: ${message}`);
+      }
     }
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Test: submit valid trade through the chain
   // -----------------------------------------------------------------------
 
-  test("Submit valid trade through frontend -> middle -> backend", { timeout: 30000 }, async () => {
-    section("Trade flow tests");
-    const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol: "BTC/USDT",
-          action: "LONG",
-          quantity: 0.5,
-        }),
-      });
-      expect(response.ok).toBe(true);
-      const data = await response.json() as { ok: boolean };
-      expect(data.ok).toBe(true);
-      console.log("  ✓ Valid trade accepted through full chain");
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Trade flow test skipped: ${message}`);
+  test(
+    "Submit valid trade through frontend -> middle -> backend",
+    { timeout: 30000 },
+    async () => {
+      section("Trade flow tests");
+      const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: "BTC/USDT",
+            action: "LONG",
+            quantity: 0.5,
+          }),
+        });
+        expect(response.ok).toBe(true);
+        const data = (await response.json()) as { ok: boolean };
+        expect(data.ok).toBe(true);
+        console.log("  ✓ Valid trade accepted through full chain");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Trade flow test skipped: ${message}`);
+      }
     }
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Test: invalid payload rejected at middle layer
   // -----------------------------------------------------------------------
 
-  test("Invalid payload rejected with 400 + structured errors", { timeout: 30000 }, async () => {
-    const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol: "BTC/USDT",
-          action: "INVALID_ACTION",  // Invalid
-          quantity: -1,              // Negative
-        }),
-      });
-      expect(response.ok).toBe(false);
-      const data = await response.json() as { ok: boolean; errors: string[] };
-      expect(data.ok).toBe(false);
-      expect(data.errors.length).toBeGreaterThanOrEqual(1);
-      console.log(`  ✓ Invalid payload rejected with ${data.errors.length} errors`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Validation test skipped: ${message}`);
+  test(
+    "Invalid payload rejected with 400 + structured errors",
+    { timeout: 30000 },
+    async () => {
+      const url = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: "BTC/USDT",
+            action: "INVALID_ACTION", // Invalid
+            quantity: -1, // Negative
+          }),
+        });
+        expect(response.ok).toBe(false);
+        const data = (await response.json()) as {
+          ok: boolean;
+          errors: string[];
+        };
+        expect(data.ok).toBe(false);
+        expect(data.errors.length).toBeGreaterThanOrEqual(1);
+        console.log(
+          `  ✓ Invalid payload rejected with ${data.errors.length} errors`
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Validation test skipped: ${message}`);
+      }
     }
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Test: data persists through the chain
   // -----------------------------------------------------------------------
 
-  test("Data persists — stored trade retrievable from backend", { timeout: 30000 }, async () => {
-    const tradeUrl = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
-    const storedUrl = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/stored`;
-    try {
-      // Submit a trade with unique symbol
-      const uniqueSymbol = `TEST/${Date.now()}`;
-      const tradeResp = await fetch(tradeUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol: uniqueSymbol,
-          action: "SHORT",
-          quantity: 1.0,
-        }),
-      });
-      expect(tradeResp.ok).toBe(true);
+  test(
+    "Data persists — stored trade retrievable from backend",
+    { timeout: 30000 },
+    async () => {
+      const tradeUrl = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/trade`;
+      const storedUrl = `https://${FRONTEND_WORKER}.cryptolinx.workers.dev/stored`;
+      try {
+        // Submit a trade with unique symbol
+        const uniqueSymbol = `TEST/${Date.now()}`;
+        const tradeResp = await fetch(tradeUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: uniqueSymbol,
+            action: "SHORT",
+            quantity: 1.0,
+          }),
+        });
+        expect(tradeResp.ok).toBe(true);
 
-      // Read stored items
-      const storedResp = await fetch(storedUrl);
-      const storedData = await storedResp.json() as { keys: string[]; count: number };
-      expect(storedData.count).toBeGreaterThanOrEqual(1);
-      console.log(`  ✓ Data persists through chain (${storedData.count} items stored)`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.log(`  ⚠ Persistence test skipped: ${message}`);
+        // Read stored items
+        const storedResp = await fetch(storedUrl);
+        const storedData = (await storedResp.json()) as {
+          keys: string[];
+          count: number;
+        };
+        expect(storedData.count).toBeGreaterThanOrEqual(1);
+        console.log(
+          `  ✓ Data persists through chain (${storedData.count} items stored)`
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log(`  ⚠ Persistence test skipped: ${message}`);
+      }
     }
-  });
+  );
 
   // -----------------------------------------------------------------------
   // Cleanup

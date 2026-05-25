@@ -108,7 +108,20 @@ async function canLaunch(): Promise<boolean> {
     // Check if @opentui packages are resolvable (lightweight check)
     // We don't import to avoid side effects — just check node_modules
     const tuiCheck = Bun.file("node_modules/@opentui/core/package.json");
-    return await tuiCheck.exists();
+    const depsOk = await tuiCheck.exists();
+    if (!depsOk) return false;
+
+    // E2E tests require a real pseudo-terminal (PTY) for TUI rendering.
+    // Skip in headless or CI environments where stdout has no TTY.
+    if (!process.stdout.isTTY) {
+      console.warn(
+        "  ⚠ E2E smoke test requires a TTY (pseudo-terminal).\n" +
+          "    Run in an interactive terminal to execute these tests."
+      );
+      return false;
+    }
+
+    return true;
   } catch {
     return false;
   }
@@ -224,10 +237,8 @@ describe("Hoox TUI E2E Smoke Test", () => {
       await new Promise((resolve) => setTimeout(resolve, 1_500));
 
       // Send Ctrl+Q (ASCII 0x11) to trigger quit
-      const writer = proc.stdin.getWriter();
-      await writer.write(new Uint8Array([0x11])); // Ctrl+Q
-      await writer.write(new Uint8Array([0x0d])); // Enter (confirm dialog)
-      writer.releaseLock();
+      proc.stdin.write(new Uint8Array([0x11])); // Ctrl+Q
+      proc.stdin.write(new Uint8Array([0x0d])); // Enter (confirm dialog)
 
       // Wait for the process to exit naturally
       const exitCode = await Promise.race([
@@ -362,9 +373,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
     await new Promise((resolve) => setTimeout(resolve, 1_500));
 
     // Send Ctrl+B
-    const writer = proc.stdin.getWriter();
-    await writer.write(new Uint8Array([0x02])); // Ctrl+B
-    writer.releaseLock();
+    proc.stdin.write(new Uint8Array([0x02])); // Ctrl+B
 
     // Wait a bit and check process is still alive
     await new Promise((resolve) => setTimeout(resolve, 1_000));

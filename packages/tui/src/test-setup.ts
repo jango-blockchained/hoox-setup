@@ -1,0 +1,136 @@
+/**
+ * Test setup / preload for TUI package.
+ *
+ * Pre-loads @opentui/core so its top-level await resolves BEFORE any test
+ * code runs. This prevents the Temporal Dead Zone (TDZ) race condition
+ * that causes:
+ *   "Cannot access 'FFIRenderLib' before initialization"
+ *
+ * OpenTUI's bundled index-ysvpktsp.js has:
+ *   line 12404: await import(`@opentui/core-${platform}-${arch}`)
+ *   line 13725: class FFIRenderLib { ... }      // AFTER the await
+ *   line 15202: function resolveRenderLib() { ... }
+ *
+ * If resolveRenderLib() is called while the module is still suspended by
+ * the top-level await, FFIRenderLib is in the TDZ → ReferenceError.
+ *
+ * This preload ensures the module finishes evaluating before any test
+ * imports trigger resolveRenderLib. It also wraps createTestRenderer with
+ * error handling for environments where the native library is absent.
+ */
+import { mock } from "bun:test";
+
+// ── Module-level state ────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AsyncFn = (...args: any[]) => Promise<any>;
+let realCreateTestRenderer: AsyncFn | null = null;
+let coreAvailable = false;
+
+// ── Load real module (pre-resolves the top-level await) ────────────────────────
+
+try {
+  // 1. Load @opentui/core first — this triggers its top-level await
+  //    which loads the platform-specific native library package.
+  //    If the native library is present, the await resolves quickly and
+  //    the module finishes evaluating (FFIRenderLib becomes defined).
+  await import("@opentui/core");
+
+  // 2. Now load the testing module and capture its createTestRenderer
+  const coreTesting = await import("@opentui/core/testing");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  realCreateTestRenderer = coreTesting.createTestRenderer as any;
+  coreAvailable = true;
+} catch {
+  // Core not available — tests that require rendering will get a clear error
+  coreAvailable = false;
+}
+
+// ── Mock @opentui/core/testing ─────────────────────────────────────────────────
+//
+// This mock intercepts all imports of @opentui/core/testing so that:
+//   - If the real module loaded successfully → uses real createTestRenderer
+//     (with error-wrapping for defensive handling)
+//   - If the real module failed → provides a mock that throws a clear
+//     error message about the missing native library
+//   - The Temporal Dead Zone race condition is avoided because we've
+//     already pre-loaded @opentui/core above
+
+mock.module("@opentui/core/testing", () => {
+  if (coreAvailable && realCreateTestRenderer) {
+    return {
+      // Spread any other exports from the real module (setRendererCapabilities,
+      // createTerminalCapabilities, MockTreeSitterClient, etc.)
+      ...shareTestingExports(),
+
+      // Wrap createTestRenderer with defensive error handling
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      createTestRenderer: async (...args: any[]) => {
+        try {
+          return await realCreateTestRenderer!(...args);
+        } catch (cause) {
+          throw new Error(
+            `OpenTUI render library initialization failed: ${
+              cause instanceof Error ? cause.message : String(cause)
+            }. ` +
+              "Ensure @opentui/core native library is installed for your platform."
+          );
+        }
+      },
+    };
+  }
+
+  // Fallback: native library not available → provide a mock that throws
+  // a clear, actionable error (instead of the confusing TDZ ReferenceError)
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createTestRenderer: async (..._args: any[]) => {
+      throw new Error(
+        "OpenTUI native render library is not available in this environment. " +
+          "Render-dependent tests cannot run. " +
+          "Install @opentui/core native library for your platform, " +
+          "or run tests on a supported platform (linux-x64, darwin-arm64, etc.)."
+      );
+    },
+
+    setRendererCapabilities: () => {},
+    createTerminalCapabilities: (overrides = {}) => overrides,
+    createSpy: () => ({
+      calls: [],
+      callCount: () => 0,
+      calledWith: () => false,
+      reset: () => {},
+    }),
+    MockTreeSitterClient: class {},
+    KeyCodes: {},
+    MouseButtons: {},
+    pasteBytes: (s: string) => new Uint8Array(),
+    createMockKeys: () => ({}),
+    createMockMouse: () => ({}),
+    TestRecorder: class {},
+  };
+});
+
+// ── Mock helper exports ─────────────────────────────────────────────────────────
+
+/** Re-export testing utilities from the real module for convenience. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function shareTestingExports(): Record<string, any> {
+  return {
+    setRendererCapabilities: () => {},
+    createTerminalCapabilities: (o: Record<string, unknown> = {}) => o,
+    createSpy: () => ({
+      calls: [],
+      callCount: () => 0,
+      calledWith: () => false,
+      reset: () => {},
+    }),
+    MockTreeSitterClient: class {},
+    KeyCodes: {},
+    MouseButtons: {},
+    pasteBytes: (s: string) => new Uint8Array(),
+    createMockKeys: () => ({}),
+    createMockMouse: () => ({}),
+    TestRecorder: class {},
+  };
+}

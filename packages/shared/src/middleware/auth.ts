@@ -109,9 +109,10 @@ export function requireInternalAuth(
 export function createInternalAuthMiddleware<TEnv extends InternalAuthEnv>(
   keyName: string = "INTERNAL_KEY_BINDING"
 ): Handler<TEnv> {
-  return (request: Request, env: TEnv) => {
+  return async (request: Request, env: TEnv) => {
     const result = requireInternalAuth(request, env, keyName);
     if (result) return result;
+    return;
   };
 }
 
