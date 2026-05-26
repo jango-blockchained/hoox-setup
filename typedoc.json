@@ -4,7 +4,7 @@
   "entryPoints": [
     "./packages/shared/src/index.ts",
     "./packages/cli/src/index.ts",
-    "./packages/tui/src/index.ts"
+    "./packages/tui/src/main.tsx"
   ],
   "out": "./docs/api",
   "readme": "./README.md",
