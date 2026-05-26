@@ -24,6 +24,15 @@ if (!packageJson.workspaces) {
 
 const workspaces: string[] = [];
 
+// Check if a directory is a git submodule
+const isGitSubmodule = (dir: string): boolean => {
+  const gitmodulesPath = path.join(rootPath, ".gitmodules");
+  if (!fs.existsSync(gitmodulesPath)) return false;
+
+  const gitmodules = fs.readFileSync(gitmodulesPath, "utf-8");
+  return gitmodules.includes(`path = ${dir}`);
+};
+
 // Expand workspace globs
 for (const pattern of packageJson.workspaces) {
   const parts = pattern.split("/");
@@ -34,14 +43,20 @@ for (const pattern of packageJson.workspaces) {
     if (pattern.includes("*")) {
       // It's a glob pattern
       for (const entry of entries) {
-        const pkgPath = path.join(dir, entry, "package.json");
-        if (fs.existsSync(pkgPath)) {
-          workspaces.push(path.join(dir, entry));
+        const fullPath = path.join(dir, entry);
+        const pkgPath = path.join(fullPath, "package.json");
+
+        // Skip git submodules
+        if (fs.existsSync(pkgPath) && !isGitSubmodule(fullPath)) {
+          workspaces.push(fullPath);
         }
       }
     } else {
       // It's a literal path
-      if (fs.existsSync(path.join(dir, "package.json"))) {
+      if (
+        fs.existsSync(path.join(dir, "package.json")) &&
+        !isGitSubmodule(dir)
+      ) {
         workspaces.push(dir);
       }
     }
