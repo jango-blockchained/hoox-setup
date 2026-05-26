@@ -124,3 +124,10 @@ test-models.ts
 
 # Wizard state
 .wizard-state.json
+
+docs/.obsidian
+AGENTS.md
+DEISGN.md
+SKILL.md
+.ctxignore
+.directory
