@@ -1,0 +1,44 @@
+name: Generate and Deploy TypeDoc
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "typedoc.json"
+      - ".github/workflows/typedoc.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "typedoc.json"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: TypeScript check
+        run: bun run typecheck
+
+      - name: Generate TypeDoc HTML
+        run: bun run generate:docs
+
+      - name: Generate JSON output
+        run: bun run generate:docs:json
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/api
+          keep_files: true
+          destination_dir: api

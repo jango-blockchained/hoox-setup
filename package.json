@@ -48,7 +48,11 @@
     "lint-staged": "lint-staged",
     "lint:scripts": "bun run ./scripts/check-script-paths.ts",
     "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts",
-    "start": "bun run server.js"
+    "start": "bun run server.js",
+    "generate:docs": "typedoc --options typedoc.json",
+    "generate:docs:json": "typedoc --options typedoc.json --json docs/api/api.json",
+    "docs:watch": "typedoc --options typedoc.json --watch",
+    "docs:clean": "rm -rf docs/api"
   },
   "devDependencies": {
     "@alegau/ctx-bin": "^0.2.5",
