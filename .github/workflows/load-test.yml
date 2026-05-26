@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload k6 Reports as Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: k6-load-test-reports-${{ github.run_id }}
           path: /tmp/k6-reports/
