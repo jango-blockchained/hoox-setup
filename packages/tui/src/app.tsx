@@ -21,6 +21,7 @@ import {
   Colors,
 } from "@jango-blockchained/hoox-shared";
 import { restoreSession, saveSession } from "@jango-blockchained/hoox-shared";
+import type { SessionState } from "@jango-blockchained/hoox-shared";
 import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 // ─── View imports ────────────────────────────────────────────────────────────
@@ -45,15 +46,15 @@ import { Sidebar } from "./components/layout/sidebar";
 
 // ─── View registry ───────────────────────────────────────────────────────────
 
-const VIEWS: Record<ViewId, () => JSX.Element> = {
+const VIEWS: Record<ViewId, () => React.ReactNode> = {
   dashboard: DashboardView,
   workers: WorkersOverview,
   "worker-detail": WorkerDetail,
   "trade-monitor": TradeMonitor,
   "logs-viewer": LogsViewer,
-  "service-manager": ServiceManager,
+  "service-manager": () => <ServiceManager />,
   "config-editor": ConfigEditor,
-  "setup-wizard": SetupWizard,
+  "setup-wizard": () => <SetupWizard />,
   settings: SettingsView,
 };
 

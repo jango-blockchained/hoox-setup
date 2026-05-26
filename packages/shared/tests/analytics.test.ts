@@ -17,12 +17,12 @@ function createMockEnv(withService: boolean): AnalyticsEnv {
     return {};
   }
 
-  const fetchFn = mock((request: Request): Promise<Response> => {
+  const fetchFn = mock((_request: Request): Promise<Response> => {
     return Promise.resolve(new Response(null, { status: 200 }));
   });
 
   return {
-    ANALYTICS_SERVICE: { fetch: fetchFn } as Fetcher,
+    ANALYTICS_SERVICE: { fetch: fetchFn } as unknown as Fetcher,
     _fetchMock: fetchFn,
   } as AnalyticsEnv & { _fetchMock: ReturnType<typeof mock> };
 }
@@ -91,7 +91,7 @@ describe("trackAnalytics", () => {
     });
 
     const env = {
-      ANALYTICS_SERVICE: { fetch: fetchFn } as Fetcher,
+      ANALYTICS_SERVICE: { fetch: fetchFn } as unknown as Fetcher,
     };
 
     // Suppress console.error output during this test

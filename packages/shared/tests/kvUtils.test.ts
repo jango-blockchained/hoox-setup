@@ -5,17 +5,32 @@
 
 import { describe, test, expect, mock } from "bun:test";
 import { logKvTimestamp, headersToObject } from "../src/kvUtils";
+import type { KVNamespace } from "@cloudflare/workers-types";
+
+type MockFn = ReturnType<typeof mock>;
+
+interface MockKv {
+  get: MockFn & ((key: string) => Promise<string | null>);
+  put: MockFn &
+    ((
+      key: string,
+      value: string,
+      options?: { expirationTtl?: number }
+    ) => Promise<void>);
+  _store: Map<string, string>;
+}
 
 /**
  * Creates a mock KV namespace for testing KV utility functions.
  * Backed by an in-memory store with tracked put/get operations.
+ * Returns a combined type that satisfies both test assertions and KVNamespace compatibility.
  */
-function createMockKv() {
+function createMockKv(): MockKv {
   const store = new Map<string, string>();
   return {
     get: mock((key: string): Promise<string | null> => {
       return Promise.resolve(store.get(key) ?? null);
-    }),
+    }) as MockKv["get"],
     put: mock(
       (
         key: string,
@@ -25,7 +40,7 @@ function createMockKv() {
         store.set(key, value);
         return Promise.resolve();
       }
-    ),
+    ) as MockKv["put"],
     _store: store,
   };
 }
@@ -34,7 +49,7 @@ describe("KV Utilities", () => {
   describe("logKvTimestamp", () => {
     test("writes to KV with correct key format", async () => {
       const kv = createMockKv();
-      const env = { REPORT_KV: kv };
+      const env = { REPORT_KV: kv as unknown as KVNamespace };
 
       await logKvTimestamp(env, "test-prefix");
 
@@ -53,7 +68,7 @@ describe("KV Utilities", () => {
 
     test("uses default prefix 'timestamp' when not specified", async () => {
       const kv = createMockKv();
-      const env = { REPORT_KV: kv };
+      const env = { REPORT_KV: kv as unknown as KVNamespace };
 
       await logKvTimestamp(env);
 
@@ -67,7 +82,7 @@ describe("KV Utilities", () => {
         get: mock(() => Promise.resolve(null)),
         put: mock(() => Promise.reject(new Error("KV write failed"))),
       };
-      const env = { REPORT_KV: errorKv };
+      const env = { REPORT_KV: errorKv as unknown as KVNamespace };
 
       // Should not throw despite put rejection
       await expect(logKvTimestamp(env, "error-test")).resolves.toBeUndefined();

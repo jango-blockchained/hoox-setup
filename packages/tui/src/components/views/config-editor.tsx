@@ -294,7 +294,7 @@ export function tokenizeTomlLine(line: string): TokenSpan[] {
   }
 
   // Fallback: plain text
-  spans.push({ text: trimmed, color: TOML_COLORS.foreground.fg, bold: false });
+  spans.push({ text: trimmed, color: TOML_COLORS.value.fg, bold: false });
   return spans;
 }
 

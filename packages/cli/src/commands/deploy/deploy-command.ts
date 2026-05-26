@@ -275,7 +275,7 @@ async function deployAll(
  * @param silentMode If true, skips prompt and header for use in deployAll
  */
 async function deployDashboard(
-  cf: CloudflareService,
+  _cf: CloudflareService,
   forceRebuild: boolean = false,
   silentMode: boolean = false,
   autoMode: boolean = false

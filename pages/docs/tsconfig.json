@@ -4,6 +4,7 @@
     "jsx": "preserve",
     "strict": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -11,5 +12,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/content.config.ts", "src/pages/search-index.json.ts"]
 }

@@ -132,8 +132,8 @@ export function toastLoading(
   return toast.loading(message, {
     ...options,
     style: { ...baseStyle, ...hooxTypeStyles.loading },
-    duration: options?.duration ?? TOAST_DURATION.PERSISTENT,
-  });
+    duration: TOAST_DURATION.PERSISTENT,
+  } as ToastOptions);
 }
 
 /**

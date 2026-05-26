@@ -54,21 +54,15 @@ function errorSpawn(stderr: string, exitCode = 1): MockSpawnResult {
   return makeSpawnResult("", stderr, exitCode);
 }
 
-/** Install a mock Bun.spawn that returns the given result. */
-function mockSpawnWith(result: MockSpawnResult): void {
-  const spawnMock = mock(() => result);
-  (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
-}
-
 /** Track spawn calls so we can assert on arguments. */
 let lastSpawnCmd: string[] = [];
 
 function mockSpawnWithCapture(result: MockSpawnResult): void {
-  const spawnMock = mock((cmd: string[], options?: { cwd?: string }) => {
+  const _spawnMock = mock((cmd: string[], _options?: { cwd?: string }) => {
     lastSpawnCmd = cmd;
     return result;
   });
-  (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
+  (Bun as unknown as Record<string, unknown>).spawn = _spawnMock;
 }
 
 // ---------------------------------------------------------------------------

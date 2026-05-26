@@ -9,6 +9,7 @@ import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-st
 import type {
   ViewId,
   NotificationPreferences,
+  LogLevel,
 } from "@jango-blockchained/hoox-shared";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ const DEFAULT_STATE = {
     "view-10": "Ctrl+0",
   },
   logFilters: {
-    levels: ["info", "warn", "error"] as string[],
+    levels: ["info", "warn", "error"] as LogLevel[],
     workers: [] as string[],
     searchText: "",
   },

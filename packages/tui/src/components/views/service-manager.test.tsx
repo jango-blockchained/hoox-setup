@@ -70,15 +70,13 @@ function mockDialog(shouldConfirm: boolean = true): DialogHandle {
         return shouldConfirm;
       }
     ),
-    choice: mock(
-      async <K extends string>(options: {
-        content: unknown;
-        fallback?: K;
-        closeOnClickOutside?: boolean;
-      }) => {
-        return options.fallback;
-      }
-    ),
+    choice: async <K extends string>(options: {
+      content: unknown;
+      fallback?: K;
+      closeOnClickOutside?: boolean;
+    }): Promise<K | undefined> => {
+      return options.fallback;
+    },
     show: mock(
       (_options: { content: () => unknown; id?: string | number }) =>
         "loading-1"

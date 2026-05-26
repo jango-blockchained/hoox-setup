@@ -69,12 +69,15 @@ export interface DialogHandle {
 // ── Internal: keyboard-navigable choice list ──────────────────────────────
 
 /** Props for the keyboard-navigable choice list rendered inside a dialog */
-interface ChoiceListProps extends ConfirmContext {
+interface ChoiceListProps {
   choices: ChoiceOption[];
   accentColor: string;
   foregroundColor: string;
   mutedColor: string;
   highlightColor: string;
+  resolve: (value: string | boolean) => void;
+  dismiss: () => void;
+  dialogId: unknown;
 }
 
 /**
@@ -94,21 +97,24 @@ function ChoiceList({
 }: ChoiceListProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useDialogKeyboard((key) => {
-    if (key.name === "down" || key.name === "j") {
-      setSelectedIndex((prev) => (prev < choices.length - 1 ? prev + 1 : 0));
-    }
-    if (key.name === "up" || key.name === "k") {
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : choices.length - 1));
-    }
-    if (key.name === "return") {
-      const selected = choices[selectedIndex];
-      if (selected) resolve(selected.key);
-    }
-    if (key.name === "escape") {
-      dismiss();
-    }
-  }, dialogId);
+  useDialogKeyboard(
+    (key) => {
+      if (key.name === "down" || key.name === "j") {
+        setSelectedIndex((prev) => (prev < choices.length - 1 ? prev + 1 : 0));
+      }
+      if (key.name === "up" || key.name === "k") {
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : choices.length - 1));
+      }
+      if (key.name === "return") {
+        const choice = choices[selectedIndex];
+        if (choice) resolve(choice.key);
+      }
+      if (key.name === "escape") {
+        dismiss();
+      }
+    },
+    dialogId as unknown as any
+  );
 
   return (
     <box flexDirection="column" gap={0}>

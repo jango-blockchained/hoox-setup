@@ -100,13 +100,13 @@ function BreadcrumbHeader({ worker }: { worker: Worker }) {
 function MetricsPane({ worker }: { worker: Worker }) {
   const metrics = useServiceStore((s) => s.metrics);
 
-  // Use real WorkerInfo fields where available, derived fallbacks otherwise
-  const cpuAvg = worker.cpuAvgMs.toFixed(1);
-  const cpuP99 = worker.cpuP99Ms.toFixed(1);
-  const memMB = worker.memoryMB;
-  const memLimitMB = worker.memoryLimitMB;
-  const requests = worker.requests24h;
-  const errors = worker.errors24h;
+  // Use WorkerInfo fields (cpu, memory, requests) for metrics display
+  const cpuAvg = worker.cpu.toFixed(1);
+  const cpuP99 = worker.cpu.toFixed(1);
+  const memMB = worker.memory;
+  const memLimitMB = worker.memory;
+  const requests = worker.requests;
+  const errors = 0; // errors24h not available on WorkerInfo
 
   const rows: [string, string, string][] = [
     ["Uptime", formatUptime(worker.uptime), Colors.success],
@@ -269,7 +269,7 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
   // Derive DO display from real count and worker name
   const dos = useMemo(() => {
     // WorkerInfo tells us how many DOs exist but not their names
-    const count = Math.max(0, worker.durableObjects);
+    const count = Math.max(0, worker.durableObjectCount);
     const names = worker.name
       ? [`${worker.name}-state`, `${worker.name}-cache`, `${worker.name}-queue`]
       : [];

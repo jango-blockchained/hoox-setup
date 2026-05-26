@@ -320,7 +320,7 @@ async function runDatabaseChecks(
   // Check that database exists via wrangler d1 list
   const d1ListResult = await cf.d1List();
   if (d1ListResult.ok) {
-    const hasDb = d1ListResult.data.includes(dbName);
+    const hasDb = d1ListResult.value.includes(dbName);
     checks.push({
       name: `D1 Database "${dbName}"`,
       success: hasDb,
@@ -351,7 +351,7 @@ async function runDatabaseChecks(
 
   // Only run table check if the database exists
   try {
-    const hasDb = d1ListResult.ok && d1ListResult.data.includes(dbName);
+    const hasDb = d1ListResult.ok && d1ListResult.value.includes(dbName);
     if (!hasDb) {
       checks.push({
         name: "Required Tables",
@@ -370,7 +370,7 @@ async function runDatabaseChecks(
         // wrangler d1 execute --json outputs the result rows
         // Parse the JSON output to extract table names
         const tableNames: string[] = [];
-        const lines = sqlResult.data.split("\n");
+        const lines = sqlResult.value.split("\n");
         for (const line of lines) {
           try {
             const parsed = JSON.parse(line.trim());

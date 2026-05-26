@@ -11,8 +11,19 @@ const originalEnv = { ...process.env };
 // Mocks
 let mockKV: any = {};
 
+// Define mock environment type with optional CONFIG_KV
+interface MockEnv {
+  env: {
+    CONFIG_KV?: {
+      list: (opts: { prefix: string }) => Promise<{ keys: { name: string }[] }>;
+      get: (key: string) => Promise<string | null>;
+      put: (key: string, value: string) => Promise<void>;
+    };
+  };
+}
+
 // Define mock function - use let so it can be reassigned in tests
-let mockGetRequestContext = () => {
+let mockGetRequestContext: () => MockEnv = () => {
   return {
     env: {
       CONFIG_KV: {
@@ -57,8 +68,10 @@ describe("Login API Route", () => {
   });
 
   test("POST returns 401 when DASHBOARD_USER not set", async () => {
-    delete process.env.DASHBOARD_USER;
-    delete process.env.DASHBOARD_PASS;
+    (process.env as Record<string, string | undefined>).DASHBOARD_USER =
+      undefined;
+    (process.env as Record<string, string | undefined>).DASHBOARD_PASS =
+      undefined;
 
     const request = new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -180,8 +193,8 @@ describe("Settings API Route", () => {
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ settings: { hoox: { test: "value" } } }),
-      } as any)
-    );
+      })
+    ) as unknown as typeof fetch;
 
     process.env.D1_SERVICE = "http://d1-worker";
     process.env.INTERNAL_KEY_BINDING = "internal-key";
@@ -266,8 +279,8 @@ describe("Settings API Route", () => {
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ success: true }),
-      } as any)
-    );
+      })
+    ) as unknown as typeof fetch;
 
     process.env.D1_SERVICE = "http://d1-worker";
     process.env.INTERNAL_KEY_BINDING = "internal-key";
@@ -460,9 +473,10 @@ describe("Secrets API Route", () => {
   });
 
   test("login config error response does not include debug details", async () => {
-    delete process.env.DASHBOARD_USER;
-    delete process.env.DASHBOARD_PASS;
-    const localLoginRoute = await import("../src/app/api/auth/login/route");
+    (process.env as Record<string, string | undefined>).DASHBOARD_USER =
+      undefined;
+    (process.env as Record<string, string | undefined>).DASHBOARD_PASS =
+      undefined;
 
     const request = new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -470,8 +484,8 @@ describe("Secrets API Route", () => {
       body: JSON.stringify({ username: "admin", password: "pass" }),
     });
 
-    const response = await localLoginRoute.POST(request as any);
-    const body = await response.json();
+    const response = await loginRoute.POST(request as any, {} as any);
+    const body: { error?: string; debug?: string } = await response.json();
 
     expect(response.status).toBe(500);
     expect(body.error).toBeDefined();

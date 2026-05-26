@@ -17,8 +17,14 @@ import type {
 // ─── Mock infrastructure ─────────────────────────────────────────────────────
 
 /** Controllable config state that SettingsView reads via selectors */
-const mockState = {
-  theme: "dark" as const,
+const mockState: {
+  theme: "dark" | "light";
+  refreshIntervalMs: number;
+  defaultView: ViewId;
+  notifications: NotificationPreferences;
+  soundEnabled: boolean;
+} = {
+  theme: "dark",
   refreshIntervalMs: 500,
   defaultView: "dashboard" as ViewId,
   notifications: {
@@ -44,7 +50,9 @@ const actionCalls: {
 /** Zustand-compatible subscribe → [getSnapshot, subscribe] tuple */
 const listeners = new Set<() => void>();
 
-function useConfigStore(selector: (s: typeof mockState) => unknown): unknown {
+function useConfigStore(
+  selector: ((s: typeof mockState) => unknown) | "getActions"
+): unknown {
   // Also attach action methods for the view to consume
   if (selector === "getActions") return undefined;
   // The view actually calls useConfigStore(s => s.field) or useConfigStore(s => s.action)

@@ -7,17 +7,32 @@ import { describe, test, expect, mock } from "bun:test";
 import { createRateLimiter } from "../src/middleware/rate-limit";
 import type { RateLimitConfig } from "../src/middleware/rate-limit";
 
+type KvParam = Parameters<typeof createRateLimiter>[0];
+
+type MockFn = ReturnType<typeof mock>;
+
+interface MockKv {
+  get: MockFn & ((key: string, options?: unknown) => Promise<string | null>);
+  put: MockFn &
+    ((
+      key: string,
+      value: string,
+      options?: { expirationTtl?: number }
+    ) => Promise<void>);
+}
+
 /**
  * Creates a mock KV namespace for testing rate limiting.
  * Simulates Cloudflare KVNamespace with get/put operations
- * backed by an in-memory Map.
+ * backed by an in-memory Map. Returns a combined type for
+ * both test assertions and KVNamespace compatibility.
  */
-function createMockKv() {
+function createMockKv(): MockKv {
   const store = new Map<string, string>();
   return {
-    get: mock((key: string): Promise<string | null> => {
+    get: mock((key: string, _options?: unknown): Promise<string | null> => {
       return Promise.resolve(store.get(key) ?? null);
-    }),
+    }) as MockKv["get"],
     put: mock(
       (
         key: string,
@@ -27,7 +42,7 @@ function createMockKv() {
         store.set(key, value);
         return Promise.resolve();
       }
-    ),
+    ) as MockKv["put"],
   };
 }
 
@@ -40,7 +55,10 @@ describe("Rate Limiter", () => {
   describe("createRateLimiter", () => {
     test("returns object with check and enforce methods", () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
 
       expect(limiter).toBeDefined();
       expect(typeof limiter.check).toBe("function");
@@ -51,7 +69,10 @@ describe("Rate Limiter", () => {
   describe("check", () => {
     test("allows first request (returns allowed=true, remaining=maxRequests-1)", async () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "192.168.1.1" },
       });
@@ -64,7 +85,10 @@ describe("Rate Limiter", () => {
 
     test("increments count on each request", async () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "192.168.1.1" },
       });
@@ -91,7 +115,7 @@ describe("Rate Limiter", () => {
     test("blocks when max reached (returns allowed=false, remaining=0)", async () => {
       const kv = createMockKv();
       const config: RateLimitConfig = { maxRequests: 2, windowSeconds: 60 };
-      const limiter = createRateLimiter(kv, config);
+      const limiter = createRateLimiter(kv as unknown as KvParam, config);
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "192.168.1.1" },
       });
@@ -114,7 +138,10 @@ describe("Rate Limiter", () => {
 
     test("uses CF-Connecting-IP header for IP extraction", async () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
 
       // Two requests from different IPs should have independent counters
       const req1 = new Request("http://localhost/test", {
@@ -136,7 +163,7 @@ describe("Rate Limiter", () => {
     test("tracks IPs independently", async () => {
       const kv = createMockKv();
       const config: RateLimitConfig = { maxRequests: 1, windowSeconds: 60 };
-      const limiter = createRateLimiter(kv, config);
+      const limiter = createRateLimiter(kv as unknown as KvParam, config);
 
       const req1 = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "10.0.0.1" },
@@ -162,7 +189,10 @@ describe("Rate Limiter", () => {
 
     test("uses CF-Connecting-IP header value, not X-Forwarded-For", async () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
 
       const request = new Request("http://localhost/test", {
         headers: {
@@ -186,7 +216,7 @@ describe("Rate Limiter", () => {
         windowSeconds: 60,
         keyPrefix: "my-custom-prefix",
       };
-      const limiter = createRateLimiter(kv, config);
+      const limiter = createRateLimiter(kv as unknown as KvParam, config);
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "10.0.0.1" },
       });
@@ -202,7 +232,7 @@ describe("Rate Limiter", () => {
     test("returns retryAfter when blocked", async () => {
       const kv = createMockKv();
       const config: RateLimitConfig = { maxRequests: 0, windowSeconds: 30 };
-      const limiter = createRateLimiter(kv, config);
+      const limiter = createRateLimiter(kv as unknown as KvParam, config);
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "10.0.0.1" },
       });
@@ -221,7 +251,10 @@ describe("Rate Limiter", () => {
   describe("enforce", () => {
     test("returns null when allowed", async () => {
       const kv = createMockKv();
-      const limiter = createRateLimiter(kv, defaultConfig);
+      const limiter = createRateLimiter(
+        kv as unknown as KvParam,
+        defaultConfig
+      );
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "10.0.0.1" },
       });
@@ -233,7 +266,7 @@ describe("Rate Limiter", () => {
     test("returns 429 response when blocked (check status, headers, body)", async () => {
       const kv = createMockKv();
       const config: RateLimitConfig = { maxRequests: 1, windowSeconds: 60 };
-      const limiter = createRateLimiter(kv, config);
+      const limiter = createRateLimiter(kv as unknown as KvParam, config);
       const request = new Request("http://localhost/test", {
         headers: { "CF-Connecting-IP": "10.0.0.1" },
       });
@@ -253,7 +286,10 @@ describe("Rate Limiter", () => {
       expect(result!.headers.get("Retry-After")).toBeDefined();
 
       // Check body
-      const body = await result!.json();
+      const body = (await result!.json()) as {
+        error: string;
+        retryAfter?: number;
+      };
       expect(body.error).toBe("Rate limit exceeded");
       expect(body.retryAfter).toBeDefined();
       expect(typeof body.retryAfter).toBe("number");

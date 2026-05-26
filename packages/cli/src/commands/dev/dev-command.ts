@@ -131,8 +131,10 @@ EXAMPLES:
                 },
               ],
             });
-            runtime = choice;
-            await configService.setDevRuntime(runtime);
+            if (choice === "native" || choice === "docker") {
+              runtime = choice;
+              await configService.setDevRuntime(runtime);
+            }
           }
         }
 

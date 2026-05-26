@@ -51,12 +51,15 @@ export interface SelectDialogHandle {
 // ── Internal: keyboard-navigable option list ───────────────────────────────
 
 /** Props for the selectable option list rendered inside the dialog */
-interface SelectListProps extends ConfirmContext {
+interface SelectListProps {
   options: SelectOption[];
   accentColor: string;
   foregroundColor: string;
   mutedColor: string;
   highlightColor: string;
+  resolve: (value: string | boolean) => void;
+  dismiss: () => void;
+  dialogId: unknown;
 }
 
 /**
@@ -76,21 +79,24 @@ function SelectList({
 }: SelectListProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useDialogKeyboard((key) => {
-    if (key.name === "down" || key.name === "j") {
-      setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
-    }
-    if (key.name === "up" || key.name === "k") {
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
-    }
-    if (key.name === "return") {
-      const selected = options[selectedIndex];
-      if (selected) resolve(selected.key);
-    }
-    if (key.name === "escape") {
-      dismiss();
-    }
-  }, dialogId);
+  useDialogKeyboard(
+    (key) => {
+      if (key.name === "down" || key.name === "j") {
+        setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+      }
+      if (key.name === "up" || key.name === "k") {
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+      }
+      if (key.name === "return") {
+        const selected = options[selectedIndex];
+        if (selected) resolve(selected.key);
+      }
+      if (key.name === "escape") {
+        dismiss();
+      }
+    },
+    dialogId as unknown as any
+  );
 
   return (
     <box flexDirection="column" gap={0}>

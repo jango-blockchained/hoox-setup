@@ -26,16 +26,14 @@ import type {
  */
 export class SecretsService {
   private config: WorkersJsonc;
-  private configPath: string;
 
   // -----------------------------------------------------------------------
   // Construction
   // -----------------------------------------------------------------------
 
   /** Use {@link create} instead — private so config is always loaded. */
-  private constructor(config: WorkersJsonc, configPath: string) {
+  private constructor(config: WorkersJsonc, _configPath: string) {
     this.config = config;
-    this.configPath = configPath;
   }
 
   /**

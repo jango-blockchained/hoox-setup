@@ -5,6 +5,7 @@
     "moduleResolution": "Bundler",
     "outDir": "./dist",
     "baseUrl": ".",
+    "types": ["bun-types", "node", "@cloudflare/workers-types"],
     "paths": {
       "@jango-blockchained/hoox-shared": ["../shared/src/index.ts"]
     },

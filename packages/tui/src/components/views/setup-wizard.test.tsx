@@ -9,10 +9,10 @@ import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { useState } from "react";
 
 // ─── Mock stores before component import ────────────────────────────────────
-const mockUpdateConfig = mock(() => {});
-const mockSetView = mock(() => {});
+const mockUpdateConfig = mock((_config: Record<string, unknown>) => {});
+const mockSetView = mock((_view: string) => {});
 
-mock("@jango-blockchained/hoox-shared", () => ({
+mock.module("@jango-blockchained/hoox-shared", () => ({
   Colors: {
     background: "#0D1117",
     foreground: "#EEEEEE",

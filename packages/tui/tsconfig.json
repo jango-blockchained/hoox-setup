@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "jsxImportSource": "@opentui/react",
-    "strict": true,
+    "types": ["bun", "react"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,7 +14,6 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"],
       "@hoox/shared": ["../shared/src"],

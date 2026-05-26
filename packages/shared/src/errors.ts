@@ -4,6 +4,7 @@
  */
 
 import type { AppError } from "./types/errors";
+export type { AppError };
 
 /**
  * Safely extract an error message from any caught value.
