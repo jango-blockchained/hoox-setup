@@ -1,0 +1,1030 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>HOOX</title><meta name="description" content="Documentation for HOOX"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><a href="index.html" class="title">HOOX</a><div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/><ul role="listbox" id="tsd-search-results"></ul><div id="tsd-search-status" aria-live="polite" aria-atomic="true"><div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h1>HOOX</h1></div><div class="tsd-panel tsd-typography"><h1 id="🚀-hoox-the-zero-latency-edge-trading-ecosystem" class="tsd-anchor-link">🚀 Hoox - The Zero-Latency Edge Trading Ecosystem<a href="#🚀-hoox-the-zero-latency-edge-trading-ecosystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<div align="center">
+<p><a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&amp;logo=typescript" alt="Language"></a>
+<a href="https://bun.sh"><img src="https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&amp;logo=bun" alt="Runtime"></a>
+<a href="https://workers.cloudflare.com/"><img src="https://img.shields.io/badge/Platform-Cloudflare%C2%AE%20Edge%20Workers-orange?style=for-the-badge&amp;logo=cloudflare" alt="Platform"></a>
+<a href="docs/devops/development/testing.md"><img src="https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge" alt="Coverage"></a>
+<a href="https://creativecommons.org/licenses/by/4.0/"><img src="https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge" alt="License"></a>
+<a href="https://github.com/jango-blockchained/hoox-setup"><img src="https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&amp;logo=github" alt="Main Repo"></a></p>
+<p><strong>Comprehensive Docs:</strong> <strong><a href="media/home.md">Documentation Home</a></strong> · <strong><a href="https://github.com/jango-blockchained/hoox-setup/issues">Report a Bug</a></strong></p>
+</div>
+<blockquote>
+<p><strong>Low-latency edge trading.</strong> Hoox is a free and open-source algorithmic trading and automation framework. Built on <strong>Cloudflare® Workers</strong>, Hoox utilizes a globally distributed, microservice edge architecture. Process signals, execute trades, and manage state with <strong>low latency</strong>, directly from the network edge closest to the exchange.</p>
+</blockquote>
+<hr>
+<h2 id="🔁-required-clone-mode" class="tsd-anchor-link">🔁 Required clone mode<a href="#🔁-required-clone-mode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>This repository uses Git submodules for worker repositories. You must clone it recursively:</p>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-3">--recursive</span><span class="hl-1"> </span><span class="hl-2">https://github.com/jango-blockchained/hoox-setup.git</span><span class="hl-1"> </span><span class="hl-2">hoox-trading</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="🌟-why-hoox" class="tsd-anchor-link">🌟 Why Hoox?<a href="#🌟-why-hoox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox provides a modern approach to algorithmic trading infrastructure deployment.</p>
+<ul>
+<li>💸 <strong>Cost-Effective &amp; Open Source:</strong> Hoox leverages Cloudflare®'s free tiers, allowing you to run your trading infrastructure with minimal or no server costs.</li>
+<li>⚡ <strong>Edge Execution:</strong> Your code runs on Cloudflare®'s Edge, geographically close to exchange API servers (like Binance, Bybit, and MEXC). When a signal fires, Hoox executes with minimal network latency.</li>
+<li>🛡️ <strong>Built-in Security:</strong> Hoox inherits Cloudflare®'s security features. With a Zero Trust architecture, strict IP Allow-listing, and encrypted internal Service Bindings, your API keys and trading strategies are well-protected.</li>
+<li>🧠 <strong>Automated Management:</strong> Featuring an embedded risk manager (<code>agent-worker</code>), Hoox can monitor your portfolio, manage trailing stops, trigger kill-switches, and send system health summaries.</li>
+</ul>
+<hr>
+<h2 id="⚠️-disclaimer" class="tsd-anchor-link">⚠️ Disclaimer<a href="#⚠️-disclaimer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox is provided &quot;as-is&quot; for educational and research purposes only. The authors, contributors, and copyright holders make no warranties regarding the software and disclaim all liability for any financial losses resulting from its use.</p>
+<p><strong>No Financial Advice.</strong> Nothing in this repository constitutes financial, investment, or trading advice. Users are solely responsible for their own trading decisions and must evaluate all risks independently.</p>
+<p><strong>Risk of Loss.</strong> Algorithmic trading on centralized and decentralized exchanges involves substantial risk. Past performance is not indicative of future results. You may lose some or all of your invested capital.</p>
+<p><strong>Regulatory Compliance.</strong> Users are responsible for ensuring compliance with applicable laws and regulations in their jurisdiction. Trading activities may be subject to licensing requirements, reporting obligations, or restrictions depending on your location.</p>
+<p><strong>No Warranties.</strong> The software is provided under CC BY 4.0 without warranties of any kind, express or implied, including but not limited to merchantability, fitness for a particular purpose, or non-infringement. See the <a href="media/LICENSE">LICENSE</a> and <a href="media/DISCLAIMER.md">DISCLAIMER</a> for full details.</p>
+<hr>
+<h2 id="✨-enterprise-grade-features" class="tsd-anchor-link">✨ Enterprise-Grade Features<a href="#✨-enterprise-grade-features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="core-platform" class="tsd-anchor-link">Core Platform<a href="#core-platform" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔗 <strong>Service Bindings</strong></td>
+<td>Microsecond inter-worker communication—no public internet routing, no TLS overhead, no DNS resolution. Workers call each other via internal V8 isolates.</td>
+</tr>
+<tr>
+<td>📨 <strong>Async Queues</strong></td>
+<td>Cloudflare® Queues with exponential backoff retry policy (30s → 15min). Guaranteed delivery survives exchange downtime, API rate limits, and network partitions.</td>
+</tr>
+<tr>
+<td>🛡️ <strong>Idempotent Execution</strong></td>
+<td>Durable Objects with SQLite-backed state prevent duplicate trades on network retries. Every webhook gets a unique trace ID for end-to-end signal tracking.</td>
+</tr>
+<tr>
+<td>🤖 <strong>Multi-Provider AI Gateway</strong></td>
+<td>5 AI providers (Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI) with automatic fallback chain, health checks, SSE streaming, vision analysis, reasoning models, and usage tracking.</td>
+</tr>
+<tr>
+<td>🧠 <strong>AI Risk Manager</strong></td>
+<td><code>agent-worker</code> runs on a 5-minute cron: monitors open positions, moves trailing stops, scales out of profitable trades, flips the Global Kill Switch on max drawdown, and sends health summaries.</td>
+</tr>
+<tr>
+<td>⚡ <strong>Smart Placement</strong></td>
+<td>Zero-config latency optimization — Workers automatically run on the edge node closest to exchange API servers. 30-60% latency reduction, $0 cost (free on all plans).</td>
+</tr>
+<tr>
+<td>🔄 <strong>Real DO Idempotency</strong></td>
+<td>Durable Object with SQLite-backed persistence, TTL-based dedup, and automatic alarm cleanup. Prevents duplicate trades on network retries across cold starts.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data-storage" class="tsd-anchor-link">Data &amp; Storage<a href="#data-storage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🗄️ <strong>D1 Edge Database</strong></td>
+<td>Globally distributed SQLite at the edge. Persistent, atomic storage for trade history, positions, and balances. Preserved write limits via R2 log offloading.</td>
+</tr>
+<tr>
+<td>📦 <strong>R2 Object Storage</strong></td>
+<td>Zero-egress, S3-compatible storage for trade reports, system logs, and user uploads. No bandwidth charges on retrieval.</td>
+</tr>
+<tr>
+<td>🔐 <strong>KV Configuration</strong></td>
+<td>Sub-millisecond global key-value store for dynamic routing, IP allowlists, session state, kill-switch toggles, and live settings—no redeployment required.</td>
+</tr>
+<tr>
+<td>🔎 <strong>Vectorize RAG Index</strong></td>
+<td>Embedded vector database for retrieval-augmented generation. Powers context-aware AI responses and intelligent Telegram bot conversations.</td>
+</tr>
+<tr>
+<td>📊 <strong>Analytics Engine</strong></td>
+<td>Time-series analytics dataset for tracking API call latency, error rates, and trade execution metrics across all workers. Free on all plans.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="trading-infrastructure" class="tsd-anchor-link">Trading Infrastructure<a href="#trading-infrastructure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📈 <strong>Multi-Exchange Engine</strong></td>
+<td>Execute across Binance, Bybit, and MEXC with dynamic routing via <code>CONFIG_KV</code>. Redirect symbols to different exchanges instantly without code deployment.</td>
+</tr>
+<tr>
+<td>🌐 <strong>DeFi Execution</strong></td>
+<td>On-chain swap execution via <code>web3-wallet-worker</code> with secure mnemonic management and browser rendering for DApp interactions.</td>
+</tr>
+<tr>
+<td>📧 <strong>Email Signal Parsing</strong></td>
+<td>Trigger trades from raw email parsing via <code>email-worker</code>. Ancillary input channel alongside TradingView webhooks and Telegram commands.</td>
+</tr>
+<tr>
+<td>⚡ <strong>Rate Limiting</strong></td>
+<td>KV-backed rate limiter (10 trades/min) survives cold starts. Falls back to in-memory when KV unavailable. Prevents API bans and accidental trade spamming.</td>
+</tr>
+<tr>
+<td>📄 <strong>Automated PDF Reports</strong></td>
+<td>Twice-daily PDF portfolio reports via Cloudflare Browser Rendering. Styled HTML → PDF, stored in R2, delivered via Telegram. Free 10 min/day on all plans.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="developer-experience" class="tsd-anchor-link">Developer Experience<a href="#developer-experience" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>📊 <strong>Command Center</strong></td>
+<td>Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration.</td>
+</tr>
+<tr>
+<td>🖥️ <strong>Interactive TUI</strong></td>
+<td>Terminal-based process manager (<code>./hoox-tui</code>) for local development. Hot-reload all 9 workers simultaneously with one command.</td>
+</tr>
+<tr>
+<td>🛠️ <strong>CLI Workspaces</strong></td>
+<td>Bun workspace monorepo managed via <code>hoox</code> CLI (15 command groups, 50+ subcommands, 381 tests). Interactive setup wizard, env config, KV sync, D1 ops, health monitoring, repair, and more.</td>
+</tr>
+<tr>
+<td>🐳 <strong>Docker Support</strong></td>
+<td>Full local dev environment with Docker Compose. <code>hoox dev start</code> prompts for Native vs Docker runtime, offers <code>--runtime</code> flag override. Profiles: <code>workers</code>, <code>dashboard</code>, <code>full</code>.</td>
+</tr>
+<tr>
+<td>🔗 <strong>Shared Package</strong></td>
+<td><code>@jango-blockchained/hoox-shared</code> provides a custom router with <code>:param</code> path parameter support, <code>Errors.*</code> response factories, generic exchange provider factory (<code>ExchangeRouter</code>), middleware stack (auth, CORS, logging, rate-limit, validation), and utilities.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security" class="tsd-anchor-link">Security<a href="#security" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔒 <strong>Zero Trust Architecture</strong></td>
+<td>Internal workers (<code>trade-worker</code>, <code>d1-worker</code>) have zero public endpoints—accessible only via Cloudflare® Service Bindings.</td>
+</tr>
+<tr>
+<td>🛡️ <strong>WAF Integration</strong></td>
+<td>IP allowlisting and rate limiting at the Cloudflare edge. Malicious traffic dropped before hitting the gateway worker.</td>
+</tr>
+<tr>
+<td>🔑 <strong>Secret Injection</strong></td>
+<td>API keys injected directly into the V8 isolate at runtime. Never stored in plaintext, never logged. Local <code>.dev.vars</code> excluded from version control.</td>
+</tr>
+<tr>
+<td>🏴 <strong>Global Kill Switch</strong></td>
+<td>Instant trading halt via KV toggle. No redeployment, no downtime—immediate effect across all workers on next request cycle.</td>
+</tr>
+<tr>
+<td>🔐 <strong>Security Headers</strong></td>
+<td>Full CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy on every response. CORS disabled (same-origin only).</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="🚀-quick-start-deploy-in-5-minutes" class="tsd-anchor-link">🚀 Quick Start (Deploy in 5 Minutes)<a href="#🚀-quick-start-deploy-in-5-minutes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="option-a-install-from-source-recommended" class="tsd-anchor-link">Option A: Install from Source (Recommended)<a href="#option-a-install-from-source-recommended" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ol>
+<li>
+<p><strong>Clone the repository:</strong></p>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-3">--recursive</span><span class="hl-1"> </span><span class="hl-2">https://github.com/jango-blockchained/hoox-setup.git</span><span class="hl-1"> </span><span class="hl-2">hoox-trading</span><br/><span class="hl-0">cd</span><span class="hl-1"> </span><span class="hl-2">hoox-trading</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+<li>
+<p><strong>Install dependencies and bootstrap:</strong></p>
+<pre><code class="bash"><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">install</span><br/><span class="hl-0">hoox</span><span class="hl-1"> </span><span class="hl-2">init</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+</ol>
+<h3 id="deploy" class="tsd-anchor-link">Deploy<a href="#deploy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><strong>Deploy your entire trading empire to the Cloudflare® Edge!</strong></p>
+<pre><code class="bash"><span class="hl-4"># Deploy all workers + dashboard (correct dependency order)</span><br/><span class="hl-0">hoox</span><span class="hl-1"> </span><span class="hl-2">deploy</span><span class="hl-1"> </span><span class="hl-2">all</span><span class="hl-1"> </span><span class="hl-3">--auto</span><br/><br/><span class="hl-4"># Post-deploy: set Telegram webhook</span><br/><span class="hl-0">hoox</span><span class="hl-1"> </span><span class="hl-2">deploy</span><span class="hl-1"> </span><span class="hl-2">telegram-webhook</span><br/><br/><span class="hl-4"># Post-deploy: update dashboard service URLs</span><br/><span class="hl-0">hoox</span><span class="hl-1"> </span><span class="hl-2">deploy</span><span class="hl-1"> </span><span class="hl-2">update-internal-urls</span><br/><br/><span class="hl-4"># Post-deploy: apply KV manifest defaults</span><br/><span class="hl-0">hoox</span><span class="hl-1"> </span><span class="hl-2">deploy</span><span class="hl-1"> </span><span class="hl-2">kv-config</span>
+</code><button type="button">Copy</button></pre>
+
+<blockquote>
+<p><strong>Local Development:</strong> Want to test before going live? Run <code>hoox dev start</code> to launch all workers — choose between Native (wrangler) or Docker (compose) runtime. Use <code>./hoox-tui</code> for the interactive terminal UI!</p>
+</blockquote>
+<hr>
+<h2 id="📦-worker-submodules" class="tsd-anchor-link">📦 Worker Submodules<a href="#📦-worker-submodules" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox uses Git submodules for each worker, allowing independent development and deployment. All workers are part of the <a href="https://github.com/jango-blockchained/hoox-setup">hoox-setup</a> monorepo.</p>
+<table>
+<thead>
+<tr>
+<th>Worker</th>
+<th>Description</th>
+<th>Repository</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔐 <strong>hoox</strong> (Gateway)</td>
+<td>Webhook entrypoint &amp; firewall</td>
+<td><a href="https://github.com/jango-blockchained/hoox">jango-blockchained/hoox</a></td>
+</tr>
+<tr>
+<td>📈 <strong>trade-worker</strong></td>
+<td>Multi-exchange execution engine</td>
+<td><a href="https://github.com/jango-blockchained/trade-worker">jango-blockchained/trade-worker</a></td>
+</tr>
+<tr>
+<td>🧠 <strong>agent-worker</strong></td>
+<td>AI risk manager &amp; cron jobs</td>
+<td><a href="https://github.com/jango-blockchained/agent-worker">jango-blockchained/agent-worker</a></td>
+</tr>
+<tr>
+<td>💬 <strong>telegram-worker</strong></td>
+<td>Telegram notifications &amp; commands</td>
+<td><a href="https://github.com/jango-blockchained/telegram-worker">jango-blockchained/telegram-worker</a></td>
+</tr>
+<tr>
+<td>🗄️ <strong>d1-worker</strong></td>
+<td>D1 database operations</td>
+<td><a href="https://github.com/jango-blockchained/d1-worker">jango-blockchained/d1-worker</a></td>
+</tr>
+<tr>
+<td>🌐 <strong>web3-wallet-worker</strong></td>
+<td>DeFi &amp; on-chain execution</td>
+<td><a href="https://github.com/jango-blockchained/web3-wallet-worker">jango-blockchained/web3-wallet-worker</a></td>
+</tr>
+<tr>
+<td>📧 <strong>email-worker</strong></td>
+<td>Email signal parsing</td>
+<td><a href="https://github.com/jango-blockchained/email-worker">jango-blockchained/email-worker</a></td>
+</tr>
+<tr>
+<td>📊 <strong>analytics-worker</strong></td>
+<td>Analytics &amp; reporting</td>
+<td><a href="https://github.com/jango-blockchained/analytics-worker">jango-blockchained/analytics-worker</a></td>
+</tr>
+<tr>
+<td>📄 <strong>report-worker</strong></td>
+<td>Automated PDF reports via Browser Rendering</td>
+<td><a href="https://github.com/jango-blockchained/report-worker">jango-blockchained/report-worker</a></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> Clone with <code>git clone --recursive</code> to get all submodules, or run <code>git submodule update --init --recursive</code> after cloning.</p>
+</blockquote>
+<hr>
+<h2 id="🛠️-the-workspaces" class="tsd-anchor-link">🛠️ The <code>@jango-blockchained/hoox-cli</code> &amp; Workspaces<a href="#🛠️-the-workspaces" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>The Hoox setup is managed via a dedicated, locally linked CLI tool at <code>packages/cli</code> (15 command groups, 50+ subcommands, <strong>~124 test files</strong> with <strong>~4,500 assertions</strong> across the monorepo). By utilizing Bun Workspaces, all management commands are available via the <code>hoox</code> binary.</p>
+<h3 id="complete-command-tree" class="tsd-anchor-link">Complete Command Tree<a href="#complete-command-tree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code><span class="hl-5">hoox</span><span class="hl-1">                                 </span><span class="hl-5">Interactive</span><span class="hl-1"> </span><span class="hl-0">TUI</span><span class="hl-1"> (</span><span class="hl-5">no</span><span class="hl-1"> </span><span class="hl-5">args</span><span class="hl-1">)</span><br/><span class="hl-1">├── </span><span class="hl-5">init</span><span class="hl-1">                             </span><span class="hl-5">Setup</span><span class="hl-1"> </span><span class="hl-5">wizard</span><span class="hl-1"> </span><span class="hl-6">with</span><span class="hl-1"> </span><span class="hl-7">AI</span><span class="hl-1"> </span><span class="hl-5">provider</span><span class="hl-1"> </span><span class="hl-5">support</span><br/><span class="hl-1">├── </span><span class="hl-5">clone</span><span class="hl-1">                            </span><span class="hl-5">Clone</span><span class="hl-1"> </span><span class="hl-5">worker</span><span class="hl-1"> </span><span class="hl-5">repos</span><span class="hl-1"> </span><span class="hl-6">as</span><span class="hl-1"> </span><span class="hl-8">submodules</span><br/><span class="hl-1">├── </span><span class="hl-5">dev</span><span class="hl-1">                              </span><span class="hl-5">Local</span><span class="hl-1"> </span><span class="hl-0">development</span><span class="hl-1"> (</span><span class="hl-5">native</span><span class="hl-1">/</span><span class="hl-5">docker</span><span class="hl-1">)</span><br/><span class="hl-1">├── </span><span class="hl-5">deploy</span><span class="hl-1">                           </span><span class="hl-5">Deploy</span><span class="hl-1"> </span><span class="hl-5">workers</span><span class="hl-1">, </span><span class="hl-5">dashboard</span><span class="hl-1">, </span><span class="hl-5">webhook</span><span class="hl-1">, </span><span class="hl-7">KV</span><br/><span class="hl-1">├── </span><span class="hl-5">infra</span><span class="hl-1">                            </span><span class="hl-5">Manage</span><span class="hl-1"> </span><span class="hl-7">D1</span><span class="hl-1">, </span><span class="hl-7">KV</span><span class="hl-1">, </span><span class="hl-7">R2</span><span class="hl-1">, </span><span class="hl-5">Queues</span><span class="hl-1">, </span><span class="hl-5">Vectorize</span><span class="hl-1">, </span><span class="hl-5">Analytics</span><br/><span class="hl-1">├── </span><span class="hl-5">config</span><span class="hl-1">                           </span><span class="hl-5">Config</span><span class="hl-1">, </span><span class="hl-5">env</span><span class="hl-1"> </span><span class="hl-5">vars</span><span class="hl-1">, </span><span class="hl-7">KV</span><span class="hl-1"> </span><span class="hl-5">keys</span><span class="hl-1">, </span><span class="hl-5">secrets</span><br/><span class="hl-1">│   ├── </span><span class="hl-5">env</span><span class="hl-1">                          </span><span class="hl-5">Declarative</span><span class="hl-1"> </span><span class="hl-9">31</span><span class="hl-1">-</span><span class="hl-5">key</span><span class="hl-1"> </span><span class="hl-5">env</span><span class="hl-1"> </span><span class="hl-5">matrix</span><br/><span class="hl-1">│   └── </span><span class="hl-5">kv</span><span class="hl-1">                           </span><span class="hl-9">16</span><span class="hl-1">-</span><span class="hl-5">key</span><span class="hl-1"> </span><span class="hl-5">manifest</span><span class="hl-1"> + </span><span class="hl-5">apply</span><span class="hl-1">-</span><span class="hl-5">manifest</span><br/><span class="hl-1">├── </span><span class="hl-5">check</span><span class="hl-1">                            </span><span class="hl-5">Prerequisites</span><span class="hl-1">, </span><span class="hl-5">setup</span><span class="hl-1">, </span><span class="hl-5">health</span><br/><span class="hl-1">├── </span><span class="hl-5">db</span><span class="hl-1">                               </span><span class="hl-7">D1</span><span class="hl-1"> </span><span class="hl-5">schema</span><span class="hl-1">, </span><span class="hl-5">migrate</span><span class="hl-1">, </span><span class="hl-5">query</span><span class="hl-1">, </span><span class="hl-3">export</span><span class="hl-1">, </span><span class="hl-5">reset</span><br/><span class="hl-1">├── </span><span class="hl-5">monitor</span><span class="hl-1">                          </span><span class="hl-5">Health</span><span class="hl-1">, </span><span class="hl-5">trades</span><span class="hl-1">, </span><span class="hl-5">logs</span><span class="hl-1">, </span><span class="hl-5">kill</span><span class="hl-1">-</span><span class="hl-6">switch</span><span class="hl-1">, </span><span class="hl-5">backup</span><br/><span class="hl-1">├── </span><span class="hl-5">repair</span><span class="hl-1">                           </span><span class="hl-5">System</span><span class="hl-1"> </span><span class="hl-5">check</span><span class="hl-1">, </span><span class="hl-5">repair</span><span class="hl-1">, </span><span class="hl-5">guided</span><span class="hl-1"> </span><span class="hl-5">rebuild</span><br/><span class="hl-1">├── </span><span class="hl-5">logs</span><span class="hl-1">                             </span><span class="hl-5">Tail</span><span class="hl-1"> </span><span class="hl-5">worker</span><span class="hl-1"> </span><span class="hl-5">logs</span><br/><span class="hl-1">├── </span><span class="hl-5">test</span><span class="hl-1">                             </span><span class="hl-7">CI</span><span class="hl-1"> </span><span class="hl-5">pipeline</span><br/><span class="hl-1">├── </span><span class="hl-5">waf</span><span class="hl-1">                              </span><span class="hl-7">WAF</span><span class="hl-1"> </span><span class="hl-5">rules</span><br/><span class="hl-1">└── </span><span class="hl-5">dashboard</span><span class="hl-1">                        </span><span class="hl-5">Dashboard</span><span class="hl-1"> </span><span class="hl-5">operations</span>
+</code><button>Copy</button></pre>
+
+<h3 id="key-workflows" class="tsd-anchor-link">Key Workflows<a href="#key-workflows" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Commands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Setup</strong></td>
+<td><code>hoox init</code> → <code>hoox check prerequisites</code> → <code>hoox config env init</code> → <code>hoox config kv apply-manifest</code></td>
+</tr>
+<tr>
+<td><strong>Deploy</strong></td>
+<td><code>hoox deploy all --auto</code> → <code>hoox deploy telegram-webhook</code> → <code>hoox deploy update-internal-urls</code></td>
+</tr>
+<tr>
+<td><strong>Operate</strong></td>
+<td><code>hoox monitor status</code> → <code>hoox monitor trades</code> → <code>hoox monitor kill-switch</code></td>
+</tr>
+<tr>
+<td><strong>Repair</strong></td>
+<td><code>hoox repair check</code> → <code>hoox repair infra</code> → <code>hoox repair secrets</code> → <code>hoox repair rebuild</code></td>
+</tr>
+<tr>
+<td><strong>Infra</strong></td>
+<td><code>hoox infra d1 list</code> → <code>hoox infra vectorize list</code> → <code>hoox infra queues list</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><strong>Interactive Setup</strong>: Guided wizard with AI provider integration (OpenAI, Anthropic, Google AI, Home Assistant)</li>
+<li><strong>Toolchain Validation</strong>: 7 prerequisites checks (bun, git, node, wrangler, Cloudflare auth, Docker, repository)</li>
+<li><strong>Declarative Env Config</strong>: 31 environment variables across 8 sections with init/show/validate/generate-dev-vars</li>
+<li><strong>KV Manifest Sync</strong>: 16-key manifest with one-command apply for CONFIG_KV namespace</li>
+<li><strong>Database Operations</strong>: Schema apply, tracking migrations, read-only queries, export, reset with --remote support</li>
+<li><strong>Infrastructure as Code</strong>: Provision D1, KV, R2, Queues, Vectorize, Analytics via <code>hoox infra</code></li>
+<li><strong>Post-Deploy Automation</strong>: Telegram webhook setup, internal URL updates, KV config sync</li>
+<li><strong>Operational Monitoring</strong>: Worker health probes, recent trades, system logs, queue depth, D1 backup, kill switch</li>
+<li><strong>Guided Repair</strong>: 5-step system check, per-component repair, interactive full rebuild</li>
+<li><strong>Health Checks</strong>: Worker /health endpoint probing for all enabled workers</li>
+<li><strong>Secret Management</strong>: Sync, check, and rotate Cloudflare secrets</li>
+<li><strong>All commands</strong> support <code>--json</code> (machine output) and <code>--quiet</code> (minimal output) global flags</li>
+</ul>
+<hr>
+<h2 id="🧅-performance-tooling-powered-by-bun" class="tsd-anchor-link">🧅 Performance &amp; Tooling: Powered by Bun<a href="#🧅-performance-tooling-powered-by-bun" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox relies on <strong>Bun</strong> as its primary JavaScript runtime and package manager. Bun is designed as a drop-in replacement for Node.js, providing significantly faster execution, immediate startup times, and built-in tooling for testing, running scripts, and managing dependencies.</p>
+<ul>
+<li><strong>Super Fast Execution</strong>: Native implementations and the JavaScriptCore engine make script execution near instantaneous.</li>
+<li><strong>Lightning Fast Installs</strong>: Dependency resolution and installation are optimized for speed, caching, and concurrent fetching.</li>
+<li><strong>Built-in Test Runner</strong>: Hoox uses <code>bun test</code>, giving you natively integrated testing without heavy additional dependencies like Jest or Mocha.</li>
+<li><strong>TypeScript Out-of-the-Box</strong>: Bun compiles TypeScript on the fly, eliminating the need for slow build steps during development.</li>
+</ul>
+<hr>
+<h2 id="🧪-testing-build" class="tsd-anchor-link">🧪 Testing &amp; Build<a href="#🧪-testing-build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>All tests use <strong>Bun</strong>'s native test runner (<code>bun test</code>). <strong>~124 test files</strong> with <strong>~4,500 individual test assertions</strong> across 5 categories:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Type</th>
+<th style="text-align:center">Files</th>
+<th style="text-align:center">Assertions</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Unit</strong></td>
+<td style="text-align:center">92</td>
+<td style="text-align:center">1,458</td>
+<td style="text-align:left">Isolated function/component tests per package and worker</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Integration</strong></td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">34</td>
+<td style="text-align:left">Cross-component tests (TUI navigation, gateway middleware)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Security</strong></td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">40</td>
+<td style="text-align:left">Auth bypass, security headers, fuzz testing</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>E2E</strong></td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">5</td>
+<td style="text-align:left">Full-system tests (TUI smoke, CLI lifecycle)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Live</strong></td>
+<td style="text-align:center">10</td>
+<td style="text-align:center">77</td>
+<td style="text-align:left">Cloudflare credential-dependent (D1, KV, R2, Queues, API, AI)</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="bash"><span class="hl-4"># Run all tests (excluding live — needs Cloudflare credentials)</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><br/><br/><span class="hl-4"># Security tests</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:security</span><br/><br/><span class="hl-4"># Integration tests</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:integration</span><br/><br/><span class="hl-4"># E2E tests</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:e2e</span><br/><br/><span class="hl-4"># Live tests (requires tests/live/.env)</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:live</span><br/><br/><span class="hl-4"># Per workspace</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:cli</span><span class="hl-1">          </span><span class="hl-4"># packages/cli/</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:tui</span><span class="hl-1">          </span><span class="hl-4"># packages/tui/</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:shared</span><span class="hl-1">       </span><span class="hl-4"># packages/shared/</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:workers</span><span class="hl-1">      </span><span class="hl-4"># workers/ (all workers)</span><br/><br/><span class="hl-4"># Full CI pipeline</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">test:all</span><span class="hl-1">          </span><span class="hl-4"># lint → typecheck → test → live</span><br/><br/><span class="hl-4"># Build packages that need it</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build</span><span class="hl-1">             </span><span class="hl-4"># build:packages + typecheck</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build:cli</span><span class="hl-1">         </span><span class="hl-4"># packages/cli → dist/</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build:tui</span><span class="hl-1">         </span><span class="hl-4"># packages/tui → dist/</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build:dashboard</span><span class="hl-1">   </span><span class="hl-4"># workers/dashboard (Next.js)</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">build:docs</span><span class="hl-1">        </span><span class="hl-4"># pages/docs (Astro)</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">typecheck</span><span class="hl-1">         </span><span class="hl-4"># tsc --noEmit</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<h2 id="🏗️-the-microservice-architecture" class="tsd-anchor-link">🏗️ The Microservice Architecture<a href="#🏗️-the-microservice-architecture" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox is split into distinct, highly specialized micro-workers. If one fails, the others keep running.</p>
+<pre><code class="mermaid">graph TB
+    %% ── Styling ──────────────────────────────────────────────────────
+    classDef external fill:#f5f5f5,stroke:#999,stroke-width:2,color:#333
+    classDef waf fill:#fff8e1,stroke:#f9a825,stroke-width:2
+    classDef worker fill:#e8f5e9,stroke:#43a047,stroke-width:2,color:#1b5e20
+    classDef storage fill:#e3f2fd,stroke:#1e88e5,stroke-width:2,color:#0d47a1
+    classDef compute fill:#f3e5f5,stroke:#8e24aa,stroke-width:2,color:#4a148c
+    classDef cli fill:#fafafa,stroke:#bdbdbd,stroke-width:1,stroke-dasharray: 4
+    classDef dash fill:#fff3e0,stroke:#ef6c00,stroke-width:2,color:#bf360c
+
+    %% ── Layers ───────────────────────────────────────────────────────
+
+    subgraph "🌐 External World"
+        TV["📊 TradingView Webhooks"]
+        TG["💬 Telegram Bot Commands"]
+        EM["📧 Email Signals"]
+        subgraph "💱 Exchanges"
+            BINANCE["Binance API"]
+            BYBIT["Bybit API"]
+            MEXC["MEXC API"]
+        end
+    end
+
+    subgraph "🛡️ Cloudflare® WAF"
+        WAF["IP Allowlisting & Rate Limiting"]
+    end
+
+    subgraph "⚡ Cloudflare® Edge Network — Workers"
+        GW["🔐 hoox<br/>Gateway & Firewall"]
+        TW["📈 trade-worker<br/>Execution Engine"]
+        AW["🧠 agent-worker<br/>AI Risk Manager"]
+        D1W["🗄️ d1-worker<br/>SQL Operations"]
+        TGW["💬 telegram-worker<br/>Notifications"]
+        W3W["🌐 web3-wallet<br/>DeFi Execution"]
+        EMW["📧 email-worker<br/>Email Parser"]
+        ANW["📊 analytics-worker<br/>Observability"]
+        RPW["📄 report-worker<br/>PDF Reports"]
+        DASH["🖥️ Dashboard<br/>Next.js Command Center"]:::dash
+    end
+
+    subgraph "💾 Cloudflare® Storage Layer"
+        KV[("KV · Config & Kill-Switch<br/>Sub-millisecond reads")]
+        DB[("D1 · Trade Database<br/>Global SQLite")]
+        R2[("R2 · Object Storage<br/>Reports & Logs")]
+        VEC[("Vectorize · RAG Index<br/>AI Embeddings")]
+    end
+
+    subgraph "🧮 Cloudflare® Compute Layer"
+        AI{{"🤖 Workers AI<br/>LLaMA 3 Inference"}}
+        DO{{"🔒 Durable Objects<br/>Idempotency Locks"}}
+        Q{{"📨 Queues<br/>Async Delivery · Retry"}}
+        BROWSER{{"🌐 Browser Rendering<br/>PDF Generation"}}
+        AE{{"📈 Analytics Engine<br/>Time-Series Metrics"}}
+    end
+
+    subgraph "🔧 Management Plane — hoox CLI"
+        CLI["hoox deploy · hoox infra · hoox config<br/>hoox db · hoox monitor · hoox repair<br/>hoox check · hoox logs · hoox waf"]
+    end
+
+    %% ── External → WAF → Gateway ─────────────────────────────────────
+
+    TV -->|"HTTPS + API Key"| WAF
+    TG -->|"HTTPS + Bot Token"| TGW
+    EM -->|"SMTP/IMAP"| EMW
+    WAF -->|"Validated Signals"| GW
+
+    %% ── Dashboard ────────────────────────────────────────────────────
+
+    DASH -->|"Service Binding"| GW
+    DASH -.->|"Read Config"| KV
+
+    %% ── hoox Gateway Routing ─────────────────────────────────────────
+
+    GW -->|"⚡ Fast Path · Service Binding"| TW
+    GW -->|"📨 Fallback · Queue"| Q
+    GW -->|"🔒 Idempotency"| DO
+    GW -->|"💬 Notifications"| TGW
+    GW -.->|"Config + Rate Limit"| KV
+    GW -.->|"Track API Calls"| AE
+
+    %% ── agent-worker (Cron: every 5 min) ─────────────────────────────
+
+    AW -->|"Cron */5 · Evaluate Positions"| TW
+    AW -->|"Send Summaries"| TGW
+    AW -->|"Query History"| D1W
+    AW -->|"Risk Analysis"| AI
+    AW -.->|"Portfolio State"| DB
+    AW -.->|"Market Data<br/>Price Checks"| BINANCE
+    AW -.->|"Market Data<br/>Price Checks"| BYBIT
+    AW -.->|"Market Data<br/>Price Checks"| MEXC
+
+    %% ── trade-worker Execution ───────────────────────────────────────
+
+    TW -->|"Service Binding"| D1W
+    TW -->|"Service Binding"| TGW
+    TW -->|"Service Binding"| ANW
+    TW -->|"DeFi Execution"| W3W
+    TW -.->|"Read/Write Trades"| DB
+    TW -.->|"Read Config"| KV
+    TW -.->|"RAG Context"| VEC
+    TW -.->|"Offload Logs"| R2
+    TW -.->|"Enqueue Retry"| Q
+    TW -.->|"AI Analysis"| AI
+    TW -.->|"Render Reports"| BROWSER
+    TW ==>|"REST · REST<br/>Signed Requests"| BINANCE
+    TW ==>|"REST · WebSocket<br/>Signed Requests"| BYBIT
+    TW ==>|"REST<br/>Signed Requests"| MEXC
+
+    %% ── telegram-worker ──────────────────────────────────────────────
+
+    TGW -->|"Track Events"| ANW
+    TGW -.->|"AI Chat Responses"| AI
+    TGW -.->|"Read Config"| KV
+
+    %% ── email-worker ─────────────────────────────────────────────────
+
+    EMW -->|"Track Events"| ANW
+    EMW -.->|"Read Config"| KV
+
+    %% ── report-worker (Cron: 06:00 + 18:00) ──────────────────────────
+
+    RPW -->|"Cron · Store PDFs"| R2
+    RPW -->|"Send Report Links"| TGW
+    RPW -.->|"REST · Render HTML→PDF"| BROWSER
+
+    %% ── CLI Management Plane (dashed to all managed resources) ───────
+
+    CLI -.->|"hoox deploy · hoox check"| GW
+    CLI -.->|"hoox deploy · hoox repair"| TW
+    CLI -.->|"hoox deploy · hoox repair"| AW
+    CLI -.->|"hoox deploy"| D1W
+    CLI -.->|"hoox deploy · telegram-webhook"| TGW
+    CLI -.->|"hoox deploy"| W3W
+    CLI -.->|"hoox deploy"| EMW
+    CLI -.->|"hoox deploy"| ANW
+    CLI -.->|"hoox deploy"| RPW
+    CLI -.->|"hoox deploy"| DASH
+    CLI -.->|"hoox db · hoox repair db"| DB
+    CLI -.->|"hoox config kv · hoox repair kv"| KV
+    CLI -.->|"hoox infra r2"| R2
+    CLI -.->|"hoox infra queues"| Q
+    CLI -.->|"hoox infra vectorize"| VEC
+    CLI -.->|"hoox infra analytics"| AE
+    CLI -.->|"hoox infra d1 · hoox repair"| DO
+
+    %% ── Apply styles ─────────────────────────────────────────────────
+
+    class TV,TG,EM,BINANCE,BYBIT,MEXC external
+    class WAF waf
+    class GW,TW,AW,D1W,TGW,W3W,EMW,ANW,RPW worker
+    class KV,DB,R2,VEC storage
+    class AI,DO,Q,BROWSER,AE compute
+    class CLI cli
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<h2 id="📋-the-9-pillars-of-hoox-workers" class="tsd-anchor-link">📋 The 9 Pillars of Hoox (Workers)<a href="#📋-the-9-pillars-of-hoox-workers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h3 id="🔐-hoox-the-gateway" class="tsd-anchor-link">🔐 hoox (The Gateway)<a href="#🔐-hoox-the-gateway" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>The main entry point. It validates incoming TradingView webhooks, verifies API keys, and routes valid signals to the execution engine.</p>
+<ul>
+<li><strong>WAF Integration</strong>: IP allowlisting and rate limiting are handled via Cloudflare WAF to drop malicious traffic before it hits the worker.</li>
+<li><strong>Fast Path Execution</strong>: Attempts to execute trades instantly via direct Service Bindings, falling back to queues if necessary.</li>
+<li><strong>Real DO Idempotency</strong>: Prevents duplicate trades using SQLite-backed Durable Objects with TTL-based dedup and automatic alarm cleanup.</li>
+<li><strong>KV-backed Rate Limiting</strong>: Rate limiter persists across cold starts using CONFIG_KV, with transparent in-memory fallback.</li>
+<li><strong>Smart Placement</strong>: Worker runs on edge node closest to exchange API servers — 30-60% latency reduction.</li>
+<li><strong>Analytics Tracking</strong>: Every API call is tracked via analytics-worker for real-time observability.</li>
+<li><strong>Trace IDs</strong>: Generates distributed trace IDs for end-to-end signal tracking.</li>
+</ul>
+<h3 id="📈-trade-worker-the-execution-engine" class="tsd-anchor-link">📈 trade-worker (The Execution Engine)<a href="#📈-trade-worker-the-execution-engine" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>The execution module. Routes and executes orders across MEXC, Binance, and Bybit. Handles leverage calculation and size mapping.</p>
+<ul>
+<li><strong>Dynamic Routing</strong>: Uses an <code>ExchangeRouter</code> with <code>CONFIG_KV</code> to instantly redirect symbols to different exchanges without code deployment. The <code>ExchangeRouter</code> and <code>IExchangeProvider</code> types live in the shared package for reusability.</li>
+<li><strong>Standardized Error Handling</strong>: All error responses use the <code>Errors.*</code> factory from <code>@jango-blockchained/hoox-shared</code> for consistent JSON error format across every worker.</li>
+<li><strong>Smart Placement</strong>: Automatically executes on the Cloudflare edge node closest to the exchange's API servers.</li>
+<li><strong>R2 Log Offloading</strong>: Verbose request and response logs are saved to R2 (<code>hoox-system-logs</code>), preserving D1 write limits for critical financial data.</li>
+</ul>
+<h3 id="🧠-agent-worker-the-ai-risk-manager-multi-provider-ai-gateway" class="tsd-anchor-link">🧠 agent-worker (The AI Risk Manager &amp; Multi-Provider AI Gateway)<a href="#🧠-agent-worker-the-ai-risk-manager-multi-provider-ai-gateway" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Runs silently on a 5-minute Cron schedule. It observes open positions, moves trailing stops, scales out of profitable trades, and flips the Global Kill Switch if maximum daily drawdown is reached.</p>
+<p><strong>Enhanced with Multi-Provider AI (Tasks 18-30):</strong></p>
+<ul>
+<li><strong>5 AI Providers</strong>: Workers AI, OpenAI, Anthropic, Google AI, Azure OpenAI</li>
+<li><strong>Automatic Fallback Chain</strong>: Seamless switching between providers on failure</li>
+<li><strong>Health Checks</strong>: Providers self-report health status for intelligent routing</li>
+<li><strong>SSE Streaming</strong>: Real-time streaming responses for chat and reasoning</li>
+<li><strong>Vision Analysis</strong>: Image analysis with URL or base64 input</li>
+<li><strong>Reasoning Models</strong>: Extended thinking support (OpenAI o1, etc.)</li>
+<li><strong>Prompt Templates</strong>: Pre-built templates (trading-analyst, risk-assessor, market-scanner)</li>
+<li><strong>Usage Tracking</strong>: Monitor API usage across all providers</li>
+</ul>
+<p><strong>New Endpoints:</strong></p>
+<ul>
+<li><code>POST /agent/chat</code> - AI chat with streaming support</li>
+<li><code>POST /agent/vision</code> - Image analysis</li>
+<li><code>POST /agent/reasoning</code> - Extended thinking queries</li>
+<li><code>GET /agent/usage</code> - Usage statistics</li>
+<li><code>GET /agent/prompts</code> - List prompt templates</li>
+</ul>
+<h3 id="📊-dashboard-the-command-center" class="tsd-anchor-link">📊 dashboard (The Command Center)<a href="#📊-dashboard-the-command-center" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>A secure, Cloudflare Workers-powered React dashboard using Next.js 16 + OpenNext. Monitor Win Rates, view live positions, and adjust risk settings on the fly without ever needing to redeploy code.</p>
+<h3 id="💬-telegram-worker-the-communicator" class="tsd-anchor-link">💬 telegram-worker (The Communicator)<a href="#💬-telegram-worker-the-communicator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Sends instant trade confirmations and AI-generated market summaries straight to your phone.</p>
+<h3 id="🗄️-d1-worker-the-memory" class="tsd-anchor-link">🗄️ d1-worker (The Memory)<a href="#🗄️-d1-worker-the-memory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Handles all heavy SQL operations, aggregating trade histories and system logs to keep the execution workers incredibly lightweight.</p>
+<h3 id="🌐-web3-wallet-worker-the-on-chain-bridge" class="tsd-anchor-link">🌐 web3-wallet-worker (The On-Chain Bridge)<a href="#🌐-web3-wallet-worker-the-on-chain-bridge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Ready for DeFi execution. Securely manages mnemonic phrases to execute swaps on decentralized exchanges.</p>
+<h3 id="📧-email-worker" class="tsd-anchor-link">📧 email-worker<a href="#📧-email-worker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Ancillary plugin allowing you to trigger trades via raw email parsing.</p>
+<h3 id="📄-report-worker-the-reporter" class="tsd-anchor-link">📄 report-worker (The Reporter)<a href="#📄-report-worker-the-reporter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Automated PDF portfolio report generation via Cloudflare Browser Rendering.</p>
+<ul>
+<li><strong>Cron-Triggered</strong>: Generates reports twice daily (06:00 + 18:00 UTC).</li>
+<li><strong>Styled HTML→PDF</strong>: Converts portfolio metrics, P&amp;L, win rates, and position data into professional PDF reports.</li>
+<li><strong>R2 Storage</strong>: Stores all generated PDFs in the <code>trade-reports</code> R2 bucket with date-based keys.</li>
+<li><strong>Telegram Delivery</strong>: Sends report links directly via <code>telegram-worker</code> service binding.</li>
+<li><strong>Free Tier</strong>: Browser Rendering is free at 10 min/day on all Cloudflare plans.</li>
+</ul>
+<hr>
+<h2 id="🔐-security-architecture" class="tsd-anchor-link">🔐 Security Architecture<a href="#🔐-security-architecture" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Security is a foundational aspect of the Hoox system.</p>
+<h3 id="implemented-security-features" class="tsd-anchor-link">Implemented Security Features<a href="#implemented-security-features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CORS</strong></td>
+<td>Disabled - same-origin only</td>
+</tr>
+<tr>
+<td><strong>X-Frame-Options</strong></td>
+<td>DENY - prevents iframe embedding</td>
+</tr>
+<tr>
+<td><strong>X-Content-Type-Options</strong></td>
+<td>nosniff - prevents MIME sniffing</td>
+</tr>
+<tr>
+<td><strong>X-XSS-Protection</strong></td>
+<td>1; mode=block</td>
+</tr>
+<tr>
+<td><strong>Referrer-Policy</strong></td>
+<td>strict-origin-when-cross-origin</td>
+</tr>
+<tr>
+<td><strong>Permissions-Policy</strong></td>
+<td>Blocks accelerometer, camera, geolocation, microphone, etc.</td>
+</tr>
+<tr>
+<td><strong>Strict-Transport-Security</strong></td>
+<td>max-age=31536000; includeSubDomains</td>
+</tr>
+<tr>
+<td><strong>Content-Security-Policy</strong></td>
+<td>default-src 'self'</td>
+</tr>
+<tr>
+<td><strong>Shared Middleware</strong></td>
+<td>All headers are applied via <code>@jango-blockchained/hoox-shared/middleware</code> <code>secureHeaders()</code> factory. Consistent across all workers.</td>
+</tr>
+<tr>
+<td><strong>Idempotent Execution</strong></td>
+<td>Durable Objects prevent duplicate trades</td>
+</tr>
+<tr>
+<td><strong>Rate Limiting</strong></td>
+<td>10 trades/minute protection</td>
+</tr>
+<tr>
+<td><strong>IP Allow-listing</strong></td>
+<td>Optional IP filtering via KV</td>
+</tr>
+<tr>
+<td><strong>API Key Auth</strong></td>
+<td>Secret binding validation</td>
+</tr>
+<tr>
+<td><strong>Kill Switch</strong></td>
+<td>Global trading pause via KV</td>
+</tr>
+</tbody>
+</table>
+<h3 id="security-layers" class="tsd-anchor-link">Security Layers<a href="#security-layers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ol>
+<li><strong>Edge-Level</strong>: Cloudflare's DDoS protection, firewall, and WAF</li>
+<li><strong>Worker-Level</strong>: IP allow-listing, API key validation, rate limiting</li>
+<li><strong>Execution-Level</strong>: Idempotency keys prevent duplicates, kill switches halt trading</li>
+<li><strong>Response-Level</strong>: All responses include security headers</li>
+</ol>
+<ul>
+<li><strong>No Public APIs:</strong> The <code>trade-worker</code> and <code>d1-worker</code> literally do not exist on the public internet. They can <em>only</em> be accessed internally by the <code>hoox</code> gateway via Cloudflare® Service Bindings.</li>
+<li><strong>Zero Trust Dashboard:</strong> Your UI is secured with authentication and deployed to Cloudflare Workers using the OpenNext adapter for full Next.js feature support.</li>
+<li><strong>Hardware-Level Secret Injection:</strong> API keys are injected directly into the V8 isolate at runtime. They are never stored in plaintext or logged.</li>
+<li><strong>Idempotent Execution:</strong> Durable Objects prevent duplicate trades on network retries—no lost ETH from double-spending.</li>
+<li><strong>Rate Limiting:</strong> Built-in throttling prevents accidental trade spamming.</li>
+</ul>
+<hr>
+<h2 id="🎯-async-trade-execution-queues" class="tsd-anchor-link">🎯 Async Trade Execution (Queues)<a href="#🎯-async-trade-execution-queues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox uses Cloudflare® Queues for guaranteed trade delivery:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>queue_failover</code> (default)</td>
+<td>Try direct execution first, queue on failure</td>
+</tr>
+<tr>
+<td><code>queue_everywhere</code></td>
+<td>Always queue trades asynchronously</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configuration" class="tsd-anchor-link">Configuration<a href="#configuration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="bash"><span class="hl-4"># Set mode in KV</span><br/><span class="hl-0">wrangler</span><span class="hl-1"> </span><span class="hl-2">kv</span><span class="hl-1"> </span><span class="hl-2">key</span><span class="hl-1"> </span><span class="hl-2">put</span><span class="hl-1"> </span><span class="hl-2">webhooks:queue_mode</span><span class="hl-1"> </span><span class="hl-2">queue_failover</span><span class="hl-1"> </span><span class="hl-3">--binding</span><span class="hl-1"> </span><span class="hl-2">CONFIG_KV</span><span class="hl-1"> </span><span class="hl-3">--remote</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="retry-behavior" class="tsd-anchor-link">Retry Behavior<a href="#retry-behavior" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><strong>Attempt 1</strong>: Immediate</li>
+<li><strong>Attempt 2</strong>: 30 seconds</li>
+<li><strong>Attempt 3</strong>: 1 minute</li>
+<li><strong>Attempt 4</strong>: 5 minutes</li>
+<li><strong>Attempt 5</strong>: 15 minutes</li>
+<li>After max retries: Trade logged to D1 as failed</li>
+</ul>
+<hr>
+<h2 id="💸-free-tier-costs-everything-is-free" class="tsd-anchor-link">💸 Free Tier Costs (Everything is Free!)<a href="#💸-free-tier-costs-everything-is-free" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox runs entirely on Cloudflare® Workers Free tier:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Free Limit</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🟠 Workers</td>
+<td>100k req/day</td>
+<td>~3k trades/day</td>
+</tr>
+<tr>
+<td>🟠 D1</td>
+<td>5M rows read, 100k writes/day</td>
+<td>5GB storage</td>
+</tr>
+<tr>
+<td>🟠 KV</td>
+<td>1GB, 1k ops/day</td>
+<td>Config + rate limiter state</td>
+</tr>
+<tr>
+<td>🟠 R2</td>
+<td>10GB/month</td>
+<td>Trade reports, logs, PDFs</td>
+</tr>
+<tr>
+<td>🟠 Queues</td>
+<td>10k ops/day</td>
+<td>~3k trades/day</td>
+</tr>
+<tr>
+<td>🟠 Durable Objects</td>
+<td>SQLite-backed only</td>
+<td>Idempotency locks</td>
+</tr>
+<tr>
+<td>🟠 Workers AI</td>
+<td>10k neurons/day</td>
+<td>AI summaries, risk analysis</td>
+</tr>
+<tr>
+<td>🟠 Vectorize</td>
+<td>100 indexes</td>
+<td>RAG-powered AI responses</td>
+</tr>
+<tr>
+<td>🟠 Browser Rendering</td>
+<td>10 min/day</td>
+<td>PDF portfolio reports</td>
+</tr>
+<tr>
+<td>🟠 Analytics Engine</td>
+<td>Unlimited datasets</td>
+<td>Real-time API + trade observability</td>
+</tr>
+<tr>
+<td>🟠 Smart Placement</td>
+<td>Unlimited</td>
+<td>30-60% latency reduction</td>
+</tr>
+<tr>
+<td>🟠 WAF + Rate Limiting</td>
+<td>1 free rate limit rule</td>
+<td>API protection</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="🧪-testing-reliability" class="tsd-anchor-link">🧪 Testing &amp; Reliability<a href="#🧪-testing-reliability" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>With money on the line, we test everything.</p>
+<pre><code class="bash"><span class="hl-4"># Run the massive test suite powered by Bun</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-3">--coverage</span>
+</code><button type="button">Copy</button></pre>
+
+<p><strong>Current Test Coverage:</strong></p>
+<ul>
+<li><strong>packages/cli</strong>: 381 tests across 26 files — 0 failures (100% pass rate)</li>
+<li><strong>packages/shared</strong>: unit tests covering shared utilities and exchange router logic</li>
+<li><strong>packages/tui</strong>: component tests for the OpenTUI terminal interface</li>
+<li><strong>workers/</strong>: 74 integration tests covering all 9 worker pipelines</li>
+</ul>
+<blockquote>
+<p><strong>Note</strong>: Coverage targets &gt;80% for all critical execution paths. See <a href="media/testing.md">Testing Standards</a> for detailed coverage reports and <a href="docs/coverage/PHASE_E_COVERAGE_REPORT.md">Phase E Coverage Report</a> for the latest results.</p>
+</blockquote>
+<blockquote>
+<p><strong>Note</strong>: Coverage targets &gt;80% for all critical execution paths. See <a href="media/testing.md">Testing Documentation</a> for detailed coverage reports.</p>
+</blockquote>
+<h3 id="🌐-live-integration-tests" class="tsd-anchor-link">🌐 Live Integration Tests<a href="#🌐-live-integration-tests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>A full live test suite against <strong>real Cloudflare infrastructure</strong> (no mocks) is available at <a href="media/live"><code>tests/live/</code></a>. Covers all services used by hoox:</p>
+<pre><code class="bash"><span class="hl-4"># Run all live tests (requires credentials in tests/live/.env)</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test:live</span><br/><br/><span class="hl-4"># Run tests for a specific service</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/d1.test.ts</span><span class="hl-1">              </span><span class="hl-4"># D1 SQL database</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/kv.test.ts</span><span class="hl-1">              </span><span class="hl-4"># KV namespace</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/r2.test.ts</span><span class="hl-1">              </span><span class="hl-4"># R2 object storage</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/queues.test.ts</span><span class="hl-1">          </span><span class="hl-4"># Queue messaging</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/ai.test.ts</span><span class="hl-1">              </span><span class="hl-4"># Workers AI inference</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/api.test.ts</span><span class="hl-1">             </span><span class="hl-4"># Cloudflare REST API</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/secrets.test.ts</span><span class="hl-1">         </span><span class="hl-4"># Secret management</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">test</span><span class="hl-1"> </span><span class="hl-2">tests/live/durable-objects.test.ts</span><span class="hl-1"> </span><span class="hl-4"># Durable Objects</span>
+</code><button type="button">Copy</button></pre>
+
+<blockquote>
+<p>⚠ <strong>Warning:</strong> These tests create and destroy real resources. Use a development/staging account, NOT production. Copy <a href="media/env.template"><code>tests/live/env.template</code></a> to <code>tests/live/.env</code> to configure.</p>
+</blockquote>
+<hr>
+<h2 id="🐳-local-development-docker" class="tsd-anchor-link">🐳 Local Development (Docker)<a href="#🐳-local-development-docker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Hoox supports local development using Docker. While production deployment targets Cloudflare Workers, Docker allows you to run and test the worker logic locally.</p>
+<h3 id="prerequisites" class="tsd-anchor-link">Prerequisites<a href="#prerequisites" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul>
+<li><a href="https://www.docker.com/">Docker</a> &amp; Docker Compose</li>
+<li>Bun runtime (included in our Docker images)</li>
+</ul>
+<h3 id="development-hot-reload" class="tsd-anchor-link">Development (Hot-Reload)<a href="#development-hot-reload" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Spin up all workers locally with hot-reloading enabled. Changes to your code are reflected instantly without rebuilding the container.</p>
+<pre><code class="bash"><span class="hl-4"># Build and start the dev environment</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docker:dev</span><br/><br/><span class="hl-4"># Optional: validate compose file before boot</span><br/><span class="hl-0">docker</span><span class="hl-1"> </span><span class="hl-2">compose</span><span class="hl-1"> </span><span class="hl-2">config</span>
+</code><button type="button">Copy</button></pre>
+
+<p>This launches all workers on the following ports:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gateway (hoox)</td>
+<td>8787</td>
+</tr>
+<tr>
+<td>Trade Worker</td>
+<td>8789</td>
+</tr>
+<tr>
+<td>Telegram Worker</td>
+<td>8791</td>
+</tr>
+<tr>
+<td>D1 Worker</td>
+<td>8792</td>
+</tr>
+<tr>
+<td>Web3 Wallet</td>
+<td>8793</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>8794</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>8795</td>
+</tr>
+<tr>
+<td>Email</td>
+<td>8796</td>
+</tr>
+<tr>
+<td>Report</td>
+<td>8797</td>
+</tr>
+</tbody>
+</table>
+<p>To stop local dev cleanly:</p>
+<pre><code class="bash"><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docker:down</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="production-build" class="tsd-anchor-link">Production Build<a href="#production-build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Build the optimized production image for local testing.</p>
+<pre><code class="bash"><span class="hl-4"># Build the production image</span><br/><span class="hl-0">bun</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">docker:prod</span>
+</code><button type="button">Copy</button></pre>
+
+<p><strong>Configuration:</strong>
+Ensure your <code>.env.local</code> or environment variables are set with your Cloudflare API Token and Account ID:</p>
+<pre><code class="bash"><span class="hl-5">CLOUDFLARE_API_TOKEN</span><span class="hl-1">=</span><span class="hl-2">your_token_here</span><br/><span class="hl-5">CLOUDFLARE_ACCOUNT_ID</span><span class="hl-1">=</span><span class="hl-2">your_account_id</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<h2 id="🤝-contribute" class="tsd-anchor-link">🤝 Contribute<a href="#🤝-contribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Traditional algorithmic trading is often complex and difficult to deploy. Hoox aims to simplify this.</p>
+<ol>
+<li>Fork the repository</li>
+<li>Create your feature branch (<code>git checkout -b feature/new-strategy</code>)</li>
+<li>Commit your changes (<code>git commit -m 'Add new strategy'</code>)</li>
+<li>Push to the branch (<code>git push origin feature/new-strategy</code>)</li>
+<li>Open a Pull Request</li>
+</ol>
+<hr>
+<h2 id="✅-integrated-cloudflare-services" class="tsd-anchor-link">✅ Integrated Cloudflare Services<a href="#✅-integrated-cloudflare-services" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>All Cloudflare service integrations are <strong>live</strong> across hoox workers (May 2026):</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th style="text-align:center">Integration</th>
+<th style="text-align:center">CLI Mgmt</th>
+<th style="text-align:center">Workers</th>
+<th style="text-align:center">Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Smart Placement</strong></td>
+<td style="text-align:center"><code>placement { mode: &quot;smart&quot; }</code></td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">hoox, trade, agent, d1, telegram</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Durable Objects</strong></td>
+<td style="text-align:center">Real IdempotencyStore w/ SQLite + alarm cleanup</td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">hoox</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>KV-backed Rate Limiting</strong></td>
+<td style="text-align:center">Survives cold starts, in-memory fallback</td>
+<td style="text-align:center"><code>hoox config kv</code></td>
+<td style="text-align:center">hoox</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Browser Rendering</strong></td>
+<td style="text-align:center">Automated PDF portfolio reports</td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">report-worker</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Analytics Engine</strong></td>
+<td style="text-align:center">Time-series tracking via analytics-worker</td>
+<td style="text-align:center"><code>hoox infra analytics</code></td>
+<td style="text-align:center">all workers</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Workers AI</strong></td>
+<td style="text-align:center">LLaMA 3 risk analysis &amp; summaries</td>
+<td style="text-align:center">—</td>
+<td style="text-align:center">agent, telegram, hoox</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Vectorize</strong></td>
+<td style="text-align:center">RAG-powered AI responses</td>
+<td style="text-align:center"><code>hoox infra vectorize</code></td>
+<td style="text-align:center">telegram, hoox</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>D1 Database</strong></td>
+<td style="text-align:center">Global SQLite at the edge</td>
+<td style="text-align:center"><code>hoox db</code></td>
+<td style="text-align:center">trade, d1, agent</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>KV Config</strong></td>
+<td style="text-align:center">Sub-millisecond config store</td>
+<td style="text-align:center"><code>hoox config kv</code></td>
+<td style="text-align:center">all workers</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>Queues</strong></td>
+<td style="text-align:center">Async message delivery</td>
+<td style="text-align:center"><code>hoox infra queues</code></td>
+<td style="text-align:center">hoox, trade</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>R2 Storage</strong></td>
+<td style="text-align:center">Zero-egress object storage</td>
+<td style="text-align:center"><code>hoox infra r2</code></td>
+<td style="text-align:center">trade, report</td>
+<td style="text-align:center">Free</td>
+</tr>
+<tr>
+<td><strong>WAF + Rate Limiting</strong></td>
+<td style="text-align:center">CLI-managed IP allowlisting + rate rules</td>
+<td style="text-align:center"><code>hoox waf</code></td>
+<td style="text-align:center">zone-level</td>
+<td style="text-align:center">Free</td>
+</tr>
+</tbody>
+</table>
+<p>All services run on Cloudflare's <strong>Free plan</strong> — no monthly costs.</p>
+<hr>
+<h2 id="📄-license" class="tsd-anchor-link">📄 License<a href="#📄-license" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>. See <a href="media/LICENSE">LICENSE</a> for the full license text and <a href="media/DISCLAIMER.md">DISCLAIMER</a> for legal terms.</p>
+<hr>
+<div align="center">
+Built with 🔥 on the Cloudflare® Edge.
+</div>
+<hr>
+<p><em>Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions.</em>
+<em>Pine Script™ and TradingView® are trademarks of TradingView, Inc. This project is an independent effort and is not affiliated with or endorsed by TradingView, Inc.</em></p>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg><h3>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#🚀-hoox-the-zero-latency-edge-trading-ecosystem"><span>🚀 <wbr/>Hoox -<wbr/> <wbr/>The <wbr/>Zero-<wbr/>Latency <wbr/>Edge <wbr/>Trading <wbr/>Ecosystem</span></a><ul><li><a href="#🔁-required-clone-mode"><span>🔁 <wbr/>Required clone mode</span></a></li><li><a href="#🌟-why-hoox"><span>🌟 <wbr/>Why <wbr/>Hoox?</span></a></li><li><a href="#⚠️-disclaimer"><span>⚠️ <wbr/>Disclaimer</span></a></li><li><a href="#✨-enterprise-grade-features"><span>✨ <wbr/>Enterprise-<wbr/>Grade <wbr/>Features</span></a></li><li><ul><li><a href="#core-platform"><span>Core <wbr/>Platform</span></a></li><li><a href="#data-storage"><span>Data &amp; <wbr/>Storage</span></a></li><li><a href="#trading-infrastructure"><span>Trading <wbr/>Infrastructure</span></a></li><li><a href="#developer-experience"><span>Developer <wbr/>Experience</span></a></li><li><a href="#security"><span>Security</span></a></li></ul></li><li><a href="#🚀-quick-start-deploy-in-5-minutes"><span>🚀 <wbr/>Quick <wbr/>Start (<wbr/>Deploy in 5 <wbr/>Minutes)</span></a></li><li><ul><li><a href="#option-a-install-from-source-recommended"><span>Option <wbr/>A: <wbr/>Install from <wbr/>Source (<wbr/>Recommended)</span></a></li><li><a href="#deploy"><span>Deploy</span></a></li></ul></li><li><a href="#📦-worker-submodules"><span>📦 <wbr/>Worker <wbr/>Submodules</span></a></li><li><a href="#🛠️-the-workspaces"><span>🛠️ <wbr/>The  &amp; <wbr/>Workspaces</span></a></li><li><ul><li><a href="#complete-command-tree"><span>Complete <wbr/>Command <wbr/>Tree</span></a></li><li><a href="#key-workflows"><span>Key <wbr/>Workflows</span></a></li><li><a href="#features"><span>Features</span></a></li></ul></li><li><a href="#🧅-performance-tooling-powered-by-bun"><span>🧅 <wbr/>Performance &amp; <wbr/>Tooling: <wbr/>Powered by <wbr/>Bun</span></a></li><li><a href="#🧪-testing-build"><span>🧪 <wbr/>Testing &amp; <wbr/>Build</span></a></li><li><a href="#🏗️-the-microservice-architecture"><span>🏗️ <wbr/>The <wbr/>Microservice <wbr/>Architecture</span></a></li><li><a href="#📋-the-9-pillars-of-hoox-workers"><span>📋 <wbr/>The 9 <wbr/>Pillars of <wbr/>Hoox (<wbr/>Workers)</span></a></li><li><ul><li><a href="#🔐-hoox-the-gateway"><span>🔐 hoox (<wbr/>The <wbr/>Gateway)</span></a></li><li><a href="#📈-trade-worker-the-execution-engine"><span>📈 trade-<wbr/>worker (<wbr/>The <wbr/>Execution <wbr/>Engine)</span></a></li><li><a href="#🧠-agent-worker-the-ai-risk-manager-multi-provider-ai-gateway"><span>🧠 agent-<wbr/>worker (<wbr/>The <wbr/>AI <wbr/>Risk <wbr/>Manager &amp; <wbr/>Multi-<wbr/>Provider <wbr/>AI <wbr/>Gateway)</span></a></li><li><a href="#📊-dashboard-the-command-center"><span>📊 dashboard (<wbr/>The <wbr/>Command <wbr/>Center)</span></a></li><li><a href="#💬-telegram-worker-the-communicator"><span>💬 telegram-<wbr/>worker (<wbr/>The <wbr/>Communicator)</span></a></li><li><a href="#🗄️-d1-worker-the-memory"><span>🗄️ d1-<wbr/>worker (<wbr/>The <wbr/>Memory)</span></a></li><li><a href="#🌐-web3-wallet-worker-the-on-chain-bridge"><span>🌐 web3-<wbr/>wallet-<wbr/>worker (<wbr/>The <wbr/>On-<wbr/>Chain <wbr/>Bridge)</span></a></li><li><a href="#📧-email-worker"><span>📧 email-<wbr/>worker</span></a></li><li><a href="#📄-report-worker-the-reporter"><span>📄 report-<wbr/>worker (<wbr/>The <wbr/>Reporter)</span></a></li></ul></li><li><a href="#🔐-security-architecture"><span>🔐 <wbr/>Security <wbr/>Architecture</span></a></li><li><ul><li><a href="#implemented-security-features"><span>Implemented <wbr/>Security <wbr/>Features</span></a></li><li><a href="#security-layers"><span>Security <wbr/>Layers</span></a></li></ul></li><li><a href="#🎯-async-trade-execution-queues"><span>🎯 <wbr/>Async <wbr/>Trade <wbr/>Execution (<wbr/>Queues)</span></a></li><li><ul><li><a href="#configuration"><span>Configuration</span></a></li><li><a href="#retry-behavior"><span>Retry <wbr/>Behavior</span></a></li></ul></li><li><a href="#💸-free-tier-costs-everything-is-free"><span>💸 <wbr/>Free <wbr/>Tier <wbr/>Costs (<wbr/>Everything is <wbr/>Free!)</span></a></li><li><a href="#🧪-testing-reliability"><span>🧪 <wbr/>Testing &amp; <wbr/>Reliability</span></a></li><li><ul><li><a href="#🌐-live-integration-tests"><span>🌐 <wbr/>Live <wbr/>Integration <wbr/>Tests</span></a></li></ul></li><li><a href="#🐳-local-development-docker"><span>🐳 <wbr/>Local <wbr/>Development (<wbr/>Docker)</span></a></li><li><ul><li><a href="#prerequisites"><span>Prerequisites</span></a></li><li><a href="#development-hot-reload"><span>Development (<wbr/>Hot-<wbr/>Reload)</span></a></li><li><a href="#production-build"><span>Production <wbr/>Build</span></a></li></ul></li><li><a href="#🤝-contribute"><span>🤝 <wbr/>Contribute</span></a></li><li><a href="#✅-integrated-cloudflare-services"><span>✅ <wbr/>Integrated <wbr/>Cloudflare <wbr/>Services</span></a></li><li><a href="#📄-license"><span>📄 <wbr/>License</span></a></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html">HOOX</a><ul class="tsd-small-nested-navigation" id="tsd-nav-container"><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
