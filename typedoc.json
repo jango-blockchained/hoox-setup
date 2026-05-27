@@ -1,0 +1,30 @@
+{
+  "name": "HOOX",
+  "version": "0.4.1",
+  "tsconfig": "./tsconfig.typedoc.json",
+  "entryPoints": [
+    "./packages/shared/src/index.ts",
+    "./packages/cli/src/index.ts",
+    "./packages/tui/src/main.tsx"
+  ],
+  "out": "./docs/api",
+  "readme": "./README.md",
+  "theme": "default",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "searchInComments": true,
+  "hideGenerator": false,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Router",
+    "Middleware",
+    "Error Handling",
+    "D1 Database",
+    "Types",
+    "Utilities",
+    "*"
+  ],
+  "sort": ["source-order"]
+}

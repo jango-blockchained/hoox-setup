@@ -49,9 +49,9 @@
     "lint:scripts": "bun run ./scripts/check-script-paths.ts",
     "check:worker-submodules": "bun run ./scripts/check-worker-submodules.ts",
     "start": "bun run server.js",
-    "generate:docs": "bash scripts/generate-docs.sh",
-    "generate:docs:json": "bash scripts/generate-docs.sh --json docs/api/api.json",
-    "docs:watch": "bash scripts/generate-docs.sh --watch",
+    "generate:docs": "typedoc --options typedoc.json",
+    "generate:docs:json": "typedoc --options typedoc.json --json docs/api/api.json",
+    "docs:watch": "typedoc --options typedoc.json --watch",
     "docs:clean": "rm -rf docs/api"
   },
   "devDependencies": {
@@ -69,15 +69,13 @@
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "k6": "^0.0.0",
     "lint-staged": "^17.0.4",
     "prettier": "^3.8.3",
     "shadcn": "^4.7.0",
     "tailwindcss": "^4.3.0",
     "typedoc": "^0.28.19",
-    "typescript": "^6.0.3",
     "vite": "^8.0.14",
-    "wrangler": "^4.95.0"
+    "wrangler": "^4.94.0"
   },
   "dependencies": {
     "radix-ui": "^1.4.3",
