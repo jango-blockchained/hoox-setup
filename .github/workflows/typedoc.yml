@@ -5,13 +5,15 @@ on:
     branches: [main]
     paths:
       - "packages/**"
-      - "typedoc.json"
+      - "scripts/generate-docs.sh"
+      - "tsconfig.typedoc.json"
       - ".github/workflows/typedoc.yml"
   pull_request:
     branches: [main]
     paths:
       - "packages/**"
-      - "typedoc.json"
+      - "scripts/generate-docs.sh"
+      - "tsconfig.typedoc.json"
 
 jobs:
   build-and-deploy:

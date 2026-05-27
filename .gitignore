@@ -126,6 +126,8 @@ test-models.ts
 .wizard-state.json
 
 docs/.obsidian
+docs/api/
+typedoc.json
 AGENTS.md
 DEISGN.md
 SKILL.md
