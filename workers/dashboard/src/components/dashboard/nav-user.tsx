@@ -5,7 +5,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
 import { ChevronsUpDown, Sparkles, LogOut } from "lucide-react";
 import {
@@ -19,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 
 export function NavUser({
   user,

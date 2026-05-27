@@ -97,7 +97,9 @@ export function ChatInterface() {
                     return newMessages;
                   });
                 }
-              } catch {}
+              } catch {
+                /* ignore parse errors during streaming */
+              }
             }
           }
         }

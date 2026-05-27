@@ -22,9 +22,9 @@ import { mock } from "bun:test";
 
 // ── Module-level state ────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AsyncFn = (...args: any[]) => Promise<any>;
-let realCreateTestRenderer: AsyncFn | null = null;
+type CoreTestingModule = typeof import("@opentui/core/testing");
+type CreateTestRendererFn = CoreTestingModule["createTestRenderer"];
+let realCreateTestRenderer: CreateTestRendererFn | null = null;
 let coreAvailable = false;
 
 // ── Load real module (pre-resolves the top-level await) ────────────────────────
@@ -38,8 +38,7 @@ try {
 
   // 2. Now load the testing module and capture its createTestRenderer
   const coreTesting = await import("@opentui/core/testing");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  realCreateTestRenderer = coreTesting.createTestRenderer as any;
+  realCreateTestRenderer = coreTesting.createTestRenderer;
   coreAvailable = true;
 } catch {
   // Core not available — tests that require rendering will get a clear error
@@ -64,8 +63,7 @@ mock.module("@opentui/core/testing", () => {
       ...shareTestingExports(),
 
       // Wrap createTestRenderer with defensive error handling
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      createTestRenderer: async (...args: any[]) => {
+      createTestRenderer: async (...args: Parameters<CreateTestRendererFn>) => {
         try {
           return await realCreateTestRenderer!(...args);
         } catch (cause) {
@@ -84,8 +82,7 @@ mock.module("@opentui/core/testing", () => {
   // Fallback: native library not available → provide a mock that throws
   // a clear, actionable error (instead of the confusing TDZ ReferenceError)
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createTestRenderer: async (..._args: any[]) => {
+    createTestRenderer: async (..._args: Parameters<CreateTestRendererFn>) => {
       throw new Error(
         "OpenTUI native render library is not available in this environment. " +
           "Render-dependent tests cannot run. " +

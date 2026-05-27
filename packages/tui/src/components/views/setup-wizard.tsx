@@ -28,8 +28,6 @@ interface PrereqCheck {
   hint?: string;
 }
 
-type PrereqCategory = "tool" | "account" | "repository";
-
 interface PrereqGroup {
   label: string;
   checks: PrereqCheck[];

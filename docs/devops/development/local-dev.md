@@ -89,6 +89,58 @@ echo 'INTERNAL_KEY_BINDING="local_test_key"' >> workers/hoox/.dev.vars
 
 > **Tip:** If local tests fail with `Time-Stamp Expired` errors when calling exchange APIs, check that your local machine's NTP system clock is synchronized: `sudo ntpdate pool.ntp.org` (or check date/time settings on macOS/Windows)!
 
+---
+
+## 🏃 5. Shell Helpers: Running Commands Across All Workers
+
+The `scripts/helpers.sh` file provides a `wx()` function that runs any CLI command in every worker directory — useful for bulk operations like regenerating types, running typecheck, or installing dependencies.
+
+### Installation
+
+```bash
+# One-time install (adds to ~/.zshrc or ~/.bashrc)
+bash scripts/install.sh
+
+# Or source it manually in your current session
+source scripts/helpers.sh
+```
+
+### Usage
+
+```bash
+# Regenerate Wrangler types in every worker
+wx "wrangler types"
+
+# Run typecheck across all workers
+wx "pnpm run typecheck"
+
+# Inspect package names
+wx "cat package.json | jq .name"
+
+# List source files per worker
+wx "ls -la src/"
+```
+
+### Filtering
+
+Use `WX_FILTER` to target specific workers by glob pattern:
+
+```bash
+# Only wrangler-based workers (excludes dashboard, hoox)
+WX_FILTER='*-worker' wx "wrangler types"
+
+# Single worker
+WX_FILTER='trade-worker' wx "pnpm run typecheck"
+```
+
+### Custom Path
+
+Set `WX_WORKERS_DIR` if your workers live elsewhere:
+
+```bash
+WX_WORKERS_DIR=~/other-project/workers wx "some command"
+```
+
 ### 🔗 Next Steps
 
 - **[Testing Standards](testing.md)** — Run unit and integration tests using Bun's native test runner.

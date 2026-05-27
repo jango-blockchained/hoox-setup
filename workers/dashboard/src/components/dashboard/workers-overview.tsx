@@ -16,7 +16,6 @@ import {
   Brain,
   MessageSquare,
   Globe,
-  Home,
   Mail,
   RefreshCw,
   ChevronRight,

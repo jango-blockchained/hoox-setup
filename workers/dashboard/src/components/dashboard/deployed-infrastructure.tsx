@@ -9,14 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Server,
-  Layout,
-  Copy,
-  ExternalLink,
-  Zap,
-  CheckCircle2,
-} from "lucide-react";
+import { Server, Layout, Copy, ExternalLink, Zap } from "lucide-react";
 import { toast } from "sonner";
 import {
   CFServiceBadge,

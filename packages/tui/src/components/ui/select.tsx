@@ -13,6 +13,7 @@
 import { useState } from "react";
 import {
   type ConfirmContext,
+  type DialogId,
   useDialogKeyboard,
 } from "@opentui-ui/dialog/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
@@ -59,7 +60,7 @@ interface SelectListProps {
   highlightColor: string;
   resolve: (value: string | boolean) => void;
   dismiss: () => void;
-  dialogId: unknown;
+  dialogId: DialogId;
 }
 
 /**
@@ -79,24 +80,21 @@ function SelectList({
 }: SelectListProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useDialogKeyboard(
-    (key) => {
-      if (key.name === "down" || key.name === "j") {
-        setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
-      }
-      if (key.name === "up" || key.name === "k") {
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
-      }
-      if (key.name === "return") {
-        const selected = options[selectedIndex];
-        if (selected) resolve(selected.key);
-      }
-      if (key.name === "escape") {
-        dismiss();
-      }
-    },
-    dialogId as unknown as any
-  );
+  useDialogKeyboard((key) => {
+    if (key.name === "down" || key.name === "j") {
+      setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+    }
+    if (key.name === "up" || key.name === "k") {
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+    }
+    if (key.name === "return") {
+      const selected = options[selectedIndex];
+      if (selected) resolve(selected.key);
+    }
+    if (key.name === "escape") {
+      dismiss();
+    }
+  }, dialogId);
 
   return (
     <box flexDirection="column" gap={0}>

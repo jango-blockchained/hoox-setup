@@ -21,7 +21,6 @@ import {
   Pause,
   RotateCcw,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
 } from "lucide-react";
 

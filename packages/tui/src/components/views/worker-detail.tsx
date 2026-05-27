@@ -98,8 +98,6 @@ function BreadcrumbHeader({ worker }: { worker: Worker }) {
  * Metrics pane — key health and performance indicators.
  */
 function MetricsPane({ worker }: { worker: Worker }) {
-  const metrics = useServiceStore((s) => s.metrics);
-
   // Use WorkerInfo fields (cpu, memory, requests) for metrics display
   const cpuAvg = worker.cpu.toFixed(1);
   const cpuP99 = worker.cpu.toFixed(1);
@@ -177,7 +175,7 @@ function LogsPane({
   const [paused, setPaused] = useState(false);
 
   // Auto-scroll: track whether we're at the bottom
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [_autoScroll, setAutoScroll] = useState(true);
 
   // When not paused, always show newest entries
   useEffect(() => {
@@ -405,7 +403,7 @@ export function WorkerDetail() {
   // Live data state from CliBridge
   const [configEntries, setConfigEntries] = useState<DemoConfigEntry[]>([]);
   const [configLoading, setConfigLoading] = useState(false);
-  const [cliLogsLoading, setCliLogsLoading] = useState(false);
+  const [, setCliLogsLoading] = useState(false);
 
   // Store subscriptions (Pattern 2: selective selectors)
   const selectedWorkerId = useServiceStore((s) => s.selectedWorkerId);

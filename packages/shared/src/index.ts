@@ -78,6 +78,10 @@ export type {
   BatchStatement,
 } from "./d1/index";
 
+// ── Test utilities ─────────────────────────────────────────────────────────
+
+export * from "./test-utils";
+
 // ── New TUI shared exports ────────────────────────────────────────────────
 
 export { Colors } from "./colors";
