@@ -29,6 +29,7 @@
     "typecheck": "bun scripts/typecheck-all.ts",
     "typecheck:root": "tsc --noEmit",
     "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",
+    "graph": "bun scripts/extract-graph.ts",
     "generate-types": "tsc -p tsconfig.prod.json --declaration --emitDeclarationOnly --outDir types",
     "build-ignore-errors": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit || echo 'Build completed with TypeScript warnings'",
     "tui": "bun run --cwd packages/tui src/main.tsx",
@@ -69,6 +70,7 @@
     "prettier": "^3.8.3",
     "shadcn": "^4.7.0",
     "tailwindcss": "^4.3.0",
+    "ts-morph": "^28.0.0",
     "typedoc": "^0.28.19",
     "vite": "^8.0.14",
     "wrangler": "^4.95.0"

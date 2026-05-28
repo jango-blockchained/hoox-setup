@@ -16,7 +16,7 @@ import type {
 // Re-export types for convenience — consumers can import from "router.ts" as well
 export type { Handler, RouteParams } from "./types/router";
 
-export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
+export function createRouter<TEnv = any>(): Router<TEnv> {
   const routes: RouteDefinition<TEnv>[] = [];
 
   /**
@@ -159,13 +159,21 @@ export function createRouter<TEnv = Record<string, unknown>>(): Router<TEnv> {
       const match = matchRoute(path, method);
       if (!match) {
         // Check if path exists with a different method → 405
-        const pathExists = routes.some((r) => {
-          if (r.path === path) return true;
-          if (r.params && r.params.length > 0 && r.regex) {
-            return r.regex.test(path);
+        // Iterate backward (last-registered-wins) to match route matching semantics
+        let pathExists = false;
+        for (let i = routes.length - 1; i >= 0; i--) {
+          const r = routes[i];
+          if (r.path === path) {
+            pathExists = true;
+            break;
           }
-          return false;
-        });
+          if (r.params && r.params.length > 0 && r.regex) {
+            if (r.regex.test(path)) {
+              pathExists = true;
+              break;
+            }
+          }
+        }
         if (pathExists) {
           return new Response(
             JSON.stringify({

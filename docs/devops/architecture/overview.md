@@ -153,7 +153,71 @@ If the network drops after an order fill, TradingView will resend the webhook. T
 
 > **Tip:** Smart Placement is enabled across all critical execution paths. This ensures that even though your webhook might hit a Cloudflare edge node in London, the actual transaction logic automatically shifts to Frankfurt or Tokyo (wherever the exchange APIs reside), eliminating network slippage entirely.
 
+---
+
+## 📊 Codebase Dependency Graph
+
+Hoox ships with an automated **function-level dependency graph extractor** that maps every exported symbol, import, call, type reference, and service binding across all 917 source files and 14 workspaces.
+
+### Generating the Graph
+
+```bash
+# From repository root
+bun run graph
+```
+
+This runs `scripts/extract-graph.ts` (powered by **ts-morph**) and produces two files:
+
+| File         | Size   | Format                       | Purpose                                                     |
+| ------------ | ------ | ---------------------------- | ----------------------------------------------------------- |
+| `graph.json` | 2.5 MB | JSON (997 nodes, 5536 edges) | Machine-readable — AI context, programmatic queries         |
+| `graph.dot`  | 1.3 MB | Graphviz DOT (14 clusters)   | Visual rendering — workspace-clustered architecture diagram |
+
+### Node Types & Color Coding (DOT)
+
+| Shape       | Kind             | Example                     |
+| ----------- | ---------------- | --------------------------- |
+| `box`       | Function / Const | `executeTrade`, `CONFIG_KV` |
+| `note`      | Interface / Type | `TradeRequest`, `Env`       |
+| `component` | Class            | `IdempotencyDO`             |
+| `Mrecord`   | Enum             | `ExitCode`, `OrderStatus`   |
+| Penwidth=2  | Entry Point      | `main`, `export default`    |
+
+Entry points (top-level workspace exports) are highlighted with double borders.
+
+### Edge Color Legend
+
+| Color                    | Edge Kind        | Count |
+| ------------------------ | ---------------- | ----- |
+| 🔵 Blue `#4A90D9`        | Imports          | 2,524 |
+| 🟠 Orange `#FF9800`      | Type references  | 2,536 |
+| 🩷 Pink `#E91E63`        | Cross-file calls | 445   |
+| 🟢 Green `#4CAF50`       | Extends          | 7     |
+| 🌿 Light Green `#8BC34A` | Implements       | 2     |
+| 🟣 Purple `#673AB7`      | Service bindings | 11    |
+| 🌊 Cyan `#00BCD4`        | Workspace deps   | 11    |
+
+### Rendering to SVG
+
+```bash
+# Requires Graphviz installed
+dot -Tsvg graph.dot -o graph.svg
+
+# Or paste graph.dot into edotor.net / viz-js.com
+```
+
+### Key Extraction Rules
+
+- **Export-only nodes**: Only exported symbols appear in the graph (684 unexported symbols filtered out).
+- **Call edge fallback**: Method calls like `router.post` resolve via TypeChecker; when the symbol name (`post`) doesn't match a top-level export, the edge falls back to the target file's first container node.
+- **Self-reference filtering**: Calls within the same file are excluded.
+- **Deduplication**: Duplicate edges are collapsed into a single entry.
+- **Service bindings**: Parsed from each worker's `wrangler.jsonc` configuration.
+
+---
+
 ### 🔗 Next Steps
 
 - **[Worker Communication Specifications](communication.md)** — Deep dive into service bindings, zero-TCP routing, and V8 engines.
 - **[Data Flow Maps](data-flow.md)** — Step-by-step sequence charts of trade executions and cron risk evaluations.
+- **[Codebase Dependency Graph](overview.md#-codebase-dependency-graph)** — Generate a live architecture map of all exports, calls, and bindings.

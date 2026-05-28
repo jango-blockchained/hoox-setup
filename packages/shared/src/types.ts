@@ -174,7 +174,6 @@ export interface BaseEnv {
   ANALYTICS_SERVICE?: Fetcher;
   /** Optional KV namespace for configuration */
   CONFIG_KV?: KVNamespace;
-  [key: string]: unknown;
 }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };

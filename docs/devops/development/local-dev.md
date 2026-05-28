@@ -141,6 +141,39 @@ Set `WX_WORKERS_DIR` if your workers live elsewhere:
 WX_WORKERS_DIR=~/other-project/workers wx "some command"
 ```
 
+---
+
+## 🕸️ 6. Codebase Dependency Graph
+
+Hoox includes a **function-level dependency graph extractor** that maps all exported symbols, imports, calls, type references, and service bindings across the entire monorepo.
+
+```bash
+# Regenerate graph.json and graph.dot
+bun run graph
+```
+
+This runs `scripts/extract-graph.ts` (ts-morph) and scans 917 source files across all 14 workspaces.
+
+### Outputs
+
+| File         | Contents                                                   |
+| ------------ | ---------------------------------------------------------- |
+| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph        |
+| `graph.dot`  | Graphviz DOT with 14 workspace clusters, color-coded edges |
+
+### Quick Render
+
+```bash
+# Install Graphviz if missing
+# macOS: brew install graphviz
+# Ubuntu: sudo apt install graphviz
+
+# Render to SVG
+dot -Tsvg graph.dot -o graph.svg && open graph.svg
+```
+
+> **Tip:** Use `graph.json` as AI/LLM context for codebase-aware queries, or paste `graph.dot` into [Edotor](https://edotor.net/) for instant browser visualization without installing Graphviz.
+
 ### 🔗 Next Steps
 
 - **[Testing Standards](testing.md)** — Run unit and integration tests using Bun's native test runner.

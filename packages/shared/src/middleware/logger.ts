@@ -53,7 +53,7 @@ export function createLogger(ctx: LogContext): Logger {
   };
 }
 
-export function withRequestLog<E extends Record<string, unknown>>(
+export function withRequestLog<E>(
   handler: (
     request: Request,
     env: E,

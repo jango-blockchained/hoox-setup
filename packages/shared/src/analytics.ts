@@ -9,7 +9,6 @@
  */
 export interface AnalyticsEnv {
   ANALYTICS_SERVICE?: Fetcher;
-  [key: string]: unknown;
 }
 
 /**

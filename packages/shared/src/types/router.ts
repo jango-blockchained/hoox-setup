@@ -5,14 +5,14 @@
 
 export type RouteParams = Record<string, string>;
 
-export type Handler<TEnv = Record<string, unknown>> = (
+export type Handler<TEnv = any> = (
   request: Request,
   env: TEnv,
   ctx: ExecutionContext,
   params?: RouteParams
 ) => Promise<Response | void>;
 
-export interface RouteDefinition<TEnv = Record<string, unknown>> {
+export interface RouteDefinition<TEnv = any> {
   path: string;
   method: string;
   handler: Handler<TEnv>;
@@ -21,7 +21,7 @@ export interface RouteDefinition<TEnv = Record<string, unknown>> {
   regex?: RegExp;
 }
 
-export interface Router<TEnv = Record<string, unknown>> {
+export interface Router<TEnv = any> {
   get(path: string, handler: Handler<TEnv>, middleware?: Handler<TEnv>[]): void;
   post(
     path: string,
