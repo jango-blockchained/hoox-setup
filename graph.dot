@@ -1,12 +1,36 @@
 digraph Hoox {
   rankdir=LR;
-  splines=ortho;
+  splines=polyline;
   compound=true;
   newrank=true;
 
   // Node defaults
   node [shape=box, style=rounded, fontname="monospace", fontsize=10];
   edge [fontname="monospace", fontsize=8, arrowsize=0.6];
+
+  subgraph cluster_infrastructure {
+    label="infrastructure";
+    style=filled;
+    fillcolor="#f5f5f5";
+    color="#9e9e9e";
+    fontcolor="#212121";
+    fontsize=12;
+    fontname="monospace";
+
+    "infra:d1:trade-data-db" [label="trade-data-db (D1)", shape=box];
+    "infra:r2:trade-reports" [label="trade-reports (R2)", shape=box];
+    "infra:r2:hoox-system-logs" [label="hoox-system-logs (R2)", shape=box];
+    "infra:r2:user-uploads" [label="user-uploads (R2)", shape=box];
+    "infra:kv:CONFIG_KV" [label="CONFIG_KV", shape=box];
+    "infra:kv:SESSIONS_KV" [label="SESSIONS_KV", shape=box];
+    "infra:kv:NEXT_INC_CACHE_KV" [label="NEXT_INC_CACHE_KV", shape=box];
+    "infra:queue:trade-execution" [label="trade-execution (Queue)", shape=box];
+    "infra:do:IDEMPOTENCY_STORE" [label="IdempotencyStore (Durable Object)", shape=box];
+    "infra:ai:WORKERS_AI" [label="Workers AI", shape=box];
+    "infra:vectorize:my-rag-index" [label="my-rag-index (Vectorize)", shape=box];
+    "infra:analytics:hoox-analytics" [label="hoox-analytics (Analytics Engine)", shape=box];
+    "infra:browser:REPORT_RENDERER" [label="Browser Rendering", shape=box];
+  }
 
   subgraph cluster_packages_cli {
     label="packages/cli";
@@ -1160,6 +1184,31 @@ digraph Hoox {
   "workspace:workers/trade-worker" [label="workers/trade-worker", shape=folder, style="filled,rounded", fillcolor="#f1f8e9", color="#8BC34A", fontcolor="#33691e", fontsize=11, penwidth=2];
   "workspace:workers/web3-wallet-worker" [label="workers/web3-wallet-worker", shape=folder, style="filled,rounded", fillcolor="#ede7f6", color="#673AB7", fontcolor="#311b92", fontsize=11, penwidth=2];
   "workspace:pages/docs" [label="pages/docs", shape=folder, style="filled,rounded", fillcolor="#fff8e1", color="#FFB300", fontcolor="#4a3c00", fontsize=11, penwidth=2];
+
+  // Infrastructure cluster
+  subgraph cluster_infrastructure {
+    label="Cloudflare Infrastructure";
+    style=filled;
+    fillcolor="#fff3e0";
+    color="#FF9800";
+    fontcolor="#e65100";
+    fontsize=12;
+    fontname="monospace";
+
+    "infra:d1:trade-data-db" [label="trade-data-db (D1)", shape=cylinder, style="filled", fillcolor="#e0f7fa", color="#00ACC1", fontcolor="#004d5c"];
+    "infra:r2:trade-reports" [label="trade-reports (R2)", shape=folder, style="filled", fillcolor="#fce4ec", color="#E91E63", fontcolor="#880e4f"];
+    "infra:r2:hoox-system-logs" [label="hoox-system-logs (R2)", shape=folder, style="filled", fillcolor="#fce4ec", color="#E91E63", fontcolor="#880e4f"];
+    "infra:r2:user-uploads" [label="user-uploads (R2)", shape=folder, style="filled", fillcolor="#fce4ec", color="#E91E63", fontcolor="#880e4f"];
+    "infra:kv:CONFIG_KV" [label="CONFIG_KV", shape=note, style="filled", fillcolor="#e8f5e9", color="#4CAF50", fontcolor="#1b5e20"];
+    "infra:kv:SESSIONS_KV" [label="SESSIONS_KV", shape=note, style="filled", fillcolor="#e8f5e9", color="#4CAF50", fontcolor="#1b5e20"];
+    "infra:kv:NEXT_INC_CACHE_KV" [label="NEXT_INC_CACHE_KV", shape=note, style="filled", fillcolor="#e8f5e9", color="#4CAF50", fontcolor="#1b5e20"];
+    "infra:queue:trade-execution" [label="trade-execution (Queue)", shape=box3d, style="filled", fillcolor="#e3f2fd", color="#2196F3", fontcolor="#0d47a1"];
+    "infra:do:IDEMPOTENCY_STORE" [label="IdempotencyStore (Durable Object)", shape=diamond, style="filled", fillcolor="#ede7f6", color="#673AB7", fontcolor="#311b92"];
+    "infra:ai:WORKERS_AI" [label="Workers AI", shape=hexagon, style="filled", fillcolor="#e0f2f1", color="#009688", fontcolor="#004d40"];
+    "infra:vectorize:my-rag-index" [label="my-rag-index (Vectorize)", shape=hexagon, style="filled", fillcolor="#e0f2f1", color="#009688", fontcolor="#004d40"];
+    "infra:analytics:hoox-analytics" [label="hoox-analytics (Analytics Engine)", shape=box3d, style="filled", fillcolor="#fff3e0", color="#FF9800", fontcolor="#e65100"];
+    "infra:browser:REPORT_RENDERER" [label="Browser Rendering", shape=box, style="filled", fillcolor="#efebe9", color="#795548", fontcolor="#3e2723"];
+  }
 
   // Edges
   "packages/cli:packages/cli/src/index.ts:main" -> "packages/shared:packages/shared/src/index.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
@@ -6698,4 +6747,44 @@ digraph Hoox {
   "workspace:workers/telegram-worker" -> "workspace:packages/shared" [style=solid, color="#00BCD4", arrowhead=normal, label="@jango-blockchained/hoox-shared"];
   "workspace:workers/trade-worker" -> "workspace:packages/shared" [style=solid, color="#00BCD4", arrowhead=normal, label="@jango-blockchained/hoox-shared"];
   "workspace:workers/web3-wallet-worker" -> "workspace:packages/shared" [style=solid, color="#00BCD4", arrowhead=normal, label="@jango-blockchained/hoox-shared"];
+  "workspace:workers/d1-worker" -> "infra:d1:trade-data-db" [style=bold, color="#FF5722", arrowhead=normal, label="DB"];
+  "workspace:workers/trade-worker" -> "infra:d1:trade-data-db" [style=bold, color="#FF5722", arrowhead=normal, label="DB"];
+  "workspace:workers/agent-worker" -> "infra:d1:trade-data-db" [style=bold, color="#FF5722", arrowhead=normal, label="DB"];
+  "workspace:workers/trade-worker" -> "infra:r2:trade-reports" [style=bold, color="#FF5722", arrowhead=normal, label="REPORTS_BUCKET"];
+  "workspace:workers/report-worker" -> "infra:r2:trade-reports" [style=bold, color="#FF5722", arrowhead=normal, label="REPORTS_BUCKET"];
+  "workspace:workers/trade-worker" -> "infra:r2:hoox-system-logs" [style=bold, color="#FF5722", arrowhead=normal, label="SYSTEM_LOGS_BUCKET"];
+  "workspace:workers/telegram-worker" -> "infra:r2:user-uploads" [style=bold, color="#FF5722", arrowhead=normal, label="UPLOADS_BUCKET"];
+  "workspace:workers/hoox" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/d1-worker" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/trade-worker" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/agent-worker" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/telegram-worker" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/email-worker" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/dashboard" -> "infra:kv:CONFIG_KV" [style=bold, color="#FF5722", arrowhead=normal, label="CONFIG_KV"];
+  "workspace:workers/hoox" -> "infra:kv:SESSIONS_KV" [style=bold, color="#FF5722", arrowhead=normal, label="SESSIONS_KV"];
+  "workspace:workers/dashboard" -> "infra:kv:NEXT_INC_CACHE_KV" [style=bold, color="#FF5722", arrowhead=normal, label="NEXT_INC_CACHE_KV"];
+  "workspace:workers/hoox" -> "infra:do:IDEMPOTENCY_STORE" [style=bold, color="#FF5722", arrowhead=normal, label="IDEMPOTENCY_STORE"];
+  "workspace:workers/hoox" -> "infra:ai:WORKERS_AI" [style=bold, color="#FF5722", arrowhead=normal, label="AI"];
+  "workspace:workers/agent-worker" -> "infra:ai:WORKERS_AI" [style=bold, color="#FF5722", arrowhead=normal, label="AI"];
+  "workspace:workers/telegram-worker" -> "infra:ai:WORKERS_AI" [style=bold, color="#FF5722", arrowhead=normal, label="AI"];
+  "workspace:workers/hoox" -> "infra:vectorize:my-rag-index" [style=bold, color="#FF5722", arrowhead=normal, label="VECTORIZE_INDEX"];
+  "workspace:workers/telegram-worker" -> "infra:vectorize:my-rag-index" [style=bold, color="#FF5722", arrowhead=normal, label="VECTORIZE_INDEX"];
+  "workspace:workers/analytics-worker" -> "infra:analytics:hoox-analytics" [style=bold, color="#FF5722", arrowhead=normal, label="ANALYTICS_ENGINE"];
+  "workspace:workers/report-worker" -> "infra:browser:REPORT_RENDERER" [style=bold, color="#FF5722", arrowhead=normal, label="BROWSER"];
+  "workspace:workers/hoox" -> "workspace:workers/trade-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="signal-ingestion"];
+  "workspace:workers/trade-worker" -> "workspace:workers/d1-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="trade-persistence"];
+  "workspace:workers/trade-worker" -> "workspace:workers/telegram-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="notification"];
+  "workspace:workers/trade-worker" -> "workspace:workers/analytics-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="analytics"];
+  "workspace:workers/agent-worker" -> "workspace:workers/d1-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="position-read"];
+  "workspace:workers/agent-worker" -> "workspace:workers/trade-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="risk-adjustment"];
+  "workspace:workers/agent-worker" -> "workspace:workers/telegram-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="notification"];
+  "workspace:workers/email-worker" -> "workspace:workers/trade-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="signal-ingestion"];
+  "workspace:workers/email-worker" -> "workspace:workers/analytics-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="analytics"];
+  "workspace:workers/d1-worker" -> "workspace:workers/analytics-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="analytics"];
+  "workspace:workers/telegram-worker" -> "workspace:workers/analytics-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="analytics"];
+  "workspace:workers/web3-wallet-worker" -> "workspace:workers/telegram-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="notification"];
+  "workspace:workers/web3-wallet-worker" -> "workspace:workers/analytics-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="analytics"];
+  "workspace:workers/report-worker" -> "workspace:workers/telegram-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="notification"];
+  "workspace:workers/dashboard" -> "workspace:workers/d1-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="dashboard-read"];
+  "workspace:workers/dashboard" -> "workspace:workers/agent-worker" [style=dashed, color="#4CAF50", arrowhead=vee, label="dashboard-status"];
 }

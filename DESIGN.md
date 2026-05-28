@@ -453,3 +453,34 @@ report-worker  → telegram-worker
 dashboard      → d1-worker, agent-worker
 web3-wallet-worker → telegram-worker, analytics-worker
 ```
+
+## 11. Code Graph (AI/LLM Context)
+
+The repository includes a machine-readable code graph for AI/LLM consumption:
+
+- **`graph-metadata.json`** (44KB) — Load fully into context. Human-authored semantic descriptions for workers, infrastructure, data flows, and communities.
+- **`graph.json`** (2.5MB) — Query/search with `bun`, `jq`, or `grep`. Contains nodes (types, functions, classes, workers, infrastructure) and edges (imports, calls, service bindings, data flows). Each worker node includes `llmContext` with natural language descriptions.
+- **`graph.dot`** (1.3MB) — Render-only with Graphviz (`dot -Tsvg graph.dot -o graph.svg`). Not for agent consumption.
+
+**Regenerate:**
+
+```bash
+bun run graph    # Runs scripts/extract-graph.ts (~25s)
+```
+
+**Agent query patterns:**
+```bash
+# Get a worker's llmContext
+bun -e "console.log(require('./graph.json').nodes.find(n=>n.id==='workspace:workers/hoox').llmContext)"
+
+# List all workers with entry points
+bun -e "require('./graph.json').nodes.filter(n=>n.kind==='worker').forEach(w=>console.log(w.label,'→',w.entryPoint))"
+
+# Find data flows from a worker
+bun -e "const g=require('./graph.json'); g.edges.filter(e=>e.source==='workspace:workers/hoox'&&e.kind==='data-flow').forEach(e=>console.log(e.description))"
+```
+
+The graph has three layers:
+1. **Code layer** — TypeScript exports, imports, calls, references (auto-extracted from AST)
+2. **Architecture layer** — Worker nodes with descriptions, infrastructure nodes (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering), service binding edges, data flow edges
+3. **Community groups** — Logical clusters: workers, packages, infrastructure, signal-pipeline, ai-system

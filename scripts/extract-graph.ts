@@ -31,7 +31,8 @@ type NodeKind =
   | "enum"
   | "variable"
   | "worker"
-  | "package";
+  | "package"
+  | "infrastructure";
 
 type EdgeKind =
   | "imports"
@@ -40,7 +41,9 @@ type EdgeKind =
   | "implements"
   | "references"
   | "service-binding"
-  | "workspace-dep";
+  | "workspace-dep"
+  | "infra-binding"
+  | "data-flow";
 
 interface GraphNode {
   id: string;
@@ -50,6 +53,16 @@ interface GraphNode {
   workspace: string;
   exports: string[];
   isEntryPoint?: boolean;
+  // Architecture layer fields (added by enhanceWithArchitectureLayer)
+  description?: string;
+  category?: string;
+  tags?: string[];
+  llmContext?: string;
+  cron?: string | null;
+  isPublic?: boolean;
+  smartPlacement?: boolean;
+  entryPoint?: string;
+  bindingName?: string;
 }
 
 interface GraphEdge {
@@ -58,6 +71,7 @@ interface GraphEdge {
   target: string;
   kind: EdgeKind;
   label?: string;
+  description?: string;
 }
 
 interface Graph {
@@ -223,9 +237,52 @@ function escapeDOTId(id: string): string {
   return `"${id.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 
+// ─── Progress Bar ─────────────────────────────────────────────────────────
+
+class ProgressBar {
+  private total: number;
+  private current: number;
+  private phaseStart: number;
+  private totalStart: number;
+
+  constructor(total: number) {
+    this.total = total;
+    this.current = 0;
+    this.phaseStart = performance.now();
+    this.totalStart = performance.now();
+  }
+
+  tick(_label: string): void {
+    this.current++;
+    const pct = Math.min(100, Math.round((this.current / this.total) * 100));
+    const elapsed = ((performance.now() - this.phaseStart) / 1000).toFixed(1);
+    const barWidth = 20;
+    const filled = Math.floor((pct / 100) * barWidth);
+    const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
+    process.stderr.write(
+      `\r  [${bar}] ${pct.toString().padStart(2)}%  ${_label.padEnd(32)} ${elapsed.padStart(6)}s`
+    );
+    this.phaseStart = performance.now();
+  }
+
+  finish(): void {
+    const total = ((performance.now() - this.totalStart) / 1000).toFixed(1);
+    process.stderr.write(
+      `\r  [${"█".repeat(20)}] 100%  Done${" ".repeat(28)}${total.padStart(6)}s\n`
+    );
+  }
+
+  totalTime(): string {
+    return ((performance.now() - this.totalStart) / 1000).toFixed(1);
+  }
+}
+
 // ─── AST Graph Extraction ────────────────────────────────────────────────
 
-function extractGraph(workspaces: WorkspaceInfo[]): Graph {
+function extractGraph(
+  workspaces: WorkspaceInfo[],
+  progress?: ProgressBar
+): Graph {
   const graph: Graph = {
     metadata: {
       generatedAt: new Date().toISOString(),
@@ -382,7 +439,7 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(`  Found ${nodeCount} exported declarations`);
+  progress?.tick(`exports: ${nodeCount} nodes`);
 
   // ─── Step 2: Extract import edges ──────────────────────────────────
 
@@ -488,7 +545,7 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(`  Found ${graph.metadata.edgeKinds.imports || 0} import edges`);
+  progress?.tick(`imports: ${graph.metadata.edgeKinds.imports || 0} edges`);
 
   // ─── Step 3: Extract extends/implements edges ──────────────────────
 
@@ -591,8 +648,8 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(
-    `  Found ${(graph.metadata.edgeKinds.extends || 0) + (graph.metadata.edgeKinds.implements || 0)} extends/implements edges`
+  progress?.tick(
+    `extends/implements: ${(graph.metadata.edgeKinds.extends || 0) + (graph.metadata.edgeKinds.implements || 0)} edges`
   );
 
   // ─── Step 4: Type reference edges ──────────────────────────────────
@@ -637,8 +694,8 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(
-    `  Found ${graph.metadata.edgeKinds.references || 0} type reference edges`
+  progress?.tick(
+    `type refs: ${graph.metadata.edgeKinds.references || 0} edges`
   );
 
   // ─── Step 5: Cross-file call expression edges ──────────────────────
@@ -743,7 +800,7 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
 
   graph.metadata.edgeKinds.calls =
     (graph.metadata.edgeKinds.calls || 0) + callEdgeCount;
-  console.log(`  Found ${callEdgeCount} call expression edges`);
+  progress?.tick(`calls: ${callEdgeCount} edges`);
 
   // ─── Step 6: Service binding edges from wrangler.jsonc ─────────────
 
@@ -810,8 +867,8 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(
-    `  Found ${graph.metadata.edgeKinds["service-binding"] || 0} service binding edges`
+  progress?.tick(
+    `service bindings: ${graph.metadata.edgeKinds["service-binding"] || 0} edges`
   );
 
   // ─── Step 7: Workspace dependency edges from package.json ──────────
@@ -855,8 +912,8 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
     }
   }
 
-  console.log(
-    `  Found ${graph.metadata.edgeKinds["workspace-dep"] || 0} workspace dependency edges`
+  progress?.tick(
+    `workspace deps: ${graph.metadata.edgeKinds["workspace-dep"] || 0} edges`
   );
 
   // ─── Step 8: Filter isolated nodes ─────────────────────────────────
@@ -891,10 +948,9 @@ function extractGraph(workspaces: WorkspaceInfo[]): Graph {
   graph.metadata.totalNodes = filteredNodes.length;
   graph.metadata.totalEdges = graph.edges.length;
 
-  console.log(
-    `  ${filteredNodes.length} nodes kept (${isolatedCount} isolated exports filtered out)`
+  progress?.tick(
+    `filtered: ${filteredNodes.length} nodes, ${graph.edges.length} edges`
   );
-  console.log(`  ${graph.edges.length} total edges`);
 
   return graph;
 }
@@ -1085,7 +1141,7 @@ function writeDOT(graph: Graph): void {
 
   lines.push("digraph Hoox {");
   lines.push("  rankdir=LR;");
-  lines.push("  splines=ortho;");
+  lines.push("  splines=polyline;");
   lines.push("  compound=true;");
   lines.push("  newrank=true;");
   lines.push("");
@@ -1188,6 +1244,111 @@ function writeDOT(graph: Graph): void {
     lines.push("");
   }
 
+  // Write infrastructure cluster
+  const infraNodes = graph.nodes.filter((n) => n.kind === "infrastructure");
+  if (infraNodes.length > 0) {
+    lines.push("  // Infrastructure cluster");
+    lines.push("  subgraph cluster_infrastructure {");
+    lines.push('    label="Cloudflare Infrastructure";');
+    lines.push("    style=filled;");
+    lines.push('    fillcolor="#fff3e0";');
+    lines.push('    color="#FF9800";');
+    lines.push('    fontcolor="#e65100";');
+    lines.push("    fontsize=12;");
+    lines.push('    fontname="monospace";');
+    lines.push("");
+
+    const infraCategories: Record<
+      string,
+      { fill: string; border: string; font: string; shape: string }
+    > = {
+      database: {
+        fill: "#e0f7fa",
+        border: "#00ACC1",
+        font: "#004d5c",
+        shape: "cylinder",
+      },
+      storage: {
+        fill: "#fce4ec",
+        border: "#E91E63",
+        font: "#880e4f",
+        shape: "folder",
+      },
+      config: {
+        fill: "#e8f5e9",
+        border: "#4CAF50",
+        font: "#1b5e20",
+        shape: "note",
+      },
+      session: {
+        fill: "#e8f5e9",
+        border: "#4CAF50",
+        font: "#1b5e20",
+        shape: "note",
+      },
+      cache: {
+        fill: "#e8f5e9",
+        border: "#4CAF50",
+        font: "#1b5e20",
+        shape: "note",
+      },
+      queue: {
+        fill: "#e3f2fd",
+        border: "#2196F3",
+        font: "#0d47a1",
+        shape: "box3d",
+      },
+      coordination: {
+        fill: "#ede7f6",
+        border: "#673AB7",
+        font: "#311b92",
+        shape: "diamond",
+      },
+      ai: {
+        fill: "#e0f2f1",
+        border: "#009688",
+        font: "#004d40",
+        shape: "hexagon",
+      },
+      search: {
+        fill: "#e0f2f1",
+        border: "#009688",
+        font: "#004d40",
+        shape: "hexagon",
+      },
+      analytics: {
+        fill: "#fff3e0",
+        border: "#FF9800",
+        font: "#e65100",
+        shape: "box3d",
+      },
+      rendering: {
+        fill: "#efebe9",
+        border: "#795548",
+        font: "#3e2723",
+        shape: "box",
+      },
+    };
+
+    for (const node of infraNodes) {
+      const cat =
+        (node as GraphNode & { category?: string }).category || "other";
+      const colors = infraCategories[cat] || {
+        fill: "#f5f5f5",
+        border: "#9e9e9e",
+        font: "#212121",
+        shape: "box",
+      };
+      const escapedId = escapeDOTId(node.id);
+      lines.push(
+        `    ${escapedId} [label=${escapeDOTId(node.label)}, shape=${colors.shape}, style="filled", fillcolor="${colors.fill}", color="${colors.border}", fontcolor="${colors.font}"];`
+      );
+    }
+
+    lines.push("  }");
+    lines.push("");
+  }
+
   // Write edges
   lines.push("  // Edges");
   for (const edge of graph.edges) {
@@ -1233,6 +1394,16 @@ function writeDOT(graph: Graph): void {
         color = "#00BCD4";
         arrowhead = "normal";
         break;
+      case "infra-binding":
+        style = "bold";
+        color = "#FF5722";
+        arrowhead = "normal";
+        break;
+      case "data-flow":
+        style = "dashed";
+        color = "#4CAF50";
+        arrowhead = "vee";
+        break;
     }
 
     const labelAttr = edge.label ? `, label=${escapeDOTId(edge.label)}` : "";
@@ -1246,6 +1417,211 @@ function writeDOT(graph: Graph): void {
   writeFileSync(OUTPUT_DOT, lines.join("\n"), "utf-8");
   console.log(`📄 Wrote ${OUTPUT_DOT}`);
   console.log(`   ${graph.edges.length} edge statements`);
+}
+
+// ─── Architecture Layer Enhancement ──────────────────────────────────────
+
+interface ArchitectureMetadata {
+  workers: Record<
+    string,
+    {
+      description: string;
+      category: string;
+      tags: string[];
+      llmContext: string;
+      cron: string | null;
+      isPublic: boolean;
+      smartPlacement: boolean;
+      entryPoints: string[];
+    }
+  >;
+  infrastructure: Record<
+    string,
+    {
+      id: string;
+      label: string;
+      kind: string;
+      category: string;
+      description: string;
+      tags: string[];
+      llmContext: string;
+      bindingName: string;
+      usedBy?: string[];
+      producer?: string;
+      consumer?: string;
+      className?: string;
+    }
+  >;
+  dataFlows: Array<{
+    source: string;
+    target: string;
+    description: string;
+    flowType: string;
+  }>;
+  communities: Array<{
+    id: string;
+    label: string;
+    description: string;
+    nodeIds: string[];
+  }>;
+}
+
+function enhanceWithArchitectureLayer(graph: Graph): Graph {
+  const metadataPath = join(ROOT, "graph-metadata.json");
+  if (!existsSync(metadataPath)) {
+    console.log(
+      "  ⚠️  No graph-metadata.json found, skipping architecture layer"
+    );
+    return graph;
+  }
+
+  console.log("🏗️  Enhancing graph with architecture layer...");
+  const archData: ArchitectureMetadata = JSON.parse(
+    readFileSync(metadataPath, "utf-8")
+  );
+
+  // 1. Enhance worker nodes with semantic metadata
+  for (const node of graph.nodes) {
+    if (node.kind !== "worker") continue;
+    const wsPath = node.filePath; // e.g., "workers/hoox"
+    const workerMeta = archData.workers[wsPath];
+    if (!workerMeta) continue;
+
+    node.description = workerMeta.description;
+    node.category = workerMeta.category;
+    node.tags = workerMeta.tags;
+    node.llmContext = workerMeta.llmContext;
+    node.cron = workerMeta.cron;
+    node.isPublic = workerMeta.isPublic;
+    node.smartPlacement = workerMeta.smartPlacement;
+    node.entryPoint = workerMeta.entryPoints.join(", ");
+  }
+
+  // 2. Add infrastructure nodes
+  for (const [key, infra] of Object.entries(archData.infrastructure)) {
+    const infraNode: GraphNode & Record<string, unknown> = {
+      id: infra.id,
+      label: infra.label,
+      kind: "infrastructure" as NodeKind,
+      filePath: `infrastructure/${key}`,
+      workspace: "infrastructure",
+      exports: [],
+      description: infra.description,
+      category: infra.category,
+      tags: infra.tags,
+      llmContext: infra.llmContext,
+      bindingName: infra.bindingName,
+    };
+    graph.nodes.push(infraNode);
+    graph.metadata.nodeKinds["infrastructure"] =
+      (graph.metadata.nodeKinds["infrastructure"] || 0) + 1;
+  }
+
+  // 3. Add infrastructure binding edges
+  for (const [key, infra] of Object.entries(archData.infrastructure)) {
+    const usedBy = infra.usedBy || [];
+    for (const workerPath of usedBy) {
+      const sourceNodeId = `workspace:${workerPath}`;
+      const targetNodeId = infra.id;
+      const role = infra.producer
+        ? "producer"
+        : infra.consumer
+          ? "consumer"
+          : undefined;
+      const edgeId = `infra-binding:${workerPath}->${key}`;
+
+      const edge: GraphEdge & Record<string, unknown> = {
+        id: edgeId,
+        source: sourceNodeId,
+        target: targetNodeId,
+        kind: "infra-binding" as EdgeKind,
+        label: infra.bindingName,
+        description: infra.description,
+        bindingName: infra.bindingName,
+      };
+      if (role) edge.role = role;
+
+      graph.edges.push(edge);
+      graph.metadata.edgeKinds["infra-binding"] =
+        (graph.metadata.edgeKinds["infra-binding"] || 0) + 1;
+    }
+  }
+
+  // 4. Add data flow edges
+  for (const flow of archData.dataFlows) {
+    const sourceNodeId = `workspace:${flow.source}`;
+    const targetNodeId = `workspace:${flow.target}`;
+    const edgeId = `data-flow:${flow.source}->${flow.target}`;
+
+    const edge: GraphEdge & Record<string, unknown> = {
+      id: edgeId,
+      source: sourceNodeId,
+      target: targetNodeId,
+      kind: "data-flow" as EdgeKind,
+      label: flow.flowType,
+      description: flow.description,
+      flowType: flow.flowType,
+    };
+
+    graph.edges.push(edge);
+    graph.metadata.edgeKinds["data-flow"] =
+      (graph.metadata.edgeKinds["data-flow"] || 0) + 1;
+  }
+
+  // 5. Add communities
+  (graph as Graph & { communities?: unknown[] }).communities =
+    archData.communities;
+
+  // 6. Add architecture layer metadata
+  (graph.metadata as Record<string, unknown>).architectureLayer = {
+    version: "1.0.0",
+    description:
+      "Architecture-level graph data for AI/LLM consumption. Includes worker nodes with semantic metadata, infrastructure nodes, service binding edges, data flow edges, and community groups.",
+    llmUsageGuide:
+      "Use this graph to understand the Hoox trading system architecture. Worker nodes have 'llmContext' fields with natural language descriptions. Infrastructure nodes describe bindings. Data flow edges show how signals move through the system. Community groups cluster related nodes.",
+    edgeTypes: {
+      imports: "Code-level import dependency",
+      extends: "TypeScript class/interface extension",
+      implements: "TypeScript interface implementation",
+      references: "Code-level reference/usage",
+      calls: "Code-level function call",
+      "service-binding": "Cloudflare Service Binding (inter-worker RPC)",
+      "workspace-dep": "Monorepo workspace dependency",
+      "infra-binding":
+        "Cloudflare infrastructure binding (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)",
+      "data-flow":
+        "Logical data flow between workers (signal processing pipeline)",
+    },
+    nodeTypes: {
+      type: "TypeScript type alias",
+      interface: "TypeScript interface",
+      const: "TypeScript const declaration",
+      function: "TypeScript function",
+      class: "TypeScript class",
+      enum: "TypeScript enum",
+      package: "Monorepo package",
+      worker: "Cloudflare Worker service",
+      infrastructure:
+        "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)",
+    },
+  };
+
+  // Update counts
+  graph.metadata.totalNodes = graph.nodes.length;
+  graph.metadata.totalEdges = graph.edges.length;
+  (graph.metadata as Record<string, unknown>).enhancedAt =
+    new Date().toISOString();
+
+  console.log(
+    `  ✅ Added ${Object.keys(archData.infrastructure).length} infrastructure nodes`
+  );
+  console.log(`  ✅ Added ${archData.dataFlows.length} data flow edges`);
+  console.log(`  ✅ Added ${archData.communities.length} community groups`);
+  console.log(
+    `  ✅ Enhanced ${Object.keys(archData.workers).length} worker nodes with semantic metadata`
+  );
+
+  return graph;
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────
@@ -1266,25 +1642,33 @@ async function main() {
   }
   console.log("");
 
-  const graph = extractGraph(workspaces);
+  const progress = new ProgressBar(8);
+  const graph = extractGraph(workspaces, progress);
+  progress.finish();
+
+  // Enhance with architecture layer (workers, infrastructure, data flows, communities)
+  const enhancedGraph = enhanceWithArchitectureLayer(graph);
+
+  const totalTime = progress.totalTime();
 
   console.log("\n📊 Writing output files...");
-  writeJSON(graph);
-  writeDOT(graph);
+  writeJSON(enhancedGraph);
+  writeDOT(enhancedGraph);
 
   // Summary
   console.log("\n📈 Summary:");
-  const kindBreakdown = Object.entries(graph.metadata.nodeKinds)
+  const kindBreakdown = Object.entries(enhancedGraph.metadata.nodeKinds)
     .sort(([, a], [, b]) => b - a)
     .map(([k, v]) => `      ${k}: ${v}`)
     .join("\n");
   console.log(`   Nodes by kind:\n${kindBreakdown}`);
-  const edgeBreakdown = Object.entries(graph.metadata.edgeKinds)
+  const edgeBreakdown = Object.entries(enhancedGraph.metadata.edgeKinds)
     .sort(([, a], [, b]) => b - a)
     .map(([k, v]) => `      ${k}: ${v}`)
     .join("\n");
   console.log(`   Edges by kind:\n${edgeBreakdown}`);
 
+  console.log(`\n⏱  Total time: ${totalTime}s`);
   console.log("\n✅ Graph extraction complete!");
   console.log(`   → ${OUTPUT_JSON}`);
   console.log(`   → ${OUTPUT_DOT}`);

@@ -269,7 +269,39 @@ analytics-worker → (called by 6 workers, no outbound bindings)
 ## Project Files
 
 - AGENTS.md - Full system documentation
+- DESIGN.md - Product & technical design (architecture, DDL, UI/UX rules)
+- SKILL.md - This file: AI agent skill definitions
 - `workers/*/src/index.ts` - Worker entry points
 - `workers/*/wrangler.jsonc` - Worker configuration
 - `workers/trade-worker/schema.sql` - Database schema
 - `.opencode/` - Central project-knowledge hub (context, plans, specs, tasks, skills, sessions)
+- `graph.json` - Machine-readable code graph for AI/LLM consumption (nodes, edges, communities, llmContext)
+- `graph.dot` - Visual DOT graph for Graphviz rendering
+- `graph-metadata.json` - Human-authored semantic metadata (worker descriptions, infrastructure bindings, data flows)
+
+## Code Graph (AI/LLM Context)
+
+The `graph.json` file provides a structured map of the entire codebase for AI agents. **Do NOT load it fully (2.5MB) — query it:**
+
+```bash
+# Get worker llmContext
+bun -e "console.log(require('./graph.json').nodes.find(n=>n.id==='workspace:workers/hoox').llmContext)"
+
+# Get all worker entry points  
+bun -e "const g=require('./graph.json'); g.nodes.filter(n=>n.kind==='worker').forEach(w=>console.log(w.entryPoint))"
+
+# Get semantic metadata (small, safe to load fully)
+bun -e "console.log(JSON.stringify(require('./graph-metadata.json').workers['workers/hoox'],null,2))"
+```
+
+Key data:
+- **Worker nodes** have `llmContext` fields describing what each worker does and how it fits in the system
+- **Infrastructure nodes** describe D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering bindings
+- **Data flow edges** show how signals move through the system (signal-ingestion, trade-persistence, notification, analytics)
+- **Community groups** cluster related nodes (workers, packages, infrastructure, signal-pipeline, ai-system)
+
+**Regenerate:**
+
+```bash
+bun run graph    # Runs scripts/extract-graph.ts (~25s)
+```
