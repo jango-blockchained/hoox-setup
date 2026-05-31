@@ -19,7 +19,7 @@ describe("env command", () => {
         WEBHOOK_API_KEY_BINDING: "webhook-key",
         INTERNAL_KEY_BINDING: "inter-key",
         API_SERVICE_KEY_BINDING: "api-key",
-        TELEGRAM_INTERNAL_KEY: "tg-key",
+        TELEGRAM_INTERNAL_KEY_BINDING: "tg-key",
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass123",
         SESSION_SECRET: "a".repeat(32),

@@ -54,7 +54,7 @@ const REQUIRED_SECRETS = [
   {
     group: "Internal Auth Keys",
     worker: "telegram-worker",
-    secret: "TELEGRAM_INTERNAL_KEY",
+    secret: "TELEGRAM_INTERNAL_KEY_BINDING",
     desc: "Internal Auth Key",
   },
   {

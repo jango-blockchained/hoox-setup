@@ -135,15 +135,7 @@ The gateway exposes three public entryways:
 
 ---
 
-### B. Telegram Bot Update Webhook
-
-- **Endpoint**: `/telegram-webhook`
-- **Method**: `POST`
-- **JSON Payload**: Standard encrypted update structure forwarded by Telegram's webhook servers.
-
----
-
-### C. Gateway Health Diagnostics
+### B. Gateway Health Diagnostics
 
 - **Endpoint**: `/health`
 - **Method**: `GET`

@@ -51,11 +51,10 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 - **Status**: Public Ingress Node
 - **Bindings Mounts**: `TRADE_SERVICE`, `TELEGRAM_SERVICE`, `CONFIG_KV`, `TRADE_QUEUE`
 
-| Route               | Method | Description                                      | Auth Required        |
-| :------------------ | :----: | :----------------------------------------------- | :------------------- |
-| `/webhook`          | `POST` | Primary webhook receiver for TradingView alerts. | API Key in payload   |
-| `/health`           | `GET`  | Probes gateway, D1 connectivity, and DO status.  | None                 |
-| `/telegram-webhook` | `POST` | Processes chat commands pushed from Telegram.    | Telegram secret path |
+| Route      | Method | Description                                      | Auth Required      |
+| :--------- | :----: | :----------------------------------------------- | :----------------- |
+| `/webhook` | `POST` | Primary webhook receiver for TradingView alerts. | API Key in payload |
+| `/health`  | `GET`  | Probes gateway, D1 connectivity, and DO status.  | None               |
 
 > **Details**: See [`docs/devops/api/endpoints.md#ingress-webhook-endpoints`](../api/endpoints.md#-ingress-webhook-endpoints-workershoox)
 

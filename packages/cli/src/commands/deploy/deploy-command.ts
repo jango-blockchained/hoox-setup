@@ -498,7 +498,7 @@ async function doTelegramWebhook(
 
     // Check current webhook status
     const telegram = new TelegramService();
-    const webhookUrl = `https://telegram-worker.${prefix}.workers.dev/webhook/${webhookSecret}`;
+    const webhookUrl = `https://telegram-worker.${prefix}.workers.dev/webhook`;
 
     const info = await telegram.getWebhookInfo(botToken);
     if (info.ok && info.url) {

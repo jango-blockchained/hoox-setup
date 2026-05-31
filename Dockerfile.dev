@@ -4,15 +4,15 @@ FROM oven/bun:1.3.12
 
 WORKDIR /app
 
-# Copy package files for dependency install
-COPY package.json bun.lock ./
-
-# Install dependencies
-#RUN bun install --frozen-lockfile
-RUN bun install
-
-# Copy the rest of the application
+# Copy all source files (including workspace packages/submodules)
 COPY . .
+
+# Install all dependencies (workspaces + packages resolved correctly)
+# Note: COPY must happen before install so workspace directories exist
+# for bun to resolve workspace:* dependencies.
+# PUPPETEER_SKIP_DOWNLOAD prevents puppeteer from trying to download Chrome
+# during install (it fails in Docker without unzip; download happens at runtime).
+RUN PUPPETEER_SKIP_DOWNLOAD=true bun install
 
 # Expose common worker/dashboard dev ports
 EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796

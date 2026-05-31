@@ -94,7 +94,7 @@ export class EnvService {
         hint: "API service key for trade-worker",
       },
       {
-        name: "TELEGRAM_INTERNAL_KEY",
+        name: "TELEGRAM_INTERNAL_KEY_BINDING",
         required: true,
         secret: true,
         section: "Internal Auth",
@@ -336,7 +336,7 @@ export class EnvService {
         "INTERNAL_KEY_BINDING",
         "AGENT_INTERNAL_KEY",
         "TRADE_INTERNAL_KEY",
-        "TELEGRAM_INTERNAL_KEY",
+        "TELEGRAM_INTERNAL_KEY_BINDING",
         "API_SERVICE_KEY_BINDING",
       ],
     };

@@ -152,7 +152,23 @@ Hoox includes a **function-level dependency graph extractor** that maps all expo
 bun run graph
 ```
 
-This runs `scripts/extract-graph.ts` (ts-morph) and scans 917 source files across all 14 workspaces.
+This runs `scripts/extract-graph.ts` (ts-morph) and scans 917 source files across all 14 workspaces. During extraction, a **live progress bar** shows each phase with elapsed time:
+
+```
+🔍 Extracting exported declarations...
+  [██░░░░░░░░░░░░░░░░░░] 13%  exports: 1667 nodes             10.6s
+🔍 Extracting import relationships...
+  [█████░░░░░░░░░░░░░░░] 25%  imports: 2524 edges              0.1s
+🔍 Extracting type references...
+  [██████████░░░░░░░░░░] 50%  type refs: 2536 edges            1.7s
+🔍 Extracting cross-file call expressions...
+  [████████████░░░░░░░░] 63%  calls: 445 edges                 9.7s
+  [████████████████████] 100% Done                             22.0s
+
+⏱  Total time: 22.0s
+```
+
+The 8 extraction phases (exports → imports → extends/implements → type refs → calls → service bindings → workspace deps → filtering) complete in **~20–25s** on average.
 
 ### Outputs
 

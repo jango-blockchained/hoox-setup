@@ -24,6 +24,7 @@
     "@types/bun": "latest",
     "typescript": "^5.9.3"
   },
+  "license": "MIT",
   "peerDependencies": {
     "@jango-blockchained/hoox-shared": "workspace:*"
   }

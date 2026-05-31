@@ -52,7 +52,6 @@
     "start": "bun run server.js"
   },
   "devDependencies": {
-    "@alegau/ctx-bin": "^0.2.5",
     "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
@@ -71,13 +70,10 @@
     "shadcn": "^4.7.0",
     "tailwindcss": "^4.3.0",
     "ts-morph": "^28.0.0",
-    "typedoc": "^0.28.19",
     "vite": "^8.0.14",
     "wrangler": "^4.95.0"
   },
   "dependencies": {
-    "radix-ui": "^1.4.3",
-    "react": "^19.2.6",
     "zod": "^4.4.3"
   },
   "description": "HOOX — algorithmic trading terminal operations center",

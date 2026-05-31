@@ -114,7 +114,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-dashboard
-    command: bun run dev --prefix workers/dashboard
+    command: bun run --cwd workers/dashboard dev
     ports:
       - "8794:8794"
     volumes:

@@ -13,7 +13,7 @@ export const ENV_KEYS = {
   internalAuth: {
     d1: "INTERNAL_KEY_BINDING",
     agent: "AGENT_INTERNAL_KEY",
-    telegram: "TELEGRAM_INTERNAL_KEY",
+    telegram: "TELEGRAM_INTERNAL_KEY_BINDING",
     api: "API_SERVICE_KEY_BINDING",
   },
   cloudflare: {

@@ -166,7 +166,18 @@ Hoox ships with an automated **function-level dependency graph extractor** that 
 bun run graph
 ```
 
-This runs `scripts/extract-graph.ts` (powered by **ts-morph**) and produces two files:
+This runs `scripts/extract-graph.ts` (powered by **ts-morph**) and scans 917 source files across all 14 workspaces in **~20–25s**.
+
+During extraction, an **8-phase live progress bar** reports each stage with timing:
+
+```
+  [██░░░░░░░░░░░░░░░░░░] 13%  exports: 1667 nodes             10.6s
+  [██████████░░░░░░░░░░] 50%  type refs: 2536 edges            1.7s
+  [████████████░░░░░░░░] 63%  calls: 445 edges                 9.7s
+  [████████████████████] 100% Done                             22.0s
+
+⏱  Total time: 22.0s
+```
 
 | File         | Size   | Format                       | Purpose                                                     |
 | ------------ | ------ | ---------------------------- | ----------------------------------------------------------- |

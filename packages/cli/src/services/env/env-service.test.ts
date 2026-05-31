@@ -55,7 +55,7 @@ describe("EnvService", () => {
         INTERNAL_KEY_BINDING: "d1-789",
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass",
-        TELEGRAM_INTERNAL_KEY: "tg-int-key",
+        TELEGRAM_INTERNAL_KEY_BINDING: "tg-int-key",
       };
       const result = EnvService.getWorkerDevVars(vars);
       expect(result["workers/agent-worker"]).toBeDefined();
@@ -67,7 +67,7 @@ describe("EnvService", () => {
       expect(result["workers/dashboard"]).toBeDefined();
       expect(result["workers/dashboard"].DASHBOARD_USER).toBe("admin");
       expect(result["workers/dashboard"].DASHBOARD_PASS).toBe("pass");
-      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY).toBe(
+      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY_BINDING).toBe(
         "tg-int-key"
       );
     });
@@ -84,6 +84,7 @@ describe("EnvService", () => {
 
     it("maps all newly added vars to correct workers", () => {
       const vars = {
+        AGENT_INTERNAL_KEY: "sk-123",
         WEBHOOK_API_KEY_BINDING: "webhook-key",
         HA_TOKEN_BINDING: "ha-token",
         API_SERVICE_KEY_BINDING: "api-key",
@@ -97,12 +98,16 @@ describe("EnvService", () => {
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass",
         SESSION_SECRET: "secret-32-char-min-for-session",
-        TELEGRAM_INTERNAL_KEY: "tg-int-key",
+        TELEGRAM_INTERNAL_KEY_BINDING: "tg-int-key",
       };
       const result = EnvService.getWorkerDevVars(vars);
-      expect(result["workers/hoox"]).toBeDefined();
-      expect(result["workers/hoox"].WEBHOOK_API_KEY_BINDING).toBe(
-        "webhook-key"
+      expect(result["workers/agent-worker"]).toBeDefined();
+      expect(result["workers/agent-worker"].AGENT_INTERNAL_KEY).toBe("sk-123");
+      expect(result["workers/dashboard"]).toBeDefined();
+      expect(result["workers/dashboard"].DASHBOARD_USER).toBe("admin");
+      expect(result["workers/dashboard"].DASHBOARD_PASS).toBe("pass");
+      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY_BINDING).toBe(
+        "tg-int-key"
       );
       expect(result["workers/hoox"].HA_TOKEN_BINDING).toBe("ha-token");
       expect(result["workers/trade-worker"].API_SERVICE_KEY_BINDING).toBe(
@@ -125,7 +130,7 @@ describe("EnvService", () => {
       expect(result["workers/dashboard"].SESSION_SECRET).toBe(
         "secret-32-char-min-for-session"
       );
-      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY).toBe(
+      expect(result["workers/dashboard"].TELEGRAM_INTERNAL_KEY_BINDING).toBe(
         "tg-int-key"
       );
     });
@@ -162,7 +167,7 @@ describe("EnvService", () => {
         WEBHOOK_API_KEY_BINDING: "webhook-key",
         INTERNAL_KEY_BINDING: "int-key",
         API_SERVICE_KEY_BINDING: "api-key",
-        TELEGRAM_INTERNAL_KEY: "tg-key",
+        TELEGRAM_INTERNAL_KEY_BINDING: "tg-key",
         DASHBOARD_USER: "admin",
         DASHBOARD_PASS: "pass123",
         SESSION_SECRET: "a".repeat(32),

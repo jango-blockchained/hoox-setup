@@ -25,6 +25,7 @@ This document provides a comprehensive reference for all bindings, environment v
 | `TG_BOT_TOKEN_BINDING`    | Secret | telegram-worker                     | Telegram Bot API token                                         |
 | `TG_CHAT_ID_BINDING`      | Secret | telegram-worker                     | Telegram chat ID for notifications                             |
 | `TELEGRAM_SECRET_TOKEN`   | Secret | telegram-worker                     | Webhook verification token for Telegram                        |
+| `AUTHORIZED_CHAT_IDS`     | Secret | telegram-worker                     | Comma-separated chat IDs authorized to send bot commands       |
 | `WEBHOOK_API_KEY_BINDING` | Secret | hoox                                | API key for webhook endpoints                                  |
 | `WALLET_PK_SECRET`        | Secret | web3-wallet-worker                  | Private key for Web3 wallet operations                         |
 | `WALLET_MNEMONIC_SECRET`  | Secret | web3-wallet-worker                  | Mnemonic phrase for wallet generation                          |
