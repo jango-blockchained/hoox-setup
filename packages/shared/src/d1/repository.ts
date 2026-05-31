@@ -1,3 +1,9 @@
+/**
+ * @deprecated D1Repository is no longer used by any worker.
+ * All D1 operations are now handled directly via route handlers in workers/d1-worker.
+ * This file is kept for reference but will be removed in a future cleanup pass.
+ */
+
 import type {
   D1Database,
   D1Result,
