@@ -504,6 +504,7 @@ digraph Hoox {
     "packages/shared:packages/shared/src/middleware/index.ts:createInternalAuthMiddleware" [label="createInternalAuthMiddleware (entry)", shape=box, penwidth=2, peripheries=2];
     "packages/shared:packages/shared/src/middleware/index.ts:checkInternalAuth" [label="checkInternalAuth (entry)", shape=box, penwidth=2, peripheries=2];
     "packages/shared:packages/shared/src/middleware/index.ts:timingSafeEqual" [label="timingSafeEqual (entry)", shape=box, penwidth=2, peripheries=2];
+    "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [label="InternalAuthEnv (entry)", shape=note, penwidth=2, peripheries=2];
     "packages/shared:packages/shared/src/middleware/index.ts:createRateLimiter" [label="createRateLimiter (entry)", shape=box, penwidth=2, peripheries=2];
     "packages/shared:packages/shared/src/middleware/index.ts:RateLimiter" [label="RateLimiter (entry)", shape=note, penwidth=2, peripheries=2];
     "packages/shared:packages/shared/src/middleware/index.ts:RateLimitConfig" [label="RateLimitConfig (entry)", shape=note, penwidth=2, peripheries=2];
@@ -807,6 +808,8 @@ digraph Hoox {
     fontname="monospace";
 
     "workers/d1-worker:workers/d1-worker/src/index.ts:Env" [label="Env (entry)", shape=note, penwidth=2, peripheries=2];
+    "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats" [label="computeDashboardStats", shape=box];
+    "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [label="DashboardStats", shape=note];
   }
 
   subgraph cluster_workers_dashboard {
@@ -1051,7 +1054,6 @@ digraph Hoox {
     "workers/hoox:workers/hoox/src/logic.ts:processNotification" [label="processNotification", shape=box];
     "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage" [label="createDefaultMessage", shape=box];
     "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession" [label="getOrCreateSession", shape=box];
-    "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession" [label="updateSession", shape=box];
     "workers/hoox:workers/hoox/src/sessionManager.ts:SessionData" [label="SessionData", shape=note];
     "workers/hoox:workers/hoox/src/types.ts:WebhookData" [label="WebhookData", shape=note];
     "workers/hoox:workers/hoox/src/types.ts:TradeData" [label="TradeData", shape=note];
@@ -1968,13 +1970,16 @@ digraph Hoox {
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:QueryPayload" [style=solid, color="#4A90D9", arrowhead=normal, label="QueryPayload"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:BatchPayload" [style=solid, color="#4A90D9", arrowhead=normal, label="BatchPayload"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/analytics.ts:trackAnalytics" [style=solid, color="#4A90D9", arrowhead=normal, label="trackAnalytics"];
-  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="AnalyticsEnv"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth" [style=solid, color="#4A90D9", arrowhead=normal, label="requireInternalAuth"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:createInternalAuthMiddleware" [style=solid, color="#4A90D9", arrowhead=normal, label="createInternalAuthMiddleware"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:corsHeaders" [style=solid, color="#4A90D9", arrowhead=normal, label="corsHeaders"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog" [style=solid, color="#4A90D9", arrowhead=normal, label="withRequestLog"];
+  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/health.ts:healthCheck" [style=solid, color="#4A90D9", arrowhead=normal, label="healthCheck"];
+  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats" [style=solid, color="#4A90D9", arrowhead=normal, label="computeDashboardStats"];
+  "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
+  "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
   "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler" -> "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest" [style=solid, color="#4A90D9", arrowhead=normal, label="handleCdnCgiImageRequest"];
   "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache" -> "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest" [style=solid, color="#4A90D9", arrowhead=normal, label="handleCdnCgiImageRequest"];
   "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge" -> "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest" [style=solid, color="#4A90D9", arrowhead=normal, label="handleCdnCgiImageRequest"];
@@ -2003,9 +2008,6 @@ digraph Hoox {
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/health.ts:healthCheck" [style=solid, color="#4A90D9", arrowhead=normal, label="healthCheck"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/kvKeys.ts:KVKeys" [style=solid, color="#4A90D9", arrowhead=normal, label="KVKeys"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch" [style=solid, color="#4A90D9", arrowhead=normal, label="serviceFetch"];
-  "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch" [style=solid, color="#4A90D9", arrowhead=normal, label="checkKillSwitch"];
-  "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/ipAllowlist.ts:checkIpAllowlist" [style=solid, color="#4A90D9", arrowhead=normal, label="checkIpAllowlist"];
-  "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession" [style=solid, color="#4A90D9", arrowhead=normal, label="getOrCreateSession"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore" [style=solid, color="#4A90D9", arrowhead=normal, label="IdempotencyStore"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/middleware/index.ts:createRateLimiter" [style=solid, color="#4A90D9", arrowhead=normal, label="createRateLimiter"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/errors.ts:Errors" [style=solid, color="#4A90D9", arrowhead=normal, label="Errors"];
@@ -2025,14 +2027,12 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch" [style=solid, color="#4A90D9", arrowhead=normal, label="serviceFetch"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/legal.ts:DISCLAIMER" [style=solid, color="#4A90D9", arrowhead=normal, label="DISCLAIMER"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/legal.ts:DISCLAIMER_HEADER" [style=solid, color="#4A90D9", arrowhead=normal, label="DISCLAIMER_HEADER"];
-  "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/types.ts:WebhookData" [style=solid, color="#4A90D9", arrowhead=normal, label="WebhookData"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/types.ts:TradeData" [style=solid, color="#4A90D9", arrowhead=normal, label="TradeData"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/types.ts:NotificationData" [style=solid, color="#4A90D9", arrowhead=normal, label="NotificationData"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/types.ts:ServiceResponse" [style=solid, color="#4A90D9", arrowhead=normal, label="ServiceResponse"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/utils/security.ts:validateApiKeyBinding" [style=solid, color="#4A90D9", arrowhead=normal, label="validateApiKeyBinding"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" [style=solid, color="#4A90D9", arrowhead=normal, label="handleRequest"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/logic.ts:getQueueMode" [style=solid, color="#4A90D9", arrowhead=normal, label="getQueueMode"];
-  "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey" [style=solid, color="#4A90D9", arrowhead=normal, label="generateIdempotencyKey"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/logic.ts:checkIdempotency" [style=solid, color="#4A90D9", arrowhead=normal, label="checkIdempotency"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue" [style=solid, color="#4A90D9", arrowhead=normal, label="sendTradeToQueue"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "workers/hoox:workers/hoox/src/logic.ts:processTrade" [style=solid, color="#4A90D9", arrowhead=normal, label="processTrade"];
@@ -2115,7 +2115,6 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/logic.ts:processNotification" -> "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore" [style=solid, color="#4A90D9", arrowhead=normal, label="IdempotencyStore"];
   "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage" -> "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore" [style=solid, color="#4A90D9", arrowhead=normal, label="IdempotencyStore"];
   "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
-  "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
   "workers/hoox:workers/hoox/src/sessionManager.ts:SessionData" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
   "workers/report-worker:workers/report-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
   "workers/report-worker:workers/report-worker/src/index.ts:generatePdf" -> "packages/shared:packages/shared/src/middleware/index.ts:createLogger" [style=solid, color="#4A90D9", arrowhead=normal, label="createLogger"];
@@ -2204,6 +2203,11 @@ digraph Hoox {
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog" [style=solid, color="#4A90D9", arrowhead=normal, label="withRequestLog"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog" [style=solid, color="#4A90D9", arrowhead=normal, label="withRequestLog"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog" [style=solid, color="#4A90D9", arrowhead=normal, label="withRequestLog"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv" [style=solid, color="#4A90D9", arrowhead=normal, label="InternalAuthEnv"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/router.ts:createRouter" [style=solid, color="#4A90D9", arrowhead=normal, label="createRouter"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/router.ts:createRouter" [style=solid, color="#4A90D9", arrowhead=normal, label="createRouter"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/router.ts:createRouter" [style=solid, color="#4A90D9", arrowhead=normal, label="createRouter"];
@@ -2791,6 +2795,7 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch" [style=solid, color="#4A90D9", arrowhead=normal, label="serviceFetch"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "packages/shared:packages/shared/src/kvKeys.ts:KVKeys" [style=solid, color="#4A90D9", arrowhead=normal, label="KVKeys"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/ipAllowlist.ts:checkIpAllowlist" [style=solid, color="#4A90D9", arrowhead=normal, label="checkIpAllowlist"];
+  "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch" [style=solid, color="#4A90D9", arrowhead=normal, label="checkKillSwitch"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession" [style=solid, color="#4A90D9", arrowhead=normal, label="getOrCreateSession"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/utils/security.ts:validateApiKeyBinding" [style=solid, color="#4A90D9", arrowhead=normal, label="validateApiKeyBinding"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/types.ts:WebhookData" [style=solid, color="#4A90D9", arrowhead=normal, label="WebhookData"];
@@ -2801,6 +2806,9 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/utils/security.ts:validateApiKeyBinding" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/errors.ts:Errors" [style=solid, color="#4A90D9", arrowhead=normal, label="Errors"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
+  "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/analytics.ts:trackAnalytics" [style=solid, color="#4A90D9", arrowhead=normal, label="trackAnalytics"];
+  "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/kvKeys.ts:KVKeys" [style=solid, color="#4A90D9", arrowhead=normal, label="KVKeys"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings" [style=solid, color="#4A90D9", arrowhead=normal, label="generateEmbeddings"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" [style=solid, color="#4A90D9", arrowhead=normal, label="queryEmbeddings"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" [style=solid, color="#4A90D9", arrowhead=normal, label="insertEmbeddings"];
@@ -2813,6 +2821,11 @@ digraph Hoox {
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=solid, color="#4A90D9", arrowhead=normal, label="toError"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/errors.ts:Errors" [style=solid, color="#4A90D9", arrowhead=normal, label="Errors"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/errors.ts:Errors" [style=solid, color="#4A90D9", arrowhead=normal, label="Errors"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/errors.ts:Errors" [style=solid, color="#4A90D9", arrowhead=normal, label="Errors"];
@@ -2825,6 +2838,9 @@ digraph Hoox {
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/analytics.ts:trackAnalytics" [style=solid, color="#4A90D9", arrowhead=normal, label="trackAnalytics"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/analytics.ts:trackAnalytics" [style=solid, color="#4A90D9", arrowhead=normal, label="trackAnalytics"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/analytics.ts:trackAnalytics" [style=solid, color="#4A90D9", arrowhead=normal, label="trackAnalytics"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=solid, color="#4A90D9", arrowhead=normal, label="Logger"];
   "workers/trade-worker:workers/trade-worker/src/shared/base-exchange-client.ts:BaseExchangeClient" -> "workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:bufferToHex" [style=solid, color="#4A90D9", arrowhead=normal, label="bufferToHex"];
   "packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand" -> "packages/cli:packages/cli/src/services/config/index.ts:ConfigService" [style=solid, color="#4A90D9", arrowhead=normal, label="ConfigService"];
   "packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand" -> "packages/cli:packages/cli/src/services/cloudflare/index.ts:CloudflareService" [style=solid, color="#4A90D9", arrowhead=normal, label="CloudflareService"];
@@ -3735,7 +3751,6 @@ digraph Hoox {
   "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.tsx:metadata" -> "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.client.tsx:default" [style=solid, color="#4A90D9", arrowhead=normal, label="VisionClient"];
   "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.tsx:dynamic" -> "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.client.tsx:default" [style=solid, color="#4A90D9", arrowhead=normal, label="VisionClient"];
   "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.tsx:runtime" -> "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.client.tsx:default" [style=solid, color="#4A90D9", arrowhead=normal, label="VisionClient"];
-  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv" [style=bold, color="#4CAF50", arrowhead=empty, label="AnalyticsEnv"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv" [style=bold, color="#4CAF50", arrowhead=empty, label="AnalyticsEnv"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv" [style=bold, color="#4CAF50", arrowhead=empty, label="AnalyticsEnv"];
   "workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient" -> "packages/shared:packages/shared/src/exchange-client.ts:BaseExchangeClient" [style=bold, color="#4CAF50", arrowhead=empty, label="BaseExchangeClient"];
@@ -4966,6 +4981,8 @@ digraph Hoox {
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:Env" [style=dashed, color="#FF9800", arrowhead=odot, label="Env"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:QueryPayload" [style=dashed, color="#FF9800", arrowhead=odot, label="QueryPayload"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:BatchPayload" [style=dashed, color="#FF9800", arrowhead=odot, label="BatchPayload"];
+  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types.ts:Env" [style=dashed, color="#FF9800", arrowhead=odot, label="Env"];
   "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore" -> "packages/shared:packages/shared/src/types.ts:Env" [style=dashed, color="#FF9800", arrowhead=odot, label="Env"];
   "workers/hoox:workers/hoox/src/ipAllowlist.ts:checkIpAllowlist" -> "workers/hoox:workers/hoox/src/ipAllowlist.ts:IpCheckConfig" [style=dashed, color="#FF9800", arrowhead=odot, label="IpCheckConfig"];
@@ -5027,6 +5044,11 @@ digraph Hoox {
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/index.ts:EnvWithKV" [style=dashed, color="#FF9800", arrowhead=odot, label="EnvWithKV"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/index.ts:EnvWithKV" [style=dashed, color="#FF9800", arrowhead=odot, label="EnvWithKV"];
   "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/index.ts:EnvWithKV" [style=dashed, color="#FF9800", arrowhead=odot, label="EnvWithKV"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv" [style=dashed, color="#FF9800", arrowhead=odot, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv" [style=dashed, color="#FF9800", arrowhead=odot, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv" [style=dashed, color="#FF9800", arrowhead=odot, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv" [style=dashed, color="#FF9800", arrowhead=odot, label="InternalAuthEnv"];
+  "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv" [style=dashed, color="#FF9800", arrowhead=odot, label="InternalAuthEnv"];
   "workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
   "workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider" -> "workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient" [style=dashed, color="#FF9800", arrowhead=odot, label="IExchangeClient"];
   "workers/trade-worker:workers/trade-worker/src/exchange-router.ts:Env" -> "workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient" [style=dashed, color="#FF9800", arrowhead=odot, label="IExchangeClient"];
@@ -5567,10 +5589,11 @@ digraph Hoox {
   "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes" -> "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap" [style=dashed, color="#FF9800", arrowhead=odot, label="ParamMap"];
   "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes" -> "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap" [style=dashed, color="#FF9800", arrowhead=odot, label="ParamMap"];
   "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes" -> "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap" [style=dashed, color="#FF9800", arrowhead=odot, label="ParamMap"];
-  "workers/dashboard:workers/dashboard/src/lib/api.ts:Position" -> "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
-  "workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog" -> "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
-  "workers/dashboard:workers/dashboard/src/lib/api.ts:WorkerStatus" -> "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
-  "workers/dashboard:workers/dashboard/src/lib/api.ts:api" -> "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
+  "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
+  "workers/dashboard:workers/dashboard/src/lib/api.ts:Position" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
+  "workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
+  "workers/dashboard:workers/dashboard/src/lib/api.ts:WorkerStatus" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
+  "workers/dashboard:workers/dashboard/src/lib/api.ts:api" -> "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats" [style=dashed, color="#FF9800", arrowhead=odot, label="DashboardStats"];
   "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats" -> "packages/shared:packages/shared/src/exchange-client.ts:Position" [style=dashed, color="#FF9800", arrowhead=odot, label="Position"];
   "workers/dashboard:workers/dashboard/src/lib/api.ts:Position" -> "packages/shared:packages/shared/src/exchange-client.ts:Position" [style=dashed, color="#FF9800", arrowhead=odot, label="Position"];
   "workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog" -> "packages/shared:packages/shared/src/exchange-client.ts:Position" [style=dashed, color="#FF9800", arrowhead=odot, label="Position"];
@@ -5606,8 +5629,14 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/types.ts:ServiceResponse" [style=dashed, color="#FF9800", arrowhead=odot, label="ServiceResponse"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/analytics-worker:workers/analytics-worker/src/types.ts:NotificationData" [style=dashed, color="#FF9800", arrowhead=odot, label="NotificationData"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "workers/hoox:workers/hoox/src/types.ts:WebhookData" [style=dashed, color="#FF9800", arrowhead=odot, label="WebhookData"];
+  "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" [style=dashed, color="#FF9800", arrowhead=odot, label="VectorizeMatches"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" [style=dashed, color="#FF9800", arrowhead=odot, label="TelegramMessageMetadata"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" [style=dashed, color="#FF9800", arrowhead=odot, label="TelegramMessageMetadata"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" [style=dashed, color="#FF9800", arrowhead=odot, label="TelegramMessageMetadata"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" [style=dashed, color="#FF9800", arrowhead=odot, label="TelegramMessageMetadata"];
@@ -5616,6 +5645,9 @@ digraph Hoox {
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" [style=dashed, color="#FF9800", arrowhead=odot, label="VectorizeMatches"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" [style=dashed, color="#FF9800", arrowhead=odot, label="VectorizeMatches"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" -> "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" [style=dashed, color="#FF9800", arrowhead=odot, label="VectorizeMatches"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/index.ts:Logger" [style=dashed, color="#FF9800", arrowhead=odot, label="Logger"];
   "workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:bufferToHex" -> "packages/shared:packages/shared/src/exchange-client.ts:ExchangeConfig" [style=dashed, color="#FF9800", arrowhead=odot, label="ExchangeConfig"];
   "workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:hmacSign" -> "packages/shared:packages/shared/src/exchange-client.ts:ExchangeConfig" [style=dashed, color="#FF9800", arrowhead=odot, label="ExchangeConfig"];
   "workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:ExchangeName" -> "packages/shared:packages/shared/src/exchange-client.ts:ExchangeConfig" [style=dashed, color="#FF9800", arrowhead=odot, label="ExchangeConfig"];
@@ -6364,8 +6396,8 @@ digraph Hoox {
   "workers/analytics-worker:workers/analytics-worker/src/index.ts:getWorkerPerformance" -> "workers/analytics-worker:workers/analytics-worker/src/query-builder.ts:buildQuery" [style=dashed, color="#E91E63", arrowhead=vee, label="getTradeMetrics"];
   "workers/analytics-worker:workers/analytics-worker/src/index.ts:getApiCallStats" -> "workers/analytics-worker:workers/analytics-worker/src/query-builder.ts:buildQuery" [style=dashed, color="#E91E63", arrowhead=vee, label="getTradeMetrics"];
   "workers/analytics-worker:workers/analytics-worker/src/index.ts:getSignalOutcomes" -> "workers/analytics-worker:workers/analytics-worker/src/query-builder.ts:buildQuery" [style=dashed, color="#E91E63", arrowhead=vee, label="getTradeMetrics"];
+  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="badRequest"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types/router.ts:RouteParams" [style=dashed, color="#E91E63", arrowhead=vee, label="get"];
-  "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="internal"];
   "workers/d1-worker:workers/d1-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="warn"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types/router.ts:RouteParams" [style=dashed, color="#E91E63", arrowhead=vee, label="get"];
   "workers/email-worker:workers/email-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="info"];
@@ -6387,7 +6419,6 @@ digraph Hoox {
   "workers/hoox:workers/hoox/src/logic.ts:processNotification" -> "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore" [style=dashed, color="#E91E63", arrowhead=vee, label="checkAndStore"];
   "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage" -> "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore" [style=dashed, color="#E91E63", arrowhead=vee, label="checkAndStore"];
   "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
-  "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
   "workers/hoox:workers/hoox/src/sessionManager.ts:SessionData" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
   "workers/report-worker:workers/report-worker/src/index.ts:Env" -> "packages/shared:packages/shared/src/types/router.ts:RouteParams" [style=dashed, color="#E91E63", arrowhead=vee, label="get"];
   "workers/report-worker:workers/report-worker/src/index.ts:generatePdf" -> "packages/shared:packages/shared/src/types/router.ts:RouteParams" [style=dashed, color="#E91E63", arrowhead=vee, label="get"];
@@ -6505,7 +6536,16 @@ digraph Hoox {
   "packages/cli:packages/cli/src/utils/formatters.ts:FormatOptions" -> "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi" [style=dashed, color="#E91E63", arrowhead=vee, label="accent"];
   "packages/shared:packages/shared/src/wizard/engine.ts:WizardEngine" -> "packages/shared:packages/shared/src/wizard/types.ts:StepId" [style=dashed, color="#E91E63", arrowhead=vee, label="validate"];
   "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="internal"];
+  "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="warn"];
   "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="unauthorized"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
+  "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/middleware/logger.ts:createLogger" [style=dashed, color="#E91E63", arrowhead=vee, label="error"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="internal"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="internal"];
   "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2" -> "packages/shared:packages/shared/src/errors.ts:toError" [style=dashed, color="#E91E63", arrowhead=vee, label="internal"];

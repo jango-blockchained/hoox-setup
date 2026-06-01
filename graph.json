@@ -1,13 +1,13 @@
 {
   "metadata": {
-    "generatedAt": "2026-05-28T13:38:48.741Z",
+    "generatedAt": "2026-05-31T23:21:28.520Z",
     "workspace": "hoox-monorepo",
     "totalFiles": 916,
-    "totalNodes": 1010,
-    "totalEdges": 5576,
+    "totalNodes": 1012,
+    "totalEdges": 5614,
     "nodeKinds": {
       "type": 103,
-      "interface": 375,
+      "interface": 376,
       "const": 248,
       "function": 885,
       "class": 54,
@@ -17,11 +17,11 @@
       "infrastructure": 13
     },
     "edgeKinds": {
-      "imports": 2524,
-      "extends": 7,
+      "imports": 2538,
+      "extends": 6,
       "implements": 2,
-      "references": 2536,
-      "calls": 445,
+      "references": 2553,
+      "calls": 453,
       "service-binding": 11,
       "workspace-dep": 11,
       "infra-binding": 24,
@@ -54,7 +54,7 @@
         "infrastructure": "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)"
       }
     },
-    "enhancedAt": "2026-05-28T13:39:11.733Z"
+    "enhancedAt": "2026-05-31T23:21:50.493Z"
   },
   "nodes": [
     {
@@ -2722,6 +2722,24 @@
       "isEntryPoint": true
     },
     {
+      "id": "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats",
+      "label": "computeDashboardStats",
+      "kind": "function",
+      "filePath": "workers/d1-worker/src/stats.ts",
+      "workspace": "workers/d1-worker",
+      "exports": ["computeDashboardStats"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "label": "DashboardStats",
+      "kind": "interface",
+      "filePath": "workers/d1-worker/src/stats.ts",
+      "workspace": "workers/d1-worker",
+      "exports": ["DashboardStats"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
       "label": "DOQueueHandler",
       "kind": "const",
@@ -2917,15 +2935,6 @@
       "filePath": "workers/hoox/src/sessionManager.ts",
       "workspace": "workers/hoox",
       "exports": ["getOrCreateSession"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession",
-      "label": "updateSession",
-      "kind": "function",
-      "filePath": "workers/hoox/src/sessionManager.ts",
-      "workspace": "workers/hoox",
-      "exports": ["updateSession"],
       "isEntryPoint": false
     },
     {
@@ -4168,6 +4177,15 @@
       "filePath": "packages/shared/src/middleware/index.ts",
       "workspace": "packages/shared",
       "exports": ["timingSafeEqual"],
+      "isEntryPoint": true
+    },
+    {
+      "id": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "label": "InternalAuthEnv",
+      "kind": "interface",
+      "filePath": "packages/shared/src/middleware/index.ts",
+      "workspace": "packages/shared",
+      "exports": ["InternalAuthEnv"],
       "isEntryPoint": true
     },
     {
@@ -14659,13 +14677,6 @@
       "label": "trackAnalytics"
     },
     {
-      "id": "imports:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv",
-      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
-      "target": "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv",
-      "kind": "imports",
-      "label": "AnalyticsEnv"
-    },
-    {
       "id": "imports:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
       "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
@@ -14701,11 +14712,39 @@
       "label": "withRequestLog"
     },
     {
+      "id": "imports:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
       "id": "imports:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/health.ts:healthCheck",
       "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/health.ts:healthCheck",
       "kind": "imports",
       "label": "healthCheck"
+    },
+    {
+      "id": "imports:workers/d1-worker:workers/d1-worker/src/index.ts:Env->workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats",
+      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats",
+      "kind": "imports",
+      "label": "computeDashboardStats"
+    },
+    {
+      "id": "imports:workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "imports",
+      "label": "toError"
+    },
+    {
+      "id": "imports:workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "imports",
+      "label": "toError"
     },
     {
       "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
@@ -14904,27 +14943,6 @@
       "label": "serviceFetch"
     },
     {
-      "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch",
-      "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
-      "target": "workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch",
-      "kind": "imports",
-      "label": "checkKillSwitch"
-    },
-    {
-      "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/ipAllowlist.ts:checkIpAllowlist",
-      "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
-      "target": "workers/hoox:workers/hoox/src/ipAllowlist.ts:checkIpAllowlist",
-      "kind": "imports",
-      "label": "checkIpAllowlist"
-    },
-    {
-      "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
-      "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
-      "target": "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
-      "kind": "imports",
-      "label": "getOrCreateSession"
-    },
-    {
       "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore",
       "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
       "target": "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore",
@@ -15058,13 +15076,6 @@
       "label": "DISCLAIMER_HEADER"
     },
     {
-      "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/types.ts:WebhookData",
-      "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
-      "target": "workers/hoox:workers/hoox/src/types.ts:WebhookData",
-      "kind": "imports",
-      "label": "WebhookData"
-    },
-    {
       "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/types.ts:TradeData",
       "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
       "target": "workers/hoox:workers/hoox/src/types.ts:TradeData",
@@ -15105,13 +15116,6 @@
       "target": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
       "kind": "imports",
       "label": "getQueueMode"
-    },
-    {
-      "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey",
-      "source": "workers/hoox:workers/hoox/src/index.ts:IdempotencyStore",
-      "target": "workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey",
-      "kind": "imports",
-      "label": "generateIdempotencyKey"
     },
     {
       "id": "imports:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->workers/hoox:workers/hoox/src/logic.ts:checkIdempotency",
@@ -15683,13 +15687,6 @@
     {
       "id": "imports:workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
       "source": "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
-      "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
-      "kind": "imports",
-      "label": "createLogger"
-    },
-    {
-      "id": "imports:workers/hoox:workers/hoox/src/sessionManager.ts:updateSession->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
-      "source": "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession",
       "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
       "kind": "imports",
       "label": "createLogger"
@@ -16309,6 +16306,41 @@
       "target": "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
       "kind": "imports",
       "label": "withRequestLog"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
     },
     {
       "id": "imports:workers/telegram-worker:workers/telegram-worker/src/index.ts:Env->packages/shared:packages/shared/src/router.ts:createRouter",
@@ -20420,6 +20452,13 @@
       "label": "checkIpAllowlist"
     },
     {
+      "id": "imports:workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest->workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch",
+      "source": "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest",
+      "target": "workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch",
+      "kind": "imports",
+      "label": "checkKillSwitch"
+    },
+    {
       "id": "imports:workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest->workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
       "source": "workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest",
       "target": "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
@@ -20488,6 +20527,27 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "imports",
       "label": "toError"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
+      "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "kind": "imports",
+      "label": "trackAnalytics"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
     },
     {
       "id": "imports:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings",
@@ -20574,6 +20634,41 @@
       "label": "toError"
     },
     {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
       "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification->packages/shared:packages/shared/src/errors.ts:Errors",
       "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification",
       "target": "packages/shared:packages/shared/src/errors.ts:Errors",
@@ -20656,6 +20751,27 @@
       "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
       "kind": "imports",
       "label": "trackAnalytics"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/shared/base-exchange-client.ts:BaseExchangeClient->workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:bufferToHex",
@@ -27026,13 +27142,6 @@
       "target": "workers/dashboard:workers/dashboard/src/app/dashboard/agent/vision/page.client.tsx:default",
       "kind": "imports",
       "label": "VisionClient"
-    },
-    {
-      "id": "extends:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv",
-      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
-      "target": "packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv",
-      "kind": "extends",
-      "label": "AnalyticsEnv"
     },
     {
       "id": "extends:workers/email-worker:workers/email-worker/src/index.ts:Env->packages/shared:packages/shared/src/analytics.ts:AnalyticsEnv",
@@ -35645,6 +35754,20 @@
       "label": "BatchPayload"
     },
     {
+      "id": "references:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "source": "workers/d1-worker:workers/d1-worker/src/stats.ts:computeDashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "kind": "references",
+      "label": "DashboardStats"
+    },
+    {
       "id": "references:workers/email-worker:workers/email-worker/src/index.ts:Env->packages/shared:packages/shared/src/types.ts:Env",
       "source": "workers/email-worker:workers/email-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/types.ts:Env",
@@ -36070,6 +36193,41 @@
       "target": "packages/shared:packages/shared/src/index.ts:EnvWithKV",
       "kind": "references",
       "label": "EnvWithKV"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:generateEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:insertEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:queryEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/index.ts:handleGetLatestTradeSignalR2",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient->packages/shared:packages/shared/src/middleware/index.ts:Logger",
@@ -39852,30 +40010,37 @@
       "label": "ParamMap"
     },
     {
-      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:Position->workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
+      "kind": "references",
+      "label": "DashboardStats"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:Position->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:Position",
-      "target": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "kind": "references",
       "label": "DashboardStats"
     },
     {
-      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog->workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:SystemLog",
-      "target": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "kind": "references",
       "label": "DashboardStats"
     },
     {
-      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:WorkerStatus->workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:WorkerStatus->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:WorkerStatus",
-      "target": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "kind": "references",
       "label": "DashboardStats"
     },
     {
-      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:api->workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:api->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:api",
-      "target": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
+      "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "kind": "references",
       "label": "DashboardStats"
     },
@@ -40125,6 +40290,13 @@
       "label": "WebhookData"
     },
     {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
       "id": "references:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
       "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
       "target": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
@@ -40137,6 +40309,41 @@
       "target": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata",
       "kind": "references",
       "label": "TelegramMessageMetadata"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
     },
     {
       "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings->workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata",
@@ -40193,6 +40400,27 @@
       "target": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
       "kind": "references",
       "label": "VectorizeMatches"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/shared/exchange-client.ts:bufferToHex->packages/shared:packages/shared/src/exchange-client.ts:ExchangeConfig",
@@ -45431,18 +45659,18 @@
       "label": "getTradeMetrics"
     },
     {
+      "id": "calls:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "calls",
+      "label": "badRequest"
+    },
+    {
       "id": "calls:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/types/router.ts:RouteParams",
       "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/types/router.ts:RouteParams",
       "kind": "calls",
       "label": "get"
-    },
-    {
-      "id": "calls:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:toError",
-      "source": "workers/d1-worker:workers/d1-worker/src/index.ts:Env",
-      "target": "packages/shared:packages/shared/src/errors.ts:toError",
-      "kind": "calls",
-      "label": "internal"
     },
     {
       "id": "calls:workers/d1-worker:workers/d1-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
@@ -45587,13 +45815,6 @@
     {
       "id": "calls:workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
       "source": "workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
-    },
-    {
-      "id": "calls:workers/hoox:workers/hoox/src/sessionManager.ts:updateSession->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/hoox:workers/hoox/src/sessionManager.ts:updateSession",
       "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
       "kind": "calls",
       "label": "error"
@@ -46418,11 +46639,74 @@
       "label": "internal"
     },
     {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "warn"
+    },
+    {
       "id": "calls:workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/telegram-worker:workers/telegram-worker/src/handlers/webhook.ts:handleWebhookRequest",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "calls",
       "label": "unauthorized"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:generateEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:insertEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:queryEmbeddings",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:TelegramMessageMetadata",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/rag.ts:VectorizeMatches",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramReply",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:handleGetLatestTradeSignalR2",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
     },
     {
       "id": "calls:workers/telegram-worker:workers/telegram-worker/src/logic/telegram.ts:sendTelegramNotification->packages/shared:packages/shared/src/errors.ts:toError",

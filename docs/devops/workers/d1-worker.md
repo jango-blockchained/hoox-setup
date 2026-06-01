@@ -16,27 +16,48 @@ The `d1-worker` binds directly to the production SQLite database (`trade-data-db
 ```jsonc
 {
   "name": "d1-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-05-19",
-  "compatibility_flags": ["nodejs_compat"],
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "main": "src/index.ts",
+  "alias": {
+    "@jango-blockchained/hoox-shared/errors": "../../packages/shared/src/errors.ts",
+    "@jango-blockchained/hoox-shared/middleware": "../../packages/shared/src/middleware/index.ts",
+    "@jango-blockchained/hoox-shared/router": "../../packages/shared/src/router.ts",
+    "@jango-blockchained/hoox-shared/types": "../../packages/shared/src/types.ts",
+    "@jango-blockchained/hoox-shared/analytics": "../../packages/shared/src/analytics.ts",
+    "@jango-blockchained/hoox-shared/health": "../../packages/shared/src/health.ts",
+    "@jango-blockchained/hoox-shared/types/router": "../../packages/shared/src/types/router.ts",
+  },
+  "compatibility_date": "2026-04-17",
+  "compatibility_flags": ["nodejs_compat"],
   "placement": {
     "mode": "smart",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "trade-data-db",
-      "database_id": "c5917667a21745e390ff969f32b1847a",
+      "database_id": "a682f084-594e-4bd8-be2d-40ea5f8cf42e",
     },
   ],
+  "vars": {
+    "INTERNAL_KEY_BINDING": "__SECRET__",
+  },
   "kv_namespaces": [
     {
       "binding": "CONFIG_KV",
       "id": "c5917667a21745e390ff969f32b1847d",
     },
   ],
-  "secrets": ["INTERNAL_KEY_BINDING"],
+  "services": [
+    {
+      "binding": "ANALYTICS_SERVICE",
+      "service": "analytics-worker",
+    },
+  ],
 }
 ```
 
@@ -53,12 +74,11 @@ Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-
 - **JSON Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "query": "SELECT created_at, symbol, action, price FROM trades WHERE symbol = ? ORDER BY created_at DESC LIMIT ?",
     "params": ["BTCUSDT", 5]
   }
   ```
-- **Success Response (200 OK)**:
+- **SELECT Success Response (200 OK)**:
   ```json
   {
     "success": true,
@@ -69,8 +89,15 @@ Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-
         "action": "LONG",
         "price": 68425.5
       }
-    ],
-    "meta": { "rows_read": 1, "rows_written": 0, "duration": 4.2 }
+    ]
+  }
+  ```
+- **Write Success Response (200 OK)** (INSERT/UPDATE/DELETE/REPLACE):
+  ```json
+  {
+    "success": true,
+    "lastRowId": 123,
+    "changes": 1
   }
   ```
 
@@ -85,8 +112,7 @@ Allows running multiple statements atomically in a single network trip, reducing
 - **JSON Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "queries": [
+    "statements": [
       {
         "query": "INSERT INTO trades (id, symbol, price) VALUES (?, ?, ?)",
         "params": ["trade-1", "BTCUSDT", 68000]
@@ -102,7 +128,10 @@ Allows running multiple statements atomically in a single network trip, reducing
   ```json
   {
     "success": true,
-    "results": [{ "meta": { "changes": 1 } }, { "meta": { "changes": 1 } }]
+    "results": [
+      { "success": true, "meta": { "last_row_id": 1, "changes": 1 } },
+      { "success": true, "meta": { "changes": 1 } }
+    ]
   }
   ```
 
