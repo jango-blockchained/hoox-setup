@@ -17,113 +17,149 @@ The `analytics-worker` binds directly to Cloudflare’s **Analytics Engine** dat
 {
   "name": "analytics-worker",
   "main": "src/index.ts",
-  "compatibility_date": "2026-05-19",
+  "compatibility_date": "2026-04-17",
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
   "analytics_engine_datasets": [
     {
       "binding": "ANALYTICS_ENGINE",
-      "dataset": "hoox_telemetry",
+      "dataset": "hoox-analytics",
     },
   ],
-  "kv_namespaces": [
-    {
-      "binding": "CONFIG_KV",
-      "id": "c5917667a21745e390ff969f32b1847d",
-    },
-  ],
-  "secrets": [
-    "INTERNAL_KEY_BINDING",
-    "CLOUDFLARE_API_TOKEN", // Required to run SQL queries against Analytics datasets
-  ],
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
 }
 ```
+
+> No `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID` are in `secrets` — these are set as `vars` in `wrangler.jsonc` and used for the Cloudflare SQL API query path.
 
 ---
 
 ## 🔑 2. Environmental Variables & Encrypted Secrets
 
-- **`CLOUDFLARE_API_TOKEN`**: A secure token with `Account.Analytics` read permissions, allowing the worker to query stored datasets.
-- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from other V8 isolates.
+- **`CLOUDFLARE_API_TOKEN`** (var): A secure token with `Account.Analytics` read permissions, allowing the worker to query stored datasets via the Cloudflare SQL API.
+- **`CLOUDFLARE_ACCOUNT_ID`** (var): Your Cloudflare Account ID used in SQL API requests.
 
 ---
 
 ## 🔌 3. Internal REST API Specification
 
-Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-Auth-Key` header.
+All endpoints are reachable via Cloudflare Service Bindings only (no public URL). Each endpoint validates its payload with a Zod schema using `.strict()` to reject unknown fields.
 
-### A. Track Telemetry Event
+### A. Track Trade Event
+
+- **Endpoint**: `POST /track/trade`
+- **Payload**:
+  ```json
+  {
+    "payload": {
+      "exchange": "binance",
+      "symbol": "BTCUSDT",
+      "action": "LONG",
+      "quantity": 0.5
+    },
+    "result": { "success": true },
+    "latencyMs": 1200
+  }
+  ```
+- **Response**: `{ "success": true }`
+
+### B. Track API Call Event
 
 Invoked by other workers (like `hoox` or `trade-worker`) immediately upon completing an action.
 
-- **Endpoint**: `/track/api-call`
-- **Method**: `POST`
-- **JSON Payload**:
+- **Endpoint**: `POST /track/api-call`
+- **Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "payload": {
-      "worker": "trade-worker",
-      "endpoint": "/webhook",
-      "latencyMs": 24.5,
-      "success": true
-    }
+    "worker": "trade-worker",
+    "endpoint": "/api/v3/order",
+    "latencyMs": 250,
+    "success": true
   }
   ```
 
 #### Under-the-Hood Analytics Engine Write
 
-When received, the worker formats and writes a time-series data point using standard **Blobs** (metadata strings) and **Doubles** (numeric values):
+The worker formats and writes a time-series data point to the `hoox-analytics` dataset:
 
 ```typescript
 env.ANALYTICS_ENGINE.writeDataPoint({
-  blobs: [
-    payload.worker, // Blob 1: Worker Name
-    payload.endpoint, // Blob 2: Endpoint Path
-    payload.success ? "1" : "0", // Blob 3: Success state
-  ],
-  doubles: [
-    payload.latencyMs, // Double 1: Latency in milliseconds
-  ],
-  indexes: [
-    payload.requestId, // Custom index for distributed tracing
-  ],
+  blobs: ["api-call", "trade-worker", "success", "/api/v3/order", ""],
+  doubles: [250, 0, 0],
+  indexes: ["550e8400-e29b-41d4-a716-446655440000"],
 });
 ```
 
-- **Response (200 OK)**:
+- **Response (200)** : `{ "success": true }`
+
+### C. Track Worker Performance
+
+- **Endpoint**: `POST /track/worker-perf`
+- **Payload**:
   ```json
-  { "success": true }
+  {
+    "data": {
+      "worker": "trade-worker",
+      "requests": 100,
+      "errors": 0,
+      "duration": 25000
+    }
+  }
   ```
+
+### D. Track Signal
+
+- **Endpoint**: `POST /track/signal`
+- **Payload**:
+  ```json
+  {
+    "data": {
+      "source": "agent-worker",
+      "type": "BUY",
+      "symbol": "ETHUSDT",
+      "confidence": 0.85
+    }
+  }
+  ```
+
+### E. Track Notification
+
+- **Endpoint**: `POST /track/notification`
+- **Payload**:
+  ```json
+  {
+    "data": { "type": "trade_executed", "target": "telegram", "success": true }
+  }
+  ```
+
+### F. Health
+
+- **Endpoint**: `GET /health`
+- **Response**: `{ "status": "ok", "worker": "analytics-worker" }`
 
 ---
 
-### B. Query Metrics (SQL interface)
+### Query Methods (Exported Functions)
 
-Used primarily by the Next.js Dashboard to extract data points for chart rendering.
+The analytics worker exports query functions that are called via Service Bindings (not HTTP). Each builds a SQL query and executes it against the Cloudflare Analytics Engine SQL API:
 
-- **Endpoint**: `/query`
-- **Method**: `POST`
-- **JSON Payload**:
-  ```json
-  {
-    "query": "SELECT sum(double1) as total_latency, count() as total_calls FROM hoox_telemetry WHERE blob1 = ? AND timestamp >= now() - INTERVAL '1' DAY",
-    "params": ["trade-worker"]
-  }
-  ```
-- **Success Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "results": [{ "total_latency": 10482.5, "total_calls": 428 }]
-  }
-  ```
+| Function                                   | Parameters        | Purpose                       |
+| ------------------------------------------ | ----------------- | ----------------------------- |
+| `getTradeMetrics(timeRange)`               | ISO date range    | Trade counts by exchange      |
+| `getTradesByExchange(exchange, limit)`     | Exchange name     | Recent trades for an exchange |
+| `getTradeSuccessRate(timeRange?)`          | Optional ISO date | Overall trade success rate    |
+| `getWorkerPerformance(worker, timeRange?)` | Worker name       | Request counts and latency    |
+| `getApiCallStats(exchange?)`               | Optional exchange | API call statistics           |
+| `getSignalOutcomes(timeRange?)`            | Optional ISO date | Signal analysis by source     |
+
+All SQL queries are built via `sanitizeQueryInputs()` which validates parameters using allowlists and regex to prevent SQL injection.
 
 ---
 
 ## 📈 4. Dashboard Visual Integrations
 
-The metrics written to `hoox_telemetry` are queried by the dashboard to render:
+The metrics written to `hoox-analytics` are queried by the dashboard to render:
 
 1. **System Health Indicators**: Real-time error spikes trigger warning banners in under 2 seconds.
 2. **Isolate Latency Charts**: Visual line graphs showing V8 processing speeds vs exchange API transit speeds.
