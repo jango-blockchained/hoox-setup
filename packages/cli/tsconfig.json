@@ -4,12 +4,10 @@
     "esModuleInterop": true,
     "moduleResolution": "Bundler",
     "outDir": "./dist",
-    "baseUrl": ".",
     "types": ["bun-types", "node", "@cloudflare/workers-types"],
-    "paths": {
-      "@jango-blockchained/hoox-shared": ["../shared/src/index.ts"]
-    },
-    "skipLibCheck": true
+    "rootDir": "..",
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": ["src/**/*", "bin/**/*"],
   "exclude": ["tests/**/*", "node_modules", "dist"]

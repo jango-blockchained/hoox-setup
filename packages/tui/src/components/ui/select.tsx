@@ -12,8 +12,8 @@
  */
 import { useState } from "react";
 import {
-  type ConfirmContext,
   type DialogId,
+  type PromptContext,
   useDialogKeyboard,
 } from "@opentui-ui/dialog/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
@@ -43,7 +43,7 @@ export interface SelectModalOptions {
 /** Dialog handle — the subset of useDialog() needed by SelectModal */
 export interface SelectDialogHandle {
   prompt<T>(options: {
-    content: (ctx: ConfirmContext) => unknown;
+    content: (ctx: PromptContext<T>) => unknown;
     fallback?: T;
     closeOnClickOutside?: boolean;
   }): Promise<T | undefined>;
@@ -58,7 +58,7 @@ interface SelectListProps {
   foregroundColor: string;
   mutedColor: string;
   highlightColor: string;
-  resolve: (value: string | boolean) => void;
+  resolve: (value: string) => void;
   dismiss: () => void;
   dialogId: DialogId;
 }
@@ -153,7 +153,7 @@ export async function showSelectModal(
   const { title, options, closeOnClickOutside = true } = opts;
 
   return dialog.prompt<string>({
-    content: (ctx: ConfirmContext) => (
+    content: (ctx: PromptContext<string>) => (
       <box flexDirection="column" padding={1} gap={1}>
         {/* Header */}
         <text fg={Colors.accent}>

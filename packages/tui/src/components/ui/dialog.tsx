@@ -8,6 +8,7 @@
  */
 import { useState } from "react";
 import {
+  type ChoiceContext,
   type ConfirmContext,
   type DialogId,
   useDialogKeyboard,
@@ -56,7 +57,7 @@ export interface DialogHandle {
     closeOnClickOutside?: boolean;
   }): Promise<boolean>;
   choice<K extends string>(options: {
-    content: (ctx: ConfirmContext) => unknown;
+    content: (ctx: ChoiceContext<K>) => unknown;
     fallback?: K;
     closeOnClickOutside?: boolean;
   }): Promise<K | undefined>;
@@ -70,13 +71,13 @@ export interface DialogHandle {
 // ── Internal: keyboard-navigable choice list ──────────────────────────────
 
 /** Props for the keyboard-navigable choice list rendered inside a dialog */
-interface ChoiceListProps {
-  choices: ChoiceOption[];
+interface ChoiceListProps<K extends string = string> {
+  choices: ChoiceOption<K>[];
   accentColor: string;
   foregroundColor: string;
   mutedColor: string;
   highlightColor: string;
-  resolve: (value: string | boolean) => void;
+  resolve: (value: K) => void;
   dismiss: () => void;
   dialogId: DialogId;
 }
@@ -86,7 +87,7 @@ interface ChoiceListProps {
  * Uses useDialogKeyboard scoped to the dialog so only the topmost
  * dialog receives keyboard events.
  */
-function ChoiceList({
+function ChoiceList<K extends string = string>({
   choices,
   accentColor,
   foregroundColor,
@@ -95,7 +96,7 @@ function ChoiceList({
   resolve,
   dismiss,
   dialogId,
-}: ChoiceListProps) {
+}: ChoiceListProps<K>) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useDialogKeyboard((key) => {
@@ -207,7 +208,7 @@ export async function showChoice<K extends string>(
   options: ChoiceDialogOptions<K>
 ): Promise<K | undefined> {
   return dialog.choice<K>({
-    content: (ctx: ConfirmContext) => (
+    content: (ctx: ChoiceContext<K>) => (
       <box flexDirection="column" padding={1} gap={1}>
         {/* Header */}
         <text fg={Colors.accent}>

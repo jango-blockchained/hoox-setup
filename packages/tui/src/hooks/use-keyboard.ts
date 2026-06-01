@@ -76,9 +76,9 @@ export function useKeyboard(
     const renderer = getRendererRef();
     if (!renderer) return;
 
-    const cleanup = renderer.keyInput.on("keypress", (key: KeyEvent) => {
+    const cleanup = renderer.keyInput.on("keypress", (key: unknown) => {
       for (const { handler: h } of globalHandlers) {
-        h(key);
+        h(key as KeyEvent);
       }
     });
 

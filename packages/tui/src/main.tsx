@@ -38,7 +38,7 @@ async function main() {
     );
   });
 
-  renderer.on("resize", (_width: number, _height: number) => {
+  renderer.on("resize", (_width: unknown, _height: unknown) => {
     // Layout auto-adjusts via flexbox
   });
 
