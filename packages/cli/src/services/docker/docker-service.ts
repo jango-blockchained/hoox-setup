@@ -61,7 +61,7 @@ export class DockerService {
     profiles: string[],
     detached = false
   ): Promise<ComposeResult> {
-    const args = ["compose", "up", "--profile", ...profiles];
+    const args = ["compose", "--profile", ...profiles, "up"];
 
     if (detached) {
       args.push("-d");
