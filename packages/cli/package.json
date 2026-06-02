@@ -3,14 +3,9 @@
   "version": "0.5.3",
   "description": "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments (@jango-blockchained/hoox-cli)",
   "type": "module",
-  "main": "./bin/hoox.js",
-  "types": "./src/index.ts",
-  "exports": {
-    ".": "./bin/hoox.js"
-  },
   "bin": {
-    "hoox": "./bin/hoox.js",
-    "hx": "./bin/hoox.js"
+    "hoox": "bin/hoox.js",
+    "hx": "bin/hoox.js"
   },
   "scripts": {
     "test": "bun test",
@@ -22,13 +17,13 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.3.0",
-    "@jango-blockchained/hoox-shared": "workspace:*",
     "ansis": "^4.2.0",
     "commander": "^14.0.3",
     "jsonc-parser": "^3.3.1",
     "wrangler": "^4.95.0"
   },
   "devDependencies": {
+    "@jango-blockchained/hoox-shared": "workspace:*",
     "@types/node": "^25.8.0",
     "bun-types": "^1.3.14",
     "typescript": "^6.0.3"
@@ -56,7 +51,7 @@
   },
   "files": [
     "bin",
-    "src",
+    "dist",
     "README.md"
   ]
 }

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    ".opencode/instructions/project.md",
+    "SKILL.md",
+  ],
+  "compaction": {
+    "auto": true,
+    "tail_turns": 25,
+  },
+  "tool_output": {
+    "max_lines": 220,
+    "max_bytes": 12288,
+  },
+  "permission": {
+    "webfetch": "allow",
+    "websearch": "allow",
+  },
+}
