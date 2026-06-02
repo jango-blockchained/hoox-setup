@@ -13,7 +13,9 @@ COPY workers/ workers/
 COPY pages/ pages/
 
 # Install dependencies (this links workspaces)
-RUN bun install
+# PUPPETEER_SKIP_DOWNLOAD prevents Chrome download during bun install
+# (puppeteer is a transitive dep, not needed in production runtime)
+RUN PUPPETEER_SKIP_DOWNLOAD=true bun install
 
 # Compile workers to standalone JS
 # hoox-shared is externalized so each worker doesn't duplicate it.
