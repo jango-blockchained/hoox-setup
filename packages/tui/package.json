@@ -22,6 +22,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260602.1",
     "@types/bun": "latest",
     "typescript": "^6.0.3"
   },

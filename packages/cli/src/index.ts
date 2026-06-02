@@ -5,6 +5,7 @@
  * Global options --json and --quiet are available to all commands via program.opts().
  */
 
+import { readFileSync } from "node:fs";
 import { Command } from "commander";
 import { toError } from "@jango-blockchained/hoox-shared";
 import { COPYRIGHT } from "@jango-blockchained/hoox-shared/legal";
@@ -16,6 +17,12 @@ import { theme } from "./utils/theme.js";
 // Program setup
 // ---------------------------------------------------------------------------
 
+// Load version from package.json at module init time (synchronous to support
+// Commander's .version() call, which runs during program initialization)
+const pkgVersion: string = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf-8")
+).version;
+
 const program = new Command();
 
 program
@@ -23,7 +30,7 @@ program
   .description(
     "Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments"
   )
-  .version(`0.2.0\n\n${COPYRIGHT}`)
+  .version(`${pkgVersion}\n\n${COPYRIGHT}`)
   .addHelpText(
     "beforeAll",
     theme.heading("\nHoox CLI — Cloudflare Workers Platform\n")
@@ -141,6 +148,7 @@ import { registerCloneCommand } from "./commands/clone/index.js";
 import { registerDashboardCommand } from "./commands/dashboard/index.js";
 import { registerDbCommand } from "./commands/db/index.js";
 import { registerMonitorCommand } from "./commands/monitor/index.js";
+import { registerWorkersCommand } from "./commands/workers/index.js";
 import { registerRepairCommand } from "./commands/repair/index.js";
 import { registerUpdateCommand } from "./commands/update/index.js";
 import { registerSchemaCommand } from "./commands/schema/index.js";
@@ -163,11 +171,79 @@ registerCloneCommand(program);
 registerDashboardCommand(program);
 registerDbCommand(program);
 registerMonitorCommand(program);
+registerWorkersCommand(program);
 registerRepairCommand(program);
 registerSchemaCommand(program);
 registerUpdateCommand(program);
 registerTUICommand(program);
 registerDisclaimerCommand(program);
+
+// ---------------------------------------------------------------------------
+// Shell completion command
+// ---------------------------------------------------------------------------
+
+program
+  .command("completion")
+  .description("Generate shell completion script")
+  .argument("[shell]", "Shell type (bash, zsh, fish)")
+  .action(async (shell?: string) => {
+    if (!shell) {
+      process.stdout.write("Usage: hoox completion <bash|zsh|fish>\n");
+      return;
+    }
+
+    const validShells = ["bash", "zsh", "fish"];
+    if (!validShells.includes(shell)) {
+      process.stderr.write(
+        `Unsupported shell "${shell}". Use: ${validShells.join(", ")}\n`
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    // Generate completion script
+    if (shell === "bash") {
+      process.stdout.write(`_hoox_completion() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="\${COMP_WORDS[COMP_CWORD]}"
+  opts="--help --version --json --quiet --yes init clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer workers"
+  COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
+  return 0
+}
+complete -F _hoox_completion hoox
+`);
+    } else if (shell === "zsh") {
+      process.stdout.write(`#compdef hoox
+_hoox() {
+  local -a opts
+  opts=(
+    '--help:Show help'
+    '--version:Show version'
+    '--json:JSON output'
+    '--quiet:Minimal output'
+    'init:Interactive setup wizard'
+    'clone:Clone worker repositories'
+    'dev:Local development'
+    'deploy:Deploy to Cloudflare'
+    'infra:Manage infrastructure'
+    'config:Manage configuration'
+    'check:Validate and health-check'
+    'db:Database operations'
+    'monitor:Monitor system'
+    'repair:Repair system'
+    'logs:View worker logs'
+    'test:Run tests'
+    'waf:Manage Web Application Firewall'
+    'dashboard:Dashboard operations'
+    'workers:Worker operations'
+  )
+  _describe 'hoox' opts
+}
+compdef _hoox hoox
+`);
+    }
+  });
 
 // ---------------------------------------------------------------------------
 // preAction hooks — auto-check wrangler version before dev/deploy

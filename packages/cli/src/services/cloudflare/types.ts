@@ -28,3 +28,19 @@ export interface DevResult {
   /** The local dev server port. */
   port: number;
 }
+
+/** A single version entry from `wrangler versions list`. */
+export interface VersionEntry {
+  /** Unique version ID (UUID). */
+  id: string;
+  /** Sequential version number. */
+  number?: number;
+  /** ISO-8601 creation timestamp. */
+  created_on?: string;
+  /** Author email / identity. */
+  author?: string;
+  /** Optional user-provided message. */
+  message?: string;
+  /** Source of the version (upload, rollback, etc.). */
+  source?: string;
+}

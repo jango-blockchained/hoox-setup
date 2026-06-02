@@ -23,6 +23,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -213,13 +214,13 @@ EXAMPLES:
     )
     .argument("[name]", "Worker name to clone (omit to list status)")
     .action(
-      async (
-        name: string | undefined,
-        options: { all?: boolean; org?: string }
-      ) => {
-        const fmt = getFormatOptions(program);
+      withErrorHandling(
+        async (
+          name: string | undefined,
+          options: { all?: boolean; org?: string }
+        ) => {
+          const fmt = getFormatOptions(program);
 
-        try {
           const configService = new ConfigService();
           await configService.load();
 
@@ -421,11 +422,8 @@ EXAMPLES:
 
             return;
           }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(message, fmt);
-          process.exitCode = ExitCode.ERROR;
-        }
-      }
+        },
+        { service: "clone" }
+      )
     );
 }

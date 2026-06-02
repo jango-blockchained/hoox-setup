@@ -13,23 +13,17 @@ import * as p from "@clack/prompts";
 
 import { EnvService } from "../../services/env/index.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import { formatSuccess, formatJson } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatJson,
+  getFormatOptions,
+} from "../../utils/formatters.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Get FormatOptions from the command opts using optsWithGlobals() so that
- * globally defined flags (--json, --quiet) are resolved correctly even when
- * called from deeply nested subcommands.
- */
-function formatOpts(cmd: Command): FormatOptions {
-  const opts = cmd.optsWithGlobals<{ json?: boolean; quiet?: boolean }>();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
-}
 
 // ---------------------------------------------------------------------------
 // env init — interactive wizard
@@ -244,7 +238,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           await handleInit(opts);
         },
         { service: "env" }
@@ -257,7 +251,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           await handleShow(opts);
         },
         { service: "env" }
@@ -270,7 +264,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           await handleValidate(opts);
         },
         { service: "env" }
@@ -283,7 +277,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           await handleGenerateDevVars(opts);
         },
         { service: "env" }

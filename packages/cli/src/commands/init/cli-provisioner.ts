@@ -63,8 +63,6 @@ export class CLIProvisioner implements Provisioner {
     const created: string[] = [
       ...plan.d1Databases.map((d) => `D1:${d}`),
       ...plan.kvNamespaces.map((k) => `KV:${k}`),
-      ...plan.r2Buckets.map((b) => `R2:${b}`),
-      ...plan.queues.map((q) => `Queue:${q}`),
     ];
     return { success: true, created, errors: [] };
   }

@@ -67,7 +67,7 @@ function updateWranglerVars(
       Old: c.oldValue,
       New: theme.success(c.newValue),
     }));
-    console.log(theme.heading("\nService URL changes:"));
+    process.stdout.write(theme.heading("\nService URL changes:") + "\n");
     formatTable(rows, opts);
   }
 
@@ -101,6 +101,12 @@ export function registerDashboardCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (options: { dryRun?: boolean }) => {
+          process.stdout.write(
+            theme.warning(
+              "! This command is deprecated. Use `hoox deploy update-internal-urls` instead.\n"
+            )
+          );
+
           const opts: FormatOptions = {
             json: program.opts<{ json?: boolean }>().json,
             quiet: program.opts<{ quiet?: boolean }>().quiet,

@@ -1,5 +1,10 @@
 import path from "node:path";
-import type { WranglerResult, DeployResult, DevResult } from "./types.js";
+import type {
+  WranglerResult,
+  DeployResult,
+  DevResult,
+  VersionEntry,
+} from "./types.js";
 
 /**
  * CloudflareService wraps the `wrangler` CLI via Bun.spawn for all
@@ -136,6 +141,89 @@ export class CloudflareService {
     }
 
     return { ok: true, value: deployResult };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Versions (deployment history / rollback)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lists deployment versions for a worker (`wrangler versions list --json`).
+   * Returns parsed VersionEntry[] with id, number, created_on, author, source.
+   */
+  async versionsList(
+    workerName: string
+  ): Promise<WranglerResult<VersionEntry[]>> {
+    const result = await this.runWrangler([
+      "versions",
+      "list",
+      "--name",
+      workerName,
+      "--json",
+    ]);
+
+    if (!result.ok) {
+      return result;
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(result.value);
+      if (!Array.isArray(parsed)) {
+        return {
+          ok: false,
+          error: `Expected array from wrangler versions list, got ${typeof parsed}`,
+        };
+      }
+
+      const versions: VersionEntry[] = parsed.map(
+        (v: Record<string, unknown>) => ({
+          id: String(v.id ?? ""),
+          number: typeof v.number === "number" ? v.number : undefined,
+          created_on:
+            typeof v.metadata === "object" && v.metadata !== null
+              ? String((v.metadata as Record<string, unknown>).created_on ?? "")
+              : undefined,
+          author:
+            typeof v.metadata === "object" && v.metadata !== null
+              ? String((v.metadata as Record<string, unknown>).author ?? "")
+              : undefined,
+          message:
+            typeof v.metadata === "object" && v.metadata !== null
+              ? String((v.metadata as Record<string, unknown>).message ?? "")
+              : undefined,
+          source:
+            typeof v.metadata === "object" && v.metadata !== null
+              ? String((v.metadata as Record<string, unknown>).source ?? "")
+              : undefined,
+        })
+      );
+
+      return { ok: true, value: versions };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        ok: false,
+        error: `Failed to parse versions list: ${message}`,
+      };
+    }
+  }
+
+  /**
+   * Rolls back a worker to a specific version
+   * (`wrangler versions rollback --name <worker> --version-id <id>`).
+   */
+  async versionsRollback(
+    workerName: string,
+    versionId: string
+  ): Promise<WranglerResult<string>> {
+    return this.runWrangler([
+      "versions",
+      "rollback",
+      "--name",
+      workerName,
+      "--version-id",
+      versionId,
+    ]);
   }
 
   // ---------------------------------------------------------------------------

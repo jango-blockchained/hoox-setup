@@ -14,7 +14,11 @@ import type { Command } from "commander";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
 import type { WranglerResult } from "../../services/cloudflare/types.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
-import { formatSuccess, formatTable } from "../../utils/formatters.js";
+import {
+  formatSuccess,
+  formatTable,
+  getFormatOptions,
+} from "../../utils/formatters.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme, icons } from "../../utils/theme.js";
 import type { FormatOptions } from "../../utils/formatters.js";
@@ -461,7 +465,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleStatus(opts);
         },
         { service: "waf" }
@@ -477,7 +481,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleRulesList(opts);
         },
         { service: "waf" }
@@ -492,7 +496,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (type: string, value: string, _, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleRulesAdd(type, value, opts);
         },
         { service: "waf" }
@@ -505,7 +509,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (ruleId: string, _, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleRulesRemove(ruleId, opts);
         },
         { service: "waf" }
@@ -523,7 +527,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleMode("on", opts);
         },
         { service: "waf" }
@@ -536,7 +540,7 @@ export function registerWafCommand(program: Command): void {
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts: FormatOptions = cmd.parent!.parent!.parent!.opts();
+          const opts = getFormatOptions(cmd);
           await handleMode("off", opts);
         },
         { service: "waf" }

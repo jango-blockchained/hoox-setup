@@ -27,6 +27,7 @@ let listEnabledWorkersMock: ReturnType<typeof mock>;
 let getWorkerMock: ReturnType<typeof mock>;
 
 let d1ListMock: ReturnType<typeof mock>;
+let d1ExecuteMock: ReturnType<typeof mock>;
 let kvListMock: ReturnType<typeof mock>;
 let r2ListMock: ReturnType<typeof mock>;
 let queueListMock: ReturnType<typeof mock>;
@@ -44,6 +45,7 @@ const origListEnabled = ConfigService.prototype.listEnabledWorkers;
 const origGetWorker = ConfigService.prototype.getWorker;
 
 const origD1List = CloudflareService.prototype.d1List;
+const origD1Execute = CloudflareService.prototype.d1Execute;
 const origKvList = CloudflareService.prototype.kvList;
 const origR2List = CloudflareService.prototype.r2List;
 const origQueueList = CloudflareService.prototype.queueList;
@@ -69,6 +71,7 @@ beforeEach(() => {
   ConfigService.prototype.getWorker = origGetWorker;
 
   CloudflareService.prototype.d1List = origD1List;
+  CloudflareService.prototype.d1Execute = origD1Execute;
   CloudflareService.prototype.kvList = origKvList;
   CloudflareService.prototype.r2List = origR2List;
   CloudflareService.prototype.queueList = origQueueList;
@@ -90,27 +93,41 @@ beforeEach(() => {
 
   d1ListMock = mock(async () => ({
     ok: true as const,
-    data: "my-database (abc-123)",
+    value: "my-database (abc-123)",
   }));
+  d1ExecuteMock = mock(
+    async (_name: string, _sql: string, _remote?: boolean) => ({
+      ok: true as const,
+      value: JSON.stringify({
+        results: [
+          { name: "trade_signals" },
+          { name: "trades" },
+          { name: "positions" },
+          { name: "balances" },
+          { name: "system_logs" },
+        ],
+      }),
+    })
+  );
   kvListMock = mock(async () => ({
     ok: true as const,
-    data: "namespace-1 (id1)\nnamespace-2 (id2)",
+    value: "namespace-1 (id1)\nnamespace-2 (id2)",
   }));
   r2ListMock = mock(async () => ({
     ok: true as const,
-    data: "bucket-1\nbucket-2",
+    value: "bucket-1\nbucket-2",
   }));
   queueListMock = mock(async () => ({
     ok: true as const,
-    data: "queue-1\nqueue-2",
+    value: "queue-1\nqueue-2",
   }));
   tailMock = mock(async () => ({
     ok: true as const,
-    data: "Connected to worker",
+    value: "Connected to worker",
   }));
   secretListMock = mock(async () => ({
     ok: true as const,
-    data: "Secret names: API_KEY, DB_PASSWORD",
+    value: "Secret names: API_KEY, DB_PASSWORD",
   }));
 
   secretsCreateMock = mock(async () =>
@@ -131,6 +148,7 @@ beforeEach(() => {
   ConfigService.prototype.getWorker = getWorkerMock;
 
   CloudflareService.prototype.d1List = d1ListMock;
+  CloudflareService.prototype.d1Execute = d1ExecuteMock;
   CloudflareService.prototype.kvList = kvListMock;
   CloudflareService.prototype.r2List = r2ListMock;
   CloudflareService.prototype.queueList = queueListMock;
@@ -154,6 +172,7 @@ afterEach(() => {
   ConfigService.prototype.getWorker = origGetWorker;
 
   CloudflareService.prototype.d1List = origD1List;
+  CloudflareService.prototype.d1Execute = origD1Execute;
   CloudflareService.prototype.kvList = origKvList;
   CloudflareService.prototype.r2List = origR2List;
   CloudflareService.prototype.queueList = origQueueList;

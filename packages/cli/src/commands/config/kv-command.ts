@@ -16,16 +16,12 @@ import {
   formatSuccess,
   formatTable,
   formatJson,
+  getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
 import type { FormatOptions } from "../../utils/formatters.js";
-
-function formatOpts(cmd: Command): FormatOptions {
-  const opts = cmd.optsWithGlobals<{ json?: boolean; quiet?: boolean }>();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
-}
 
 async function resolveNs(cmd: Command): Promise<string> {
   const svc = new KvSyncService();
@@ -206,7 +202,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           const nsId = await resolveNs(cmd);
           await handleList(opts, nsId);
         },
@@ -221,7 +217,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (key: string, _, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           const nsId = await resolveNs(cmd);
           await handleGet(opts, nsId, key);
         },
@@ -236,7 +232,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (key: string, value: string, _, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           const nsId = await resolveNs(cmd);
           await handleSet(opts, nsId, key, value);
         },
@@ -251,7 +247,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (key: string, _, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           const nsId = await resolveNs(cmd);
           await handleDelete(opts, nsId, key);
         },
@@ -266,7 +262,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           const nsId = await resolveNs(cmd);
           await handleApplyManifest(opts, nsId);
         },
@@ -281,7 +277,7 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
-          const opts = formatOpts(cmd);
+          const opts = getFormatOptions(cmd);
           await handleManifest(opts);
         },
         { service: "kv" }

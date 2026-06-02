@@ -12,6 +12,7 @@
 
 import { Command } from "commander";
 import * as p from "@clack/prompts";
+import { spinner } from "@clack/prompts";
 import { DbService } from "../../services/db/index.js";
 import {
   formatSuccess,
@@ -41,13 +42,21 @@ async function handleApply(
   file?: string
 ): Promise<void> {
   const svc = new DbService();
-  const output = await svc.apply(dbName, remote, file);
-  formatSuccess(
-    `Schema applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
-    opts
-  );
-  if (!opts.quiet && output) {
-    process.stdout.write(`${output}\n`);
+  const s = spinner();
+  s.start("Applying schema...");
+  try {
+    const output = await svc.apply(dbName, remote, file);
+    s.stop("Schema applied");
+    formatSuccess(
+      `Schema applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
+      opts
+    );
+    if (!opts.quiet && output) {
+      process.stdout.write(`${output}\n`);
+    }
+  } catch (err) {
+    s.stop("Schema apply failed");
+    throw err;
   }
 }
 
@@ -61,13 +70,21 @@ async function handleMigrate(
   remote: boolean
 ): Promise<void> {
   const svc = new DbService();
-  const output = await svc.migrate(dbName, remote);
-  formatSuccess(
-    `Migrations applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
-    opts
-  );
-  if (!opts.quiet && output) {
-    process.stdout.write(`${output}\n`);
+  const s = spinner();
+  s.start("Running migrations...");
+  try {
+    const output = await svc.migrate(dbName, remote);
+    s.stop("Migrations complete");
+    formatSuccess(
+      `Migrations applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
+      opts
+    );
+    if (!opts.quiet && output) {
+      process.stdout.write(`${output}\n`);
+    }
+  } catch (err) {
+    s.stop("Migrations failed");
+    throw err;
   }
 }
 
@@ -131,8 +148,16 @@ async function handleExport(
   outputPath?: string
 ): Promise<void> {
   const svc = new DbService();
-  const path = await svc.export(dbName, outputPath);
-  formatSuccess(`Database exported to ${path}`, opts);
+  const s = spinner();
+  s.start("Exporting database...");
+  try {
+    const path = await svc.export(dbName, outputPath);
+    s.stop("Database exported");
+    formatSuccess(`Database exported to ${path}`, opts);
+  } catch (err) {
+    s.stop("Export failed");
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -156,10 +181,18 @@ async function handleReset(
   }
 
   const svc = new DbService();
-  const output = await svc.reset(dbName);
-  formatSuccess(`Database "${dbName}" has been recreated`, opts);
-  if (!opts.quiet && output) {
-    process.stdout.write(`${output}\n`);
+  const s = spinner();
+  s.start("Resetting database...");
+  try {
+    const output = await svc.reset(dbName);
+    s.stop("Database reset");
+    formatSuccess(`Database "${dbName}" has been recreated`, opts);
+    if (!opts.quiet && output) {
+      process.stdout.write(`${output}\n`);
+    }
+  } catch (err) {
+    s.stop("Reset failed");
+    throw err;
   }
 }
 

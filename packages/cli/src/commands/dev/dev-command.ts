@@ -20,6 +20,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 
 // ---------------------------------------------------------------------------
 // Command registration
@@ -79,175 +80,177 @@ EXAMPLES:
       "--runtime <native|docker>",
       "Choose dev runtime (overrides saved preference)"
     )
-    .action(async (options: { runtime?: string }) => {
-      const fmt = getFormatOptions(program);
-      try {
-        const configService = new ConfigService();
-        const prereqs = new PrerequisitesService();
-        const docker = new DockerService();
+    .action(
+      withErrorHandling(
+        async (options: { runtime?: string }) => {
+          const fmt = getFormatOptions(program);
+          const configService = new ConfigService();
+          const prereqs = new PrerequisitesService();
+          const docker = new DockerService();
 
-        // Load config early so we can read saved runtime preference
-        await configService.load();
+          // Load config early so we can read saved runtime preference
+          await configService.load();
 
-        // === Prerequisite checks ===
+          // === Prerequisite checks ===
 
-        // 1. Wrangler version check (advisory)
-        const wranglerCheck = await prereqs.checkWranglerVersion();
-        if (wranglerCheck.outdated) {
-          process.stdout.write(
-            `\n! wrangler is outdated (${wranglerCheck.current} < ${wranglerCheck.minimum})\n` +
-              `   Run \`bunx wrangler update\` to update.\n` +
-              `   Press Enter to continue or Ctrl+C to abort.\n\n`
-          );
-          // Wait briefly — user can proceed with Enter or Ctrl+C
-        }
+          // 1. Wrangler version check (advisory)
+          const wranglerCheck = await prereqs.checkWranglerVersion();
+          if (wranglerCheck.outdated) {
+            process.stdout.write(
+              `\n! wrangler is outdated (${wranglerCheck.current} < ${wranglerCheck.minimum})\n` +
+                `   Run \`bunx wrangler update\` to update.\n` +
+                `   Press Enter to continue or Ctrl+C to abort.\n\n`
+            );
+            // Wait briefly — user can proceed with Enter or Ctrl+C
+          }
 
-        // 2. Check Docker availability
-        const dockerStatus = await docker.checkAvailability();
-        const dockerViable = dockerStatus.docker && dockerStatus.compose;
-        const composeExists = await docker.composeFileExists();
+          // 2. Check Docker availability
+          const dockerStatus = await docker.checkAvailability();
+          const dockerViable = dockerStatus.docker && dockerStatus.compose;
+          const composeExists = await docker.composeFileExists();
 
-        // 3. Determine runtime
-        let runtime: "native" | "docker" = "native";
-        if (options.runtime === "native" || options.runtime === "docker") {
-          runtime = options.runtime;
-        } else {
-          const savedRuntime = configService.getDevRuntime();
-          if (savedRuntime) {
-            runtime = savedRuntime;
-          } else if (dockerViable && composeExists) {
-            const choice = await select({
-              message: "Which runtime would you like to use?",
-              options: [
-                {
-                  value: "native",
-                  label: "Native (wrangler dev)",
-                  hint: "run locally with wrangler",
-                },
-                {
-                  value: "docker",
-                  label: "Docker",
-                  hint: "run via docker compose",
-                },
-              ],
-            });
-            if (choice === "native" || choice === "docker") {
-              runtime = choice;
-              await configService.setDevRuntime(runtime);
+          // 3. Determine runtime
+          let runtime: "native" | "docker" = "native";
+          if (options.runtime === "native" || options.runtime === "docker") {
+            runtime = options.runtime;
+          } else {
+            const savedRuntime = configService.getDevRuntime();
+            if (savedRuntime) {
+              runtime = savedRuntime;
+            } else if (dockerViable && composeExists) {
+              const choice = await select({
+                message: "Which runtime would you like to use?",
+                options: [
+                  {
+                    value: "native",
+                    label: "Native (wrangler dev)",
+                    hint: "run locally with wrangler",
+                  },
+                  {
+                    value: "docker",
+                    label: "Docker",
+                    hint: "run via docker compose",
+                  },
+                ],
+              });
+              if (choice === "native" || choice === "docker") {
+                runtime = choice;
+                await configService.setDevRuntime(runtime);
+              }
             }
           }
-        }
 
-        // Validate configuration
-        const validation = configService.validate();
-        if (!validation.valid) {
-          formatError(
-            new CLIError(
-              `Invalid configuration:\n${validation.errors.map((e) => `  - ${e}`).join("\n")}`,
-              ExitCode.INVALID_USAGE
-            ),
-            fmt
-          );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
-
-        // === Runtime branching ===
-
-        if (runtime === "docker") {
-          const profiles = ["workers"];
-          formatSuccess(
-            `Starting workers via Docker Compose (profiles: ${profiles.join(", ")})...`,
-            fmt
-          );
-          const result = await docker.composeUp(profiles, false);
-          if (!result.ok) {
+          // Validate configuration
+          const validation = configService.validate();
+          if (!validation.valid) {
             formatError(
               new CLIError(
-                result.error ?? "Docker compose failed",
-                ExitCode.ERROR
+                `Invalid configuration:\n${validation.errors.map((e) => `  - ${e}`).join("\n")}`,
+                ExitCode.INVALID_USAGE
               ),
               fmt
             );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
+
+          // === Runtime branching ===
+
+          if (runtime === "docker") {
+            const profiles = ["workers"];
+            formatSuccess(
+              `Starting workers via Docker Compose (profiles: ${profiles.join(", ")})...`,
+              fmt
+            );
+            const result = await docker.composeUp(profiles, false);
+            if (!result.ok) {
+              formatError(
+                new CLIError(
+                  result.error ?? "Docker compose failed",
+                  ExitCode.ERROR
+                ),
+                fmt
+              );
+              process.exitCode = ExitCode.ERROR;
+            }
+            return;
+          }
+
+          // === Native runtime (wrangler dev) ===
+
+          const enabledWorkers = configService.listEnabledWorkers();
+          if (enabledWorkers.length === 0) {
+            formatError(
+              new CLIError(
+                "No enabled workers found in wrangler.jsonc. Enable at least one worker.",
+                ExitCode.INVALID_USAGE
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
+
+          // Port assignments for known workers (from local-dev.md)
+          const LOCAL_PORTS: Record<string, number> = {
+            hoox: 8787,
+            "trade-worker": 8788,
+            "d1-worker": 8789,
+            "telegram-worker": 8790,
+            "web3-wallet-worker": 8792,
+          };
+
+          let nextFallbackPort = 8800;
+          const cf = new CloudflareService();
+          let started = 0;
+          let failed = 0;
+
+          for (const name of enabledWorkers) {
+            const worker = configService.getWorker(name);
+            if (!worker) {
+              formatError(
+                `Worker "${name}" not found in config, skipping.`,
+                fmt
+              );
+              failed++;
+              continue;
+            }
+
+            const port = LOCAL_PORTS[name] ?? nextFallbackPort++;
+            formatSuccess(
+              `Starting worker "${name}" (${worker.path}) on port ${port}...`,
+              fmt
+            );
+
+            const result = await cf.dev(worker.path, port);
+            if (!result.ok) {
+              formatError(
+                `Failed to start worker "${name}": ${result.error}`,
+                fmt
+              );
+              failed++;
+            } else {
+              formatSuccess(
+                `Worker "${name}" running on http://localhost:${result.value.port}`,
+                fmt
+              );
+              started++;
+            }
+          }
+
+          if (started > 0) {
+            formatSuccess(
+              `Started ${started} worker(s) — http://localhost:8787 (and adjacent ports)`,
+              fmt
+            );
+          }
+          if (failed > 0) {
             process.exitCode = ExitCode.ERROR;
           }
-          return;
-        }
-
-        // === Native runtime (wrangler dev) ===
-
-        const enabledWorkers = configService.listEnabledWorkers();
-        if (enabledWorkers.length === 0) {
-          formatError(
-            new CLIError(
-              "No enabled workers found in wrangler.jsonc. Enable at least one worker.",
-              ExitCode.INVALID_USAGE
-            ),
-            fmt
-          );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
-
-        // Port assignments for known workers (from local-dev.md)
-        const LOCAL_PORTS: Record<string, number> = {
-          hoox: 8787,
-          "trade-worker": 8788,
-          "d1-worker": 8789,
-          "telegram-worker": 8790,
-          "web3-wallet-worker": 8792,
-        };
-
-        let nextFallbackPort = 8800;
-        const cf = new CloudflareService();
-        let started = 0;
-        let failed = 0;
-
-        for (const name of enabledWorkers) {
-          const worker = configService.getWorker(name);
-          if (!worker) {
-            formatError(`Worker "${name}" not found in config, skipping.`, fmt);
-            failed++;
-            continue;
-          }
-
-          const port = LOCAL_PORTS[name] ?? nextFallbackPort++;
-          formatSuccess(
-            `Starting worker "${name}" (${worker.path}) on port ${port}...`,
-            fmt
-          );
-
-          const result = await cf.dev(worker.path, port);
-          if (!result.ok) {
-            formatError(
-              `Failed to start worker "${name}": ${result.error}`,
-              fmt
-            );
-            failed++;
-          } else {
-            formatSuccess(
-              `Worker "${name}" running on http://localhost:${result.value.port}`,
-              fmt
-            );
-            started++;
-          }
-        }
-
-        if (started > 0) {
-          formatSuccess(
-            `Started ${started} worker(s) — http://localhost:8787 (and adjacent ports)`,
-            fmt
-          );
-        }
-        if (failed > 0) {
-          process.exitCode = ExitCode.ERROR;
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+        },
+        { service: "dev" }
+      )
+    );
 
   // -- dev worker <name> [--port] -------------------------------------------
   devCmd
@@ -276,9 +279,9 @@ EXAMPLES:
       "Choose dev runtime (overrides saved preference)"
     )
     .action(
-      async (name: string, options: { port?: number; runtime?: string }) => {
-        const fmt = getFormatOptions(program);
-        try {
+      withErrorHandling(
+        async (name: string, options: { port?: number; runtime?: string }) => {
+          const fmt = getFormatOptions(program);
           const configService = new ConfigService();
           await configService.load();
 
@@ -335,12 +338,9 @@ EXAMPLES:
             `Worker "${name}" running on http://localhost:${result.value.port}`,
             fmt
           );
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(message, fmt);
-          process.exitCode = ExitCode.ERROR;
-        }
-      }
+        },
+        { service: "dev" }
+      )
     );
 
   // -- dev dashboard --------------------------------------------------------
@@ -363,38 +363,40 @@ EXAMPLES:
       "--runtime <native|docker>",
       "Choose dev runtime (overrides saved preference)"
     )
-    .action(async () => {
-      const fmt = getFormatOptions(program);
-      try {
-        const dashboardPath = path.resolve(process.cwd(), "workers/dashboard");
-        const dashboardDir = Bun.file(dashboardPath);
-
-        if (!(await dashboardDir.exists())) {
-          formatError(
-            new CLIError(
-              `Dashboard directory not found: ${dashboardPath}`,
-              ExitCode.INVALID_USAGE
-            ),
-            fmt
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(program);
+          const dashboardPath = path.resolve(
+            process.cwd(),
+            "workers/dashboard"
           );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
+          const dashboardDir = Bun.file(dashboardPath);
 
-        formatSuccess("Starting Next.js dashboard dev server...", fmt);
+          if (!(await dashboardDir.exists())) {
+            formatError(
+              new CLIError(
+                `Dashboard directory not found: ${dashboardPath}`,
+                ExitCode.INVALID_USAGE
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
 
-        // Fire-and-forget: spawn `bun run dev` inside pages/dashboard
-        Bun.spawn(["bun", "run", "dev"], {
-          cwd: dashboardPath,
-          stdout: "inherit",
-          stderr: "inherit",
-        });
+          formatSuccess("Starting Next.js dashboard dev server...", fmt);
 
-        formatSuccess("Dashboard starting on http://localhost:3000", fmt);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          // Fire-and-forget: spawn `bun run dev` inside pages/dashboard
+          Bun.spawn(["bun", "run", "dev"], {
+            cwd: dashboardPath,
+            stdout: "inherit",
+            stderr: "inherit",
+          });
+
+          formatSuccess("Dashboard starting on http://localhost:3000", fmt);
+        },
+        { service: "dev" }
+      )
+    );
 }

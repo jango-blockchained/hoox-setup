@@ -46,16 +46,16 @@ export function withErrorHandling<T extends unknown[]>(
       if (error instanceof CLIError) {
         // CLIError is already structured — pass through for proper formatting
         formatError(error, options?.opts);
-        process.exit(error.code);
+        process.exitCode = error.code;
       } else if (error instanceof Error) {
         formatError(`[${service}] ${error.message}`, options?.opts);
-        process.exit(ExitCode.ERROR);
+        process.exitCode = ExitCode.ERROR;
       } else {
         formatError(
           `[${service}] Unknown error: ${String(error)}`,
           options?.opts
         );
-        process.exit(ExitCode.CommandFailed);
+        process.exitCode = ExitCode.CommandFailed;
       }
     }
   };

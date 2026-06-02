@@ -80,7 +80,7 @@ beforeEach(() => {
 
   deployMock = mock(async (_path: string, _env?: string) => ({
     ok: true as const,
-    data: { url: "https://test-worker.cryptolinx.workers.dev" },
+    value: { url: "https://test-worker.cryptolinx.workers.dev" },
   }));
 
   (

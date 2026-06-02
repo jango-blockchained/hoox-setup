@@ -6,19 +6,23 @@
  *   workers   — Deploy all enabled workers with spinner + summary table
  *   worker    — Deploy a single worker with optional --env flag
  *   dashboard — Build and deploy the Next.js dashboard via OpenNext
+ *   history   — Show deployment version history for a worker
+ *   rollback  — Rollback a worker to a previous version
  */
 import { Command } from "commander";
-import { spinner, log, select } from "@clack/prompts";
+import { spinner, log, select, confirm, isCancel } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { theme, icons } from "../../utils/theme.js";
 import {
   formatSuccess,
   formatError,
+  formatTable,
   type FormatOptions,
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { DeployResult } from "./types.js";
 import { statSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -377,7 +381,7 @@ async function deployDashboard(
 
       return {
         worker: "dashboard",
-        url: urlMatch?.[0] || "https://dashboard.cryptolinx.workers.dev",
+        url: urlMatch?.[0],
         success: true,
         size: sizeMatch ? `${sizeMatch[1]} ${sizeMatch[2]}` : undefined,
         startupTime: startupMatch ? `${startupMatch[1]} ms` : undefined,
@@ -422,7 +426,7 @@ async function deployDashboard(
 
       return {
         worker: "dashboard",
-        url: urlMatch?.[0] || "https://dashboard.cryptolinx.workers.dev",
+        url: urlMatch?.[0],
         success: true,
       };
     }
@@ -552,25 +556,17 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
     const prefix = global.subdomain_prefix ?? "hoox";
     const workers = config.listEnabledWorkers();
 
-    // Try pages/dashboard first, fall back to workers/dashboard
-    let filePath = resolve(
+    // Only check workers/dashboard (pages/dashboard is deprecated)
+    const filePath = resolve(
       process.cwd(),
-      "pages",
+      "workers",
       "dashboard",
       "wrangler.jsonc"
     );
     if (!existsSync(filePath)) {
-      filePath = resolve(
-        process.cwd(),
-        "workers",
-        "dashboard",
-        "wrangler.jsonc"
-      );
-    }
-    if (!existsSync(filePath)) {
       formatError(
         new CLIError(
-          "Dashboard wrangler.jsonc not found (checked pages/dashboard and workers/dashboard)",
+          "Dashboard wrangler.jsonc not found at workers/dashboard/wrangler.jsonc",
           ExitCode.ERROR
         ),
         fmt
@@ -680,12 +676,162 @@ async function doKvConfig(fmt: FormatOptions): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Deployment version history handler
+// ---------------------------------------------------------------------------
+
+/**
+ * Show deployment version history for a worker via `wrangler versions list`.
+ */
+async function doVersionHistory(
+  worker: string,
+  fmt: FormatOptions
+): Promise<void> {
+  const s = spinner();
+  s.start(`Fetching deployment history for ${worker}...`);
+
+  const cf = new CloudflareService();
+  const result = await cf.versionsList(worker);
+
+  if (!result.ok) {
+    s.stop(`${theme.error(icons.error)} Failed to fetch history`);
+    formatError(new CLIError(result.error, ExitCode.ERROR), fmt);
+    process.exitCode = ExitCode.ERROR;
+    return;
+  }
+
+  const versions = result.value;
+  s.stop(`${theme.success(icons.success)} ${versions.length} version(s) found`);
+
+  if (versions.length === 0) {
+    if (!fmt.quiet) {
+      process.stdout.write(`${theme.dim("No deployment history found.\n")}`);
+    }
+    return;
+  }
+
+  const rows = versions.map((v) => ({
+    "Version ID": v.id,
+    Number: v.number !== undefined ? String(v.number) : "-",
+    Created: v.created_on ? new Date(v.created_on).toLocaleString() : "-",
+    Author: v.author ?? "-",
+    Source: v.source ?? "-",
+  }));
+
+  formatTable(rows, fmt);
+}
+
+// ---------------------------------------------------------------------------
+// Deployment rollback handler
+// ---------------------------------------------------------------------------
+
+/**
+ * Rollback a worker to a previous version via `wrangler versions rollback`.
+ * If no version is specified, prompts the user to select from recent versions.
+ */
+async function doVersionRollback(
+  worker: string,
+  version: string | undefined,
+  fmt: FormatOptions,
+  yes: boolean
+): Promise<void> {
+  const cf = new CloudflareService();
+  let targetVersion = version;
+
+  // If no version specified, fetch recent versions and prompt
+  if (!targetVersion) {
+    const s = spinner();
+    s.start(`Fetching recent versions for ${worker}...`);
+
+    const result = await cf.versionsList(worker);
+
+    if (!result.ok) {
+      s.stop(`${theme.error(icons.error)} Failed to fetch versions`);
+      formatError(new CLIError(result.error, ExitCode.ERROR), fmt);
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
+
+    const versions = result.value;
+    if (versions.length === 0) {
+      s.stop(`${theme.dim("No versions found")}`);
+      process.stdout.write(
+        `${theme.dim("No deployment history found for this worker.\n")}`
+      );
+      return;
+    }
+
+    s.stop(`${theme.success(icons.success)} Versions fetched`);
+
+    // Show the most recent 5 versions for the user to pick from
+    const recent = versions.slice(0, 5);
+
+    const selected = await select({
+      message: `Select a version to roll ${worker} back to:`,
+      options: recent.map((v) => ({
+        value: v.id,
+        label: `v${v.number ?? "?"}  ${v.id.slice(0, 8)}...  ${v.created_on ? new Date(v.created_on).toLocaleDateString() : "?"}`,
+        hint: v.source ? `via ${v.source}` : undefined,
+      })),
+    });
+
+    if (isCancel(selected)) {
+      process.stdout.write(`${theme.dim("Rollback cancelled.\n")}`);
+      return;
+    }
+
+    targetVersion = selected as string;
+  }
+
+  // Confirmation prompt before rollback
+  if (!yes) {
+    const confirmed = await confirm({
+      message: `Roll back ${worker} to version ${targetVersion}? This will replace the current deployment.`,
+    });
+
+    if (isCancel(confirmed) || !confirmed) {
+      process.stdout.write(`${theme.dim("Rollback cancelled.\n")}`);
+      return;
+    }
+  }
+
+  // Execute the rollback
+  const s = spinner();
+  s.start(`Rolling back ${worker} to version ${targetVersion}...`);
+
+  const rollResult = await cf.versionsRollback(worker, targetVersion);
+
+  if (!rollResult.ok) {
+    s.stop(`${theme.error(icons.error)} Rollback failed`);
+    formatError(new CLIError(rollResult.error, ExitCode.ERROR), fmt);
+    process.exitCode = ExitCode.ERROR;
+    return;
+  }
+
+  s.stop(
+    `${theme.success(icons.success)} ${worker} rolled back to ${targetVersion.slice(0, 8)}...`
+  );
+
+  // Show a brief snippet of wrangler output
+  if (rollResult.value && !fmt.quiet) {
+    const snippet = rollResult.value
+      .split("\n")
+      .find((l) => l.trim())
+      ?.trim()
+      .slice(0, 120);
+    if (snippet) {
+      log.step(`  ${theme.dim("Output:")} ${snippet}`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command registration
 // ---------------------------------------------------------------------------
 
 /**
  * Register the `hoox deploy` command group with subcommands:
- * all, workers, worker <name>, dashboard, telegram-webhook, update-internal-urls, kv-config.
+ * all, workers, worker <name>, dashboard, telegram-webhook,
+ * update-internal-urls, kv-config, history <worker>, rollback <worker>.
  */
 export function registerDeployCommand(program: Command): void {
   const deployCmd = program
@@ -736,12 +882,58 @@ EXAMPLES:
       "--auto",
       "Skip dashboard rebuild prompt, use existing build if available"
     )
+    .option("--dry-run", "Preview deployment plan without executing")
     .action(
-      async (options: { env?: string; rebuild?: boolean; auto?: boolean }) => {
-        const fmt = getFormatOptions(program);
-        try {
+      withErrorHandling(
+        async (options: {
+          env?: string;
+          rebuild?: boolean;
+          auto?: boolean;
+          dryRun?: boolean;
+        }) => {
           const configService = new ConfigService();
           await configService.load();
+
+          // --dry-run: preview deployment plan without executing
+          if (options.dryRun) {
+            const enabled = configService.listEnabledWorkers();
+            const workers = DEPLOY_ORDER.filter(
+              (w) => w !== "dashboard" && enabled.includes(w)
+            );
+            const unknown = enabled.filter(
+              (w) => w !== "dashboard" && !DEPLOY_ORDER.includes(w)
+            );
+            const ordered = [...workers, ...unknown];
+
+            process.stdout.write(
+              `\n${theme.heading("Deployment Plan (dry-run)")}\n`
+            );
+            process.stdout.write(`${theme.dim("─".repeat(50))}\n`);
+            process.stdout.write(
+              `Workers to deploy (${ordered.length + unknown.length}):\n`
+            );
+            for (const w of [...ordered, ...unknown]) {
+              process.stdout.write(`  ${theme.dim("○")} ${w}\n`);
+            }
+
+            // Dashboard build info
+            const buildInfo = getDashboardBuildInfo("workers/dashboard");
+            if (buildInfo.exists) {
+              process.stdout.write(
+                `\nDashboard: ${buildInfo.age ? `build exists (${buildInfo.age})` : "build exists"}\n`
+              );
+            } else {
+              process.stdout.write(
+                `\nDashboard: no build found (will be built)\n`
+              );
+            }
+
+            process.stdout.write(
+              `\n${theme.dim("Run without --dry-run to deploy.")}\n`
+            );
+            return;
+          }
+
           const cf = new CloudflareService();
 
           // Deploy all (workers + dashboard) in one go
@@ -752,12 +944,9 @@ EXAMPLES:
             options.rebuild ?? false,
             options.auto ?? false
           );
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(message, fmt);
-          process.exitCode = ExitCode.ERROR;
-        }
-      }
+        },
+        { service: "deploy" }
+      )
     );
 
   // -- deploy workers ------------------------------------------------------
@@ -777,106 +966,105 @@ EXAMPLES:
   hoox deploy workers --env staging`
     )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
-    .action(async (options: { env?: string }) => {
-      try {
-        const configService = new ConfigService();
-        await configService.load();
-        const cf = new CloudflareService();
+    .action(
+      withErrorHandling(
+        async (options: { env?: string }) => {
+          const configService = new ConfigService();
+          await configService.load();
+          const cf = new CloudflareService();
 
-        // Deploy only workers (no dashboard), sorted by dependency order
-        const enabled = configService.listEnabledWorkers();
-        const workers = DEPLOY_ORDER.filter(
-          (w) => w !== "dashboard" && enabled.includes(w)
-        );
-        const unknown = enabled.filter(
-          (w) => w !== "dashboard" && !DEPLOY_ORDER.includes(w)
-        );
-        const ordered = [...workers, ...unknown];
-        const results: DeployResult[] = [];
-
-        if (ordered.length === 0) {
-          process.stdout.write(
-            `${theme.dim("No enabled workers to deploy\n")}`
+          // Deploy only workers (no dashboard), sorted by dependency order
+          const enabled = configService.listEnabledWorkers();
+          const workers = DEPLOY_ORDER.filter(
+            (w) => w !== "dashboard" && enabled.includes(w)
           );
-          return;
-        }
-
-        // Print header
-        process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
-        process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
-
-        for (const name of ordered) {
-          process.stdout.write(
-            `${theme.dim("○")} ${name.padEnd(25)} pending\n`
+          const unknown = enabled.filter(
+            (w) => w !== "dashboard" && !DEPLOY_ORDER.includes(w)
           );
-        }
-        process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
+          const ordered = [...workers, ...unknown];
+          const results: DeployResult[] = [];
 
-        // Deploy each worker with clack spinner
-        for (const name of ordered) {
-          const s = spinner();
-          s.start(`Deploying ${name}...`);
-
-          const result = await deploySingle(
-            configService,
-            cf,
-            name,
-            options.env
-          );
-          results.push(result);
-
-          if (result.success) {
-            s.stop(`${theme.success(icons.success)} ${name} deployed`);
-            if (result.url)
-              process.stdout.write(
-                `   ${theme.dim("URL:")}     ${result.url}\n`
-              );
-            if (result.size)
-              process.stdout.write(
-                `   ${theme.dim("Size:")}     ${result.size}\n`
-              );
-            if (result.startupTime)
-              process.stdout.write(
-                `   ${theme.dim("Startup:")} ${result.startupTime}\n`
-              );
-            if (result.versionId)
-              process.stdout.write(
-                `   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`
-              );
-            if (
-              !result.url &&
-              !result.size &&
-              !result.startupTime &&
-              !result.versionId &&
-              result.rawOutput
-            ) {
-              process.stdout.write(
-                `   ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}\n`
-              );
-            }
-          } else {
-            s.stop(`${theme.error(icons.error)} ${name} failed`);
-            if (result.error)
-              process.stdout.write(
-                `   ${theme.error("Error:")} ${result.error}\n`
-              );
+          if (ordered.length === 0) {
+            process.stdout.write(
+              `${theme.dim("No enabled workers to deploy\n")}`
+            );
+            return;
           }
-        }
 
-        const succeeded = results.filter((r) => r.success).length;
-        const failed = results.filter((r) => !r.success).length;
-        process.stdout.write(
-          `\n${theme.heading("Summary:")} ${succeeded}/${ordered.length} deployed`
-        );
-        if (failed > 0)
-          process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
-        else process.stdout.write(` ${theme.success(" ✓")}\n\n`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        process.stdout.write(`${theme.error(`Error: ${message}`)}\n`);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          // Print header
+          process.stdout.write(`\n${theme.heading("Deploying Workers")}\n`);
+          process.stdout.write(`${theme.dim("─".repeat(60))}\n`);
+
+          for (const name of ordered) {
+            process.stdout.write(
+              `${theme.dim("○")} ${name.padEnd(25)} pending\n`
+            );
+          }
+          process.stdout.write(`${theme.dim("─".repeat(60))}\n\n`);
+
+          // Deploy each worker with clack spinner
+          for (const name of ordered) {
+            const s = spinner();
+            s.start(`Deploying ${name}...`);
+
+            const result = await deploySingle(
+              configService,
+              cf,
+              name,
+              options.env
+            );
+            results.push(result);
+
+            if (result.success) {
+              s.stop(`${theme.success(icons.success)} ${name} deployed`);
+              if (result.url)
+                process.stdout.write(
+                  `   ${theme.dim("URL:")}     ${result.url}\n`
+                );
+              if (result.size)
+                process.stdout.write(
+                  `   ${theme.dim("Size:")}     ${result.size}\n`
+                );
+              if (result.startupTime)
+                process.stdout.write(
+                  `   ${theme.dim("Startup:")} ${result.startupTime}\n`
+                );
+              if (result.versionId)
+                process.stdout.write(
+                  `   ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...\n`
+                );
+              if (
+                !result.url &&
+                !result.size &&
+                !result.startupTime &&
+                !result.versionId &&
+                result.rawOutput
+              ) {
+                process.stdout.write(
+                  `   ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}\n`
+                );
+              }
+            } else {
+              s.stop(`${theme.error(icons.error)} ${name} failed`);
+              if (result.error)
+                process.stdout.write(
+                  `   ${theme.error("Error:")} ${result.error}\n`
+                );
+            }
+          }
+
+          const succeeded = results.filter((r) => r.success).length;
+          const failed = results.filter((r) => !r.success).length;
+          process.stdout.write(
+            `\n${theme.heading("Summary:")} ${succeeded}/${ordered.length} deployed`
+          );
+          if (failed > 0)
+            process.stdout.write(` ${theme.error(`(${failed} failed)`)}\n`);
+          else process.stdout.write(` ${theme.success(" ✓")}\n\n`);
+        },
+        { service: "deploy" }
+      )
+    );
 
   // -- deploy worker <name> ------------------------------------------------
   deployCmd
@@ -896,34 +1084,38 @@ EXAMPLES:
   hoox deploy worker agent-worker --env production`
     )
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
-    .action(async (name: string, options: { env?: string }) => {
-      const fmt = getFormatOptions(program);
-      try {
-        const configService = new ConfigService();
-        await configService.load();
-        const cf = new CloudflareService();
+    .action(
+      withErrorHandling(
+        async (name: string, options: { env?: string }) => {
+          const fmt = getFormatOptions(program);
+          const configService = new ConfigService();
+          await configService.load();
+          const cf = new CloudflareService();
 
-        const result = await deploySingle(configService, cf, name, options.env);
-
-        if (result.success) {
-          const url = result.url ? ` — ${result.url}` : "";
-          formatSuccess(`Deployed ${name}${url}`, fmt);
-        } else {
-          formatError(
-            new CLIError(
-              `Failed to deploy "${name}": ${result.error}`,
-              ExitCode.ERROR
-            ),
-            fmt
+          const result = await deploySingle(
+            configService,
+            cf,
+            name,
+            options.env
           );
-          process.exitCode = ExitCode.ERROR;
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+
+          if (result.success) {
+            const url = result.url ? ` — ${result.url}` : "";
+            formatSuccess(`Deployed ${name}${url}`, fmt);
+          } else {
+            formatError(
+              new CLIError(
+                `Failed to deploy "${name}": ${result.error}`,
+                ExitCode.ERROR
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "deploy" }
+      )
+    );
 
   // -- deploy dashboard ----------------------------------------------------
   deployCmd
@@ -942,32 +1134,31 @@ EXAMPLES:
   hoox deploy dashboard --rebuild    Force rebuild before deploying`
     )
     .option("--rebuild", "Force rebuild of dashboard before deploying")
-    .action(async (options: { rebuild?: boolean }) => {
-      const fmt = getFormatOptions(program);
-      try {
-        const cf = new CloudflareService();
+    .action(
+      withErrorHandling(
+        async (options: { rebuild?: boolean }) => {
+          const fmt = getFormatOptions(program);
+          const cf = new CloudflareService();
 
-        const result = await deployDashboard(cf, options.rebuild);
+          const result = await deployDashboard(cf, options.rebuild);
 
-        if (result.success) {
-          const url = result.url ? ` — ${result.url}` : "";
-          formatSuccess(`Dashboard deployed${url}`, fmt);
-        } else {
-          formatError(
-            new CLIError(
-              `Dashboard deployment failed: ${result.error}`,
-              ExitCode.ERROR
-            ),
-            fmt
-          );
-          process.exitCode = ExitCode.ERROR;
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          if (result.success) {
+            const url = result.url ? ` — ${result.url}` : "";
+            formatSuccess(`Dashboard deployed${url}`, fmt);
+          } else {
+            formatError(
+              new CLIError(
+                `Dashboard deployment failed: ${result.error}`,
+                ExitCode.ERROR
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "deploy" }
+      )
+    );
 
   // -- deploy telegram-webhook --------------------------------------------
 
@@ -999,19 +1190,22 @@ EXAMPLES:
       "Worker subdomain prefix (default: from config)"
     )
     .action(
-      async (options: {
-        token?: string;
-        secretToken?: string;
-        subdomain?: string;
-      }) => {
-        const fmt = getFormatOptions(program);
-        await doTelegramWebhook(
-          fmt,
-          options.token,
-          options.secretToken,
-          options.subdomain
-        );
-      }
+      withErrorHandling(
+        async (options: {
+          token?: string;
+          secretToken?: string;
+          subdomain?: string;
+        }) => {
+          const fmt = getFormatOptions(program);
+          await doTelegramWebhook(
+            fmt,
+            options.token,
+            options.secretToken,
+            options.subdomain
+          );
+        },
+        { service: "deploy" }
+      )
     );
 
   // -- deploy update-internal-urls ---------------------------------------
@@ -1028,10 +1222,15 @@ service binding URLs for all workers.
 EXAMPLES:
   hoox deploy update-internal-urls`
     )
-    .action(async () => {
-      const fmt = getFormatOptions(program);
-      await doUpdateInternalUrls(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(program);
+          await doUpdateInternalUrls(fmt);
+        },
+        { service: "deploy" }
+      )
+    );
 
   // -- deploy kv-config --------------------------------------------------
 
@@ -1047,8 +1246,82 @@ This post-deployment step initializes the CONFIG_KV namespace.
 EXAMPLES:
   hoox deploy kv-config`
     )
-    .action(async () => {
-      const fmt = getFormatOptions(program);
-      await doKvConfig(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(program);
+          await doKvConfig(fmt);
+        },
+        { service: "deploy" }
+      )
+    );
+
+  // -- deploy history <worker> -------------------------------------------
+
+  deployCmd
+    .command("history <worker>")
+    .summary("Show deployment version history for a worker")
+    .description(
+      `Display the deployment version history for a Cloudflare Worker.
+
+Shows version ID, version number, creation date, author, and source for each deployment.
+
+ARGUMENTS:
+  name          Worker name (e.g., trade-worker, agent-worker)
+
+EXAMPLES:
+  hoox deploy history trade-worker
+  hoox deploy history hoox --json`
+    )
+    .action(
+      withErrorHandling(
+        async (worker: string) => {
+          const fmt = getFormatOptions(program);
+          await doVersionHistory(worker, fmt);
+        },
+        { service: "deploy" }
+      )
+    );
+
+  // -- deploy rollback <worker> [version] --------------------------------
+
+  deployCmd
+    .command("rollback <worker>")
+    .argument(
+      "[version]",
+      "Version ID to rollback to (if omitted, prompts to select)"
+    )
+    .summary("Rollback a worker to a previous version")
+    .description(
+      `Rollback a Cloudflare Worker to a previous version.
+
+If no version is specified, the CLI fetches the 5 most recent versions
+and prompts you to select one.
+
+ARGUMENTS:
+  name          Worker name (e.g., trade-worker, agent-worker)
+  version       Version ID to rollback to (optional)
+
+OPTIONS:
+  --yes         Skip confirmation prompt
+
+EXAMPLES:
+  hoox deploy rollback trade-worker
+  hoox deploy rollback trade-worker <version-id>
+  hoox deploy rollback trade-worker <version-id> --yes`
+    )
+    .option("--yes", "Skip confirmation prompt")
+    .action(
+      withErrorHandling(
+        async (
+          worker: string,
+          version: string | undefined,
+          options: { yes?: boolean }
+        ) => {
+          const fmt = getFormatOptions(program);
+          await doVersionRollback(worker, version, fmt, options.yes ?? false);
+        },
+        { service: "deploy" }
+      )
+    );
 }

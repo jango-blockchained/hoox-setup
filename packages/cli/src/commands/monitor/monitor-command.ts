@@ -10,6 +10,7 @@ import {
 } from "../../utils/formatters.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
 
 async function doMonitorStatus(fmt: FormatOptions): Promise<void> {
@@ -64,7 +65,11 @@ async function doMonitorLogs(
     const dbName = await db.resolveDbName();
     let sql: string;
     if (workerName) {
-      sql = `SELECT * FROM system_logs WHERE worker = '${workerName.replace(/'/g, "''")}' ORDER BY timestamp DESC LIMIT 20`;
+      // Worker names are alphanumeric with hyphens/underscores only — validate strictly
+      if (!/^[a-zA-Z0-9_-]+$/.test(workerName)) {
+        throw new Error(`Invalid worker name: "${workerName}"`);
+      }
+      sql = `SELECT * FROM system_logs WHERE worker = '${workerName}' ORDER BY timestamp DESC LIMIT 20`;
     } else {
       sql = "SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT 20";
     }
@@ -129,6 +134,74 @@ async function doMonitorQueueDepth(fmt: FormatOptions): Promise<void> {
   }
 }
 
+async function doMonitorAnalyticsSummary(fmt: FormatOptions): Promise<void> {
+  try {
+    const db = new DbService();
+    const dbName = await db.resolveDbName();
+    const sql =
+      "SELECT COUNT(*) as total_events, MIN(timestamp) as earliest, MAX(timestamp) as latest FROM system_logs";
+    const output = await db.query(dbName, sql, true);
+
+    if (fmt.json) {
+      process.stdout.write(output + "\n");
+      return;
+    }
+
+    const parsed = JSON.parse(output);
+    const results = parsed[0]?.results;
+    if (results && results.length > 0) {
+      const row = results[0];
+      const rows = [
+        {
+          "Total Events": String(row.total_events ?? "-"),
+          Earliest: String(row.earliest ?? "-"),
+          Latest: String(row.latest ?? "-"),
+        },
+      ];
+      formatTable(rows, fmt);
+    } else {
+      process.stdout.write("No analytics data found.\n");
+    }
+  } catch (err) {
+    formatError(err instanceof Error ? err.message : String(err), fmt);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
+async function doMonitorAnalyticsErrors(
+  hours: number,
+  fmt: FormatOptions
+): Promise<void> {
+  try {
+    const db = new DbService();
+    const dbName = await db.resolveDbName();
+    const sql = `SELECT level, COUNT(*) as count FROM system_logs WHERE level IN ('error', 'warn') AND timestamp > unixepoch('now', '-${hours} hours') GROUP BY level`;
+    const output = await db.query(dbName, sql, true);
+
+    if (fmt.json) {
+      process.stdout.write(output + "\n");
+      return;
+    }
+
+    const parsed = JSON.parse(output);
+    const results = parsed[0]?.results;
+    if (results && results.length > 0) {
+      const rows = results.map((r: Record<string, unknown>) => ({
+        Level: String(r.level ?? "-"),
+        Count: String(r.count ?? "0"),
+      }));
+      formatTable(rows, fmt);
+    } else {
+      process.stdout.write(
+        `No errors or warnings in the last ${hours} hours.\n`
+      );
+    }
+  } catch (err) {
+    formatError(err instanceof Error ? err.message : String(err), fmt);
+    process.exitCode = ExitCode.ERROR;
+  }
+}
+
 async function doMonitorBackup(fmt: FormatOptions): Promise<void> {
   try {
     const db = new DbService();
@@ -155,26 +228,34 @@ SUBCOMMANDS:
   kill-switch     Emergency stop/resume trading
   queue-depth     List queues and pending messages
   backup          Export D1 database to timestamped .sql file
+  analytics       Query analytics data from D1
 
 EXAMPLES:
-  hoox monitor status             Check all workers health
-  hoox monitor trades 20          Show 20 recent trades
-  hoox monitor logs hoox          Show logs for hoox worker
-  hoox monitor kill-switch show   Check kill switch status
-  hoox monitor kill-switch on     Halt all trading
-  hoox monitor kill-switch off    Resume trading
-  hoox monitor queue-depth        Show queue info
-  hoox monitor backup             Export D1 database`
+  hoox monitor status                  Check all workers health
+  hoox monitor trades 20               Show 20 recent trades
+  hoox monitor logs hoox               Show logs for hoox worker
+  hoox monitor kill-switch show        Check kill switch status
+  hoox monitor kill-switch on          Halt all trading
+  hoox monitor kill-switch off         Resume trading
+  hoox monitor queue-depth             Show queue info
+  hoox monitor backup                  Export D1 database
+  hoox monitor analytics summary       Show event rollup statistics
+  hoox monitor analytics errors        Show error/warning counts`
     );
 
   monitorCmd
     .command("status")
     .summary("Check health of all workers")
     .description("Probe each worker's /health endpoint and report status.")
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorStatus(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorStatus(fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   monitorCmd
     .command("trades")
@@ -185,10 +266,15 @@ EXAMPLES:
       "Number of trades to show (default: 10, max: 100)",
       "10"
     )
-    .action(async function (this: Command, limit: string) {
-      const fmt = getFormatOptions(this);
-      await doMonitorTrades(parseInt(limit, 10) || 10, fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (limit: string, _, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorTrades(parseInt(limit, 10) || 10, fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   monitorCmd
     .command("logs")
@@ -197,10 +283,15 @@ EXAMPLES:
       "Query the system_logs table. Optionally filter by worker name."
     )
     .argument("[worker]", "Worker name to filter (optional)")
-    .action(async function (this: Command, worker?: string) {
-      const fmt = getFormatOptions(this);
-      await doMonitorLogs(worker, fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (worker: string | undefined, _, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorLogs(worker, fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   const ksCmd = monitorCmd
     .command("kill-switch")
@@ -218,10 +309,15 @@ Commands:
     .command("show")
     .summary("Show kill switch status")
     .description("Display whether trading is halted or active.")
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorKillSwitch("show", fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorKillSwitch("show", fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   ksCmd
     .command("on")
@@ -229,10 +325,15 @@ Commands:
     .description(
       "Set trade:kill_switch=true to stop all trading operations. WARNING: This halts ALL trading activity immediately."
     )
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorKillSwitch("on", fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorKillSwitch("on", fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   ksCmd
     .command("off")
@@ -240,10 +341,15 @@ Commands:
     .description(
       "Set trade:kill_switch=false to resume normal trading operations."
     )
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorKillSwitch("off", fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorKillSwitch("off", fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   monitorCmd
     .command("queue-depth")
@@ -251,10 +357,15 @@ Commands:
     .description(
       "List queues via wrangler queues list to show configured queues."
     )
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorQueueDepth(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorQueueDepth(fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 
   monitorCmd
     .command("backup")
@@ -262,8 +373,58 @@ Commands:
     .description(
       "Export the D1 database to a timestamped .sql backup file via wrangler d1 export."
     )
-    .action(async function (this: Command) {
-      const fmt = getFormatOptions(this);
-      await doMonitorBackup(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorBackup(fmt);
+        },
+        { service: "monitor" }
+      )
+    );
+
+  const analyticsCmd = monitorCmd
+    .command("analytics")
+    .summary("Query analytics data from D1")
+    .description(
+      `Run analytical queries against the system_logs table.
+
+SUBCOMMANDS:
+  summary       Show rollup statistics of system events
+  errors        Show error/warning counts by level`
+    );
+
+  analyticsCmd
+    .command("summary")
+    .summary("Show event rollup statistics")
+    .description(
+      "Query system_logs for total events, earliest and latest timestamps."
+    )
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await doMonitorAnalyticsSummary(fmt);
+        },
+        { service: "monitor" }
+      )
+    );
+
+  analyticsCmd
+    .command("errors")
+    .summary("Show error and warning counts by level")
+    .description(
+      "Query system_logs for error/warning counts grouped by level, filtered by hours."
+    )
+    .option("--hours <n>", "Hours to look back (default: 24)", "24")
+    .action(
+      withErrorHandling(
+        async (options: { hours?: string }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          const hours = parseInt(options.hours ?? "24", 10) || 24;
+          await doMonitorAnalyticsErrors(hours, fmt);
+        },
+        { service: "monitor" }
+      )
+    );
 }

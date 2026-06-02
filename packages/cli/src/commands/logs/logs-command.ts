@@ -295,10 +295,9 @@ async function tailAllWorkers(
 
     // Read from all workers concurrently, prefixing with worker name
     const decoder = new TextDecoder();
-    const buffers = new Map<string, string>();
 
     const readFromWorker = async (p: (typeof processes)[0]) => {
-      let buffer = buffers.get(p.name) ?? "";
+      let buffer = "";
       while (true) {
         const { done, value } = await p.reader.read();
         if (done) break;
@@ -336,8 +335,6 @@ async function tailAllWorkers(
       if (buffer.trim()) {
         process.stdout.write(`${theme.bold(`[${p.name}]`)} ${buffer}\n`);
       }
-
-      buffers.set(p.name, buffer);
     };
 
     if (opts.follow) {

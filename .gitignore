@@ -117,10 +117,6 @@ test-models.ts
 # Husky auto-generated internals (keep actual hook files)
 .husky/_/
 
-# CTX cache artifacts
-.ctx/
-.ctx/*
-
 # Rename backups
 .hoox-rename-backups/
 
@@ -131,5 +127,4 @@ docs/.obsidian
 AGENTS.md
 DEISGN.md
 SKILL.md
-.ctxignore
 .directory

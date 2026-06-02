@@ -12,6 +12,7 @@ import { Command } from "commander";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { spinner } from "@clack/prompts";
+import { modify, applyEdits, parse } from "jsonc-parser";
 import { ConfigService } from "../../services/config/index.js";
 import { CloudflareService } from "../../services/cloudflare/index.js";
 import { SecretsService } from "../../services/secrets/index.js";
@@ -24,6 +25,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { isGitTracked, gitUntrackFile } from "../../utils/git.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 import type {
@@ -675,20 +677,46 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 
           if (!dryRun) {
             try {
-              // Parse JSONC, add compatibility_flags if not present
-              const { parse } = await import("jsonc-parser");
-              const config = parse(content) as Record<string, unknown>;
+              // Use jsonc-parser to surgically edit JSONC, preserving comments and formatting
+              const parsedConfig = parse(content) as Record<string, unknown>;
+              let updated = content;
 
-              if (!config.compatibility_flags) {
-                config.compatibility_flags = ["nodejs_compat"];
-              } else if (Array.isArray(config.compatibility_flags)) {
-                const flags = config.compatibility_flags as string[];
+              if (!parsedConfig.compatibility_flags) {
+                // Add compatibility_flags array with nodejs_compat
+                const edits = modify(
+                  content,
+                  ["compatibility_flags"],
+                  ["nodejs_compat"],
+                  {
+                    formattingOptions: {
+                      tabSize: 2,
+                      insertSpaces: true,
+                      eol: "\n",
+                    },
+                  }
+                );
+                updated = applyEdits(content, edits);
+              } else if (Array.isArray(parsedConfig.compatibility_flags)) {
+                const flags = parsedConfig.compatibility_flags as string[];
                 if (!flags.includes("nodejs_compat")) {
-                  flags.push("nodejs_compat");
+                  // Replace the array with new array containing nodejs_compat
+                  const newFlags = [...flags, "nodejs_compat"];
+                  const edits = modify(
+                    content,
+                    ["compatibility_flags"],
+                    newFlags,
+                    {
+                      formattingOptions: {
+                        tabSize: 2,
+                        insertSpaces: true,
+                        eol: "\n",
+                      },
+                    }
+                  );
+                  updated = applyEdits(content, edits);
                 }
               }
 
-              const updated = JSON.stringify(config, null, 2) + "\n";
               await Bun.write(wranglerPath, updated);
               action.applied = true;
             } catch (err) {
@@ -711,13 +739,11 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
 
       if (await wranglerFile.exists()) {
         const content = await wranglerFile.text();
-        const strippedContent = content
-          .replace(/\/\/.*$/gm, "")
-          .replace(/\/\*[\s\S]*?\*\//g, "");
 
         try {
-          const config = JSON.parse(strippedContent) as Record<string, unknown>;
-          if (!config.name) {
+          // Use jsonc-parser parse() which handles JSONC comments natively
+          const parsedConfig = parse(content) as Record<string, unknown>;
+          if (!parsedConfig.name) {
             const action: FixAction = {
               description: `Add missing "name" field to wrangler.jsonc for worker "${workerName}"`,
               type: "config",
@@ -727,8 +753,15 @@ async function handleFix(opts: FormatOptions, dryRun: boolean): Promise<void> {
             };
 
             if (!dryRun) {
-              config.name = workerName;
-              const updated = JSON.stringify(config, null, 2) + "\n";
+              // Use jsonc-parser modify() to surgically add the name field, preserving formatting
+              const edits = modify(content, ["name"], workerName, {
+                formattingOptions: {
+                  tabSize: 2,
+                  insertSpaces: true,
+                  eol: "\n",
+                },
+              });
+              const updated = applyEdits(content, edits);
               await Bun.write(wranglerPath, updated);
               action.applied = true;
             }
@@ -997,10 +1030,15 @@ EXAMPLES:
   hoox check setup
   hoox check setup --json`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      await handleSetup(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          await handleSetup(opts);
+        },
+        { service: "check" }
+      )
+    );
 
   // -- check health ----------------------------------------------------------
   checkCmd
@@ -1026,10 +1064,15 @@ EXAMPLES:
   hoox check health --fix`
     )
     .option("--fix", "Attempt automatic repair for detected issues")
-    .action(async (options: { fix?: boolean }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      await handleHealth(opts, Boolean(options.fix));
-    });
+    .action(
+      withErrorHandling(
+        async (options: { fix?: boolean }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          await handleHealth(opts, Boolean(options.fix));
+        },
+        { service: "check" }
+      )
+    );
 
   // -- check fix -------------------------------------------------------------
   checkCmd
@@ -1051,10 +1094,15 @@ EXAMPLES:
   hoox check fix --dry-run     Preview what would be fixed`
     )
     .option("--dry-run", "Preview changes without applying them")
-    .action(async (options: { dryRun?: boolean }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      await handleFix(opts, Boolean(options.dryRun));
-    });
+    .action(
+      withErrorHandling(
+        async (options: { dryRun?: boolean }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          await handleFix(opts, Boolean(options.dryRun));
+        },
+        { service: "check" }
+      )
+    );
 
   // -- check prerequisites --------------------------------------------------
   registerPrerequisitesCommand(checkCmd);
@@ -1080,8 +1128,13 @@ EXAMPLES:
   hoox check submodule-gitignore
   hoox check sg  # alias`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      await handleSubmoduleGitignore(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          await handleSubmoduleGitignore(opts);
+        },
+        { service: "check" }
+      )
+    );
 }

@@ -11,6 +11,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 
 async function handleCheck(fmt: FormatOptions): Promise<void> {
   try {
@@ -132,7 +133,18 @@ async function handleDb(fmt: FormatOptions): Promise<void> {
 async function handleRebuild(fmt: FormatOptions): Promise<void> {
   try {
     const repair = new RepairService();
-    await repair.runSystemCheck();
+    const result = await repair.runSystemCheck();
+    if (!result.allPassed) {
+      formatError(
+        new CLIError(
+          `${result.failedCount} check(s) failed — aborting rebuild`,
+          ExitCode.ERROR
+        ),
+        fmt
+      );
+      process.exitCode = ExitCode.ERROR;
+      return;
+    }
     const cf = new CloudflareService();
     const { ConfigService } = await import("../../services/config/index.js");
     const config = new ConfigService();
@@ -163,58 +175,93 @@ export function registerRepairCommand(program: Command): void {
     .description(
       "Run system diagnostics (workers, deps, types, infra, secrets)"
     )
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleCheck(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleCheck(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("worker <name>")
     .description("Deploy a specific worker to fix it")
-    .action(async (name: string) => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleWorker(name, fmt);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string) => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleWorker(name, fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("infra")
     .description("Provision missing infrastructure (D1, KV, R2, Queues)")
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleInfra(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleInfra(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("secrets")
     .description("Upload missing secrets to Cloudflare")
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleSecrets(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleSecrets(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("kv")
     .description("Re-sync KV namespace entries")
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleKv(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleKv(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("db")
     .description("Re-apply database schema")
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleDb(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleDb(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 
   repairCmd
     .command("rebuild")
     .description(
       "Full rebuild: check, deploy all workers, fix infra/secrets/db"
     )
-    .action(async () => {
-      const fmt = getFormatOptions(repairCmd);
-      await handleRebuild(fmt);
-    });
+    .action(
+      withErrorHandling(
+        async () => {
+          const fmt = getFormatOptions(repairCmd);
+          await handleRebuild(fmt);
+        },
+        { service: "repair" }
+      )
+    );
 }

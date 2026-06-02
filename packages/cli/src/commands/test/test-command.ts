@@ -20,6 +20,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -205,64 +206,61 @@ export function registerTestCommand(program: Command): void {
       "Run full CI pipeline: lint → typecheck → unit tests → integration tests"
     )
     .option("--json", "Output results as JSON")
-    .action(async (options: { json?: boolean }) => {
-      const fmt = getFormatOptions(program);
-      // Allow local --json to override global
-      const useJson = options.json || fmt.json;
-      const opts = { json: useJson, quiet: fmt.quiet };
+    .action(
+      withErrorHandling(
+        async (options: { json?: boolean }) => {
+          const fmt = getFormatOptions(program);
+          // Allow local --json to override global
+          const useJson = options.json || fmt.json;
+          const opts = { json: useJson, quiet: fmt.quiet };
 
-      const results: TestStepResult[] = [];
-      const s = spinner();
-      s.start("Running CI pipeline...");
+          const results: TestStepResult[] = [];
+          const s = spinner();
+          s.start("Running CI pipeline...");
 
-      try {
-        for (const step of PIPELINE_STEPS) {
-          s.message(`${theme.info(icons.info)} ${step.label}...`);
-          const result = await runStep(step.args, process.cwd());
-          results.push({ ...result, step: step.label });
+          for (const step of PIPELINE_STEPS) {
+            s.message(`${theme.info(icons.info)} ${step.label}...`);
+            const result = await runStep(step.args, process.cwd());
+            results.push({ ...result, step: step.label });
 
-          if (result.success) {
-            s.message(
-              `  ${theme.success(icons.success)} ${step.label} passed (${result.duration}ms)`
-            );
-          } else {
-            s.message(
-              `  ${theme.error(icons.error)} ${step.label} failed (${result.duration}ms)`
-            );
-            if (result.error) {
-              s.message(theme.dim(result.error.slice(0, 500)));
+            if (result.success) {
+              s.message(
+                `  ${theme.success(icons.success)} ${step.label} passed (${result.duration}ms)`
+              );
+            } else {
+              s.message(
+                `  ${theme.error(icons.error)} ${step.label} failed (${result.duration}ms)`
+              );
+              if (result.error) {
+                s.message(theme.dim(result.error.slice(0, 500)));
+              }
+              // Stop on first failure
+              break;
             }
-            // Stop on first failure
-            break;
           }
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, opts);
-        process.exitCode = ExitCode.ERROR;
-        s.stop("Pipeline aborted with unexpected error");
-        return;
-      }
 
-      const summary: TestSummary = {
-        total: results.length,
-        passed: results.filter((r) => r.success).length,
-        failed: results.filter((r) => !r.success).length,
-        results,
-      };
+          const summary: TestSummary = {
+            total: results.length,
+            passed: results.filter((r) => r.success).length,
+            failed: results.filter((r) => !r.success).length,
+            results,
+          };
 
-      s.stop(
-        summary.failed > 0
-          ? `Pipeline complete: ${summary.passed} passed, ${summary.failed} failed`
-          : "Pipeline complete"
-      );
+          s.stop(
+            summary.failed > 0
+              ? `Pipeline complete: ${summary.passed} passed, ${summary.failed} failed`
+              : "Pipeline complete"
+          );
 
-      printSummary(summary, opts);
+          printSummary(summary, opts);
 
-      if (summary.failed > 0) {
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          if (summary.failed > 0) {
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "test" }
+      )
+    );
 
   // -- test unit ---------------------------------------------------------
   testCmd
@@ -321,50 +319,49 @@ export function registerTestCommand(program: Command): void {
     .command("worker <name>")
     .description("Run tests for a specific worker by name")
     .option("--coverage", "Run with coverage reporting")
-    .action(async (name: string, options: { coverage?: boolean }) => {
-      const fmt = getFormatOptions(program);
+    .action(
+      withErrorHandling(
+        async (name: string, options: { coverage?: boolean }) => {
+          const fmt = getFormatOptions(program);
 
-      try {
-        const configService = new ConfigService();
-        await configService.load();
-        const workerConfig = configService.getWorker(name);
+          const configService = new ConfigService();
+          await configService.load();
+          const workerConfig = configService.getWorker(name);
 
-        if (!workerConfig) {
-          formatError(
-            new CLIError(
-              `Worker "${name}" not found in wrangler.jsonc`,
-              ExitCode.INVALID_USAGE
-            ),
-            fmt
-          );
-          process.exitCode = ExitCode.INVALID_USAGE;
-          return;
-        }
+          if (!workerConfig) {
+            formatError(
+              new CLIError(
+                `Worker "${name}" not found in wrangler.jsonc`,
+                ExitCode.INVALID_USAGE
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.INVALID_USAGE;
+            return;
+          }
 
-        const workerDir = `${process.cwd()}/${workerConfig.path}`;
-        const args = ["bun", "test"];
-        if (options.coverage) args.push("--coverage");
+          const workerDir = `${process.cwd()}/${workerConfig.path}`;
+          const args = ["bun", "test"];
+          if (options.coverage) args.push("--coverage");
 
-        const result = await runWithInherit(args, workerDir);
+          const result = await runWithInherit(args, workerDir);
 
-        if (result.success) {
-          formatSuccess(`Worker "${name}" tests passed`, fmt);
-        } else {
-          formatError(
-            new CLIError(
-              `Worker "${name}" tests failed (exit code ${result.exitCode})`,
-              ExitCode.ERROR
-            ),
-            fmt
-          );
-          process.exitCode = ExitCode.ERROR;
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          if (result.success) {
+            formatSuccess(`Worker "${name}" tests passed`, fmt);
+          } else {
+            formatError(
+              new CLIError(
+                `Worker "${name}" tests failed (exit code ${result.exitCode})`,
+                ExitCode.ERROR
+              ),
+              fmt
+            );
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "test" }
+      )
+    );
 
   // -- test live ---------------------------------------------------------
   testCmd
@@ -374,33 +371,30 @@ export function registerTestCommand(program: Command): void {
       "--service <name>",
       "Test a specific service: d1, kv, r2, queues, ai, api, secrets, durable-objects"
     )
-    .action(async (options: { service?: string }) => {
-      const fmt = getFormatOptions(program);
-      const s = spinner();
+    .action(
+      withErrorHandling(
+        async (options: { service?: string }) => {
+          const s = spinner();
 
-      try {
-        let filePattern = options.service
-          ? `tests/live/${options.service}.test.ts`
-          : "tests/live/";
+          let filePattern = options.service
+            ? `tests/live/${options.service}.test.ts`
+            : "tests/live/";
 
-        s.start(
-          `Running live tests${options.service ? ` for ${options.service}` : ""}...`
-        );
+          s.start(
+            `Running live tests${options.service ? ` for ${options.service}` : ""}...`
+          );
 
-        const args = ["bun", "test", filePattern, "--jobs", "1"];
-        const result = await runWithInherit(args, process.cwd());
+          const args = ["bun", "test", filePattern, "--jobs", "1"];
+          const result = await runWithInherit(args, process.cwd());
 
-        if (result.success) {
-          s.stop("Live tests complete");
-        } else {
-          s.stop(`Live tests: some failures (exit code ${result.exitCode})`);
-          process.exitCode = ExitCode.ERROR;
-        }
-      } catch (err) {
-        s.stop("Live tests aborted");
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(message, fmt);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          if (result.success) {
+            s.stop("Live tests complete");
+          } else {
+            s.stop(`Live tests: some failures (exit code ${result.exitCode})`);
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "test" }
+      )
+    );
 }

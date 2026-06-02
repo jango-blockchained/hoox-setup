@@ -267,6 +267,131 @@ async function doQueueDelete(
 }
 
 // ---------------------------------------------------------------------------
+// Provision dry-run handler
+// ---------------------------------------------------------------------------
+
+/**
+ * Dry-run version of `doProvision` — scans all enabled workers' wrangler.jsonc
+ * files and prints what resources *would* be created, without making any API calls.
+ * Reuses the same scanning pattern as the full provision flow.
+ */
+async function doProvisionDryRun(opts: InfraOptions): Promise<void> {
+  const configService = new ConfigService();
+
+  try {
+    await configService.load();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    formatError(new CLIError(message, ExitCode.ERROR), opts);
+    return;
+  }
+
+  const enabledWorkers = configService.listEnabledWorkers();
+
+  if (enabledWorkers.length === 0) {
+    if (!opts.quiet) {
+      process.stdout.write(
+        theme.dim("No enabled workers found in wrangler.jsonc.\n")
+      );
+    }
+    return;
+  }
+
+  const plan: Array<{ worker: string; resources: string[] }> = [];
+
+  for (const workerName of enabledWorkers) {
+    const workerConfig = configService.getWorker(workerName);
+    if (!workerConfig?.path) continue;
+
+    const wranglerPath = resolve(workerConfig.path, "wrangler.jsonc");
+    const file = Bun.file(wranglerPath);
+
+    if (!(await file.exists())) continue;
+
+    let wranglerConfig: Record<string, unknown>;
+    try {
+      const content = await file.text();
+      wranglerConfig = (parse(content) ?? {}) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+
+    const resources: string[] = [];
+
+    // D1 databases
+    const d1Databases = Array.isArray(wranglerConfig.d1_databases)
+      ? (wranglerConfig.d1_databases as Array<Record<string, unknown>>)
+      : [];
+    for (const db of d1Databases) {
+      const dbName = (db.database_name as string) ?? (db.binding as string);
+      if (dbName) resources.push(`D1: ${dbName}`);
+    }
+
+    // KV namespaces
+    const kvNamespaces = Array.isArray(wranglerConfig.kv_namespaces)
+      ? (wranglerConfig.kv_namespaces as Array<Record<string, unknown>>)
+      : [];
+    for (const kv of kvNamespaces) {
+      const kvBinding = (kv.binding as string) ?? `kv-${workerName}`;
+      resources.push(`KV: ${kvBinding}`);
+    }
+
+    // R2 buckets
+    const r2Buckets = Array.isArray(wranglerConfig.r2_buckets)
+      ? (wranglerConfig.r2_buckets as Array<Record<string, unknown>>)
+      : [];
+    for (const bucket of r2Buckets) {
+      const bucketName =
+        (bucket.bucket_name as string) ?? (bucket.binding as string);
+      if (bucketName) resources.push(`R2: ${bucketName}`);
+    }
+
+    // Queues
+    let queueNames: string[] = [];
+    if (wranglerConfig.queues && typeof wranglerConfig.queues === "object") {
+      const queues = wranglerConfig.queues as Record<string, unknown>;
+      const producers = Array.isArray(queues.producers)
+        ? (queues.producers as Array<Record<string, unknown>>)
+        : [];
+      const consumers = Array.isArray(queues.consumers)
+        ? (queues.consumers as Array<Record<string, unknown>>)
+        : [];
+      queueNames = [
+        ...producers.map((q) => q.queue as string),
+        ...consumers.map((q) => q.queue as string),
+      ].filter(Boolean);
+    }
+    for (const qName of [...new Set(queueNames)]) {
+      resources.push(`Queue: ${qName}`);
+    }
+
+    if (resources.length > 0) {
+      plan.push({ worker: workerName, resources });
+    }
+  }
+
+  if (plan.length === 0) {
+    process.stdout.write(
+      theme.dim("No provisionable resources found in any worker config.\n")
+    );
+    return;
+  }
+
+  process.stdout.write(theme.heading("Resources to provision:\n\n"));
+  for (const entry of plan) {
+    process.stdout.write(`${theme.bold(entry.worker)}\n`);
+    for (const r of entry.resources) {
+      process.stdout.write(`${theme.dim("  ─")} ${r}\n`);
+    }
+    process.stdout.write("\n");
+  }
+
+  process.stdout.write(
+    `${theme.dim("Run without --dry-run to provision these resources.\n")}`
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Provision handler
 // ---------------------------------------------------------------------------
 
@@ -609,12 +734,25 @@ This reads each worker's wrangler.jsonc and creates:
   - R2 buckets (from r2_buckets)
   - Queues (from queues)
 
+OPTIONS:
+  --dry-run     Preview what resources would be created without creating them
+
 EXAMPLES:
-  hoox infra provision`
+  hoox infra provision
+  hoox infra provision --dry-run`
     )
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
-      await doProvision(opts);
+    .option(
+      "--dry-run",
+      "Preview what resources would be created without creating them"
+    )
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
+      const globalOpts = cmd.optsWithGlobals();
+      if (globalOpts.dryRun) {
+        await doProvisionDryRun(opts);
+      } else {
+        await doProvision(opts);
+      }
     });
 
   // -- d1 -----------------------------------------------------------------
@@ -640,8 +778,8 @@ EXAMPLES:
 EXAMPLES:
   hoox infra d1 list`
     )
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doD1List(opts);
     });
 
@@ -657,8 +795,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra d1 create trade-data-db`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doD1Create(name, opts);
     });
 
@@ -674,8 +812,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra d1 delete trade-data-db`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doD1Delete(name, opts);
     });
 
@@ -702,8 +840,8 @@ EXAMPLES:
 EXAMPLES:
   hoox infra kv list`
     )
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doKvList(opts);
     });
 
@@ -719,8 +857,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra kv create CONFIG_KV`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doKvCreate(name, opts);
     });
 
@@ -736,8 +874,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra kv delete c5917667a21745e390ff969f32b1847d`
     )
-    .action(async function (this: Command, id: string) {
-      const opts = getOptions(this);
+    .action(async (id: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doKvDelete(id, opts);
     });
 
@@ -764,8 +902,8 @@ EXAMPLES:
 EXAMPLES:
   hoox infra r2 list`
     )
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doR2List(opts);
     });
 
@@ -781,8 +919,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra r2 create trade-reports`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doR2Create(name, opts);
     });
 
@@ -798,8 +936,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra r2 delete trade-reports`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doR2Delete(name, opts);
     });
 
@@ -826,8 +964,8 @@ EXAMPLES:
 EXAMPLES:
   hoox infra queues list`
     )
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doQueueList(opts);
     });
 
@@ -843,8 +981,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra queues create trade-execution`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doQueueCreate(name, opts);
     });
 
@@ -860,8 +998,8 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra queues delete trade-execution`
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doQueueDelete(name, opts);
     });
 
@@ -883,8 +1021,8 @@ EXAMPLES:
     .command("list")
     .summary("List all Vectorize indexes")
     .description("List all Vectorize indexes in your Cloudflare account.")
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doVectorizeList(opts);
     });
 
@@ -894,8 +1032,8 @@ EXAMPLES:
     .description(
       "Create a new Vectorize index with default dimensions (768) and cosine metric."
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doVectorizeCreate(name, opts);
     });
 
@@ -903,8 +1041,8 @@ EXAMPLES:
     .command("delete <name>")
     .summary("Delete a Vectorize index")
     .description("Delete a Vectorize index (WARNING: destructive operation).")
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doVectorizeDelete(name, opts);
     });
 
@@ -928,8 +1066,8 @@ EXAMPLES:
     .command("list")
     .summary("List all Analytics Engine datasets")
     .description("List all Analytics Engine datasets in your account.")
-    .action(async function (this: Command) {
-      const opts = getOptions(this);
+    .action(async (_, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doAnalyticsList(opts);
     });
 
@@ -939,8 +1077,8 @@ EXAMPLES:
     .description(
       "Analytics Engine datasets must be created via Cloudflare Dashboard."
     )
-    .action(async function (this: Command, name: string) {
-      const opts = getOptions(this);
+    .action(async (name: string, _, cmd: Command) => {
+      const opts = getOptions(cmd);
       await doAnalyticsCreate(name, opts);
     });
 }
@@ -968,6 +1106,7 @@ export {
   doAnalyticsList,
   doAnalyticsCreate,
   doProvision,
+  doProvisionDryRun,
   displayListResult,
   handleCreate,
   handleDelete,

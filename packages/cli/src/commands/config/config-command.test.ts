@@ -266,7 +266,7 @@ describe("config show", () => {
     process.chdir(tmpDir);
     rmSync(emptyDir, { recursive: true, force: true });
 
-    expect(text).toContain("Failed to show config");
+    expect(text).toContain("[config]");
   });
 });
 

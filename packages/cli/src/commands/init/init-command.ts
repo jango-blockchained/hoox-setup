@@ -24,6 +24,7 @@ import {
   formatError,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
 import { CLIProvisioner } from "./cli-provisioner.js";
 import type { InitOptions } from "./types.js";
@@ -207,19 +208,17 @@ EXAMPLES:
     .option("--preset <name>", "Worker preset (minimal, standard, full)")
     .option("--resume", "Resume from saved wizard state")
     .option("--accept-risk", "Skip the risk acknowledgment confirmation")
-    .action(async (options: InitOptions) => {
-      const globalOpts = getFormatOptions(program);
-      const isNonInteractive = Boolean(options.token && options.account);
+    .action(
+      withErrorHandling(
+        async (options: InitOptions) => {
+          const globalOpts = getFormatOptions(program);
+          const isNonInteractive = Boolean(options.token && options.account);
 
-      try {
-        await runInitCommand(options, globalOpts, isNonInteractive);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        p.log.error(message);
-        formatError(new CLIError(message, ExitCode.ERROR), globalOpts);
-        process.exitCode = ExitCode.ERROR;
-      }
-    });
+          await runInitCommand(options, globalOpts, isNonInteractive);
+        },
+        { service: "init" }
+      )
+    );
 }
 
 // ---------------------------------------------------------------------------

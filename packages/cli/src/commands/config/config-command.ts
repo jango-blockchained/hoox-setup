@@ -10,7 +10,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 
 import { Command } from "commander";
-import { modify, applyEdits } from "jsonc-parser";
+import { modify, applyEdits, parse } from "jsonc-parser";
 import type { FormattingOptions } from "jsonc-parser";
 import { spinner } from "@clack/prompts";
 
@@ -19,14 +19,15 @@ import { SecretsService } from "../../services/secrets/index.js";
 import { registerEnvCommand } from "./env-command.js";
 import { registerKvCommand } from "./kv-command.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import {
   formatSuccess,
   formatError,
   formatTable,
   formatKeyValue,
   formatJson,
+  getFormatOptions,
 } from "../../utils/formatters.js";
-import type { FormatOptions } from "../../utils/formatters.js";
 import { theme, icons } from "../../utils/theme.js";
 
 // ---------------------------------------------------------------------------
@@ -71,19 +72,6 @@ async function writeConfigRaw(
 ): Promise<void> {
   const path = configPath ?? "wrangler.jsonc";
   await Bun.write(path, content);
-}
-
-/**
- * Get FormatOptions from the global commander opts (--json / --quiet).
- */
-/**
- * Get FormatOptions from the command opts using optsWithGlobals() so that
- * globally defined flags (--json, --quiet) are resolved correctly even when
- * called from deeply nested subcommands.
- */
-function formatOpts(program: Command): FormatOptions {
-  const opts = program.optsWithGlobals<{ json?: boolean; quiet?: boolean }>();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }
 
 /**
@@ -228,58 +216,55 @@ EXAMPLES:
   hoox config show
   hoox config show --json`
     )
-    .action(async () => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        if (opts.json) {
-          // Raw JSON output — just dump the file content parsed as JSON
-          const raw = await readConfigRaw();
-          const parsed = JSON.parse(raw);
-          formatJson(parsed, opts);
-          return;
-        }
+          if (opts.json) {
+            // Raw JSON output — just dump the file content parsed as JSON
+            const raw = await readConfigRaw();
+            const parsed = parse(raw);
+            formatJson(parsed, opts);
+            return;
+          }
 
-        const svc = new ConfigService();
-        await svc.load();
+          const svc = new ConfigService();
+          await svc.load();
 
-        // Global section
-        const global = svc.getGlobal();
-        const globalPairs: Record<string, string> = {};
-        for (const [k, v] of Object.entries(global)) {
-          globalPairs[k] = v ?? "(not set)";
-        }
+          // Global section
+          const global = svc.getGlobal();
+          const globalPairs: Record<string, string> = {};
+          for (const [k, v] of Object.entries(global)) {
+            globalPairs[k] = v ?? "(not set)";
+          }
 
-        process.stdout.write(`${theme.heading("\nGlobal Configuration")}\n`);
-        formatKeyValue(globalPairs, opts);
+          process.stdout.write(`${theme.heading("\nGlobal Configuration")}\n`);
+          formatKeyValue(globalPairs, opts);
 
-        // Workers table
-        const workers = svc.listWorkers();
-        if (workers.length > 0) {
-          process.stdout.write(`\n${theme.heading("Workers")}\n`);
-          const rows = workers.map((name) => {
-            const w = svc.getWorker(name)!;
-            return {
-              Worker: name,
-              Enabled: w.enabled ? `${theme.success("•")} yes` : "-",
-              Path: w.path,
-              Secrets: w.secrets?.length ? String(w.secrets.length) : "-",
-              Vars:
-                w.vars && Object.keys(w.vars).length
-                  ? String(Object.keys(w.vars).length)
-                  : "-",
-            };
-          });
-          formatTable(rows, opts);
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(
-          new CLIError(`Failed to show config: ${message}`, ExitCode.ERROR),
-          opts
-        );
-      }
-    });
+          // Workers table
+          const workers = svc.listWorkers();
+          if (workers.length > 0) {
+            process.stdout.write(`\n${theme.heading("Workers")}\n`);
+            const rows = workers.map((name) => {
+              const w = svc.getWorker(name)!;
+              return {
+                Worker: name,
+                Enabled: w.enabled ? `${theme.success("•")} yes` : "-",
+                Path: w.path,
+                Secrets: w.secrets?.length ? String(w.secrets.length) : "-",
+                Vars:
+                  w.vars && Object.keys(w.vars).length
+                    ? String(Object.keys(w.vars).length)
+                    : "-",
+              };
+            });
+            formatTable(rows, opts);
+          }
+        },
+        { service: "config" }
+      )
+    );
 
   // ──────────────────────────────────────────────────────────────────────
   // set <key> <value>
@@ -304,43 +289,39 @@ EXAMPLES:
   hoox config set workers.trade-worker.enabled false
   hoox config set workers.agent-worker.vars.interval 5`
     )
-    .action(async (key: string, value: string) => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (key: string, value: string, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const raw = await readConfigRaw();
-        const jsonPath = keyToPath(key);
+          const raw = await readConfigRaw();
+          const jsonPath = keyToPath(key);
 
-        // Attempt the edit — jsonc-parser throws on invalid paths
-        let edits;
-        try {
-          edits = modify(raw, jsonPath, parseValue(value), {
-            formattingOptions: FORMATTING_OPTIONS,
-          });
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          throw new CLIError(
-            `Invalid key path "${key}": ${msg}`,
-            ExitCode.INVALID_USAGE
-          );
-        }
+          // Attempt the edit — jsonc-parser throws on invalid paths
+          let edits;
+          try {
+            edits = modify(raw, jsonPath, parseValue(value), {
+              formattingOptions: FORMATTING_OPTIONS,
+            });
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            throw new CLIError(
+              `Invalid key path "${key}": ${msg}`,
+              ExitCode.INVALID_USAGE
+            );
+          }
 
-        const updated = applyEdits(raw, edits);
-        await writeConfigRaw(updated);
+          const updated = applyEdits(raw, edits);
+          await writeConfigRaw(updated);
 
-        formatSuccess(`Updated "${key}" = "${value}" in wrangler.jsonc`, opts);
-      } catch (err: unknown) {
-        if (err instanceof CLIError) {
-          formatError(err, opts);
-        } else {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(
-            new CLIError(`Failed to set config: ${message}`, ExitCode.ERROR),
+          formatSuccess(
+            `Updated "${key}" = "${value}" in wrangler.jsonc`,
             opts
           );
-        }
-      }
-    });
+        },
+        { service: "config" }
+      )
+    );
 
   // ──────────────────────────────────────────────────────────────────────
   // secrets subcommand group
@@ -380,64 +361,61 @@ EXAMPLES:
   hoox config secrets list
   hoox config secrets list trade-worker`
     )
-    .action(async (worker?: string) => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (worker: string | undefined, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const svc = await SecretsService.create();
+          const svc = await SecretsService.create();
 
-        if (worker) {
-          const secrets = svc.listSecrets(worker);
-          if (secrets.length === 0) {
-            process.stdout.write(
-              `${theme.dim(`No secrets declared for worker "${worker}".`)}\n`
-            );
-            return;
-          }
-
-          if (opts.json) {
-            formatJson({ worker, secrets }, opts);
-          } else {
-            process.stdout.write(
-              `${theme.heading(`\nSecrets for ${worker}`)}\n`
-            );
-            for (const s of secrets) {
-              process.stdout.write(`  ${theme.label("•")} ${s}\n`);
-            }
-          }
-        } else {
-          const all = svc.listAllSecrets();
-          const workers = Object.keys(all);
-
-          if (workers.length === 0) {
-            process.stdout.write(
-              `${theme.dim("No secrets declared for any worker.")}\n`
-            );
-            return;
-          }
-
-          if (opts.json) {
-            formatJson(all, opts);
-          } else {
-            process.stdout.write(`${theme.heading("\nSecrets by Worker")}\n`);
-            for (const [name, secrets] of Object.entries(all)) {
+          if (worker) {
+            const secrets = svc.listSecrets(worker);
+            if (secrets.length === 0) {
               process.stdout.write(
-                `\n  ${theme.bold(name)} (${secrets.length})\n`
+                `${theme.dim(`No secrets declared for worker "${worker}".`)}\n`
+              );
+              return;
+            }
+
+            if (opts.json) {
+              formatJson({ worker, secrets }, opts);
+            } else {
+              process.stdout.write(
+                `${theme.heading(`\nSecrets for ${worker}`)}\n`
               );
               for (const s of secrets) {
-                process.stdout.write(`    ${theme.dim("•")} ${s}\n`);
+                process.stdout.write(`  ${theme.label("•")} ${s}\n`);
+              }
+            }
+          } else {
+            const all = svc.listAllSecrets();
+            const workers = Object.keys(all);
+
+            if (workers.length === 0) {
+              process.stdout.write(
+                `${theme.dim("No secrets declared for any worker.")}\n`
+              );
+              return;
+            }
+
+            if (opts.json) {
+              formatJson(all, opts);
+            } else {
+              process.stdout.write(`${theme.heading("\nSecrets by Worker")}\n`);
+              for (const [name, secrets] of Object.entries(all)) {
+                process.stdout.write(
+                  `\n  ${theme.bold(name)} (${secrets.length})\n`
+                );
+                for (const s of secrets) {
+                  process.stdout.write(`    ${theme.dim("•")} ${s}\n`);
+                }
               }
             }
           }
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(
-          new CLIError(`Failed to list secrets: ${message}`, ExitCode.ERROR),
-          opts
-        );
-      }
-    });
+        },
+        { service: "config" }
+      )
+    );
 
   // secrets set <worker> <name>
   secretsCmd
@@ -457,63 +435,59 @@ EXAMPLES:
   hoox config secrets set trade-worker BINANCE_KEY_BINDING
   hoox config secrets set agent-worker OPENAI_KEY`
     )
-    .action(async (workerName: string, secretName: string) => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (workerName: string, secretName: string, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const svc = await SecretsService.create();
-        const declared = svc.listSecrets(workerName);
+          const svc = await SecretsService.create();
+          const declared = svc.listSecrets(workerName);
 
-        if (!declared.includes(secretName) && declared.length > 0) {
-          throw new CLIError(
-            `Secret "${secretName}" is not declared for worker "${workerName}". ` +
-              `Declared secrets: ${declared.join(", ")}`,
-            ExitCode.INVALID_USAGE
-          );
-        }
+          if (!declared.includes(secretName) && declared.length > 0) {
+            throw new CLIError(
+              `Secret "${secretName}" is not declared for worker "${workerName}". ` +
+                `Declared secrets: ${declared.join(", ")}`,
+              ExitCode.INVALID_USAGE
+            );
+          }
 
-        const value = await promptSecret(`Enter value for "${secretName}"`);
-        if (!value) {
-          throw new CLIError(
-            "Secret value cannot be empty",
-            ExitCode.INVALID_USAGE
-          );
-        }
+          const value = await promptSecret(`Enter value for "${secretName}"`);
+          if (!value) {
+            throw new CLIError(
+              "Secret value cannot be empty",
+              ExitCode.INVALID_USAGE
+            );
+          }
 
-        // Write value to .dev.vars (workers/<name> mirrors the project layout)
-        const devVarsPath = `workers/${workerName}/.dev.vars`;
-        await updateDevVars(devVarsPath, secretName, value);
+          // Write value to .dev.vars (workers/<name> mirrors the project layout)
+          const devVarsPath = `workers/${workerName}/.dev.vars`;
+          await updateDevVars(devVarsPath, secretName, value);
 
-        formatSuccess(`Secret "${secretName}" updated in ${devVarsPath}`, opts);
-
-        // Sync to Cloudflare with spinner
-        const syncSpin = spinner();
-        syncSpin.start("Syncing to Cloudflare...");
-        const result = await svc.syncToCloudflare(workerName);
-        if (result.ok) {
-          syncSpin.stop(`Secret "${secretName}" synced to Cloudflare`);
-        } else {
-          syncSpin.stop(`Sync partial: ${result.error ?? "unknown error"}`);
-          formatError(
-            new CLIError(
-              `Sync partial: ${result.error ?? "unknown error"}`,
-              ExitCode.ERROR
-            ),
+          formatSuccess(
+            `Secret "${secretName}" updated in ${devVarsPath}`,
             opts
           );
-        }
-      } catch (err: unknown) {
-        if (err instanceof CLIError) {
-          formatError(err, opts);
-        } else {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(
-            new CLIError(`Failed to set secret: ${message}`, ExitCode.ERROR),
-            opts
-          );
-        }
-      }
-    });
+
+          // Sync to Cloudflare with spinner
+          const syncSpin = spinner();
+          syncSpin.start("Syncing to Cloudflare...");
+          const result = await svc.syncToCloudflare(workerName);
+          if (result.ok) {
+            syncSpin.stop(`Secret "${secretName}" synced to Cloudflare`);
+          } else {
+            syncSpin.stop(`Sync partial: ${result.error ?? "unknown error"}`);
+            formatError(
+              new CLIError(
+                `Sync partial: ${result.error ?? "unknown error"}`,
+                ExitCode.ERROR
+              ),
+              opts
+            );
+          }
+        },
+        { service: "config" }
+      )
+    );
 
   // secrets delete <worker> <name>
   secretsCmd
@@ -531,65 +505,58 @@ This removes the secret from Cloudflare and from the worker's .dev.vars file.
 EXAMPLES:
   hoox config secrets delete trade-worker BINANCE_KEY_BINDING`
     )
-    .action(async (workerName: string, secretName: string) => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (workerName: string, secretName: string, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const svc = await SecretsService.create();
-        const declared = svc.listSecrets(workerName);
+          const svc = await SecretsService.create();
+          const declared = svc.listSecrets(workerName);
 
-        if (!declared.includes(secretName)) {
-          throw new CLIError(
-            `Secret "${secretName}" is not declared for worker "${workerName}".`,
-            ExitCode.INVALID_USAGE
-          );
-        }
+          if (!declared.includes(secretName)) {
+            throw new CLIError(
+              `Secret "${secretName}" is not declared for worker "${workerName}".`,
+              ExitCode.INVALID_USAGE
+            );
+          }
 
-        // Wrangler secret delete
-        const proc = Bun.spawn(["wrangler", "secret", "delete", secretName], {
-          cwd: `workers/${workerName}`,
-          stdout: "pipe",
-          stderr: "pipe",
-        });
+          // Wrangler secret delete
+          const proc = Bun.spawn(["wrangler", "secret", "delete", secretName], {
+            cwd: `workers/${workerName}`,
+            stdout: "pipe",
+            stderr: "pipe",
+          });
 
-        const exitCode = await proc.exited;
-        if (exitCode !== 0) {
-          const stderrText = await new Response(proc.stderr).text();
-          throw new CLIError(
-            `wrangler exited with code ${exitCode}: ${stderrText.trim()}`,
-            ExitCode.ERROR
-          );
-        }
+          const exitCode = await proc.exited;
+          if (exitCode !== 0) {
+            const stderrText = await new Response(proc.stderr).text();
+            throw new CLIError(
+              `wrangler exited with code ${exitCode}: ${stderrText.trim()}`,
+              ExitCode.ERROR
+            );
+          }
 
-        // Also remove from .dev.vars if present
-        const devVarsPath = `workers/${workerName}/.dev.vars`;
-        const devFile = Bun.file(devVarsPath);
-        if (await devFile.exists()) {
-          let content = await devFile.text();
-          const lines = content.split("\n");
-          const filtered = lines.filter(
-            (line) => !line.startsWith(`${secretName}=`) && line.trim() !== ""
-          );
-          // Keep commented lines, remove empty ones
-          await Bun.write(
-            devVarsPath,
-            filtered.join("\n") + (filtered.length > 0 ? "\n" : "")
-          );
-        }
+          // Also remove from .dev.vars if present
+          const devVarsPath = `workers/${workerName}/.dev.vars`;
+          const devFile = Bun.file(devVarsPath);
+          if (await devFile.exists()) {
+            let content = await devFile.text();
+            const lines = content.split("\n");
+            const filtered = lines.filter(
+              (line) => !line.startsWith(`${secretName}=`) && line.trim() !== ""
+            );
+            // Keep commented lines, remove empty ones
+            await Bun.write(
+              devVarsPath,
+              filtered.join("\n") + (filtered.length > 0 ? "\n" : "")
+            );
+          }
 
-        formatSuccess(`Secret "${secretName}" deleted from Cloudflare`, opts);
-      } catch (err: unknown) {
-        if (err instanceof CLIError) {
-          formatError(err, opts);
-        } else {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(
-            new CLIError(`Failed to delete secret: ${message}`, ExitCode.ERROR),
-            opts
-          );
-        }
-      }
-    });
+          formatSuccess(`Secret "${secretName}" deleted from Cloudflare`, opts);
+        },
+        { service: "config" }
+      )
+    );
 
   // secrets sync [worker]
   secretsCmd
@@ -607,81 +574,74 @@ EXAMPLES:
   hoox config secrets sync                 Sync all workers
   hoox config secrets sync trade-worker    Sync specific worker`
     )
-    .action(async (workerName?: string) => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (workerName: string | undefined, _, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const svc = await SecretsService.create();
+          const svc = await SecretsService.create();
 
-        if (workerName) {
-          const syncSpin = spinner();
-          syncSpin.start(`Syncing secrets for "${workerName}"...`);
-          const result = await svc.syncToCloudflare(workerName);
-          if (result.ok) {
-            syncSpin.stop(
-              `Synced ${result.value?.length ?? 0} secrets for "${workerName}"`
-            );
-          } else {
-            syncSpin.stop(`Sync failed: ${result.error ?? "unknown error"}`);
-            formatError(
-              new CLIError(
-                `Sync failed: ${result.error ?? "unknown error"}`,
-                ExitCode.ERROR
-              ),
-              opts
-            );
-          }
-        } else {
-          const all = svc.listAllSecrets();
-          const workers = Object.keys(all);
-
-          if (workers.length === 0) {
-            formatSuccess("No secrets to sync.", opts);
-            return;
-          }
-
-          let synced = 0;
-          let failed = 0;
-          const syncSpin = spinner();
-
-          for (const name of workers) {
-            syncSpin.start(`Syncing ${name}...`);
-            const result = await svc.syncToCloudflare(name);
+          if (workerName) {
+            const syncSpin = spinner();
+            syncSpin.start(`Syncing secrets for "${workerName}"...`);
+            const result = await svc.syncToCloudflare(workerName);
             if (result.ok) {
               syncSpin.stop(
-                `${theme.success("synced")} ${result.value?.length ?? 0} for ${name}`
+                `Synced ${result.value?.length ?? 0} secrets for "${workerName}"`
               );
-              synced++;
             } else {
-              syncSpin.stop(`${theme.error("failed")} ${name}`);
-              failed++;
+              syncSpin.stop(`Sync failed: ${result.error ?? "unknown error"}`);
+              formatError(
+                new CLIError(
+                  `Sync failed: ${result.error ?? "unknown error"}`,
+                  ExitCode.ERROR
+                ),
+                opts
+              );
+            }
+          } else {
+            const all = svc.listAllSecrets();
+            const workers = Object.keys(all);
+
+            if (workers.length === 0) {
+              formatSuccess("No secrets to sync.", opts);
+              return;
+            }
+
+            let synced = 0;
+            let failed = 0;
+            const syncSpin = spinner();
+
+            for (const name of workers) {
+              syncSpin.start(`Syncing ${name}...`);
+              const result = await svc.syncToCloudflare(name);
+              if (result.ok) {
+                syncSpin.stop(
+                  `${theme.success("synced")} ${result.value?.length ?? 0} for ${name}`
+                );
+                synced++;
+              } else {
+                syncSpin.stop(`${theme.error("failed")} ${name}`);
+                failed++;
+              }
+            }
+
+            if (failed === 0) {
+              formatSuccess(`All ${synced} workers synced successfully`, opts);
+            } else {
+              formatError(
+                new CLIError(
+                  `${synced} synced, ${failed} failed`,
+                  ExitCode.ERROR
+                ),
+                opts
+              );
             }
           }
-
-          if (failed === 0) {
-            formatSuccess(`All ${synced} workers synced successfully`, opts);
-          } else {
-            formatError(
-              new CLIError(
-                `${synced} synced, ${failed} failed`,
-                ExitCode.ERROR
-              ),
-              opts
-            );
-          }
-        }
-      } catch (err: unknown) {
-        if (err instanceof CLIError) {
-          formatError(err, opts);
-        } else {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(
-            new CLIError(`Failed to sync secrets: ${message}`, ExitCode.ERROR),
-            opts
-          );
-        }
-      }
-    });
+        },
+        { service: "config" }
+      )
+    );
 
   // ──────────────────────────────────────────────────────────────────────
   // env subcommand group
@@ -722,53 +682,49 @@ Creates the following keys:
   - WEBHOOK_API_KEY_BINDING        (32 char)
   - AGENT_INTERNAL_KEY     (32 char)
   - TG_BOT_TOKEN_BINDING   (16 char)
-  - INTERNAL_KEY_BINDING   (32 char)
 
 WARNING: Add .keys/ to your .gitignore to avoid committing secrets!
 
 EXAMPLES:
   hoox config keys generate`
     )
-    .action(async () => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const keysDir = ".keys";
-        if (!existsSync(keysDir)) {
-          mkdirSync(keysDir, { recursive: true });
-        }
+          const keysDir = ".keys";
+          if (!existsSync(keysDir)) {
+            mkdirSync(keysDir, { recursive: true });
+          }
 
-        const keys: Record<string, string> = {
-          INTERNAL_KEY_BINDING: generateKey(),
-          WEBHOOK_API_KEY_BINDING: generateKey(),
-          AGENT_INTERNAL_KEY: generateKey(),
-          TG_BOT_TOKEN_BINDING: generateKey(16),
-        };
+          const keys: Record<string, string> = {
+            INTERNAL_KEY_BINDING: generateKey(),
+            WEBHOOK_API_KEY_BINDING: generateKey(),
+            AGENT_INTERNAL_KEY: generateKey(),
+            TG_BOT_TOKEN_BINDING: generateKey(16),
+          };
 
-        for (const [name, value] of Object.entries(keys)) {
-          const filePath = `${keysDir}/${name.toLowerCase()}.env`;
-          await Bun.write(filePath, `${name}=${value}\n`);
-        }
+          for (const [name, value] of Object.entries(keys)) {
+            const filePath = `${keysDir}/${name.toLowerCase()}.env`;
+            await Bun.write(filePath, `${name}=${value}\n`);
+          }
 
-        formatSuccess(
-          `Generated ${Object.keys(keys).length} keys in ${keysDir}/`,
-          opts
-        );
-
-        if (!opts.quiet && !opts.json) {
-          process.stdout.write(
-            `${theme.warning("!")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`
+          formatSuccess(
+            `Generated ${Object.keys(keys).length} keys in ${keysDir}/`,
+            opts
           );
-          formatKeyValue(keys, opts);
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(
-          new CLIError(`Failed to generate keys: ${message}`, ExitCode.ERROR),
-          opts
-        );
-      }
-    });
+
+          if (!opts.quiet && !opts.json) {
+            process.stdout.write(
+              `${theme.warning("!")}  Keep these keys secret. Add ${keysDir}/ to .gitignore.\n`
+            );
+            formatKeyValue(keys, opts);
+          }
+        },
+        { service: "config" }
+      )
+    );
 
   // keys list
   keysCmd
@@ -782,56 +738,55 @@ Shows key names (values are hidden for security).
 EXAMPLES:
   hoox config keys list`
     )
-    .action(async () => {
-      const opts = formatOpts(program);
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
 
-      try {
-        const keysDir = ".keys";
-        if (!existsSync(keysDir)) {
-          process.stdout.write(`${theme.dim("No .keys/ directory found.")}\n`);
-          return;
-        }
-
-        // Use Bun.Glob to list .keys/*.env files
-        const glob = new Bun.Glob("*.env");
-        const entries: string[] = [];
-        for await (const f of glob.scan({ cwd: keysDir, absolute: false })) {
-          entries.push(f);
-        }
-
-        if (entries.length === 0) {
-          process.stdout.write(
-            `${theme.dim("No key files found in .keys/")}\n`
-          );
-          return;
-        }
-
-        const keyMap: Record<string, string> = {};
-        for (const entry of entries) {
-          const filePath = `${keysDir}/${entry}`;
-          const content = await (await Bun.file(filePath).text()).trim();
-          const eqIdx = content.indexOf("=");
-          if (eqIdx > 0) {
-            keyMap[content.substring(0, eqIdx)] = "****";
+          const keysDir = ".keys";
+          if (!existsSync(keysDir)) {
+            process.stdout.write(
+              `${theme.dim("No .keys/ directory found.")}\n`
+            );
+            return;
           }
-        }
 
-        if (opts.json) {
-          formatJson({ keys: entries.length, files: entries }, opts);
-        } else {
-          process.stdout.write(
-            `${theme.heading(`\nKey files in ${keysDir}/`)}\n`
-          );
-          formatKeyValue(keyMap, opts);
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        formatError(
-          new CLIError(`Failed to list keys: ${message}`, ExitCode.ERROR),
-          opts
-        );
-      }
-    });
+          // Use Bun.Glob to list .keys/*.env files
+          const glob = new Bun.Glob("*.env");
+          const entries: string[] = [];
+          for await (const f of glob.scan({ cwd: keysDir, absolute: false })) {
+            entries.push(f);
+          }
+
+          if (entries.length === 0) {
+            process.stdout.write(
+              `${theme.dim("No key files found in .keys/")}\n`
+            );
+            return;
+          }
+
+          const keyMap: Record<string, string> = {};
+          for (const entry of entries) {
+            const filePath = `${keysDir}/${entry}`;
+            const content = await (await Bun.file(filePath).text()).trim();
+            const eqIdx = content.indexOf("=");
+            if (eqIdx > 0) {
+              keyMap[content.substring(0, eqIdx)] = "****";
+            }
+          }
+
+          if (opts.json) {
+            formatJson({ keys: entries.length, files: entries }, opts);
+          } else {
+            process.stdout.write(
+              `${theme.heading(`\nKey files in ${keysDir}/`)}\n`
+            );
+            formatKeyValue(keyMap, opts);
+          }
+        },
+        { service: "config" }
+      )
+    );
 }
 
 // ---------------------------------------------------------------------------
