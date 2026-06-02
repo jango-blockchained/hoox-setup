@@ -29,7 +29,7 @@ export function timingSafeEqual(a: string, b: string): boolean {
 export async function requireAuth(
   request: Request,
   env: Env
-): Promise<Response | void> {
+): Promise<Response | null> {
   const apiKey = env.INTERNAL_API_KEY;
   if (!apiKey) {
     return new Response(
@@ -46,6 +46,7 @@ export async function requireAuth(
       headers: { "Content-Type": "application/json" },
     });
   }
+  return null;
 }
 
 /**
@@ -72,7 +73,7 @@ export function requireInternalAuth(
   request: Request,
   env: InternalAuthEnv,
   keyName: string = "INTERNAL_KEY_BINDING"
-): Response | void {
+): Response | null {
   const expectedKey = env[keyName] as string | undefined;
   // Fail closed: if no key is configured, reject the request
   if (!expectedKey) {
@@ -92,6 +93,7 @@ export function requireInternalAuth(
       { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
+  return null;
 }
 
 /**
