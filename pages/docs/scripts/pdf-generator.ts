@@ -92,10 +92,10 @@ export async function generatePdf(options: PdfOptions): Promise<void> {
     format = "A4",
     printBackground = true,
     margin = {
-      top: "20mm",
+      top: "25mm",
+      right: "18mm",
       bottom: "25mm",
-      left: "20mm",
-      right: "20mm",
+      left: "18mm",
     },
     displayHeaderFooter = true,
     title = "HOOX Documentation",
@@ -107,7 +107,7 @@ export async function generatePdf(options: PdfOptions): Promise<void> {
   try {
     // Set content and wait for DOM to load
     await page.setContent(html, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle0" as "load" | "domcontentloaded",
       timeout: 60000,
     });
 
@@ -204,10 +204,12 @@ async function waitForMermaid(page: Page): Promise<void> {
 // ── Header/Footer Templates ────────────────────────────────────────────────────
 
 function getHeaderTemplate(title: string): string {
+  const date = new Date().toISOString().split("T")[0];
   return `
     <div style="width: 100%; font-size: 8px; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center; color: #888; font-family: 'IBM Plex Sans Variable', 'IBM Plex Sans', sans-serif;">
       <span style="font-weight: 600; color: #d4a843;">HOOX</span>
       <span style="text-transform: uppercase; letter-spacing: 0.05em;">${escapeHtml(title)}</span>
+      <span>${escapeHtml(date)}</span>
     </div>
   `;
 }
@@ -215,7 +217,7 @@ function getHeaderTemplate(title: string): string {
 function getFooterTemplate(): string {
   return `
     <div style="width: 100%; font-size: 8px; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center; color: #888; font-family: 'IBM Plex Mono', monospace;">
-      <span>Confidential</span>
+      <span>Confidential &mdash; For authorized use only</span>
       <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
     </div>
   `;

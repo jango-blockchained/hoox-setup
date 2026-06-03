@@ -11,6 +11,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src"],
+  "include": ["src", "scripts"],
   "exclude": ["src/content.config.ts", "src/pages/search-index.json.ts"]
 }

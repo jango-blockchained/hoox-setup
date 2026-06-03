@@ -1,17 +1,17 @@
 ---
-title: "email-worker Isolate Profile"
+title: "📧 email-worker Isolate Profile"
 description: "Engineering specification for the Hoox email parsing worker, covering Mailgun webhook ingestion, direct JSON signal parsing, KV-configured regex patterns, and service bindings."
 ---
 
-# email-worker Isolate Profile
+# 📧 email-worker Isolate Profile
 
-The **`email-worker`** ingests trading signals from email sources, parses them, and forwards them to `trade-worker` for execution. It receives emails via Mailgun webhook (`POST /webhook`) or direct JSON POST (`POST /email-signal`). No IMAP/SMTP polling — Cloudflare Workers edge runtime does not support the Node.js `net`/`tls` modules required for IMAP. SPF/DKIM verification is not implemented.
+The **`email-worker`** ingests trading signals from email sources, parses them, and forwards them to `trade-worker` for execution. It receives emails via Mailgun webhook (`POST /webhook`) or direct JSON POST (`POST /email-signal`). No IMAP/SMTP polling — Cloudflare Workers edge runtime does not support the Node.js `net`/`tls` modules required for IMAP.
 
 The worker also tracks signal ingestion metrics by forwarding event data to `analytics-worker` via service binding.
 
 ---
 
-## 1. Endpoints
+## ⚡ 1. Endpoints
 
 | Endpoint        | Method | Auth                            | Purpose                                      |
 | --------------- | ------ | ------------------------------- | -------------------------------------------- |
@@ -23,7 +23,7 @@ The worker also tracks signal ingestion metrics by forwarding event data to `ana
 
 ---
 
-## 2. Mailgun Signature Verification
+## 🔐 2. Mailgun Signature Verification
 
 When a POST arrives at `/webhook`, the worker validates the Mailgun signature before processing the email body:
 
@@ -60,7 +60,7 @@ On success, the worker extracts the email body from the `body-plain` or `strippe
 
 ---
 
-## 3. Signal Extraction
+## 📨 3. Signal Extraction
 
 Two-phase parsing: JSON first, plaintext fallback.
 
@@ -97,6 +97,15 @@ action: buy
 quantity: 1.5
 ```
 
+### Zod Validation
+
+Incoming JSON payloads are validated using Zod schemas:
+
+- `EmailSignalSchema` validates the signal structure (exchange, action as enum, symbol, quantity with default 100, optional price/leverage)
+- `WebhookPayloadSchema` validates the wrapper payload (subject, text, body — all optional)
+- Invalid payloads return `400 Bad Request` with structured error
+- Extra fields are stripped via `.strip()`
+
 ### Forwarding
 
 Once parsed, the signal is sent to `trade-worker` via:
@@ -125,9 +134,13 @@ ctx.waitUntil(
 );
 ```
 
+### Cloudflare Email Routing
+
+The worker also exposes an `email()` handler that processes incoming emails via Cloudflare Email Routing. When an email arrives, `postal-mime` parses the raw MIME content, extracts the text body, and feeds it through the same `parseEmailSignal()` pipeline. Validated signals are forwarded to `trade-worker` with analytics tracking.
+
 ---
 
-## 4. Bindings
+## 🔗 4. Bindings
 
 ### Service Bindings
 
@@ -135,6 +148,12 @@ ctx.waitUntil(
 | ------------------- | ---------------- | -------------------------------------------- |
 | `TRADE_SERVICE`     | trade-worker     | Forward parsed trading signals for execution |
 | `ANALYTICS_SERVICE` | analytics-worker | Track signal ingestion metrics               |
+
+### Send Email Binding
+
+| Binding | Purpose                                           |
+| ------- | ------------------------------------------------- |
+| `EMAIL` | Cloudflare Email Routing — receive inbound emails |
 
 ### KV Namespaces
 
@@ -144,9 +163,9 @@ ctx.waitUntil(
 
 ---
 
-## 5. Secrets
+## 🔑 5. Secrets
 
-All secrets are set via `wrangler secret` and appear in `wrangler.jsonc` vars with `__SECRET__` placeholders:
+All secrets are set via `wrangler secret put <name>`:
 
 | Secret                 | Purpose                                               |
 | ---------------------- | ----------------------------------------------------- |
@@ -156,22 +175,17 @@ All secrets are set via `wrangler secret` and appear in `wrangler.jsonc` vars wi
 | `EMAIL_USER_BINDING`   | Reserved for future email user configuration          |
 | `EMAIL_PASS_BINDING`   | Reserved for future email password configuration      |
 
-> **Warning:** `EMAIL_HOST_BINDING`, `EMAIL_USER_BINDING`, and `EMAIL_PASS_BINDING` are reserved placeholders. They are not actively used — IMAP polling is not available in Workers edge runtime.
+---
+
+## ⚙️ 6. Environment Variables (Vars)
+
+| Variable            | Value          | Purpose                                       |
+| ------------------- | -------------- | --------------------------------------------- |
+| `TRADE_WORKER_NAME` | `trade-worker` | Service name of trade-worker (reference only) |
 
 ---
 
-## 6. Environment Variables (Vars)
-
-| Variable            | Value          | Purpose                                                       |
-| ------------------- | -------------- | ------------------------------------------------------------- |
-| `TRADE_WORKER_NAME` | `trade-worker` | Service name of trade-worker (reference only)                 |
-| `USE_IMAP`          | `"false"`      | IMAP polling disabled — not supported in Workers edge runtime |
-
-> **Note:** `USE_IMAP` is `"false"` in production. The scheduled handler (`*/5 * * * *` cron trigger) logs that IMAP scanning is disabled; use Mailgun webhook or direct JSON POST instead.
-
----
-
-## 7. KV Configuration Keys
+## 🗄️ 7. KV Configuration Keys
 
 The worker loads signal parsing patterns from `CONFIG_KV` via `loadSignalPatterns()`:
 
@@ -182,7 +196,6 @@ The worker loads signal parsing patterns from `CONFIG_KV` via `loadSignalPattern
 | `email:quantity_multiplier` | `1`                      | Coefficient applied to parsed quantity values  |
 
 ```typescript
-// Keys accessed via the KVKeys shared namespace
 import { KVKeys } from "@jango-blockchained/hoox-shared/kvKeys";
 
 const [coinPattern, actionPattern, quantityMultiplier] = await Promise.all([
@@ -198,16 +211,9 @@ const [coinPattern, actionPattern, quantityMultiplier] = await Promise.all([
 ]);
 ```
 
-Additional KV keys defined for the email-worker but not actively consumed:
-
-| KV Key               | Purpose                        |
-| -------------------- | ------------------------------ |
-| `email:scan_subject` | Subject line filter (reserved) |
-| `email:use_imap`     | IMAP enable flag (reserved)    |
-
 ---
 
-## 8. Observability
+## 📊 8. Observability
 
 Full observability enabled with 100% head sampling:
 
@@ -233,7 +239,7 @@ Full observability enabled with 100% head sampling:
 
 ---
 
-## 9. Configuration (wrangler.jsonc)
+## 🛠️ 9. Configuration (wrangler.jsonc)
 
 ```jsonc
 {
@@ -257,13 +263,6 @@ Full observability enabled with 100% head sampling:
   },
   "vars": {
     "TRADE_WORKER_NAME": "trade-worker",
-    "USE_IMAP": "false",
-    "INTERNAL_KEY_BINDING": "__SECRET__",
-    "EMAIL_HOST_BINDING": "__SECRET__",
-    "EMAIL_USER_BINDING": "__SECRET__",
-    "EMAIL_PASS_BINDING": "__SECRET__",
-    "MAILGUN_API_KEY": "__SECRET__",
-    "EMAIL_SCAN_SUBJECT": "__SECRET__",
   },
   "kv_namespaces": [
     {
@@ -281,15 +280,19 @@ Full observability enabled with 100% head sampling:
       "service": "analytics-worker",
     },
   ],
-  "triggers": {
-    "crons": ["*/5 * * * *"],
-  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+    },
+  ],
 }
 ```
 
+Secrets (`INTERNAL_KEY_BINDING`, `MAILGUN_API_KEY`, `EMAIL_HOST_BINDING`, `EMAIL_USER_BINDING`, `EMAIL_PASS_BINDING`) are set via `wrangler secret put <name>` and are not present in the checked-in wrangler.jsonc.
+
 ---
 
-## 10. Development
+## 🧪 10. Development
 
 ```bash
 # Run email-worker unit tests
@@ -306,21 +309,30 @@ Config tracking: `wrangler.jsonc` is tracked in git.
 
 ---
 
-## 11. Architecture Context
+## 🏗️ 11. Architecture Context
 
 The email-worker is one of 10 workers in the Hoox service binding mesh:
 
-```
-Email source → email-worker → trade-worker → d1-worker (persist)
-                            → analytics-worker (track)
+```mermaid
+flowchart LR
+  classDef worker fill:#2196F3,color:#fff,stroke:#1565C0
+  classDef storage fill:#FF9800,color:#fff,stroke:#E65100
+  classDef external fill:#4CAF50,color:#fff,stroke:#2E7D32
+
+  Mailgun{{"Mailgun Webhook"}}:::external --> EW["email-worker"]:::worker
+  Direct("Direct JSON POST"):::external --> EW
+  CFEmail("Cloudflare Email Routing"):::external --> EW
+  EW --> TW["trade-worker"]:::worker
+  EW --> AW["analytics-worker"]:::worker
+  EW --> KV[("CONFIG_KV")]:::storage
 ```
 
 - **Mailgun flow**: Inbound email → Mailgun webhook POST → email-worker `/webhook` → trade-worker
 - **Direct flow**: Internal tooling → `POST /email-signal` (authenticated) → email-worker → trade-worker
-- **Gateway flow**: `hoox` gateway → direct POST to email-worker → trade-worker
+- **Email Routing flow**: Cloudflare Email Routing → `email()` handler → email-worker → trade-worker
 - **Analytics**: Every parsed signal sends `{ source, type, symbol, confidence }` to analytics-worker
 
-Cron trigger (`*/5 * * * *`) exists but the scheduled handler only logs that IMAP scanning is disabled. All active signal ingestion is via webhook or direct POST.
+All active signal ingestion is via webhook, direct POST, or Cloudflare Email Routing.
 
 ---
 

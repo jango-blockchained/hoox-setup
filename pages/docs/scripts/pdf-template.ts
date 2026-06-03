@@ -14,7 +14,7 @@
  *   - One Dark Pro syntax highlighting
  */
 
-import { loadFontsAsCss } from "./font-loader.ts";
+import { generateFontFaceCSS } from "./font-loader.ts";
 import type { SectionHtml } from "./markdown-processor.ts";
 
 // ── PDF Page Dimensions (A4) ─────────────────────────────────────────────────
@@ -29,6 +29,16 @@ function getCss(fontsCss: string): string {
   return `
 /* ── Font Faces (base64 embedded) ── */
 ${fontsCss}
+
+/* ── @page Rules (A4 with 20mm margins) ── */
+@page {
+  size: A4;
+  margin: 20mm;
+}
+
+@page:first {
+  margin: 0;
+}
 
 /* ── CSS Reset & Base ── */
 *, *::before, *::after {
@@ -428,6 +438,18 @@ hr {
 `;
 }
 
+// ── Public CSS Generator ────────────────────────────────────────────────────────
+
+/**
+ * Generate the full CSS stylesheet for PDF rendering.
+ * Includes @font-face declarations, @page rules, typography,
+ * code blocks, tables, callouts, and print media queries.
+ */
+export function generatePdfCss(): string {
+  const fontsCss = generateFontFaceCSS();
+  return getCss(fontsCss);
+}
+
 // ── HTML Document Builder ──────────────────────────────────────────────────────
 
 export interface PdfTemplateOptions {
@@ -456,7 +478,7 @@ export function buildHtmlDocument(options: PdfTemplateOptions): string {
     classification = "Technical Documentation",
   } = options;
 
-  const fontsCss = loadFontsAsCss();
+  const fontsCss = generateFontFaceCSS();
   const css = getCss(fontsCss);
 
   // Build Table of Contents

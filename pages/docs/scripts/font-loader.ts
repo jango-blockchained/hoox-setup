@@ -20,6 +20,86 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../../..");
 
+// ── Font Definitions ─────────────────────────────────────────────────────────
+
+/**
+ * Font descriptor for the FONTS constant array.
+ * Each entry describes a font family/weight/style combination.
+ */
+export interface FontDescriptor {
+  /** CSS font-family name */
+  family: string;
+  /** Numeric weight (400, 500, 600, 700, etc.) */
+  weight: number;
+  /** Font style */
+  style: "normal" | "italic";
+  /** Internal name used in @fontsource file paths */
+  name: string;
+}
+
+/**
+ * FONTS — Public font definitions array.
+ *
+ * Lists all fonts required for PDF rendering:
+ * - IBM Plex Sans Variable (sans-serif body, weights 400/600/700 via variable axis)
+ * - IBM Plex Mono (monospace code, weights 400/500/700)
+ * - Bebas Neue (display heading, weight 400)
+ */
+export const FONTS: FontDescriptor[] = [
+  // IBM Plex Sans Variable — variable font with weight axis
+  {
+    family: "IBM Plex Sans Variable",
+    weight: 400,
+    style: "normal",
+    name: "ibm-plex-sans",
+  },
+  {
+    family: "IBM Plex Sans Variable",
+    weight: 600,
+    style: "normal",
+    name: "ibm-plex-sans",
+  },
+  {
+    family: "IBM Plex Sans Variable",
+    weight: 700,
+    style: "normal",
+    name: "ibm-plex-sans",
+  },
+  {
+    family: "IBM Plex Sans Variable",
+    weight: 400,
+    style: "italic",
+    name: "ibm-plex-sans",
+  },
+  // IBM Plex Mono — static weights
+  {
+    family: "IBM Plex Mono",
+    weight: 400,
+    style: "normal",
+    name: "ibm-plex-mono",
+  },
+  {
+    family: "IBM Plex Mono",
+    weight: 500,
+    style: "normal",
+    name: "ibm-plex-mono",
+  },
+  {
+    family: "IBM Plex Mono",
+    weight: 700,
+    style: "normal",
+    name: "ibm-plex-mono",
+  },
+  {
+    family: "IBM Plex Mono",
+    weight: 400,
+    style: "italic",
+    name: "ibm-plex-mono",
+  },
+  // Bebas Neue
+  { family: "Bebas Neue", weight: 400, style: "normal", name: "bebas-neue" },
+];
+
 // ── Font File Paths ──────────────────────────────────────────────────────────
 // Bun resolves packages from the monorepo root's node_modules/.bun/ directory.
 // We use direct path resolution to find the WOFF2 files.
@@ -60,20 +140,20 @@ const fontFiles: FontFile[] = [
       "node_modules/.bun/@fontsource+ibm-plex-mono@5.2.7/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
   },
   {
+    name: "ibm-plex-mono-latin-500-normal",
+    family: "IBM Plex Mono",
+    weight: 500,
+    style: "normal",
+    woff2Path:
+      "node_modules/.bun/@fontsource+ibm-plex-mono@5.2.7/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2",
+  },
+  {
     name: "ibm-plex-mono-latin-400-italic",
     family: "IBM Plex Mono",
     weight: 400,
     style: "italic",
     woff2Path:
       "node_modules/.bun/@fontsource+ibm-plex-mono@5.2.7/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-italic.woff2",
-  },
-  {
-    name: "ibm-plex-mono-latin-600-normal",
-    family: "IBM Plex Mono",
-    weight: 600,
-    style: "normal",
-    woff2Path:
-      "node_modules/.bun/@fontsource+ibm-plex-mono@5.2.7/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2",
   },
   {
     name: "ibm-plex-mono-latin-700-normal",
@@ -97,16 +177,15 @@ const fontFiles: FontFile[] = [
 // ── Font Loading ─────────────────────────────────────────────────────────────
 
 /**
- * Load a WOFF2 font file and return its base64 data URI.
- * Falls back to searching common paths if the primary path doesn't exist.
+ * Resolve a font file's absolute path.
+ * Checks both the primary Bun-resolved path and fallback locations
+ * in node_modules for monorepo workspace and standard installs.
+ *
+ * @returns The absolute file path if found, or null if not found.
  */
-function loadFontAsBase64(woff2Path: string): string {
+export function resolveFontPath(woff2Path: string): string | null {
   const fullPath = path.resolve(repoRoot, woff2Path);
-
-  if (fs.existsSync(fullPath)) {
-    const buffer = fs.readFileSync(fullPath);
-    return `data:font/woff2;base64,${buffer.toString("base64")}`;
-  }
+  if (fs.existsSync(fullPath)) return fullPath;
 
   // Fallback: search for the font file by name in node_modules
   const fileName = path.basename(woff2Path);
@@ -117,18 +196,28 @@ function loadFontAsBase64(woff2Path: string): string {
 
   for (const searchDir of searchDirs) {
     if (!fs.existsSync(searchDir)) continue;
-
-    // Walk up to 3 levels deep looking for the font file
     const found = findFileRecursive(searchDir, fileName, 4);
-    if (found) {
-      const buffer = fs.readFileSync(found);
-      return `data:font/woff2;base64,${buffer.toString("base64")}`;
-    }
+    if (found) return found;
   }
 
-  throw new Error(
-    `Font file not found: ${fileName}. Searched:\n  ${fullPath}\n  ${searchDirs.join("\n  ")}`
-  );
+  return null;
+}
+
+/**
+ * Load a WOFF2 font file and return its base64 data URI.
+ * Falls back to searching common paths if the primary path doesn't exist.
+ * Returns null (with a warning) if the font cannot be found.
+ */
+function loadFontAsBase64(woff2Path: string): string | null {
+  const resolved = resolveFontPath(woff2Path);
+  if (resolved) {
+    const buffer = fs.readFileSync(resolved);
+    return `data:font/woff2;base64,${buffer.toString("base64")}`;
+  }
+
+  const fileName = path.basename(woff2Path);
+  console.warn(`Warning: Font file not found: ${fileName}`);
+  return null;
 }
 
 /**
@@ -173,21 +262,24 @@ export interface FontFace {
 }
 
 /**
- * Load all fonts and return @font-face declarations as a CSS string.
- * This CSS can be embedded directly in the PDF HTML template.
+ * Generate @font-face declarations as a CSS string with base64-embedded WOFF2
+ * font data. This CSS can be embedded directly in the PDF HTML template.
+ *
+ * Missing font files produce a console.warn but do not crash the build.
  */
-export function loadFontsAsCss(): string {
+export function generateFontFaceCSS(): string {
   const declarations: string[] = [];
 
   for (const font of fontFiles) {
-    try {
-      const src = loadFontAsBase64(font.woff2Path);
-      const weightRange =
-        font.family === "IBM Plex Sans Variable"
-          ? "100 900"
-          : String(font.weight);
+    const src = loadFontAsBase64(font.woff2Path);
+    if (!src) continue; // warning already emitted by loadFontAsBase64
 
-      declarations.push(`
+    const weightRange =
+      font.family === "IBM Plex Sans Variable"
+        ? "100 900"
+        : String(font.weight);
+
+    declarations.push(`
 @font-face {
   font-family: "${font.family}";
   font-style: ${font.style};
@@ -195,15 +287,16 @@ export function loadFontsAsCss(): string {
   font-display: swap;
   src: url("${src}") format("woff2");
 }`);
-    } catch (err) {
-      console.warn(
-        `Warning: Could not load font ${font.name}: ${(err as Error).message}`
-      );
-    }
   }
 
   return declarations.join("\n");
 }
+
+/**
+ * Legacy alias for generateFontFaceCSS().
+ * @deprecated Use generateFontFaceCSS() instead.
+ */
+export const loadFontsAsCss: typeof generateFontFaceCSS = generateFontFaceCSS;
 
 /**
  * Load all fonts and return structured FontFace objects.
@@ -213,19 +306,15 @@ export function loadFonts(): FontFace[] {
   const fonts: FontFace[] = [];
 
   for (const font of fontFiles) {
-    try {
-      const src = loadFontAsBase64(font.woff2Path);
-      fonts.push({
-        family: font.family,
-        weight: font.weight,
-        style: font.style,
-        src,
-      });
-    } catch (err) {
-      console.warn(
-        `Warning: Could not load font ${font.name}: ${(err as Error).message}`
-      );
-    }
+    const src = loadFontAsBase64(font.woff2Path);
+    if (!src) continue; // warning already emitted by loadFontAsBase64
+
+    fonts.push({
+      family: font.family,
+      weight: font.weight,
+      style: font.style,
+      src,
+    });
   }
 
   return fonts;

@@ -1,14 +1,14 @@
 HOOX TRADING PLATFORM — CONSOLIDATED SYSTEM INTELLIGENCE SPEC
-Generated: 2026-05-27
+Generated: 2026-06-03
 ════════════════════════════════════════════════════════════════════════
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SECTION: END-USER DOCUMENTATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+════════════════════════════════════════════════════════════════════════
+════════ SECTION: END-USER DOCUMENTATION ════════
+════════════════════════════════════════════════════════════════════════
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/home.md
-TITLE: 📚 Hoox Developer Hub
+──── FILE: docs/enduser/home.md ────
+──── TITLE: 📚 Hoox Developer Hub ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -92,8 +92,8 @@ Download our consolidated specifications or view complete text packages for feed
 > **Tip:** Looking for deep engineering plans, DDL SQL schemas, or CI/CD deployment workflows? Check out the **[DevOps & Architecture Manual](../devops/home.md)** for developer-centric operator blueprints!
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/getting-started/installation.md
-TITLE: Installation Guide
+──── FILE: docs/enduser/getting-started/installation.md ────
+──── TITLE: Installation Guide ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -260,8 +260,8 @@ If all diagnostic checks pass, you are ready to proceed with configuration!
 - **[5-Minute Quick Start Guide](quick-start.md)** — Execute your first simulated edge trade in under 5 minutes.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/getting-started/configuration.md
-TITLE: Platform Configuration
+──── FILE: docs/enduser/getting-started/configuration.md ────
+──── TITLE: Platform Configuration ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -407,8 +407,8 @@ hoox config kv apply-manifest
 - **[Deploying to Production](../guides/deploy-workers.md)** — Deploy and bind all workers in the correct dependency sequence.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/getting-started/quick-start.md
-TITLE: 5-Minute Quick Start
+──── FILE: docs/enduser/getting-started/quick-start.md ────
+──── TITLE: 5-Minute Quick Start ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -544,8 +544,8 @@ You will receive an instantaneous, low-latency JSON response:
 - **[Set Up Telegram Alerts](../tutorials/telegram-bot.md)** — Link your bot to get order fills pushed straight to your phone.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/how-hoox-works.md
-TITLE: How Hoox Works
+──── FILE: docs/enduser/concepts/how-hoox-works.md ────
+──── TITLE: How Hoox Works ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -635,8 +635,8 @@ Finally, the `trade-worker` pings **`telegram-worker`** via an internal binding:
 - **[Signals & Trade Specifications](signals-and-trades.md)** — Analyze the complete JSON webhook and order formatting.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/edge-architecture.md
-TITLE: ⚡ Edge-First Architecture
+──── FILE: docs/enduser/concepts/edge-architecture.md ────
+──── TITLE: ⚡ Edge-First Architecture ────
 ────────────────────────────────────────────────────────────────────────
 
 # ⚡ Edge-First Architecture
@@ -756,8 +756,8 @@ All `SB:` prefixed connections occur **inside the V8 engine** with zero TCP hand
 - **[AI Risk Manager](ai-risk-manager.md)** — Understand how autonomous risk checks run on global cron schedules.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/cloudflare-services.md
-TITLE: Cloudflare Services Map
+──── FILE: docs/enduser/concepts/cloudflare-services.md ────
+──── TITLE: Cloudflare Services Map ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -852,8 +852,8 @@ Here is an architectural map of how each service functions in the Hoox monorepo.
 - **[AI Risk Manager](ai-risk-manager.md)** — Understand how autonomous edge cron jobs evaluate drawdowns and manage trailing stops.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/idempotency.md
-TITLE: 🔒 Idempotency & Durable Objects
+──── FILE: docs/enduser/concepts/idempotency.md ────
+──── TITLE: 🔒 Idempotency & Durable Objects ────
 ────────────────────────────────────────────────────────────────────────
 
 # 🔒 Idempotency & Durable Objects
@@ -983,8 +983,8 @@ This means idempotency protection **survives worker restarts, cold starts, and i
 - **[Platform Security Guides](../guides/secrets-security.md)** — Deepen your understanding of Zero Trust headers and edge firewall configurations.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/signals-and-trades.md
-TITLE: 📊 Signals & Trade Spec
+──── FILE: docs/enduser/concepts/signals-and-trades.md ────
+──── TITLE: 📊 Signals & Trade Spec ────
 ────────────────────────────────────────────────────────────────────────
 
 # 📊 Signals & Trade Spec
@@ -1159,8 +1159,8 @@ After max retries, the trade is logged to D1 with `status = 'Failed'` — not lo
 - **[Error Models & Status Codes](../reference/api-endpoints.md#d-standard-platform-error-models)** — Understand all gateway error responses.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/concepts/ai-risk-manager.md
-TITLE: AI Risk Manager & AI Gateway
+──── FILE: docs/enduser/concepts/ai-risk-manager.md ────
+──── TITLE: AI Risk Manager & AI Gateway ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -1261,8 +1261,8 @@ The gateway exposes professional endpoints for secure inter-worker and external 
 - **[TUI Operations Cockpit](../guides/tui.md)** — View live position drawdowns and trailing stops visually in your terminal.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/local-development.md
-TITLE: Local Development
+──── FILE: docs/enduser/guides/local-development.md ────
+──── TITLE: Local Development ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -1398,8 +1398,8 @@ The pipeline executes four verification steps in a strict dependency sequence:
 - **[Database Migrations](../database-ops.md)** — Set up, query, and migrate your local SQLite D1 database.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/tui.md
-TITLE: Terminal UI (TUI)
+──── FILE: docs/enduser/guides/tui.md ────
+──── TITLE: Terminal UI (TUI) ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -1603,8 +1603,8 @@ export TERM=xterm-256color
 - **[CLI Reference Manual](../reference/cli-commands.md)** — Read the commands running under the TUI hood.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/database-ops.md
-TITLE: 🗄️ Database Operations
+──── FILE: docs/enduser/guides/database-ops.md ────
+──── TITLE: 🗄️ Database Operations ────
 ────────────────────────────────────────────────────────────────────────
 
 # 🗄️ Database Operations
@@ -1871,8 +1871,8 @@ hoox db query "DELETE FROM trades; DELETE FROM positions; DELETE FROM balances; 
 - **[Schema Reference](../../devops/architecture/storage.md)** — Detailed DDL documentation and storage engineering details.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/secrets-security.md
-TITLE: Secrets & Network Security
+──── FILE: docs/enduser/guides/secrets-security.md ────
+──── TITLE: Secrets & Network Security ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -1983,8 +1983,8 @@ hoox waf configure --TradingView-only
 - **[Local Development & Testing](local-development.md)** — Run local wrangler sandboxes with securely encrypted `.dev.vars`.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/manage-infra.md
-TITLE: Infrastructure Management
+──── FILE: docs/enduser/guides/manage-infra.md ────
+──── TITLE: Infrastructure Management ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -2112,8 +2112,8 @@ hoox infra vectorize create rag-index --dimensions 1536 --metric cosine
 - **[Take-to-Production Deployments](deploy-workers.md)** — Deploy your compiled workers and bind V8 isolates globally.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/deploy-workers.md
-TITLE: 🚀 Deploying to Production
+──── FILE: docs/enduser/guides/deploy-workers.md ────
+──── TITLE: 🚀 Deploying to Production ────
 ────────────────────────────────────────────────────────────────────────
 
 # 🚀 Deploying to Production
@@ -2290,8 +2290,8 @@ hoox deploy all --auto
 - **[Infrastructure Management](manage-infra.md)** — Provision and inspect KV, Queues, R2, and Vectorize indexes.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/guides/repair.md
-TITLE: 🛠️ Self-Healing & Repair
+──── FILE: docs/enduser/guides/repair.md ────
+──── TITLE: 🛠️ Self-Healing & Repair ────
 ────────────────────────────────────────────────────────────────────────
 
 # 🛠️ Self-Healing & Repair
@@ -2453,8 +2453,8 @@ Trading not working?
 - **[Configuration Dictionary](../reference/configuration.md)** — Map all 31 environment variables and 16 KV manifest entries.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/tutorials/tradingview-webhook.md
-TITLE: TradingView Webhook Integration
+──── FILE: docs/enduser/tutorials/tradingview-webhook.md ────
+──── TITLE: TradingView Webhook Integration ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -2561,8 +2561,8 @@ When the Moving Average crossover occurs on your chart:
 - **[API Endpoint Reference](../reference/api-endpoints.md)** — Review full request schemas and status codes.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/tutorials/telegram-bot.md
-TITLE: Telegram Bot Setup
+──── FILE: docs/enduser/tutorials/telegram-bot.md ────
+──── TITLE: Telegram Bot Setup ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -2666,8 +2666,8 @@ Beyond static commands, `telegram-worker` is integrated with **Cloudflare Worker
 |- **[Platform Configuration Guide](../getting-started/configuration.md)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/tutorials/email-signals.md
-TITLE: Email Signal Routing
+──── FILE: docs/enduser/tutorials/email-signals.md ────
+──── TITLE: Email Signal Routing ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -2758,8 +2758,8 @@ To verify that the email signal ingestion loop works perfectly:
 - **[API Endpoint Reference](../reference/api-endpoints.md)** — Review full REST payloads and HTTP error returns.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/reference/cli-commands.md
-TITLE: CLI Commands Reference
+──── FILE: docs/enduser/reference/cli-commands.md ────
+──── TITLE: CLI Commands Reference ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -2915,8 +2915,8 @@ hoox repair check
 - **[API Endpoint Reference](api-endpoints.md)** — Analyze REST routes, schemas, and gateway error structures.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/reference/api-endpoints.md
-TITLE: API Endpoint Specification
+──── FILE: docs/enduser/reference/api-endpoints.md ────
+──── TITLE: API Endpoint Specification ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -3143,8 +3143,8 @@ When an API check fails, the gateway uses the shared `@jango-blockchained/hoox-s
 - **[CLI Commands Reference](cli-commands.md)** — Review all CLI commands, options, and JSON flags.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/enduser/reference/configuration.md
-TITLE: Configuration Dictionary
+──── FILE: docs/enduser/reference/configuration.md ────
+──── TITLE: Configuration Dictionary ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -3252,13 +3252,13 @@ These runtime variables exist inside the `CONFIG_KV` namespace. They are accesse
 - **[5-Minute Quick Start Guide](quick-start.md)** — Deploy all workers and fire your first simulated webhook.
 - **[API Endpoint Reference](api-endpoints.md)** — Review full REST schemas, parameters, and error models.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SECTION: DEVOPS DOCUMENTATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+════════════════════════════════════════════════════════════════════════
+════════ SECTION: DEVOPS DOCUMENTATION ════════
+════════════════════════════════════════════════════════════════════════
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/home.md
-TITLE: ⚙️ DevOps Manual
+──── FILE: docs/devops/home.md ────
+──── TITLE: ⚙️ DevOps Manual ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -3338,8 +3338,8 @@ TypeScript interfaces, compiler settings, Bun test specs, and HTTP schemas:
 - **[View Consolidated LLM Context Text](/llm.txt)** — Giant single-file text format for AI/LLM models.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/setup-and-operations.md
-TITLE: Hoox Trading System — Complete Setup & Operations Guide
+──── FILE: docs/devops/setup-and-operations.md ────
+──── TITLE: Hoox Trading System — Complete Setup & Operations Guide ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -3496,16 +3496,16 @@ hoox clone my-hoox-app
 | `MEXC_API_SECRET`         | trade-worker                        | `wrangler secret put` | Optional     | MEXC exchange secret                   |
 | `BYBIT_API_KEY`           | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange API                     |
 | `BYBIT_API_SECRET`        | trade-worker                        | `wrangler secret put` | Optional     | Bybit exchange secret                  |
-| `TELEGRAM_BOT_TOKEN`      | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token                     |
-| `TELEGRAM_SECRET_TOKEN`   | telegram-worker                     | `wrangler secret put` | Optional     | Telegram webhook secret                |
-| `TG_BOT_TOKEN_BINDING`    | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token (binding)           |
+| `TG_BOT_TOKEN_BINDING`    | telegram-worker                     | `wrangler secret put` | Optional     | Telegram bot token                     |
 | `TG_CHAT_ID_BINDING`      | telegram-worker                     | `wrangler secret put` | Optional     | Default Telegram chat ID               |
+| `TELEGRAM_SECRET_TOKEN`   | telegram-worker                     | `wrangler secret put` | Optional     | Telegram webhook secret                |
+| `AUTHORIZED_CHAT_IDS`     | telegram-worker                     | `wrangler secret put` | Optional     | Comma-separated authorized chat IDs    |
 | `WALLET_PK_SECRET`        | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet private key                     |
 | `WALLET_MNEMONIC_SECRET`  | web3-wallet-worker                  | `wrangler secret put` | Optional     | Wallet mnemonic phrase                 |
 | `EMAIL_HOST`              | email-worker                        | `wrangler secret put` | Optional     | Email IMAP host                        |
 | `EMAIL_USER`              | email-worker                        | `wrangler secret put` | Optional     | Email username                         |
 | `EMAIL_PASS`              | email-worker                        | `wrangler secret put` | Optional     | Email password                         |
-| `INTERNAL_KEY`            | email-worker                        | `wrangler secret put` | Optional     | Email worker auth                      |
+| `INTERNAL_KEY_BINDING`    | email-worker                        | `wrangler secret put` | Optional     | Email worker auth                      |
 | `D1_INTERNAL_KEY`         | d1-worker (header check)            | `wrangler secret put` | Optional     | D1 worker API auth                     |
 | `HA_TOKEN_BINDING`        | hoox                                | `wrangler secret put` | Optional     | Home Assistant token                   |
 
@@ -4046,7 +4046,7 @@ hoox workers deploy --all
 curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
   -H "Content-Type: application/json" \
   -d '{
-    "url": "https://telegram-worker.<SUBDOMAIN_PREFIX>.workers.dev/webhook/<TELEGRAM_SECRET_TOKEN>",
+    "url": "https://telegram-worker.<SUBDOMAIN_PREFIX>.workers.dev/webhook",
     "secret_token": "<TELEGRAM_SECRET_TOKEN>"
   }'
 ```
@@ -4139,21 +4139,21 @@ bun run pages:deploy
 
 ### 8.5 Dashboard Environment Variables
 
-| Variable                | Required | Description                         |
-| ----------------------- | -------- | ----------------------------------- |
-| `DASHBOARD_USER`        | Yes      | Login username                      |
-| `DASHBOARD_PASS`        | Yes      | Login password                      |
-| `SESSION_SECRET`        | Yes      | Cookie signing secret (32+ chars)   |
-| `AUTH_TYPE`             | No       | `basic`, `cf-access`, or `none`     |
-| `CF_ACCESS_TEAM_NAME`   | No       | CF Access team (if using cf-access) |
-| `D1_WORKER_URL`         | Yes      | D1 worker service URL               |
-| `TRADE_SERVICE_URL`     | Yes      | Trade worker service URL            |
-| `AGENT_SERVICE_URL`     | Yes      | Agent worker service URL            |
-| `TELEGRAM_SERVICE_URL`  | Yes      | Telegram worker service URL         |
-| `D1_INTERNAL_KEY`       | Yes      | Auth key for D1 worker              |
-| `AGENT_INTERNAL_KEY`    | Yes      | Auth key for agent worker           |
-| `TELEGRAM_INTERNAL_KEY` | No       | Auth key for telegram worker        |
-| `API_SERVICE_KEY`       | No       | General API service key             |
+| Variable                        | Required | Description                         |
+| ------------------------------- | -------- | ----------------------------------- |
+| `DASHBOARD_USER`                | Yes      | Login username                      |
+| `DASHBOARD_PASS`                | Yes      | Login password                      |
+| `SESSION_SECRET`                | Yes      | Cookie signing secret (32+ chars)   |
+| `AUTH_TYPE`                     | No       | `basic`, `cf-access`, or `none`     |
+| `CF_ACCESS_TEAM_NAME`           | No       | CF Access team (if using cf-access) |
+| `D1_WORKER_URL`                 | Yes      | D1 worker service URL               |
+| `TRADE_SERVICE_URL`             | Yes      | Trade worker service URL            |
+| `AGENT_SERVICE_URL`             | Yes      | Agent worker service URL            |
+| `TELEGRAM_SERVICE_URL`          | Yes      | Telegram worker service URL         |
+| `D1_INTERNAL_KEY`               | Yes      | Auth key for D1 worker              |
+| `AGENT_INTERNAL_KEY`            | Yes      | Auth key for agent worker           |
+| `TELEGRAM_INTERNAL_KEY_BINDING` | No       | Auth key for telegram worker        |
+| `API_SERVICE_KEY`               | No       | General API service key             |
 
 ---
 
@@ -4744,8 +4744,8 @@ _Last Updated: 2026-05-05_
 _Maintainer: Hoox Development Team_
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/installation-flow.md
-TITLE: Cloudflare® Workers Setup Flow
+──── FILE: docs/devops/installation-flow.md ────
+──── TITLE: Cloudflare® Workers Setup Flow ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -4912,8 +4912,8 @@ This guarantees that secrets are never logged, never cached in plain text on dis
 - **[Terminal UI Cockpit](tui.md)** — Run, hot-reload, and monitor your local workers via TUI.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/tui.md
-TITLE: TUI Code Architecture
+──── FILE: docs/devops/tui.md ────
+──── TITLE: TUI Code Architecture ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5027,8 +5027,8 @@ If an uncaught exception or unhandled promise rejection occurs at the root level
 - **[Architecture & Edge Topology](architecture/overview.md)** — In-depth architectural outlines and Service Bindings routing maps.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/overview.md
-TITLE: System Topology & Overview
+──── FILE: docs/devops/architecture/overview.md ────
+──── TITLE: System Topology & Overview ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5114,14 +5114,89 @@ If the network drops after an order fill, TradingView will resend the webhook. T
 
 > **Tip:** Smart Placement is enabled across all critical execution paths. This ensures that even though your webhook might hit a Cloudflare edge node in London, the actual transaction logic automatically shifts to Frankfurt or Tokyo (wherever the exchange APIs reside), eliminating network slippage entirely.
 
+---
+
+## 📊 Codebase Dependency Graph
+
+Hoox ships with an automated **function-level dependency graph extractor** that maps every exported symbol, import, call, type reference, and service binding across all 917 source files and 14 workspaces.
+
+### Generating the Graph
+
+```bash
+# From repository root
+bun run graph
+```
+
+This runs `scripts/extract-graph.ts` (powered by **ts-morph**) and scans 917 source files across all 14 workspaces in **~20–25s**.
+
+During extraction, an **8-phase live progress bar** reports each stage with timing:
+
+```
+  [██░░░░░░░░░░░░░░░░░░] 13%  exports: 1667 nodes             10.6s
+  [██████████░░░░░░░░░░] 50%  type refs: 2536 edges            1.7s
+  [████████████░░░░░░░░] 63%  calls: 445 edges                 9.7s
+  [████████████████████] 100% Done                             22.0s
+
+⏱  Total time: 22.0s
+```
+
+| File         | Size   | Format                       | Purpose                                                     |
+| ------------ | ------ | ---------------------------- | ----------------------------------------------------------- |
+| `graph.json` | 2.5 MB | JSON (997 nodes, 5536 edges) | Machine-readable — AI context, programmatic queries         |
+| `graph.dot`  | 1.3 MB | Graphviz DOT (14 clusters)   | Visual rendering — workspace-clustered architecture diagram |
+
+### Node Types & Color Coding (DOT)
+
+| Shape       | Kind             | Example                     |
+| ----------- | ---------------- | --------------------------- |
+| `box`       | Function / Const | `executeTrade`, `CONFIG_KV` |
+| `note`      | Interface / Type | `TradeRequest`, `Env`       |
+| `component` | Class            | `IdempotencyDO`             |
+| `Mrecord`   | Enum             | `ExitCode`, `OrderStatus`   |
+| Penwidth=2  | Entry Point      | `main`, `export default`    |
+
+Entry points (top-level workspace exports) are highlighted with double borders.
+
+### Edge Color Legend
+
+| Color                    | Edge Kind        | Count |
+| ------------------------ | ---------------- | ----- |
+| 🔵 Blue `#4A90D9`        | Imports          | 2,524 |
+| 🟠 Orange `#FF9800`      | Type references  | 2,536 |
+| 🩷 Pink `#E91E63`        | Cross-file calls | 445   |
+| 🟢 Green `#4CAF50`       | Extends          | 7     |
+| 🌿 Light Green `#8BC34A` | Implements       | 2     |
+| 🟣 Purple `#673AB7`      | Service bindings | 11    |
+| 🌊 Cyan `#00BCD4`        | Workspace deps   | 11    |
+
+### Rendering to SVG
+
+```bash
+# Requires Graphviz installed
+dot -Tsvg graph.dot -o graph.svg
+
+# Or paste graph.dot into edotor.net / viz-js.com
+```
+
+### Key Extraction Rules
+
+- **Export-only nodes**: Only exported symbols appear in the graph (684 unexported symbols filtered out).
+- **Call edge fallback**: Method calls like `router.post` resolve via TypeChecker; when the symbol name (`post`) doesn't match a top-level export, the edge falls back to the target file's first container node.
+- **Self-reference filtering**: Calls within the same file are excluded.
+- **Deduplication**: Duplicate edges are collapsed into a single entry.
+- **Service bindings**: Parsed from each worker's `wrangler.jsonc` configuration.
+
+---
+
 ### 🔗 Next Steps
 
 - **[Worker Communication Specifications](communication.md)** — Deep dive into service bindings, zero-TCP routing, and V8 engines.
 - **[Data Flow Maps](data-flow.md)** — Step-by-step sequence charts of trade executions and cron risk evaluations.
+- **[Codebase Dependency Graph](overview.md#-codebase-dependency-graph)** — Generate a live architecture map of all exports, calls, and bindings.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/communication.md
-TITLE: 🔗 Isolate Communication Spec
+──── FILE: docs/devops/architecture/communication.md ────
+──── TITLE: 🔗 Isolate Communication Spec ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5297,8 +5372,8 @@ test("Should mock internal trade-worker service bindings", async () => {
 - **[Bindings Catalog](bindings.md)** — Review complete environment namespaces and bound objects.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/data-flow.md
-TITLE: 🌊 System Data Routing Spec
+──── FILE: docs/devops/architecture/data-flow.md ────
+──── TITLE: 🌊 System Data Routing Spec ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5363,8 +5438,8 @@ To maintain complete cross-worker telemetry without blocking critical order thre
 - **[Storage Engineering Manual](storage.md)** — Dive into Drizzle database schemas and SQLite properties.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/bindings.md
-TITLE: Infrastructure Bindings Index
+──── FILE: docs/devops/architecture/bindings.md ────
+──── TITLE: Infrastructure Bindings Index ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5507,8 +5582,8 @@ The `report-worker` invokes Cloudflare's Browser Rendering Chrome isolates using
 - **[Production Deployments](../deployment/production.md)** — Learn how Wrangler compiles and maps these bindings to the live edge.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/storage.md
-TITLE: Storage & Data Engineering Spec
+──── FILE: docs/devops/architecture/storage.md ────
+──── TITLE: Storage & Data Engineering Spec ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5607,8 +5682,8 @@ Cloudflare KV is a highly distributed key-value store optimized for high-read/lo
 - **[Wrangler Setup & Tooling](../development/local-dev.md)** — Configure Wrangler to bind local D1 and KV instances for dev testing.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/endpoints.md
-TITLE: Internal Endpoints Map
+──── FILE: docs/devops/architecture/endpoints.md ────
+──── TITLE: Internal Endpoints Map ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5648,11 +5723,10 @@ Every internal HTTP request between V8 isolates must transmit the standard beare
 - **Status**: Public Ingress Node
 - **Bindings Mounts**: `TRADE_SERVICE`, `TELEGRAM_SERVICE`, `CONFIG_KV`, `TRADE_QUEUE`
 
-| Route               | Method | Description                                      | Auth Required        |
-| :------------------ | :----: | :----------------------------------------------- | :------------------- |
-| `/webhook`          | `POST` | Primary webhook receiver for TradingView alerts. | API Key in payload   |
-| `/health`           | `GET`  | Probes gateway, D1 connectivity, and DO status.  | None                 |
-| `/telegram-webhook` | `POST` | Processes chat commands pushed from Telegram.    | Telegram secret path |
+| Route      | Method | Description                                      | Auth Required      |
+| :--------- | :----: | :----------------------------------------------- | :----------------- |
+| `/webhook` | `POST` | Primary webhook receiver for TradingView alerts. | API Key in payload |
+| `/health`  | `GET`  | Probes gateway, D1 connectivity, and DO status.  | None               |
 
 > **Details**: See [`docs/devops/api/endpoints.md#ingress-webhook-endpoints`](../api/endpoints.md#-ingress-webhook-endpoints-workershoox)
 
@@ -5732,8 +5806,8 @@ For a quick reference table of all endpoints without detailed descriptions, see:
 - **[System Storage Architecture](storage.md)** — Deep dive into R2 logs offloading and Drizzle ORM schemas.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/architecture/design-system.md
-TITLE: Visual Tokens & Design System
+──── FILE: docs/devops/architecture/design-system.md ────
+──── TITLE: Visual Tokens & Design System ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -5938,8 +6012,8 @@ Used to return to the parent portal.
 - **[Isolate Communication Spec](communication.md)** — Check service bindings and standard Bearer Auth middleware.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/hoox.md
-TITLE: hoox Gateway Isolate Profile
+──── FILE: docs/devops/workers/hoox.md ────
+──── TITLE: hoox Gateway Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -6061,15 +6135,7 @@ The gateway exposes three public entryways:
 
 ---
 
-### B. Telegram Bot Update Webhook
-
-- **Endpoint**: `/telegram-webhook`
-- **Method**: `POST`
-- **JSON Payload**: Standard encrypted update structure forwarded by Telegram's webhook servers.
-
----
-
-### C. Gateway Health Diagnostics
+### B. Gateway Health Diagnostics
 
 - **Endpoint**: `/health`
 - **Method**: `GET`
@@ -6096,8 +6162,8 @@ The gateway exposes three public entryways:
 - **[D1 Database Operations](../guides/database-ops.md)** — Manage schema migrations, query ledgers, and execute SQL scripts.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/trade-worker.md
-TITLE: trade-worker Isolate Profile
+──── FILE: docs/devops/workers/trade-worker.md ────
+──── TITLE: trade-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -6264,8 +6330,8 @@ try {
 - **[D1 Database Operations](../guides/database-ops.md)** — Manage Drizzle schemas, migrations, and query operations.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/agent-worker.md
-TITLE: agent-worker Isolate Profile
+──── FILE: docs/devops/workers/agent-worker.md ────
+──── TITLE: agent-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -6613,8 +6679,8 @@ tests/
 _Cloudflare® and the Cloudflare logo are trademarks and/or registered trademarks of Cloudflare, Inc. in the United States and other jurisdictions._
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/telegram-worker.md
-TITLE: telegram-worker Isolate Profile
+──── FILE: docs/devops/workers/telegram-worker.md ────
+──── TITLE: telegram-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -6666,8 +6732,8 @@ The `telegram-worker` mounts multiple storage and vector search services to impl
   "secrets": [
     "INTERNAL_KEY_BINDING",
     "TG_BOT_TOKEN_BINDING",
-    "TELEGRAM_CHAT_ID_DEFAULT",
-    "TELEGRAM_WEBHOOK_SECRET",
+    "TG_CHAT_ID_BINDING",
+    "TELEGRAM_SECRET_TOKEN",
   ],
 }
 ```
@@ -6677,16 +6743,17 @@ The `telegram-worker` mounts multiple storage and vector search services to impl
 ## 🔑 2. Environmental Variables & Encrypted Secrets
 
 - **`TG_BOT_TOKEN_BINDING`**: Private HTTP bot token generated by `@BotFather`.
-- **`TELEGRAM_CHAT_ID_DEFAULT`**: Your authorized Chat ID acting as a fallback receiver and admin lock.
-- **`TELEGRAM_WEBHOOK_SECRET`**: A secure, random token appended to the webhook URL path to validate that the request originated from Telegram’s servers.
+- **`TG_CHAT_ID_BINDING`**: Your default Chat ID for receiving notifications.
+- **`TELEGRAM_SECRET_TOKEN`**: A secure, random token sent as the `X-Telegram-Bot-Api-Secret-Token` header to validate webhook requests from Telegram.
 - **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from `hoox` or `trade-worker`.
+- **`AUTHORIZED_CHAT_IDS`**: Optional comma-separated list of chat IDs allowed to send bot commands. If set, only these chat IDs can interact with the bot.
 
 ### Local Development Mocking (`.dev.vars`)
 
 ```bash
 TG_BOT_TOKEN_BINDING=mock_telegram_bot_token
-TELEGRAM_CHAT_ID_DEFAULT=987654321
-TELEGRAM_WEBHOOK_SECRET=local_secure_route_token
+TG_CHAT_ID_BINDING=987654321
+TELEGRAM_SECRET_TOKEN=local_secure_route_token
 INTERNAL_KEY_BINDING=dev_shared_internal_security_key
 ```
 
@@ -6751,8 +6818,8 @@ The bot does not just return static responses. When you send a natural language 
 - **[Setting Up Telegram Bot Alerts](../../tutorials/telegram-bot.md)** — Step-by-step tutorial for BotFather configuration.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/d1-worker.md
-TITLE: d1-worker Isolate Profile
+──── FILE: docs/devops/workers/d1-worker.md ────
+──── TITLE: d1-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -6773,27 +6840,48 @@ The `d1-worker` binds directly to the production SQLite database (`trade-data-db
 ```jsonc
 {
   "name": "d1-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-05-19",
-  "compatibility_flags": ["nodejs_compat"],
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "main": "src/index.ts",
+  "alias": {
+    "@jango-blockchained/hoox-shared/errors": "../../packages/shared/src/errors.ts",
+    "@jango-blockchained/hoox-shared/middleware": "../../packages/shared/src/middleware/index.ts",
+    "@jango-blockchained/hoox-shared/router": "../../packages/shared/src/router.ts",
+    "@jango-blockchained/hoox-shared/types": "../../packages/shared/src/types.ts",
+    "@jango-blockchained/hoox-shared/analytics": "../../packages/shared/src/analytics.ts",
+    "@jango-blockchained/hoox-shared/health": "../../packages/shared/src/health.ts",
+    "@jango-blockchained/hoox-shared/types/router": "../../packages/shared/src/types/router.ts",
+  },
+  "compatibility_date": "2026-04-17",
+  "compatibility_flags": ["nodejs_compat"],
   "placement": {
     "mode": "smart",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "trade-data-db",
-      "database_id": "c5917667a21745e390ff969f32b1847a",
+      "database_id": "a682f084-594e-4bd8-be2d-40ea5f8cf42e",
     },
   ],
+  "vars": {
+    "INTERNAL_KEY_BINDING": "__SECRET__",
+  },
   "kv_namespaces": [
     {
       "binding": "CONFIG_KV",
       "id": "c5917667a21745e390ff969f32b1847d",
     },
   ],
-  "secrets": ["INTERNAL_KEY_BINDING"],
+  "services": [
+    {
+      "binding": "ANALYTICS_SERVICE",
+      "service": "analytics-worker",
+    },
+  ],
 }
 ```
 
@@ -6810,12 +6898,11 @@ Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-
 - **JSON Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "query": "SELECT created_at, symbol, action, price FROM trades WHERE symbol = ? ORDER BY created_at DESC LIMIT ?",
     "params": ["BTCUSDT", 5]
   }
   ```
-- **Success Response (200 OK)**:
+- **SELECT Success Response (200 OK)**:
   ```json
   {
     "success": true,
@@ -6826,8 +6913,15 @@ Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-
         "action": "LONG",
         "price": 68425.5
       }
-    ],
-    "meta": { "rows_read": 1, "rows_written": 0, "duration": 4.2 }
+    ]
+  }
+  ```
+- **Write Success Response (200 OK)** (INSERT/UPDATE/DELETE/REPLACE):
+  ```json
+  {
+    "success": true,
+    "lastRowId": 123,
+    "changes": 1
   }
   ```
 
@@ -6842,8 +6936,7 @@ Allows running multiple statements atomically in a single network trip, reducing
 - **JSON Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "queries": [
+    "statements": [
       {
         "query": "INSERT INTO trades (id, symbol, price) VALUES (?, ?, ?)",
         "params": ["trade-1", "BTCUSDT", 68000]
@@ -6859,7 +6952,10 @@ Allows running multiple statements atomically in a single network trip, reducing
   ```json
   {
     "success": true,
-    "results": [{ "meta": { "changes": 1 } }, { "meta": { "changes": 1 } }]
+    "results": [
+      { "success": true, "meta": { "last_row_id": 1, "changes": 1 } },
+      { "success": true, "meta": { "changes": 1 } }
+    ]
   }
   ```
 
@@ -6904,8 +7000,8 @@ To protect financial transaction ledgers and portfolios against SQL injection at
 - **[Database Operations Manual](../guides/database-ops.md)** — Learn commands to run query ledgers and restore backups.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/web3-wallet-worker.md
-TITLE: web3-wallet-worker Isolate Profile
+──── FILE: docs/devops/workers/web3-wallet-worker.md ────
+──── TITLE: web3-wallet-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7054,34 +7150,275 @@ Operating hot wallets on public blockchain networks introduces extreme security 
 - **[D1 Database Operations](../guides/database-ops.md)** — Manage your SQLite schemas and sync positions logs.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/email-worker.md
-TITLE: email-worker Isolate Profile
+──── FILE: docs/devops/workers/email-worker.md ────
+──── TITLE: 📧 email-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
-title: "email-worker Isolate Profile"
-description: "Comprehensive engineering specification for the Hoox Email Parsing Worker, covering SMTP/IMAP routing, Mailgun webhooks, and regex parser patterns."
+title: "📧 email-worker Isolate Profile"
+description: "Engineering specification for the Hoox email parsing worker, covering Mailgun webhook ingestion, direct JSON signal parsing, KV-configured regex patterns, and service bindings."
 [/METADATA]
 
 # 📧 email-worker Isolate Profile
 
-The **`email-worker`** is an ancillary signal ingestion plugin. Deployed as a private compute isolate, this service is responsible for intercepting trading signals distributed via email lists, newsletters, or alert emails (e.g. from TradingView or custom notification pipelines). It validates domain security (SPF/DKIM), parses message subjects and bodies using dynamic **Regular Expressions**, and routes the extracted signals privately to `trade-worker` via V8 Service Bindings.
+The **`email-worker`** ingests trading signals from email sources, parses them, and forwards them to `trade-worker` for execution. It receives emails via Mailgun webhook (`POST /webhook`) or direct JSON POST (`POST /email-signal`). No IMAP/SMTP polling — Cloudflare Workers edge runtime does not support the Node.js `net`/`tls` modules required for IMAP.
+
+The worker also tracks signal ingestion metrics by forwarding event data to `analytics-worker` via service binding.
 
 ---
 
-## ⚡ 1. Declared Wrangler Configurations & Bindings
+## ⚡ 1. Endpoints
 
-The `email-worker` does not expose any public endpoints, connecting internally to active executors and metrics collectors:
+| Endpoint        | Method | Auth                            | Purpose                                      |
+| --------------- | ------ | ------------------------------- | -------------------------------------------- |
+| `/webhook`      | POST   | Mailgun signature (HMAC-SHA256) | Inbound Mailgun webhook for forwarded emails |
+| `/email-signal` | POST   | `X-Internal-Auth-Key` header    | Direct JSON signal ingestion                 |
+| `/health`       | GET    | None                            | Health check                                 |
+
+> **Note:** The Mailgun webhook endpoint is `/webhook`, not `/webhook/mailgun`. The direct JSON endpoint is `/email-signal`, not `/process`.
+
+---
+
+## 🔐 2. Mailgun Signature Verification
+
+When a POST arrives at `/webhook`, the worker validates the Mailgun signature before processing the email body:
+
+1. Reads `Mailgun-Signature`, `Mailgun-Timestamp`, `Mailgun-Token` from request headers
+2. Computes HMAC-SHA256 hex digest of `timestamp + token` using `MAILGUN_API_KEY` as the signing key
+3. Compares computed digest against the `Mailgun-Signature` header value
+4. Returns `401 Unauthorized` if headers are missing or signature does not match
+
+```typescript
+const dataToSign = timestamp + token;
+const encoder = new TextEncoder();
+const key = await crypto.subtle.importKey(
+  "raw",
+  encoder.encode(apiKey),
+  { name: "HMAC", hash: "SHA-256" },
+  false,
+  ["sign"]
+);
+const signatureBytes = await crypto.subtle.sign(
+  "HMAC",
+  key,
+  encoder.encode(dataToSign)
+);
+const expectedSignature = Array.from(new Uint8Array(signatureBytes))
+  .map((b) => b.toString(16).padStart(2, "0"))
+  .join("");
+
+if (signature !== expectedSignature) {
+  return Errors.unauthorized("Invalid signature");
+}
+```
+
+On success, the worker extracts the email body from the `body-plain` or `stripped-text` field of the Mailgun form-data payload and passes it to the signal parser.
+
+---
+
+## 📨 3. Signal Extraction
+
+Two-phase parsing: JSON first, plaintext fallback.
+
+### Phase 1: JSON Parsing
+
+`parseEmailSignal()` calls `JSON.parse()` on the body text. If the result contains `exchange`, `action`, and `symbol` fields, it returns a structured signal immediately:
+
+```typescript
+{
+  exchange: "binance",     // normalized lowercase
+  action: "buy",           // buy/long → buy | sell/short → sell
+  symbol: "BTCUSDT",       // uppercased
+  quantity: 100,           // multiplied by quantityMultiplier from KV
+  price?: 45000,           // optional
+  leverage?: 3             // optional
+}
+```
+
+### Phase 2: Plaintext Fallback
+
+If JSON parsing fails or required fields are missing, `extractFromPlaintext()` uses keyword matching:
+
+- `extractField()` scans for `keyword:` prefixes (e.g. `exchange:`, `symbol:`, `action:`)
+- Coin symbols and action keywords matched via regex from KV config (`coinPattern`, `actionPattern`)
+- `normalizeExchange()` resolves exchanges: `binance`, `mexc`, `bybit`
+- `normalizeAction()` maps: `buy`/`long` → `buy`, `sell`/`short` → `sell`
+
+Example plaintext email body:
+
+```
+exchange: binance
+symbol: BTCUSDT
+action: buy
+quantity: 1.5
+```
+
+### Zod Validation
+
+Incoming JSON payloads are validated using Zod schemas:
+
+- `EmailSignalSchema` validates the signal structure (exchange, action as enum, symbol, quantity with default 100, optional price/leverage)
+- `WebhookPayloadSchema` validates the wrapper payload (subject, text, body — all optional)
+- Invalid payloads return `400 Bad Request` with structured error
+- Extra fields are stripped via `.strip()`
+
+### Forwarding
+
+Once parsed, the signal is sent to `trade-worker` via:
+
+```typescript
+const response = await serviceFetch(env.TRADE_SERVICE, "/webhook", signal, {
+  headers: {
+    "X-Internal-Auth-Key": internalKey,
+    "X-Source": "email-worker",
+  },
+});
+```
+
+Analytics events are sent non-blocking via `ctx.waitUntil()`:
+
+```typescript
+ctx.waitUntil(
+  trackAnalytics(env, "/track/signal", {
+    data: {
+      source: "email-worker",
+      type: signal.action,
+      symbol: signal.symbol,
+      confidence: 0.5,
+    },
+  })
+);
+```
+
+### Cloudflare Email Routing
+
+The worker also exposes an `email()` handler that processes incoming emails via Cloudflare Email Routing. When an email arrives, `postal-mime` parses the raw MIME content, extracts the text body, and feeds it through the same `parseEmailSignal()` pipeline. Validated signals are forwarded to `trade-worker` with analytics tracking.
+
+---
+
+## 🔗 4. Bindings
+
+### Service Bindings
+
+| Binding             | Target Worker    | Purpose                                      |
+| ------------------- | ---------------- | -------------------------------------------- |
+| `TRADE_SERVICE`     | trade-worker     | Forward parsed trading signals for execution |
+| `ANALYTICS_SERVICE` | analytics-worker | Track signal ingestion metrics               |
+
+### Send Email Binding
+
+| Binding | Purpose                                           |
+| ------- | ------------------------------------------------- |
+| `EMAIL` | Cloudflare Email Routing — receive inbound emails |
+
+### KV Namespaces
+
+| Binding     | ID                                 | Purpose                      |
+| ----------- | ---------------------------------- | ---------------------------- |
+| `CONFIG_KV` | `c5917667a21745e390ff969f32b1847d` | Signal pattern configuration |
+
+---
+
+## 🔑 5. Secrets
+
+All secrets are set via `wrangler secret put <name>`:
+
+| Secret                 | Purpose                                               |
+| ---------------------- | ----------------------------------------------------- |
+| `INTERNAL_KEY_BINDING` | Shared internal auth key for service-to-service calls |
+| `MAILGUN_API_KEY`      | Mailgun webhook signature verification (HMAC-SHA256)  |
+| `EMAIL_HOST_BINDING`   | Reserved for future email host configuration          |
+| `EMAIL_USER_BINDING`   | Reserved for future email user configuration          |
+| `EMAIL_PASS_BINDING`   | Reserved for future email password configuration      |
+
+---
+
+## ⚙️ 6. Environment Variables (Vars)
+
+| Variable            | Value          | Purpose                                       |
+| ------------------- | -------------- | --------------------------------------------- |
+| `TRADE_WORKER_NAME` | `trade-worker` | Service name of trade-worker (reference only) |
+
+---
+
+## 🗄️ 7. KV Configuration Keys
+
+The worker loads signal parsing patterns from `CONFIG_KV` via `loadSignalPatterns()`:
+
+| KV Key                      | Default                  | Purpose                                        |
+| --------------------------- | ------------------------ | ---------------------------------------------- |
+| `email:coin_pattern`        | `BTC\|ETH\|SOL`          | Regex for matching asset symbols in email body |
+| `email:action_pattern`      | `buy\|sell\|long\|short` | Regex for matching trade action direction      |
+| `email:quantity_multiplier` | `1`                      | Coefficient applied to parsed quantity values  |
+
+```typescript
+import { KVKeys } from "@jango-blockchained/hoox-shared/kvKeys";
+
+const [coinPattern, actionPattern, quantityMultiplier] = await Promise.all([
+  env.CONFIG_KV?.get(KVKeys.KV_EMAIL_COIN_PATTERN).then(
+    (v) => v || "BTC|ETH|SOL"
+  ),
+  env.CONFIG_KV?.get(KVKeys.KV_EMAIL_ACTION_PATTERN).then(
+    (v) => v || "buy|sell|long|short"
+  ),
+  env.CONFIG_KV?.get(KVKeys.KV_EMAIL_QUANTITY_MULTIPLIER).then((v) =>
+    v ? parseFloat(v) : 1
+  ),
+]);
+```
+
+---
+
+## 📊 8. Observability
+
+Full observability enabled with 100% head sampling:
+
+```jsonc
+{
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true,
+    },
+  },
+}
+```
+
+- **Head sampling rate**: 1 (all requests sampled)
+- **Log persistence**: Enabled — logs stored for debugging and audit
+- **Invocation logs**: Enabled — full invocation records available
+- **Smart Placement**: Enabled for 30-60% latency reduction
+
+---
+
+## 🛠️ 9. Configuration (wrangler.jsonc)
 
 ```jsonc
 {
   "name": "email-worker",
   "main": "src/index.ts",
-  "compatibility_date": "2026-05-19",
+  "compatibility_date": "2026-04-17",
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
+  "placement": {
+    "mode": "smart",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true,
+    },
+  },
   "vars": {
-    "USE_IMAP": "true",
+    "TRADE_WORKER_NAME": "trade-worker",
   },
   "kv_namespaces": [
     {
@@ -7089,111 +7426,69 @@ The `email-worker` does not expose any public endpoints, connecting internally t
       "id": "c5917667a21745e390ff969f32b1847d",
     },
   ],
-  "services": [{ "binding": "TRADE_SERVICE", "service": "trade-worker" }],
-  "secrets": [
-    "INTERNAL_KEY_BINDING",
-    "EMAIL_HOST_BINDING",
-    "EMAIL_USER_BINDING",
-    "EMAIL_PASS_BINDING",
-    "MAILGUN_API_KEY",
+  "services": [
+    {
+      "binding": "TRADE_SERVICE",
+      "service": "trade-worker",
+    },
+    {
+      "binding": "ANALYTICS_SERVICE",
+      "service": "analytics-worker",
+    },
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+    },
   ],
 }
 ```
 
----
-
-## 🔑 2. Environmental Variables & Encrypted Secrets
-
-- **`EMAIL_HOST_BINDING`**: POP3/IMAP mailbox server address (e.g., `imap.gmail.com`).
-- **`EMAIL_USER_BINDING`**: Dedicated signals email mailbox username.
-- **`EMAIL_PASS_BINDING`**: Secure app-specific password.
-- **`MAILGUN_API_KEY`**: Key used to validate incoming SMTP webhooks if using Mailgun routing.
-- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from internal compute nodes.
+Secrets (`INTERNAL_KEY_BINDING`, `MAILGUN_API_KEY`, `EMAIL_HOST_BINDING`, `EMAIL_USER_BINDING`, `EMAIL_PASS_BINDING`) are set via `wrangler secret put <name>` and are not present in the checked-in wrangler.jsonc.
 
 ---
 
-## 🗃️ 3. Regex Parsing Mechanics in V8
+## 🧪 10. Development
 
-When a new email is scanned or received via webhook, the worker evaluates the content against regular expression arrays stored in `CONFIG_KV`:
+```bash
+# Run email-worker unit tests
+bun test workers/email-worker/
 
-| Configuration Key           |   Type   | Default Pattern            | Parser Purpose                                               |
-| :-------------------------- | :------: | :------------------------- | :----------------------------------------------------------- |
-| `email:scan_subject`        | `string` | `^TRADE SIGNAL:.*`         | Resolves whether the email should be parsed or ignored.      |
-| `email:coin_pattern`        | `string` | `(BTC\|ETH\|SOL\|LINK)`    | Matches uppercase asset tokens in the email body.            |
-| `email:action_pattern`      | `string` | `(BUY\|SELL\|LONG\|SHORT)` | Resolves buy/sell execution parameters.                      |
-| `email:quantity_multiplier` | `number` | `1.0`                      | Coefficient applied to parsed quantities to scale positions. |
+# Start local dev server
+hoox dev worker email-worker
 
-```typescript
-// Under the hood regex parsing logic
-const subjectRegex = new RegExp(env.CONFIG_KV.get("email:scan_subject"));
-const coinRegex = new RegExp(env.CONFIG_KV.get("email:coin_pattern"));
-const actionRegex = new RegExp(env.CONFIG_KV.get("email:action_pattern"));
-
-if (subjectRegex.test(email.subject)) {
-  const asset = email.body.match(coinRegex)?.[0]; // Extracts "BTC"
-  const action = email.body.match(actionRegex)?.[0]; // Extracts "LONG"
-  // Routes to trade-worker...
-}
+# Deploy
+hoox workers deploy
 ```
 
----
-
-## 🔌 4. API Interface Specification
-
-While the worker primarily runs background Cron scan loops, it exposes two ingestion endpoints for webhook integrations (e.g. Mailgun/SendGrid):
-
-### A. Mailgun Webhook Router
-
-- **Endpoint**: `/webhook/mailgun`
-- **Method**: `POST`
-- **Headers**: `Mailgun-Signature`, `Mailgun-Timestamp`, `Mailgun-Token`
-- **Security**: The worker computes the HMAC-SHA256 signature of the timestamp and token using your `MAILGUN_API_KEY` secret. If the calculated signature doesn't match the header, the request is instantly rejected (401 Unauthorized).
+Config tracking: `wrangler.jsonc` is tracked in git.
 
 ---
 
-### B. Direct JSON Payload Ingestion
+## 🏗️ 11. Architecture Context
 
-Used primarily by administrative automation tools or local testing scripts.
+The email-worker is one of 10 workers in the Hoox service binding mesh:
 
-- **Endpoint**: `/process`
-- **Method**: `POST`
-- **JSON Payload**:
-  ```json
-  {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "payload": {
-      "sender": "alerts@tradingview.com",
-      "subject": "TRADE SIGNAL: Breakout SOL",
-      "body": "Action: LONG, Asset: SOLUSDT, Size: 1.5"
-    }
-  }
-  ```
-- **Success Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "result": { "symbol": "SOLUSDT", "action": "LONG", "quantity": 1.5 },
-    "error": null
-  }
-  ```
+[Architecture Diagram — See Online Docs at https://docs.hoox.trade]
+
+- **Mailgun flow**: Inbound email → Mailgun webhook POST → email-worker `/webhook` → trade-worker
+- **Direct flow**: Internal tooling → `POST /email-signal` (authenticated) → email-worker → trade-worker
+- **Email Routing flow**: Cloudflare Email Routing → `email()` handler → email-worker → trade-worker
+- **Analytics**: Every parsed signal sends `{ source, type, symbol, confidence }` to analytics-worker
+
+All active signal ingestion is via webhook, direct POST, or Cloudflare Email Routing.
 
 ---
 
-## 🛡️ 5. Domain Ingress Protections: SPF & DKIM
+### Next Steps
 
-To protect your wallet against email spoofing attacks:
-
-1. **DKIM Check**: Validates the cryptographic DKIM signature in the email header to prove the message body was not altered in transit.
-2. **SPF Check**: Matches the sending server's IP address against the DNS TXT SPF record of the authorized domain, dropping forged emails before parsing.
-
-### 🔗 Next Steps
-
-- **[trade-worker Profile](trade-worker.md)** — Review how execution orders route transactions to EVM wallet nodes.
-- **[System Storage Architecture](../architecture/storage.md)** — Review SQLite properties and R2 bucketing pipelines.
+- **[trade-worker Profile](trade-worker.md)** — How parsed signals become execution orders
+- **[analytics-worker Profile](analytics-worker.md)** — Signal tracking and observability
+- **[Architecture Overview](../architecture/overview.md)** — Full system architecture and data flow
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/analytics-worker.md
-TITLE: analytics-worker Isolate Profile
+──── FILE: docs/devops/workers/analytics-worker.md ────
+──── TITLE: analytics-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7215,113 +7510,149 @@ The `analytics-worker` binds directly to Cloudflare’s **Analytics Engine** dat
 {
   "name": "analytics-worker",
   "main": "src/index.ts",
-  "compatibility_date": "2026-05-19",
+  "compatibility_date": "2026-04-17",
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "debc6545e63bea36be059cbc82d80ec8",
   "analytics_engine_datasets": [
     {
       "binding": "ANALYTICS_ENGINE",
-      "dataset": "hoox_telemetry",
+      "dataset": "hoox-analytics",
     },
   ],
-  "kv_namespaces": [
-    {
-      "binding": "CONFIG_KV",
-      "id": "c5917667a21745e390ff969f32b1847d",
-    },
-  ],
-  "secrets": [
-    "INTERNAL_KEY_BINDING",
-    "CLOUDFLARE_API_TOKEN", // Required to run SQL queries against Analytics datasets
-  ],
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
 }
 ```
+
+> No `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID` are in `secrets` — these are set as `vars` in `wrangler.jsonc` and used for the Cloudflare SQL API query path.
 
 ---
 
 ## 🔑 2. Environmental Variables & Encrypted Secrets
 
-- **`CLOUDFLARE_API_TOKEN`**: A secure token with `Account.Analytics` read permissions, allowing the worker to query stored datasets.
-- **`INTERNAL_KEY_BINDING`**: Shared key used to validate calls from other V8 isolates.
+- **`CLOUDFLARE_API_TOKEN`** (var): A secure token with `Account.Analytics` read permissions, allowing the worker to query stored datasets via the Cloudflare SQL API.
+- **`CLOUDFLARE_ACCOUNT_ID`** (var): Your Cloudflare Account ID used in SQL API requests.
 
 ---
 
 ## 🔌 3. Internal REST API Specification
 
-Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-Auth-Key` header.
+All endpoints are reachable via Cloudflare Service Bindings only (no public URL). Each endpoint validates its payload with a Zod schema using `.strict()` to reject unknown fields.
 
-### A. Track Telemetry Event
+### A. Track Trade Event
+
+- **Endpoint**: `POST /track/trade`
+- **Payload**:
+  ```json
+  {
+    "payload": {
+      "exchange": "binance",
+      "symbol": "BTCUSDT",
+      "action": "LONG",
+      "quantity": 0.5
+    },
+    "result": { "success": true },
+    "latencyMs": 1200
+  }
+  ```
+- **Response**: `{ "success": true }`
+
+### B. Track API Call Event
 
 Invoked by other workers (like `hoox` or `trade-worker`) immediately upon completing an action.
 
-- **Endpoint**: `/track/api-call`
-- **Method**: `POST`
-- **JSON Payload**:
+- **Endpoint**: `POST /track/api-call`
+- **Payload**:
   ```json
   {
-    "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "payload": {
-      "worker": "trade-worker",
-      "endpoint": "/webhook",
-      "latencyMs": 24.5,
-      "success": true
-    }
+    "worker": "trade-worker",
+    "endpoint": "/api/v3/order",
+    "latencyMs": 250,
+    "success": true
   }
   ```
 
 #### Under-the-Hood Analytics Engine Write
 
-When received, the worker formats and writes a time-series data point using standard **Blobs** (metadata strings) and **Doubles** (numeric values):
+The worker formats and writes a time-series data point to the `hoox-analytics` dataset:
 
 ```typescript
 env.ANALYTICS_ENGINE.writeDataPoint({
-  blobs: [
-    payload.worker, // Blob 1: Worker Name
-    payload.endpoint, // Blob 2: Endpoint Path
-    payload.success ? "1" : "0", // Blob 3: Success state
-  ],
-  doubles: [
-    payload.latencyMs, // Double 1: Latency in milliseconds
-  ],
-  indexes: [
-    payload.requestId, // Custom index for distributed tracing
-  ],
+  blobs: ["api-call", "trade-worker", "success", "/api/v3/order", ""],
+  doubles: [250, 0, 0],
+  indexes: ["550e8400-e29b-41d4-a716-446655440000"],
 });
 ```
 
-- **Response (200 OK)**:
+- **Response (200)** : `{ "success": true }`
+
+### C. Track Worker Performance
+
+- **Endpoint**: `POST /track/worker-perf`
+- **Payload**:
   ```json
-  { "success": true }
+  {
+    "data": {
+      "worker": "trade-worker",
+      "requests": 100,
+      "errors": 0,
+      "duration": 25000
+    }
+  }
   ```
+
+### D. Track Signal
+
+- **Endpoint**: `POST /track/signal`
+- **Payload**:
+  ```json
+  {
+    "data": {
+      "source": "agent-worker",
+      "type": "BUY",
+      "symbol": "ETHUSDT",
+      "confidence": 0.85
+    }
+  }
+  ```
+
+### E. Track Notification
+
+- **Endpoint**: `POST /track/notification`
+- **Payload**:
+  ```json
+  {
+    "data": { "type": "trade_executed", "target": "telegram", "success": true }
+  }
+  ```
+
+### F. Health
+
+- **Endpoint**: `GET /health`
+- **Response**: `{ "status": "ok", "worker": "analytics-worker" }`
 
 ---
 
-### B. Query Metrics (SQL interface)
+### Query Methods (Exported Functions)
 
-Used primarily by the Next.js Dashboard to extract data points for chart rendering.
+The analytics worker exports query functions that are called via Service Bindings (not HTTP). Each builds a SQL query and executes it against the Cloudflare Analytics Engine SQL API:
 
-- **Endpoint**: `/query`
-- **Method**: `POST`
-- **JSON Payload**:
-  ```json
-  {
-    "query": "SELECT sum(double1) as total_latency, count() as total_calls FROM hoox_telemetry WHERE blob1 = ? AND timestamp >= now() - INTERVAL '1' DAY",
-    "params": ["trade-worker"]
-  }
-  ```
-- **Success Response (200 OK)**:
-  ```json
-  {
-    "success": true,
-    "results": [{ "total_latency": 10482.5, "total_calls": 428 }]
-  }
-  ```
+| Function                                   | Parameters        | Purpose                       |
+| ------------------------------------------ | ----------------- | ----------------------------- |
+| `getTradeMetrics(timeRange)`               | ISO date range    | Trade counts by exchange      |
+| `getTradesByExchange(exchange, limit)`     | Exchange name     | Recent trades for an exchange |
+| `getTradeSuccessRate(timeRange?)`          | Optional ISO date | Overall trade success rate    |
+| `getWorkerPerformance(worker, timeRange?)` | Worker name       | Request counts and latency    |
+| `getApiCallStats(exchange?)`               | Optional exchange | API call statistics           |
+| `getSignalOutcomes(timeRange?)`            | Optional ISO date | Signal analysis by source     |
+
+All SQL queries are built via `sanitizeQueryInputs()` which validates parameters using allowlists and regex to prevent SQL injection.
 
 ---
 
 ## 📈 4. Dashboard Visual Integrations
 
-The metrics written to `hoox_telemetry` are queried by the dashboard to render:
+The metrics written to `hoox-analytics` are queried by the dashboard to render:
 
 1. **System Health Indicators**: Real-time error spikes trigger warning banners in under 2 seconds.
 2. **Isolate Latency Charts**: Visual line graphs showing V8 processing speeds vs exchange API transit speeds.
@@ -7337,8 +7668,8 @@ The metrics written to `hoox_telemetry` are queried by the dashboard to render:
 - **[trade-worker Profile](trade-worker.md)** — Review how execution latency details are generated and offloaded.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/report-worker.md
-TITLE: report-worker Isolate Profile
+──── FILE: docs/devops/workers/report-worker.md ────
+──── TITLE: report-worker Isolate Profile ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7474,8 +7805,8 @@ await env.TELEGRAM_SERVICE.fetch("https://telegram-worker/alert", {
 - **[D1 Database Operations](../guides/database-ops.md)** — Manage Drizzle schemas and execute custom queries.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/workers/dashboard.md
-TITLE: Next.js Dashboard & OpenNext Isolate
+──── FILE: docs/devops/workers/dashboard.md ────
+──── TITLE: Next.js Dashboard & OpenNext Isolate ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7632,8 +7963,8 @@ Headers are applied via the `withSecurityHeaders()` wrapper in `src/middleware.t
 - **[d1-worker Profile](d1-worker.md)** — Check REST schemas that feed database metrics to the dashboard.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/deployment/production.md
-TITLE: Production Deployment Runbook
+──── FILE: docs/devops/deployment/production.md ────
+──── TITLE: Production Deployment Runbook ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7747,8 +8078,8 @@ hoox waf configure --limit-requests
 - **[Observability & Time-Series Monitoring](monitoring.md)** — Stream console logs and check analytics datasets.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/deployment/cicd.md
-TITLE: CI/CD Pipeline Automation
+──── FILE: docs/devops/deployment/cicd.md ────
+──── TITLE: CI/CD Pipeline Automation ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -7888,8 +8219,8 @@ To authorize GitHub to interact with your Cloudflare account, navigate to your r
 - **[System Observability & Monitoring](monitoring.md)** — Stream console logs and check analytics datasets.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/deployment/monitoring.md
-TITLE: Observability & Telemetry
+──── FILE: docs/devops/deployment/monitoring.md ────
+──── TITLE: Observability & Telemetry ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8006,8 +8337,8 @@ if (orderResponse.status === "Rejected") {
 - **[Self-Healing & Repair](../guides/repair.md)** — Recover from degraded workers and provision missing bindings.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/deployment/zero-trust.md
-TITLE: Zero Trust & Security Hardening
+──── FILE: docs/devops/deployment/zero-trust.md ────
+──── TITLE: Zero Trust & Security Hardening ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8118,8 +8449,8 @@ To streamline access:
 - **[System Observability & Metrics](monitoring.md)** — Setup time-series logging and Analytics Engine tables.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/development/local-dev.md
-TITLE: Local Development Setup
+──── FILE: docs/devops/development/local-dev.md ────
+──── TITLE: Local Development Setup ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8265,14 +8596,63 @@ Set `WX_WORKERS_DIR` if your workers live elsewhere:
 WX_WORKERS_DIR=~/other-project/workers wx "some command"
 ```
 
+---
+
+## 🕸️ 6. Codebase Dependency Graph
+
+Hoox includes a **function-level dependency graph extractor** that maps all exported symbols, imports, calls, type references, and service bindings across the entire monorepo.
+
+```bash
+# Regenerate graph.json and graph.dot
+bun run graph
+```
+
+This runs `scripts/extract-graph.ts` (ts-morph) and scans 917 source files across all 14 workspaces. During extraction, a **live progress bar** shows each phase with elapsed time:
+
+```
+🔍 Extracting exported declarations...
+  [██░░░░░░░░░░░░░░░░░░] 13%  exports: 1667 nodes             10.6s
+🔍 Extracting import relationships...
+  [█████░░░░░░░░░░░░░░░] 25%  imports: 2524 edges              0.1s
+🔍 Extracting type references...
+  [██████████░░░░░░░░░░] 50%  type refs: 2536 edges            1.7s
+🔍 Extracting cross-file call expressions...
+  [████████████░░░░░░░░] 63%  calls: 445 edges                 9.7s
+  [████████████████████] 100% Done                             22.0s
+
+⏱  Total time: 22.0s
+```
+
+The 8 extraction phases (exports → imports → extends/implements → type refs → calls → service bindings → workspace deps → filtering) complete in **~20–25s** on average.
+
+### Outputs
+
+| File         | Contents                                                   |
+| ------------ | ---------------------------------------------------------- |
+| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph        |
+| `graph.dot`  | Graphviz DOT with 14 workspace clusters, color-coded edges |
+
+### Quick Render
+
+```bash
+# Install Graphviz if missing
+# macOS: brew install graphviz
+# Ubuntu: sudo apt install graphviz
+
+# Render to SVG
+dot -Tsvg graph.dot -o graph.svg && open graph.svg
+```
+
+> **Tip:** Use `graph.json` as AI/LLM context for codebase-aware queries, or paste `graph.dot` into [Edotor](https://edotor.net/) for instant browser visualization without installing Graphviz.
+
 ### 🔗 Next Steps
 
 - **[Testing Standards](testing.md)** — Run unit and integration tests using Bun's native test runner.
 - **[Debugging Runbook](debugging.md)** — Debug local and remote isolates, tail logs, and trace queries.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/development/testing.md
-TITLE: Testing Framework & QA Standards
+──── FILE: docs/devops/development/testing.md ────
+──── TITLE: Testing Framework & QA Standards ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8434,8 +8814,8 @@ bun test packages/shared/ --coverage
 - **[Local Development Setup](local-dev.md)** — Configure Wrangler and Docker compose to run testbeds.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/development/debugging.md
-TITLE: Edge Debugging & Telemetry
+──── FILE: docs/devops/development/debugging.md ────
+──── TITLE: Edge Debugging & Telemetry ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8543,8 +8923,8 @@ ORDER BY created_at ASC
 - **[Self-Healing & System Repair](../guides/repair.md)** — Run diagnostics, targeted component repairs, and full system rebuilds.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/api/endpoints.md
-TITLE: API Endpoint Directory
+──── FILE: docs/devops/api/endpoints.md ────
+──── TITLE: API Endpoint Directory ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8735,8 +9115,8 @@ Bridges background risk audits and multi-provider AI chat streams.
 - **[Standard Response Schemas](responses.md)** — Check error factories and normal JSON envelopes.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/api/payloads.md
-TITLE: Request Payload Schemas
+──── FILE: docs/devops/api/payloads.md ────
+──── TITLE: Request Payload Schemas ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -8881,8 +9261,8 @@ export interface TelegramAlertPayload {
 - **[Standard Response Schemas](responses.md)** — Check success envelopes and error models.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/api/responses.md
-TITLE: Standard Response Schemas
+──── FILE: docs/devops/api/responses.md ────
+──── TITLE: Standard Response Schemas ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]
@@ -9023,8 +9403,8 @@ These factory methods automatically serialize the exception, attach the active `
 - **[Request Payload Schemas](payloads.md)** — Check JSON request payload specifications and typescript interfaces.
 
 ────────────────────────────────────────────────────────────────────────
-FILE: docs/devops/cli-features.md
-TITLE: CLI Architecture & Features
+──── FILE: docs/devops/cli-features.md ────
+──── TITLE: CLI Architecture & Features ────
 ────────────────────────────────────────────────────────────────────────
 
 [METADATA]

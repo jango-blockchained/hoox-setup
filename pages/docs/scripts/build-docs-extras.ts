@@ -172,9 +172,9 @@ function generateLlmText(): void {
   llmText += `${"═".repeat(72)}\n\n`;
 
   function appendSection(sectionTitle: string, files: string[]): void {
-    llmText += `${"━".repeat(72)}\n`;
-    llmText += `SECTION: ${sectionTitle.toUpperCase()}\n`;
-    llmText += `${"━".repeat(72)}\n\n`;
+    llmText += `${"═".repeat(72)}\n`;
+    llmText += `════════ SECTION: ${sectionTitle.toUpperCase()} ════════\n`;
+    llmText += `${"═".repeat(72)}\n\n`;
 
     for (const file of files) {
       const filePath = path.join(docsDir, file);
@@ -188,8 +188,8 @@ function generateLlmText(): void {
 
       // Section header with file path and title
       llmText += `${"─".repeat(72)}\n`;
-      llmText += `FILE: docs/${file}\n`;
-      llmText += `TITLE: ${title}\n`;
+      llmText += `──── FILE: docs/${file} ────\n`;
+      llmText += `──── TITLE: ${title} ────\n`;
       llmText += `${"─".repeat(72)}\n\n`;
 
       // Include frontmatter as metadata

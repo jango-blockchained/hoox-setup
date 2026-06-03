@@ -91,5 +91,8 @@
   "bugs": {
     "url": "https://github.com/jango-blockchained/hoox-setup/issues"
   },
+  "overrides": {
+    "@radix-ui/react-slot": "^1.2.4"
+  },
   "homepage": "https://github.com/jango-blockchained/hoox-setup#readme"
 }
