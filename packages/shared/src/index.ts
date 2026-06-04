@@ -64,11 +64,7 @@ export type {
 // ── Exchange client abstractions ───────────────────────────────────────────
 
 export { BaseExchangeClient } from "./exchanges";
-export type {
-  ExchangeClientConfig,
-  TradeResult,
-  SupportedExchange,
-} from "./exchanges";
+export type { SupportedExchange } from "./exchanges";
 export { logKvTimestamp, headersToObject } from "./kvUtils";
 export type { EnvWithKV } from "./kvUtils";
 export { trackAnalytics } from "./analytics";

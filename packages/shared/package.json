@@ -31,6 +31,11 @@
       "import": "./src/wizard/index.ts",
       "default": "./dist/wizard/index.js"
     },
+    "./exchanges": {
+      "types": "./dist/exchanges/index.d.ts",
+      "import": "./src/exchanges/index.ts",
+      "default": "./dist/exchanges/index.js"
+    },
     "./stores/*": {
       "types": "./dist/stores/*.d.ts",
       "import": "./src/stores/*.ts",

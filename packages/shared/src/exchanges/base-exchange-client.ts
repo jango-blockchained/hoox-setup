@@ -1,59 +1,209 @@
-export interface ExchangeClientConfig {
+export interface ExchangeConfig {
   apiKey: string;
   apiSecret: string;
-  exchange: string;
-  sandbox?: boolean;
+  baseUrl?: string;
+  testnet?: boolean;
 }
 
-export interface TradeResult {
-  success: boolean;
-  orderId?: string;
-  error?: string;
-  result?: unknown;
+export interface TradeParams {
+  symbol: string;
+  side: string; // "BUY", "SELL", "long", "short", etc. - exchange-specific
+  orderType?: string;
+  quantity: number;
+  price?: number;
+  reduceOnly?: boolean;
+  leverage?: number;
+}
+
+export interface OrderResponse {
+  orderId: string;
+  symbol: string;
+  status: string;
+  executedQty?: string;
+  price?: string;
+}
+
+export interface Position {
+  symbol: string;
+  side: "long" | "short";
+  quantity: number;
+  entryPrice: number;
+  unrealizedPnl?: number;
 }
 
 /**
  * Base class for exchange clients. All exchange implementations must extend this.
+ * Provides common functionality for exchange API clients including signature generation,
+ * HTTP requests, and trade execution helpers.
  */
 export abstract class BaseExchangeClient {
-  protected apiKey: string;
-  protected apiSecret: string;
-  public readonly exchange: string;
-  protected sandbox: boolean;
+  protected readonly apiKey: string;
+  protected readonly apiSecret: string;
+  protected readonly baseUrl: string;
+  protected readonly isTestnet: boolean;
+  protected readonly importedKeyPromise: Promise<CryptoKey>;
 
-  constructor(config: ExchangeClientConfig) {
-    this.apiKey = config.apiKey;
-    this.apiSecret = config.apiSecret;
-    this.exchange = config.exchange;
-    this.sandbox = config.sandbox ?? false;
+  constructor(apiKey: string, apiSecret: string) {
+    if (!apiKey || !apiSecret) {
+      throw new Error(
+        this.getErrorMessagePrefix() + "API key and secret are required."
+      );
+    }
+    this.apiKey = apiKey;
+    this.apiSecret = apiSecret;
+    this.baseUrl = this.getDefaultBaseUrl();
+    this.isTestnet = false;
+    this.importedKeyPromise = this.importKey();
   }
 
-  abstract validateApiCredentials(): Promise<boolean>;
-  abstract executeTrade(
-    symbol: string,
-    action: "buy" | "sell",
-    quantity: number,
-    price?: number,
-    leverage?: number
-  ): Promise<TradeResult>;
-  abstract getMarkPrice(symbol: string): Promise<number>;
-  abstract getOpenPositions(symbol?: string): Promise<unknown[]>;
-  abstract closePosition(symbol: string, positionId?: string): Promise<unknown>;
-  abstract getWalletBalance(): Promise<number>;
-
-  protected buildUrl(path: string): string {
-    const baseUrl = this.sandbox
-      ? `https://sandbox-${this.exchange}.example.com`
-      : `https://${this.exchange}.example.com`;
-    return `${baseUrl}${path}`;
+  /**
+   * Returns the error message prefix for this client.
+   * Subclasses can override to customize error messages.
+   */
+  protected getErrorMessagePrefix(): string {
+    return "";
   }
 
-  protected async makeRequest(
+  protected abstract getDefaultBaseUrl(): string;
+
+  protected generateSignature(
+    _params: Record<string, string | number | boolean>
+  ): Promise<string> {
+    throw new Error("generateSignature must be implemented by subclass");
+  }
+
+  protected buildHeaders(
     _method: string,
     _path: string,
-    _data?: unknown
-  ): Promise<unknown> {
-    // Subclasses implement via own HTTP client
-    throw new Error("makeRequest must be implemented by subclass");
+    _params?: Record<string, string | number | boolean>
+  ): Headers {
+    return new Headers();
+  }
+
+  /**
+   * Imports the API secret as a CryptoKey for HMAC-SHA256 signing.
+   */
+  private async importKey(): Promise<CryptoKey> {
+    const encoder = new TextEncoder();
+    return crypto.subtle.importKey(
+      "raw",
+      encoder.encode(this.apiSecret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+  }
+
+  /**
+   * Signs data using HMAC-SHA256 with the API secret.
+   */
+  protected async cryptoSign(data: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const key = await this.importedKeyPromise;
+    const signature = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      encoder.encode(data)
+    );
+    return Array.from(new Uint8Array(signature))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  protected async fetch<T>(
+    method: string,
+    path: string,
+    params?: Record<string, string | number | boolean>
+  ): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    const headers = this.buildHeaders(method, path, params);
+    const body = params
+      ? new URLSearchParams(params as Record<string, string>).toString()
+      : undefined;
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: method !== "GET" ? body : undefined,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Exchange API error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  public setLeverage(_symbol: string, _leverage: number): Promise<void> {
+    throw new Error("setLeverage must be implemented by subclass");
+  }
+
+  public executeTrade(_params: TradeParams): Promise<OrderResponse> {
+    throw new Error("executeTrade must be implemented by subclass");
+  }
+
+  public getAccountInfo(): Promise<Record<string, unknown>> {
+    throw new Error("getAccountInfo must be implemented by subclass");
+  }
+
+  public getPositions(_symbol?: string): Promise<Position[]> {
+    throw new Error("getPositions must be implemented by subclass");
+  }
+
+  public async openLong(
+    symbol: string,
+    quantity: number,
+    price?: number,
+    orderType = "MARKET"
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "BUY",
+      orderType,
+      quantity,
+      price,
+    });
+  }
+
+  public async openShort(
+    symbol: string,
+    quantity: number,
+    price?: number,
+    orderType = "MARKET"
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "SELL",
+      orderType,
+      quantity,
+      price,
+    });
+  }
+
+  public async closeLong(
+    symbol: string,
+    quantity: number
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "SELL",
+      orderType: "MARKET",
+      quantity,
+      reduceOnly: true,
+    });
+  }
+
+  public async closeShort(
+    symbol: string,
+    quantity: number
+  ): Promise<OrderResponse> {
+    return this.executeTrade({
+      symbol,
+      side: "BUY",
+      orderType: "MARKET",
+      quantity,
+      reduceOnly: true,
+    });
   }
 }

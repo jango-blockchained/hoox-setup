@@ -1,156 +1,146 @@
 import { describe, it, expect } from "bun:test";
 import {
   BaseExchangeClient,
-  type TradeResult,
+  type TradeParams,
+  type OrderResponse,
+  type Position,
 } from "../exchanges/base-exchange-client";
 
 describe("BaseExchangeClient", () => {
-  it("should instantiate with configuration", () => {
+  it("should instantiate with API credentials", () => {
     class TestClient extends BaseExchangeClient {
-      async validateApiCredentials(): Promise<boolean> {
-        return true;
+      protected getDefaultBaseUrl(): string {
+        return "https://api.test.com";
       }
 
-      async executeTrade(
-        _symbol: string,
-        _action: "buy" | "sell",
-        _quantity: number,
-        _price?: number,
-        _leverage?: number
-      ): Promise<TradeResult> {
-        return { success: true };
+      protected async generateSignature(
+        _params: Record<string, string | number | boolean>
+      ): Promise<string> {
+        return "test-signature";
       }
 
-      async getMarkPrice(): Promise<number> {
-        return 100;
+      protected buildHeaders(
+        _method: string,
+        _path: string,
+        _params?: Record<string, string | number | boolean>
+      ): Headers {
+        return new Headers();
       }
 
-      async getOpenPositions(): Promise<unknown[]> {
+      async setLeverage(_symbol: string, _leverage: number): Promise<void> {
+        // Test implementation
+      }
+
+      async executeTrade(_params: TradeParams): Promise<OrderResponse> {
+        return {
+          orderId: "test-order",
+          symbol: "BTC/USDT",
+          status: "filled",
+        };
+      }
+
+      async getAccountInfo(): Promise<Record<string, unknown>> {
+        return { balance: 1000 };
+      }
+
+      async getPositions(_symbol?: string): Promise<Position[]> {
         return [];
-      }
-
-      async closePosition(): Promise<unknown> {
-        return { success: true };
-      }
-
-      async getWalletBalance(): Promise<number> {
-        return 1000;
       }
     }
 
-    const client = new TestClient({
-      apiKey: "test-key",
-      apiSecret: "test-secret",
-      exchange: "test-exchange",
-    });
-
-    expect(client.exchange).toBe("test-exchange");
+    const client = new TestClient("test-key", "test-secret");
+    expect(client).toBeInstanceOf(TestClient);
   });
 
-  it("should support sandbox mode", () => {
+  it("should throw error if API key is missing", () => {
     class TestClient extends BaseExchangeClient {
-      async validateApiCredentials(): Promise<boolean> {
-        return true;
+      protected getDefaultBaseUrl(): string {
+        return "https://api.test.com";
       }
 
-      async executeTrade(
-        _symbol: string,
-        _action: "buy" | "sell",
-        _quantity: number,
-        _price?: number,
-        _leverage?: number
-      ): Promise<TradeResult> {
-        return { success: true };
+      protected async generateSignature(
+        _params: Record<string, string | number | boolean>
+      ): Promise<string> {
+        return "test-signature";
       }
 
-      async getMarkPrice(): Promise<number> {
-        return 100;
+      protected buildHeaders(
+        _method: string,
+        _path: string,
+        _params?: Record<string, string | number | boolean>
+      ): Headers {
+        return new Headers();
       }
 
-      async getOpenPositions(): Promise<unknown[]> {
+      async setLeverage(_symbol: string, _leverage: number): Promise<void> {
+        // Test implementation
+      }
+
+      async executeTrade(_params: TradeParams): Promise<OrderResponse> {
+        return {
+          orderId: "test-order",
+          symbol: "BTC/USDT",
+          status: "filled",
+        };
+      }
+
+      async getAccountInfo(): Promise<Record<string, unknown>> {
+        return { balance: 1000 };
+      }
+
+      async getPositions(_symbol?: string): Promise<Position[]> {
         return [];
-      }
-
-      async closePosition(): Promise<unknown> {
-        return { success: true };
-      }
-
-      async getWalletBalance(): Promise<number> {
-        return 1000;
-      }
-
-      // Expose protected property for testing
-      isSandbox(): boolean {
-        return this.sandbox;
       }
     }
 
-    const client = new TestClient({
-      apiKey: "test-key",
-      apiSecret: "test-secret",
-      exchange: "test-exchange",
-      sandbox: true,
-    });
-
-    expect(client.isSandbox()).toBe(true);
-  });
-
-  it("should build URLs correctly", () => {
-    class TestClient extends BaseExchangeClient {
-      async validateApiCredentials(): Promise<boolean> {
-        return true;
-      }
-
-      async executeTrade(
-        _symbol: string,
-        _action: "buy" | "sell",
-        _quantity: number,
-        _price?: number,
-        _leverage?: number
-      ): Promise<TradeResult> {
-        return { success: true };
-      }
-
-      async getMarkPrice(): Promise<number> {
-        return 100;
-      }
-
-      async getOpenPositions(): Promise<unknown[]> {
-        return [];
-      }
-
-      async closePosition(): Promise<unknown> {
-        return { success: true };
-      }
-
-      async getWalletBalance(): Promise<number> {
-        return 1000;
-      }
-
-      // Expose protected method for testing
-      testBuildUrl(path: string): string {
-        return this.buildUrl(path);
-      }
-    }
-
-    const prodClient = new TestClient({
-      apiKey: "key",
-      apiSecret: "secret",
-      exchange: "binance",
-    });
-
-    const sandboxClient = new TestClient({
-      apiKey: "key",
-      apiSecret: "secret",
-      exchange: "binance",
-      sandbox: true,
-    });
-
-    expect(prodClient.testBuildUrl("/api/v1/trades")).toBe(
-      "https://binance.example.com/api/v1/trades"
+    expect(() => new TestClient("", "test-secret")).toThrow(
+      "API key and secret are required."
     );
-    expect(sandboxClient.testBuildUrl("/api/v1/trades")).toBe(
-      "https://sandbox-binance.example.com/api/v1/trades"
+  });
+
+  it("should throw error if API secret is missing", () => {
+    class TestClient extends BaseExchangeClient {
+      protected getDefaultBaseUrl(): string {
+        return "https://api.test.com";
+      }
+
+      protected async generateSignature(
+        _params: Record<string, string | number | boolean>
+      ): Promise<string> {
+        return "test-signature";
+      }
+
+      protected buildHeaders(
+        _method: string,
+        _path: string,
+        _params?: Record<string, string | number | boolean>
+      ): Headers {
+        return new Headers();
+      }
+
+      async setLeverage(_symbol: string, _leverage: number): Promise<void> {
+        // Test implementation
+      }
+
+      async executeTrade(_params: TradeParams): Promise<OrderResponse> {
+        return {
+          orderId: "test-order",
+          symbol: "BTC/USDT",
+          status: "filled",
+        };
+      }
+
+      async getAccountInfo(): Promise<Record<string, unknown>> {
+        return { balance: 1000 };
+      }
+
+      async getPositions(_symbol?: string): Promise<Position[]> {
+        return [];
+      }
+    }
+
+    expect(() => new TestClient("test-key", "")).toThrow(
+      "API key and secret are required."
     );
   });
 });
