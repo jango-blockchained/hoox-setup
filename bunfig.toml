@@ -6,4 +6,7 @@ timeout = 60000
 preload = "./packages/test-utils/src/setup.ts"
 
 [test.env]
-NODE_ENV = "test" 
+NODE_ENV = "test"
+
+[test.reporter]
+junit = "./reports/junit.xml" 

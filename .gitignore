@@ -98,6 +98,12 @@ docs/superpowers/
 coverage/
 */coverage/
 
+# JUnit test reports (emitted by bunfig.toml's [test.reporter] junit
+# setting; consumed by the unified per-suite summary table in
+# packages/test-utils/src/render-test-table.ts)
+reports/
+*/reports/
+
 # npm config
 .npmrc
 r2-test-object_*
