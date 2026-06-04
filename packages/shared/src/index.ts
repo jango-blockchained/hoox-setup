@@ -51,7 +51,7 @@ export {
   createErrorResponse,
 } from "./errors";
 
-export { BaseExchangeClient, ExchangeRouter } from "./exchange-client";
+export { ExchangeRouter } from "./exchange-client";
 export type {
   ExchangeName,
   ExchangeConfig,
@@ -60,6 +60,15 @@ export type {
   Position,
   IExchangeProvider,
 } from "./exchange-client";
+
+// ── Exchange client abstractions ───────────────────────────────────────────
+
+export { BaseExchangeClient } from "./exchanges";
+export type {
+  ExchangeClientConfig,
+  TradeResult,
+  SupportedExchange,
+} from "./exchanges";
 export { logKvTimestamp, headersToObject } from "./kvUtils";
 export type { EnvWithKV } from "./kvUtils";
 export { trackAnalytics } from "./analytics";
