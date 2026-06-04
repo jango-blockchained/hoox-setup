@@ -68,6 +68,8 @@ export { healthCheck } from "./health";
 export type { HealthCheckOptions } from "./health";
 export { createQueueHandler } from "./queue-handler";
 export type { QueueHandlerOptions } from "./queue-handler";
+export { createCronHandler } from "./cron-handler";
+export type { CronHandlerOptions } from "./cron-handler";
 export { D1Repository } from "./d1/index";
 export { serviceFetch } from "./service-bindings";
 export type {
