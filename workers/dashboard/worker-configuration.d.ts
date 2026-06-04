@@ -10,6 +10,7 @@ interface __BaseEnv_Env {
   DASHBOARD_USER: string;
   D1_SERVICE: Fetcher /* d1-worker */;
   AGENT_SERVICE: Fetcher /* agent-worker */;
+  WEB3_WALLET_SERVICE: Fetcher /* web3-wallet-worker */;
 }
 declare namespace Cloudflare {
   interface GlobalProps {
