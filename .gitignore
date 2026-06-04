@@ -133,4 +133,10 @@ docs/.obsidian
 AGENTS.md
 DEISGN.md
 SKILL.md
-.directoryworkers/dashboard/tsconfig.tsbuildinfo
+# KDE directory metadata (corrupted by missing newline in prior commit)
+.directory
+# TypeScript incremental build cache (per-workspace)
+**/tsconfig.tsbuildinfo
+workers/dashboard/tsconfig.tsbuildinfo
+# Personal terminal profiles — never part of the repo
+Konsole
