@@ -66,6 +66,8 @@ export { trackAnalytics } from "./analytics";
 export type { AnalyticsEnv } from "./analytics";
 export { healthCheck } from "./health";
 export type { HealthCheckOptions } from "./health";
+export { createQueueHandler } from "./queue-handler";
+export type { QueueHandlerOptions } from "./queue-handler";
 export { D1Repository } from "./d1/index";
 export { serviceFetch } from "./service-bindings";
 export type {
