@@ -76,6 +76,49 @@ const DEFAULT_OPTS: Required<RenderOptions> = {
 /* ─── XML parsing ─────────────────────────────────────────────────── */
 
 /**
+ * Aggregate totals from the root `<testsuites>` tag.
+ *
+ * Bun's JUnit reporter emits a single aggregate at the document root
+ * with the canonical run totals (`tests`, `failures`, `errors`,
+ * `skipped`, `time`). When individual `<testsuite>` elements nest —
+ * which Bun does for nested `describe` blocks — the per-suite
+ * `failures` counts add up to more than the unique failing-test count
+ * because the same failure is reported at every nesting level. The
+ * root aggregate is the only place to read the de-duplicated total.
+ */
+export interface AggregateStats {
+  tests: number;
+  failures: number;
+  errors: number;
+  skipped: number;
+  time: number;
+}
+
+const ATTR_RE = /(\w+)="([^"]*)"/g;
+
+/** Extract the root `<testsuites>` aggregate stats, if present. */
+export function parseRootAggregate(xml: string): AggregateStats | null {
+  if (!xml) return null;
+  // The root <testsuites> tag opens with `<testsuites ` (a single space
+  // after the tag name), distinguishing it from nested `<testsuite `
+  // opening tags. Match the first such tag in document order.
+  const m = /<testsuites\s+([^>]*?)>/.exec(xml);
+  if (!m) return null;
+  const attrs: Record<string, string> = {};
+  for (const am of (m[1] ?? "").matchAll(ATTR_RE)) {
+    if (am[1] !== undefined && am[2] !== undefined) attrs[am[1]] = am[2];
+  }
+  if (Object.keys(attrs).length === 0) return null;
+  return {
+    tests: Number(attrs.tests ?? 0),
+    failures: Number(attrs.failures ?? 0),
+    errors: Number(attrs.errors ?? 0),
+    skipped: Number(attrs.skipped ?? 0),
+    time: Number(attrs.time ?? 0),
+  };
+}
+
+/**
  * Extract per-suite rows from a JUnit XML document.
  *
  * Tolerates both self-closing (`<testsuite ... />`) and paired
@@ -83,6 +126,13 @@ const DEFAULT_OPTS: Required<RenderOptions> = {
  * Bun's reporter emits when the suite has child `<testcase>` elements.
  * The root `<testsuites>` aggregate tag is ignored — only individual
  * suites are returned.
+ *
+ * NOTE: Bun emits nested `<testsuite>` elements for nested `describe`
+ * blocks, so the same set of tests is reported at every nesting level.
+ * This function returns ALL suites (parents included) — use
+ * `parseRootAggregate` for the de-duplicated Total, which is what
+ * `renderTestTable` does. Callers that need only the deepest
+ * (leaf-most) suites should filter by direct testcase presence.
  */
 export function parseJunitXml(xml: string): SuiteRow[] {
   if (!xml) return [];
@@ -91,13 +141,12 @@ export function parseJunitXml(xml: string): SuiteRow[] {
   // up to the closing `>`; the trailing `/` (if any) is captured too but
   // ignored by the attribute parser.
   const tagRegex = /<testsuite\s+([^>]*?)>/g;
-  const attrRegex = /(\w+)="([^"]*)"/g;
   const rows: SuiteRow[] = [];
 
   for (const tagMatch of xml.matchAll(tagRegex)) {
     const attrs = tagMatch[1] ?? "";
     const obj: Record<string, string> = {};
-    for (const am of attrs.matchAll(attrRegex)) {
+    for (const am of attrs.matchAll(ATTR_RE)) {
       const key = am[1];
       const value = am[2];
       if (key !== undefined && value !== undefined) obj[key] = value;
@@ -162,14 +211,33 @@ export function renderTestTable(
     duration: formatDuration(s.time),
   }));
 
-  // Total row aggregates numeric columns only.
-  const totals: CellRow = {
-    name: "Total",
-    passed: String(rows.reduce((acc, r) => acc + Number(r.passed), 0)),
-    failed: String(rows.reduce((acc, r) => acc + Number(r.failed), 0)),
-    skipped: String(rows.reduce((acc, r) => acc + Number(r.skipped), 0)),
-    duration: formatDuration(suites.reduce((acc, s) => acc + s.time, 0)),
-  };
+  // Total row: prefer the root <testsuites> aggregate (de-duplicated
+  // across nested describes). Falls back to summing per-suite rows
+  // when no aggregate is present (e.g. synthetic test fixtures).
+  const aggregate = parseRootAggregate(xml);
+  const totals: CellRow = aggregate
+    ? {
+        name: "Total",
+        passed: String(
+          Math.max(
+            0,
+            aggregate.tests -
+              aggregate.failures -
+              aggregate.errors -
+              aggregate.skipped
+          )
+        ),
+        failed: String(aggregate.failures + aggregate.errors),
+        skipped: String(aggregate.skipped),
+        duration: formatDuration(aggregate.time),
+      }
+    : {
+        name: "Total",
+        passed: String(rows.reduce((acc, r) => acc + Number(r.passed), 0)),
+        failed: String(rows.reduce((acc, r) => acc + Number(r.failed), 0)),
+        skipped: String(rows.reduce((acc, r) => acc + Number(r.skipped), 0)),
+        duration: formatDuration(suites.reduce((acc, s) => acc + s.time, 0)),
+      };
 
   // Column widths driven by max of header / cell visible length.
   const widths: number[] = cellKeys.map((k, i) => {

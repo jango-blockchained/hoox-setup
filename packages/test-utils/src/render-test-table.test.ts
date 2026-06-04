@@ -1,5 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { parseJunitXml, renderTestTable } from "./render-test-table.ts";
+import {
+  parseJunitXml,
+  parseRootAggregate,
+  renderTestTable,
+} from "./render-test-table.ts";
 
 /** Strip ANSI escape codes so regex word-boundaries behave normally. */
 // eslint-disable-next-line no-control-regex -- matches the renderer; \x1b is the ESC byte
@@ -59,6 +63,95 @@ describe("parseJunitXml", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.name).toBe("x.test.ts");
     expect(rows[0]?.total).toBe(2);
+  });
+});
+
+describe("parseRootAggregate", () => {
+  it("returns null for empty input", () => {
+    expect(parseRootAggregate("")).toBeNull();
+  });
+
+  it("returns null when the <testsuites> root is missing", () => {
+    const xml = `<testsuite name="x" tests="1" failures="0"/>`;
+    expect(parseRootAggregate(xml)).toBeNull();
+  });
+
+  it("extracts aggregate totals from a real Bun JUnit report shape", () => {
+    // Mirrors the structure Bun's JUnit reporter emits.
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="bun test" tests="493" assertions="1109" failures="12" skipped="0" time="18.557104502">
+  <testsuite name="X.test.ts" tests="16" failures="7" errors="0" skipped="0" time="0">
+    <testsuite name="describe A" tests="11" failures="7" errors="0" skipped="0" time="0">
+      <testcase name="t1" time="0"/>
+    </testsuite>
+  </testsuite>
+</testsuites>`;
+    const agg = parseRootAggregate(xml);
+    expect(agg).not.toBeNull();
+    expect(agg?.tests).toBe(493);
+    expect(agg?.failures).toBe(12);
+    expect(agg?.errors).toBe(0);
+    expect(agg?.skipped).toBe(0);
+    expect(agg?.time).toBeCloseTo(18.557104502);
+  });
+});
+
+describe("renderTestTable (nested describes)", () => {
+  // Real-world shape: Bun emits a parent testsuite (file-level), an
+  // intermediate testsuite (outer describe), and a leaf testsuite
+  // (inner describe) for nested describes. The same failing test is
+  // counted in every level — so summing the per-suite rows over-counts
+  // and the Total must come from the <testsuites> aggregate instead.
+  const NESTED_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="bun test" tests="16" failures="7" errors="0" skipped="0" time="0.5">
+  <testsuite name="X.test.ts" tests="16" failures="7" errors="0" skipped="0" time="0">
+    <testsuite name="outer describe" tests="16" failures="7" errors="0" skipped="0" time="0">
+      <testcase name="t1" time="0"/>
+      <testcase name="t2" time="0"><failure/></testcase>
+      <testsuite name="inner describe" tests="3" failures="2" errors="0" skipped="0" time="0">
+        <testcase name="t3" time="0"><failure/></testcase>
+        <testcase name="t4" time="0"><failure/></testcase>
+        <testcase name="t5" time="0"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>`;
+
+  it("Total row uses the de-duplicated root aggregate, not a sum of nested rows", () => {
+    const out = renderTestTable(NESTED_XML);
+    const lines = out.split("\n");
+    const totalLine = lines.find((l) => l.includes("Total"));
+    expect(totalLine).toBeDefined();
+    const plain = stripAnsi(totalLine ?? "");
+    // Per the root <testsuites tests="16" failures="7">:
+    //   passed = 16 - 7 - 0 - 0 = 9
+    //   failed = 7
+    expect(plain).toMatch(/\b9\b/);
+    expect(plain).toMatch(/\b7\b/);
+  });
+
+  it("per-suite rows still report the per-level failure count (not deduplicated)", () => {
+    const out = renderTestTable(NESTED_XML);
+    // The 'inner describe' leaf suite has failures="2" — this row must
+    // show '2' in the Failed column even though the Total only has 7
+    // unique failures.
+    const lines = out.split("\n");
+    const innerLine = lines.find((l) => l.includes("inner describe"));
+    expect(innerLine).toBeDefined();
+    const plain = stripAnsi(innerLine ?? "");
+    expect(plain).toMatch(/\b2\b/);
+  });
+
+  it("Total row falls back to summing per-suite rows when no aggregate is present", () => {
+    // No <testsuites> root → Total is computed from per-suite rows.
+    // Suite a: 3-1 = 2 passed.  Suite b: 2-0 = 2 passed.  → 4 passed, 1 failed.
+    const xml = `<testsuite name="a" tests="3" failures="1"/><testsuite name="b" tests="2" failures="0"/>`;
+    const out = renderTestTable(xml);
+    const lines = out.split("\n");
+    const totalLine = lines.find((l) => l.includes("Total"));
+    const plain = stripAnsi(totalLine ?? "");
+    expect(plain).toMatch(/\b4\b/); // 4 passed (2+2)
+    expect(plain).toMatch(/\b1\b/); // 1 failed (1+0)
   });
 });
 
