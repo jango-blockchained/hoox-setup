@@ -3,7 +3,7 @@ coverage = true
 coverageReporter = ["text", "lcov"]
 coverageDir = "./coverage"
 timeout = 60000
-preload = "./workers/hoox/test/setup.ts"
+preload = "./packages/test-utils/src/setup.ts"
 
 [test.env]
 NODE_ENV = "test" 

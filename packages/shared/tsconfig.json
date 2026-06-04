@@ -4,5 +4,5 @@
     "outDir": "./dist",
     "types": ["bun-types", "node", "@cloudflare/workers-types"]
   },
-  "include": ["src/**/*", "tests/**/*", "types.ts"]
+  "include": ["src/**/*", "test/**/*", "types.ts"]
 }
