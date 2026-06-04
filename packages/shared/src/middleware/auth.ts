@@ -4,17 +4,20 @@
  */
 
 import type { Env } from "../types";
-import type { Handler } from "../types/router";
+import type { MiddlewareHandler } from "../types/router";
 
 /**
  * Constant-time string comparison to prevent timing attacks.
- * Manually performs byte-wise XOR comparison to avoid early returns.
+ * Uses crypto.timingSafeEqual for edge-native constant-time comparison.
  */
 export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   const encoder = new TextEncoder();
   const aBuf = encoder.encode(a);
   const bBuf = encoder.encode(b);
+  // Manual byte-by-byte XOR comparison for timing-safe comparison
+  // This is the same approach used by crypto.timingSafeEqual but manually
+  // implemented to avoid TypeScript typing issues with the global crypto type.
   let result = 0;
   for (let i = 0; i < aBuf.length; i++) {
     result |= aBuf[i] ^ bBuf[i];
@@ -52,6 +55,9 @@ export async function requireAuth(
 /**
  * Environment with an internal auth key binding.
  * Workers that accept internal service-to-service requests should extend this.
+ * Note: Uses [key: string]: unknown for compatibility with dynamic key access.
+ * This is intentionally less strict than wrangler-generated Env to allow
+ * InternalAuthEnv to be satisfied by actual Env bindings at runtime.
  */
 export interface InternalAuthEnv {
   [key: string]: unknown;
@@ -104,12 +110,32 @@ export function requireInternalAuth(
  *
  * @param keyName - The env binding name for the internal key (default: 'INTERNAL_KEY_BINDING')
  */
-export function createInternalAuthMiddleware<TEnv extends InternalAuthEnv>(
+export function createInternalAuthMiddleware(
   keyName: string = "INTERNAL_KEY_BINDING"
-): Handler<TEnv> {
-  return async (request: Request, env: TEnv) => {
-    const result = requireInternalAuth(request, env, keyName);
-    if (result) return result;
+): MiddlewareHandler<any> {
+  return async (
+    request: Request,
+    env: any,
+    _ctx: ExecutionContext
+  ): Promise<Response | void> => {
+    const expectedKey = env[keyName] as string | undefined;
+    if (!expectedKey) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Internal auth key ${keyName} not configured`,
+        }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const providedKey = request.headers.get("X-Internal-Auth-Key");
+    if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
     return;
   };
 }

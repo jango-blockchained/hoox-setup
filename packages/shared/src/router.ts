@@ -8,6 +8,7 @@
 
 import type {
   Handler,
+  MiddlewareHandler,
   RouteDefinition,
   RouteParams,
   Router,
@@ -69,7 +70,7 @@ export function createRouter<TEnv = any>(): Router<TEnv> {
     path: string,
     method: string,
     handler: Handler<TEnv>,
-    middleware?: Handler<TEnv>[]
+    middleware?: MiddlewareHandler<TEnv>[]
   ): void {
     const paramNames = extractParams(path);
     const route: RouteDefinition<TEnv> = { path, method, handler, middleware };
@@ -118,7 +119,7 @@ export function createRouter<TEnv = any>(): Router<TEnv> {
     get(
       path: string,
       handler: Handler<TEnv>,
-      middleware?: Handler<TEnv>[]
+      middleware?: MiddlewareHandler<TEnv>[]
     ): void {
       addRoute(path, "GET", handler, middleware);
     },
@@ -126,7 +127,7 @@ export function createRouter<TEnv = any>(): Router<TEnv> {
     post(
       path: string,
       handler: Handler<TEnv>,
-      middleware?: Handler<TEnv>[]
+      middleware?: MiddlewareHandler<TEnv>[]
     ): void {
       addRoute(path, "POST", handler, middleware);
     },
@@ -134,7 +135,7 @@ export function createRouter<TEnv = any>(): Router<TEnv> {
     put(
       path: string,
       handler: Handler<TEnv>,
-      middleware?: Handler<TEnv>[]
+      middleware?: MiddlewareHandler<TEnv>[]
     ): void {
       addRoute(path, "PUT", handler, middleware);
     },
@@ -142,7 +143,7 @@ export function createRouter<TEnv = any>(): Router<TEnv> {
     delete(
       path: string,
       handler: Handler<TEnv>,
-      middleware?: Handler<TEnv>[]
+      middleware?: MiddlewareHandler<TEnv>[]
     ): void {
       addRoute(path, "DELETE", handler, middleware);
     },
