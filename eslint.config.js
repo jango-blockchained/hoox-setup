@@ -139,6 +139,7 @@ export default [
       "workers/*/test/**",
       "packages/*/test/**",
       "packages/*/tests/**",
+      "tests/live/**",
     ],
     languageOptions: {
       parserOptions: {

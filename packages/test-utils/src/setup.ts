@@ -24,6 +24,11 @@
  *      `ctx` and `state`. This is critical for edge-runtime test
  *      compatibility — without it, every `import "cloudflare:workers"`
  *      in worker source would fail to resolve under bun.
+ *   4. Ensures the `./reports/` directory exists so Bun's JUnit reporter
+ *      (configured in `bunfig.toml`) can flush `./reports/junit.xml`
+ *      without a missing-directory error. The reporter is post-processed
+ *      by `scripts/test-with-table.ts` to render the unified per-suite
+ *      summary table — see that file for the runtime flow.
  */
 import {
   expect,
@@ -34,6 +39,9 @@ import {
   afterEach,
   mock,
 } from "bun:test";
+import { existsSync, mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // ── 1. Jest-style globals ────────────────────────────────────────────────────
 //
@@ -72,11 +80,42 @@ global.Headers = Headers;
 // for tests that opt in.
 mock.module("cloudflare:workers", () => ({
   DurableObject: class MockDurableObject {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ctx: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     state: any;
-    constructor(ctx: any, state: any) {
+    constructor(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ctx: any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      state: any
+    ) {
       this.ctx = ctx;
       this.state = state;
     }
   },
 }));
+
+// ── 4. Ensure the JUnit output directory exists ─────────────────────────────
+//
+// `bunfig.toml` configures Bun's JUnit reporter to write to
+// `./reports/junit.xml`. The reporter does not auto-create the directory,
+// so we create it once at preload load (runs in every test process, before
+// any test starts). The file itself is post-processed by
+// `scripts/test-with-table.ts` to render the unified per-suite summary
+// table at the end of each `bun run test*` invocation.
+function findRepoRoot(startDir: string): string {
+  let current = startDir;
+  for (let i = 0; i < 10; i += 1) {
+    if (existsSync(resolve(current, "bunfig.toml"))) return current;
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return startDir;
+}
+
+const setupDir = dirname(fileURLToPath(import.meta.url));
+const repoRoot = findRepoRoot(setupDir);
+const reportsDir = resolve(repoRoot, "reports");
+mkdirSync(reportsDir, { recursive: true });
