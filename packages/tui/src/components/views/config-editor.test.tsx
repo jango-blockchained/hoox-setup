@@ -15,7 +15,7 @@ import {
   flattenTree,
   CONFIG_TREE_BLUEPRINT,
 } from "./config-editor";
-import type { FileNode, SyntaxErrorEntry } from "./config-editor";
+import type { FileNode } from "./config-editor";
 
 describe("ConfigEditor", () => {
   // ─── Tree Structure Tests ──────────────────────────────────────────────
@@ -222,6 +222,141 @@ describe("ConfigEditor", () => {
     it("returns errors for TOML with unbalanced quotes", async () => {
       const errors = validateSyntax('key = "unclosed string\n', "toml");
       expect(errors.length).toBeGreaterThan(0);
+    });
+
+    // ─── Real TOML parser integration ────────────────────────────────
+
+    it("parses multi-line literal strings (''' ... ''')", async () => {
+      const toml = [
+        "[post]",
+        "title = '''",
+        "First line",
+        "Second line",
+        "'''",
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it('parses multi-line basic strings (""" ... """)', async () => {
+      const toml = [
+        "[post]",
+        'description = """',
+        "Line one",
+        'Line two with "quotes"',
+        '"""',
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it('parses inline tables ({ key = "value" })', async () => {
+      const toml = [
+        "[servers]",
+        'alpha = { ip = "10.0.0.1", port = 8000 }',
+        'beta = { ip = "10.0.0.2", port = 8001, enabled = true }',
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("parses arrays of tables ([[name]])", async () => {
+      const toml = [
+        "[[fruits]]",
+        'name = "apple"',
+        "",
+        "[[fruits]]",
+        'name = "banana"',
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("parses arrays with mixed primitive types", async () => {
+      const toml = [
+        "[data]",
+        "ints = [1, 2, 3]",
+        'strings = ["a", "b", "c"]',
+        "nested = [[1, 2], [3, 4]]",
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("parses dotted keys (a.b.c = value)", async () => {
+      const toml = 'physical.color = "orange"\nphysical.shape = "round"\n';
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("reports accurate line numbers for invalid TOML", async () => {
+      // Line 1 valid, Line 2 valid, Line 3 has the error
+      const toml = [
+        "[section]",
+        'key1 = "ok"',
+        'key2 = "unclosed',
+        'key3 = "fine"',
+        "",
+      ].join("\n");
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBeGreaterThan(0);
+      // smol-toml's TomlError is 1-based. The error originates on
+      // line 3 (unclosed string); the parser may point to the same
+      // line or to the first line where it becomes unrecoverable.
+      // Either way, the error must NOT be on a known-valid line.
+      expect(errors[0].line).toBeGreaterThanOrEqual(3);
+      expect(errors[0].line).toBeLessThanOrEqual(4);
+    });
+
+    it("reports 1-based column for invalid TOML", async () => {
+      const toml = 'key = "ok"\nbad = = "invalid"\n';
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBeGreaterThan(0);
+      // Column must be at least 1 (1-based) for a useful error marker.
+      expect(errors[0].column).toBeGreaterThanOrEqual(1);
+    });
+
+    it("includes the parser's error message verbatim", async () => {
+      const toml = 'key = = "invalid"\n';
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].message.length).toBeGreaterThan(0);
+      // Must not be the old generic "Unbalanced brackets" message.
+      expect(errors[0].message).not.toMatch(/unbalanced/i);
+    });
+
+    it("returns empty errors for empty TOML", async () => {
+      const errors = validateSyntax("", "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("handles TOML with only comments", async () => {
+      const toml = "# just a comment\n# another one\n";
+      const errors = validateSyntax(toml, "toml");
+      expect(errors.length).toBe(0);
+    });
+
+    it("parses 10KB of TOML in under 100ms", async () => {
+      // Build a 10KB TOML document with many keys.
+      const lines: string[] = ["[big]"];
+      let i = 0;
+      while (lines.join("\n").length < 10_000) {
+        lines.push(`key_${i} = "value_${i}"`);
+        i++;
+      }
+      const toml = lines.join("\n") + "\n";
+
+      const t0 = performance.now();
+      const errors = validateSyntax(toml, "toml");
+      const elapsed = performance.now() - t0;
+
+      expect(errors.length).toBe(0);
+      expect(elapsed).toBeLessThan(100);
     });
   });
 

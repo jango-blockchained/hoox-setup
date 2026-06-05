@@ -144,6 +144,8 @@ export type {
   ConnectionStatus,
   LogFilter,
   NotificationPreferences,
+  CliErrorType,
+  CliErrorDetails,
 } from "./types";
 
 // ── Wizard engine ──────────────────────────────────────────────────────

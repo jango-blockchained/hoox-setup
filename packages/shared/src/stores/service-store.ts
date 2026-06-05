@@ -34,7 +34,30 @@ import type {
   LogEntry,
   SystemMetrics,
   ConnectionStatus,
+  CliErrorDetails,
 } from "../types";
+
+// ─── Error Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Build a one-line summary of a `CliErrorDetails` payload. Used by the
+ * status bar to keep the one-line display tidy while the full payload
+ * lives on `lastErrorDetails` for the click-to-expand panel.
+ *
+ * Order of preference: stderr (first non-empty line) → stdout (first
+ * non-empty line) → command. Truncated to 120 chars max so the summary
+ * never wraps the status bar unexpectedly.
+ */
+function summarizeCliError(details: CliErrorDetails): string {
+  const raw =
+    details.stderr.trim() ||
+    details.stdout.trim() ||
+    details.command ||
+    "Unknown CLI error";
+  const firstLine = raw.split("\n", 1)[0] ?? "";
+  const trimmed = firstLine.slice(0, 120).trimEnd();
+  return trimmed.length > 0 ? trimmed : details.command;
+}
 
 // ─── Backoff Constants ───────────────────────────────────────────────────────
 
@@ -67,6 +90,13 @@ export interface ServiceState {
   retryCount: number;
   /** Last connection error message (for display) */
   lastError: string | null;
+  /**
+   * Structured CLI bridge error details. Populated when a `hoox` command
+   * fails so the status bar can render the full diagnostic context
+   * (command, exit code, stderr, error type) — not just a one-line summary.
+   * Cleared together with `lastError` on success or retry reset.
+   */
+  lastErrorDetails: CliErrorDetails | null;
   /** Timestamp (ms) of the last successful API fetch */
   lastSuccessfulFetch: number;
   /** Current backoff delay in ms (0 when not reconnecting) */
@@ -99,6 +129,24 @@ interface ServiceActions {
   resetRetries: () => void;
   /** Force a connection retry from offline state */
   forceRetry: () => void;
+  /**
+   * Record a structured CLI bridge failure. Stores both the short
+   * `lastError` string (for the one-line summary) and the full
+   * `lastErrorDetails` (for click-to-expand). Pass `null` to clear.
+   */
+  setLastErrorDetails: (details: CliErrorDetails | null) => void;
+  /**
+   * Clear the last error and last error details. Convenience alias for
+   * `setLastErrorDetails(null)` — clearer at call sites where the
+   * intent is to acknowledge an error rather than record a new one.
+   */
+  clearError: () => void;
+  /**
+   * Record a CLI bridge failure **and** add a matching high-severity
+   * alert to the alerts ring buffer. Use this when a failure should
+   * also be visible in the alerts panel (not just the status bar).
+   */
+  addCliErrorAlert: (details: CliErrorDetails) => void;
 }
 
 // ─── Buffer Caps ─────────────────────────────────────────────────────────────
@@ -121,6 +169,7 @@ const initialState: ServiceState = {
   // Connection machine defaults
   retryCount: 0,
   lastError: null,
+  lastErrorDetails: null,
   lastSuccessfulFetch: 0,
   reconnectDelay: 0,
   disconnectedAt: null,
@@ -162,6 +211,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
             state.connectionStatus = "connected";
             state.retryCount = 0;
             state.lastError = null;
+            state.lastErrorDetails = null;
             state.reconnectDelay = 0;
             state.disconnectedAt = null;
           }
@@ -276,6 +326,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
         if (status === "connected") {
           state.retryCount = 0;
           state.lastError = null;
+          state.lastErrorDetails = null;
           state.reconnectDelay = 0;
           state.disconnectedAt = null;
         }
@@ -324,6 +375,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
         state.lastSuccessfulFetch = Date.now();
         state.retryCount = 0;
         state.lastError = null;
+        state.lastErrorDetails = null;
         state.reconnectDelay = 0;
         state.disconnectedAt = null;
         if (
@@ -364,6 +416,7 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
       set((state) => {
         state.retryCount = 0;
         state.lastError = null;
+        state.lastErrorDetails = null;
         state.reconnectDelay = 0;
         state.disconnectedAt = null;
       }),
@@ -375,8 +428,50 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
           state.connectionStatus = "polling";
           state.retryCount = 0;
           state.lastError = null;
+          state.lastErrorDetails = null;
           state.reconnectDelay = 0;
         }
+      }),
+
+    // ── Record structured CLI bridge error ────────────────────────────────
+    // Accepts a fully-formed CliErrorDetails (typically from cli-bridge) and
+    // mirrors a short summary into `lastError` so the rest of the status
+    // bar (one-line truncated, alerts, retry counters) keeps working
+    // without changes. Pass null to clear both fields.
+    setLastErrorDetails: (details) =>
+      set((state) => {
+        state.lastErrorDetails = details;
+        state.lastError = details === null ? null : summarizeCliError(details);
+      }),
+
+    // ── Clear error state (alias for setLastErrorDetails(null)) ───────────
+    clearError: () =>
+      set((state) => {
+        state.lastError = null;
+        state.lastErrorDetails = null;
+      }),
+
+    // ── Record CLI error + add a corresponding high-severity alert ─────────
+    // Use this for failures that should be visible in the alerts panel
+    // (e.g. persistent deploy failures) — the status bar alone is not
+    // enough since the user may have collapsed it or moved on.
+    addCliErrorAlert: (details) =>
+      set((state) => {
+        state.lastErrorDetails = details;
+        state.lastError = summarizeCliError(details);
+        const summary = summarizeCliError(details);
+        state.alerts = ringPush(
+          state.alerts,
+          {
+            id: crypto.randomUUID(),
+            type: "connection" as const,
+            severity: "error" as const,
+            message: `CLI failure: ${summary}`,
+            timestamp: Date.now(),
+            acknowledged: false,
+          },
+          MAX_ALERTS
+        );
       }),
   }))
 );

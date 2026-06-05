@@ -28,6 +28,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
+import { parse as parseToml, TomlError } from "smol-toml";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 
@@ -501,9 +502,32 @@ function tokenizeLine(
 // ─── Syntax Validation ───────────────────────────────────────────────────────
 
 /**
+ * Map a smol-toml parser error to our SyntaxErrorEntry shape.
+ * Falls back to a generic 1/0 entry if the error is not a TomlError.
+ */
+function tomlErrorToEntry(err: unknown): SyntaxErrorEntry {
+  if (err instanceof TomlError) {
+    return {
+      line: err.line,
+      column: err.column,
+      message: err.message,
+    };
+  }
+  const msg = err instanceof Error ? err.message : String(err);
+  return {
+    line: 1,
+    column: 0,
+    message: `TOML parser error: ${msg}`,
+  };
+}
+
+/**
  * Validate TOML or JSON syntax and return an array of errors.
  * For JSON: uses JSON.parse with detailed error extraction.
- * For TOML: basic checks (unbalanced brackets, quotes).
+ * For TOML: uses smol-toml (full TOML 1.1.0 parser) for accurate
+ *   line/column errors. Multi-line strings, arrays, inline tables
+ *   and every other TOML construct are handled by the parser — no
+ *   hand-rolled bracket counting.
  */
 export function validateSyntax(
   content: string,
@@ -529,55 +553,15 @@ export function validateSyntax(
   }
 
   if (fileType === "toml") {
-    const lines = content.split("\n");
-    let inMultilineString = false;
-    let bracketDepth = 0;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const lineNum = i + 1;
-
-      // Check for triple-quoted multi-line strings
-      if (line.includes('"""')) {
-        inMultilineString = !inMultilineString;
-      }
-
-      if (!inMultilineString) {
-        // Count bracket depth
-        const opens = (line.match(/\[/g) ?? []).length;
-        const closes = (line.match(/\]/g) ?? []).length;
-        bracketDepth += opens - closes;
-      }
-
-      // Check for unbalanced single quotes (basic check)
-      const singleQuotes = (line.match(/(?<!\\)'/g) ?? []).length;
-      const doubleQuotes = (line.match(/(?<!\\)"/g) ?? []).length;
-      if (singleQuotes % 2 !== 0 && !inMultilineString) {
-        errors.push({
-          line: lineNum,
-          column: 0,
-          message: `Unbalanced single quote on line ${lineNum}`,
-        });
-      }
-      if (
-        doubleQuotes % 2 !== 0 &&
-        !inMultilineString &&
-        !line.includes('"""')
-      ) {
-        errors.push({
-          line: lineNum,
-          column: 0,
-          message: `Unbalanced double quote on line ${lineNum}`,
-        });
-      }
-    }
-
-    if (bracketDepth !== 0) {
-      errors.push({
-        line: content.split("\n").length,
-        column: 0,
-        message: `Unbalanced brackets: ${bracketDepth > 0 ? `${bracketDepth} unclosed [` : `${Math.abs(bracketDepth)} unclosed ]`}`,
-      });
+    try {
+      // smol-toml is a full TOML 1.1.0 parser — supports multi-line
+      // strings ("""..."""), literal strings, arrays, inline tables,
+      // arrays of tables, dotted keys, dates/times, etc. Throws
+      // TomlError on the first invalid construct with 1-based
+      // line/column and a descriptive message.
+      parseToml(content);
+    } catch (e) {
+      errors.push(tomlErrorToEntry(e));
     }
   }
 

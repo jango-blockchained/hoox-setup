@@ -221,7 +221,12 @@ export type ViewId =
   | "service-manager"
   | "config-editor"
   | "setup-wizard"
-  | "settings";
+  | "settings"
+  | "queue-depth"
+  | "kv-viewer"
+  | "secrets-viewer"
+  | "db-query"
+  | "ai-chat";
 
 /** Modal dialog state for the TUI. */
 export interface ModalState {
@@ -374,4 +379,50 @@ export interface NotificationPreferences {
   trades: boolean;
   debug: boolean;
   system: boolean;
+}
+
+// ─── CLI Bridge Errors ──────────────────────────────────────────────────────
+
+/**
+ * Classification of a CLI bridge failure.
+ *
+ * Used by the TUI status bar to surface actionable diagnostics when the
+ * local `hoox` binary fails to execute. Each variant maps to a different
+ * recovery path (e.g. "install the CLI" vs. "the command timed out").
+ */
+export type CliErrorType =
+  /** The hoox binary could not be located on PATH or in the monorepo. */
+  | "binary-not-found"
+  /** The command exceeded its configured timeout. */
+  | "timeout"
+  /** The command was aborted via signal (user cancel or abort tag). */
+  | "aborted"
+  /** The process exited with a non-zero exit code. */
+  | "non-zero-exit"
+  /** Bun.spawn itself failed (permission denied, EACCES, etc.). */
+  | "spawn-error";
+
+/**
+ * Structured CLI bridge failure details.
+ *
+ * Populated by `cli-bridge.exec()` and stored on `useServiceStore.lastErrorDetails`
+ * so the status bar can render the full diagnostic context (command, exit code,
+ * stderr) — not just a one-line summary. Click-to-expand reveals all fields and
+ * the text remains selectable for copy/paste.
+ */
+export interface CliErrorDetails {
+  /** Full command string (binary + args) that failed, e.g. "hoox check health". */
+  command: string;
+  /** Process exit code, or -1 if the process never started or was aborted. */
+  exitCode: number;
+  /** Captured stderr output (may be empty if the process wrote only to stdout). */
+  stderr: string;
+  /** Captured stdout output (truncated to 4 KB to keep the store lightweight). */
+  stdout: string;
+  /** Classification of the failure — drives icon + recovery hint. */
+  errorType: CliErrorType;
+  /** Wall-clock timestamp (ms) when the error was recorded. */
+  timestamp: number;
+  /** Wall-clock duration (ms) of the failed command, for slow-command diagnosis. */
+  duration: number;
 }

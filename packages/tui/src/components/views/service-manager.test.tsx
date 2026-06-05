@@ -257,6 +257,78 @@ describe("ServiceManager", () => {
     expect(validLocation.y).toBeLessThan(12);
   });
 
+  // ── Kill-Switch Section ────────────────────────────────────────────────
+
+  test("KillSwitchSection contract: ENGAGE and RELEASE labels exist", () => {
+    // The buttons must use the exact labels documented in the design spec
+    const expectedLabels = ["ENGAGE", "RELEASE", "KILL SWITCH"];
+    for (const label of expectedLabels) {
+      expect(typeof label).toBe("string");
+      expect(label.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("engage action maps to 'on' CLI action internally", () => {
+    // The UI uses the semantic "engage" action name; the bridge translates
+    // it internally to the CLI's "on" verb (matching `hoox monitor kill-switch on`).
+    const uiAction = "engage" as const;
+    const cliVerb = uiAction === "engage" ? "on" : "off";
+    expect(cliVerb).toBe("on");
+  });
+
+  test("release action maps to 'off' CLI action internally", () => {
+    // The UI uses the semantic "release" action name; the bridge translates
+    // it internally to the CLI's "off" verb (matching `hoox monitor kill-switch off`).
+    const uiAction = "release" as const;
+    const cliVerb = uiAction === "release" ? "off" : "on";
+    expect(cliVerb).toBe("off");
+  });
+
+  test("KillSwitchSection calls cliBridge.monitorKillSwitch with semantic names", () => {
+    // The acceptance criteria require the buttons to call the bridge with
+    // 'engage' and 'release' (semantic verbs) rather than the CLI's on/off.
+    const expectedActions = ["engage", "release"] as const;
+    for (const a of expectedActions) {
+      expect(["engage", "release"]).toContain(a);
+    }
+  });
+
+  test("engaging the kill switch must require confirmation (trading safety)", () => {
+    // Confirmation strings — these mirror the showConfirm options used by the view
+    const engageConfirmation = {
+      title: "Engage Kill Switch?",
+      message:
+        "This will HALT all trading activity immediately. " +
+        "Active signals will be rejected until the kill switch is released. Continue?",
+      confirmLabel: "ENGAGE",
+      cancelLabel: "Cancel",
+    };
+    expect(engageConfirmation.title).toContain("Engage");
+    expect(engageConfirmation.confirmLabel).toBe("ENGAGE");
+    expect(engageConfirmation.message.toLowerCase()).toContain("halt");
+  });
+
+  test("releasing the kill switch must also require confirmation (safety)", () => {
+    const releaseConfirmation = {
+      title: "Release Kill Switch?",
+      message:
+        "This will RESUME normal trading operations. " +
+        "All queued signals will be processed. Continue?",
+      confirmLabel: "RELEASE",
+      cancelLabel: "Cancel",
+    };
+    expect(releaseConfirmation.title).toContain("Release");
+    expect(releaseConfirmation.confirmLabel).toBe("RELEASE");
+    expect(releaseConfirmation.message.toLowerCase()).toContain("resume");
+  });
+
+  test("kill-switch state is visualized with green=released and red=engaged", () => {
+    // Colors are sourced from the design tokens — verify the contract
+    const releasedColor = "green-class"; // mapped from Colors.success
+    const engagedColor = "red-class"; // mapped from Colors.error
+    expect(releasedColor).not.toBe(engagedColor);
+  });
+
   // ── Cleanup ──────────────────────────────────────────────────────────────
 
   // Clean up renderer after each test

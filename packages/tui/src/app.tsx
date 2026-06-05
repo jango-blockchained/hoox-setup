@@ -24,6 +24,8 @@ import { restoreSession, saveSession } from "@jango-blockchained/hoox-shared";
 import type { SessionState } from "@jango-blockchained/hoox-shared";
 import type { ViewId } from "@jango-blockchained/hoox-shared";
 
+import { cliBridge } from "./services/cli-bridge";
+
 // ─── View imports ────────────────────────────────────────────────────────────
 
 import { DashboardView } from "./components/views/dashboard";
@@ -35,6 +37,11 @@ import { ServiceManager } from "./components/views/service-manager";
 import { ConfigEditor } from "./components/views/config-editor";
 import { SetupWizard } from "./components/views/setup-wizard";
 import { SettingsView } from "./components/views/settings";
+import { QueueDepthView } from "./components/views/queue-depth";
+import { KvViewer } from "./components/views/kv-viewer";
+import { SecretsViewer } from "./components/views/secrets-viewer";
+import { AiChatView } from "./components/views/ai-chat";
+import { DbQueryView } from "./components/views/db-query";
 import {
   CrashScreen,
   type CrashAction,
@@ -56,6 +63,11 @@ const VIEWS: Record<ViewId, () => React.ReactNode> = {
   "config-editor": ConfigEditor,
   "setup-wizard": () => <SetupWizard />,
   settings: SettingsView,
+  "queue-depth": QueueDepthView,
+  "kv-viewer": KvViewer,
+  "secrets-viewer": SecretsViewer,
+  "db-query": DbQueryView,
+  "ai-chat": AiChatView,
 };
 
 // ─── View keyboard shortcuts ─────────────────────────────────────────────────
@@ -70,6 +82,10 @@ const VIEW_SHORTCUTS: Record<string, ViewId> = {
   "7": "config-editor",
   "8": "setup-wizard",
   "9": "settings",
+  "0": "queue-depth",
+  "^<s>": "secrets-viewer", // Ctrl+Alt+S
+  "^<c>": "ai-chat", // Ctrl+Alt+C
+  "^<q>": "db-query", // Ctrl+Alt+Q
 };
 
 // ─── Command palette registry ────────────────────────────────────────────────
@@ -137,6 +153,41 @@ const PALETTE_COMMANDS: CommandEntry[] = [
     category: "view",
     shortcut: "^9",
     aliases: ["preferences"],
+  },
+  {
+    id: "queue-depth",
+    name: "QUEUE DEPTH",
+    category: "view",
+    shortcut: "^0",
+    aliases: ["queues", "backlog"],
+  },
+  {
+    id: "kv-viewer",
+    name: "KV VIEWER",
+    category: "view",
+    shortcut: "^#k",
+    aliases: ["kv", "config-kv", "config-kv-list"],
+  },
+  {
+    id: "secrets-viewer",
+    name: "SECRETS VIEWER",
+    category: "view",
+    shortcut: "^#s",
+    aliases: ["secrets", "config-secrets", "config-secrets-list"],
+  },
+  {
+    id: "ai-chat",
+    name: "AI CHAT",
+    category: "view",
+    shortcut: "^#c",
+    aliases: ["chat", "ai", "agent"],
+  },
+  {
+    id: "db-query",
+    name: "DB QUERY",
+    category: "view",
+    shortcut: "^#q",
+    aliases: ["sql", "d1", "database", "db"],
   },
   {
     id: "refresh",
@@ -220,11 +271,50 @@ export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
     };
   }, []);
 
+  // ── Global CLI bridge error sink ────────────────────────────────────────
+  // Registers a single error sink at the app root so every `cliBridge.*`
+  // call (deploy, kill-switch, health check, etc.) — regardless of which
+  // view triggered it — propagates structured `CliErrorDetails` to the
+  // service store. The status bar subscribes to `lastErrorDetails` and
+  // surfaces the real diagnostic context (command, exit code, stderr)
+  // instead of a generic OFFLINE pill.
+  useEffect(() => {
+    const unsubscribe = cliBridge.onError((details) => {
+      useServiceStore.getState().setLastErrorDetails(details);
+    });
+    return unsubscribe;
+  }, []);
+
   // ── Global keyboard shortcuts ───────────────────────────────────────────
-  useKeyboard((key: { name: string; ctrl: boolean }) => {
+  useKeyboard((key) => {
     // Ctrl+1-9: switch views
-    if (key.ctrl && VIEW_SHORTCUTS[key.name]) {
+    if (key.ctrl && !key.alt && VIEW_SHORTCUTS[key.name]) {
       setView(VIEW_SHORTCUTS[key.name]);
+      return;
+    }
+
+    // Ctrl+Alt+K: switch to the KV viewer (all digit shortcuts 0-9 are
+    // taken, so the 11th view is reached via a chord).
+    if (key.ctrl && key.alt && key.name === "k") {
+      setView("kv-viewer");
+      return;
+    }
+
+    // Ctrl+Alt+C: switch to AI Chat
+    if (key.ctrl && key.alt && key.name === "c") {
+      setView("ai-chat");
+      return;
+    }
+
+    // Ctrl+Alt+S: switch to Secrets Viewer
+    if (key.ctrl && key.alt && key.name === "s") {
+      setView("secrets-viewer");
+      return;
+    }
+
+    // Ctrl+Alt+Q: switch to DB Query
+    if (key.ctrl && key.alt && key.name === "q") {
+      setView("db-query");
       return;
     }
 

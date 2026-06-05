@@ -13,11 +13,13 @@
  *   │  ░ worker-gamma [Deploy] │  ...             │
  *   │─────────────────────────────────────────────│
  *   │  [Deploy All]    [Restart All]              │
+ *   │─────────────────────────────────────────────│
+ *   │  KILL SWITCH  ● RELEASED [Engage] [Release]│
  *   └─────────────────────────────────────────────┘
  *
  * Uses Colors tokens, useServiceStore, StatusDot, and showConfirm dialog.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { StatusDot } from "../shared/status-dot";
@@ -26,6 +28,7 @@ import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";
 import { cliBridge } from "../../services/cli-bridge";
+import type { KillSwitchStatus } from "../../services/cli-bridge";
 import type { CliResult } from "../../types";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -399,6 +402,213 @@ function BulkActions({
   );
 }
 
+// ─── Kill-Switch Section ────────────────────────────────────────────────────
+
+/**
+ * Render a timestamp (ms or ISO string) as a compact HH:MM:SS label.
+ * Falls back to a dash when the input is invalid.
+ */
+function formatKillSwitchTime(input: string | number | null): string {
+  if (input === null) return "—";
+  const ms = typeof input === "number" ? input : Date.parse(input);
+  if (Number.isNaN(ms)) return "—";
+  const d = new Date(ms);
+  const hh = d.getHours().toString().padStart(2, "0");
+  const mm = d.getMinutes().toString().padStart(2, "0");
+  const ss = d.getSeconds().toString().padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+interface KillSwitchSectionProps {
+  dialog?: DialogHandle;
+  onAlert: (
+    id: string,
+    type: string,
+    result: CliResult,
+    successMsg: string,
+    failMsg: string
+  ) => void;
+}
+
+/**
+ * KillSwitchSection — Emergency-stop control panel for the global trade kill
+ * switch. Shows the current state, lets the user engage/release it, and
+ * dispatches alerts on success/failure. Engages always require confirmation
+ * (trading safety) and releases confirm as well to prevent accidents.
+ */
+function KillSwitchSection({ dialog, onAlert }: KillSwitchSectionProps) {
+  const [status, setStatus] = useState<KillSwitchStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const result = await cliBridge.monitorKillSwitch("show");
+    if (result.success && result.data) {
+      setStatus(result.data);
+      setError(null);
+    } else {
+      setError(
+        result.stderr || result.stdout || "Failed to read kill switch status"
+      );
+    }
+    setLoading(false);
+  }, []);
+
+  // Auto-refresh on mount (with cancellation on unmount)
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      const result = await cliBridge.monitorKillSwitch("show");
+      if (cancelled) return;
+      if (result.success && result.data) {
+        setStatus(result.data);
+        setError(null);
+      } else {
+        setError(
+          result.stderr || result.stdout || "Failed to read kill switch status"
+        );
+      }
+      if (!cancelled) setLoading(false);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const setEngaged = useCallback(
+    async (engaged: boolean) => {
+      if (!dialog || loading) return;
+      const action: "engage" | "release" = engaged ? "engage" : "release";
+      const verb = engaged ? "ENGAGE" : "RELEASE";
+      const confirmTitle = engaged
+        ? "Engage Kill Switch?"
+        : "Release Kill Switch?";
+      const confirmMessage = engaged
+        ? "This will HALT all trading activity immediately. " +
+          "Active signals will be rejected until the kill switch is released. Continue?"
+        : "This will RESUME normal trading operations. " +
+          "All queued signals will be processed. Continue?";
+      const confirmed = await showConfirm(dialog, {
+        title: confirmTitle,
+        message: confirmMessage,
+        confirmLabel: verb,
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+
+      setLoading(true);
+      setError(null);
+      const result = await cliBridge.monitorKillSwitch(action);
+      if (result.success && result.data) {
+        setStatus(result.data);
+        setError(null);
+        onAlert(
+          `killswitch-${Date.now()}`,
+          "killswitch",
+          result,
+          `Kill switch ${engaged ? "engaged" : "released"} (${(result.duration / 1000).toFixed(1)}s)`,
+          `Kill switch ${engaged ? "engage" : "release"} failed: ${
+            result.stderr || result.stdout || "unknown error"
+          }`
+        );
+      } else {
+        setError(
+          result.stderr ||
+            result.stdout ||
+            `Failed to ${verb.toLowerCase()} kill switch`
+        );
+        onAlert(
+          `killswitch-err-${Date.now()}`,
+          "killswitch",
+          result,
+          `Kill switch ${engaged ? "engaged" : "released"}`,
+          `Kill switch ${engaged ? "engage" : "release"} error: ${
+            result.stderr || result.stdout || "unknown error"
+          }`
+        );
+      }
+      setLoading(false);
+    },
+    [dialog, loading, onAlert]
+  );
+
+  // Visual state — unknown when status hasn't loaded yet
+  const engaged = status?.engaged ?? false;
+  const stateLabel =
+    status === null ? "UNKNOWN" : engaged ? "ENGAGED" : "RELEASED";
+  const stateColor =
+    status === null ? Colors.muted : engaged ? Colors.error : Colors.success;
+  const dotStatus: "operational" | "down" = engaged ? "down" : "operational";
+  const engageDisabled = loading || engaged;
+  const releaseDisabled = loading || !engaged;
+
+  return (
+    <box
+      flexDirection="row"
+      justifyContent="space-between"
+      alignItems="center"
+      paddingLeft={1}
+      paddingRight={1}
+      border={true}
+      borderStyle="single"
+      borderColor={engaged ? Colors.error : Colors.border}
+    >
+      {/* Status side — label, dot, state, timestamp */}
+      <box flexDirection="row" gap={1} alignItems="center">
+        <text fg={Colors.accent} bold>
+          KILL SWITCH
+        </text>
+        <StatusDot status={dotStatus} pulse={!engaged} />
+        <text fg={stateColor} bold>
+          {stateLabel}
+        </text>
+        {status && (
+          <text fg={Colors.muted} dim>
+            @ {formatKillSwitchTime(status.timestamp)}
+          </text>
+        )}
+        {error && (
+          <text fg={Colors.error} dim>
+            ! {error.length > 40 ? error.slice(0, 37) + "…" : error}
+          </text>
+        )}
+      </box>
+
+      {/* Action side — engage / release buttons + refresh */}
+      <box flexDirection="row" gap={2}>
+        <text
+          fg={Colors.muted}
+          bg={Colors.card}
+          onMouseUp={loading ? undefined : () => void refresh()}
+        >
+          {loading ? " ..." : " [REFRESH] "}
+        </text>
+        <text
+          fg={engageDisabled ? Colors.muted : Colors.error}
+          bg={engageDisabled ? undefined : Colors.card}
+          dim={engageDisabled}
+          onMouseUp={engageDisabled ? undefined : () => void setEngaged(true)}
+        >
+          {"  ENGAGE  "}
+        </text>
+        <text
+          fg={releaseDisabled ? Colors.muted : Colors.success}
+          bg={releaseDisabled ? undefined : Colors.card}
+          dim={releaseDisabled}
+          onMouseUp={releaseDisabled ? undefined : () => void setEngaged(false)}
+        >
+          {"  RELEASE  "}
+        </text>
+      </box>
+    </box>
+  );
+}
+
 // ─── Main ServiceManager View ───────────────────────────────────────────────
 
 export function ServiceManager({ dialog }: ServiceManagerProps) {
@@ -657,6 +867,9 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
           onRestartAll={handleRestartAll}
           deployingWorker={deployingWorker}
         />
+
+        {/* Trading safety: kill-switch control */}
+        <KillSwitchSection dialog={dialog} onAlert={addResultAlert} />
 
         {/* Deploy progress text */}
         {deployingWorker && (

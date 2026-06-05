@@ -2,7 +2,16 @@
  * TUI-specific types — Navigation, modals, keyboard shortcuts.
  */
 
-/** All 9 primary views + command palette */
+import type {
+  CliErrorType,
+  CliErrorDetails,
+} from "@jango-blockchained/hoox-shared";
+
+// Re-export shared CLI error types for convenience so consumers can
+// import everything from the tui/types module.
+export type { CliErrorType, CliErrorDetails };
+
+/** All primary views registered with the TUI. */
 export const ALL_VIEWS = [
   "dashboard",
   "workers",
@@ -13,6 +22,10 @@ export const ALL_VIEWS = [
   "config-editor",
   "setup-wizard",
   "settings",
+  "queue-depth",
+  "kv-viewer",
+  "secrets-viewer",
+  "db-query",
 ] as const;
 
 export type ViewId = (typeof ALL_VIEWS)[number];
@@ -27,6 +40,10 @@ export const VIEW_LABELS: Record<ViewId, string> = {
   "config-editor": "CONFIG",
   "setup-wizard": "SETUP",
   settings: "SETTINGS",
+  "queue-depth": "QUEUES",
+  "kv-viewer": "KV",
+  "secrets-viewer": "SECRETS",
+  "db-query": "DB QUERY",
 };
 
 export const VIEW_ORDER: ViewId[] = [
@@ -39,6 +56,10 @@ export const VIEW_ORDER: ViewId[] = [
   "config-editor",
   "setup-wizard",
   "settings",
+  "queue-depth",
+  "kv-viewer",
+  "secrets-viewer",
+  "db-query",
 ];
 
 export function viewIndex(view: ViewId): number {
@@ -90,6 +111,17 @@ export interface CliResult<T = unknown> {
   stderr: string;
   data: T | null;
   duration: number;
+  /**
+   * The full command string that was executed, e.g. `"hoox check health"`.
+   * Captured by `cli-bridge.exec()` so the status bar can show exactly
+   * which command failed. Empty string when the binary itself was not found.
+   */
+  command: string;
+  /**
+   * Classification of the failure, or `null` on success.
+   * Drives the icon and recovery hint shown in the expanded error panel.
+   */
+  errorType: CliErrorType | null;
 }
 
 export type CliCommandStatus = "idle" | "running" | "success" | "failure";

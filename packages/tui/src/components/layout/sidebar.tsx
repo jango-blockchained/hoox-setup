@@ -27,6 +27,11 @@ export function Sidebar() {
     { id: "config-editor", label: "CONFIG", shortcut: "7" },
     { id: "setup-wizard", label: "SETUP", shortcut: "8" },
     { id: "settings", label: "SETTINGS", shortcut: "9" },
+    { id: "queue-depth", label: "QUEUES", shortcut: "0" },
+    { id: "kv-viewer", label: "KV", shortcut: "^K" },
+    { id: "secrets-viewer", label: "SECRETS", shortcut: "^S" },
+    { id: "ai-chat", label: "AI CHAT", shortcut: "^C" },
+    { id: "db-query", label: "DB QUERY", shortcut: "^Q" },
   ];
 
   return (
@@ -70,7 +75,7 @@ export function Sidebar() {
       {/* Shortcut hints */}
       <box flexGrow={1} />
       <text fg={Colors.dim} dim>
-        Ctrl+1-9 to switch
+        Ctrl+0-9 to switch
       </text>
     </box>
   );

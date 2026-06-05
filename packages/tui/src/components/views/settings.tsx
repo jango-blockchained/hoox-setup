@@ -14,7 +14,7 @@
  *
  * Follows Pattern 1 (View Composition) and Pattern 2 (Store Subscription).
  */
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useConfigStore } from "@jango-blockchained/hoox-shared";
@@ -26,6 +26,110 @@ import type {
   ViewId,
   NotificationPreferences,
 } from "@jango-blockchained/hoox-shared";
+
+// ─── Check Setup Types ────────────────────────────────────────────────────────
+
+/**
+ * Local mirror of the CLI's CheckReport shape (`packages/cli/src/commands/check/types.ts`).
+ * We re-declare the shape here because that type isn't exported from the
+ * shared package — the CLI's CheckReport flows over the wire as JSON, and
+ * `cliBridge.checkSetup()` returns it as `unknown`. Validating at the boundary
+ * keeps the view decoupled from the CLI's internal type module.
+ */
+interface CheckItem {
+  /** Human-readable check name (e.g. "D1 Database", "Wrangler Configs"). */
+  name: string;
+  /** Whether this check passed (no errors). */
+  success: boolean;
+  /** Failing conditions — must be addressed before deployment. */
+  errors: string[];
+  /** Non-blocking issues — should be reviewed. */
+  warnings: string[];
+}
+
+interface CheckCategoryResult {
+  /** Category label displayed in the report. */
+  name: string;
+  /** Per-check results within this category. */
+  checks: CheckItem[];
+}
+
+interface CheckReport {
+  /** True when every check in every category passed (zero errors). */
+  success: boolean;
+  /** Grouped category results. */
+  categories: CheckCategoryResult[];
+  /** Aggregated counts across all checks. */
+  summary: {
+    total: number;
+    passed: number;
+    failed: number;
+    warnings: number;
+  };
+}
+
+/** UI state for the Check Setup results panel. */
+type CheckSetupState =
+  | { kind: "idle" }
+  | { kind: "running" }
+  | { kind: "error"; message: string }
+  | { kind: "report"; report: CheckReport; durationMs: number };
+
+/**
+ * Human-readable explanation + suggested fix for each known check.
+ * Used by the results panel to give operators actionable guidance when
+ * a check fails. Keys must match the `name` field of CLI's CheckResult.
+ */
+const SUGGESTED_FIXES: Record<string, { what: string; fix: string }> = {
+  "wrangler.jsonc validation": {
+    what: "Your wrangler.jsonc has invalid syntax or is missing required fields.",
+    fix: "Run `hoox init` to regenerate the config, or fix syntax errors manually.",
+  },
+  "Global config": {
+    what: "Required global fields (cloudflare_account_id, etc.) are missing.",
+    fix:
+      "Set `global.cloudflare_account_id` in wrangler.jsonc, and " +
+      "`global.cloudflare_api_token` via `wrangler secret put`.",
+  },
+  "Worker paths": {
+    what: "One or more workers have no `path` field in the config.",
+    fix: "Add a `path` field to each worker entry, or run `hoox init` to repair.",
+  },
+  "D1 Database": {
+    what: "Required D1 databases are missing from Cloudflare.",
+    fix: "Run `hoox infra provision` to create them automatically.",
+  },
+  "KV Namespaces": {
+    what: "Required KV namespaces are missing from Cloudflare.",
+    fix: "Run `hoox infra provision` to create them automatically.",
+  },
+  "R2 Buckets": {
+    what: "Required R2 buckets are missing from Cloudflare.",
+    fix: "Run `hoox infra provision` to create them automatically.",
+  },
+  Queues: {
+    what: "Required Cloudflare Queues are missing.",
+    fix: "Run `hoox infra provision` to create them automatically.",
+  },
+  "Secrets (local)": {
+    what: "Local .dev.vars files are missing required secrets.",
+    fix: "Run `hoox check fix` to create placeholder files, then fill in real values.",
+  },
+  "Secrets (remote)": {
+    what: "Remote Cloudflare secrets are missing for one or more workers.",
+    fix: "Run `hoox secrets update-cf` to push local secrets to Cloudflare.",
+  },
+  Database: {
+    what: "Required D1 database tables or schemas are missing.",
+    fix: "Run `hoox infra provision` and apply D1 migrations.",
+  },
+};
+
+/** Fallback explanation when a check name is not in the SUGGESTED_FIXES map. */
+const GENERIC_FAIL_HELP = {
+  what: "This check reported one or more errors.",
+  fix: "Review the error details below, then re-run `hoox check setup` after fixing.",
+};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -49,6 +153,11 @@ const VIEW_OPTIONS: ViewId[] = [
   "config-editor",
   "setup-wizard",
   "settings",
+  "queue-depth",
+  "kv-viewer",
+  "secrets-viewer",
+  "db-query",
+  "ai-chat",
 ];
 
 /** Human-readable labels for ViewId values */
@@ -62,6 +171,11 @@ const VIEW_LABELS: Record<ViewId, string> = {
   "config-editor": "Config Editor",
   "setup-wizard": "Setup Wizard",
   settings: "Settings",
+  "queue-depth": "Queue Depth",
+  "kv-viewer": "KV Viewer",
+  "secrets-viewer": "Secrets Viewer",
+  "db-query": "DB Query",
+  "ai-chat": "AI Chat",
 };
 
 /** Notification channel keys in display order */
@@ -369,13 +483,13 @@ function KeyboardPanel() {
 // ─── Column 4: DataPanel ──────────────────────────────────────────────────────
 
 /**
- * DataPanel — data management actions (Clear Cache, Export, Import)
+ * DataPanel — data management actions (Clear Cache, Export, Import, Check Setup, Auto-Repair)
  * plus an About section with version and tech info.
  *
  * Local item indices:
- *   0 = Clear Cache, 1 = Export Data, 2 = Import Data
+ *   0 = Clear Cache, 1 = Export Data, 2 = Import Data, 3 = Check Setup, 4 = Run Auto-Repair
  */
-const DATA_ITEM_COUNT = 4;
+const DATA_ITEM_COUNT = 5;
 
 function DataPanel({
   active,
@@ -384,6 +498,7 @@ function DataPanel({
   onExportData,
   onImportData,
   onCheckSetup,
+  onRunAutoRepair,
 }: {
   active: boolean;
   activeItem: number;
@@ -391,6 +506,7 @@ function DataPanel({
   onExportData: () => void;
   onImportData: () => void;
   onCheckSetup: () => void;
+  onRunAutoRepair: () => void;
 }) {
   return (
     <box flexDirection="column" gap={0} flexGrow={1}>
@@ -433,6 +549,14 @@ function DataPanel({
         >
           [ CHECK SETUP ]
         </text>
+        <text
+          fg={Colors.info}
+          bg={active && activeItem === 4 ? Colors.background : undefined}
+          bold
+          onMouseUp={onRunAutoRepair}
+        >
+          [ AUTO-REPAIR ]
+        </text>
       </box>
 
       {/* About section */}
@@ -456,6 +580,233 @@ function DataPanel({
   );
 }
 
+// ─── Check Setup Results Panel ────────────────────────────────────────────────
+
+/**
+ * Status badge for a single check: PASS, FAIL, or WARN.
+ * Renders as a colored bracketed tag so it's easy to scan in a long list.
+ */
+function CheckStatusBadge({ status }: { status: "pass" | "fail" | "warn" }) {
+  if (status === "pass") {
+    return (
+      <text fg={Colors.success} bold>
+        {"[PASS]"}
+      </text>
+    );
+  }
+  if (status === "fail") {
+    return (
+      <text fg={Colors.error} bold>
+        {"[FAIL]"}
+      </text>
+    );
+  }
+  return (
+    <text fg={Colors.warning} bold>
+      {"[WARN]"}
+    </text>
+  );
+}
+
+/**
+ * Status icon for a check row. Mirrors CheckStatusBadge but renders a
+ * single character — used in compact lists where width is tight.
+ */
+function checkStatusIcon(check: CheckItem): "pass" | "fail" | "warn" {
+  if (!check.success) return "fail";
+  if (check.warnings.length > 0) return "warn";
+  return "pass";
+}
+
+/**
+ * Renders a single failed check's "what it means" + "suggested fix" section.
+ * Only shown for failed checks; passes/warnings are listed without the
+ * extra block to keep the panel scannable.
+ */
+function CheckFixHelp({ check }: { check: CheckItem }) {
+  const help = SUGGESTED_FIXES[check.name] ?? GENERIC_FAIL_HELP;
+  return (
+    <box flexDirection="column" gap={0} paddingLeft={6}>
+      <text fg={Colors.foreground} dim>
+        {"  what: "}
+        {help.what}
+      </text>
+      <text fg={Colors.info} dim>
+        {"  fix:  "}
+        {help.fix}
+      </text>
+    </box>
+  );
+}
+
+/**
+ * CheckSetupResultsPanel — renders a full CheckReport below the 4-column
+ * settings layout. Shows a summary header, per-category sections, and a
+ * per-check row with PASS/FAIL/WARN status. Failed checks include a
+ * "what it means / suggested fix" block.
+ *
+ * Persists until the user dismisses with ESC or the [DISMISS] button.
+ */
+function CheckSetupResultsPanel({
+  state,
+  onDismiss,
+  onRerun,
+}: {
+  state: CheckSetupState;
+  onDismiss: () => void;
+  onRerun: () => void;
+}) {
+  return (
+    <box
+      flexDirection="column"
+      border={true}
+      borderStyle="single"
+      borderColor={Colors.accent}
+      backgroundColor={Colors.card}
+      padding={1}
+      gap={0}
+    >
+      {/* Header row: title + summary counts + dismiss button */}
+      <box flexDirection="row" gap={2}>
+        <text fg={Colors.accent} bold>
+          SETUP CHECK RESULTS
+        </text>
+        {state.kind === "report" && (
+          <>
+            <text fg={Colors.success} bold>
+              {state.report.summary.passed} passed
+            </text>
+            <text
+              fg={state.report.summary.failed > 0 ? Colors.error : Colors.muted}
+              bold={state.report.summary.failed > 0}
+            >
+              {state.report.summary.failed} failed
+            </text>
+            <text
+              fg={
+                state.report.summary.warnings > 0
+                  ? Colors.warning
+                  : Colors.muted
+              }
+              bold={state.report.summary.warnings > 0}
+            >
+              {state.report.summary.warnings} warnings
+            </text>
+            <text fg={Colors.muted} dim>
+              {`(${(state.durationMs / 1000).toFixed(1)}s)`}
+            </text>
+          </>
+        )}
+        {state.kind === "running" && (
+          <text fg={Colors.info} bold>
+            running...
+          </text>
+        )}
+        <text fg={Colors.muted}>{"  "}</text>
+        <text fg={Colors.accent} bold onMouseUp={onRerun}>
+          [ RE-RUN ]
+        </text>
+        <text fg={Colors.warning} bold onMouseUp={onDismiss}>
+          [ DISMISS ]
+        </text>
+      </box>
+
+      {/* Divider */}
+      <text fg={Colors.border} dim>
+        {"─".repeat(80)}
+      </text>
+
+      {/* Error state */}
+      {state.kind === "error" && (
+        <box flexDirection="column" gap={0} paddingTop={1}>
+          <text fg={Colors.error} bold>
+            Setup check failed to run:
+          </text>
+          <text fg={Colors.foreground}>{state.message}</text>
+        </box>
+      )}
+
+      {/* Running state */}
+      {state.kind === "running" && (
+        <box flexDirection="column" gap={0} paddingTop={1}>
+          <text fg={Colors.muted} dim>
+            Running `hoox check setup` — this may take up to 20 seconds.
+          </text>
+        </box>
+      )}
+
+      {/* Report state — show all categories and checks */}
+      {state.kind === "report" && (
+        <box flexDirection="column" gap={0} paddingTop={1}>
+          {state.report.categories.length === 0 ? (
+            <text fg={Colors.muted} dim>
+              No checks were run.
+            </text>
+          ) : (
+            state.report.categories.map((cat) => (
+              <box key={cat.name} flexDirection="column" gap={0} paddingTop={1}>
+                {/* Category header */}
+                <text fg={Colors.foreground} bold dim>
+                  {cat.name.toUpperCase()}
+                </text>
+                {/* Each check in the category */}
+                {cat.checks.map((check, idx) => {
+                  const status = checkStatusIcon(check);
+                  return (
+                    <box
+                      key={`${cat.name}-${idx}-${check.name}`}
+                      flexDirection="column"
+                      gap={0}
+                    >
+                      <box flexDirection="row" gap={1} paddingLeft={1}>
+                        <CheckStatusBadge status={status} />
+                        <text
+                          fg={
+                            status === "fail"
+                              ? Colors.foreground
+                              : Colors.foreground
+                          }
+                          bold={status === "fail"}
+                        >
+                          {check.name}
+                        </text>
+                      </box>
+                      {/* Error details (one line each) */}
+                      {check.errors.map((err, i) => (
+                        <text
+                          key={`err-${idx}-${i}`}
+                          fg={Colors.error}
+                          paddingLeft={6}
+                        >
+                          {"  - "}
+                          {err}
+                        </text>
+                      ))}
+                      {/* Warning details */}
+                      {check.warnings.map((warn, i) => (
+                        <text
+                          key={`warn-${idx}-${i}`}
+                          fg={Colors.warning}
+                          paddingLeft={6}
+                        >
+                          {"  ~ "}
+                          {warn}
+                        </text>
+                      ))}
+                      {/* What it means + suggested fix (failures only) */}
+                      {status === "fail" && <CheckFixHelp check={check} />}
+                    </box>
+                  );
+                })}
+              </box>
+            ))
+          )}
+        </box>
+      )}
+    </box>
+  );
+}
+
 // ─── Main View ─────────────────────────────────────────────────────────────────
 
 /**
@@ -468,6 +819,9 @@ function DataPanel({
  *   ←→              → cycle select values (refresh rate, default view)
  *   Enter            → activate button / toggle
  *
+ * When the Check Setup results panel is visible, ESC dismisses it
+ * (overrides the import-mode ESC handler).
+ *
  * Wrapped in ErrorBoundary for crash recovery.
  */
 export function SettingsView() {
@@ -475,6 +829,9 @@ export function SettingsView() {
   const [activeItem, setActiveItem] = useState(0);
   const [importing, setImporting] = useState(false);
   const [importPath, setImportPath] = useState("");
+  const [setupCheck, setSetupCheck] = useState<CheckSetupState>({
+    kind: "idle",
+  });
 
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs);
@@ -628,29 +985,171 @@ export function SettingsView() {
   }, [importPath, updateConfig, toggleNotification]);
 
   const handleCheckSetup = useCallback(async () => {
+    setSetupCheck({ kind: "running" });
     try {
       const result = await cliBridge.checkSetup();
-      const message = result.success
-        ? `Setup check passed (${(result.duration / 1000).toFixed(1)}s)`
-        : `Setup check failed: ${result.stderr || result.stdout || "unknown error"}`;
+      if (!result.success) {
+        // Process-level failure (CLI exited non-zero, or binary not found).
+        setSetupCheck({
+          kind: "error",
+          message: result.stderr || result.stdout || "unknown error from CLI",
+        });
+        useServiceStore.getState().addAlert({
+          id: `setup-${Date.now()}`,
+          type: "config",
+          severity: "warning",
+          message: `Setup check failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+      // CLI succeeded — `data` should be a CheckReport JSON object.
+      const data = result.data as Partial<CheckReport> | null;
+      if (
+        !data ||
+        !Array.isArray(data.categories) ||
+        typeof data.summary !== "object" ||
+        data.summary === null
+      ) {
+        setSetupCheck({
+          kind: "error",
+          message:
+            "CLI did not return a valid CheckReport (missing categories/summary).",
+        });
+        return;
+      }
+      // At this point we trust the shape — cast to CheckReport.
+      const report: CheckReport = {
+        success: Boolean(data.success),
+        categories: data.categories as CheckCategoryResult[],
+        summary: {
+          total: Number(data.summary.total ?? 0),
+          passed: Number(data.summary.passed ?? 0),
+          failed: Number(data.summary.failed ?? 0),
+          warnings: Number(data.summary.warnings ?? 0),
+        },
+      };
+      setSetupCheck({
+        kind: "report",
+        report,
+        durationMs: result.duration,
+      });
       useServiceStore.getState().addAlert({
         id: `setup-${Date.now()}`,
         type: "config",
-        severity: result.success ? "info" : "warning",
-        message,
+        severity: report.success ? "info" : "warning",
+        message: report.success
+          ? `Setup check passed (${(result.duration / 1000).toFixed(1)}s)`
+          : `Setup check found ${report.summary.failed} issue(s)`,
         timestamp: Date.now(),
         acknowledged: false,
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setSetupCheck({ kind: "error", message });
       useServiceStore.getState().addAlert({
         id: `setup-err-${Date.now()}`,
         type: "config",
         severity: "error",
-        message: `Setup check error: ${err instanceof Error ? err.message : String(err)}`,
+        message: `Setup check error: ${message}`,
         timestamp: Date.now(),
         acknowledged: false,
       });
     }
+  }, []);
+
+  /** Dismiss the Check Setup results panel. */
+  const dismissCheckSetup = useCallback(() => {
+    setSetupCheck({ kind: "idle" });
+  }, []);
+
+  /** Run auto-repair via `hoox check fix`. */
+  const handleRunAutoRepair = useCallback(async () => {
+    try {
+      const result = await cliBridge.checkFix();
+      if (!result.success) {
+        useServiceStore.getState().addAlert({
+          id: `auto-repair-${Date.now()}`,
+          type: "config",
+          severity: "warning",
+          message: `Auto-repair failed: ${result.stderr || result.stdout || "unknown error"}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+
+      // Parse FixReport
+      const data = result.data as {
+        actions?: Array<{
+          description: string;
+          type: string;
+          target: string;
+          applied: boolean;
+          error?: string;
+        }>;
+        summary?: {
+          total: number;
+          applied: number;
+          skipped: number;
+          failed: number;
+        };
+      } | null;
+
+      if (!data || !Array.isArray(data.actions)) {
+        useServiceStore.getState().addAlert({
+          id: `auto-repair-${Date.now()}`,
+          type: "config",
+          severity: "warning",
+          message: "Auto-repair returned invalid result",
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+
+      const applied = data.actions.filter((a) => a.applied).length;
+      const failed = data.actions.filter((a) => a.error).length;
+      useServiceStore.getState().addAlert({
+        id: `auto-repair-${Date.now()}`,
+        type: "config",
+        severity: failed > 0 ? "warning" : "info",
+        message:
+          failed > 0
+            ? `Auto-repair: ${applied} applied, ${failed} failed`
+            : `Auto-repair: ${applied} fix(es) applied`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      useServiceStore.getState().addAlert({
+        id: `auto-repair-err-${Date.now()}`,
+        type: "config",
+        severity: "error",
+        message: `Auto-repair error: ${message}`,
+        timestamp: Date.now(),
+        acknowledged: false,
+      });
+    }
+  }, []);
+
+  /**
+   * Test hook: when `globalThis.__hooxTestAutoCheckSetup` is set, the
+   * Check Setup check runs automatically once on mount. This lets the
+   * test suite populate the results panel without simulating mouse/keyboard
+   * events. Production code never sets this flag.
+   */
+  useEffect(() => {
+    const g = globalThis as unknown as {
+      __hooxTestAutoCheckSetup?: boolean;
+    };
+    if (g.__hooxTestAutoCheckSetup) {
+      void handleCheckSetup();
+    }
+    // Intentionally mount-only — tests set the flag then render, so
+    // re-running on state changes would cause duplicate checks.
   }, []);
 
   /** Max items per panel */
@@ -678,6 +1177,12 @@ export function SettingsView() {
         return;
       }
       return; // block other keys during import
+    }
+
+    // Check Setup results panel: ESC dismisses (overrides panel navigation)
+    if (setupCheck.kind !== "idle" && key.name === "escape") {
+      dismissCheckSetup();
+      return;
     }
 
     // Tab: cycle panels
@@ -782,6 +1287,9 @@ export function SettingsView() {
             case 3:
               handleCheckSetup();
               break;
+            case 4:
+              handleRunAutoRepair();
+              break;
           }
         }
         break;
@@ -835,9 +1343,19 @@ export function SettingsView() {
               onExportData={handleExportData}
               onImportData={handleImportData}
               onCheckSetup={handleCheckSetup}
+              onRunAutoRepair={handleRunAutoRepair}
             />
           </PanelBox>
         </box>
+
+        {/* Check Setup results panel — persists until dismissed or view change */}
+        {setupCheck.kind !== "idle" && (
+          <CheckSetupResultsPanel
+            state={setupCheck}
+            onDismiss={dismissCheckSetup}
+            onRerun={handleCheckSetup}
+          />
+        )}
 
         {/* Import path input overlay */}
         {importing && (

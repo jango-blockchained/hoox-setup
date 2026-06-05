@@ -113,9 +113,43 @@ async function doMonitorKillSwitch(
   }
 }
 
+interface WranglerQueueInfo {
+  queue_id?: string;
+  queue_name?: string;
+  producers_total_count?: number;
+  consumers_total_count?: number;
+  settings?: {
+    delivery_paused?: boolean;
+    message_retention_period?: number;
+  };
+  modified_on?: string;
+  created_on?: string;
+}
+
+/** Normalize wrangler's `queues list --json` output (either a bare array or a
+ *  Cloudflare-API envelope with a `result` field) into a plain array. */
+function parseWranglerQueuesJson(raw: string): WranglerQueueInfo[] {
+  const cleaned = raw.trim();
+  if (!cleaned) return [];
+  const parsed: unknown = JSON.parse(cleaned);
+  if (Array.isArray(parsed)) {
+    return parsed as WranglerQueueInfo[];
+  }
+  if (
+    parsed !== null &&
+    typeof parsed === "object" &&
+    "result" in parsed &&
+    Array.isArray((parsed as { result: unknown }).result)
+  ) {
+    return (parsed as { result: WranglerQueueInfo[] }).result;
+  }
+  return [];
+}
+
 async function doMonitorQueueDepth(fmt: FormatOptions): Promise<void> {
   try {
-    const proc = Bun.spawn(["wrangler", "queues", "list"], {
+    // Use --json for structured output that the TUI can parse reliably.
+    const proc = Bun.spawn(["wrangler", "queues", "list", "--json"], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -127,7 +161,29 @@ async function doMonitorQueueDepth(fmt: FormatOptions): Promise<void> {
       throw new Error(stderr.trim() || `wrangler exited with code ${exitCode}`);
     }
 
-    process.stdout.write(stdout + "\n");
+    if (fmt.json) {
+      // Re-emit parsed queue info so the TUI can consume it directly.
+      const queues = parseWranglerQueuesJson(stdout);
+      process.stdout.write(JSON.stringify({ queues }, null, 2) + "\n");
+      return;
+    }
+
+    // In human mode, fall back to wrangler's raw output (which is already
+    // a nicely formatted table). We re-run without --json for the table
+    // because the JSON shape isn't human-friendly.
+    const procHuman = Bun.spawn(["wrangler", "queues", "list"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const stdoutHuman = await new Response(procHuman.stdout).text();
+    const stderrHuman = await new Response(procHuman.stderr).text();
+    const exitHuman = await procHuman.exited;
+    if (exitHuman !== 0) {
+      throw new Error(
+        stderrHuman.trim() || `wrangler exited with code ${exitHuman}`
+      );
+    }
+    process.stdout.write(stdoutHuman + "\n");
   } catch (err) {
     formatError(err instanceof Error ? err.message : String(err), fmt);
     process.exitCode = ExitCode.ERROR;

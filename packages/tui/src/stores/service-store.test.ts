@@ -19,6 +19,8 @@ import type {
   LogEntry,
   SystemMetrics,
   ConnectionStatus,
+  CliErrorDetails,
+  CliErrorType,
 } from "@jango-blockchained/hoox-shared";
 
 // ─── Mock API client ──────────────────────────────────────────────────────────
@@ -68,6 +70,7 @@ function resetStore() {
     selectedWorkerId: null,
     retryCount: 0,
     lastError: null,
+    lastErrorDetails: null,
     lastSuccessfulFetch: 0,
     reconnectDelay: 0,
     disconnectedAt: null,
@@ -433,6 +436,269 @@ describe("useServiceStore", () => {
       useServiceStore.getState().handleConnectionFailure("e5");
       expect(useServiceStore.getState().connectionStatus).toBe("offline");
       expect(useServiceStore.getState().reconnectDelay).toBe(0);
+    });
+  });
+
+  // ── Structured CLI Error Details ─────────────────────────────────────────
+
+  describe("setLastErrorDetails", () => {
+    const sampleDetails: CliErrorDetails = {
+      command: "/usr/local/bin/hoox check health",
+      exitCode: 1,
+      stderr:
+        "Error: cloudflare credentials missing\nRun: hoox config env init",
+      stdout: "",
+      errorType: "non-zero-exit",
+      timestamp: 1717000000000,
+      duration: 1234,
+    };
+
+    it("stores full structured error in lastErrorDetails", () => {
+      useServiceStore.getState().setLastErrorDetails(sampleDetails);
+      const state = useServiceStore.getState();
+      expect(state.lastErrorDetails).not.toBeNull();
+      expect(state.lastErrorDetails?.command).toBe(sampleDetails.command);
+      expect(state.lastErrorDetails?.exitCode).toBe(1);
+      expect(state.lastErrorDetails?.errorType).toBe("non-zero-exit");
+    });
+
+    it("mirrors a short summary into lastError for one-line display", () => {
+      useServiceStore.getState().setLastErrorDetails(sampleDetails);
+      const state = useServiceStore.getState();
+      expect(state.lastError).toContain("cloudflare credentials missing");
+    });
+
+    it("falls back to stdout when stderr is empty", () => {
+      useServiceStore.getState().setLastErrorDetails({
+        ...sampleDetails,
+        stderr: "",
+        stdout: '{"ok":false,"reason":"auth failed"}',
+      });
+      expect(useServiceStore.getState().lastError).toContain("auth failed");
+    });
+
+    it("falls back to command when both stderr and stdout are empty", () => {
+      useServiceStore.getState().setLastErrorDetails({
+        ...sampleDetails,
+        stderr: "",
+        stdout: "",
+      });
+      expect(useServiceStore.getState().lastError).toBe(sampleDetails.command);
+    });
+
+    it("clears both lastError and lastErrorDetails when set to null", () => {
+      useServiceStore.getState().setLastErrorDetails(sampleDetails);
+      expect(useServiceStore.getState().lastErrorDetails).not.toBeNull();
+
+      useServiceStore.getState().setLastErrorDetails(null);
+      const state = useServiceStore.getState();
+      expect(state.lastErrorDetails).toBeNull();
+      expect(state.lastError).toBeNull();
+    });
+
+    it("truncates very long error messages to keep the one-line display tidy", () => {
+      const huge = "x".repeat(500);
+      useServiceStore.getState().setLastErrorDetails({
+        ...sampleDetails,
+        stderr: huge,
+      });
+      const lastError = useServiceStore.getState().lastError;
+      expect(lastError).not.toBeNull();
+      expect(lastError?.length).toBeLessThanOrEqual(120);
+    });
+
+    it("handleConnectionSuccess clears lastErrorDetails along with lastError", async () => {
+      useServiceStore.getState().setLastErrorDetails(sampleDetails);
+      useServiceStore.getState().handleConnectionSuccess();
+      const state = useServiceStore.getState();
+      expect(state.lastErrorDetails).toBeNull();
+      expect(state.lastError).toBeNull();
+    });
+
+    it("resetRetries clears lastErrorDetails", () => {
+      useServiceStore.getState().setLastErrorDetails(sampleDetails);
+      useServiceStore.getState().resetRetries();
+      expect(useServiceStore.getState().lastErrorDetails).toBeNull();
+    });
+
+    it("forceRetry clears lastErrorDetails when leaving offline state", () => {
+      useServiceStore.setState({
+        connectionStatus: "offline",
+        lastErrorDetails: sampleDetails,
+      });
+      useServiceStore.getState().forceRetry();
+      expect(useServiceStore.getState().lastErrorDetails).toBeNull();
+    });
+
+    it("preserves classification — accepts all CliErrorType variants", () => {
+      const variants: CliErrorType[] = [
+        "binary-not-found",
+        "timeout",
+        "aborted",
+        "non-zero-exit",
+        "spawn-error",
+      ];
+      for (const errorType of variants) {
+        useServiceStore.getState().setLastErrorDetails({
+          ...sampleDetails,
+          errorType,
+        });
+        expect(useServiceStore.getState().lastErrorDetails?.errorType).toBe(
+          errorType
+        );
+      }
+    });
+  });
+
+  // ── clearError (acknowledgement alias) ─────────────────────────────────
+
+  describe("clearError", () => {
+    it("clears both lastError and lastErrorDetails", () => {
+      useServiceStore.setState({
+        lastError: "stale summary",
+        lastErrorDetails: {
+          command: "hoox check health",
+          exitCode: 1,
+          stderr: "fail",
+          stdout: "",
+          errorType: "non-zero-exit",
+          timestamp: Date.now(),
+          duration: 100,
+        },
+      });
+
+      useServiceStore.getState().clearError();
+
+      const state = useServiceStore.getState();
+      expect(state.lastError).toBeNull();
+      expect(state.lastErrorDetails).toBeNull();
+    });
+
+    it("is a no-op when there is no error state", () => {
+      // Should not throw on an already-clean store
+      useServiceStore.setState({
+        lastError: null,
+        lastErrorDetails: null,
+      });
+      expect(() => useServiceStore.getState().clearError()).not.toThrow();
+      const state = useServiceStore.getState();
+      expect(state.lastError).toBeNull();
+      expect(state.lastErrorDetails).toBeNull();
+    });
+
+    it("does not touch connection state (unlike handleConnectionSuccess)", () => {
+      useServiceStore.setState({
+        connectionStatus: "reconnecting",
+        retryCount: 2,
+        reconnectDelay: 4000,
+        lastError: "old",
+        lastErrorDetails: {
+          command: "hoox check health",
+          exitCode: 1,
+          stderr: "fail",
+          stdout: "",
+          errorType: "non-zero-exit",
+          timestamp: Date.now(),
+          duration: 100,
+        },
+      });
+
+      useServiceStore.getState().clearError();
+
+      const state = useServiceStore.getState();
+      // Error fields cleared
+      expect(state.lastError).toBeNull();
+      expect(state.lastErrorDetails).toBeNull();
+      // Connection state machine untouched
+      expect(state.connectionStatus).toBe("reconnecting");
+      expect(state.retryCount).toBe(2);
+      expect(state.reconnectDelay).toBe(4000);
+    });
+  });
+
+  // ── addCliErrorAlert (status bar + alerts panel propagation) ───────────
+
+  describe("addCliErrorAlert", () => {
+    const cliFailure: CliErrorDetails = {
+      command: "hoox deploy all",
+      exitCode: 1,
+      stderr: "Build failed: missing import",
+      stdout: "",
+      errorType: "non-zero-exit",
+      timestamp: Date.now(),
+      duration: 2500,
+    };
+
+    it("stores the structured error in lastErrorDetails", () => {
+      useServiceStore.getState().addCliErrorAlert(cliFailure);
+      const state = useServiceStore.getState();
+      expect(state.lastErrorDetails).not.toBeNull();
+      expect(state.lastErrorDetails?.command).toBe(cliFailure.command);
+      expect(state.lastErrorDetails?.errorType).toBe(cliFailure.errorType);
+    });
+
+    it("mirrors a short summary into lastError", () => {
+      useServiceStore.getState().addCliErrorAlert(cliFailure);
+      expect(useServiceStore.getState().lastError).toContain(
+        "Build failed: missing import"
+      );
+    });
+
+    it("appends a high-severity alert to the alerts ring buffer", () => {
+      expect(useServiceStore.getState().alerts).toHaveLength(0);
+      useServiceStore.getState().addCliErrorAlert(cliFailure);
+
+      const alerts = useServiceStore.getState().alerts;
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0].severity).toBe("error");
+      expect(alerts[0].type).toBe("connection");
+      expect(alerts[0].message).toContain("CLI failure");
+      expect(alerts[0].message).toContain("Build failed: missing import");
+      expect(alerts[0].acknowledged).toBe(false);
+      expect(alerts[0].id).toBeTruthy();
+      expect(alerts[0].timestamp).toBeGreaterThan(0);
+    });
+
+    it("appends multiple alerts without dropping older ones under the cap", () => {
+      useServiceStore.getState().addCliErrorAlert(cliFailure);
+      useServiceStore.getState().addCliErrorAlert({
+        ...cliFailure,
+        command: "hox workers deploy",
+        stderr: "second failure",
+      });
+
+      const alerts = useServiceStore.getState().alerts;
+      expect(alerts).toHaveLength(2);
+      expect(alerts[0].message).toContain("Build failed: missing import");
+      expect(alerts[1].message).toContain("second failure");
+    });
+
+    it("respects the MAX_ALERTS cap of 100 entries", () => {
+      for (let i = 0; i < 110; i++) {
+        useServiceStore.getState().addCliErrorAlert({
+          ...cliFailure,
+          stderr: `failure ${i}`,
+        });
+      }
+      expect(useServiceStore.getState().alerts).toHaveLength(100);
+      // Newest entries survive
+      const alerts = useServiceStore.getState().alerts;
+      expect(alerts[alerts.length - 1].message).toContain("failure 109");
+    });
+
+    it("also works when stderr is empty (falls back to command summary)", () => {
+      useServiceStore.getState().addCliErrorAlert({
+        ...cliFailure,
+        stderr: "",
+        stdout: "",
+      });
+      const lastError = useServiceStore.getState().lastError;
+      // summarizeCliError falls back to the command itself
+      expect(lastError).toBe(cliFailure.command);
+      // And the alert still contains the command
+      const alerts = useServiceStore.getState().alerts;
+      expect(alerts[0].message).toContain("CLI failure");
+      expect(alerts[0].message).toContain("hoox deploy all");
     });
   });
 
