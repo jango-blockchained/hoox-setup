@@ -8,32 +8,26 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { useState } from "react";
 
-// ─── Mock stores before component import ────────────────────────────────────
+// ─── Mock only the specific store imports SetupWizard needs ────────────────
+// SetupWizard does `import { useConfigStore, useUIStore } from "hoox-shared"`.
+// The barrel re-exports these from sub-module paths. We mock only those
+// sub-modules so the rest of hoox-shared (Colors, useServiceStore, types, etc.)
+// stays real for other test files.
 const mockUpdateConfig = mock((_config: Record<string, unknown>) => {});
 const mockSetView = mock((_view: string) => {});
 
-mock.module("@jango-blockchained/hoox-shared", () => ({
-  Colors: {
-    background: "#0D1117",
-    foreground: "#EEEEEE",
-    card: "#1A1A2E",
-    accent: "#E8780A",
-    border: "#333333",
-    muted: "#888888",
-    dim: "#555555",
-    success: "#00FF88",
-    error: "#FF4444",
-    warning: "#FFAA00",
-    info: "#4488FF",
-  },
-  useConfigStore: (selector: (s: unknown) => unknown) => {
-    const state = { updateConfig: mockUpdateConfig };
-    return selector(state);
-  },
-  useUIStore: (selector: (s: unknown) => unknown) => {
-    const state = { setView: mockSetView };
-    return selector(state);
-  },
+mock.module("@jango-blockchained/hoox-shared/stores/config-store", () => ({
+  useConfigStore: (selector: (s: unknown) => unknown) =>
+    selector({ updateConfig: mockUpdateConfig }),
+}));
+
+mock.module("@jango-blockchained/hoox-shared/stores/ui-store", () => ({
+  useUIStore: (selector: (s: unknown) => unknown) =>
+    selector({
+      setView: mockSetView,
+      activeView: "setup-wizard",
+      modalState: null,
+    }),
 }));
 
 // ─── Import component under test ─────────────────────────────────────────────
