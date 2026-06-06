@@ -156,7 +156,7 @@ export const ExpandedErrorPanel = memo(function ExpandedErrorPanel({
       )}
 
       {/* Footer — copy affordance + dismiss hint */}
-      <text fg={Colors["text-dim"]}>
+      <text fg={Colors["muted-foreground"]}>
         Drag-select text to copy · click header to collapse
       </text>
     </box>
@@ -286,7 +286,9 @@ export function StatusBar() {
             ┐
           </text>
         </box>
-        <text fg={Colors["text-dim"]}>^P PALETTE · ^B SIDEBAR · ^Q QUIT</text>
+        <text fg={Colors["muted-foreground"]}>
+          ^P PALETTE · ^B SIDEBAR · ^Q QUIT
+        </text>
       </box>
 
       {/* ── Expanded error panel (visible on click) ───────────────────────── */}

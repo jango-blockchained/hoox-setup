@@ -36,8 +36,10 @@ export function usePolling(options: UsePollingOptions): void {
         retryCount.current++;
       }
       if (cancelled) return;
+      // Read fresh from store on every iteration so config changes take effect
+      const currentInterval = useConfigStore.getState().refreshIntervalMs;
       const backoff = Math.min(
-        intervalMs * Math.pow(2, retryCount.current),
+        currentInterval * Math.pow(2, retryCount.current),
         MAX_BACKOFF
       );
       timeoutId = setTimeout(poll, backoff);
@@ -46,7 +48,8 @@ export function usePolling(options: UsePollingOptions): void {
     if (immediate) {
       poll();
     } else {
-      timeoutId = setTimeout(poll, intervalMs);
+      const initialInterval = useConfigStore.getState().refreshIntervalMs;
+      timeoutId = setTimeout(poll, initialInterval);
     }
 
     return () => {

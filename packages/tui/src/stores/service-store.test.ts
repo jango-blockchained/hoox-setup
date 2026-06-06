@@ -37,8 +37,11 @@ const hooxFetchMock = mock(async (_path: string) => {
 });
 
 // Setup mock for the dynamic import in fetchWorkers
-// Targets the relative path used by service-store.ts: import("../api-client")
-mock.module("../../shared/src/api-client", () => ({
+// bun test resolves mock.module() relative to the test file location.
+// From packages/tui/src/stores/ → go up 4 levels to project root,
+// then into packages/shared/src/:
+//   ../.. → tui/src/, ../../.. → tui/, ../../../.. → packages/, ../../../../ → root
+mock.module("../../../../packages/shared/src/api-client", () => ({
   hooxFetch: hooxFetchMock,
 }));
 
@@ -51,8 +54,9 @@ const subscribeSSEMock = mock(
   }
 );
 
-// Targets the relative path used by service-store.ts: import("../sse")
-mock.module("../../shared/src/sse", () => ({
+// bun test resolves mock.module() relative to test file location.
+// From packages/tui/src/stores/ → up 4 levels to project root → packages/shared/src/sse
+mock.module("../../../../packages/shared/src/sse", () => ({
   subscribeSSE: subscribeSSEMock,
 }));
 

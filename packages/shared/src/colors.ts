@@ -33,7 +33,6 @@ export const Colors = {
   // Semantic aliases
   text: "#EEEEEE",
   "text-muted": "#A0A0A0",
-  "text-dim": "#6E6E6E",
   panel: "#1C1C1F",
   divider: "#484848",
   highlight: "#E8780A",
