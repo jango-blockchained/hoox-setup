@@ -144,6 +144,8 @@ hoox deploy kv-config
 
 > **Local Development:** Want to test before going live? Run `hoox dev start` to launch all workers — choose between Native (wrangler) or Docker (compose) runtime. Use `./hoox-tui` for the interactive terminal UI!
 
+> **Test safety:** The repository injects a global test preload that prevents unit/integration tests from spawning the real `wrangler` CLI by default. To intentionally allow wrangler spawns for live tests, set the environment variable HOOX_TEST_ALLOW_WRANGLER=1 or run live tests via the `test:live` script which opt-ins explicitly.
+
 ---
 
 ## 📦 Worker Submodules
