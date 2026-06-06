@@ -13,7 +13,6 @@ import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
-import * as path from "path";
 import type {
   LogEntry,
   LogLevel,
@@ -333,8 +332,8 @@ export function LogsViewer() {
       }
 
       const homeDir = process.env.HOME || process.env.USERPROFILE || ".";
-      const dirPath = path.join(homeDir, ".hoox");
-      const filePath = path.join(dirPath, `logs-export-${ts}.json`);
+      const dirPath = `${homeDir}/.hoox`;
+      const filePath = `${dirPath}/logs-export-${ts}.json`;
       await Bun.write(filePath, JSON.stringify(data, null, 2));
 
       const alert: Alert = {

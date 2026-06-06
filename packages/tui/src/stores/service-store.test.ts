@@ -10,7 +10,7 @@
  *
  * Uses Bun test runner. Mocks the lazy imports for api-client and sse.
  */
-import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterAll, mock } from "bun:test";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type {
   WorkerInfo,
@@ -36,12 +36,16 @@ const hooxFetchMock = mock(async (_path: string) => {
   return mockApiData as WorkerInfo[];
 });
 
-// Setup mock for the dynamic import in fetchWorkers
-// bun test resolves mock.module() relative to the test file location.
-// From packages/tui/src/stores/ → go up 4 levels to project root,
-// then into packages/shared/src/:
-//   ../.. → tui/src/, ../../.. → tui/, ../../../.. → packages/, ../../../../ → root
+// Import the real api-client module BEFORE mocking preserving all real exports.
+// Uses the workspace alias so TypeScript does not complain about rootDir.
+// Bun normalises this to the same file as the relative path below, so the
+// mock.module applys correctly.
+const realApiClient =
+  await import("@jango-blockchained/hoox-shared/api-client");
+
+// Mock only hooxFetch; preserve all real exports via spread.
 mock.module("../../../../packages/shared/src/api-client", () => ({
+  ...realApiClient,
   hooxFetch: hooxFetchMock,
 }));
 

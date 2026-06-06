@@ -211,8 +211,47 @@ let nextCheckSetupResult: unknown = defaultCheckReport;
 let nextCheckSetupSuccess = true;
 let nextCheckSetupStderr = "";
 
+// ─── cli-bridge mock ─────────────────────────────────────────────────────────
+//
+// Bun's mock.module() is global — this mock replaces cli-bridge for EVERY test
+// file. To prevent "undefined is not a function" crashes in other test files
+// (KvViewer, DbQueryView, QueueDepthView, DashboardView, WorkersOverview), we
+// provide no-op stubs for EVERY public method. Only checkSetup and configShow
+// (used by SettingsView itself) get controlled implementations.
+
+const noop = () =>
+  Promise.resolve({
+    success: true,
+    exitCode: 0,
+    stdout: "",
+    stderr: "",
+    data: null,
+    duration: 0,
+    command: "hoox (noop)",
+    errorType: null as string | null,
+  });
+
+const noopDbQuery = () =>
+  Promise.resolve({
+    success: true,
+    exitCode: 0,
+    stdout: "",
+    stderr: "",
+    data: {
+      columns: [],
+      rows: [],
+      rowCount: 0,
+      executionTimeMs: null,
+      meta: null,
+    },
+    duration: 0,
+    command: "hoox db query (noop)",
+    errorType: null,
+  });
+
 mock.module("../../services/cli-bridge", () => ({
   cliBridge: {
+    // ── Controlled by SettingsView tests ─────────────────────────────────
     checkSetup: () =>
       Promise.resolve({
         success: nextCheckSetupSuccess,
@@ -224,9 +263,6 @@ mock.module("../../services/cli-bridge", () => ({
         data: nextCheckSetupResult,
         duration: 1234,
       }),
-    // Other methods used elsewhere in the view — stubbed to avoid
-    // unhandled-rejection noise when the view isn't in a state that
-    // calls them.
     configShow: () =>
       Promise.resolve({
         success: true,
@@ -236,7 +272,52 @@ mock.module("../../services/cli-bridge", () => ({
         exitCode: 0,
         duration: 0,
       }),
+
+    // ── No-op stubs for methods used by OTHER components ────────────────
+    // Worker views
+    monitorStatus: noop,
+    deployWorker: noop,
+    workerLogs: noop,
+    // Dashboard
+    checkHealth: noop,
+    checkHealthFix: noop,
+    checkFix: noop,
+    monitorKillSwitch: () =>
+      Promise.resolve({
+        success: true,
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        data: { engaged: false },
+        duration: 0,
+        command: "hoox killswitch show (noop)",
+        errorType: null,
+      }),
+    agentHealthCheck: noop,
+    // DbQueryView
+    dbQuery: noopDbQuery,
+    // KvViewer
+    configKvList: noop,
+    configKvGet: noop,
+    // QueueDepthView
+    monitorQueueDepth: noop,
+    // Other
+    configValidate: noop,
+    configSecretsList: noop,
+    deployAll: noop,
+    rebuild: noop,
+    // Internal (called indirectly)
+    resolveBinary: () => Promise.resolve("/usr/local/bin/hoox"),
+    invalidateCache: () => {},
+    onError: () => () => {},
+    abort: () => {},
+    dispose: () => {},
   },
+  // Standalone exports used by other test-file components
+  validateReadOnlySql: () => ({
+    valid: true,
+    errors: [],
+  }),
 }));
 
 // Now import SettingsView AFTER the mocks are registered

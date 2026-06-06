@@ -140,11 +140,6 @@ export function CrashScreen({
           </text>
         </box>
       </box>
-
-      {/* ── Keybinding hint ──────────────────────────────────────────────── */}
-      <text fg={Colors.dim} dim>
-        Press R to restart · S for safe mode · B for bug report · Q to quit
-      </text>
     </box>
   );
 }
