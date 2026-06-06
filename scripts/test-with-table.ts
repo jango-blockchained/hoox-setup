@@ -32,7 +32,16 @@ const junitPath = "./reports/junit.xml";
 
 // Spawn `bun test` with the same args, inheriting stdio so live progress
 // and failure output are visible to the user in real time.
-const proc = Bun.spawn(["bun", "test", ...args], {
+// Ensure global test preload to stub dangerous external spawns is included
+const PRELOAD = "./packages/test-setup-global.ts";
+let bunArgs = ["bun", "test"];
+const hasPreload = args.some(a => a === "--preload" || a.startsWith("--preload="));
+if (!hasPreload) {
+  bunArgs.push("--preload", PRELOAD);
+}
+bunArgs.push(...args);
+
+const proc = Bun.spawn(bunArgs, {
   stdio: ["inherit", "inherit", "inherit"],
 });
 const exitCode = await proc.exited;
