@@ -6,10 +6,57 @@
  * Uses the real service store (no mock.module) to avoid polluting other test
  * files. State is controlled via useServiceStore.setState() in beforeEach.
  */
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type { Alert } from "@jango-blockchained/hoox-shared";
+
+// ─── Mock cli-bridge to prevent real CLI process spawning ──────────────────
+// DashboardView's useEffect calls 5 cliBridge methods on render. Without a
+// mock, these spawn real `hoox` CLI processes which are slow, lock
+// ReadableStreams, and cause cascading test failures when run before
+// settings.test.tsx's global mock is applied.
+const noopResult = () =>
+  Promise.resolve({
+    success: true,
+    exitCode: 0,
+    stdout: "",
+    stderr: "",
+    data: null,
+    duration: 0,
+    command: "hoox (noop)",
+    errorType: null,
+  });
+
+mock.module("../../services/cli-bridge", () => ({
+  cliBridge: {
+    checkHealth: noopResult,
+    monitorStatus: noopResult,
+    monitorKillSwitch: () =>
+      Promise.resolve({
+        success: true,
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        data: { engaged: false },
+        duration: 0,
+        command: "hoox killswitch show (noop)",
+        errorType: null,
+      }),
+    agentHealthCheck: () =>
+      Promise.resolve({
+        success: true,
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        data: { providers: [], overallStatus: "online" },
+        duration: 0,
+        command: "hoox agent health (noop)",
+        errorType: null,
+      }),
+    checkFix: noopResult,
+  },
+}));
 
 import { makeWorker } from "../../test-utils";
 import { DashboardView } from "./dashboard";
