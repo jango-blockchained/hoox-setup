@@ -5,13 +5,14 @@
   "workspaces": [
     "packages/*",
     "workers/*",
-    "pages/*"
+    "pages/*",
+    "packages/test-utils"
   ],
   "scripts": {
     "test": "bun run scripts/test-with-table.ts --isolate --path-ignore-patterns 'tests/live/**'",
     "test:live": "bun run scripts/test-with-table.ts tests/live/ --jobs 1",
     "test:cli": "bun run scripts/test-with-table.ts --isolate packages/cli/",
-    "test:tui": "bun run scripts/test-with-table.ts --isolate --preload ./packages/tui/src/test-setup.ts packages/tui/",
+    "test:tui": "bun run scripts/test-with-table.ts --preload ./packages/tui/src/test-setup.ts packages/tui/",
     "test:shared": "bun run scripts/test-with-table.ts --isolate packages/shared/",
     "test:workers": "bun run scripts/test-with-table.ts --isolate workers/",
     "test:integration": "bun run scripts/test-with-table.ts --isolate tests/integration/",
@@ -71,7 +72,7 @@
     "tailwindcss": "^4.3.0",
     "ts-morph": "^28.0.0",
     "vite": "^8.0.14",
-    "wrangler": "^4.97.0"
+    "wrangler": "^4.98.0"
   },
   "dependencies": {
     "zod": "^4.4.3"

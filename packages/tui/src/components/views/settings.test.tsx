@@ -356,12 +356,23 @@ async function renderSettingsWithCheck(
         exitOnCtrlC: false,
       }
     );
-    // Run twice so the async checkSetup promise resolves between frames.
+    // Initial render - triggers useEffect which starts checkSetup
     await renderOnce();
-    // Microtask drain: give the mocked Promise.resolve time to flush
-    // and React time to re-render the populated panel.
-    await new Promise((r) => setTimeout(r, 10));
-    await renderOnce();
+
+    // Wait for the async checkSetup to complete by polling for the results panel.
+    // The mock returns Promise.resolve() which schedules a microtask, but the
+    // state update happens in that microtask which is outside act(). We need to
+    // wait for the re-render to complete.
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => queueMicrotask(r));
+      await new Promise((r) => setTimeout(r, 10));
+      await renderOnce();
+      const frame = captureCharFrame();
+      if (frame.includes("SETUP CHECK RESULTS")) {
+        return frame;
+      }
+    }
+    // Fallback - return whatever we have
     return captureCharFrame();
   } finally {
     delete (globalThis as unknown as { __hooxTestAutoCheckSetup?: boolean })

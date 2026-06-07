@@ -17,6 +17,7 @@ import { ErrorBoundary } from "../shared/error-boundary";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import { cliBridge } from "../../services/cli-bridge";
+import { resolveTuiStatePath } from "../../services/hoox-path-service";
 
 // ─── Prerequisite Check Types ───────────────────────────────────────────────
 
@@ -308,8 +309,10 @@ const defaultFormData = (): WizardFormData => ({
 /**
  * Session persistence file path for wizard state.
  * Survives TUI close/restart so users can resume where they left off.
+ * Uses the shared getHooxHome() utility for cross-OS home directory resolution
+ * and stores wizard sessions in $HOME/.hoox/.tui-state/.
  */
-const WIZARD_SESSION_PATH = `${process.env.HOME ?? "~"}/.hoox/.wizard-session.json`;
+const WIZARD_SESSION_PATH = resolveTuiStatePath(".wizard-session.json");
 
 // ─── Validation Helpers ─────────────────────────────────────────────────────
 

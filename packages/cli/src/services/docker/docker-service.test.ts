@@ -44,12 +44,19 @@ function errorSpawn(stderr: string, exitCode = 1): MockSpawnResult {
 }
 
 let lastSpawnCmd: string[] = [];
+let lastSpawnEnv: Record<string, string> | undefined;
 
 function mockSpawnWithCapture(result: MockSpawnResult): void {
-  const _spawnMock = mock((cmd: string[], _options?: { cwd?: string }) => {
-    lastSpawnCmd = cmd;
-    return result;
-  });
+  const _spawnMock = mock(
+    (
+      cmd: string[],
+      options?: { cwd?: string; env?: Record<string, string> }
+    ) => {
+      lastSpawnCmd = cmd;
+      lastSpawnEnv = options?.env;
+      return result;
+    }
+  );
   (Bun as unknown as Record<string, unknown>).spawn = _spawnMock;
 }
 
@@ -59,6 +66,7 @@ function mockSpawnWithCapture(result: MockSpawnResult): void {
 
 beforeEach(() => {
   lastSpawnCmd = [];
+  lastSpawnEnv = undefined;
 });
 
 afterEach(() => {
@@ -186,14 +194,8 @@ describe("DockerService", () => {
       const result = await service.composeUp(["workers", "dashboard"]);
 
       expect(result.ok).toBe(true);
-      expect(lastSpawnCmd).toEqual([
-        "docker",
-        "compose",
-        "up",
-        "--profile",
-        "workers",
-        "dashboard",
-      ]);
+      expect(lastSpawnCmd).toEqual(["docker", "compose", "up"]);
+      expect(lastSpawnEnv).toEqual({ COMPOSE_PROFILES: "workers,dashboard" });
     });
 
     it("returns error on non-zero exit in non-detached mode", async () => {

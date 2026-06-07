@@ -1072,19 +1072,10 @@ class CliBridgeImpl {
       clearTimeout(timer);
       cleanup();
 
-      // Explicitly close process streams to prevent resource leaks.
-      // Bun.spawn with "pipe" mode creates stream handles that must be
-      // released even when the process exits successfully.
-      try {
-        (proc.stderr as ReadableStream<Uint8Array>)?.cancel();
-      } catch {
-        /* stream may already be closed */
-      }
-      try {
-        (proc.stdout as ReadableStream<Uint8Array>)?.cancel();
-      } catch {
-        /* stream may already be closed */
-      }
+      // Streams are already fully consumed above (via getReader/Response),
+      // so they're naturally closed. Cancel is not needed here — the
+      // readers already hold the locks and .cancel() on a locked stream
+      // throws TypeError: "Invalid state: ReadableStream is locked".
 
       let data: T | null = null;
       if (options?.json && exitCode === 0 && stdout.trim()) {

@@ -6,8 +6,18 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./setup": "./src/setup.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./setup": {
+      "types": "./src/setup.ts",
+      "default": "./src/setup.ts"
+    },
+    "./spawn-shim": {
+      "types": "./src/spawn-shim.ts",
+      "default": "./src/spawn-shim.ts"
+    }
   },
   "scripts": {
     "test": "bun test",

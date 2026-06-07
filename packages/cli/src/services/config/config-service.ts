@@ -1,5 +1,10 @@
 import { parse, printParseErrorCode } from "jsonc-parser";
 import type { ParseError } from "jsonc-parser";
+import { join } from "node:path";
+import {
+  resolveHooxPath,
+  getHooxWranglerPath,
+} from "@jango-blockchained/hoox-shared";
 import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
 
 /**
@@ -8,6 +13,10 @@ import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
  * Uses jsonc-parser for fault-tolerant JSONC parsing with native comment
  * support (both line and block comments). Provides typed accessors for the
  * global config and per-worker entries.
+ *
+ * Supports a fallback chain that prefers the $HOME/.hoox home directory
+ * over the current working directory. This enables cloned repos located
+ * at $HOME/.hoox to be referenced without being in that directory.
  *
  * @example
  * ```ts
@@ -19,17 +28,70 @@ import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
 export class ConfigService {
   private config: HooxConfig | null = null;
   private configPath: string;
+  private homeDirOverride: string | undefined;
 
   /**
    * @param configPath - Absolute or relative path to wrangler.jsonc.
    *   Defaults to `wrangler.jsonc` in the current working directory.
+   * @param homeDir - Optional override for the Hoox home directory
+   *   (for testing or custom installations). When provided, the service
+   *   uses this as the $HOME/.hoox base instead of the system home.
    */
-  constructor(configPath?: string) {
+  constructor(configPath?: string, homeDir?: string) {
     this.configPath = configPath ?? "wrangler.jsonc";
+    this.homeDirOverride = homeDir;
+  }
+
+  /**
+   * Resolve the best config file path using the fallback chain:
+   *   $HOME/.hoox/config/wrangler.jsonc → ./wrangler.jsonc
+   *
+   * If an explicit configPath was provided in the constructor, it is
+   * returned directly (no fallback) for backward compatibility.
+   *
+   * @returns The resolved config file path.
+   */
+  getConfigPath(): string {
+    // If an explicit path was provided, use it directly (backward compat)
+    if (this.configPath !== "wrangler.jsonc") {
+      return this.configPath;
+    }
+    // Prefer home directory config: $HOME/.hoox/config/wrangler.jsonc
+    try {
+      if (this.homeDirOverride) {
+        return join(this.homeDirOverride, ".hoox", "config", "wrangler.jsonc");
+      }
+      return getHooxWranglerPath();
+    } catch {
+      return this.configPath;
+    }
+  }
+
+  /**
+   * Resolve the path for a worker directory using the home-first strategy:
+   *   $HOME/.hoox/workers/<name> → ./workers/<name>
+   *
+   * @param workerName - The worker name (e.g., "d1-worker").
+   * @returns The resolved worker directory path.
+   */
+  getWorkerPath(workerName: string): string {
+    // Prefer home directory workers
+    try {
+      if (this.homeDirOverride) {
+        return join(this.homeDirOverride, ".hoox", "workers", workerName);
+      }
+      return resolveHooxPath(join("workers", workerName));
+    } catch {
+      return join("workers", workerName);
+    }
   }
 
   /**
    * Read and parse wrangler.jsonc from disk.
+   *
+   * Uses a fallback chain: attempts $HOME/.hoox/config/wrangler.jsonc first,
+   * then falls back to ./wrangler.jsonc in the current directory (or the
+   * custom configPath if one was provided).
    *
    * Strips JSONC comments via jsonc-parser's native `parse()`.
    * Throws on file-not-found, invalid JSONC, or missing root object.
@@ -38,16 +100,42 @@ export class ConfigService {
    * @returns The parsed HooxConfig object.
    */
   async load(configPath?: string): Promise<HooxConfig> {
-    const filePath = configPath ?? this.configPath;
-    const file = Bun.file(filePath);
+    // Determine candidate paths to try in order
+    const explicitPath = configPath ?? null;
+    const filePath = explicitPath ?? this.getConfigPath();
+    let resolvedPath = filePath;
 
+    const file = Bun.file(filePath);
     if (!(await file.exists())) {
-      throw new Error(
-        `Config file not found: ${filePath}. Run 'hoox config init' to create one.`
-      );
+      // Fallback chain: only when using default resolution (no explicit path
+      // provided to constructor or load()), try cwd as fallback.
+      const isDefaultResolution =
+        !explicitPath && this.configPath === "wrangler.jsonc";
+      const cwdFallback = "wrangler.jsonc";
+
+      if (isDefaultResolution && filePath !== cwdFallback) {
+        const fallbackFile = Bun.file(cwdFallback);
+        if (await fallbackFile.exists()) {
+          resolvedPath = cwdFallback;
+        } else {
+          throw new Error(
+            `Config file not found: ${filePath}. Also tried: ${cwdFallback}. ` +
+              "Run 'hoox config init' to create one."
+          );
+        }
+      } else {
+        throw new Error(
+          `Config file not found: ${filePath}. Run 'hoox config init' to create one.`
+        );
+      }
     }
 
-    const content = await file.text();
+    // Update stored path to the resolved location
+    this.configPath = resolvedPath;
+
+    // Read the resolved config file
+    const resolvedFile = Bun.file(resolvedPath);
+    const content = await resolvedFile.text();
     const errors: ParseError[] = [];
     const raw: unknown = parse(content, errors);
 
@@ -56,11 +144,13 @@ export class ConfigService {
         (e) =>
           `  - ${printParseErrorCode(e.error)} at offset ${e.offset} (length ${e.length})`
       );
-      throw new Error(`Invalid JSONC in ${filePath}:\n${messages.join("\n")}`);
+      throw new Error(
+        `Invalid JSONC in ${resolvedPath}:\n${messages.join("\n")}`
+      );
     }
 
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-      throw new Error(`${filePath} must contain a JSON object at the root`);
+      throw new Error(`${resolvedPath} must contain a JSON object at the root`);
     }
 
     this.config = raw as HooxConfig;

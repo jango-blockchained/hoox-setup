@@ -9,11 +9,15 @@
  * Repo URLs are derived from: https://github.com/<org>/<worker-name>.git
  * The org is auto-detected from `git remote get-url origin` or set via --org.
  *
+ * The --home flag clones workers into $HOME/.hoox/workers instead of the
+ * default workers/ directory.
+ *
  * Uses @clack/prompts spinner for progress feedback.
  */
 import { Command } from "commander";
 import { spinner } from "@clack/prompts";
 import { ConfigService } from "../../services/config/index.js";
+import { getHooxHome } from "@jango-blockchained/hoox-shared";
 import { icons } from "../../utils/theme.js";
 import {
   formatSuccess,
@@ -84,14 +88,27 @@ async function isWorkerCloned(workerPath: string): Promise<boolean> {
 /**
  * Run `git submodule add <repo> <path>` to clone a single worker.
  * Returns a CloneStatus with the outcome.
+ *
+ * @param repoUrl - Repository URL to clone
+ * @param targetPath - Target path for the submodule
+ * @param name - Worker name
+ * @param cwd - Current working directory for git command
+ * @param homeDir - Optional home directory path (if --home flag is set)
  */
 async function cloneWorker(
   repoUrl: string,
   targetPath: string,
   name: string,
-  cwd: string
+  cwd: string,
+  homeDir?: string
 ): Promise<CloneStatus> {
-  const proc = Bun.spawn(["git", "submodule", "add", repoUrl, targetPath], {
+  // If homeDir is specified, adjust the target path to be relative to home
+  const adjustedPath = homeDir
+    ? targetPath.replace(/^workers\//, "")
+    : targetPath;
+  const finalPath = homeDir ? `${homeDir}/workers/${adjustedPath}` : targetPath;
+
+  const proc = Bun.spawn(["git", "submodule", "add", repoUrl, finalPath], {
     cwd,
     stdout: "pipe",
     stderr: "pipe",
@@ -103,7 +120,7 @@ async function cloneWorker(
     const stderr = await new Response(proc.stderr).text();
     return {
       worker: name,
-      path: targetPath,
+      path: finalPath,
       cloned: false,
       repo: repoUrl,
       error:
@@ -113,7 +130,7 @@ async function cloneWorker(
 
   return {
     worker: name,
-    path: targetPath,
+    path: finalPath,
     cloned: true,
     repo: repoUrl,
   };
@@ -143,10 +160,15 @@ async function updateSubmodules(cwd: string): Promise<void> {
 /**
  * Build the list of worker clone statuses, checking the filesystem for
  * whether each worker has already been cloned.
+ *
+ * @param configService - Configuration service instance
+ * @param repoBase - Base repository URL
+ * @param homeDir - Optional home directory path (if --home flag is set)
  */
 async function buildStatusList(
   configService: ConfigService,
-  repoBase: string
+  repoBase: string,
+  homeDir?: string
 ): Promise<CloneStatus[]> {
   const workers = configService.listWorkers();
   const statuses: CloneStatus[] = [];
@@ -155,10 +177,15 @@ async function buildStatusList(
     const workerConfig = configService.getWorker(name);
     if (!workerConfig) continue;
 
-    const cloned = await isWorkerCloned(workerConfig.path);
+    // Adjust path if homeDir is specified
+    const checkPath = homeDir
+      ? `${homeDir}/workers/${workerConfig.path.replace(/^workers\//, "")}`
+      : workerConfig.path;
+
+    const cloned = await isWorkerCloned(checkPath);
     statuses.push({
       worker: name,
-      path: workerConfig.path,
+      path: checkPath,
       cloned,
       repo: getRepoUrl(repoBase, name),
     });
@@ -196,6 +223,7 @@ MODES:
 
 OPTIONS:
   --all       Clone all worker repositories
+  --home      Clone into $HOME/.hoox/workers instead of default location
   --org <org> GitHub organization (auto-detected from git remote by default)
 
 ARGUMENTS:
@@ -204,10 +232,16 @@ ARGUMENTS:
 EXAMPLES:
   hoox clone                     List all workers' clone status
   hoox clone --all               Clone all workers
+  hoox clone --all --home        Clone all workers to $HOME/.hoox/workers
   hoox clone trade-worker        Clone specific worker
+  hoox clone trade-worker --home Clone specific worker to $HOME/.hoox/workers
   hoox clone --org my-org        Clone from specific org`
     )
     .option("--all", "Clone all worker repositories")
+    .option(
+      "--home",
+      "Clone into $HOME/.hoox/workers instead of default location"
+    )
     .option(
       "--org <org>",
       "GitHub organization (derived from git remote by default)"
@@ -217,7 +251,7 @@ EXAMPLES:
       withErrorHandling(
         async (
           name: string | undefined,
-          options: { all?: boolean; org?: string }
+          options: { all?: boolean; home?: boolean; org?: string }
         ) => {
           const fmt = getFormatOptions(program);
 
@@ -225,6 +259,7 @@ EXAMPLES:
           await configService.load();
 
           const workers = configService.listWorkers();
+          const homeDir = options.home ? getHooxHome() : undefined;
 
           // -------------------------------------------------------------------
           // Mode 1: No name, no --all  →  list clone status
@@ -234,7 +269,11 @@ EXAMPLES:
               ? `https://github.com/${options.org}`
               : await resolveRepoBase();
 
-            const statuses = await buildStatusList(configService, repoBase);
+            const statuses = await buildStatusList(
+              configService,
+              repoBase,
+              homeDir
+            );
 
             if (fmt.json) {
               formatJson(statuses, fmt);
@@ -253,6 +292,7 @@ EXAMPLES:
             const rows = statuses.map((s) => ({
               Worker: s.worker,
               Status: s.cloned ? "cloned" : "not cloned",
+              Location: options.home ? "$HOME/.hoox/workers" : "workers/",
               Repo: s.repo ?? "-",
             }));
             formatTable(rows, fmt);
@@ -273,7 +313,8 @@ EXAMPLES:
               : await resolveRepoBase();
 
             const s = spinner();
-            s.start(`Cloning ${workers.length} worker(s)...`);
+            const location = options.home ? "$HOME/.hoox/workers" : "workers/";
+            s.start(`Cloning ${workers.length} worker(s) to ${location}...`);
 
             const results: CloneStatus[] = [];
 
@@ -282,15 +323,20 @@ EXAMPLES:
               const workerConfig = configService.getWorker(name);
               if (!workerConfig) continue;
 
+              // Adjust path if homeDir is specified
+              const checkPath = homeDir
+                ? `${homeDir}/workers/${workerConfig.path.replace(/^workers\//, "")}`
+                : workerConfig.path;
+
               // Skip already cloned workers
-              const alreadyCloned = await isWorkerCloned(workerConfig.path);
+              const alreadyCloned = await isWorkerCloned(checkPath);
               if (alreadyCloned) {
                 s.message(
                   `[${i + 1}/${workers.length}] ${icons.info} ${name} already cloned — skipping`
                 );
                 results.push({
                   worker: name,
-                  path: workerConfig.path,
+                  path: checkPath,
                   cloned: true,
                   repo: getRepoUrl(repoBase, name),
                 });
@@ -303,7 +349,8 @@ EXAMPLES:
                 getRepoUrl(repoBase, name),
                 workerConfig.path,
                 name,
-                process.cwd()
+                process.cwd(),
+                homeDir
               );
               results.push(result);
 
@@ -347,6 +394,7 @@ EXAMPLES:
               const rows = results.map((r) => ({
                 Worker: r.worker,
                 Status: r.cloned ? "cloned" : "failed",
+                Location: options.home ? "$HOME/.hoox/workers" : "workers/",
                 Repo: r.repo ?? "-",
               }));
               formatTable(rows, { json: fmt.json, quiet: false });
@@ -373,11 +421,16 @@ EXAMPLES:
               return;
             }
 
+            // Adjust path if homeDir is specified
+            const checkPath = homeDir
+              ? `${homeDir}/workers/${workerConfig.path.replace(/^workers\//, "")}`
+              : workerConfig.path;
+
             // Already cloned → early exit with success
-            const alreadyCloned = await isWorkerCloned(workerConfig.path);
+            const alreadyCloned = await isWorkerCloned(checkPath);
             if (alreadyCloned) {
               formatSuccess(
-                `Worker "${name}" is already cloned at ${workerConfig.path}`,
+                `Worker "${name}" is already cloned at ${checkPath}`,
                 fmt
               );
               return;
@@ -388,13 +441,15 @@ EXAMPLES:
               : await resolveRepoBase();
 
             const s = spinner();
-            s.start(`Cloning ${name}...`);
+            const location = options.home ? "$HOME/.hoox/workers" : "workers/";
+            s.start(`Cloning ${name} to ${location}...`);
 
             const result = await cloneWorker(
               getRepoUrl(repoBase, name),
               workerConfig.path,
               name,
-              process.cwd()
+              process.cwd(),
+              homeDir
             );
 
             if (result.cloned) {
@@ -407,7 +462,13 @@ EXAMPLES:
               }
 
               s.stop(`Successfully cloned ${name}`);
-              formatSuccess(`Cloned ${name} from ${result.repo}`, fmt);
+              const locationText = options.home
+                ? " at $HOME/.hoox/workers"
+                : "";
+              formatSuccess(
+                `Cloned ${name}${locationText} from ${result.repo}`,
+                fmt
+              );
             } else {
               s.stop(`Failed to clone ${name}`);
               formatError(

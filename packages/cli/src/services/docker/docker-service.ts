@@ -61,10 +61,15 @@ export class DockerService {
     profiles: string[],
     detached = false
   ): Promise<ComposeResult> {
-    const args = ["compose", "up", "--profile", ...profiles];
+    const args = ["compose", "up"];
 
     if (detached) {
       args.push("-d");
+    }
+
+    const env: Record<string, string> = {};
+    if (profiles.length > 0) {
+      env.COMPOSE_PROFILES = profiles.join(",");
     }
 
     try {
@@ -73,6 +78,7 @@ export class DockerService {
         stdout: detached ? "pipe" : "inherit",
         stderr: "inherit",
         stdin: "pipe",
+        env,
       });
 
       if (!detached) {
@@ -108,13 +114,21 @@ export class DockerService {
 
   /**
    * Run `docker compose down` to stop running containers.
+   *
+   * @param profiles  - Compose profiles to target (e.g. ["workers"]). Pass empty array for default.
    */
-  async composeDown(): Promise<ComposeResult> {
+  async composeDown(profiles: string[] = []): Promise<ComposeResult> {
+    const env: Record<string, string> = {};
+    if (profiles.length > 0) {
+      env.COMPOSE_PROFILES = profiles.join(",");
+    }
+
     try {
       const proc = Bun.spawn(["docker", "compose", "down"], {
         cwd: this.cwd,
         stdout: "pipe",
         stderr: "pipe",
+        env,
       });
 
       const stderr = await new Response(proc.stderr).text();

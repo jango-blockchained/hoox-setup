@@ -9,6 +9,53 @@
 import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import { createRoot } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
+
+// ─── Mock cli-bridge to prevent real CLI process spawning ──────────────────
+// ServiceManager imports cliBridge and calls monitorKillSwitch, deployWorker,
+// deployAll, rebuild, and repairWorker — all of which would spawn real 'hoox'
+// or 'wrangler' processes without this mock.
+mock.module("../../services/cli-bridge", () => ({
+  cliBridge: {
+    monitorKillSwitch: async () => ({ engaged: false }),
+    deployWorker: async () => ({
+      success: true,
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      data: null,
+      duration: 0,
+      command: "",
+    }),
+    deployAll: async () => ({
+      success: true,
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      data: null,
+      duration: 0,
+      command: "",
+    }),
+    rebuild: async () => ({
+      success: true,
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      data: null,
+      duration: 0,
+      command: "",
+    }),
+    repairWorker: async () => ({
+      success: true,
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      data: null,
+      duration: 0,
+      command: "",
+    }),
+  },
+}));
+
 import { ServiceManager } from "./service-manager";
 import type { DialogHandle } from "@/components/ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";

@@ -56,10 +56,13 @@ function errorSpawn(stderr: string, exitCode = 1): MockSpawnResult {
 
 /** Track spawn calls so we can assert on arguments. */
 let lastSpawnCmd: string[] = [];
+/** Track the cwd option passed to spawn (for home directory tests). */
+let lastSpawnCwd: string | undefined;
 
 function mockSpawnWithCapture(result: MockSpawnResult): void {
-  const _spawnMock = mock((cmd: string[], _options?: { cwd?: string }) => {
+  const _spawnMock = mock((cmd: string[], options?: { cwd?: string }) => {
     lastSpawnCmd = cmd;
+    lastSpawnCwd = options?.cwd;
     return result;
   });
   (Bun as unknown as Record<string, unknown>).spawn = _spawnMock;
@@ -71,6 +74,7 @@ function mockSpawnWithCapture(result: MockSpawnResult): void {
 
 beforeEach(() => {
   lastSpawnCmd = [];
+  lastSpawnCwd = undefined;
 });
 
 afterEach(() => {
@@ -94,6 +98,69 @@ describe("CloudflareService", () => {
   it("accepts a custom cwd", () => {
     const service = new CloudflareService("/custom/path");
     expect(service).toBeDefined();
+  });
+
+  it("accepts an optional homeDir for home directory resolution", () => {
+    const service = new CloudflareService(undefined, "/home/user");
+    expect(service).toBeDefined();
+  });
+
+  it("accepts cwd, homeDir, and configService together", () => {
+    const service = new CloudflareService("/custom/path", "/home/user");
+    expect(service).toBeDefined();
+  });
+
+  // -- Home directory resolution -------------------------------------------
+
+  describe("home directory resolution", () => {
+    it("resolves deploy workerPath via homeDir", async () => {
+      const stdout =
+        "Published test-worker (0.5 sec)\n  https://test-worker.cryptolinx.workers.dev";
+      mockSpawnWithCapture(successSpawn(stdout));
+
+      const service = new CloudflareService(undefined, "/home/testuser");
+      const result = await service.deploy("workers/hoox");
+
+      expect(result.ok).toBe(true);
+      // Spawn should use the home-dir resolved path as cwd
+      expect(lastSpawnCwd).toBe("/home/testuser/.hoox/workers/hoox");
+    });
+
+    it("resolves dev workerPath via homeDir", async () => {
+      mockSpawnWithCapture(successSpawn(""));
+
+      const service = new CloudflareService(undefined, "/home/testuser");
+      await service.dev("workers/hoox");
+
+      // Spawn should use the home-dir resolved path as cwd
+      expect(lastSpawnCwd).toBe("/home/testuser/.hoox/workers/hoox");
+    });
+
+    it("falls back to cwd resolution when no homeDir is provided", async () => {
+      const stdout =
+        "Published test-worker\n  https://test-worker.cryptolinx.workers.dev";
+      mockSpawnWithCapture(successSpawn(stdout));
+
+      const service = new CloudflareService("/original/cwd");
+      const result = await service.deploy("workers/hoox");
+
+      expect(result.ok).toBe(true);
+      expect(lastSpawnCwd).toBe("/original/cwd/workers/hoox");
+    });
+
+    it("extracts worker name from path in deploy result when using homeDir", async () => {
+      const stdout =
+        "Published hoox (0.5 sec)\n  https://hoox.cryptolinx.workers.dev";
+      mockSpawnWithCapture(successSpawn(stdout));
+
+      const service = new CloudflareService(undefined, "/home/testuser");
+      const result = await service.deploy("workers/hoox");
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.name).toBe("hoox");
+      }
+    });
   });
 
   // -- whoami ---------------------------------------------------------------

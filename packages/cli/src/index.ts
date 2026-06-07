@@ -154,6 +154,7 @@ import { registerUpdateCommand } from "./commands/update/index.js";
 import { registerSchemaCommand } from "./commands/schema/index.js";
 import { registerTUICommand } from "./commands/tui/index.js";
 import { registerDisclaimerCommand } from "./commands/disclaimer/index.js";
+import { registerAgentCommand } from "./commands/agent/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
 // ── Command registration ────────────────────────────────────────────────
@@ -177,6 +178,7 @@ registerSchemaCommand(program);
 registerUpdateCommand(program);
 registerTUICommand(program);
 registerDisclaimerCommand(program);
+registerAgentCommand(program);
 
 // ---------------------------------------------------------------------------
 // Shell completion command
@@ -207,7 +209,7 @@ program
   local cur prev opts
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
-  opts="--help --version --json --quiet --yes init clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer workers"
+  opts="--help --version --json --quiet --yes init clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer agent workers"
   COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
   return 0
 }
@@ -236,7 +238,8 @@ _hoox() {
     'test:Run tests'
     'waf:Manage Web Application Firewall'
     'dashboard:Dashboard operations'
-    'workers:Worker operations'
+    'workers:Worker operations',
+    'agent:AI agent operations'
   )
   _describe 'hoox' opts
 }

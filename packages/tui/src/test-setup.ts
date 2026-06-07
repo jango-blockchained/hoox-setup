@@ -133,57 +133,8 @@ function shareTestingExports(): Record<string, any> {
   };
 }
 
-// Prevent tests from accidentally spawning real wrangler (or other heavy) CLI
-// processes during unit/integration runs. By default any command containing
-// "wrangler" is stubbed out. Set environment variable
-// HOOX_TEST_ALLOW_WRANGLER=1 to allow the real spawn during intentional live
-// testing.
-try {
-  // Bun exposes a global `Bun` during tests. Wrap Bun.spawn defensively so
-  // the test environment cannot accidentally run external binaries.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (typeof Bun !== "undefined" && typeof (Bun as any).spawn === "function") {
-    // Keep a reference to the real spawn for non-wrangler commands.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const realSpawn = (Bun as any).spawn;
-
-    // Replace with a safe shim.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (Bun as any).spawn = (...args: any[]) => {
-      const cmd = args[0];
-      const cmdStr = Array.isArray(cmd) ? cmd.join(" ") : String(cmd);
-
-      // If the command looks like a wrangler invocation and the test
-      // environment has not explicitly allowed it, return a fake process
-      // object that behaves like Bun.spawn's pipe-mode return value.
-      if (cmdStr.includes("wrangler") && process.env.HOOX_TEST_ALLOW_WRANGLER !== "1") {
-        const encoder = new TextEncoder();
-        const emptyChunk = encoder.encode("");
-
-        // Minimal ReadableStream that yields an empty chunk then closes.
-        const emptyStream = new ReadableStream({
-          start(controller) {
-            controller.enqueue(emptyChunk);
-            controller.close();
-          },
-        });
-
-        return {
-          stdout: emptyStream,
-          stderr: emptyStream,
-          stdin: { write: (_: any) => {}, end: () => {} },
-          // `exited` is a Promise resolving to exit code 0
-          exited: (async () => 0)(),
-        } as any;
-      }
-
-      // Otherwise delegate to the real spawn implementation.
-      return (realSpawn as any)(...args);
-    };
-  }
-} catch (err) {
-  // Fail-safe: if anything goes wrong while patching the test runtime, do
-  // not crash the test setup — tests will run without the shim.
-  // eslint-disable-next-line no-console
-  console.warn("Failed to install Bun.spawn shim for tests:", err);
-}
+// Prevent tests from accidentally spawning real wrangler, hoox CLI, or
+// other heavy processes during unit/integration runs. Set
+// HOOX_TEST_ALLOW_WRANGLER=1 to allow the real spawn during live testing.
+import { installSpawnShim } from "@hoox/test-utils/spawn-shim";
+installSpawnShim();

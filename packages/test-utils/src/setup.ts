@@ -39,6 +39,8 @@ import {
   afterEach,
   mock,
 } from "bun:test";
+import { installSpawnShim } from "./spawn-shim";
+installSpawnShim();
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

@@ -3,7 +3,7 @@
  * App Root — Main entry point for the Hoox TUI dashboard.
  *
  * Responsibilities:
- *   1. Restore session state from ~/.hoox/session.json on startup
+ *   1. Restore session state from $HOME/.hoox/.tui-state/session.json on startup
  *   2. Initialize ToasterRenderable for toast notifications
  *   3. Render the layout shell (sidebar, tab bar, status bar, active view)
  *   4. Register global keyboard shortcuts
@@ -25,6 +25,7 @@ import type { SessionState } from "@jango-blockchained/hoox-shared";
 import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 import { cliBridge } from "./services/cli-bridge";
+import { resolveTuiStatePath } from "./services/hoox-path-service";
 
 // ─── View imports ────────────────────────────────────────────────────────────
 
@@ -223,7 +224,7 @@ const PALETTE_COMMANDS: CommandEntry[] = [
  *
  * State flow:
  *   1. On mount: restore session → set activeView and sidebarExpanded
- *   2. On unmount (cleanup): save session to ~/.hoox/session.json
+ *   2. On unmount (cleanup): save session to $HOME/.hoox/.tui-state/session.json
  *   3. Crash: CrashScreen rendered with [Restart] [Safe Mode] [Report Bug]
  */
 export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
@@ -255,6 +256,89 @@ export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
       cancelled = true;
     };
   }, []);
+
+  // ── Startup data load: HTTP → CLI fallback ─────────────────────────────
+  // After session restore, try to fetch worker data. HTTP is tried first;
+  // if the dev server is unreachable, fall back to the `hoox` CLI.
+  useEffect(() => {
+    if (restoring) return;
+    let cancelled = false;
+
+    (async () => {
+      const store = useServiceStore.getState();
+      try {
+        await store.fetchWorkers();
+        if (cancelled) return;
+        // HTTP succeeded — store already has workers + connected status
+      } catch {
+        // HTTP failed — try CLI fallback
+      }
+      if (cancelled) return;
+
+      // CLI fallback: hoox monitor status --json
+      try {
+        const result = await cliBridge.monitorStatus();
+        if (cancelled) return;
+        if (result.success && result.data) {
+          const raw = result.data as Record<string, unknown>;
+          const rawWorkers = (raw.workers ?? raw.status ?? raw) as
+            | unknown[]
+            | Record<string, unknown>;
+          const parsed = Array.isArray(rawWorkers)
+            ? rawWorkers
+            : typeof rawWorkers === "object" && rawWorkers !== null
+              ? Object.values(rawWorkers)
+              : [];
+          if (parsed.length > 0) {
+            const workerInfo = (parsed as Record<string, unknown>[]).map(
+              (w, i) => {
+                const cliStatus = String(w.status ?? "healthy");
+                const status =
+                  cliStatus === "healthy"
+                    ? "operational"
+                    : cliStatus === "degraded"
+                      ? "degraded"
+                      : "down";
+                return {
+                  id: String(w.id ?? w.worker ?? `worker-${i}`),
+                  name: String(w.worker ?? `worker-${i}`),
+                  status: status as "operational" | "degraded" | "down",
+                  uptime: Number(w.uptime ?? 0) || 0,
+                  cpu: Number(w.cpu ?? 0) || 0,
+                  memory: Number(w.memory ?? 0) || 0,
+                  requests: Number(w.requests ?? 0) || 0,
+                  durableObjectCount: Number(w.durableObjectCount ?? 0) || 0,
+                  edgeCount: Number(w.edgeCount ?? 0) || 0,
+                  version: String(w.version ?? ""),
+                  lastDeployed: Number(w.lastDeployed ?? 0) || 0,
+                };
+              }
+            );
+            store.setWorkers(workerInfo);
+            store.setMetrics({
+              totalWorkers: workerInfo.length,
+              onlineWorkers: workerInfo.filter(
+                (x) => x.status === "operational"
+              ).length,
+              totalPnl: 0,
+              activeStrategies: 0,
+              dailyTrades: 0,
+              aiCalls: 0,
+              uptime: 0,
+              lastUpdated: Date.now(),
+            });
+            store.handleConnectionSuccess();
+          }
+        }
+      } catch {
+        // Both HTTP and CLI unavailable — stay offline
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restoring]);
 
   // ── Session save on unmount ─────────────────────────────────────────────
   useEffect(() => {
@@ -414,7 +498,7 @@ export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
  *   2. CrashScreen is rendered with action buttons
  *   3. [Restart] → re-mount AppRoot (clears React error state)
  *   4. [Safe Mode] → re-mount with crashScreen.safeMode=true
- *   5. [Report Bug] → write error details to ~/.hoox/crash.log
+ *   5. [Report Bug] → write error details to $HOME/.hoox/.tui-state/crash.log
  */
 export function CrashRecoveryApp() {
   const [crash, setCrash] = useState<Error | null>(null);
@@ -437,7 +521,7 @@ export function CrashRecoveryApp() {
           break;
 
         case "report-bug":
-          // Write crash details to ~/.hoox/crash.log
+          // Write crash details to $HOME/.hoox/.tui-state/crash.log
           if (crash) {
             const crashLog = [
               `=== Hoox Crash Report ===`,
@@ -447,12 +531,11 @@ export function CrashRecoveryApp() {
               `Safe Mode: ${safeMode}`,
               ``,
             ].join("\n");
-            // Best-effort write (non-blocking)
+            // Best-effort write (non-blocking) to $HOME/.hoox/.tui-state/crash.log
             try {
-              Bun.write(
-                `${process.env.HOME ?? "/home/jango"}/.hoox/crash.log`,
-                crashLog
-              ).catch(() => {});
+              Bun.write(resolveTuiStatePath("crash.log"), crashLog).catch(
+                () => {}
+              );
             } catch {
               // Silent — write failed
             }

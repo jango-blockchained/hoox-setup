@@ -148,6 +148,21 @@ export type {
   CliErrorDetails,
 } from "./types";
 
+// ── Path Resolution Service ────────────────────────────────────────────
+
+export {
+  getHooxHome,
+  resolveHooxPath,
+  isWithinHooxHome,
+  getRelativeHooxPath,
+  getHooxRepoPath,
+  getHooxConfigDir,
+  getHooxDataDir,
+  getHooxWranglerPath,
+  getHooxStatePath,
+} from "./path-utils";
+export type { HooxPath } from "./path-utils";
+
 // ── Wizard engine ──────────────────────────────────────────────────────
 
 export type {

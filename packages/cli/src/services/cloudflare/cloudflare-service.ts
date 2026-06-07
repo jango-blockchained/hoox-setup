@@ -1,4 +1,5 @@
 import path from "node:path";
+import { ConfigService } from "../config/index.js";
 import type {
   WranglerResult,
   DeployResult,
@@ -13,6 +14,11 @@ import type {
  * Every public method returns a {@link WranglerResult} discriminated union
  * so callers handle errors explicitly without try/catch.
  *
+ * Supports an optional Hoox home directory (`homeDir`) for resolving
+ * worker paths from `$HOME/.hoox/workers/<name>` instead of the current
+ * working directory. When `homeDir` is provided, worker paths are resolved
+ * via `ConfigService.getWorkerPath()` for consistent path resolution.
+ *
  * @example
  * ```ts
  * const cf = new CloudflareService();
@@ -23,17 +29,54 @@ import type {
  *   console.error(result.error);
  * }
  * ```
+ *
+ * @example
+ * ```ts
+ * // With home directory resolution
+ * const cf = new CloudflareService(undefined, "/home/user");
+ * await cf.deploy("workers/hoox");
+ * // Resolves to: /home/user/.hoox/workers/hoox
+ * ```
  */
 export class CloudflareService {
   private readonly cwd: string;
+  private readonly homeDir: string | undefined;
+  private readonly configService: ConfigService | undefined;
 
-  constructor(cwd?: string) {
+  constructor(cwd?: string, homeDir?: string, configService?: ConfigService) {
     this.cwd = cwd ?? process.cwd();
+    this.homeDir = homeDir;
+    // If a homeDir is provided without a configService, create one internally
+    this.configService =
+      configService ??
+      (this.homeDir ? new ConfigService(undefined, this.homeDir) : undefined);
   }
 
   // ---------------------------------------------------------------------------
   // Private helper
   // ---------------------------------------------------------------------------
+
+  /**
+   * Resolve a worker path using home directory resolution when available.
+   *
+   * When `configService` or `homeDir` is configured, worker paths are
+   * resolved from `$HOME/.hoox/workers/<name>` to support cloned repos
+   * installed at the home location.
+   *
+   * Falls back to `path.resolve(this.cwd, workerPath)` for backward
+   * compatibility when no home directory is configured.
+   */
+  private resolveWorkerPath(workerPath: string): string {
+    if (this.configService) {
+      const workerName = path.basename(workerPath);
+      return this.configService.getWorkerPath(workerName);
+    }
+    if (this.homeDir) {
+      const workerName = path.basename(workerPath);
+      return path.join(this.homeDir, ".hoox", "workers", workerName);
+    }
+    return path.resolve(this.cwd, workerPath);
+  }
 
   /**
    * Spawns `wrangler` with the given arguments, captures stdout/stderr,
@@ -95,7 +138,7 @@ export class CloudflareService {
     workerPath: string,
     env?: string
   ): Promise<WranglerResult<DeployResult>> {
-    const resolvedPath = path.resolve(this.cwd, workerPath);
+    const resolvedPath = this.resolveWorkerPath(workerPath);
     const args = ["deploy"];
 
     if (env) {
@@ -245,7 +288,7 @@ export class CloudflareService {
     port?: number
   ): Promise<WranglerResult<DevResult>> {
     const devPort = port ?? 8787;
-    const resolvedPath = path.resolve(this.cwd, workerPath);
+    const resolvedPath = this.resolveWorkerPath(workerPath);
 
     try {
       Bun.spawn(["wrangler", "dev", "--port", String(devPort)], {

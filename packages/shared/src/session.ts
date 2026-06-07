@@ -1,5 +1,5 @@
 /**
- * Session persistence — saves/restores TUI state to ~/.hoox/session.json.
+ * Session persistence — saves/restores TUI state to $HOME/.hoox/.tui-state/session.json.
  *
  * On destroy (app exit): serializes { activeView, sidebarExpanded, windowSize,
  * lastData } so the user returns to the same state on next launch.
@@ -7,11 +7,14 @@
  * On startup: restores previous activeView and sidebarExpanded state.
  * Window size and lastData are saved for reference but re-detected/fetched fresh.
  *
+ * Uses the shared getHooxHome() utility for cross-OS home directory resolution,
+ * and stores session data in the .tui-state subdirectory. Falls back to
+ * current working directory if $HOME is not available.
+ *
  * Uses Bun's native file API for async read/write.
  */
 
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { getHooxHome } from "./path-utils";
 import type { ViewId } from "./types";
 
 // ─── Session shape ───────────────────────────────────────────────────────────
@@ -31,7 +34,16 @@ export interface SessionState {
 
 // ─── File path ───────────────────────────────────────────────────────────────
 
-const SESSION_FILE = join(homedir(), ".hoox", "session.json");
+const TUI_STATE_DIR = ".tui-state";
+const SESSION_FILE = (() => {
+  try {
+    const hooxHome = getHooxHome();
+    return `${hooxHome}/${TUI_STATE_DIR}/session.json`;
+  } catch {
+    // Fallback: use current working directory
+    return `${process.cwd()}/${TUI_STATE_DIR}/session.json`;
+  }
+})();
 
 // ─── Defaults (used when no saved session exists) ────────────────────────────
 
@@ -46,11 +58,11 @@ const DEFAULT_SESSION: SessionState = {
 // ─── Save ────────────────────────────────────────────────────────────────────
 
 /**
- * Persist the current UI state to ~/.hoox/session.json.
+ * Persist the current UI state to $HOME/.hoox/.tui-state/session.json.
  * Call this on app destroy / clean shutdown.
  *
- * The ~/.hoox directory is created automatically by Bun.write if needed,
- * but we attempt to verify existence first for clarity.
+ * The $HOME/.hoox/.tui-state directory is created automatically by
+ * Bun.write if needed (Bun creates parent directories).
  */
 export async function saveSession(
   activeView: ViewId,
@@ -80,7 +92,7 @@ export async function saveSession(
 // ─── Restore ─────────────────────────────────────────────────────────────────
 
 /**
- * Restore the previous session state from ~/.hoox/session.json.
+ * Restore the previous session state from $HOME/.hoox/.tui-state/session.json.
  * Returns defaults if the file doesn't exist or can't be parsed.
  *
  * @returns The saved session state, or defaults

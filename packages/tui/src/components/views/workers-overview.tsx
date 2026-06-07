@@ -232,11 +232,20 @@ export function WorkersOverview() {
               : [];
           if (parsed.length > 0) {
             const store = useServiceStore.getState();
-            store.setWorkers(
-              (parsed as Record<string, unknown>[]).map((w, i) => ({
-                id: String(w.id ?? w.name ?? `worker-${i}`),
-                name: String(w.name ?? `worker-${i}`),
-                status: (w.status ?? "operational") as WorkerInfo["status"],
+            const workers: WorkerInfo[] = (
+              parsed as Record<string, unknown>[]
+            ).map((w, i) => {
+              const cliStatus = String(w.status ?? "healthy");
+              const status =
+                cliStatus === "healthy"
+                  ? "operational"
+                  : cliStatus === "degraded"
+                    ? "degraded"
+                    : "down";
+              return {
+                id: String(w.id ?? w.worker ?? `worker-${i}`),
+                name: String(w.worker ?? `worker-${i}`),
+                status: status as WorkerInfo["status"],
                 uptime: Number(w.uptime ?? 0) || 0,
                 cpu: Number(w.cpu ?? 0) || 0,
                 memory: Number(w.memory ?? 0) || 0,
@@ -245,8 +254,21 @@ export function WorkersOverview() {
                 edgeCount: Number(w.edgeCount ?? 0) || 0,
                 version: String(w.version ?? ""),
                 lastDeployed: Number(w.lastDeployed ?? 0) || 0,
-              }))
-            );
+              };
+            });
+            store.setWorkers(workers);
+            store.setMetrics({
+              totalWorkers: workers.length,
+              onlineWorkers: workers.filter((x) => x.status === "operational")
+                .length,
+              totalPnl: 0,
+              activeStrategies: 0,
+              dailyTrades: 0,
+              aiCalls: 0,
+              uptime: 0,
+              lastUpdated: Date.now(),
+            });
+            store.handleConnectionSuccess();
             store.addAlert({
               id: `cli-fallback-${Date.now()}`,
               type: "info",

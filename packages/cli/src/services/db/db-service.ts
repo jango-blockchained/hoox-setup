@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { ConfigService } from "../config/index.js";
 
 export interface QueryResult {
@@ -7,9 +8,43 @@ export interface QueryResult {
 
 export class DbService {
   private configService: ConfigService;
+  private readonly homeDir: string | undefined;
 
-  constructor(configService?: ConfigService) {
+  constructor(configService?: ConfigService, homeDir?: string) {
     this.configService = configService ?? new ConfigService();
+    this.homeDir = homeDir;
+  }
+
+  /**
+   * Resolve the default schema path using home directory when available.
+   *
+   * When `homeDir` is configured, resolves to `$HOME/.hoox/workers/trade-worker/schema.sql`.
+   * Falls back to the default relative path `workers/trade-worker/schema.sql`.
+   */
+  private resolveDefaultSchemaPath(): string {
+    if (this.homeDir) {
+      return join(
+        this.homeDir,
+        ".hoox",
+        "workers",
+        "trade-worker",
+        "schema.sql"
+      );
+    }
+    return "workers/trade-worker/schema.sql";
+  }
+
+  /**
+   * Resolve the migration script path using home directory when available.
+   *
+   * When `homeDir` is configured, resolves to `$HOME/.hoox/scripts/migrate-tracking.sh`.
+   * Falls back to `scripts/migrate-tracking.sh` relative to cwd.
+   */
+  private resolveMigrationScriptPath(): string {
+    if (this.homeDir) {
+      return join(this.homeDir, ".hoox", "scripts", "migrate-tracking.sh");
+    }
+    return "scripts/migrate-tracking.sh";
   }
 
   async resolveDbName(dbName?: string): Promise<string> {
@@ -30,7 +65,7 @@ export class DbService {
     remote: boolean,
     schemaPath?: string
   ): Promise<string> {
-    const path = schemaPath ?? "workers/trade-worker/schema.sql";
+    const path = schemaPath ?? this.resolveDefaultSchemaPath();
     const args = ["d1", "execute", dbName, "--file", path];
     if (remote) args.push("--remote");
     return await this.runWrangler(args);
@@ -115,7 +150,7 @@ export class DbService {
 
   private async readMigrationSql(): Promise<string> {
     try {
-      const file = Bun.file("scripts/migrate-tracking.sh");
+      const file = Bun.file(this.resolveMigrationScriptPath());
       if (await file.exists()) {
         const content = await file.text();
         const match = content.match(

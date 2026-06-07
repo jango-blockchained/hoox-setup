@@ -147,6 +147,91 @@ describe("DbService", () => {
     });
   });
 
+  // -- Constructor ----------------------------------------------------------
+
+  describe("constructor", () => {
+    it("accepts optional homeDir parameter", () => {
+      const service = new DbService(undefined, "/home/testuser");
+      expect(service).toBeDefined();
+    });
+
+    it("accepts configService and homeDir together", () => {
+      const configMock = createMockConfigService();
+      const service = new DbService(configMock, "/home/testuser");
+      expect(service).toBeDefined();
+    });
+  });
+
+  // -- Home directory resolution --------------------------------------------
+
+  describe("home directory resolution", () => {
+    it("resolves default schema path via homeDir in apply()", async () => {
+      mockSpawnWithCapture(successSpawn("Executed SQL successfully"));
+
+      const service = new DbService(undefined, "/home/testuser");
+      const result = await service.apply("hoox-db", false);
+
+      expect(result).toBe("Executed SQL successfully");
+      // Should use home-dir resolved path for schema file
+      const fileIndex = lastSpawnCmd.indexOf("--file");
+      expect(lastSpawnCmd[fileIndex + 1]).toBe(
+        "/home/testuser/.hoox/workers/trade-worker/schema.sql"
+      );
+    });
+
+    it("uses provided schemaPath even when homeDir is set", async () => {
+      mockSpawnWithCapture(successSpawn("Executed"));
+
+      const service = new DbService(undefined, "/home/testuser");
+      await service.apply("hoox-db", false, "custom/schema.sql");
+
+      const fileIndex = lastSpawnCmd.indexOf("--file");
+      expect(lastSpawnCmd[fileIndex + 1]).toBe("custom/schema.sql");
+    });
+
+    it("reads migration script from homeDir when configured", async () => {
+      const mockFile = {
+        exists: mock(() => Promise.resolve(true)),
+        text: mock(() =>
+          Promise.resolve(
+            "d1 execute hoox-db --command='CREATE TABLE test (id INT)'"
+          )
+        ),
+      };
+      const realFile = Bun.file;
+      const bunFileMock = mock((path: string) => {
+        // Verify the resolved path includes homeDir
+        expect(path).toBe("/home/testuser/.hoox/scripts/migrate-tracking.sh");
+        return mockFile;
+      });
+      (Bun as unknown as Record<string, unknown>).file = bunFileMock;
+
+      mockSpawnWithCapture(successSpawn("Migration applied"));
+
+      const service = new DbService(undefined, "/home/testuser");
+      const result = await service.migrate("hoox-db", false);
+
+      expect(result).toBe("Migration applied");
+      expect(lastSpawnCmd).toContain("CREATE TABLE test (id INT)");
+      // Verify Bun.file was called (the assertion runs inside the mock)
+      expect(bunFileMock).toHaveBeenCalled();
+
+      (Bun as unknown as Record<string, unknown>).file = realFile;
+    });
+
+    it("falls back to relative schema path when no homeDir", async () => {
+      mockSpawnWithCapture(successSpawn("Executed"));
+
+      const service = new DbService();
+      await service.apply("hoox-db", false);
+
+      const fileIndex = lastSpawnCmd.indexOf("--file");
+      expect(lastSpawnCmd[fileIndex + 1]).toBe(
+        "workers/trade-worker/schema.sql"
+      );
+    });
+  });
+
   // -- apply ----------------------------------------------------------------
 
   describe("apply", () => {

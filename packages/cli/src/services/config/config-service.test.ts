@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ConfigService } from "./config-service.js";
@@ -391,5 +391,145 @@ describe("ConfigService", () => {
     const service = new ConfigService("/some/wrong/path.jsonc");
     const config = await service.load(join(tmpDir, "wrangler.jsonc"));
     expect(config.global.cloudflare_account_id).toBe("abc123");
+  });
+
+  // ── getConfigPath() — home directory resolution ───────────────
+
+  it("getConfigPath() returns explicit path when configured", () => {
+    const service = new ConfigService("/custom/path.jsonc");
+    expect(service.getConfigPath()).toBe("/custom/path.jsonc");
+  });
+
+  it("getConfigPath() returns home config path when homeDir provided", () => {
+    const service = new ConfigService(undefined, tmpDir);
+    const expected = join(tmpDir, ".hoox", "config", "wrangler.jsonc");
+    expect(service.getConfigPath()).toBe(expected);
+  });
+
+  it("getConfigPath() returns a non-empty string when no home override", () => {
+    const service = new ConfigService();
+    const path = service.getConfigPath();
+    expect(typeof path).toBe("string");
+    expect(path.length).toBeGreaterThan(0);
+  });
+
+  // ── getWorkerPath() — home directory resolution ───────────────
+
+  it("getWorkerPath() returns home worker path when homeDir provided", () => {
+    const service = new ConfigService(undefined, tmpDir);
+    const expected = join(tmpDir, ".hoox", "workers", "d1-worker");
+    expect(service.getWorkerPath("d1-worker")).toBe(expected);
+  });
+
+  it("getWorkerPath() returns different paths for different workers", () => {
+    const service = new ConfigService(undefined, tmpDir);
+    const w1 = service.getWorkerPath("worker-a");
+    const w2 = service.getWorkerPath("worker-b");
+    expect(w1).not.toBe(w2);
+    expect(w1).toContain("worker-a");
+    expect(w2).toContain("worker-b");
+  });
+
+  it("getWorkerPath() returns a valid path when no home override", () => {
+    const service = new ConfigService();
+    const path = service.getWorkerPath("test-worker");
+    // Should end with the worker name
+    expect(path).toMatch(/test-worker$/);
+    expect(path.length).toBeGreaterThan(0);
+  });
+
+  // ── load() — home directory first strategy ────────────────────
+
+  it("load() reads config from home directory when present", async () => {
+    const homeDir = join(tmpDir, "hoox-home");
+    mkdirSync(join(homeDir, ".hoox", "config"), { recursive: true });
+    await Bun.write(
+      join(homeDir, ".hoox", "config", "wrangler.jsonc"),
+      validConfigJson()
+    );
+
+    const service = new ConfigService(undefined, homeDir);
+    const config = await service.load();
+    expect(config.global.cloudflare_account_id).toBe("abc123");
+    expect(config.workers["test-worker"]).toBeDefined();
+  });
+
+  it("load() falls back to current directory when home config missing", async () => {
+    const homeDir = join(tmpDir, "hoox-home-empty");
+    mkdirSync(homeDir, { recursive: true });
+
+    const service = new ConfigService(undefined, homeDir);
+    const config = await service.load();
+    // Falls back to project root's wrangler.jsonc
+    expect(config).toBeDefined();
+    expect(config.global).toBeDefined();
+    expect(typeof config.global.cloudflare_account_id).toBe("string");
+  });
+
+  it("load() prefers home config over current directory config", async () => {
+    // Create a config in home directory with distinctive values
+    const homeDir = join(tmpDir, "hoox-home-priority");
+    mkdirSync(join(homeDir, ".hoox", "config"), { recursive: true });
+    const homeConfig = JSON.stringify({
+      global: { cloudflare_account_id: "from-home" },
+      workers: {
+        "home-worker": { enabled: true, path: "workers/home" },
+      },
+    });
+    await Bun.write(
+      join(homeDir, ".hoox", "config", "wrangler.jsonc"),
+      homeConfig
+    );
+
+    // Home config exists AND project root also has a config.
+    // Service should prefer the home config.
+    const service = new ConfigService(undefined, homeDir);
+    const config = await service.load();
+    expect(config.global.cloudflare_account_id).toBe("from-home");
+    expect(config.workers["home-worker"]).toBeDefined();
+  });
+
+  it("load() with explicit configPath ignores homeDir", async () => {
+    await writeConfig(tmpDir, validConfigJson());
+
+    const homeDir = join(tmpDir, "hoox-home-ignored");
+    mkdirSync(join(homeDir, ".hoox", "config"), { recursive: true });
+
+    const service = new ConfigService(join(tmpDir, "wrangler.jsonc"), homeDir);
+    const config = await service.load();
+    expect(config.global.cloudflare_account_id).toBe("abc123");
+  });
+
+  it("load() updates configPath to resolved path from home", async () => {
+    const homeDir = join(tmpDir, "hoox-home-resolve");
+    mkdirSync(join(homeDir, ".hoox", "config"), { recursive: true });
+    const homeConfigPath = join(homeDir, ".hoox", "config", "wrangler.jsonc");
+    await Bun.write(homeConfigPath, validConfigJson());
+
+    const service = new ConfigService(undefined, homeDir);
+    await service.load();
+    // configPath should now be the home config path
+    expect(service.getConfigPath()).toBe(homeConfigPath);
+  });
+
+  // ── Constructor — homeDir parameter ──────────────────────────
+
+  it("accepts both configPath and homeDir parameters", () => {
+    const service = new ConfigService("/custom/path.jsonc", tmpDir);
+    expect(service).toBeInstanceOf(ConfigService);
+    // configPath returns explicit path (homeDir ignored for config path)
+    expect(service.getConfigPath()).toBe("/custom/path.jsonc");
+    // getWorkerPath uses homeDir
+    expect(service.getWorkerPath("w")).toBe(
+      join(tmpDir, ".hoox", "workers", "w")
+    );
+  });
+
+  it("constructor with only homeDir parameter works", () => {
+    const service = new ConfigService(undefined, tmpDir);
+    expect(service).toBeInstanceOf(ConfigService);
+    expect(service.getConfigPath()).toBe(
+      join(tmpDir, ".hoox", "config", "wrangler.jsonc")
+    );
   });
 });

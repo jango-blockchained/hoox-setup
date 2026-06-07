@@ -10,16 +10,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
+    "noEmit": true,
     "paths": {
       "@/*": ["./src/*"],
       "@hoox/shared": ["../shared/src"],
-      "@hoox/shared/*": ["../shared/*"]
+      "@hoox/shared/*": ["../shared/*"],
+      "@jango-blockchained/hoox-shared": ["../shared/src/index.ts"],
+      "@jango-blockchained/hoox-shared/*": ["../shared/src/*"]
     }
   },
+  "references": [{ "path": "../test-utils" }],
   "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

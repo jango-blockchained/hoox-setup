@@ -6,7 +6,9 @@
     "moduleResolution": "bundler",
     "paths": {
       "@jango-blockchained/hoox-shared/*": ["./packages/shared/src/*"],
-      "@jango-blockchained/hoox-shared": ["./packages/shared/src/index.ts"]
+      "@jango-blockchained/hoox-shared": ["./packages/shared/src/index.ts"],
+      "@hoox/test-utils/*": ["./packages/test-utils/src/*"],
+      "@hoox/test-utils": ["./packages/test-utils/src"]
     },
     "types": ["bun-types", "node"],
     "esModuleInterop": true,
@@ -36,7 +38,9 @@
     "src/**/*",
     "scripts/**/*",
     "test/**/*",
-    "packages/test-setup-global.ts"
+    "packages/test-setup-global.ts",
+    "test-runner.ts",
+    ".test-runner.js"
   ],
   "exclude": ["node_modules", "**/node_modules/*", "dist"]
 }

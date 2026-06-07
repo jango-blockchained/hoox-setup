@@ -12,6 +12,7 @@ import { createRoot } from "@opentui/react";
 import { CrashRecoveryApp } from "./app";
 import { saveSession } from "@jango-blockchained/hoox-shared";
 import { setRendererRef } from "./hooks";
+import { ensureTuiStateDir } from "./services/hoox-path-service";
 
 const RENDERER_CONFIG = {
   screenMode: "alternate-screen" as const,
@@ -28,6 +29,9 @@ const RENDERER_CONFIG = {
 };
 
 async function main() {
+  // Ensure TUI state directory exists ($HOME/.hoox/.tui-state or fallback)
+  await ensureTuiStateDir();
+
   const renderer = await createCliRenderer(RENDERER_CONFIG);
 
   renderer.on("destroy", () => {
