@@ -6,7 +6,7 @@
   "main": "src/main.tsx",
   "scripts": {
     "dev": "bun run src/main.tsx",
-    "build": "bun build src/main.tsx --outdir dist --target bun",
+    "build": "bun build src/main.tsx --outdir dist --target bun --packages external",
     "start": "bun run src/main.tsx",
     "test": "bun test --preload ./src/test-setup.ts",
     "test:e2e": "bun test --preload ./src/test-setup.ts test/e2e/",
