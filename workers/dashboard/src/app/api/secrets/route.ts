@@ -3,7 +3,7 @@ import { ENV_KEYS, getEnvVar } from "@/lib/config";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 const ALL_SECRETS = [
   "AGENT_INTERNAL_KEY",

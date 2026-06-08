@@ -6,7 +6,7 @@ import { z } from "zod";
 const settingsValueSchema = z.unknown();
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type Settings = Record<string, string | number | boolean | undefined>;
 type AllSettings = Record<

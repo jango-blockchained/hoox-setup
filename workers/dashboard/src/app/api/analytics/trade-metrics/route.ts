@@ -2,20 +2,24 @@ import { NextResponse } from "next/server";
 import { executeAnalyticsQuery } from "@/app/api/analytics/shared";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
+
+function toAnalyticsTs(iso: string): string {
+  return iso.replace("T", " ").replace(/\.\d{3}Z$/, "");
+}
 
 function buildTradeMetricsQuery(start: string, end: string): string {
   return `
     SELECT
       blob3 as exchange,
-      COUNT(*) as trade_count,
+      count() as trade_count,
       SUM(_sample_interval * double2) / SUM(_sample_interval) as avg_price,
-      SUM(CASE WHEN blob2 = 'success' THEN 1 ELSE 0 END) as success_count,
-      SUM(CASE WHEN blob2 = 'failure' THEN 1 ELSE 0 END) as failure_count
-    FROM hoox-analytics
+      SUM(if(blob2 = 'success', 1, 0)) as success_count,
+      SUM(if(blob2 = 'failure', 1, 0)) as failure_count
+    FROM "hoox-analytics"
     WHERE blob1 = 'trade'
-      AND timestamp >= '${start}'
-      AND timestamp <= '${end}'
+      AND timestamp >= toDateTime('${toAnalyticsTs(start)}')
+      AND timestamp <= toDateTime('${toAnalyticsTs(end)}')
     GROUP BY blob3
   `.trim();
 }
@@ -24,10 +28,10 @@ function buildSuccessRateQuery(timeRange?: string): string {
   const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : "";
   return `
     SELECT
-      COUNT(*) as total,
-      SUM(CASE WHEN blob2 = 'success' THEN 1 ELSE 0 END) as successes,
-      (SUM(CASE WHEN blob2 = 'success' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) as success_rate
-    FROM hoox-analytics
+      count() as total,
+      SUM(if(blob2 = 'success', 1, 0)) as successes,
+      (SUM(if(blob2 = 'success', 1, 0)) * 100.0 / count()) as success_rate
+    FROM "hoox-analytics"
     WHERE blob1 = 'trade'
     ${timeFilter}
   `.trim();

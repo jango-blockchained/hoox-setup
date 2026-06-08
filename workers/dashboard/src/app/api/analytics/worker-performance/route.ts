@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { executeAnalyticsQuery } from "@/app/api/analytics/shared";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function buildWorkerPerformanceQuery(
   worker: string,
@@ -15,7 +15,7 @@ function buildWorkerPerformanceQuery(
       SUM(double1) as total_requests,
       SUM(double2) as total_errors,
       AVG(double3) as avg_duration_ms
-    FROM hoox-analytics
+    FROM "hoox-analytics"
     WHERE blob1 IN ('worker-perf', 'api-call')
       AND blob2 = '${worker}'
       ${timeFilter}

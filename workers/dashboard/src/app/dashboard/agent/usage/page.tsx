@@ -2,7 +2,7 @@ import UsageClient from "./page.client";
 export { metadata } from "./metadata";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export default function UsagePage() {
   return <UsageClient />;

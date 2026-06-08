@@ -5,7 +5,7 @@ import type { DashboardEnv } from "@/lib/env";
 import { agentConfigSchema } from "@/lib/agent-config-schema";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest) {
   try {

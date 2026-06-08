@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { executeAnalyticsQuery } from "@/app/api/analytics/shared";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function buildSignalOutcomesQuery(timeRange?: string): string {
   const timeFilter = timeRange ? `AND timestamp >= '${timeRange}'` : "";
@@ -11,9 +11,9 @@ function buildSignalOutcomesQuery(timeRange?: string): string {
       blob2 as source,
       blob3 as signal_type,
       blob4 as symbol,
-      COUNT(*) as signal_count,
+      count() as signal_count,
       AVG(double1) as avg_confidence
-    FROM hoox-analytics
+    FROM "hoox-analytics"
     WHERE blob1 = 'signal'
     ${timeFilter}
     GROUP BY blob2, blob3, blob4

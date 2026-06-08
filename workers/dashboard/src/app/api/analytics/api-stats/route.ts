@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import { executeAnalyticsQuery } from "@/app/api/analytics/shared";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function buildApiCallStatsQuery(exchange?: string): string {
   const exchangeFilter = exchange ? `AND blob3 = '${exchange}'` : "";
   return `
     SELECT
       blob3 as endpoint,
-      COUNT(*) as call_count,
+      count() as call_count,
       AVG(double1) as avg_latency_ms,
-      SUM(CASE WHEN blob2 = 'success' THEN 1 ELSE 0 END) as success_count
-    FROM hoox-analytics
+      SUM(if(blob2 = 'success', 1, 0)) as success_count
+    FROM "hoox-analytics"
     WHERE blob1 = 'api-call'
     ${exchangeFilter}
     GROUP BY blob3

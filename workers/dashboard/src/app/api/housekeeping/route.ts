@@ -4,7 +4,7 @@ import type { DashboardEnv } from "@/lib/env";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function POST() {
   try {
@@ -17,12 +17,18 @@ export async function POST() {
       );
     }
 
+    const internalKey = (env as any).AGENT_INTERNAL_KEY;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (internalKey) {
+      headers["X-Internal-Auth-Key"] = internalKey;
+    }
+
     const res = await env.AGENT_SERVICE.fetch(
       new Request("http://agent-worker.internal/agent/housekeeping", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       })
     );
 

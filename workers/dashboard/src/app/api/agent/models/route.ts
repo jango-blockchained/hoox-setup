@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest) {
   try {
