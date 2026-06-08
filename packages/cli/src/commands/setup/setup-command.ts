@@ -11,7 +11,6 @@ import * as p from "@clack/prompts";
 import { SetupService } from "../../services/setup/index.js";
 import type { ProgressEvent } from "../../services/setup/index.js";
 import {
-  formatSuccess,
   formatError,
   formatTable,
   getFormatOptions,
@@ -284,7 +283,6 @@ EXAMPLES:
             }));
             formatTable(rows, globalOpts);
 
-            const secretOk = result.secrets?.filter((r) => r.ok).length ?? 0;
             const secretFail = result.secrets?.filter((r) => !r.ok).length ?? 0;
 
             if (result.success) {
