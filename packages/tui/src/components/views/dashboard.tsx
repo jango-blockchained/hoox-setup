@@ -311,20 +311,23 @@ function AlertsPanel() {
   });
 
   return (
-    <box flexDirection="column" flexGrow={1}>
+    <box flexDirection="column">
       {/* Section label */}
-      <text fg={Colors.foreground} bold dim>
-        ALERTS
-      </text>
+      <box>
+        <text fg={Colors.foreground} bold dim>
+          ALERTS
+        </text>
+      </box>
 
       {sortedAlerts.length === 0 ? (
-        <text fg={Colors.muted} dim paddingTop={1}>
-          No alerts
-        </text>
+        <box paddingTop={1}>
+          <text fg={Colors.muted} dim>
+            No alerts
+          </text>
+        </box>
       ) : (
         <scrollbox
           width="100%"
-          flexGrow={1}
           height={8}
           border={true}
           borderStyle="single"
@@ -380,9 +383,11 @@ function AlertsPanel() {
 
       {/* Scroll hint */}
       {sortedAlerts.length > 0 && (
-        <text fg={Colors.dim} dim>
-          ↑↓ scroll · {scrollOffset + 1}/{sortedAlerts.length}
-        </text>
+        <box>
+          <text fg={Colors.dim} dim>
+            ↑↓ scroll · {scrollOffset + 1}/{sortedAlerts.length}
+          </text>
+        </box>
       )}
     </box>
   );
@@ -623,14 +628,18 @@ function MetricCard({
       paddingRight={1}
     >
       {/* Label (dim, small) */}
-      <text fg={Colors.muted} dim>
-        {label}
-      </text>
+      <box>
+        <text fg={Colors.muted} dim>
+          {label}
+        </text>
+      </box>
 
       {/* Value (large, colored) */}
-      <text fg={color} bold>
-        {formatStatNumber(value, isPnl)}
-      </text>
+      <box>
+        <text fg={color} bold>
+          {formatStatNumber(value, isPnl)}
+        </text>
+      </box>
     </box>
   );
 }
@@ -1067,41 +1076,57 @@ export function DashboardView({ dialog }: DashboardViewProps = {}) {
     <ErrorBoundary viewName="Dashboard">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* 1. Header: title + connection status */}
-        <DashboardHeader
-          onRefresh={handleRefresh}
-          onRunAutoRepair={handleRunAutoRepair}
-          autoRepairRunning={repairState.kind === "running"}
-        />
+        <box>
+          <DashboardHeader
+            onRefresh={handleRefresh}
+            onRunAutoRepair={handleRunAutoRepair}
+            autoRepairRunning={repairState.kind === "running"}
+          />
+        </box>
 
         {/* 2. Kill-switch status badge — trading safety at a glance */}
-        <KillSwitchStatusBadge />
+        <box>
+          <KillSwitchStatusBadge />
+        </box>
 
         {/* Divider */}
-        <text fg={Colors.border} dim>
-          {""}
-          {"─".repeat(80)}
-        </text>
+        <box>
+          <text fg={Colors.border} dim>
+            {""}
+            {"─".repeat(80)}
+          </text>
+        </box>
 
         {/* 3. Service health grid */}
-        <ServiceHealthGrid />
+        <box>
+          <ServiceHealthGrid />
+        </box>
 
         {/* Auto-repair results panel — persists until dismissed or ESC */}
         {repairState.kind !== "idle" && (
-          <AutoRepairPanel
-            state={repairState}
-            onDismiss={dismissRepairPanel}
-            onRerun={rerunRepair}
-          />
+          <box>
+            <AutoRepairPanel
+              state={repairState}
+              onDismiss={dismissRepairPanel}
+              onRerun={rerunRepair}
+            />
+          </box>
         )}
 
         {/* 4. Alerts panel */}
-        <AlertsPanel />
+        <box>
+          <AlertsPanel />
+        </box>
 
         {/* 5. Quick stats row */}
-        <QuickStatsRow />
+        <box>
+          <QuickStatsRow />
+        </box>
 
         {/* 6. AI model health section */}
-        <ModelHealthSection />
+        <box>
+          <ModelHealthSection />
+        </box>
       </box>
     </ErrorBoundary>
   );

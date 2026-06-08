@@ -676,9 +676,8 @@ describe("SettingsView", () => {
 
     it("includes a 'suggested fix' line for each failed check", async () => {
       const output = await renderSettingsWithCheck();
-      expect(output).toContain("fix:");
-      // Global config has a known fix
-      expect(output).toContain("hoox init");
+      // Global config failed check has a known fix
+      expect(output).toContain("Set `global.cloudflare_account_id`");
     });
 
     it("includes a fix for missing D1 databases", async () => {

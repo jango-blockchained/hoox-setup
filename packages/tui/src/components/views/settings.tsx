@@ -627,14 +627,18 @@ function CheckFixHelp({ check }: { check: CheckItem }) {
   const help = SUGGESTED_FIXES[check.name] ?? GENERIC_FAIL_HELP;
   return (
     <box flexDirection="column" gap={0} paddingLeft={6}>
-      <text fg={Colors.foreground} dim>
-        {"  what: "}
-        {help.what}
-      </text>
-      <text fg={Colors.info} dim>
-        {"  fix:  "}
-        {help.fix}
-      </text>
+      <box>
+        <text fg={Colors.foreground} dim>
+          {"  what: "}
+          {help.what}
+        </text>
+      </box>
+      <box>
+        <text fg={Colors.info} dim>
+          {"  fix:  "}
+          {help.fix}
+        </text>
+      </box>
     </box>
   );
 }
@@ -712,17 +716,23 @@ function CheckSetupResultsPanel({
       </box>
 
       {/* Divider */}
-      <text fg={Colors.border} dim>
-        {"─".repeat(80)}
-      </text>
+      <box>
+        <text fg={Colors.border} dim>
+          {"─".repeat(80)}
+        </text>
+      </box>
 
       {/* Error state */}
       {state.kind === "error" && (
         <box flexDirection="column" gap={0} paddingTop={1}>
-          <text fg={Colors.error} bold>
-            Setup check failed to run:
-          </text>
-          <text fg={Colors.foreground}>{state.message}</text>
+          <box>
+            <text fg={Colors.error} bold>
+              Setup check failed to run:
+            </text>
+          </box>
+          <box>
+            <text fg={Colors.foreground}>{state.message}</text>
+          </box>
         </box>
       )}
 
@@ -739,9 +749,11 @@ function CheckSetupResultsPanel({
       {state.kind === "report" && (
         <box flexDirection="column" gap={0} paddingTop={1}>
           {state.report.categories.length === 0 ? (
-            <text fg={Colors.muted} dim>
-              No checks were run.
-            </text>
+            <box>
+              <text fg={Colors.muted} dim>
+                No checks were run.
+              </text>
+            </box>
           ) : (
             state.report.categories.map((cat) => (
               <box key={cat.name} flexDirection="column" gap={0} paddingTop={1}>
@@ -759,7 +771,9 @@ function CheckSetupResultsPanel({
                       gap={0}
                     >
                       <box flexDirection="row" gap={1} paddingLeft={1}>
-                        <CheckStatusBadge status={status} />
+                        <box width={8}>
+                          <CheckStatusBadge status={status} />
+                        </box>
                         <text
                           fg={
                             status === "fail"
@@ -773,25 +787,21 @@ function CheckSetupResultsPanel({
                       </box>
                       {/* Error details (one line each) */}
                       {check.errors.map((err, i) => (
-                        <text
-                          key={`err-${idx}-${i}`}
-                          fg={Colors.error}
-                          paddingLeft={6}
-                        >
-                          {"  - "}
-                          {err}
-                        </text>
+                        <box key={`err-${idx}-${i}`} paddingLeft={6}>
+                          <text fg={Colors.error}>
+                            {"  - "}
+                            {err}
+                          </text>
+                        </box>
                       ))}
                       {/* Warning details */}
                       {check.warnings.map((warn, i) => (
-                        <text
-                          key={`warn-${idx}-${i}`}
-                          fg={Colors.warning}
-                          paddingLeft={6}
-                        >
-                          {"  ~ "}
-                          {warn}
-                        </text>
+                        <box key={`warn-${idx}-${i}`} paddingLeft={6}>
+                          <text fg={Colors.warning}>
+                            {"  ~ "}
+                            {warn}
+                          </text>
+                        </box>
                       ))}
                       {/* What it means + suggested fix (failures only) */}
                       {status === "fail" && <CheckFixHelp check={check} />}
