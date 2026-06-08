@@ -30,7 +30,6 @@ async function renderStatusBar(): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<StatusBar />, {
     width: 120,
     height: 30,
-    testing: true,
     exitOnCtrlC: false,
   });
   await renderOnce();
@@ -44,7 +43,6 @@ async function renderPanel(details: CliErrorDetails): Promise<string> {
     {
       width: 120,
       height: 30,
-      testing: true,
       exitOnCtrlC: false,
     }
   );

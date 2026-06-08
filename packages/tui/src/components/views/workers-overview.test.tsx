@@ -30,7 +30,7 @@ function collectText(output: unknown): string[] {
 async function renderWorkersOverview(): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(
     <WorkersOverview />,
-    { width: 80, height: 24, testing: true, exitOnCtrlC: false }
+    { width: 80, height: 24, exitOnCtrlC: false }
   );
   await renderOnce();
   return captureCharFrame();

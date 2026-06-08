@@ -21,7 +21,6 @@ async function renderTradeMonitor(): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<TradeMonitor />, {
     width: 80,
     height: 24,
-    testing: true,
     exitOnCtrlC: false,
   });
   await renderOnce();

@@ -16,10 +16,11 @@
       "@hoox/shared": ["../shared/src"],
       "@hoox/shared/*": ["../shared/*"],
       "@jango-blockchained/hoox-shared": ["../shared/src/index.ts"],
-      "@jango-blockchained/hoox-shared/*": ["../shared/src/*"]
+      "@jango-blockchained/hoox-shared/*": ["../shared/src/*"],
+      "@hoox/test-utils": ["../test-utils/src"],
+      "@hoox/test-utils/*": ["../test-utils/src/*"]
     }
   },
-  "references": [{ "path": "../test-utils" }],
   "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

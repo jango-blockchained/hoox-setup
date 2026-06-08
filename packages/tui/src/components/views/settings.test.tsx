@@ -330,7 +330,6 @@ async function renderSettings(width = 120, height = 24): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<SettingsView />, {
     width,
     height,
-    testing: true,
     exitOnCtrlC: false,
   });
   await renderOnce();
@@ -352,7 +351,6 @@ async function renderSettingsWithCheck(
       {
         width,
         height,
-        testing: true,
         exitOnCtrlC: false,
       }
     );

@@ -68,7 +68,6 @@ async function renderDashboard(): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<DashboardView />, {
     width: 80,
     height: 24,
-    testing: true,
     exitOnCtrlC: false,
   });
   await renderOnce();
