@@ -1,18 +1,56 @@
 {
-  "name": "hoox-dashboard",
-  "pages_build_output_dir": ".vercel/output/static",
-  "compatibility_date": "2025-03-07",
+  // Dashboard — Next.js 16 + OpenNext on Cloudflare Workers
+  "name": "dashboard",
+  "main": ".open-next/worker.js",
+  "account_id": "YOUR_ACCOUNT_ID",
+  "compatibility_date": "2026-06-08",
   "compatibility_flags": ["nodejs_compat"],
+  // Smart Placement not enabled by design — dashboard serves user-facing UI
+  // and should be close to users, not backend services.
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "kv_namespaces": [
     {
       "binding": "CONFIG_KV",
-      "id": "your-config-kv-id-here"
+      "id": "YOUR_CONFIG_KV_ID"
+    },
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "YOUR_NEXT_INC_CACHE_KV_ID"
+    }
+  ],
+  "services": [
+    {
+      "binding": "D1_SERVICE",
+      "service": "d1-worker"
+    },
+    {
+      "binding": "AGENT_SERVICE",
+      "service": "agent-worker"
+    },
+    {
+      "binding": "WEB3_WALLET_SERVICE",
+      "service": "web3-wallet-worker"
     }
   ],
   "vars": {
-    "D1_WORKER_URL": "https://d1-worker.your-subdomain.workers.dev",
-    "AGENT_SERVICE_URL": "https://agent-worker.your-subdomain.workers.dev",
-    "TRADE_SERVICE_URL": "https://trade-worker.your-subdomain.workers.dev",
-    "TELEGRAM_SERVICE_URL": "https://telegram-worker.your-subdomain.workers.dev"
+    "D1_WORKER_URL": "https://d1-worker.YOUR_PREFIX.workers.dev",
+    "HOOX_URL": "https://hoox.YOUR_PREFIX.workers.dev",
+    "AGENT_WORKER_URL": "https://agent-worker.YOUR_PREFIX.workers.dev",
+    "ANALYTICS_WORKER_URL": "https://analytics-worker.YOUR_PREFIX.workers.dev",
+    "TRADE_WORKER_URL": "https://trade-worker.YOUR_PREFIX.workers.dev",
+    "TELEGRAM_WORKER_URL": "https://telegram-worker.YOUR_PREFIX.workers.dev",
+    "WEB3_WALLET_WORKER_URL": "https://web3-wallet-worker.YOUR_PREFIX.workers.dev",
+    "EMAIL_WORKER_URL": "https://email-worker.YOUR_PREFIX.workers.dev"
+  },
+  "ai": {
+    "binding": "AI"
   }
 }
