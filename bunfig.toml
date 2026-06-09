@@ -5,6 +5,10 @@ coverageDir = "./coverage"
 timeout = 60000
 preload = "./packages/test-utils/src/setup.ts"
 
+# Coverage thresholds (per .opencode/context/core/standards/test-coverage.md)
+# Targets: 90% statement, 85% branch, 95% function, 90% line
+coverageThreshold = { lines = 0.80, statements = 0.80, functions = 0.80, branches = 0.75 }
+
 [test.env]
 NODE_ENV = "test"
 
