@@ -90,20 +90,20 @@ export class KvSyncService {
 
   async set(namespaceId: string, key: string, value: string): Promise<void> {
     const proc = Bun.spawn(
-      [
-        "wrangler",
-        "kv",
-        "key",
-        "put",
-        "--namespace-id",
-        namespaceId,
-        key,
-        value,
-      ],
-      { stdout: "pipe", stderr: "pipe" }
+      ["wrangler", "kv", "key", "put", "--namespace-id", namespaceId, key],
+      { stdout: "pipe", stderr: "pipe", stdin: "pipe" }
     );
+
+    // Pipe the value through stdin — never via CLI args (avoids leaking
+    // secrets via `ps`/process cmdline/shell history).
+    proc.stdin.write(value + "\n");
+    proc.stdin.end();
+
+    const [, stderr] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ]);
     const exitCode = await proc.exited;
-    const stderr = await new Response(proc.stderr).text();
 
     if (exitCode !== 0) {
       throw new Error(

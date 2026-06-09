@@ -18,10 +18,17 @@ import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
 import { cliBridge } from "../../services/cli-bridge";
-import type { AlertSeverity } from "@jango-blockchained/hoox-shared";
-import type { ModelHealth, AgentHealthResult } from "../../services/cli-bridge";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
+import { Spinner, EmptyState } from "../shared/spinner";
+import {
+  AutoRepairPanel,
+  RepairFixItem,
+  RepairState,
+} from "./dashboard/auto-repair-panel";
+import { ModelHealthSection } from "./dashboard/model-health-section";
+import { AlertsPanel } from "./dashboard/alerts-panel";
+import { useUIStore } from "@jango-blockchained/hoox-shared";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -29,27 +36,6 @@ export interface DashboardViewProps {
   /** Dialog handle for confirm prompts (from useDialog context) */
   dialog?: DialogHandle;
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-/** Severity-based color keys for alert text */
-const SEVERITY_COLOR: Record<AlertSeverity, string> = {
-  info: Colors.info,
-  warning: Colors.warning,
-  error: Colors.error,
-  critical: Colors.error, // critical gets same red as error, but bold
-};
-
-/** Severity label prefix */
-const SEVERITY_LABEL: Record<AlertSeverity, string> = {
-  info: "INFO",
-  warning: "WARN",
-  error: "ERR",
-  critical: "CRIT",
-};
-
-/** Maximum alerts shown in the panel */
-const MAX_VISIBLE_ALERTS = 50;
 
 // ─── Number Formatter (Bebas-style large numbers) ────────────────────────────
 
@@ -71,18 +57,6 @@ function formatStatNumber(value: number, isPnl = false): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return value.toLocaleString("en-US");
-}
-
-/**
- * Format a timestamp (ms) to HH:MM:SS for alert display.
- */
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return [
-    d.getHours().toString().padStart(2, "0"),
-    d.getMinutes().toString().padStart(2, "0"),
-    d.getSeconds().toString().padStart(2, "0"),
-  ].join(":");
 }
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
@@ -188,6 +162,13 @@ function DashboardHeader({
           [REFRESH]
         </text>
         <text
+          fg={Colors.accent}
+          bold
+          onMouseUp={() => useUIStore.getState().setView("edge-topology")}
+        >
+          [TOPOLOGY]
+        </text>
+        <text
           fg={autoRepairRunning ? Colors.warning : Colors.accent}
           bold={!autoRepairRunning}
           dim={autoRepairRunning}
@@ -213,10 +194,8 @@ function ServiceHealthGrid() {
 
   if (workers.length === 0) {
     return (
-      <box flexDirection="column" paddingY={1}>
-        <text fg={Colors.muted} dim>
-          No workers connected — waiting for data…
-        </text>
+      <box flexDirection="column" paddingY={1} alignItems="center">
+        <Spinner label="Waiting for worker data..." />
       </box>
     );
   }
@@ -284,326 +263,8 @@ function ServiceHealthGrid() {
 }
 
 /**
- * AlertsPanel — scrollable list of recent alerts, newest first.
- * Each alert row shows: [SEV] HH:MM:SS — message
- * Color-coded by severity. Scrollable with ↑↓ keys.
- */
-function AlertsPanel() {
-  const alerts = useServiceStore((s) => s.alerts);
-  const [scrollOffset, setScrollOffset] = useState(0);
-
-  // Newest first, limited
-  const sortedAlerts = useMemo(() => {
-    return [...alerts]
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, MAX_VISIBLE_ALERTS);
-  }, [alerts]);
-
-  // Keyboard: scroll through alerts
-  useKeyboard((key) => {
-    if (key.name === "up") {
-      setScrollOffset((o) => Math.max(0, o - 1));
-    } else if (key.name === "down") {
-      setScrollOffset((o) =>
-        Math.min(Math.max(0, sortedAlerts.length - 1), o + 1)
-      );
-    }
-  });
-
-  return (
-    <box flexDirection="column">
-      {/* Section label */}
-      <box>
-        <text fg={Colors.foreground} bold dim>
-          ALERTS
-        </text>
-      </box>
-
-      {sortedAlerts.length === 0 ? (
-        <box paddingTop={1}>
-          <text fg={Colors.muted} dim>
-            No alerts
-          </text>
-        </box>
-      ) : (
-        <scrollbox
-          width="100%"
-          height={8}
-          border={true}
-          borderStyle="single"
-          borderColor={Colors.border}
-          paddingTop={0}
-        >
-          {sortedAlerts.map((alert, i) => {
-            const color = SEVERITY_COLOR[alert.severity];
-            const label = SEVERITY_LABEL[alert.severity];
-            const isCritical = alert.severity === "critical";
-            const isSelected = i === scrollOffset;
-
-            return (
-              <box
-                key={alert.id}
-                flexDirection="row"
-                gap={1}
-                backgroundColor={isSelected ? Colors.card : undefined}
-              >
-                {/* Severity badge */}
-                <text fg={color} bold={isCritical} dim={!isCritical}>
-                  [{label}]
-                </text>
-
-                {/* Timestamp */}
-                <text fg={Colors.muted} dim>
-                  {formatTime(alert.timestamp)}
-                </text>
-
-                {/* Divider */}
-                <text fg={Colors.dim} dim>
-                  —
-                </text>
-
-                {/* Message */}
-                <text fg={color} bold={isCritical} dim={alert.acknowledged}>
-                  {alert.message.length > 60
-                    ? alert.message.slice(0, 57) + "…"
-                    : alert.message}
-                </text>
-
-                {/* Acknowledged marker */}
-                {alert.acknowledged && (
-                  <text fg={Colors.dim} dim>
-                    ✓
-                  </text>
-                )}
-              </box>
-            );
-          })}
-        </scrollbox>
-      )}
-
-      {/* Scroll hint */}
-      {sortedAlerts.length > 0 && (
-        <box>
-          <text fg={Colors.dim} dim>
-            ↑↓ scroll · {scrollOffset + 1}/{sortedAlerts.length}
-          </text>
-        </box>
-      )}
-    </box>
-  );
-}
-
-/**
  * MetricCard — a single stat card with label and large formatted number.
  */
-
-// ─── Auto-Repair Types ────────────────────────────────────────────────────────
-
-/**
- * A single fix action result from `hoox check fix`.
- * Mirrors the CLI's FixAction shape (`packages/cli/src/commands/check/types.ts`).
- */
-interface RepairFixItem {
-  /** Human-readable description of the fix. */
-  description: string;
-  /** Type of fix: file, binding, flag, or config. */
-  type: "file" | "binding" | "flag" | "config";
-  /** Target path or identifier. */
-  target: string;
-  /** Whether the fix was successfully applied. */
-  applied: boolean;
-  /** Error message if application failed. */
-  error?: string;
-  /** Timestamp when the fix was attempted. */
-  timestamp: number;
-}
-
-/**
- * UI state for the Auto-Repair results panel.
- */
-type RepairState =
-  | { kind: "idle" }
-  | { kind: "running" }
-  | { kind: "error"; message: string }
-  | { kind: "results"; items: RepairFixItem[]; durationMs: number };
-
-// ─── Auto-Repair Sub-Components ───────────────────────────────────────────────
-
-/**
- * Status badge for a single repair item: APPLIED, FAILED, or SKIPPED.
- */
-function RepairStatusBadge({
-  status,
-}: {
-  status: "applied" | "failed" | "skipped";
-}) {
-  if (status === "applied") {
-    return (
-      <text fg={Colors.success} bold>
-        [APPLIED]
-      </text>
-    );
-  }
-  if (status === "failed") {
-    return (
-      <text fg={Colors.error} bold>
-        [FAILED]
-      </text>
-    );
-  }
-  return (
-    <text fg={Colors.warning} bold>
-      [SKIPPED]
-    </text>
-  );
-}
-
-/**
- * Format a timestamp (ms) to HH:MM:SS for display.
- */
-function formatRepairTime(ts: number): string {
-  const d = new Date(ts);
-  return [
-    d.getHours().toString().padStart(2, "0"),
-    d.getMinutes().toString().padStart(2, "0"),
-    d.getSeconds().toString().padStart(2, "0"),
-  ].join(":");
-}
-
-/**
- * AutoRepairPanel — shows repair results below the health section.
- * Displays each fix item with timestamp, description, and status.
- * Persists until the user dismisses with ESC or the [DISMISS] button.
- */
-function AutoRepairPanel({
-  state,
-  onDismiss,
-  onRerun,
-}: {
-  state: RepairState;
-  onDismiss: () => void;
-  onRerun: () => void;
-}) {
-  return (
-    <box
-      flexDirection="column"
-      border={true}
-      borderStyle="single"
-      borderColor={Colors.accent}
-      backgroundColor={Colors.card}
-      padding={1}
-      gap={0}
-    >
-      {/* Header row */}
-      <box flexDirection="row" gap={2}>
-        <text fg={Colors.accent} bold>
-          AUTO-REPAIR RESULTS
-        </text>
-        {state.kind === "results" && (
-          <>
-            <text fg={Colors.success} bold>
-              {state.items.filter((i) => i.applied).length} applied
-            </text>
-            <text
-              fg={
-                state.items.filter((i) => i.error).length > 0
-                  ? Colors.error
-                  : Colors.muted
-              }
-              bold={state.items.filter((i) => i.error).length > 0}
-            >
-              {state.items.filter((i) => i.error).length} failed
-            </text>
-            <text fg={Colors.muted} dim>
-              {`(${(state.durationMs / 1000).toFixed(1)}s)`}
-            </text>
-          </>
-        )}
-        {state.kind === "running" && (
-          <text fg={Colors.info} bold>
-            running...
-          </text>
-        )}
-        <text fg={Colors.muted}>{"  "}</text>
-        <text fg={Colors.accent} bold onMouseUp={onRerun}>
-          [ RE-RUN ]
-        </text>
-        <text fg={Colors.warning} bold onMouseUp={onDismiss}>
-          [ DISMISS ]
-        </text>
-      </box>
-
-      {/* Divider */}
-      <text fg={Colors.border} dim>
-        {"─".repeat(80)}
-      </text>
-
-      {/* Error state */}
-      {state.kind === "error" && (
-        <box flexDirection="column" gap={0} paddingTop={1}>
-          <text fg={Colors.error} bold>
-            Auto-repair failed to run:
-          </text>
-          <text fg={Colors.foreground}>{state.message}</text>
-        </box>
-      )}
-
-      {/* Running state */}
-      {state.kind === "running" && (
-        <box flexDirection="column" gap={0} paddingTop={1}>
-          <text fg={Colors.muted} dim>
-            Running `hoox check fix` — this may take up to 60 seconds.
-          </text>
-        </box>
-      )}
-
-      {/* Results state */}
-      {state.kind === "results" && (
-        <box flexDirection="column" gap={0} paddingTop={1}>
-          {state.items.length === 0 ? (
-            <text fg={Colors.muted} dim>
-              No repairs were needed — all checks passed.
-            </text>
-          ) : (
-            state.items.map((item, idx) => {
-              const status: "applied" | "failed" | "skipped" = item.error
-                ? "failed"
-                : item.applied
-                  ? "applied"
-                  : "skipped";
-              return (
-                <box
-                  key={`repair-${idx}-${item.target}`}
-                  flexDirection="column"
-                  gap={0}
-                >
-                  <box flexDirection="row" gap={1} paddingLeft={1}>
-                    <RepairStatusBadge status={status} />
-                    <text fg={Colors.foreground} bold={status === "failed"}>
-                      {item.description}
-                    </text>
-                  </box>
-                  {/* Target */}
-                  <text fg={Colors.dim} dim paddingLeft={6}>
-                    {"  target: "}
-                    {item.target}
-                  </text>
-                  {/* Error details */}
-                  {item.error && (
-                    <text fg={Colors.error} paddingLeft={6}>
-                      {"  error: "}
-                      {item.error}
-                    </text>
-                  )}
-                </box>
-              );
-            })
-          )}
-        </box>
-      )}
-    </box>
-  );
-}
 
 function MetricCard({
   label,
@@ -624,8 +285,8 @@ function MetricCard({
       borderStyle="single"
       borderColor={Colors.border}
       backgroundColor={Colors.card}
-      paddingLeft={1}
-      paddingRight={1}
+      paddingX={1}
+      paddingY={0}
     >
       {/* Label (dim, small) */}
       <box>
@@ -685,237 +346,10 @@ function QuickStatsRow() {
 
       {/* Empty state when metrics unavailable */}
       {metrics === null && (
-        <text fg={Colors.muted} dim paddingTop={1}>
-          Waiting for metrics data…
-        </text>
-      )}
-    </box>
-  );
-}
-
-/** Polling interval for AI model health checks (30 seconds). */
-const MODEL_HEALTH_POLL_MS = 30_000;
-
-/**
- * Map model status to a color for the status indicator.
- * online → green, degraded → yellow/warning, offline → red/error
- */
-function modelStatusColor(status: ModelHealth["status"]): string {
-  if (status === "online") return Colors.success;
-  if (status === "degraded") return Colors.warning;
-  return Colors.error;
-}
-
-/**
- * Map model status to a StatusDot-compatible status string.
- */
-function modelStatusToDot(
-  status: ModelHealth["status"]
-): "operational" | "degraded" | "down" {
-  if (status === "online") return "operational";
-  if (status === "degraded") return "degraded";
-  return "down";
-}
-
-/**
- * ModelHealthRow — a single expandable row showing one AI provider.
- * Click to expand/collapse detailed stats (latency, daily usage, error).
- */
-function ModelHealthRow({
-  model,
-  isExpanded,
-  onToggle,
-}: {
-  model: ModelHealth;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const color = modelStatusColor(model.status);
-
-  return (
-    <box flexDirection="column" gap={0}>
-      {/* Main row — always visible */}
-      <box flexDirection="row" gap={1} paddingLeft={1}>
-        {/* Expand/collapse indicator */}
-        <text fg={Colors.muted} dim>
-          {isExpanded ? "▼" : "▶"}
-        </text>
-
-        {/* Status dot */}
-        <StatusDot status={modelStatusToDot(model.status)} />
-
-        {/* Provider name */}
-        <text fg={Colors.foreground} bold>
-          {model.name}
-        </text>
-
-        {/* Model identifier (truncated) */}
-        <text fg={Colors.muted} dim>
-          {model.model.length > 30
-            ? model.model.slice(0, 27) + "…"
-            : model.model}
-        </text>
-
-        {/* Expand hint */}
-        <text fg={Colors.accent} onMouseUp={onToggle}>
-          [DETAILS]
-        </text>
-      </box>
-
-      {/* Expanded details */}
-      {isExpanded && (
-        <box flexDirection="column" gap={0} paddingLeft={6}>
-          {/* Latency */}
-          <text fg={Colors.muted} dim>
-            {"  latency: "}
-            <text fg={color}>
-              {model.latencyMs !== null ? `${model.latencyMs}ms` : "-"}
-            </text>
-          </text>
-
-          {/* Daily requests */}
-          <text fg={Colors.muted} dim>
-            {"  daily requests: "}
-            <text fg={Colors.info}>
-              {model.dailyRequests !== null
-                ? model.dailyRequests.toLocaleString()
-                : "-"}
-            </text>
-          </text>
-
-          {/* Error message (if any) */}
-          {model.error && (
-            <text fg={Colors.error}>
-              {"  error: "}
-              {model.error}
-            </text>
-          )}
+        <box paddingTop={1} alignItems="center">
+          <Spinner label="Waiting for metrics data..." />
         </box>
       )}
-    </box>
-  );
-}
-
-/**
- * ModelHealthSection — displays health status of all configured AI providers.
- *
- * Auto-refreshes every 30 seconds when the dashboard is active.
- * Supports multiple providers: Workers AI, OpenAI, Anthropic, Google, Azure.
- * Click on a provider to expand detailed stats (latency, daily usage, error).
- */
-function ModelHealthSection() {
-  const [providers, setProviders] = useState<ModelHealth[]>([]);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<number | null>(null);
-
-  const fetchHealth = useCallback(async () => {
-    const result = await cliBridge.agentHealthCheck();
-    if (result.success && result.data) {
-      setProviders(result.data.providers);
-      setLastRefresh(Date.now());
-    }
-    setLoading(false);
-  }, []);
-
-  // Initial fetch + 30s polling
-  useEffect(() => {
-    void fetchHealth();
-    const interval = setInterval(() => {
-      void fetchHealth();
-    }, MODEL_HEALTH_POLL_MS);
-    return () => clearInterval(interval);
-  }, [fetchHealth]);
-
-  const toggleExpand = useCallback((index: number) => {
-    setExpandedIndex((prev) => (prev === index ? null : index));
-  }, []);
-
-  if (loading && providers.length === 0) {
-    return (
-      <box flexDirection="column" gap={0}>
-        <text fg={Colors.foreground} bold dim>
-          AI MODEL HEALTH
-        </text>
-        <text fg={Colors.muted} dim paddingTop={1}>
-          Checking provider status…
-        </text>
-      </box>
-    );
-  }
-
-  if (providers.length === 0) {
-    return (
-      <box flexDirection="column" gap={0}>
-        <text fg={Colors.foreground} bold dim>
-          AI MODEL HEALTH
-        </text>
-        <text fg={Colors.muted} dim paddingTop={1}>
-          No AI providers configured
-        </text>
-      </box>
-    );
-  }
-
-  // Summary counts
-  const onlineCount = providers.filter((p) => p.status === "online").length;
-  const degradedCount = providers.filter((p) => p.status === "degraded").length;
-  const offlineCount = providers.filter((p) => p.status === "offline").length;
-
-  return (
-    <box flexDirection="column" gap={0}>
-      {/* Section header */}
-      <box flexDirection="row" gap={2}>
-        <text fg={Colors.foreground} bold dim>
-          AI MODEL HEALTH
-        </text>
-
-        {/* Status summary badges */}
-        {onlineCount > 0 && (
-          <text fg={Colors.success} dim>
-            {onlineCount} online
-          </text>
-        )}
-        {degradedCount > 0 && (
-          <text fg={Colors.warning} dim>
-            {degradedCount} degraded
-          </text>
-        )}
-        {offlineCount > 0 && (
-          <text fg={Colors.error} dim>
-            {offlineCount} offline
-          </text>
-        )}
-
-        {/* Last refresh timestamp */}
-        {lastRefresh !== null && (
-          <text fg={Colors.muted} dim>
-            {`updated ${new Date(lastRefresh).toLocaleTimeString()}`}
-          </text>
-        )}
-      </box>
-
-      {/* Provider list */}
-      <box
-        flexDirection="column"
-        gap={0}
-        paddingTop={1}
-        border={true}
-        borderStyle="single"
-        borderColor={Colors.border}
-        backgroundColor={Colors.card}
-        paddingLeft={1}
-        paddingRight={1}
-      >
-        {providers.map((model, index) => (
-          <ModelHealthRow
-            key={model.name}
-            model={model}
-            isExpanded={expandedIndex === index}
-            onToggle={() => toggleExpand(index)}
-          />
-        ))}
-      </box>
     </box>
   );
 }

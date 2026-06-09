@@ -15,13 +15,21 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { getConfig, wrangler, section, testResourceName } from "./helpers";
+import {
+  getConfig,
+  wrangler,
+  canMutateCloudflare,
+  hasLiveEnv,
+  section,
+  testResourceName,
+} from "./helpers";
 
 const TEST_SECRET_NAME = testResourceName("LIVE_TEST_SECRET");
 const TEST_SECRET_VALUE = `live-test-value-${Date.now()}`;
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv =
+  hasLiveEnv("CLOUDFLARE_ACCOUNT_ID") && canMutateCloudflare();
 (hasCloudflareEnv ? describe : describe.skip)("Secrets", () => {
   let config: ReturnType<typeof getConfig>;
   const testWorkers = ["hoox", "d1-worker", "trade-worker"];

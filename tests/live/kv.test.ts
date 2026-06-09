@@ -17,6 +17,7 @@ import {
   getConfig,
   wrangler,
   skipIfMissing,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -24,7 +25,7 @@ import {
 const TEST_PREFIX = testResourceName("kv-test");
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("HOOX_KV_NAMESPACE_ID");
 (hasCloudflareEnv ? describe : describe.skip)("KV Namespace", async () => {
   let config: ReturnType<typeof getConfig>;
   let namespaceId: string;

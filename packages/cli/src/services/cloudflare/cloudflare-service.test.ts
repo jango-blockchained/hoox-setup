@@ -642,14 +642,78 @@ describe("CloudflareService", () => {
   // -- zonesList ------------------------------------------------------------
 
   describe("zonesList", () => {
-    it("calls wrangler zones list", async () => {
-      mockSpawnWithCapture(successSpawn("[]"));
+    const originalFetch = globalThis.fetch;
+    const originalToken = process.env.CLOUDFLARE_API_TOKEN;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+      if (originalToken !== undefined) {
+        process.env.CLOUDFLARE_API_TOKEN = originalToken;
+      } else {
+        delete process.env.CLOUDFLARE_API_TOKEN;
+      }
+    });
+
+    it("calls Cloudflare API for zones", async () => {
+      process.env.CLOUDFLARE_API_TOKEN = "test-token";
+      globalThis.fetch = mock(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: true,
+              result: [
+                { id: "zone-id-1", name: "example.com" },
+                { id: "zone-id-2", name: "test.com" },
+              ],
+              errors: [],
+            }),
+            { status: 200 }
+          )
+      ) as unknown as typeof fetch;
 
       const service = new CloudflareService();
       const result = await service.zonesList();
 
       expect(result.ok).toBe(true);
-      expect(lastSpawnCmd).toEqual(["wrangler", "zones", "list"]);
+      if (result.ok) {
+        expect(result.value).toContain("example.com (zone-id-1)");
+        expect(result.value).toContain("test.com (zone-id-2)");
+      }
+    });
+
+    it("returns error when CLOUDFLARE_API_TOKEN is not set", async () => {
+      delete process.env.CLOUDFLARE_API_TOKEN;
+
+      const service = new CloudflareService();
+      const result = await service.zonesList();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toContain("CLOUDFLARE_API_TOKEN");
+      }
+    });
+
+    it("returns error when API call fails", async () => {
+      process.env.CLOUDFLARE_API_TOKEN = "test-token";
+      globalThis.fetch = mock(
+        async () =>
+          new Response(
+            JSON.stringify({
+              success: false,
+              result: [],
+              errors: [{ message: "Unauthorized" }],
+            }),
+            { status: 401 }
+          )
+      ) as unknown as typeof fetch;
+
+      const service = new CloudflareService();
+      const result = await service.zonesList();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toContain("Unauthorized");
+      }
     });
   });
 
@@ -694,6 +758,26 @@ describe("CloudflareService", () => {
       if (!result.ok) {
         expect(result.error).toContain("Failed to spawn wrangler");
         expect(result.error).toContain("ENOENT");
+        expect(result.error).toContain("↳ hint:");
+        expect(result.error).toContain("bun add -g wrangler");
+      }
+    });
+
+    it("returns plain error when spawn throws with non-ENOENT message", async () => {
+      // Simulate a non-ENOENT spawn failure (e.g. permission denied).
+      // No hint should be added in that case.
+      const spawnMock = mock(() => {
+        throw new Error("EACCES: permission denied");
+      });
+      (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
+
+      const service = new CloudflareService();
+      const result = await service.whoami();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toContain("Failed to spawn wrangler");
+        expect(result.error).not.toContain("↳ hint:");
       }
     });
   });

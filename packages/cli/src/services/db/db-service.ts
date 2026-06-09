@@ -149,18 +149,34 @@ export class DbService {
   }
 
   private async readMigrationSql(): Promise<string> {
+    const path = this.resolveMigrationScriptPath();
+    let file: ReturnType<typeof Bun.file>;
     try {
-      const file = Bun.file(this.resolveMigrationScriptPath());
-      if (await file.exists()) {
-        const content = await file.text();
-        const match = content.match(
-          /d1\s+execute\s+\S+\s+--command=["'](.+?)["']/s
-        );
-        if (match) return match[1];
-      }
-    } catch {
-      // Fall through
+      file = Bun.file(path);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new Error(
+        `Migration script "${path}" could not be read: ${message}. ` +
+          `Refusing to run no-op migration.`,
+        { cause: e }
+      );
     }
-    return "SELECT 1";
+    if (!(await file.exists())) {
+      throw new Error(
+        `Migration script "${path}" not found. ` +
+          `Refusing to run no-op migration. Create the script or run \`hoox setup\` first.`
+      );
+    }
+    const content = await file.text();
+    const match = content.match(
+      /d1\s+execute\s+\S+\s+--command=["'](.+?)["']/s
+    );
+    if (!match) {
+      throw new Error(
+        `Migration script "${path}" was found but no \`d1 execute … --command="…"\` line could be extracted. ` +
+          `Refusing to fall back to a no-op migration — please check the script format.`
+      );
+    }
+    return match[1];
   }
 }

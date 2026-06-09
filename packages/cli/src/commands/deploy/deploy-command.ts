@@ -18,9 +18,12 @@ import {
   formatSuccess,
   formatError,
   formatTable,
+  formatDuration,
+  formatBadge,
   type FormatOptions,
   getFormatOptions,
 } from "../../utils/formatters.js";
+import { runRichTasks, type RichTaskResult } from "../../utils/rich.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { DeployResult } from "./types.js";
@@ -175,14 +178,19 @@ const DEPLOY_ORDER: string[] = [
 
 /**
  * Deploy all enabled workers + dashboard with interactive progress UI.
- * Uses a single list that updates in place with spinner and details.
+ *
+ * Uses `runRichTasks` for the per-item checklist with timing, success/error
+ * status, and an optional post-task details block. The `DeployResult[]` return
+ * shape is preserved so callers (and the `--json` / quiet paths) are
+ * unaffected.
  */
 async function deployAll(
   configService: ConfigService,
   cf: CloudflareService,
   env?: string,
   forceRebuildDashboard: boolean = false,
-  autoMode: boolean = false
+  autoMode: boolean = false,
+  format: FormatOptions = {}
 ): Promise<DeployResult[]> {
   // Get enabled workers and sort by deployment order
   const enabled = configService.listEnabledWorkers();
@@ -194,84 +202,68 @@ async function deployAll(
     (w) => w !== "dashboard" && !DEPLOY_ORDER.includes(w)
   );
   const allItems = [...workers, ...unknown, "dashboard"];
-  const results: DeployResult[] = [];
 
   if (allItems.length === 0) {
-    return results;
+    return [];
   }
 
-  // Use clack spinner for each worker
-  const s = spinner();
-  s.start(`Deploying ${allItems.length} item(s)...`);
-
-  for (let i = 0; i < allItems.length; i++) {
-    const name = allItems[i];
-    const isDashboard = name === "dashboard";
-
-    s.message(`[${i + 1}/${allItems.length}] ${name}...`);
-
-    let result: DeployResult;
-
-    if (isDashboard) {
-      // Use the silent mode in deployAll since we manage our own UI
-      result = await deployDashboard(cf, forceRebuildDashboard, true, autoMode);
-    } else {
-      result = await deploySingle(configService, cf, name, env);
-    }
-
-    results.push(result);
-
-    if (result.success) {
-      s.stop(`${theme.success(icons.success)} ${name} deployed`);
-    } else {
-      s.stop(`${theme.error(icons.error)} ${name} failed`);
-    }
-
-    // Output details below the spinner line
-    if (result.success) {
-      if (result.url) {
-        log.step(`  ${theme.dim("URL:")}     ${result.url}`);
+  // Build the task list (deferred execution — we capture the deploy
+  // function so `runRichTasks` can run + report on each one).
+  const tasks = allItems.map((name) => ({
+    title: name,
+    run: async (): Promise<DeployResult> => {
+      if (name === "dashboard") {
+        return await deployDashboard(cf, forceRebuildDashboard, true, autoMode);
       }
-      if (result.size) {
-        log.step(`  ${theme.dim("Size:")}     ${result.size}`);
+      return await deploySingle(configService, cf, name, env);
+    },
+    details: (r: DeployResult): Record<string, string> => {
+      if (!r.success) return { error: r.error ?? "unknown" };
+      const d: Record<string, string> = {};
+      if (r.url) d.URL = r.url;
+      if (r.size) d.Size = r.size;
+      if (r.startupTime) d.Startup = r.startupTime;
+      if (r.versionId) d.Version = r.versionId.slice(0, 8) + "…";
+      if (Object.keys(d).length === 0 && r.rawOutput) {
+        d.Output = r.rawOutput.slice(0, 80);
       }
-      if (result.startupTime) {
-        log.step(`  ${theme.dim("Startup:")} ${result.startupTime}`);
-      }
-      if (result.versionId) {
-        log.step(
-          `  ${theme.dim("Version:")} ${result.versionId.slice(0, 8)}...`
-        );
-      }
-      if (
-        !result.url &&
-        !result.size &&
-        !result.startupTime &&
-        !result.versionId &&
-        result.rawOutput
-      ) {
-        log.step(`  ${theme.dim("Output:")}  ${result.rawOutput.slice(0, 80)}`);
-      }
-    } else if (result.error) {
-      log.warn(`  ${theme.error("Error:")} ${result.error}`);
-    }
+      return d;
+    },
+  }));
 
-    // Start spinner for next worker
-    if (i < allItems.length - 1) {
-      s.start(`Deploying ${allItems.length} item(s)...`);
-    }
-  }
+  const richResults = await runRichTasks<DeployResult>(tasks, {
+    title: `Deploying ${allItems.length} item(s)`,
+    format,
+    onSummary: (results: RichTaskResult<DeployResult>[]) =>
+      renderDeploySummary(results, format),
+  });
 
-  // Summary line
-  const succeeded = results.filter((r) => r.success).length;
-  const failed = results.filter((r) => !r.success).length;
-  if (failed > 0) {
-    log.warn(
-      `Summary: ${succeeded}/${allItems.length} deployed (${failed} failed)`
-    );
-  }
+  // Preserve the legacy DeployResult[] contract for callers.
+  return richResults.map((r) => r.value!).filter(Boolean);
+}
 
-  return results;
+/**
+ * Render the default post-deploy summary table: Worker / Status / URL / Size /
+ * Duration. Suppressed in --json / --quiet modes by the caller.
+ */
+function renderDeploySummary(
+  results: RichTaskResult<DeployResult>[],
+  format: FormatOptions
+): void {
+  if (format.json || format.quiet) return;
+  const rows = results.map((r) => {
+    const d = r.value;
+    return {
+      Worker: r.title,
+      Status: r.ok
+        ? formatBadge("ok", "DEPLOYED")
+        : formatBadge("err", "FAILED"),
+      URL: d?.url ?? theme.dim("—"),
+      Size: d?.size ?? theme.dim("—"),
+      Duration: formatDuration(r.ms),
+    };
+  });
+  formatTable(rows, {});
 }
 
 /**
@@ -885,14 +877,18 @@ EXAMPLES:
     .option("--dry-run", "Preview deployment plan without executing")
     .action(
       withErrorHandling(
-        async (options: {
-          env?: string;
-          rebuild?: boolean;
-          auto?: boolean;
-          dryRun?: boolean;
-        }) => {
+        async (
+          options: {
+            env?: string;
+            rebuild?: boolean;
+            auto?: boolean;
+            dryRun?: boolean;
+          },
+          cmd: Command
+        ) => {
           const configService = new ConfigService();
           await configService.load();
+          const format = getFormatOptions(cmd);
 
           // --dry-run: preview deployment plan without executing
           if (options.dryRun) {
@@ -942,7 +938,8 @@ EXAMPLES:
             cf,
             options.env,
             options.rebuild ?? false,
-            options.auto ?? false
+            options.auto ?? false,
+            format
           );
         },
         { service: "deploy" }
@@ -1086,8 +1083,8 @@ EXAMPLES:
     .option("--env <env>", "Cloudflare environment (e.g. production, staging)")
     .action(
       withErrorHandling(
-        async (name: string, options: { env?: string }) => {
-          const fmt = getFormatOptions(program);
+        async (name: string, options: { env?: string }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           const configService = new ConfigService();
           await configService.load();
           const cf = new CloudflareService();
@@ -1136,8 +1133,8 @@ EXAMPLES:
     .option("--rebuild", "Force rebuild of dashboard before deploying")
     .action(
       withErrorHandling(
-        async (options: { rebuild?: boolean }) => {
-          const fmt = getFormatOptions(program);
+        async (options: { rebuild?: boolean }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           const cf = new CloudflareService();
 
           const result = await deployDashboard(cf, options.rebuild);
@@ -1191,12 +1188,15 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async (options: {
-          token?: string;
-          secretToken?: string;
-          subdomain?: string;
-        }) => {
-          const fmt = getFormatOptions(program);
+        async (
+          options: {
+            token?: string;
+            secretToken?: string;
+            subdomain?: string;
+          },
+          cmd: Command
+        ) => {
+          const fmt = getFormatOptions(cmd);
           await doTelegramWebhook(
             fmt,
             options.token,
@@ -1224,8 +1224,8 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async () => {
-          const fmt = getFormatOptions(program);
+        async (_options, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           await doUpdateInternalUrls(fmt);
         },
         { service: "deploy" }
@@ -1248,8 +1248,8 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async () => {
-          const fmt = getFormatOptions(program);
+        async (_options, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           await doKvConfig(fmt);
         },
         { service: "deploy" }
@@ -1275,8 +1275,8 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async (worker: string) => {
-          const fmt = getFormatOptions(program);
+        async (worker: string, _options, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           await doVersionHistory(worker, fmt);
         },
         { service: "deploy" }
@@ -1316,9 +1316,10 @@ EXAMPLES:
         async (
           worker: string,
           version: string | undefined,
-          options: { yes?: boolean }
+          options: { yes?: boolean },
+          cmd: Command
         ) => {
-          const fmt = getFormatOptions(program);
+          const fmt = getFormatOptions(cmd);
           await doVersionRollback(worker, version, fmt, options.yes ?? false);
         },
         { service: "deploy" }

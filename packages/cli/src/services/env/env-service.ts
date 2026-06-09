@@ -52,13 +52,6 @@ export class EnvService {
         hint: "Prefix for worker URLs",
       },
       {
-        name: "INTERNAL_KEY_BINDING",
-        required: true,
-        secret: true,
-        section: "Internal Auth",
-        hint: "Internal key for D1 worker auth",
-      },
-      {
         name: "TRADE_INTERNAL_KEY",
         required: true,
         secret: true,

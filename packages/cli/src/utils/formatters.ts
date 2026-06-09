@@ -4,8 +4,11 @@
  * Human-readable mode uses ansis styling from the theme.
  */
 
+import ansis from "ansis";
 import { CLIError, ExitCode } from "./errors.js";
 import { theme, icons, stripAnsi, hr } from "./theme.js";
+import { formatDuration as _formatDuration } from "./timer.js";
+import { isRichMode } from "./format-mode.js";
 import { Command } from "commander";
 
 export interface FormatOptions {
@@ -17,16 +20,24 @@ export interface FormatOptions {
 
 const PROGRESS_BAR_WIDTH = 30;
 
+/** Optional ETA context for `renderProgressBar`. */
+export interface ProgressBarEta {
+  /** When the operation started (ms since epoch). */
+  startedAt: number;
+  /** Optional known total duration; if omitted, ETA is estimated from rate. */
+  totalMs?: number;
+}
+
 /**
  * Render an inline progress bar string.
  * @param current  Current step (0-based)
  * @param total    Total steps
- * @param opts     Width override
+ * @param opts     Width override, or ETA context
  */
 export function renderProgressBar(
   current: number,
   total: number,
-  opts?: { width?: number }
+  opts?: { width?: number; eta?: ProgressBarEta }
 ): string {
   const width = opts?.width ?? PROGRESS_BAR_WIDTH;
   const ratio = total > 0 ? Math.min(current / total, 1) : 0;
@@ -41,7 +52,22 @@ export function renderProgressBar(
     theme.accent("]") +
     ` ${pct}%`;
 
-  return bar;
+  if (!opts?.eta || total === 0) return bar;
+
+  // ETA — show elapsed / (estimated total) or elapsed / known total
+  const elapsed = Date.now() - opts.eta.startedAt;
+  let etaSuffix: string;
+  if (opts.eta.totalMs) {
+    etaSuffix = `  ${_formatDuration(elapsed)} / ${_formatDuration(opts.eta.totalMs)}`;
+  } else if (current > 0) {
+    const estimatedTotal = (elapsed / current) * total;
+    const remaining = Math.max(0, estimatedTotal - elapsed);
+    etaSuffix = `  ${_formatDuration(elapsed)} / ~${_formatDuration(estimatedTotal)} (${_formatDuration(remaining)} left)`;
+  } else {
+    etaSuffix = `  ${_formatDuration(elapsed)}`;
+  }
+
+  return bar + theme.dim(etaSuffix);
 }
 
 /**
@@ -66,6 +92,61 @@ export function renderStepProgress(
     .join("\n");
 }
 
+// ── Polish helpers ────────────────────────────────────────────────
+
+/**
+ * Format a duration in human-readable form.
+ * Re-exported from `timer.ts` so callers can import everything from
+ * `formatters.js`.
+ */
+export const formatDuration = _formatDuration;
+
+/** Semantic log level for `formatBadge`. */
+export type BadgeLevel = "ok" | "warn" | "err" | "info";
+
+const BADGE_STYLE: Record<
+  BadgeLevel,
+  { bg: typeof ansis.bgGreen; fg: typeof ansis.black }
+> = {
+  ok: { bg: ansis.bgGreen, fg: ansis.black },
+  warn: { bg: ansis.bgYellow, fg: ansis.black },
+  err: { bg: ansis.bgRed, fg: ansis.white },
+  info: { bg: ansis.bgBlue, fg: ansis.white },
+};
+
+/**
+ * Render a short status badge (e.g. " OK ", " FAIL ") with the appropriate
+ * theme color. Useful in tables and inline lists.
+ */
+export function formatBadge(level: BadgeLevel, text?: string): string {
+  const content = (text ?? defaultBadgeLabel(level)).padEnd(4, " ");
+  const { bg, fg } = BADGE_STYLE[level];
+  return bg(fg(` ${content} `));
+}
+
+function defaultBadgeLabel(level: BadgeLevel): string {
+  switch (level) {
+    case "ok":
+      return "OK";
+    case "warn":
+      return "WARN";
+    case "err":
+      return "FAIL";
+    case "info":
+      return "INFO";
+  }
+}
+
+/**
+ * Print a short, dimmed hint line below the previous output.
+ * Suppressed in --json / --quiet modes.
+ */
+export function formatHint(hint: string, opts?: FormatOptions): void {
+  if (opts?.quiet || opts?.json) return;
+  if (!isRichMode(opts)) return;
+  process.stdout.write(`${theme.dim("↳ hint:")} ${theme.value(hint)}\n`);
+}
+
 // ── Basic output ──────────────────────────────────────────────────
 
 /**
@@ -87,9 +168,10 @@ export function formatSuccess(message: string, opts?: FormatOptions): void {
 
 /**
  * Output an error message.
- * - JSON mode:  {"success":false,"error":"...","code":1,"details":"..."}
+ * - JSON mode:  {"success":false,"error":"...","code":1,"details":"...","hint":"..."}
+ *               (hint is additive — older consumers ignore unknown fields.)
  * - Quiet mode: prints only the error message (no icon)
- * - Human mode: red "✗ message" + optional details indented
+ * - Human mode: red "✗ message" + optional details indented + optional hint line
  */
 export function formatError(error: Error | string, opts?: FormatOptions): void {
   const message = typeof error === "string" ? error : error.message;
@@ -104,6 +186,9 @@ export function formatError(error: Error | string, opts?: FormatOptions): void {
     if (cliError?.details) {
       output.details = cliError.details;
     }
+    if (cliError?.hint) {
+      output.hint = cliError.hint;
+    }
     process.stdout.write(JSON.stringify(output) + "\n");
     return;
   }
@@ -117,6 +202,11 @@ export function formatError(error: Error | string, opts?: FormatOptions): void {
 
   if (cliError?.details) {
     process.stdout.write(`  ${theme.dim(cliError.details)}\n`);
+  }
+  if (cliError?.hint) {
+    process.stdout.write(
+      `${theme.dim("↳ hint:")} ${theme.value(cliError.hint)}\n`
+    );
   }
 }
 

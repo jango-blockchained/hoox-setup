@@ -340,7 +340,7 @@ describe("DbService", () => {
       (Bun as unknown as Record<string, unknown>).file = realFile;
     });
 
-    it("uses default SQL when migration file not found", async () => {
+    it("throws when migration file is not found (no silent SELECT 1)", async () => {
       const mockFile = {
         exists: mock(() => Promise.resolve(false)),
         text: mock(() => Promise.resolve("")),
@@ -348,18 +348,16 @@ describe("DbService", () => {
       const realFile = Bun.file;
       (Bun as unknown as Record<string, unknown>).file = mock(() => mockFile);
 
-      mockSpawnWithCapture(successSpawn("Executed"));
-
       const service = new DbService();
-      await service.migrate("hoox-db", false);
 
-      // Should use "SELECT 1" as fallback
-      expect(lastSpawnCmd).toContain("SELECT 1");
+      await expect(service.migrate("hoox-db", false)).rejects.toThrow(
+        "not found"
+      );
 
       (Bun as unknown as Record<string, unknown>).file = realFile;
     });
 
-    it("uses default SQL when migration file has no matching command", async () => {
+    it("throws when migration file has no matching command (no silent SELECT 1)", async () => {
       const mockFile = {
         exists: mock(() => Promise.resolve(true)),
         text: mock(() => Promise.resolve("echo hello")),
@@ -367,36 +365,38 @@ describe("DbService", () => {
       const realFile = Bun.file;
       (Bun as unknown as Record<string, unknown>).file = mock(() => mockFile);
 
-      mockSpawnWithCapture(successSpawn("Executed"));
-
       const service = new DbService();
-      await service.migrate("hoox-db", false);
 
-      expect(lastSpawnCmd).toContain("SELECT 1");
+      await expect(service.migrate("hoox-db", false)).rejects.toThrow(
+        "no `d1 execute"
+      );
 
       (Bun as unknown as Record<string, unknown>).file = realFile;
     });
 
-    it("uses default SQL when Bun.file throws", async () => {
+    it("throws when Bun.file throws (no silent SELECT 1)", async () => {
       const realFile = Bun.file;
       (Bun as unknown as Record<string, unknown>).file = mock(() => {
         throw new Error("file error");
       });
 
-      mockSpawnWithCapture(successSpawn("Executed"));
-
       const service = new DbService();
-      await service.migrate("hoox-db", false);
 
-      expect(lastSpawnCmd).toContain("SELECT 1");
+      await expect(service.migrate("hoox-db", false)).rejects.toThrow(
+        "could not be read"
+      );
 
       (Bun as unknown as Record<string, unknown>).file = realFile;
     });
 
     it("throws on non-zero exit from wrangler", async () => {
       const mockFile = {
-        exists: mock(() => Promise.resolve(false)),
-        text: mock(() => Promise.resolve("")),
+        exists: mock(() => Promise.resolve(true)),
+        text: mock(() =>
+          Promise.resolve(
+            "d1 execute hoox-db --command='CREATE TABLE t (id INT)'"
+          )
+        ),
       };
       const realFile = Bun.file;
       (Bun as unknown as Record<string, unknown>).file = mock(() => mockFile);

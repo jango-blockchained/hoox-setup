@@ -226,7 +226,8 @@ export type ViewId =
   | "kv-viewer"
   | "secrets-viewer"
   | "db-query"
-  | "ai-chat";
+  | "ai-chat"
+  | "edge-topology";
 
 /** Modal dialog state for the TUI. */
 export interface ModalState {

@@ -40,14 +40,32 @@ async function doMonitorStatus(fmt: FormatOptions): Promise<void> {
   }
 }
 
+function assertSafeInteger(value: number, name: string, max: number): void {
+  if (
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value > max ||
+    !Number.isSafeInteger(value)
+  ) {
+    throw new Error(
+      `Invalid ${name}: ${value} (must be a non-negative integer ≤ ${max})`
+    );
+  }
+}
+
+function escapeSqlString(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 async function doMonitorTrades(
   limit: number,
   fmt: FormatOptions
 ): Promise<void> {
   try {
+    assertSafeInteger(limit, "limit", 100);
     const db = new DbService();
     const dbName = await db.resolveDbName();
-    const sql = `SELECT * FROM trades ORDER BY timestamp DESC LIMIT ${Math.min(limit, 100)}`;
+    const sql = `SELECT * FROM trades ORDER BY timestamp DESC LIMIT ${limit}`;
     const output = await db.query(dbName, sql, true);
     process.stdout.write(output + "\n");
   } catch (err) {
@@ -69,7 +87,7 @@ async function doMonitorLogs(
       if (!/^[a-zA-Z0-9_-]+$/.test(workerName)) {
         throw new Error(`Invalid worker name: "${workerName}"`);
       }
-      sql = `SELECT * FROM system_logs WHERE worker = '${workerName}' ORDER BY timestamp DESC LIMIT 20`;
+      sql = `SELECT * FROM system_logs WHERE worker = '${escapeSqlString(workerName)}' ORDER BY timestamp DESC LIMIT 20`;
     } else {
       sql = "SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT 20";
     }
@@ -229,6 +247,7 @@ async function doMonitorAnalyticsErrors(
   fmt: FormatOptions
 ): Promise<void> {
   try {
+    assertSafeInteger(hours, "hours", 8760);
     const db = new DbService();
     const dbName = await db.resolveDbName();
     const sql = `SELECT level, COUNT(*) as count FROM system_logs WHERE level IN ('error', 'warn') AND timestamp > unixepoch('now', '-${hours} hours') GROUP BY level`;

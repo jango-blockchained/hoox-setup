@@ -24,6 +24,7 @@ import {
   formatTable,
   getFormatOptions,
 } from "../../utils/formatters.js";
+import { runRichTasks, type RichTaskResult } from "../../utils/rich.js";
 import { ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { isGitTracked, gitUntrackFile } from "../../utils/git.js";
@@ -464,38 +465,46 @@ function renderReport(report: CheckReport): void {
 // ---------------------------------------------------------------------------
 
 async function handleSetup(opts: FormatOptions): Promise<void> {
-  const s = spinner();
-
   try {
     const configService = new ConfigService();
-    s.start("Loading config...");
     await configService.load();
-    s.stop("Config loaded");
 
     const cf = new CloudflareService();
     const secretsService = await SecretsService.create();
 
+    // Run each check category as a single task in a rich checklist.
     const categories: CheckCategory[] = [];
+    const tasks = [
+      {
+        title: "Validating config",
+        run: async (): Promise<CheckCategory> =>
+          await runConfigChecks(configService),
+      },
+      {
+        title: "Checking infrastructure (D1, KV, R2, Queues)",
+        run: async (): Promise<CheckCategory> => await runInfraChecks(cf),
+      },
+      {
+        title: "Checking secrets",
+        run: async (): Promise<CheckCategory> =>
+          await runSecretsChecks(secretsService, configService, cf),
+      },
+      {
+        title: "Checking database",
+        run: async (): Promise<CheckCategory> =>
+          await runDatabaseChecks(cf, configService),
+      },
+    ];
 
-    // Category 1: Config
-    s.start("Validating config...");
-    categories.push(await runConfigChecks(configService));
-    s.stop("Config validation complete");
-
-    // Category 2: Infrastructure
-    s.start("Checking infrastructure (D1, KV, R2, Queues)...");
-    categories.push(await runInfraChecks(cf));
-    s.stop("Infrastructure checks complete");
-
-    // Category 3: Secrets
-    s.start("Checking secrets...");
-    categories.push(await runSecretsChecks(secretsService, configService, cf));
-    s.stop("Secrets checks complete");
-
-    // Category 4: Database
-    s.start("Checking database...");
-    categories.push(await runDatabaseChecks(cf, configService));
-    s.stop("Database checks complete");
+    const results = await runRichTasks<CheckCategory>(tasks, {
+      title: "Running diagnostics",
+      format: opts,
+      onSummary: (rows: RichTaskResult<CheckCategory>[]) => {
+        for (const r of rows) {
+          if (r.ok && r.value) categories.push(r.value);
+        }
+      },
+    });
 
     const report = buildReport(categories);
 
@@ -506,6 +515,12 @@ async function handleSetup(opts: FormatOptions): Promise<void> {
     }
 
     if (!report.success) {
+      process.exitCode = ExitCode.ERROR;
+    }
+    // runRichTasks already sets process.exitCode on task failures;
+    // keep this for backward-compat with tests that read it from
+    // !report.success.
+    if (results.some((r) => !r.ok)) {
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {
@@ -523,7 +538,6 @@ async function handleHealth(
   opts: FormatOptions,
   autoFix: boolean
 ): Promise<void> {
-  const s = spinner();
   const results: HealthCheckResult[] = [];
 
   try {
@@ -538,36 +552,39 @@ async function handleHealth(
       return;
     }
 
-    s.start(`Health-checking ${enabledWorkers.length} worker(s)...`);
+    const tasks = enabledWorkers.map((workerName) => ({
+      title: `Probe ${workerName}`,
+      run: async (): Promise<HealthCheckResult> => {
+        try {
+          const tailResult = await cf.tail(workerName);
+          const healthy = tailResult.ok;
+          return {
+            worker: workerName,
+            status: healthy ? "healthy" : "degraded",
+            connectivity: healthy,
+            error: tailResult.ok
+              ? undefined
+              : (tailResult.error ?? "Unknown error"),
+          };
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          return {
+            worker: workerName,
+            status: "down",
+            connectivity: false,
+            error: message,
+          };
+        }
+      },
+    }));
 
-    for (const workerName of enabledWorkers) {
-      s.message(`Probing ${workerName}...`);
-
-      try {
-        // Check connectivity via CloudflareService.tail (briefly)
-        const tailResult = await cf.tail(workerName);
-        const healthy = tailResult.ok;
-
-        results.push({
-          worker: workerName,
-          status: healthy ? "healthy" : "degraded",
-          connectivity: healthy,
-          error: tailResult.ok
-            ? undefined
-            : (tailResult.error ?? "Unknown error"),
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        results.push({
-          worker: workerName,
-          status: "down",
-          connectivity: false,
-          error: message,
-        });
-      }
+    const taskResults = await runRichTasks<HealthCheckResult>(tasks, {
+      title: `Health-checking ${enabledWorkers.length} worker(s)`,
+      format: opts,
+    });
+    for (const r of taskResults) {
+      if (r.value) results.push(r.value);
     }
-
-    s.stop("Health check complete");
 
     if (opts.json) {
       process.stdout.write(JSON.stringify(results, null, 2) + "\n");
@@ -593,7 +610,6 @@ async function handleHealth(
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {
-    s.stop("Health check failed");
     const message = err instanceof Error ? err.message : String(err);
     formatError(message, opts);
     process.exitCode = ExitCode.ERROR;

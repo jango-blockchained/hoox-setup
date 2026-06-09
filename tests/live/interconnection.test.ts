@@ -20,6 +20,8 @@ import {
   getConfig,
   wrangler,
   cfApi,
+  canMutateCloudflare,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -31,7 +33,8 @@ const MIDDLE_WORKER = testResourceName("ic-middle");
 const BACKEND_WORKER = testResourceName("ic-backend");
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv =
+  hasLiveEnv("CLOUDFLARE_ACCOUNT_ID") && canMutateCloudflare();
 (hasCloudflareEnv ? describe : describe.skip)("Worker Interconnection", () => {
   let config: ReturnType<typeof getConfig>;
 

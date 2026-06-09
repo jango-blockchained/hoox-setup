@@ -16,85 +16,25 @@
  * for any CLI failure, regardless of which view triggered it.
  */
 import * as path from "path";
-import type { CliResult, CliErrorType, CliErrorDetails } from "../types";
+import type { CliResult, CliErrorType, CliErrorDetails } from "../../types";
+import type {
+  ExecOptions,
+  KillSwitchAction,
+  KillSwitchStatus,
+  QueueDepthStatus,
+  QueueDepth,
+  DbQueryResult,
+  SecretMetadata,
+  SecretsSnapshot,
+  KvKey,
+  KvKeySnapshot,
+  ModelHealth,
+  AgentHealthResult,
+} from "./types";
+import { validateReadOnlySql } from "./standalone";
 
 /** Cap stderr/stdout capture per command to keep the store lightweight. */
 const MAX_OUTPUT_CHARS = 4096;
-
-export interface ExecOptions {
-  json?: boolean;
-  yes?: boolean;
-  timeout?: number;
-  onProgress?: (chunk: string) => void;
-  tag?: string;
-}
-
-/**
- * Semantic action name for the kill-switch bridge. The UI speaks engage/release
- * (user-facing verbs), the CLI speaks on/off. We accept the semantic name
- * here and translate internally.
- */
-export type KillSwitchAction = "show" | "engage" | "release";
-
-/**
- * Normalized status of the global trade kill switch.
- *
- * Returned by {@link CliBridgeImpl.monitorKillSwitch} so views don't need to
- * parse the CLI's colored output themselves.
- */
-export interface KillSwitchStatus {
-  /** True when trading is halted (KV value === "true") */
-  engaged: boolean;
-  /** Raw KV value as returned by the CLI ("true" | "false" | null when unset) */
-  rawValue: string | null;
-  /** ISO-8601 timestamp captured client-side when the status was read */
-  timestamp: string;
-  /** The action that produced this status (helpful for UI feedback) */
-  action: KillSwitchAction;
-}
-
-/**
- * Backlog pressure for a single Cloudflare Queue.
- *
- * Returned by {@link CliBridgeImpl.monitorQueueDepth} — the shape is fully
- * normalized on the bridge side so views can render directly without
- * needing to parse wrangler's JSON or the CLI's stdout.
- *
- * The `depth` field is a *heuristic estimate* derived from
- * `producers_total_count` (each producer is assumed to enqueue ~100 msgs
- * on average) because Cloudflare Queues does not expose real-time backlog
- * counts via `wrangler queues list`. The view's color coding
- * (green/yellow/red) operates on this estimate.
- *
- * Threshold conventions (used by the view's color coding):
- *   - depth < 100             → "healthy"
- *   - 100 <= depth <= 500     → "backlogged"
- *   - depth > 500             → "critical"
- *   - delivery_paused = true  → "paused" (overrides depth thresholds)
- *   - no data                 → "unknown"
- */
-export type QueueDepthStatus =
-  | "healthy"
-  | "backlogged"
-  | "critical"
-  | "paused"
-  | "unknown";
-
-/** Per-queue depth info. See {@link QueueDepthStatus} for status semantics. */
-export interface QueueDepth {
-  queueName: string;
-  depth: number;
-  max: number;
-  status: QueueDepthStatus;
-  /** Cloudflare producer count (informational, view can render) */
-  producers: number;
-  /** Cloudflare consumer count (informational, view can render) */
-  consumers: number;
-  /** True when delivery is paused on this queue */
-  paused: boolean;
-  /** ISO-8601 timestamp when the depth was sampled */
-  timestamp: string;
-}
 
 /** Default max depth for visualization (clamps the fill-bar). */
 const DEFAULT_QUEUE_MAX = 1000;
@@ -103,173 +43,6 @@ const DEPTH_PER_PRODUCER = 100;
 /** Status thresholds (see {@link QueueDepthStatus} for semantics). */
 const HEALTHY_THRESHOLD = 100;
 const CRITICAL_THRESHOLD = 500;
-
-/**
- * Normalized result of a read-only D1 SQL query executed through
- * {@link CliBridgeImpl.dbQuery}.
- *
- * Mirrors the wrangler `d1 execute --json` envelope shape but collapses it
- * to what the TUI view actually needs:
- *
- *   wrangler:
- *     [ { results: [{...}, {...}], success: true,
- *         meta: { duration: 0.123, rows_read: 42, ... } } ]
- *
- *   → DbQueryResult:
- *     { columns: [...], rows: [...], rowCount, executionTimeMs, meta }
- */
-export interface DbQueryResult {
-  /** Column names in display order (derived from the first row). */
-  columns: string[];
-  /** Row data, one record per result. */
-  rows: Record<string, unknown>[];
-  /** Convenience: `rows.length`. */
-  rowCount: number;
-  /** Wall-clock SQL execution time in milliseconds (from wrangler's `meta.duration`),
-   *  or `null` if wrangler did not report it. */
-  executionTimeMs: number | null;
-  /** Raw wrangler `meta` block for callers that want additional fields
-   *  (rows_read, changed_db, etc.). Null when the CLI did not return a meta block. */
-  meta: Record<string, unknown> | null;
-}
-
-/**
- * Outcome of a client-side SQL safety check.
- *
- * Returned by {@link validateReadOnlySql} so the view can surface a
- * specific, actionable error message without ever round-tripping the
- * command to the local `hoox` binary.
- */
-export type SqlValidationResult =
-  | { readonly: true }
-  | { readonly: false; reason: string };
-
-/**
- * SQL keywords that the TUI's `db-query` view is forbidden from sending.
- *
- * Defends against accidental or malicious DML/DDL via the TUI's read-only
- * SQL input. Detection is case-insensitive and word-boundary aware.
- */
-const FORBIDDEN_SQL_KEYWORDS = [
-  "INSERT",
-  "UPDATE",
-  "DELETE",
-  "REPLACE",
-  "DROP",
-  "CREATE",
-  "ALTER",
-  "TRUNCATE",
-  "PRAGMA",
-  "ATTACH",
-  "DETACH",
-  "VACUUM",
-  "REINDEX",
-] as const;
-
-/**
- * SQL keywords permitted as the first non-whitespace, non-comment token.
- *
- * `SELECT` is the canonical read-only entry point. `WITH` is allowed because
- * CTEs (Common Table Expressions) are read-only when followed by a SELECT.
- * `EXPLAIN` is allowed because it is read-only and is useful for query
- * diagnostics.
- */
-const ALLOWED_ENTRY_KEYWORDS = ["SELECT", "WITH", "EXPLAIN"] as const;
-
-/** Strip SQL line comments (`-- ...\n`) and block comments (`/* ... *\/`). */
-function stripSqlComments(input: string): string {
-  // Block comments: /* ... */ (non-greedy, multi-line)
-  const noBlock = input.replace(/\/\*[\s\S]*?\*\//g, " ");
-  // Line comments: -- to end-of-line
-  const noLine = noBlock.replace(/--[^\n]*/g, " ");
-  return noLine;
-}
-
-/** Strip single-quoted and double-quoted string literals (rough heuristic). */
-function stripSqlStrings(input: string): string {
-  // Single-quoted with doubled '' escapes
-  const noSingle = input.replace(/'(?:''|[^'])*'/g, "''");
-  // Double-quoted identifiers
-  const noDouble = noSingle.replace(/"[^"]*"/g, '""');
-  return noDouble;
-}
-
-/**
- * Validate that a SQL string is a read-only D1 query safe to send through
- * the TUI's `db-query` view.
- *
- * Rules enforced:
- *   1. Must be non-empty after trimming.
- *   2. First non-whitespace, non-comment, non-string token must be one of
- *      {@link ALLOWED_ENTRY_KEYWORDS} (case-insensitive).
- *   3. The statement must not contain any of {@link FORBIDDEN_SQL_KEYWORDS}
- *      as a word (case-insensitive, word-boundary aware).
- *   4. At most one `;` is allowed, and only as the trailing terminator
- *      (i.e. multi-statement payloads like `SELECT 1; DROP TABLE x` are
- *      rejected).
- *
- * The function never throws. Returns a structured result the view can
- * render directly.
- */
-export function validateReadOnlySql(sql: string): SqlValidationResult {
-  if (typeof sql !== "string" || sql.trim().length === 0) {
-    return { readonly: false, reason: "SQL is empty" };
-  }
-
-  const stripped = stripSqlStrings(stripSqlComments(sql)).trim();
-  if (stripped.length === 0) {
-    return { readonly: false, reason: "SQL is empty (only comments?)" };
-  }
-
-  // First significant token: take the first whitespace-delimited word.
-  const firstTokenMatch = stripped.match(/^[\s(]*([A-Za-z_]+)/);
-  const firstToken = firstTokenMatch?.[1]?.toUpperCase() ?? "";
-  if (
-    !ALLOWED_ENTRY_KEYWORDS.includes(
-      firstToken as (typeof ALLOWED_ENTRY_KEYWORDS)[number]
-    )
-  ) {
-    return {
-      readonly: false,
-      reason: `Only SELECT, WITH, or EXPLAIN queries are allowed (got "${firstToken || "(nothing)"}")`,
-    };
-  }
-
-  // Reject any forbidden keyword as a whole word (case-insensitive).
-  for (const keyword of FORBIDDEN_SQL_KEYWORDS) {
-    const pattern = new RegExp(`\\b${keyword}\\b`, "i");
-    if (pattern.test(stripped)) {
-      return {
-        readonly: false,
-        reason: `Forbidden keyword: ${keyword}. Read-only queries only.`,
-      };
-    }
-  }
-
-  // Reject multiple statements. Allow at most one trailing `;`.
-  const semicolons = (stripped.match(/;/g) ?? []).length;
-  if (semicolons > 1) {
-    return {
-      readonly: false,
-      reason: "Multiple statements are not allowed. Use a single query.",
-    };
-  }
-  if (semicolons === 1) {
-    const lastSemi = stripped.lastIndexOf(";");
-    if (lastSemi !== stripped.length - 1) {
-      // Allow 1 trailing whitespace after the semicolon, but nothing else.
-      const trailing = stripped.slice(lastSemi + 1).trim();
-      if (trailing.length > 0) {
-        return {
-          readonly: false,
-          reason: "Semicolons are only allowed at the end of the query.",
-        };
-      }
-    }
-  }
-
-  return { readonly: true };
-}
 
 /**
  * Convert the structured JSON envelope emitted by `wrangler d1 execute
@@ -539,97 +312,6 @@ function inferSecretType(name: string): SecretMetadata["type"] {
   if (lower.includes("password") || lower.includes("passwd")) return "password";
   if (lower.includes("secret")) return "secret";
   return "unknown";
-}
-
-/**
- * A single Cloudflare Workers secret metadata (read-only, no values exposed).
- *
- * Returned by {@link CliBridgeImpl.configSecretsList}. Values are intentionally
- * omitted — the TUI viewer is strictly read-only and the CLI equivalent
- * (`hoox config secrets list`) only surfaces names/types anyway.
- */
-export interface SecretMetadata {
-  /** Secret name / key, e.g. "BINANCE_KEY_BINDING" or "OPENAI_API_KEY". */
-  name: string;
-  /**
-   * Inferred type based on naming conventions. Cloudflare secrets store
-   * does not expose per-secret type metadata, so we derive it from the
-   * key name suffix.
-   */
-  type: "api_key" | "secret" | "token" | "password" | "unknown";
-  /**
-   * Source of the secret declaration: either "Cloudflare" (via wrangler secret)
-   * or "config" (declared in wrangler.jsonc but not yet synced).
-   */
-  source: "Cloudflare" | "config";
-}
-
-/**
- * A read-only snapshot of all secrets across workers. Returned by
- * {@link CliBridgeImpl.configSecretsList}.
- */
-export interface SecretsSnapshot {
-  secrets: SecretMetadata[];
-  /**
-   * ISO-8601 timestamp captured client-side when the snapshot was read.
-   * Surfaces a "Last sampled" footer in the view.
-   */
-  timestamp: string;
-}
-
-/**
- * A single Cloudflare KV key as exposed by `hoox config kv list --json`.
- *
- * The view treats `valueSize` and `lastModified` as best-effort metadata:
- * the canonical CLI output only includes `name` and the human-readable
- * flag. Future CLI versions may surface richer metadata; the view renders
- * a dash in those columns when the data is missing so the table stays
- * aligned.
- *
- * Security note: `isSecret` is *advisory* — it is derived by cross-
- * referencing the key name against the known KV manifest. Users should
- * still treat any KV value as potentially sensitive.
- */
-export interface KvKey {
-  /** Full key name, e.g. `"trade:kill_switch"` or `"agent:openai_key"`. */
-  name: string;
-  /** Byte size of the stored value. `null` if unknown. */
-  valueSize: number | null;
-  /**
-   * ISO-8601 timestamp of the last write. `null` if the CLI did not
-   * surface it (current `hoox config kv list` does not include it).
-   */
-  lastModified: string | null;
-  /**
-   * True if the key is known to be secret per the KV manifest. Manifest
-   * keys with `secret: true` (API keys, watermarks, etc.) are flagged
-   * here so the view can render a warning before showing the value.
-   */
-  isSecret: boolean;
-  /**
-   * Manifest-declared type for this key, when known. One of
-   * `"boolean" | "number" | "string" | null`. Useful for rendering a
-   * type tag in the table.
-   */
-  manifestType: "boolean" | "number" | "string" | null;
-}
-
-/**
- * A read-only snapshot of all KV keys plus the manifest cross-reference
- * used to flag secret keys. Returned by {@link CliBridgeImpl.configKvList}.
- */
-export interface KvKeySnapshot {
-  keys: KvKey[];
-  /**
-   * ISO-8601 timestamp captured client-side when the snapshot was read.
-   * Surfaces a "Last sampled" footer in the view.
-   */
-  timestamp: string;
-  /**
-   * The KV namespace ID that was used to fetch the keys. `null` when the
-   * CLI auto-detection failed (e.g. wrangler not installed).
-   */
-  namespaceId: string | null;
 }
 
 /**
@@ -1565,33 +1247,6 @@ class CliBridgeImpl {
 }
 
 /**
- * Health status for a single AI model provider.
- */
-export interface ModelHealth {
-  /** Provider name, e.g. "Workers AI", "OpenAI", "Anthropic", "Google", "Azure" */
-  name: string;
-  /** Provider-specific model identifier, e.g. "@cf/meta/llama-3.1-8b-instruct" */
-  model: string;
-  /** Operational state */
-  status: "online" | "degraded" | "offline";
-  /** Latency in milliseconds (null when unknown or offline) */
-  latencyMs: number | null;
-  /** Daily request count (null when unavailable) */
-  dailyRequests: number | null;
-  /** Error message when status is not "online" */
-  error?: string;
-}
-
-/**
- * Result of an AI model health check covering all configured providers.
- */
-export interface AgentHealthResult {
-  providers: ModelHealth[];
-  /** ISO-8601 timestamp when the check was performed */
-  timestamp: string;
-}
-
-/**
  * Parse the JSON output from `hoox agent health --json` into a structured
  * {@link AgentHealthResult}. Unknown provider shapes are skipped; the
  * function never throws on malformed input — it returns an empty providers
@@ -1673,184 +1328,28 @@ function extractNamespaceId(_manifestStdout: string): string | null {
 
 export const cliBridge = new CliBridgeImpl();
 
-// ─── AI Chat SSE Streaming ───────────────────────────────────────────────────
+// ─── Re-exports for backward compatibility ─────────────────────────────────────
 
-/** Local AI chat message shape. */
-export interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-}
-
-/** Available AI providers/models for the chat interface. */
-export interface AiModelOption {
-  id: string;
-  label: string;
-  provider: string;
-}
-
-/** Default AI model options offered in the chat UI. */
-export const AI_MODEL_OPTIONS: AiModelOption[] = [
-  { id: "workers-ai", label: "Workers AI (Llama 3.1)", provider: "cloudflare" },
-  {
-    id: "openai:gpt-4o-mini",
-    label: "OpenAI (GPT-4o-mini)",
-    provider: "openai",
-  },
-  {
-    id: "anthropic:claude-3-5-haiku",
-    label: "Anthropic (Claude 3.5 Haiku)",
-    provider: "anthropic",
-  },
-];
-
-/** Reconnection backoff for SSE streaming. */
-const SSE_RECONNECT_BASE_MS = 1_000;
-const SSE_RECONNECT_MAX_MS = 16_000;
-const SSE_MAX_RECONNECT_ATTEMPTS = 5;
-
-/**
- * SSE streaming subscription for AI chat responses.
- *
- * Connects to the hoox-setup API's /api/agent/chat endpoint and invokes
- * the onToken callback for each streamed token fragment. Supports
- * reconnection with exponential backoff on connection loss.
- *
- * Returns an AbortController whose `.signal.aborted` flag can be set
- * to terminate the stream; callers should check this flag to avoid
- * processing tokens after abort.
- */
-export interface AgentChatStreamResult {
-  /** AbortController for cancelling the stream. */
-  abort: AbortController;
-  /** Promise that resolves when the stream finishes or fails. */
-  finished: Promise<void>;
-}
-
-/**
- * Start an SSE stream to the AI chat endpoint.
- *
- * @param params          Chat parameters (messages, model, temperature, etc.)
- * @param apiBase         Base URL for the API (default: http://localhost:8787)
- * @param apiToken        Bearer token for auth (default: HOOX_API_TOKEN env var)
- * @param onToken         Called with each streamed token string fragment
- * @param onStatus        Optional callback for connection status updates
- * @returns               An AgentChatStreamResult with abort + finished
- */
-export function agentChatStream(
-  params: {
-    messages: ChatMessage[];
-    model?: string;
-    temperature?: number;
-    maxTokens?: number;
-  },
-  apiBase: string = "http://localhost:8787",
-  apiToken: string = process.env.HOOX_API_TOKEN ?? "",
-  onToken?: (token: string) => void,
-  onStatus?: (status: "connected" | "reconnecting" | "disconnected") => void
-): AgentChatStreamResult {
-  const abortController = new AbortController();
-  let completed = false;
-
-  const finished = (async () => {
-    let attempt = 0;
-
-    while (
-      !abortController.signal.aborted &&
-      attempt < SSE_MAX_RECONNECT_ATTEMPTS
-    ) {
-      try {
-        const url = `${apiBase.replace(/\/$/, "")}/api/agent/chat`;
-        const body = JSON.stringify({
-          messages: params.messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          model:
-            params.model && params.model !== "workers-ai"
-              ? params.model
-              : undefined,
-          temperature: params.temperature ?? 0.7,
-          maxTokens: params.maxTokens ?? 500,
-          stream: true,
-        });
-
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "text/event-stream",
-            ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
-          },
-          body,
-          signal: abortController.signal,
-        });
-
-        if (!response.ok || !response.body) {
-          throw new Error(`Chat stream failed: HTTP ${response.status}`);
-        }
-
-        attempt = 0;
-        onStatus?.("connected");
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (!abortController.signal.aborted) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith("data: ")) {
-              const data = trimmed.slice(6);
-              if (data === "[DONE]") {
-                completed = true;
-                break;
-              }
-              try {
-                const parsed = JSON.parse(data) as { content?: string };
-                if (parsed.content) {
-                  onToken?.(parsed.content);
-                }
-              } catch {
-                // Skip malformed events during streaming
-              }
-            }
-          }
-        }
-
-        if (completed || abortController.signal.aborted) {
-          break;
-        }
-      } catch (err) {
-        if (abortController.signal.aborted || completed) break;
-
-        onStatus?.("reconnecting");
-        attempt++;
-
-        if (attempt < SSE_MAX_RECONNECT_ATTEMPTS) {
-          const delay = Math.min(
-            SSE_RECONNECT_BASE_MS * Math.pow(2, attempt - 1),
-            SSE_RECONNECT_MAX_MS
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    if (!abortController.signal.aborted && !completed) {
-      onStatus?.("disconnected");
-    }
-  })();
-
-  return {
-    abort: abortController,
-    finished,
-  };
-}
+export {
+  validateReadOnlySql,
+  agentChatStream,
+  AI_MODEL_OPTIONS,
+} from "./standalone";
+export type {
+  ExecOptions,
+  KillSwitchAction,
+  KillSwitchStatus,
+  QueueDepthStatus,
+  QueueDepth,
+  DbQueryResult,
+  SqlValidationResult,
+  SecretMetadata,
+  SecretsSnapshot,
+  KvKey,
+  KvKeySnapshot,
+  ModelHealth,
+  AgentHealthResult,
+  ChatMessage,
+  AiModelOption,
+  AgentChatStreamResult,
+} from "./types";

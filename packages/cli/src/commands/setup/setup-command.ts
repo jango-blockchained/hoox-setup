@@ -13,8 +13,11 @@ import type { ProgressEvent } from "../../services/setup/index.js";
 import {
   formatError,
   formatTable,
+  formatDuration,
+  formatBadge,
   getFormatOptions,
 } from "../../utils/formatters.js";
+import { startTimer } from "../../utils/timer.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
@@ -216,7 +219,10 @@ EXAMPLES:
             formatError(
               new CLIError(
                 "Not authenticated with Cloudflare. Run 'wrangler login' first.",
-                ExitCode.ERROR
+                ExitCode.ERROR,
+                undefined,
+                false,
+                "Run `wrangler login` interactively, or set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID environment variables for CI / non-interactive use."
               ),
               globalOpts
             );
@@ -271,14 +277,18 @@ EXAMPLES:
             )
           );
 
+          const totalTimer = startTimer();
           const result = await setupSvc.runAll(opts);
+          const totalMs = totalTimer.ms();
 
           // ── Summary ──────────────────────────────────────────────────
           if (isInteractive) {
-            p.log.step("── Summary ──");
+            p.log.step(`── Summary (total ${formatDuration(totalMs)}) ──`);
             const rows = result.steps.map((s) => ({
               Step: s.step,
-              Status: s.success ? theme.success("✓") : theme.error("✗"),
+              Status: s.success
+                ? formatBadge("ok", "DONE")
+                : formatBadge("err", "FAIL"),
               Message: s.message,
             }));
             formatTable(rows, globalOpts);

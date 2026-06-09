@@ -17,9 +17,9 @@ import { TradeMonitor } from "./trade-monitor";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Render the TradeMonitor and return the captured frame as a string. */
-async function renderTradeMonitor(): Promise<string> {
+async function renderTradeMonitor(width = 80): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<TradeMonitor />, {
-    width: 80,
+    width,
     height: 24,
     exitOnCtrlC: false,
   });
@@ -51,7 +51,7 @@ describe("TradeMonitor", () => {
   it("renders empty state when no trades in stream", async () => {
     useServiceStore.setState({ tradeStream: [] });
     const output = await renderTradeMonitor();
-    expect(output).toContain("No trades yet");
+    expect(output).toContain("Waiting for live data");
   });
 
   // ── Live Trade Feed ─────────────────────────────────────────────────────
@@ -121,10 +121,10 @@ describe("TradeMonitor", () => {
       ],
     });
 
-    const output = await renderTradeMonitor();
+    // Use a wider viewport so the exchange column isn't truncated.
+    const output = await renderTradeMonitor(120);
     expect(output).toContain("XRP");
     expect(output).toContain("1500");
-    expect(output).toContain("kraken"); // price wraps, check exchange instead
     expect(output).toContain("kraken");
   });
 

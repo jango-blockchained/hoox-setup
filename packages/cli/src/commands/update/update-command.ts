@@ -5,6 +5,8 @@ import { UpdateService } from "../../services/update/index.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
+import { formatDuration } from "../../utils/formatters.js";
+import { startTimer } from "../../utils/timer.js";
 import {
   gitPull,
   gitSubmoduleUpdate,
@@ -78,25 +80,29 @@ EXAMPLES:
             }
 
             const s = spinner();
+            const t = startTimer();
             s.start(`Updating ${target}...`);
 
             const output = await gitSubmoduleUpdate(cwd, submodulePath);
 
+            const dur = formatDuration(t.ms());
             s.stop(
               output
-                ? theme.success(`Updated ${target}`)
-                : theme.muted(`${target} already up to date`)
+                ? theme.success(`Updated ${target} (${dur})`)
+                : theme.muted(`${target} already up to date (${dur})`)
             );
           } else {
             const s = spinner();
+            const t = startTimer();
             s.start("Pulling latest from remote...");
 
             const output = await gitPull(cwd);
 
+            const dur = formatDuration(t.ms());
             s.stop(
               output
-                ? theme.success("Repository up to date")
-                : theme.muted("Already up to date")
+                ? theme.success(`Repository up to date (${dur})`)
+                : theme.muted(`Already up to date (${dur})`)
             );
           }
         },

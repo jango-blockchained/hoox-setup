@@ -102,8 +102,10 @@ describe("DockerService", () => {
 
       expect(result.docker).toBe(true);
       expect(result.compose).toBe(true);
-      // Both calls run `which docker`
-      expect(lastSpawnCmd).toEqual(["which", "docker"]);
+      // The new implementation spawns `which` and (for "docker compose")
+      // additionally spawns `docker compose version` to probe the subcommand.
+      // We don't assert on lastSpawnCmd here because the Promise.all ordering
+      // makes the final captured call non-deterministic.
     });
 
     it("returns both false when docker is not available", async () => {
@@ -116,7 +118,7 @@ describe("DockerService", () => {
       expect(result.compose).toBe(false);
     });
 
-    it("throws when Bun.spawn fails in isCommandAvailable", async () => {
+    it("returns false when Bun.spawn fails in isCommandAvailable", async () => {
       const spawnMock = mock(() => {
         throw new Error("ENOENT: docker not found");
       });
@@ -124,9 +126,11 @@ describe("DockerService", () => {
 
       const service = new DockerService();
 
-      // isCommandAvailable runs inside new Promise() without try-catch
-      // around the Bun.spawn call, so the error propagates up
-      await expect(service.checkAvailability()).rejects.toThrow();
+      // isCommandAvailable now wraps Bun.spawn in try/catch, so a synchronous
+      // throw (e.g. when `which` is missing on minimal Alpine) resolves to
+      // false rather than rejecting the overall checkAvailability call.
+      const result = await service.checkAvailability();
+      expect(result).toEqual({ docker: false, compose: false });
     });
   });
 

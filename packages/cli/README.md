@@ -2,15 +2,17 @@
 
 > **See also:** [Hoox User Guide](../docs/home.md) · [CLI Command Reference](../docs/reference/cli-commands.md)
 
-Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments.
+> Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments.
 
-381 unit tests, 15 command groups, 50+ subcommands.
+> **Runtime requirement:** Bun ≥ 1.2. The bin shebang and bundle target are Bun-only; `npm install -g` will install the package but the CLI will not run under Node.js.
+
+528 unit tests, 21 command groups, 60+ subcommands.
 
 ## Features
 
 - **Interactive Setup**: `hoox init` guides you through project initialization with AI provider support
 - **Infrastructure as Code**: Manage D1, KV, R2, Queues, Vectorize, and Analytics via `hoox infra`
-- **Environment Management**: Declarative 31-key env matrix via `hoox config env`
+- **Environment Management**: Declarative 27-key env matrix via `hoox config env`
 - **KV Config Sync**: 16-key manifest with `apply-manifest` for CONFIG_KV
 - **Database Operations**: Schema apply, migrations, query, export, reset via `hoox db`
 - **Deploy Automation**: Workers + dashboard + telegram webhook + KV config in one flow
@@ -26,12 +28,11 @@ Hoox CLI — manage Cloudflare Workers, infrastructure, secrets, and deployments
 ### Global Install (Recommended)
 
 ```bash
-# Using bun (recommended)
+# Using bun (the only supported runtime)
 bun add -g @jango-blockchained/hoox-cli
-
-# Using npm
-npm install -g @jango-blockchained/hoox-cli
 ```
+
+> The CLI is a Bun bundle — `npm install -g` will not produce a working binary.
 
 ### Local Development
 
@@ -57,22 +58,30 @@ hoox monitor status
 
 ## Available Commands
 
-| Command          | Description                                                |
-| ---------------- | ---------------------------------------------------------- |
-| `hoox init`      | Initialize a new Hoox project with worker configuration    |
-| `hoox clone`     | Clone worker repositories as git submodules                |
-| `hoox dev`       | Start local development environment for all workers        |
-| `hoox deploy`    | Deploy workers, dashboard, telegram webhook, and KV config |
-| `hoox infra`     | Manage infrastructure (D1, KV, R2, Queues, Vectorize, Analytics) |
-| `hoox config`    | Manage wrangler.jsonc, env vars, KV keys, and secrets      |
-| `hoox check`     | Validate setup, prerequisites, and worker health           |
-| `hoox db`        | Manage D1 databases (apply, migrate, query, export, reset) |
-| `hoox monitor`   | Monitor health, trades, logs, kill switch, queue, backup   |
-| `hoox repair`    | Diagnose and repair the system (check, rebuild, per-component) |
-| `hoox logs`      | Stream and filter Cloudflare Worker logs                   |
-| `hoox test`      | Run tests and CI pipeline                                  |
-| `hoox waf`       | Manage Cloudflare WAF rules and policies                   |
-| `hoox dashboard` | Launch or deploy the Next.js dashboard                     |
+| Command           | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `hoox init`       | Initialize a new Hoox project with worker configuration          |
+| `hoox setup`      | Auto-bootstrap infrastructure (auth, keys, D1, secrets)          |
+| `hoox clone`      | Clone worker repositories as git submodules                      |
+| `hoox dev`        | Start local development environment for all workers              |
+| `hoox deploy`     | Deploy workers, dashboard, telegram webhook, and KV config       |
+| `hoox infra`      | Manage infrastructure (D1, KV, R2, Queues, Vectorize, Analytics) |
+| `hoox config`     | Manage wrangler.jsonc, env vars, KV keys, and secrets            |
+| `hoox check`      | Validate setup, prerequisites, and worker health                 |
+| `hoox db`         | Manage D1 databases (apply, migrate, query, export, reset)       |
+| `hoox monitor`    | Monitor health, trades, logs, kill switch, queue, backup         |
+| `hoox workers`    | Per-worker operations (list, status, dev, logs)                  |
+| `hoox repair`     | Diagnose and repair the system (check, rebuild, per-component)   |
+| `hoox schema`     | Manage D1 schema and migrations                                  |
+| `hoox update`     | Self-update the CLI and check wrangler versions                  |
+| `hoox logs`       | Stream and filter Cloudflare Worker logs                         |
+| `hoox test`       | Run tests and CI pipeline                                        |
+| `hoox waf`        | Manage Cloudflare WAF rules and policies                         |
+| `hoox dashboard`  | Launch or deploy the Next.js dashboard                           |
+| `hoox tui`        | Launch the OpenTUI terminal dashboard                            |
+| `hoox agent`      | AI agent operations (health probe)                               |
+| `hoox disclaimer` | Display legal disclaimer                                         |
+| `hoox completion` | Generate shell completion script (bash, zsh, fish)               |
 
 ### Global Options
 
@@ -108,7 +117,7 @@ Validates bun ≥1.2, git ≥2.40, wrangler, Docker, Cloudflare auth, and reposi
 ### Configure Environment
 
 ```bash
-# Interactive env setup (all 31 vars across 8 sections)
+# Interactive env setup (all 27 vars across 8 sections)
 hoox config env init
 
 # Show current env (secrets redacted)
@@ -322,6 +331,7 @@ packages/cli/
 │   ├── index.ts              # Main entry point
 │   ├── commands/
 │   │   ├── init/             # Interactive setup wizard
+│   │   ├── setup/            # Auto-bootstrap infrastructure
 │   │   ├── dev/              # Local development
 │   │   ├── deploy/           # Deploy, telegram-webhook, update-internal-urls
 │   │   ├── infra/            # D1, KV, R2, Queues, Vectorize, Analytics
@@ -329,12 +339,18 @@ packages/cli/
 │   │   ├── check/            # Prerequisites, setup, health
 │   │   ├── db/               # Database operations
 │   │   ├── monitor/          # Health, trades, logs, kill-switch
+│   │   ├── workers/          # Per-worker operations
 │   │   ├── repair/           # Check, worker, infra, secrets, rebuild
+│   │   ├── schema/           # Schema management
+│   │   ├── update/           # Self-update
 │   │   ├── logs/             # Worker log tailing
 │   │   ├── test/             # CI pipeline
 │   │   ├── waf/              # WAF management
 │   │   ├── clone/            # Submodule cloning
-│   │   └── dashboard/        # Dashboard operations
+│   │   ├── dashboard/        # Dashboard operations
+│   │   ├── tui/              # TUI launcher
+│   │   ├── agent/            # AI agent operations
+│   │   └── disclaimer/       # Legal disclaimer
 │   ├── services/
 │   │   ├── cloudflare/       # Wrangler CLI wrapper
 │   │   ├── config/           # wrangler.jsonc reader
@@ -359,7 +375,7 @@ packages/cli/
 | `commander`                       | CLI framework for command registration and parsing |
 | `@clack/prompts`                  | Interactive prompts for the TUI                    |
 | `ansis`                           | Terminal styling and colors                        |
-| `jsonc-parser`                    | Parse `wrangler.jsonc` configuration files          |
+| `jsonc-parser`                    | Parse `wrangler.jsonc` configuration files         |
 | `@jango-blockchained/hoox-shared` | Shared types and utilities                         |
 
 ## Contributing

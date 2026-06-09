@@ -26,6 +26,7 @@ import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
+import { Spinner, EmptyState } from "../shared/spinner";
 import { cliBridge } from "../../services/cli-bridge";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared";
 
@@ -95,11 +96,12 @@ function WorkerCard({
     <box
       flexDirection="column"
       flexGrow={1}
-      padding={1}
       border={true}
       borderStyle="single"
       borderColor={focused ? Colors.accent : Colors.border}
       backgroundColor={focused ? Colors.card : undefined}
+      paddingX={1}
+      paddingY={0}
     >
       {/* Header row: No.XX + name + StatusDot */}
       <box flexDirection="row" gap={1}>
@@ -448,9 +450,10 @@ export function WorkersOverview() {
           <text fg={Colors.accent} bold>
             Workers
           </text>
-          <text fg={Colors.muted}>
-            No workers connected. Check your hoox-setup deployment.
-          </text>
+          <EmptyState
+            message="No workers connected. Check your hoox-setup deployment."
+            icon="🔌"
+          />
           {connectionStatus === "connected" && (
             <text fg={Colors.warning}>
               API is reachable but returned 0 workers.
@@ -462,9 +465,9 @@ export function WorkersOverview() {
             </text>
           )}
           {connectionStatus !== "connected" && !cliFallbackTried && (
-            <text fg={Colors.muted} dim>
-              Checking via CLI...
-            </text>
+            <box alignItems="center">
+              <Spinner label="Checking via CLI..." />
+            </box>
           )}
           {connectionStatus !== "connected" && cliFallbackError && (
             <box flexDirection="column" gap={0} marginTop={1}>

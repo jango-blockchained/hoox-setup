@@ -258,7 +258,8 @@ describe("KvSyncService", () => {
 
   describe("set", () => {
     it("resolves on successful key set", async () => {
-      mockSpawnWithCapture(successSpawn(""));
+      const result = successSpawn("");
+      mockSpawnWithCapture(result);
 
       const service = new KvSyncService();
 
@@ -272,8 +273,10 @@ describe("KvSyncService", () => {
         "--namespace-id",
         "ns-123",
         "my-key",
-        "my-value",
       ]);
+      // Value must be piped through stdin, not exposed in argv
+      expect(result.stdin?.write).toHaveBeenCalledWith("my-value\n");
+      expect(result.stdin?.end).toHaveBeenCalled();
     });
 
     it("throws on non-zero exit", async () => {

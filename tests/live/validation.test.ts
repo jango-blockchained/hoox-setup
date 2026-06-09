@@ -23,6 +23,8 @@ import {
   getConfig,
   wrangler,
   cfApi,
+  canMutateCloudflare,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -32,7 +34,8 @@ import { join } from "node:path";
 const TEST_WORKER = testResourceName("validation-test");
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv =
+  hasLiveEnv("CLOUDFLARE_ACCOUNT_ID") && canMutateCloudflare();
 (hasCloudflareEnv ? describe : describe.skip)("Zod Validation", () => {
   let config: ReturnType<typeof getConfig>;
 

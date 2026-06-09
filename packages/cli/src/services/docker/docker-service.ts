@@ -153,17 +153,79 @@ export class DockerService {
 
   /**
    * Probe PATH for a command's availability without throwing.
+   *
+   * When `cmd` contains a space (e.g. "docker compose"), the first token is
+   * the binary on PATH and the rest is a subcommand. After confirming the
+   * binary is on PATH, we also probe `<binary> <subcommand> version` as a
+   * best-effort check that the subcommand is wired up. If the subcommand
+   * probe itself errors (e.g. binary crashes, timeout), we fall back to
+   * assuming the subcommand exists — modern Docker ships `compose` bundled.
    */
   private isCommandAvailable(cmd: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const proc = Bun.spawn(["which", cmd.split(" ")[0]!], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
+      const parts = cmd.split(/\s+/).filter(Boolean);
+      const binary = parts[0]!;
+      const hasSubcommand = parts.length > 1;
+
+      let proc: ReturnType<typeof Bun.spawn>;
+      try {
+        proc = Bun.spawn(["which", binary], {
+          stdout: "pipe",
+          stderr: "pipe",
+        });
+      } catch {
+        // `which` itself unavailable (e.g. minimal Alpine) — treat as not found
+        resolve(false);
+        return;
+      }
+
+      // 5-second timeout: a hung `which` must not block the caller forever
+      const timer = setTimeout(() => {
+        try {
+          proc.kill();
+        } catch {
+          // ignore: process may already be dead
+        }
+        resolve(false);
+      }, 5000);
 
       proc.exited
-        .then((code) => resolve(code === 0))
-        .catch(() => resolve(false));
+        .then((code) => {
+          clearTimeout(timer);
+          if (code !== 0) {
+            resolve(false);
+            return;
+          }
+          if (!hasSubcommand) {
+            resolve(true);
+            return;
+          }
+          // Best-effort subcommand probe: `<binary> <subcommand> version`.
+          // If the spawn or exit promise errors, fall back to `true`
+          // (modern Docker ships `compose` bundled with the CLI).
+          try {
+            const subproc = Bun.spawn([binary, ...parts.slice(1), "version"], {
+              stdout: "pipe",
+              stderr: "pipe",
+            });
+            subproc.exited
+              .then((subcode) => {
+                try {
+                  subproc.kill();
+                } catch {
+                  // ignore
+                }
+                resolve(subcode === 0);
+              })
+              .catch(() => resolve(true));
+          } catch {
+            resolve(true);
+          }
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          resolve(false);
+        });
     });
   }
 }

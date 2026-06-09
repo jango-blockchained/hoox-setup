@@ -13,10 +13,10 @@
  */
 
 import { describe, test, expect, beforeAll } from "bun:test";
-import { getConfig, cfApi, section } from "./helpers";
+import { getConfig, cfApi, hasLiveEnv, section } from "./helpers";
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("CLOUDFLARE_ACCOUNT_ID");
 (hasCloudflareEnv ? describe : describe.skip)(
   "Cloudflare REST API",
   async () => {

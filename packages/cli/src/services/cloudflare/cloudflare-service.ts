@@ -110,7 +110,18 @@ export class CloudflareService {
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return { ok: false, error: `Failed to spawn wrangler: ${message}` };
+      // Detect ENOENT (binary not on PATH) and surface a hint alongside the
+      // error string. Callers can show this to the user via the standard
+      // error-formatting pipeline.
+      const hint = /ENOENT|not found/i.test(message)
+        ? "Install wrangler with `bun add -g wrangler` (or `npm i -g wrangler`), then run `wrangler login`."
+        : undefined;
+      return {
+        ok: false,
+        error: hint
+          ? `Failed to spawn wrangler: ${message}\n↳ hint: ${hint}`
+          : `Failed to spawn wrangler: ${message}`,
+      };
     }
   }
 
@@ -532,9 +543,55 @@ export class CloudflareService {
   // DNS / Zones
   // ---------------------------------------------------------------------------
 
-  /** Lists all Cloudflare zones (`wrangler zones list`). */
+  /**
+   * Lists all Cloudflare zones via the Cloudflare API.
+   *
+   * Note: `wrangler zones list` was removed in wrangler v4.x, so this method
+   * now uses the Cloudflare REST API directly. Requires CLOUDFLARE_API_TOKEN
+   * environment variable to be set.
+   */
   async zonesList(): Promise<WranglerResult<string>> {
-    return this.runWrangler(["zones", "list"]);
+    const token = process.env.CLOUDFLARE_API_TOKEN;
+    if (!token) {
+      return {
+        ok: false,
+        error:
+          "CLOUDFLARE_API_TOKEN environment variable is not set. Set it or run `wrangler login`.",
+      };
+    }
+
+    try {
+      const response = await fetch(
+        "https://api.cloudflare.com/client/v4/zones?per_page=50",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const json = (await response.json()) as {
+        success: boolean;
+        result: Array<{ id: string; name: string }>;
+        errors: Array<{ message: string }>;
+      };
+
+      if (!response.ok || !json.success) {
+        const errorMsg =
+          json.errors?.map((e) => e.message).join("; ") ||
+          `HTTP ${response.status}`;
+        return { ok: false, error: `Failed to list zones: ${errorMsg}` };
+      }
+
+      // Format output to match legacy wrangler zones list format:
+      // "zone-name (zone-id)"
+      const lines = json.result.map((z) => `${z.name} (${z.id})`);
+      return { ok: true, value: lines.join("\n") };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: `Cloudflare API request failed: ${message}` };
+    }
   }
 
   // ---------------------------------------------------------------------------

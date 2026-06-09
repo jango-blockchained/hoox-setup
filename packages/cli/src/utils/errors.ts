@@ -1,6 +1,10 @@
 /**
  * CLIError — structured error class for the Hoox CLI.
- * Provides exit codes, optional details, and recoverable flag.
+ * Provides exit codes, optional details, hint, and recoverable flag.
+ *
+ * - `hint` is a short, actionable follow-up message (e.g. "Run `hoox infra` to
+ *   create the D1 database, then re-run `hoox setup`."). It's shown to humans
+ *   below the error line and included in `--json` output as an additive field.
  */
 
 export const enum ExitCode {
@@ -16,7 +20,8 @@ export class CLIError extends Error {
     message: string,
     public readonly code: ExitCode = ExitCode.ERROR,
     public readonly details?: string,
-    public readonly recoverable = false
+    public readonly recoverable = false,
+    public readonly hint?: string
   ) {
     super(message);
     this.name = "CLIError";

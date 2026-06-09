@@ -33,6 +33,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { Spinner, EmptyState } from "../shared/spinner";
 import { cliBridge } from "../../services/cli-bridge";
 import type { QueueDepth, QueueDepthStatus } from "../../services/cli-bridge";
 
@@ -155,12 +156,12 @@ function SummaryBar({ queues }: SummaryBarProps) {
   return (
     <box
       flexDirection="row"
-      paddingLeft={1}
-      paddingRight={1}
       gap={2}
       border={true}
       borderStyle="single"
       borderColor={Colors.border}
+      paddingX={1}
+      paddingY={0}
     >
       <text fg={Colors.muted} dim>
         SUMMARY
@@ -280,12 +281,17 @@ export function QueueDepthView() {
           border={true}
           borderStyle="single"
           borderColor={Colors.border}
+          paddingX={1}
+          paddingY={0}
         >
           {loading && queues.length === 0 ? (
-            <box padding={1}>
-              <text fg={Colors.muted} dim>
-                Loading queue depths…
-              </text>
+            <box
+              padding={1}
+              alignItems="center"
+              justifyContent="center"
+              flexGrow={1}
+            >
+              <Spinner label="Loading queue depths..." />
             </box>
           ) : error && queues.length === 0 ? (
             <box padding={1} flexDirection="column" gap={0}>
@@ -297,11 +303,12 @@ export function QueueDepthView() {
               </text>
             </box>
           ) : queues.length === 0 ? (
-            <box padding={1}>
-              <text fg={Colors.muted} dim>
-                No queues configured. Create one with{" "}
-                <text fg={Colors.accent}>wrangler queues create</text>.
-              </text>
+            <box padding={1} flexGrow={1}>
+              <EmptyState
+                message="No queues configured."
+                suggestion="Create one with `wrangler queues create`."
+                icon="📥"
+              />
             </box>
           ) : (
             <scrollbox width="100%" flexGrow={1}>

@@ -538,7 +538,9 @@ describe("SettingsView", () => {
 
   it("shows read-only disclaimer", async () => {
     const output = await renderSettings();
-    expect(output).toContain("cannot be changed.");
+    // The disclaimer text wraps inside the keyboard panel; the first line
+    // is the most reliable substring across viewport widths.
+    expect(output).toContain("These shortcuts are global");
   });
 
   // ── Data Panel ───────────────────────────────────────────────────────────

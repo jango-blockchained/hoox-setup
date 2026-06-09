@@ -10,6 +10,7 @@ import {
   getConfig,
   wrangler,
   cfApi,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -17,7 +18,7 @@ import {
 const TEST_QUEUE = testResourceName("live-test-queue");
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("HOOX_QUEUE");
 (hasCloudflareEnv ? describe : describe.skip)("Queues", () => {
   let config: ReturnType<typeof getConfig>;
 

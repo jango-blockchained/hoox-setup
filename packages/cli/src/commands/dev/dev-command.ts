@@ -82,8 +82,8 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async (options: { runtime?: string }) => {
-          const fmt = getFormatOptions(program);
+        async (options: { runtime?: string }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           const configService = new ConfigService();
           const prereqs = new PrerequisitesService();
           const docker = new DockerService();
@@ -280,8 +280,12 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async (name: string, options: { port?: number; runtime?: string }) => {
-          const fmt = getFormatOptions(program);
+        async (
+          name: string,
+          options: { port?: number; runtime?: string },
+          cmd: Command
+        ) => {
+          const fmt = getFormatOptions(cmd);
           const configService = new ConfigService();
           await configService.load();
 
@@ -365,8 +369,8 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async () => {
-          const fmt = getFormatOptions(program);
+        async (_options, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           const dashboardPath = path.resolve(
             process.cwd(),
             "workers/dashboard"

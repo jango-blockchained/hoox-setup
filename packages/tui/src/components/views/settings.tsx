@@ -158,6 +158,7 @@ const VIEW_OPTIONS: ViewId[] = [
   "secrets-viewer",
   "db-query",
   "ai-chat",
+  "edge-topology",
 ];
 
 /** Human-readable labels for ViewId values */
@@ -176,6 +177,7 @@ const VIEW_LABELS: Record<ViewId, string> = {
   "secrets-viewer": "Secrets Viewer",
   "db-query": "DB Query",
   "ai-chat": "AI Chat",
+  "edge-topology": "Edge Topology",
 };
 
 /** Notification channel keys in display order */
@@ -242,7 +244,8 @@ function PanelBox({
       borderStyle="single"
       borderColor={active ? Colors.accent : Colors.border}
       backgroundColor={Colors.card}
-      padding={1}
+      paddingX={1}
+      paddingY={0}
       gap={0}
     >
       <text fg={Colors.accent} bold dim={!active}>
@@ -667,7 +670,8 @@ function CheckSetupResultsPanel({
       borderStyle="single"
       borderColor={Colors.accent}
       backgroundColor={Colors.card}
-      padding={1}
+      paddingX={1}
+      paddingY={0}
       gap={0}
     >
       {/* Header row: title + summary counts + dismiss button */}

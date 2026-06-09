@@ -32,13 +32,14 @@ export function Sidebar() {
     { id: "secrets-viewer", label: "SECRETS", shortcut: "^S" },
     { id: "ai-chat", label: "AI CHAT", shortcut: "^C" },
     { id: "db-query", label: "DB QUERY", shortcut: "^Q" },
+    { id: "edge-topology", label: "TOPOLOGY", shortcut: "^E" },
   ];
 
   return (
     <box
       flexDirection="column"
-      width={18}
-      padding={1}
+      width={24}
+      padding={2}
       gap={0}
       border={true}
       borderStyle="single"

@@ -24,6 +24,7 @@ import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { StatusDot } from "../shared/status-dot";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { EmptyState } from "../shared/spinner";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";
@@ -136,8 +137,9 @@ function EdgeMap() {
         border={true}
         borderStyle="single"
         borderColor={Colors.border}
-        padding={1}
         gap={0}
+        paddingX={1}
+        paddingY={0}
       >
         {Array.from({ length: MAP_HEIGHT }, (_, row) => (
           <box flexDirection="row" gap={0}>
@@ -315,10 +317,12 @@ function WorkerControlList({
       {/* Scrollable worker list */}
       <scrollbox width="100%" flexGrow={1}>
         {workers.length === 0 ? (
-          <box padding={1}>
-            <text fg={Colors.muted} dim>
-              No workers registered. Run setup to deploy workers.
-            </text>
+          <box padding={1} flexGrow={1}>
+            <EmptyState
+              message="No workers registered."
+              suggestion="Run setup to deploy workers."
+              icon="⚙️"
+            />
           </box>
         ) : (
           workers.map((worker, i) => (
@@ -371,6 +375,8 @@ function BulkActions({
       border={true}
       borderStyle="single"
       borderColor={Colors.border}
+      paddingX={1}
+      paddingY={0}
     >
       {/* Status summary */}
       <box flexDirection="row" gap={1}>

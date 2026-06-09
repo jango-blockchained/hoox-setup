@@ -17,8 +17,10 @@ import {
   formatError,
   formatTable,
   formatJson,
+  formatDuration,
   getFormatOptions,
 } from "../../utils/formatters.js";
+import { startTimer } from "../../utils/timer.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 
@@ -208,14 +210,15 @@ export function registerTestCommand(program: Command): void {
     .option("--json", "Output results as JSON")
     .action(
       withErrorHandling(
-        async (options: { json?: boolean }) => {
-          const fmt = getFormatOptions(program);
+        async (options: { json?: boolean }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
           // Allow local --json to override global
           const useJson = options.json || fmt.json;
           const opts = { json: useJson, quiet: fmt.quiet };
 
           const results: TestStepResult[] = [];
           const s = spinner();
+          const pipelineTimer = startTimer();
           s.start("Running CI pipeline...");
 
           for (const step of PIPELINE_STEPS) {
@@ -225,11 +228,11 @@ export function registerTestCommand(program: Command): void {
 
             if (result.success) {
               s.message(
-                `  ${theme.success(icons.success)} ${step.label} passed (${result.duration}ms)`
+                `  ${theme.success(icons.success)} ${step.label} passed (${formatDuration(result.duration)})`
               );
             } else {
               s.message(
-                `  ${theme.error(icons.error)} ${step.label} failed (${result.duration}ms)`
+                `  ${theme.error(icons.error)} ${step.label} failed (${formatDuration(result.duration)})`
               );
               if (result.error) {
                 s.message(theme.dim(result.error.slice(0, 500)));
@@ -248,8 +251,8 @@ export function registerTestCommand(program: Command): void {
 
           s.stop(
             summary.failed > 0
-              ? `Pipeline complete: ${summary.passed} passed, ${summary.failed} failed`
-              : "Pipeline complete"
+              ? `Pipeline complete: ${summary.passed} passed, ${summary.failed} failed (${formatDuration(pipelineTimer.ms())})`
+              : `Pipeline complete (${formatDuration(pipelineTimer.ms())})`
           );
 
           printSummary(summary, opts);
@@ -267,8 +270,8 @@ export function registerTestCommand(program: Command): void {
     .command("unit")
     .description("Run unit tests with bun test")
     .option("--coverage", "Run with coverage reporting")
-    .action(async (options: { coverage?: boolean }) => {
-      const fmt = getFormatOptions(program);
+    .action(async (options: { coverage?: boolean }, cmd: Command) => {
+      const fmt = getFormatOptions(cmd);
       const args = ["bun", "test"];
       if (options.coverage) args.push("--coverage");
 
@@ -293,8 +296,8 @@ export function registerTestCommand(program: Command): void {
     .command("integration")
     .description("Run integration tests with vitest")
     .option("--coverage", "Run with coverage reporting")
-    .action(async (options: { coverage?: boolean }) => {
-      const fmt = getFormatOptions(program);
+    .action(async (options: { coverage?: boolean }, cmd: Command) => {
+      const fmt = getFormatOptions(cmd);
       const args = ["vitest", "run", "--config", "vitest.config.ts"];
       if (options.coverage) args.push("--coverage");
 
@@ -321,8 +324,8 @@ export function registerTestCommand(program: Command): void {
     .option("--coverage", "Run with coverage reporting")
     .action(
       withErrorHandling(
-        async (name: string, options: { coverage?: boolean }) => {
-          const fmt = getFormatOptions(program);
+        async (name: string, options: { coverage?: boolean }, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
 
           const configService = new ConfigService();
           await configService.load();
@@ -375,6 +378,7 @@ export function registerTestCommand(program: Command): void {
       withErrorHandling(
         async (options: { service?: string }) => {
           const s = spinner();
+          const liveTimer = startTimer();
 
           let filePattern = options.service
             ? `tests/live/${options.service}.test.ts`
@@ -387,10 +391,13 @@ export function registerTestCommand(program: Command): void {
           const args = ["bun", "test", filePattern, "--jobs", "1"];
           const result = await runWithInherit(args, process.cwd());
 
+          const dur = formatDuration(liveTimer.ms());
           if (result.success) {
-            s.stop("Live tests complete");
+            s.stop(`Live tests complete (${dur})`);
           } else {
-            s.stop(`Live tests: some failures (exit code ${result.exitCode})`);
+            s.stop(
+              `Live tests: some failures (exit code ${result.exitCode}, ${dur})`
+            );
             process.exitCode = ExitCode.ERROR;
           }
         },

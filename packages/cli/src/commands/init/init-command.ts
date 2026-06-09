@@ -210,8 +210,8 @@ EXAMPLES:
     .option("--accept-risk", "Skip the risk acknowledgment confirmation")
     .action(
       withErrorHandling(
-        async (options: InitOptions) => {
-          const globalOpts = getFormatOptions(program);
+        async (options: InitOptions, cmd: Command) => {
+          const globalOpts = getFormatOptions(cmd);
           const isNonInteractive = Boolean(options.token && options.account);
 
           await runInitCommand(options, globalOpts, isNonInteractive);

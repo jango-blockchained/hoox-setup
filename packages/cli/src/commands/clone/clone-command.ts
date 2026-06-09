@@ -25,7 +25,9 @@ import {
   formatTable,
   formatJson,
   getFormatOptions,
+  formatDuration,
 } from "../../utils/formatters.js";
+import { startTimer } from "../../utils/timer.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 
@@ -251,9 +253,10 @@ EXAMPLES:
       withErrorHandling(
         async (
           name: string | undefined,
-          options: { all?: boolean; home?: boolean; org?: string }
+          options: { all?: boolean; home?: boolean; org?: string },
+          cmd: Command
         ) => {
-          const fmt = getFormatOptions(program);
+          const fmt = getFormatOptions(cmd);
 
           const configService = new ConfigService();
           await configService.load();
@@ -313,6 +316,7 @@ EXAMPLES:
               : await resolveRepoBase();
 
             const s = spinner();
+            const cloneTimer = startTimer();
             const location = options.home ? "$HOME/.hoox/workers" : "workers/";
             s.start(`Cloning ${workers.length} worker(s) to ${location}...`);
 
@@ -382,11 +386,13 @@ EXAMPLES:
 
             if (failed > 0) {
               s.stop(
-                `Clone complete: ${succeeded} succeeded, ${failed} failed`
+                `Clone complete: ${succeeded} succeeded, ${failed} failed (${formatDuration(cloneTimer.ms())})`
               );
               process.exitCode = ExitCode.ERROR;
             } else {
-              s.stop(`All ${succeeded} worker(s) cloned successfully`);
+              s.stop(
+                `All ${succeeded} worker(s) cloned successfully (${formatDuration(cloneTimer.ms())})`
+              );
             }
 
             // Print summary table (unless quiet)
@@ -441,6 +447,7 @@ EXAMPLES:
               : await resolveRepoBase();
 
             const s = spinner();
+            const singleTimer = startTimer();
             const location = options.home ? "$HOME/.hoox/workers" : "workers/";
             s.start(`Cloning ${name} to ${location}...`);
 
@@ -461,7 +468,9 @@ EXAMPLES:
                 // Non-fatal — the clone itself succeeded
               }
 
-              s.stop(`Successfully cloned ${name}`);
+              s.stop(
+                `Successfully cloned ${name} (${formatDuration(singleTimer.ms())})`
+              );
               const locationText = options.home
                 ? " at $HOME/.hoox/workers"
                 : "";
@@ -470,7 +479,9 @@ EXAMPLES:
                 fmt
               );
             } else {
-              s.stop(`Failed to clone ${name}`);
+              s.stop(
+                `Failed to clone ${name} (${formatDuration(singleTimer.ms())})`
+              );
               formatError(
                 new CLIError(
                   `Failed to clone "${name}": ${result.error}`,

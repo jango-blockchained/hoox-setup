@@ -141,7 +141,7 @@ describe("DashboardView", () => {
   it("shows empty state when no workers connected", async () => {
     useServiceStore.setState({ workers: [] });
     const output = await renderDashboard();
-    expect(output).toContain("No workers connected");
+    expect(output).toContain("Waiting for worker data");
   });
 
   it("renders correct status characters for each worker status", async () => {

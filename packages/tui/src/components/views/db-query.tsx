@@ -36,6 +36,7 @@ import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { Spinner, EmptyState } from "../shared/spinner";
 import {
   cliBridge,
   validateReadOnlySql,
@@ -263,6 +264,8 @@ function HistoryOverlay({ history, onSelect, onClose }: HistoryOverlayProps) {
       borderStyle="single"
       borderColor={Colors.border}
       backgroundColor={Colors.card}
+      paddingX={1}
+      paddingY={0}
     >
       <box flexDirection="row" gap={1} paddingLeft={1} paddingRight={1}>
         <text fg={Colors.accent} bold>
@@ -660,6 +663,8 @@ export function DbQueryView() {
           borderStyle="single"
           borderColor={Colors.border}
           flexDirection="column"
+          paddingX={1}
+          paddingY={0}
         >
           {showHistory ? (
             <HistoryOverlay
@@ -673,10 +678,13 @@ export function DbQueryView() {
               onClose={() => setShowHistory(false)}
             />
           ) : loading ? (
-            <box padding={1}>
-              <text fg={Colors.muted} dim>
-                Executing query…
-              </text>
+            <box
+              padding={1}
+              alignItems="center"
+              justifyContent="center"
+              flexGrow={1}
+            >
+              <Spinner label="Executing query..." />
             </box>
           ) : queryError && rows.length === 0 ? (
             <box padding={1} flexDirection="column" gap={0}>
@@ -691,22 +699,16 @@ export function DbQueryView() {
               </text>
             </box>
           ) : !result ? (
-            <box padding={1}>
-              <text fg={Colors.muted} dim>
-                Enter a SELECT query above and press Enter to execute.
-              </text>
-              <text fg={Colors.muted} dim>
-                Example:{" "}
-                <text fg={Colors.accent}>
-                  SELECT name, sql FROM sqlite_master WHERE type='table'
-                </text>
-              </text>
+            <box padding={1} flexGrow={1}>
+              <EmptyState
+                message="Enter a SELECT query above and press Enter to execute."
+                suggestion="Example: SELECT name, sql FROM sqlite_master WHERE type='table'"
+                icon="🔍"
+              />
             </box>
           ) : rows.length === 0 ? (
-            <box padding={1}>
-              <text fg={Colors.muted} dim>
-                Query returned 0 rows.
-              </text>
+            <box padding={1} flexGrow={1}>
+              <EmptyState message="Query returned 0 rows." icon="∅" />
             </box>
           ) : (
             <>

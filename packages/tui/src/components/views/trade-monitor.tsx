@@ -21,6 +21,7 @@ import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { Spinner, EmptyState } from "../shared/spinner";
 import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -234,9 +235,14 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
       </box>
 
       {sortedTrades.length === 0 ? (
-        <text fg={Colors.muted} dim paddingTop={1}>
-          No trades yet — waiting for live data…
-        </text>
+        <box
+          paddingTop={1}
+          alignItems="center"
+          justifyContent="center"
+          flexGrow={1}
+        >
+          <Spinner label="Waiting for live data..." />
+        </box>
       ) : (
         <scrollbox
           width="100%"
@@ -245,6 +251,8 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
           border={true}
           borderStyle="single"
           borderColor={Colors.border}
+          paddingX={1}
+          paddingY={0}
         >
           {sortedTrades.map((trade, i) => {
             const color = SIDE_COLOR[trade.side];
@@ -392,9 +400,9 @@ function OpenPositions() {
       </box>
 
       {positions.length === 0 ? (
-        <text fg={Colors.muted} dim paddingTop={1}>
-          No open positions
-        </text>
+        <box paddingTop={1} flexGrow={1}>
+          <EmptyState message="No open positions" icon="📊" />
+        </box>
       ) : (
         <scrollbox
           width="100%"
@@ -403,6 +411,8 @@ function OpenPositions() {
           border={true}
           borderStyle="single"
           borderColor={Colors.border}
+          paddingX={1}
+          paddingY={0}
         >
           {positions.map((pos) => (
             <box key={pos.symbol} flexDirection="row" gap={1}>
@@ -599,9 +609,14 @@ function PerformanceSummary() {
 
       {/* Empty state */}
       {tradeStream.length === 0 && (
-        <text fg={Colors.muted} dim paddingTop={1}>
-          Awaiting trade data…
-        </text>
+        <box
+          paddingTop={1}
+          alignItems="center"
+          justifyContent="center"
+          flexGrow={1}
+        >
+          <Spinner label="Awaiting trade data..." />
+        </box>
       )}
     </box>
   );

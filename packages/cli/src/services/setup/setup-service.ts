@@ -17,6 +17,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { CloudflareService } from "../cloudflare/index.js";
 
@@ -617,8 +618,7 @@ export class SetupService {
     // Try common fallback locations
     const fallbacks = [
       "/usr/local/bin/wrangler",
-      "/home/jango/.bun/install/global/bin/wrangler",
-      join(process.env.HOME || "~", ".bun", "bin", "wrangler"),
+      join(homedir(), ".bun", "bin", "wrangler"),
     ];
     for (const fb of fallbacks) {
       try {

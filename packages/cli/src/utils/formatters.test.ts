@@ -10,6 +10,9 @@ import {
   renderProgressBar,
   renderStepProgress,
   getFormatOptions,
+  formatDuration,
+  formatBadge,
+  formatHint,
 } from "./formatters.js";
 import { CLIError, ExitCode } from "./errors.js";
 import { Command } from "commander";
@@ -211,6 +214,39 @@ describe("renderProgressBar", () => {
   it("handles zero total without division by zero", () => {
     const result = renderProgressBar(0, 0);
     expect(result).toContain("0%");
+  });
+
+  it("appends elapsed/total ETA when eta.totalMs is provided", () => {
+    const result = renderProgressBar(5, 10, {
+      eta: { startedAt: Date.now() - 1000, totalMs: 2000 },
+    });
+    expect(result).toContain("50%");
+    expect(result).toMatch(/1\.\ds \/ 2\.\ds/);
+  });
+
+  it("estimates ETA from rate when totalMs is not provided", () => {
+    const result = renderProgressBar(5, 10, {
+      eta: { startedAt: Date.now() - 1000 },
+    });
+    expect(result).toContain("50%");
+    expect(result).toContain("left");
+  });
+
+  it("shows only elapsed when current=0 and no totalMs", () => {
+    const result = renderProgressBar(0, 10, {
+      eta: { startedAt: Date.now() - 1000 },
+    });
+    expect(result).toContain("0%");
+    expect(result).toContain("1.0s");
+    expect(result).not.toContain("left");
+  });
+
+  it("does not append ETA when total=0", () => {
+    const result = renderProgressBar(0, 0, {
+      eta: { startedAt: Date.now() - 1000, totalMs: 2000 },
+    });
+    expect(result).toContain("0%");
+    expect(result).not.toContain("/");
   });
 
   it("accepts custom width", () => {
@@ -428,5 +464,182 @@ describe("getFormatOptions", () => {
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
     expect(opts).toEqual({ json: true, quiet: true });
+  });
+});
+
+describe("formatDuration (re-export)", () => {
+  it("matches timer.formatDuration semantics", () => {
+    expect(formatDuration(0)).toBe("0ms");
+    expect(formatDuration(1500)).toBe("1.5s");
+    expect(formatDuration(72_000)).toBe("1m 12s");
+  });
+});
+
+describe("formatBadge", () => {
+  let capture: ReturnType<typeof captureStdout>;
+
+  beforeEach(() => {
+    capture = captureStdout();
+  });
+
+  afterEach(() => {
+    capture.restore();
+  });
+
+  it("renders OK badge with custom text", () => {
+    const out = formatBadge("ok", "DONE");
+    expect(out).toContain("DONE");
+  });
+
+  it("renders FAIL badge by default when level=err", () => {
+    const out = formatBadge("err");
+    expect(out).toContain("FAIL");
+  });
+
+  it("renders WARN badge by default when level=warn", () => {
+    const out = formatBadge("warn");
+    expect(out).toContain("WARN");
+  });
+
+  it("renders INFO badge by default when level=info", () => {
+    const out = formatBadge("info");
+    expect(out).toContain("INFO");
+  });
+
+  it("renders OK badge by default when level=ok", () => {
+    const out = formatBadge("ok");
+    expect(out).toContain("OK");
+  });
+
+  it("pads short custom text to 4 chars", () => {
+    const out = formatBadge("ok", "X");
+    expect(out).toContain("X");
+    // padEnd should add spaces; verify length is correct
+    expect(out.length).toBeGreaterThanOrEqual(7);
+  });
+});
+
+describe("formatHint", () => {
+  let capture: ReturnType<typeof captureStdout>;
+  const originalIsTTY = process.stdout.isTTY;
+
+  beforeEach(() => {
+    capture = captureStdout();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    capture.restore();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: originalIsTTY,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it("emits a dimmed hint line in rich mode", () => {
+    formatHint("Run `hoox infra` to fix this.");
+    const out = capture.output();
+    expect(out).toContain("hint:");
+    expect(out).toContain("hoox infra");
+  });
+
+  it("suppresses output in --quiet", () => {
+    formatHint("Run `hoox infra` to fix this.", { quiet: true });
+    expect(capture.output()).toBe("");
+  });
+
+  it("suppresses output in --json", () => {
+    formatHint("Run `hoox infra` to fix this.", { json: true });
+    expect(capture.output()).toBe("");
+  });
+
+  it("suppresses output when not a TTY", () => {
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: false,
+      configurable: true,
+      writable: true,
+    });
+    formatHint("Run `hoox infra` to fix this.");
+    expect(capture.output()).toBe("");
+  });
+});
+
+describe("formatError with hint", () => {
+  let capture: ReturnType<typeof captureStdout>;
+  const originalIsTTY = process.stdout.isTTY;
+
+  beforeEach(() => {
+    capture = captureStdout();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  afterEach(() => {
+    capture.restore();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: originalIsTTY,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it("prints hint below error in human mode", () => {
+    const error = new CLIError(
+      "D1 binding missing",
+      ExitCode.ERROR,
+      undefined,
+      false,
+      "Run `hoox infra` to create the D1 database."
+    );
+    formatError(error);
+    const out = capture.output();
+    expect(out).toContain("D1 binding missing");
+    expect(out).toContain("hint:");
+    expect(out).toContain("hoox infra");
+  });
+
+  it("includes hint as an additive field in JSON output", () => {
+    const error = new CLIError(
+      "D1 binding missing",
+      ExitCode.ERROR,
+      undefined,
+      false,
+      "Run `hoox infra`."
+    );
+    formatError(error, { json: true });
+    const out = capture.output();
+    const parsed = JSON.parse(out);
+    expect(parsed.hint).toBe("Run `hoox infra`.");
+    // All other fields still present (additive only)
+    expect(parsed.error).toBe("D1 binding missing");
+    expect(parsed.code).toBe(ExitCode.ERROR);
+  });
+
+  it("omits hint from JSON when CLIError has none", () => {
+    const error = new CLIError("No hint");
+    formatError(error, { json: true });
+    const parsed = JSON.parse(capture.output());
+    expect(parsed.hint).toBeUndefined();
+  });
+
+  it("suppresses hint line in --quiet", () => {
+    const error = new CLIError(
+      "Oops",
+      ExitCode.ERROR,
+      undefined,
+      false,
+      "do X"
+    );
+    formatError(error, { quiet: true });
+    const out = capture.output();
+    expect(out).toBe("Oops\n");
   });
 });

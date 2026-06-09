@@ -43,6 +43,7 @@ import { KvViewer } from "./components/views/kv-viewer";
 import { SecretsViewer } from "./components/views/secrets-viewer";
 import { AiChatView } from "./components/views/ai-chat";
 import { DbQueryView } from "./components/views/db-query";
+import { EdgeTopology } from "./components/views/edge-topology";
 import {
   CrashScreen,
   type CrashAction,
@@ -69,6 +70,7 @@ const VIEWS: Record<ViewId, () => React.ReactNode> = {
   "secrets-viewer": SecretsViewer,
   "db-query": DbQueryView,
   "ai-chat": AiChatView,
+  "edge-topology": EdgeTopology,
 };
 
 // ─── View keyboard shortcuts ─────────────────────────────────────────────────
@@ -87,6 +89,7 @@ const VIEW_SHORTCUTS: Record<string, ViewId> = {
   "^<s>": "secrets-viewer", // Ctrl+Alt+S
   "^<c>": "ai-chat", // Ctrl+Alt+C
   "^<q>": "db-query", // Ctrl+Alt+Q
+  "^<e>": "edge-topology", // Ctrl+Alt+E
 };
 
 // ─── Command palette registry ────────────────────────────────────────────────
@@ -189,6 +192,13 @@ const PALETTE_COMMANDS: CommandEntry[] = [
     category: "view",
     shortcut: "^#q",
     aliases: ["sql", "d1", "database", "db"],
+  },
+  {
+    id: "edge-topology",
+    name: "EDGE TOPOLOGY",
+    category: "view",
+    shortcut: "^#e",
+    aliases: ["topology", "graph", "architecture", "map"],
   },
   {
     id: "refresh",
@@ -399,6 +409,12 @@ export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
     // Ctrl+Alt+Q: switch to DB Query
     if (key.ctrl && key.alt && key.name === "q") {
       setView("db-query");
+      return;
+    }
+
+    // Ctrl+Alt+E: switch to Edge Topology
+    if (key.ctrl && key.alt && key.name === "e") {
+      setView("edge-topology");
       return;
     }
 

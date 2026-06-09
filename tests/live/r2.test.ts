@@ -10,6 +10,7 @@ import {
   getConfig,
   wrangler,
   cfApi,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -19,7 +20,7 @@ const TEST_TEXT = "Hello from hoox live test suite!";
 const TEST_JSON = JSON.stringify({ test: true, value: 42 });
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("HOOX_R2_BUCKET");
 (hasCloudflareEnv ? describe : describe.skip)("R2 Object Storage", () => {
   let config: ReturnType<typeof getConfig>;
   let bucketName: string;

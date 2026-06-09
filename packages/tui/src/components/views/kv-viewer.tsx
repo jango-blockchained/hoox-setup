@@ -47,6 +47,7 @@ import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { Spinner, EmptyState } from "../shared/spinner";
 import { cliBridge } from "../../services/cli-bridge";
 import type { KvKey, KvKeySnapshot } from "../../services/cli-bridge";
 
@@ -164,11 +165,12 @@ function DetailPane({
       <box
         flexDirection="column"
         flexGrow={1}
-        padding={2}
         gap={1}
         border={true}
         borderStyle="single"
         borderColor={Colors.border}
+        paddingX={1}
+        paddingY={0}
       >
         <text fg={Colors.muted} dim>
           Select a key to view its value.
@@ -184,11 +186,12 @@ function DetailPane({
     <box
       flexDirection="column"
       flexGrow={1}
-      padding={1}
       gap={1}
       border={true}
       borderStyle="single"
       borderColor={Colors.border}
+      paddingX={1}
+      paddingY={0}
     >
       {/* Selected key header */}
       <box flexDirection="row" gap={2} alignItems="center">
@@ -223,9 +226,9 @@ function DetailPane({
       {revealed ? (
         <box flexDirection="column" gap={1} paddingLeft={1} flexGrow={1}>
           {loading ? (
-            <text fg={Colors.muted} dim>
-              Loading value…
-            </text>
+            <box alignItems="center" justifyContent="center" flexGrow={1}>
+              <Spinner label="Loading value..." />
+            </box>
           ) : valueError ? (
             <text fg={Colors.error}>! {valueError}</text>
           ) : value === null ? (
@@ -530,6 +533,8 @@ export function KvViewer() {
             border={true}
             borderStyle="single"
             borderColor={Colors.border}
+            paddingX={1}
+            paddingY={0}
           >
             {/* Column header */}
             <box flexDirection="row" gap={2} paddingLeft={1} paddingRight={1}>
@@ -555,10 +560,13 @@ export function KvViewer() {
 
             {/* Body */}
             {loading && allKeys.length === 0 ? (
-              <box padding={1}>
-                <text fg={Colors.muted} dim>
-                  Loading KV keys…
-                </text>
+              <box
+                padding={1}
+                alignItems="center"
+                justifyContent="center"
+                flexGrow={1}
+              >
+                <Spinner label="Loading KV keys..." />
               </box>
             ) : error && allKeys.length === 0 ? (
               <box padding={1} flexDirection="column" gap={0}>
@@ -570,18 +578,20 @@ export function KvViewer() {
                 </text>
               </box>
             ) : allKeys.length === 0 ? (
-              <box padding={1}>
-                <text fg={Colors.muted} dim>
-                  No keys in CONFIG_KV. Populate with{" "}
-                  <text fg={Colors.accent}>hoox config kv apply-manifest</text>.
-                </text>
+              <box padding={1} flexGrow={1}>
+                <EmptyState
+                  message="No keys in CONFIG_KV."
+                  suggestion="Populate with `hoox config kv apply-manifest`"
+                  icon="🔑"
+                />
               </box>
             ) : filteredKeys.length === 0 ? (
-              <box padding={1}>
-                <text fg={Colors.muted} dim>
-                  No keys match "{search}". Press{" "}
-                  <text fg={Colors.accent}>/</text> to clear.
-                </text>
+              <box padding={1} flexGrow={1}>
+                <EmptyState
+                  message={`No keys match "${search}".`}
+                  suggestion="Press / to clear."
+                  icon="🔍"
+                />
               </box>
             ) : (
               <scrollbox width="100%" flexGrow={1}>

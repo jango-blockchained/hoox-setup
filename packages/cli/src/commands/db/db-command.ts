@@ -18,8 +18,10 @@ import {
   formatSuccess,
   formatTable,
   formatJson,
+  formatDuration,
   getFormatOptions,
 } from "../../utils/formatters.js";
+import { startTimer } from "../../utils/timer.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
@@ -43,10 +45,11 @@ async function handleApply(
 ): Promise<void> {
   const svc = new DbService();
   const s = spinner();
+  const t = startTimer();
   s.start("Applying schema...");
   try {
     const output = await svc.apply(dbName, remote, file);
-    s.stop("Schema applied");
+    s.stop(`Schema applied (${formatDuration(t.ms())})`);
     formatSuccess(
       `Schema applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
       opts
@@ -55,7 +58,7 @@ async function handleApply(
       process.stdout.write(`${output}\n`);
     }
   } catch (err) {
-    s.stop("Schema apply failed");
+    s.stop(`Schema apply failed (${formatDuration(t.ms())})`);
     throw err;
   }
 }
@@ -71,10 +74,11 @@ async function handleMigrate(
 ): Promise<void> {
   const svc = new DbService();
   const s = spinner();
+  const t = startTimer();
   s.start("Running migrations...");
   try {
     const output = await svc.migrate(dbName, remote);
-    s.stop("Migrations complete");
+    s.stop(`Migrations complete (${formatDuration(t.ms())})`);
     formatSuccess(
       `Migrations applied to ${dbName}${remote ? " (remote)" : " (local)"}`,
       opts
@@ -83,7 +87,7 @@ async function handleMigrate(
       process.stdout.write(`${output}\n`);
     }
   } catch (err) {
-    s.stop("Migrations failed");
+    s.stop(`Migrations failed (${formatDuration(t.ms())})`);
     throw err;
   }
 }
@@ -116,12 +120,48 @@ async function handleList(
 // db query
 // ---------------------------------------------------------------------------
 
+const DESTRUCTIVE_SQL_KEYWORDS = [
+  "DROP",
+  "TRUNCATE",
+  "ALTER",
+  "DELETE",
+  "UPDATE",
+  "REPLACE",
+  "INSERT",
+  "CREATE",
+  "ATTACH",
+  "DETACH",
+  "REINDEX",
+  "VACUUM",
+];
+
+function findDestructiveKeywords(sql: string): string[] {
+  const upper = sql.toUpperCase();
+  const found: string[] = [];
+  for (const kw of DESTRUCTIVE_SQL_KEYWORDS) {
+    const re = new RegExp(`(^|[^A-Z0-9_])${kw}([^A-Z0-9_]|$)`, "g");
+    if (re.test(upper)) found.push(kw);
+  }
+  return found;
+}
+
 async function handleQuery(
   opts: FormatOptions,
   dbName: string,
   sql: string,
-  remote: boolean
+  remote: boolean,
+  allowDestructive: boolean
 ): Promise<void> {
+  if (!allowDestructive) {
+    const matches = findDestructiveKeywords(sql);
+    if (matches.length > 0) {
+      throw new Error(
+        `Destructive SQL keywords detected: ${matches.join(", ")}. ` +
+          `Re-run with --allow-destructive to confirm. ` +
+          `(Keywords: ${DESTRUCTIVE_SQL_KEYWORDS.join(", ")})`
+      );
+    }
+  }
   const svc = new DbService();
   const output = await svc.query(dbName, sql, remote);
 
@@ -149,13 +189,14 @@ async function handleExport(
 ): Promise<void> {
   const svc = new DbService();
   const s = spinner();
+  const t = startTimer();
   s.start("Exporting database...");
   try {
     const path = await svc.export(dbName, outputPath);
-    s.stop("Database exported");
+    s.stop(`Database exported (${formatDuration(t.ms())})`);
     formatSuccess(`Database exported to ${path}`, opts);
   } catch (err) {
-    s.stop("Export failed");
+    s.stop(`Export failed (${formatDuration(t.ms())})`);
     throw err;
   }
 }
@@ -182,16 +223,17 @@ async function handleReset(
 
   const svc = new DbService();
   const s = spinner();
+  const t = startTimer();
   s.start("Resetting database...");
   try {
     const output = await svc.reset(dbName);
-    s.stop("Database reset");
+    s.stop(`Database reset (${formatDuration(t.ms())})`);
     formatSuccess(`Database "${dbName}" has been recreated`, opts);
     if (!opts.quiet && output) {
       process.stdout.write(`${output}\n`);
     }
   } catch (err) {
-    s.stop("Reset failed");
+    s.stop(`Reset failed (${formatDuration(t.ms())})`);
     throw err;
   }
 }
@@ -293,16 +335,25 @@ EXAMPLES:
   dbCmd
     .command("query <sql>")
     .description("Execute a SQL query")
+    .option(
+      "--allow-destructive",
+      "Allow destructive keywords (DROP, DELETE, TRUNCATE, ALTER, UPDATE)"
+    )
     .action(
       withErrorHandling(
-        async (sql: string, _, cmd: Command) => {
+        async (
+          sql: string,
+          options: { allowDestructive?: boolean },
+          cmd: Command
+        ) => {
           const opts = getFormatOptions(cmd);
           const svc = new DbService();
           const dbName = await resolveDb(cmd, svc);
           const remote = Boolean(
             cmd.optsWithGlobals<{ remote?: boolean }>().remote
           );
-          await handleQuery(opts, dbName, sql, remote);
+          const allowDestructive = Boolean(options.allowDestructive);
+          await handleQuery(opts, dbName, sql, remote, allowDestructive);
         },
         { service: "db" }
       )

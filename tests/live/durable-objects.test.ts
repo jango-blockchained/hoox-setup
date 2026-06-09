@@ -21,6 +21,8 @@ import {
   getConfig,
   wrangler,
   cfApi,
+  canMutateCloudflare,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -35,7 +37,7 @@ interface IdempotencyEntry {
 }
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("HOOX_DO_WORKER") && canMutateCloudflare();
 (hasCloudflareEnv ? describe : describe.skip)("Durable Objects", () => {
   let config: ReturnType<typeof getConfig>;
 

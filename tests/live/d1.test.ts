@@ -17,6 +17,7 @@ import {
   getConfig,
   wrangler,
   skipIfMissing,
+  hasLiveEnv,
   section,
   testResourceName,
 } from "./helpers";
@@ -24,7 +25,7 @@ import {
 const TEST_TABLE = testResourceName("live_test_items");
 
 // Skip these live integration tests when no Cloudflare credentials available
-const hasCloudflareEnv = !!process.env.CLOUDFLARE_API_TOKEN;
+const hasCloudflareEnv = hasLiveEnv("HOOX_D1_DATABASE");
 (hasCloudflareEnv ? describe : describe.skip)("D1 Database", () => {
   let config: ReturnType<typeof getConfig>;
 
