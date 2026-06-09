@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { secureHeaders } from "@jango-blockchained/hoox-shared/middleware";
+import { timingSafeEqual } from "@jango-blockchained/hoox-shared/middleware/auth";
 
 /**
  * CSP relaxed for Next.js client-side hydration.
@@ -64,9 +65,6 @@ export function middleware(request: NextRequest) {
       }
     }
 
-    const authType = process.env.AUTH_TYPE;
-    if (authType === "none") return withSecurityHeaders(NextResponse.next());
-
     // Validate required env vars
     if (!process.env.DASHBOARD_USER) {
       if (pathname.startsWith("/api/")) {
@@ -90,7 +88,7 @@ export function middleware(request: NextRequest) {
     }
     const expectedUser = process.env.DASHBOARD_USER;
 
-    if (!session || session !== expectedUser) {
+    if (!session || !timingSafeEqual(session, expectedUser)) {
       if (pathname.startsWith("/api/")) {
         return withSecurityHeaders(
           NextResponse.json({ error: "Unauthorized" }, { status: 401 })
