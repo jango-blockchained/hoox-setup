@@ -30,8 +30,8 @@
     "cloudflare",
     "workers"
   ],
-  "author": "Hoox Team",
-  "license": "MIT",
+  "author": "jango-blockchained",
+  "license": "CC-BY-4.0",
   "engines": {
     "bun": ">=1.0"
   },

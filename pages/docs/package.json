@@ -2,7 +2,7 @@
   "name": "docs-site",
   "version": "0.1.0",
   "description": "Hoox documentation site built with Astro",
-  "license": "MIT",
+  "license": "CC-BY-4.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -44,5 +44,6 @@
     "tailwindcss": "4.3.0",
     "typescript": "^6.0.3",
     "vite": "8.0.14"
-  }
+  },
+  "author": "jango-blockchained"
 }

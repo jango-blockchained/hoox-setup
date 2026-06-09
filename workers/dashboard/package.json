@@ -56,5 +56,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
     "wrangler": "^4.95.0"
-  }
+  },
+  "author": "jango-blockchained",
+  "license": "CC-BY-4.0"
 }

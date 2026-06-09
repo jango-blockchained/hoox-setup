@@ -28,8 +28,9 @@
     "@types/bun": "latest",
     "typescript": "^6.0.3"
   },
-  "license": "MIT",
+  "license": "CC-BY-4.0",
   "peerDependencies": {
     "@jango-blockchained/hoox-shared": "workspace:*"
-  }
+  },
+  "author": "jango-blockchained"
 }

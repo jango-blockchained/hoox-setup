@@ -87,8 +87,8 @@
     "url": "git+https://github.com/jango-blockchained/hoox-setup.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "jango-blockchained",
+  "license": "CC-BY-4.0",
   "bugs": {
     "url": "https://github.com/jango-blockchained/hoox-setup/issues"
   },
