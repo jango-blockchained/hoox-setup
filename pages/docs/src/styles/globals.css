@@ -7,7 +7,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Dark mode (default) — matches hoox-landing-page palette */
+/* Dark mode (default) — matches workers/dashboard palette */
+.dark,
 :root {
   --background: oklch(0.08 0 0);
   --foreground: oklch(0.95 0 0);
@@ -209,10 +210,7 @@ html:not(.dark) ::selection {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-mono;
+    @apply bg-background font-sans text-foreground antialiased;
   }
 }
 

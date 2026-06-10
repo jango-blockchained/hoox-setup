@@ -5,12 +5,14 @@
     "strict": true,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@jango-blockchained/hoox-shared": ["../../packages/shared/src/index.ts"],
+      "@jango-blockchained/hoox-shared/*": ["../../packages/shared/src/*"]
     },
     "types": [],
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src", "scripts"],
+  "include": ["src", "scripts", "astro.config.ts"],
   "exclude": ["src/content.config.ts", "src/pages/search-index.json.ts"]
 }

@@ -21,6 +21,14 @@ export default defineConfig({
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"),
+        "@jango-blockchained/hoox-shared": path.resolve(
+          __dirname,
+          "../../packages/shared/src/index.ts"
+        ),
+        "@jango-blockchained/hoox-shared/legal": path.resolve(
+          __dirname,
+          "../../packages/shared/src/legal.ts"
+        ),
       },
       // Vite 8.0.10+ / Rolldown regression: @tailwindcss/vite passes
       // resolve.tsconfigPaths to Rolldown's binding layer which doesn't

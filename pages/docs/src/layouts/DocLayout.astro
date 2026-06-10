@@ -36,41 +36,45 @@ const sections = buildNavigation(
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
-    <!-- Noise overlay -->
+    <!-- Ambient background: grid + noise overlay (matches workers/dashboard) -->
+    <div aria-hidden="true" class="fixed inset-0 pointer-events-none grid-bg opacity-45"></div>
     <div aria-hidden="true" class="fixed inset-0 pointer-events-none z-50 opacity-[0.03]" style="mix-blend-mode: overlay;">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <filter id="noise">
+        <filter id="noise-docs">
           <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
         </filter>
-        <rect width="100%" height="100%" filter="url(#noise)" opacity="1" />
+        <rect width="100%" height="100%" filter="url(#noise-docs)" opacity="1" />
       </svg>
     </div>
-    <Header searchOpen={false} />
-    <MobileNav sections={sections} currentSlug={currentSlug} />
 
-    <!--
-      Full-width layout with three-column grid:
-      Sidebar (fixed) | Content (fluid) | ToC (fixed)
-    -->
-    <div class="flex">
-      <Sidebar sections={sections} currentSlug={currentSlug} />
+    <div class="relative z-10">
+      <Header searchOpen={false} />
+      <MobileNav sections={sections} currentSlug={currentSlug} />
 
-      <main class="flex-1 min-w-0">
-        <div class="flex">
-          <!--
-            Full-width article: no max-w-3xl constraint.
-            Content expands to fill available space between sidebar and ToC.
-          -->
-          <article class="flex-1 min-w-0 px-6 py-8 lg:px-12 xl:px-16 2xl:px-20 prose">
-            <slot />
-          </article>
-          <TableOfContents headings={headings} />
-        </div>
-      </main>
+      <!--
+        Full-width layout with three-column grid:
+        Sidebar (fixed) | Content (fluid) | ToC (fixed)
+      -->
+      <div class="flex">
+        <Sidebar sections={sections} currentSlug={currentSlug} />
+
+        <main class="flex-1 min-w-0">
+          <div class="flex">
+            <!--
+              Full-width article: no max-w-3xl constraint.
+              Content expands to fill available space between sidebar and ToC.
+            -->
+            <article class="flex-1 min-w-0 px-6 py-8 lg:px-12 xl:px-16 2xl:px-20 prose">
+              <slot />
+            </article>
+            <TableOfContents headings={headings} />
+          </div>
+        </main>
+      </div>
+
+      <Footer />
+      <SearchDialog client:only="react" />
     </div>
-
-    <Footer />
-    <SearchDialog client:only="react" />
 
     <!-- Back-to-top button -->
     <button
