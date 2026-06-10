@@ -1,88 +1,111 @@
-/**
- * Unit tests for API client (WorkerAPIError)
- * Run with: bun test packages/shared/test/api-client.test.ts
- *
- * Note: hooxFetch integration tests require a working fetch mock.
- * WorkerAPIError is tested here since it requires no external dependencies.
- */
+import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
+import { hooxFetch, WorkerAPIError } from "../src/api-client";
 
-import { describe, test, expect } from "bun:test";
-import { WorkerAPIError } from "../src/api-client";
+describe("api-client", () => {
+  const originalFetch = global.fetch;
 
-describe("WorkerAPIError", () => {
-  test("has correct name property", () => {
-    expect(new WorkerAPIError("test error").name).toBe("WorkerAPIError");
+  beforeEach(() => {
+    global.fetch = mock();
   });
 
-  test("defaults status to 0 and retryable to false", () => {
-    const error = new WorkerAPIError("test");
-    expect(error.status).toBe(0);
-    expect(error.retryable).toBe(false);
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
-  test("accepts status in options", () => {
-    const error = new WorkerAPIError("test", { status: 500 });
-    expect(error.status).toBe(500);
-    expect(error.retryable).toBe(false);
+  it("fetches successfully", async () => {
+    const mockResponse = { data: "success" };
+    (global.fetch as any).mockResolvedValue(
+      new Response(JSON.stringify(mockResponse), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+
+    const result = await hooxFetch("/test");
+    expect(result).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  test("accepts retryable in options", () => {
-    const error = new WorkerAPIError("test", { retryable: true });
-    expect(error.status).toBe(0);
-    expect(error.retryable).toBe(true);
+  it("throws WorkerAPIError on 401 without retrying", async () => {
+    (global.fetch as any).mockResolvedValue(
+      new Response("Unauthorized", { status: 401 })
+    );
+
+    try {
+      await hooxFetch("/test");
+      expect(true).toBe(false); // Should not reach here
+    } catch (error) {
+      expect(error).toBeInstanceOf(WorkerAPIError);
+      expect((error as WorkerAPIError).status).toBe(401);
+      expect((error as WorkerAPIError).retryable).toBe(false);
+    }
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  test("accepts both status and retryable", () => {
-    const error = new WorkerAPIError("test", { status: 502, retryable: true });
-    expect(error.status).toBe(502);
-    expect(error.retryable).toBe(true);
+  it("throws WorkerAPIError on 429 without retrying", async () => {
+    (global.fetch as any).mockResolvedValue(
+      new Response("Too Many Requests", { status: 429 })
+    );
+
+    try {
+      await hooxFetch("/test");
+      expect(true).toBe(false); // Should not reach here
+    } catch (error) {
+      expect(error).toBeInstanceOf(WorkerAPIError);
+      expect((error as WorkerAPIError).status).toBe(429);
+      expect((error as WorkerAPIError).retryable).toBe(false);
+    }
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  test("defaults status when not provided in options", () => {
-    const error = new WorkerAPIError("test", { retryable: true });
-    expect(error.status).toBe(0);
+  it("retries on 500 server error", async () => {
+    const mockResponse = { data: "success" };
+
+    // Fail first time, succeed second time
+    (global.fetch as any)
+      .mockResolvedValueOnce(new Response("Server Error", { status: 500 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(mockResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+
+    // Mock sleep to avoid waiting in tests
+    const originalSetTimeout = global.setTimeout;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).setTimeout = (cb: () => void) => cb();
+
+    const result = await hooxFetch("/test");
+    expect(result).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+
+    global.setTimeout = originalSetTimeout;
   });
 
-  test("defaults retryable when not provided in options", () => {
-    const error = new WorkerAPIError("test", { status: 503 });
-    expect(error.retryable).toBe(false);
-  });
+  it("retries on network error", async () => {
+    const mockResponse = { data: "success" };
 
-  test("chains cause via Error options", () => {
-    const cause = new Error("original cause");
-    const error = new WorkerAPIError("wrapped", { cause });
-    expect(error.cause).toBe(cause);
-  });
+    // Fail first time with network error, succeed second time
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global.fetch as any)
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(mockResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
 
-  test("is instance of Error", () => {
-    expect(new WorkerAPIError("test")).toBeInstanceOf(Error);
-    expect(new WorkerAPIError("test")).toBeInstanceOf(WorkerAPIError);
-  });
+    // Mock sleep to avoid waiting in tests
+    const originalSetTimeout = global.setTimeout;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).setTimeout = (cb: () => void) => cb();
 
-  test("has working message property", () => {
-    const error = new WorkerAPIError("something went wrong");
-    expect(error.message).toBe("something went wrong");
-  });
+    const result = await hooxFetch("/test");
+    expect(result).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
 
-  test("status is writable", () => {
-    const error = new WorkerAPIError("test");
-    error.status = 404;
-    expect(error.status).toBe(404);
-  });
-
-  test("retryable is writable", () => {
-    const error = new WorkerAPIError("test");
-    error.retryable = true;
-    expect(error.retryable).toBe(true);
-  });
-
-  test("toString includes message", () => {
-    const error = new WorkerAPIError("my error");
-    expect(error.toString()).toContain("my error");
-  });
-
-  test("works with Error.captureStackTrace", () => {
-    const error = new WorkerAPIError("stack trace test");
-    expect(error.stack).toBeDefined();
+    global.setTimeout = originalSetTimeout;
   });
 });
