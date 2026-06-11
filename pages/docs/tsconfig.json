@@ -13,6 +13,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src", "scripts", "astro.config.ts"],
-  "exclude": ["src/content.config.ts", "src/pages/search-index.json.ts"]
+  "include": ["src", "scripts"],
+  "exclude": [
+    "src/content.config.ts",
+    "src/pages/search-index.json.ts",
+    "astro.config.ts"
+  ]
 }

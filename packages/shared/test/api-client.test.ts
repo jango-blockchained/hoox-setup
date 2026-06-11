@@ -4,8 +4,11 @@ import { hooxFetch, WorkerAPIError } from "../src/api-client";
 describe("api-client", () => {
   const originalFetch = global.fetch;
 
+  let mockFetch: ReturnType<typeof mock>;
+
   beforeEach(() => {
-    global.fetch = mock();
+    mockFetch = mock();
+    global.fetch = mockFetch as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -14,7 +17,7 @@ describe("api-client", () => {
 
   it("fetches successfully", async () => {
     const mockResponse = { data: "success" };
-    (global.fetch as any).mockResolvedValue(
+    mockFetch.mockResolvedValue(
       new Response(JSON.stringify(mockResponse), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -23,13 +26,11 @@ describe("api-client", () => {
 
     const result = await hooxFetch("/test");
     expect(result).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it("throws WorkerAPIError on 401 without retrying", async () => {
-    (global.fetch as any).mockResolvedValue(
-      new Response("Unauthorized", { status: 401 })
-    );
+    mockFetch.mockResolvedValue(new Response("Unauthorized", { status: 401 }));
 
     try {
       await hooxFetch("/test");
@@ -39,11 +40,11 @@ describe("api-client", () => {
       expect((error as WorkerAPIError).status).toBe(401);
       expect((error as WorkerAPIError).retryable).toBe(false);
     }
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it("throws WorkerAPIError on 429 without retrying", async () => {
-    (global.fetch as any).mockResolvedValue(
+    mockFetch.mockResolvedValue(
       new Response("Too Many Requests", { status: 429 })
     );
 
@@ -62,7 +63,7 @@ describe("api-client", () => {
     const mockResponse = { data: "success" };
 
     // Fail first time, succeed second time
-    (global.fetch as any)
+    mockFetch
       .mockResolvedValueOnce(new Response("Server Error", { status: 500 }))
       .mockResolvedValueOnce(
         new Response(JSON.stringify(mockResponse), {
@@ -78,7 +79,7 @@ describe("api-client", () => {
 
     const result = await hooxFetch("/test");
     expect(result).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
 
     global.setTimeout = originalSetTimeout;
   });
@@ -87,8 +88,7 @@ describe("api-client", () => {
     const mockResponse = { data: "success" };
 
     // Fail first time with network error, succeed second time
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (global.fetch as any)
+    mockFetch
       .mockRejectedValueOnce(new TypeError("fetch failed"))
       .mockResolvedValueOnce(
         new Response(JSON.stringify(mockResponse), {
@@ -104,7 +104,7 @@ describe("api-client", () => {
 
     const result = await hooxFetch("/test");
     expect(result).toEqual(mockResponse);
-    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
 
     global.setTimeout = originalSetTimeout;
   });
