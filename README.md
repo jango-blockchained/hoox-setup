@@ -2,12 +2,14 @@
 
 <div align="center">
 
-[![Language](https://img.shields.io/badge/Language-TypeScript-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Runtime](https://img.shields.io/badge/Runtime-Bun-black?style=for-the-badge&logo=bun)](https://bun.sh)
-[![Platform](https://img.shields.io/badge/Platform-Cloudflare®%20Edge%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
-[![Coverage](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg?style=for-the-badge)](docs/devops/development/testing.md)
-[![License](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
-[![Main Repo](https://img.shields.io/badge/Main%20Repo-hoox--setup-blue?style=for-the-badge&logo=github)](https://github.com/jango-blockchained/hoox-setup)
+[![Language](https://shieldcn.dev/badge/Language-TypeScript-3178c6.png?size=lg&logo=typescript)](https://www.typescriptlang.org/)
+[![Runtime](https://shieldcn.dev/badge/Runtime-Bun-000000.png?size=lg&logo=bun)](https://bun.sh)
+[![Platform](https://shieldcn.dev/badge/Platform-Cloudflare_Workers-f38020.png?size=lg&logo=cloudflare)](https://workers.cloudflare.com/)
+[![Coverage](https://shieldcn.dev/badge/Coverage-80%25-22c55e.png?size=lg)](docs/devops/development/testing.md)
+[![License](https://shieldcn.dev/badge/License-CC_BY_4.0-6b7280.png?size=lg)](https://creativecommons.org/licenses/by/4.0/)
+[![Main Repo](https://shieldcn.dev/badge/Main_Repo-hoox--setup-3b82f6.png?size=lg&logo=github)](https://github.com/jango-blockchained/hoox-setup)
+[![CI](https://shieldcn.dev/github/ci/jango-blockchained/hoox-setup.png?size=lg)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/jango-blockchained/hoox-setup/codeql.yml?style=for-the-badge&logo=github&label=CodeQL)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/codeql.yml)
 
 **Comprehensive Docs:** **[Documentation Home](docs/enduser/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
 
