@@ -2,13 +2,13 @@
 
 <div align="center">
 
-[![Language](https://shieldcn.dev/badge/Language-TypeScript-3178c6.png?size=lg&logo=typescript)](https://www.typescriptlang.org/)
-[![Runtime](https://shieldcn.dev/badge/Runtime-Bun-000000.png?size=lg&logo=bun)](https://bun.sh)
-[![Platform](https://shieldcn.dev/badge/Platform-Cloudflare_Workers-f38020.png?size=lg&logo=cloudflare)](https://workers.cloudflare.com/)
-[![Coverage](https://shieldcn.dev/badge/Coverage-80%25-22c55e.png?size=lg)](docs/devops/development/testing.md)
-[![License](https://shieldcn.dev/badge/License-CC_BY_4.0-6b7280.png?size=lg)](https://creativecommons.org/licenses/by/4.0/)
-[![Main Repo](https://shieldcn.dev/badge/Main_Repo-hoox--setup-3b82f6.png?size=lg&logo=github)](https://github.com/jango-blockchained/hoox-setup)
-[![CI](https://shieldcn.dev/github/ci/jango-blockchained/hoox-setup.png?size=lg)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/ci.yml)
+[![Language](https://shieldcn.dev/badge/Language-TypeScript-3178c6.png?size=sm&logo=typescript)](https://www.typescriptlang.org/)
+[![Runtime](https://shieldcn.dev/badge/Runtime-Bun-000000.png?size=sm&logo=bun)](https://bun.sh)
+[![Platform](https://shieldcn.dev/badge/Platform-Cloudflare_Workers-f38020.png?size=sm&logo=cloudflare)](https://workers.cloudflare.com/)
+[![Coverage](https://shieldcn.dev/badge/Coverage-80%25-22c55e.png?size=sm)](docs/devops/development/testing.md)
+[![License](https://shieldcn.dev/badge/License-CC_BY_4.0-6b7280.png?size=sm)](https://creativecommons.org/licenses/by/4.0/)
+[![Main Repo](https://shieldcn.dev/badge/Main_Repo-hoox--setup-3b82f6.png?size=sm&logo=github)](https://github.com/jango-blockchained/hoox-setup)
+[![CI](https://shieldcn.dev/github/ci/jango-blockchained/hoox-setup.png?size=sm)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/ci.yml)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/jango-blockchained/hoox-setup/codeql.yml?style=for-the-badge&logo=github&label=CodeQL)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/codeql.yml)
 
 **Comprehensive Docs:** **[Documentation Home](docs/enduser/home.md)** · **[Report a Bug](https://github.com/jango-blockchained/hoox-setup/issues)**
