@@ -1,12 +1,12 @@
 ---
 import "@/styles/globals.css";
 import Header from "@/components/Header.astro";
-import Sidebar from "@/components/Sidebar.astro";
 import MobileNav from "@/components/MobileNav.astro";
+import Sidebar from "@/components/Sidebar.astro";
 import Footer from "@/components/Footer.astro";
 import TableOfContents from "@/components/TableOfContents.astro";
 import SearchDialog from "@/components/SearchDialog.tsx";
-import { buildNavigation } from "@/lib/navigation";
+import { buildNavigation, getBreadcrumbs, getPrevNext, getHeaderMenus, filterNavigation } from "@/lib/navigation";
 import { getCollection } from "astro:content";
 
 export interface Props {
@@ -18,12 +18,23 @@ export interface Props {
 
 const { title, description, currentSlug, headings = [] } = Astro.props;
 const allDocs = await getCollection("docs");
-const sections = buildNavigation(
+const allSections = buildNavigation(
   allDocs.map((doc: { id: string; data: { title?: string } }) => ({
     id: doc.id,
     title: doc.data.title,
   }))
 );
+
+// Compute navigation data for both audiences
+const userSections = filterNavigation(allSections, "user");
+const devopsSections = filterNavigation(allSections, "devops");
+const breadcrumbs = getBreadcrumbs(currentSlug || "", allSections);
+const { prev: userPrev, next: userNext } = getPrevNext(currentSlug || "", userSections);
+const { prev: devopsPrev, next: devopsNext } = getPrevNext(currentSlug || "", devopsSections);
+const headerMenus = getHeaderMenus(allSections);
+const editUrl = currentSlug && currentSlug !== "home"
+  ? `https://github.com/jango-blockchained/hoox-setup/edit/main/pages/docs/content/docs/${currentSlug}.md`
+  : null;
 ---
 
 <!doctype html>
@@ -36,37 +47,141 @@ const sections = buildNavigation(
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
-    <!-- Ambient background: grid + noise overlay (matches workers/dashboard) -->
-    <div aria-hidden="true" class="fixed inset-0 pointer-events-none grid-bg opacity-45"></div>
-    <div aria-hidden="true" class="fixed inset-0 pointer-events-none z-50 opacity-[0.03]" style="mix-blend-mode: overlay;">
-      <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-        <filter id="noise-docs">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#noise-docs)" opacity="1" />
-      </svg>
-    </div>
-
     <div class="relative z-10">
-      <Header searchOpen={false} />
-      <MobileNav sections={sections} currentSlug={currentSlug} />
+      <Header menus={headerMenus} />
+      <MobileNav sections={allSections} currentSlug={currentSlug} />
 
-      <!--
-        Full-width layout with three-column grid:
-        Sidebar (fixed) | Content (fluid) | ToC (fixed)
-      -->
       <div class="flex">
-        <Sidebar sections={sections} currentSlug={currentSlug} />
+        <Sidebar sections={allSections} currentSlug={currentSlug} />
 
         <main class="flex-1 min-w-0">
           <div class="flex">
-            <!--
-              Full-width article: no max-w-3xl constraint.
-              Content expands to fill available space between sidebar and ToC.
-            -->
-            <article class="flex-1 min-w-0 px-6 py-8 lg:px-12 xl:px-16 2xl:px-20 prose">
-              <slot />
+            <article class="flex-1 min-w-0 px-6 py-8 lg:px-12 xl:px-16 2xl:px-20">
+              <!-- Breadcrumbs -->
+              {
+                breadcrumbs.length > 0 && (
+                  <nav class="flex items-center gap-1.5 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
+                    {breadcrumbs.map((crumb, i) => (
+                      <>
+                        {i > 0 && (
+                          <svg class="size-3.5 text-muted-foreground/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        )}
+                        {crumb.slug ? (
+                          <a href={`/${crumb.slug}`} class="hover:text-foreground transition-colors">{crumb.title}</a>
+                        ) : (
+                          <span class="text-foreground/60">{crumb.title}</span>
+                        )}
+                      </>
+                    ))}
+                  </nav>
+                )
+              }
+
+              <!-- Page title + description -->
+              {title && (
+                <div class="mb-8">
+                  <h1 class="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
+                  {description && (
+                    <p class="mt-2 text-lg text-muted-foreground">{description}</p>
+                  )}
+                </div>
+              )}
+
+              <!-- Content -->
+              <div class="prose">
+                <slot />
+              </div>
+
+              <!-- Edit this page -->
+              {editUrl && (
+                <div class="mt-12 pt-6 border-t border-border">
+                  <a
+                    href={editUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                    </svg>
+                    Edit this page on GitHub
+                  </a>
+                </div>
+              )}
+
+              <!-- Prev / Next navigation (dual-audience) -->
+              {(userPrev || userNext || devopsPrev || devopsNext) && (
+                <>
+                  {/* User audience prev/next */}
+                  <div class="mt-8 grid grid-cols-2 gap-4 audience-prevnext" data-audience="user">
+                    {userPrev ? (
+                      <a
+                        href={`/${userPrev.slug}/`}
+                        class="flex flex-col gap-1 rounded-lg border border-border p-4 hover:bg-accent/5 transition-colors group"
+                      >
+                        <span class="text-xs text-muted-foreground flex items-center gap-1">
+                          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m15 18-6-6 6-6" />
+                          </svg>
+                          Previous
+                        </span>
+                        <span class="text-sm font-medium text-foreground group-hover:text-accent transition-colors">{userPrev.title}</span>
+                      </a>
+                    ) : <div />}
+                    {userNext ? (
+                      <a
+                        href={`/${userNext.slug}/`}
+                        class="flex flex-col gap-1 rounded-lg border border-border p-4 hover:bg-accent/5 transition-colors group text-right"
+                      >
+                        <span class="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                          Next
+                          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </span>
+                        <span class="text-sm font-medium text-foreground group-hover:text-accent transition-colors">{userNext.title}</span>
+                      </a>
+                    ) : <div />}
+                  </div>
+                  {/* DevOps audience prev/next */}
+                  {(devopsPrev || devopsNext) && (
+                    <div class="mt-8 grid grid-cols-2 gap-4 audience-prevnext hidden" data-audience="devops">
+                      {devopsPrev ? (
+                        <a
+                          href={`/${devopsPrev.slug}/`}
+                          class="flex flex-col gap-1 rounded-lg border border-border p-4 hover:bg-accent/5 transition-colors group"
+                        >
+                          <span class="text-xs text-muted-foreground flex items-center gap-1">
+                            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="m15 18-6-6 6-6" />
+                            </svg>
+                            Previous
+                          </span>
+                          <span class="text-sm font-medium text-foreground group-hover:text-accent transition-colors">{devopsPrev.title}</span>
+                        </a>
+                      ) : <div />}
+                      {devopsNext ? (
+                        <a
+                          href={`/${devopsNext.slug}/`}
+                          class="flex flex-col gap-1 rounded-lg border border-border p-4 hover:bg-accent/5 transition-colors group text-right"
+                        >
+                          <span class="text-xs text-muted-foreground flex items-center gap-1 justify-end">
+                            Next
+                            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="m9 18 6-6-6-6" />
+                            </svg>
+                          </span>
+                          <span class="text-sm font-medium text-foreground group-hover:text-accent transition-colors">{devopsNext.title}</span>
+                        </a>
+                      ) : <div />}
+                    </div>
+                  )}
+                </>
+              )}
             </article>
+
             <TableOfContents headings={headings} />
           </div>
         </main>
@@ -91,7 +206,7 @@ const sections = buildNavigation(
     <script>
       // ── Mermaid diagram rendering ──
       async function initMermaid() {
-        const pres = document.querySelectorAll('pre[data-language="mermaid"]');
+        const pres = document.querySelectorAll('article.prose pre[data-language="mermaid"]');
         if (!pres.length) return;
 
         const { default: mermaid } = await import("mermaid");
@@ -113,11 +228,6 @@ const sections = buildNavigation(
           const code = pre.querySelector("code")?.textContent || "";
           const wrapper = document.createElement("div");
           wrapper.className = "mermaid-wrapper";
-          wrapper.style.overflow = "hidden";
-          wrapper.style.position = "relative";
-          wrapper.style.cursor = "grab";
-          wrapper.style.userSelect = "none";
-
           const id = "mermaid-" + Math.random().toString(36).slice(2, 9);
           const svg = document.createElement("div");
           svg.id = id;
@@ -129,13 +239,12 @@ const sections = buildNavigation(
 
         try {
           await mermaid.run({ querySelector: ".mermaid" });
-          
+
           // ── Interactive Zoom & Pan for Mermaid SVGs ──
           document.querySelectorAll(".mermaid-wrapper").forEach((wrapper) => {
             const svgNode = wrapper.querySelector("svg");
             if (!svgNode) return;
 
-            // Apply hardware-accelerated transitions
             svgNode.style.transition = "transform 0.05s ease-out";
             svgNode.style.transformOrigin = "center center";
 
@@ -150,7 +259,6 @@ const sections = buildNavigation(
               svgNode.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             };
 
-            // Mouse down -> Drag start
             wrapper.addEventListener("mousedown", (e) => {
               isDragging = true;
               wrapper.style.cursor = "grabbing";
@@ -159,7 +267,6 @@ const sections = buildNavigation(
               e.preventDefault();
             });
 
-            // Mouse move -> Pan
             window.addEventListener("mousemove", (e) => {
               if (!isDragging) return;
               translateX = e.clientX - startX;
@@ -167,28 +274,21 @@ const sections = buildNavigation(
               updateTransform();
             });
 
-            // Mouse up -> Drag stop
             window.addEventListener("mouseup", () => {
               if (!isDragging) return;
               isDragging = false;
               wrapper.style.cursor = "grab";
             });
 
-            // Wheel -> Zoom
             wrapper.addEventListener("wheel", (e) => {
               e.preventDefault();
               const zoomFactor = 1.1;
-              if (e.deltaY < 0) {
-                scale *= zoomFactor; // Zoom in
-              } else {
-                scale /= zoomFactor; // Zoom out
-              }
-              // Set bounds for scaling
+              if (e.deltaY < 0) scale *= zoomFactor;
+              else scale /= zoomFactor;
               scale = Math.max(0.3, Math.min(scale, 4.0));
               updateTransform();
             });
 
-            // Double click -> Reset
             wrapper.addEventListener("dblclick", () => {
               scale = 1;
               translateX = 0;
@@ -200,8 +300,6 @@ const sections = buildNavigation(
           console.warn("Mermaid render error:", e);
         }
       }
-
-      document.addEventListener("DOMContentLoaded", initMermaid);
 
       // ── Code copy buttons ──
       function initCopyButtons() {
@@ -229,13 +327,14 @@ const sections = buildNavigation(
         });
       }
 
-      document.addEventListener("DOMContentLoaded", initCopyButtons);
+      document.addEventListener("DOMContentLoaded", () => {
+        initMermaid();
+        initCopyButtons();
+      });
 
       // ── Back-to-top visibility ──
-      function initBackToTop() {
-        const btn = document.getElementById("back-to-top");
-        if (!btn) return;
-
+      const btn = document.getElementById("back-to-top");
+      if (btn) {
         let ticking = false;
         window.addEventListener("scroll", () => {
           if (!ticking) {
@@ -249,7 +348,36 @@ const sections = buildNavigation(
         });
       }
 
-      document.addEventListener("DOMContentLoaded", initBackToTop);
+      // ── Unified audience toggle (shared by Sidebar + MobileNav) ──
+      window.switchAudience = function (audience) {
+        document.querySelectorAll(".audience-toggle, .mobile-audience-toggle").forEach(function (btn) {
+          const isActive = btn.getAttribute("data-audience") === audience;
+          btn.toggleAttribute("data-active", isActive);
+        });
+
+        document.querySelectorAll(".audience-section").forEach(function (section) {
+          section.style.display = section.getAttribute("data-audience") === audience ? "" : "none";
+        });
+
+        document.querySelectorAll(".mobile-audience-section").forEach(function (section) {
+          section.classList.toggle("hidden", section.getAttribute("data-audience") !== audience);
+        });
+
+        document.querySelectorAll(".audience-prevnext").forEach(function (el) {
+          el.classList.toggle("hidden", el.getAttribute("data-audience") !== audience);
+        });
+
+        try {
+          localStorage.setItem("docs-audience", audience);
+        } catch (e) {}
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const saved = localStorage.getItem("docs-audience") || "user";
+        if (saved === "user" || saved === "devops") {
+          window.switchAudience(saved);
+        }
+      });
     </script>
   </body>
 </html>

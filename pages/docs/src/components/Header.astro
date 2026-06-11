@@ -1,13 +1,18 @@
 ---
-// No props needed — search state managed client-side via SearchDialog
+import type { HeaderMenu } from "@/lib/navigation";
+
+export interface Props {
+  menus?: HeaderMenu[];
+}
+const { menus = [] } = Astro.props;
 ---
 
-<header class="sticky top-0 z-50 w-full border-b border-border bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80">
+<header class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
   <div class="flex h-14 items-center gap-4 px-4 lg:px-6">
     <!-- Mobile hamburger -->
     <button
-      class="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
-      onclick="document.getElementById('mobile-nav').classList.toggle('hidden')"
+      class="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
+      id="mobile-menu-btn"
       aria-label="Toggle navigation"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -15,6 +20,7 @@
       </svg>
     </button>
 
+    <!-- Logo -->
     <a href="/" class="flex items-center gap-2 font-semibold shrink-0">
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -24,53 +30,81 @@
       Hoox Docs
     </a>
 
-    <div class="hidden md:flex flex-1 max-w-sm ml-4">
-      <button
-        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground w-full hover:bg-accent hover:text-accent-foreground transition-colors"
-        onclick="window.__openSearch?.()"
-      >
-        <svg class="size-4 mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <span class="truncate">Search docs...</span>
-        <kbd class="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground shrink-0">
-          ⌘K
-        </kbd>
-      </button>
+    <!-- Desktop nav dropdowns -->
+    <div class="hidden md:flex items-center gap-1 ml-4">
+      {menus.map((menu) => (
+        <details class="group relative">
+          <summary class="flex cursor-pointer items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors [&::-webkit-details-marker]:hidden list-none">
+            {menu.title}
+            <svg class="size-3.5 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </summary>
+          <div class="absolute left-0 top-full mt-1 w-64 rounded-lg border border-border bg-popover p-1 shadow-lg z-50">
+            {menu.items.map((item) => (
+              <a
+                href={`/${item.slug}/`}
+                class="flex flex-col gap-0.5 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <span class="font-medium">{item.title}</span>
+                {item.description && (
+                  <span class="text-xs text-muted-foreground">{item.description}</span>
+                )}
+              </a>
+            ))}
+          </div>
+        </details>
+      ))}
     </div>
 
     <div class="flex items-center gap-2 ml-auto">
-      <!-- Download offline docs -->
-      <a
-        href="/Enduser-Full-Documentation.pdf"
-        download
-        class="hidden lg:inline-flex items-center justify-center rounded-md text-xs font-mono ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 px-3 border border-border shrink-0"
-        title="Download Enduser Full PDF"
+      <!-- Search button -->
+      <button
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
+        onclick="window.__openSearch?.()"
+        aria-label="Search"
       >
-        USER.PDF
-      </a>
-      <a
-        href="/DevOps-Full-Documentation.pdf"
-        download
-        class="hidden lg:inline-flex items-center justify-center rounded-md text-xs font-mono ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 px-3 border border-border shrink-0"
-        title="Download DevOps Full PDF"
-      >
-        DEVOPS.PDF
-      </a>
-      <a
-        href="/llm.txt"
-        target="_blank"
-        class="hidden lg:inline-flex items-center justify-center rounded-md text-xs font-mono ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 px-3 border border-border shrink-0"
-        title="View Consolidated LLM Context Text"
-      >
-        LLM.TXT
-      </a>
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+      </button>
+
+      <!-- Resources dropdown -->
+      <div class="relative hidden lg:block" id="resources-dropdown">
+        <button
+          class="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+          onclick="this.nextElementSibling.classList.toggle('hidden')"
+          aria-haspopup="true"
+        >
+          Resources
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <div class="hidden absolute right-0 top-full mt-1 w-48 rounded-lg border border-border bg-popover p-1 shadow-lg z-50">
+          <a href="/Enduser-Full-Documentation.pdf" download
+            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            User PDF
+          </a>
+          <a href="/DevOps-Full-Documentation.pdf" download
+            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            DevOps PDF
+          </a>
+          <a href="/llm.txt" target="_blank"
+            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            LLM Context
+          </a>
+        </div>
+      </div>
 
       <!-- Theme toggle -->
       <button
         id="theme-toggle"
-        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
         aria-label="Toggle theme"
       >
         <svg class="size-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -82,11 +116,12 @@
         </svg>
       </button>
 
+      <!-- GitHub -->
       <a
         href="https://github.com/jango-blockchained/hoox-setup"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9"
         aria-label="GitHub repository"
       >
         <svg class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -98,7 +133,7 @@
 </header>
 
 <script>
-  // Theme toggle logic
+  // ── Theme toggle logic ──
   const toggle = document.getElementById("theme-toggle");
   if (toggle) {
     toggle.addEventListener("click", () => {
@@ -108,10 +143,18 @@
       localStorage.setItem("theme", isDark ? "light" : "dark");
     });
 
-    // Restore saved theme
     const saved = localStorage.getItem("theme");
     if (saved === "light") {
       document.documentElement.classList.remove("dark");
     }
   }
+
+  // ── Close details dropdowns on outside click ──
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll("details").forEach((details) => {
+      if (!details.contains(e.target as Node)) {
+        details.removeAttribute("open");
+      }
+    });
+  });
 </script>

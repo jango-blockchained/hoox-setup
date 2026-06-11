@@ -263,7 +263,7 @@ article.prose .code-block-wrapper {
 /* ── Code blocks: Shiki syntax highlighting ── */
 
 article.prose pre {
-  @apply rounded-xl border border-border/80 bg-[#282c34] p-5 text-sm leading-relaxed shadow-lg shadow-black/20;
+  @apply rounded-xl border border-border/80 bg-[#282c34] p-4 text-xs leading-relaxed shadow-lg shadow-black/20;
   overflow-x: auto;
   position: relative;
 }
@@ -351,73 +351,50 @@ article.prose [data-slot="badge"] {
 /* ── Blockquotes ── */
 
 article.prose blockquote {
-  @apply my-6 border-l-4 border-primary/30 bg-muted/30 py-3 pl-5 pr-5 italic text-muted-foreground rounded-r-lg;
-  border-image: linear-gradient(to bottom, var(--primary), var(--ring)) 1;
+  @apply my-6 border-l-2 border-primary/30 py-3 pl-5 pr-5 text-sm text-muted-foreground/90 rounded-r-lg bg-muted/20;
 }
 
-/* ── Tables ── */
-
-article.prose table {
-  @apply my-5 w-full border-collapse rounded-xl text-sm overflow-hidden;
-}
-
-article.prose th {
-  @apply border-b-2 border-border bg-muted/50 px-4 py-2.5 text-left font-semibold text-foreground;
-}
-
-article.prose td {
-  @apply border-b border-border px-4 py-2.5 text-muted-foreground;
-}
-
-article.prose tr:last-child td {
-  @apply border-b-0;
+article.prose blockquote p strong:first-child {
+  @apply mr-1.5 text-accent font-semibold font-mono uppercase tracking-wide text-xs;
 }
 
 /* ── Links ── */
 
 article.prose a {
-  @apply font-medium text-primary no-underline transition-colors hover:text-ring;
+  @apply font-normal text-primary no-underline transition-colors hover:text-ring;
 }
 
-/* ── Headings (full-width optimized) ──
- *
- * Slightly larger at wider viewports for better readability.
- */
+/* ── Headings (sentence-case, shadcn-docs scale) ── */
 
 article.prose h1 {
-  @apply mb-4 mt-16 text-3xl font-bold tracking-wider text-foreground uppercase;
-  @apply xl:text-4xl;
+  @apply mb-6 mt-0 text-3xl font-bold text-foreground tracking-tight;
 }
 
 article.prose h2 {
-  @apply mb-3 mt-14 text-xl font-semibold tracking-wider text-foreground uppercase;
-  @apply xl:text-2xl;
+  @apply mb-3 mt-10 text-xl font-semibold text-foreground tracking-tight pb-2 border-b border-border;
 }
 
 article.prose h3 {
-  @apply mb-2 mt-10 text-lg font-medium text-foreground uppercase tracking-wide;
-  @apply xl:text-xl;
+  @apply mb-2 mt-8 text-lg font-medium text-foreground;
 }
 
 article.prose h4 {
-  @apply mb-1 mt-8 text-base font-medium text-foreground uppercase tracking-wide;
+  @apply mb-1 mt-6 text-base font-medium text-foreground;
 }
 
 article.prose p {
-  @apply my-4 leading-relaxed text-muted-foreground;
-  @apply xl:text-[1.125rem] xl:leading-relaxed;
+  @apply my-4 leading-7 text-muted-foreground text-base;
 }
 
 /* ── Lists ── */
 
 article.prose ul,
 article.prose ol {
-  @apply my-4 pl-6 text-muted-foreground;
-  @apply xl:text-[1.0625rem];
+  @apply my-4 pl-6 text-muted-foreground text-base;
 }
 
 article.prose li {
-  @apply my-1.5 leading-relaxed;
+  @apply my-1.5 leading-7;
 }
 
 /* ── Horizontal rules ── */
@@ -470,14 +447,4 @@ article.prose dd {
 
 .callout-icon {
   @apply flex size-5 shrink-0 select-none items-center justify-center mt-0.5;
-}
-
-/* ── Callout stylings for standard Blockquotes ── */
-article.prose blockquote {
-  @apply my-6 border-l-4 py-3.5 pl-5 pr-5 not-italic text-sm text-foreground/90 rounded-r-lg bg-muted/20 border-accent/40;
-  border-image: none;
-}
-
-article.prose blockquote p strong:first-child {
-  @apply mr-1.5 text-accent font-semibold font-mono uppercase tracking-wide text-xs;
 }

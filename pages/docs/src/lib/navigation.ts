@@ -173,3 +173,96 @@ export function buildNavigation(
     return aVal - bVal;
   });
 }
+
+// ── Navigation Helpers for shadcn-docs redesign ──
+
+export interface BreadcrumbItem {
+  title: string;
+  slug: string;
+}
+
+export interface PrevNextItem {
+  title: string;
+  slug: string;
+}
+
+export interface HeaderMenu {
+  title: string;
+  items: { title: string; slug: string; description?: string }[];
+}
+
+export function getBreadcrumbs(
+  slug: string,
+  sections: NavSection[]
+): BreadcrumbItem[] {
+  if (!slug || slug === "home") return [];
+
+  const crumbs: BreadcrumbItem[] = [{ title: "Home", slug: "" }];
+  const parts = slug.split("/");
+
+  if (parts[0] === "enduser") {
+    crumbs.push({ title: "End User", slug: "" });
+  } else if (parts[0] === "devops") {
+    crumbs.push({ title: "DevOps", slug: "" });
+  }
+
+  if (parts.length < 2) return crumbs;
+
+  const sectionKey = parts[1];
+  for (const section of sections) {
+    const sectionSlug = section.title.toLowerCase().replace(/\s+/g, "-");
+    if (sectionSlug === sectionKey) {
+      crumbs.push({ title: section.title, slug: "" });
+      break;
+    }
+  }
+
+  if (parts.length >= 2) {
+    const pageSlug = parts.slice(0).join("/");
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (item.slug === pageSlug) {
+          crumbs.push({ title: item.title, slug: pageSlug });
+          return crumbs;
+        }
+      }
+    }
+  }
+
+  return crumbs;
+}
+
+export function getFlattenedPages(sections: NavSection[]): PrevNextItem[] {
+  const pages: PrevNextItem[] = [];
+  for (const section of sections) {
+    for (const item of section.items) {
+      pages.push({ title: item.title, slug: item.slug });
+    }
+  }
+  return pages;
+}
+
+export function getPrevNext(
+  currentSlug: string,
+  sections: NavSection[]
+): { prev: PrevNextItem | null; next: PrevNextItem | null } {
+  const flattened = getFlattenedPages(sections);
+  const idx = flattened.findIndex((item) => item.slug === currentSlug);
+  if (idx === -1) return { prev: null, next: null };
+
+  return {
+    prev: idx > 0 ? flattened[idx - 1] : null,
+    next: idx < flattened.length - 1 ? flattened[idx + 1] : null,
+  };
+}
+
+export function getHeaderMenus(sections: NavSection[]): HeaderMenu[] {
+  return sections.map((section) => ({
+    title: section.title,
+    items: section.items.map((item) => ({
+      title: item.title,
+      slug: item.slug,
+      description: item.title,
+    })),
+  }));
+}
