@@ -4,12 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-gateway
-    command: bunx wrangler dev -c workers/hoox/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/hoox/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8787:8787"
       - "8788:8788" # trade-worker internal
     volumes:
       - ./workers/hoox:/app/workers/hoox
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -25,12 +26,13 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-trade
-    command: bunx wrangler dev -c workers/trade-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/trade-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8789:8789"
       - "8790:8790" # telegram internal
     volumes:
       - ./workers/trade-worker:/app/workers/trade-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -48,11 +50,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-telegram
-    command: bunx wrangler dev -c workers/telegram-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/telegram-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8791:8791"
     volumes:
       - ./workers/telegram-worker:/app/workers/telegram-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -70,11 +73,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-d1
-    command: bunx wrangler dev -c workers/d1-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/d1-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8792:8792"
     volumes:
       - ./workers/d1-worker:/app/workers/d1-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -92,11 +96,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-web3
-    command: bunx wrangler dev -c workers/web3-wallet-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/web3-wallet-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8793:8793"
     volumes:
       - ./workers/web3-wallet-worker:/app/workers/web3-wallet-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -114,11 +119,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-dashboard
-    command: bun run --cwd workers/dashboard dev
+    command: bun run --cwd workers/dashboard dev -H 0.0.0.0 -p 8794
     ports:
       - "8794:8794"
     volumes:
       - ./workers/dashboard:/app/workers/dashboard
+      - ./packages:/app/packages
     env_file:
       - .env.local
     networks:
@@ -136,11 +142,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-agent
-    command: bunx wrangler dev -c workers/agent-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/agent-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8795:8795"
     volumes:
       - ./workers/agent-worker:/app/workers/agent-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -160,11 +167,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-email
-    command: bunx wrangler dev -c workers/email-worker/wrangler.jsonc --local
+    command: bunx wrangler dev -c workers/email-worker/wrangler.jsonc --local --ip 0.0.0.0
     ports:
       - "8796:8796"
     volumes:
       - ./workers/email-worker:/app/workers/email-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -182,11 +190,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-report
-    command: bunx wrangler dev -c workers/report-worker/wrangler.jsonc --local --port 8797
+    command: bunx wrangler dev -c workers/report-worker/wrangler.jsonc --local --ip 0.0.0.0 --port 8797
     ports:
       - "8797:8797"
     volumes:
       - ./workers/report-worker:/app/workers/report-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
@@ -205,11 +214,12 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: hoox-analytics
-    command: bunx wrangler dev -c workers/analytics-worker/wrangler.jsonc --local --port 8798
+    command: bunx wrangler dev -c workers/analytics-worker/wrangler.jsonc --local --ip 0.0.0.0 --port 8798
     ports:
       - "8798:8798"
     volumes:
       - ./workers/analytics-worker:/app/workers/analytics-worker
+      - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
     env_file:
       - .env.local
