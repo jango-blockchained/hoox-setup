@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
  * Run typecheck across all workspaces in the monorepo
+ * Includes packages/*, workers/*, and pages/*
  */
 
 import fs from "fs";
@@ -24,15 +25,6 @@ if (!packageJson.workspaces) {
 
 const workspaces: string[] = [];
 
-// Check if a directory is a git submodule
-const isGitSubmodule = (dir: string): boolean => {
-  const gitmodulesPath = path.join(rootPath, ".gitmodules");
-  if (!fs.existsSync(gitmodulesPath)) return false;
-
-  const gitmodules = fs.readFileSync(gitmodulesPath, "utf-8");
-  return gitmodules.includes(`path = ${dir}`);
-};
-
 // Expand workspace globs
 for (const pattern of packageJson.workspaces) {
   const parts = pattern.split("/");
@@ -41,23 +33,26 @@ for (const pattern of packageJson.workspaces) {
   if (fs.existsSync(dir)) {
     const entries = fs.readdirSync(dir);
     if (pattern.includes("*")) {
-      // It's a glob pattern
+      // It's a glob pattern — include all subdirs that have a typecheck script
       for (const entry of entries) {
         const fullPath = path.join(dir, entry);
         const pkgPath = path.join(fullPath, "package.json");
 
-        // Skip git submodules
-        if (fs.existsSync(pkgPath) && !isGitSubmodule(fullPath)) {
-          workspaces.push(fullPath);
+        if (fs.existsSync(pkgPath)) {
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+          if (pkg.scripts?.typecheck) {
+            workspaces.push(fullPath);
+          }
         }
       }
     } else {
       // It's a literal path
-      if (
-        fs.existsSync(path.join(dir, "package.json")) &&
-        !isGitSubmodule(dir)
-      ) {
-        workspaces.push(dir);
+      const pkgPath = path.join(dir, "package.json");
+      if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+        if (pkg.scripts?.typecheck) {
+          workspaces.push(dir);
+        }
       }
     }
   }
