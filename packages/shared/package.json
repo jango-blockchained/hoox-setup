@@ -1,6 +1,6 @@
 {
   "name": "@jango-blockchained/hoox-shared",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Shared utilities, types, and stores for HOOX CLI, TUI, and Cloudflare Workers",
   "type": "module",
   "main": "./src/index.ts",
