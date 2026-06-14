@@ -11,7 +11,7 @@ export interface LogContext {
 }
 
 interface LogEntry {
-  level: "info" | "warn" | "error";
+  level: "debug" | "info" | "warn" | "error";
   timestamp: string;
   service: string;
   module?: string;
@@ -20,6 +20,7 @@ interface LogEntry {
 }
 
 export interface Logger {
+  debug(message: string, context?: Record<string, unknown>): void;
   info(message: string, context?: Record<string, unknown>): void;
   warn(message: string, context?: Record<string, unknown>): void;
   error(message: string, context?: Record<string, unknown>): void;
@@ -43,10 +44,12 @@ export function createLogger(ctx: LogContext): Logger {
     const line = JSON.stringify(entry);
     if (level === "error") console.error(line);
     else if (level === "warn") console.warn(line);
+    else if (level === "debug") console.debug(line);
     else console.info(line);
   }
 
   return {
+    debug: (msg, ctx) => emit("debug", msg, ctx),
     info: (msg, ctx) => emit("info", msg, ctx),
     warn: (msg, ctx) => emit("warn", msg, ctx),
     error: (msg, ctx) => emit("error", msg, ctx),

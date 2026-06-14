@@ -6,8 +6,13 @@ export function serviceFetch(
   binding: ServiceBinding,
   path: string,
   body?: unknown,
-  options?: { method?: string; headers?: Record<string, string> }
+  options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    timeout?: number;
+  }
 ): Promise<Response> {
+  const timeout = options?.timeout ?? 30000;
   return binding.fetch(`http://internal${path}`, {
     method: options?.method ?? "POST",
     headers: {
@@ -15,5 +20,6 @@ export function serviceFetch(
       ...options?.headers,
     },
     body: body != null ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(timeout),
   });
 }

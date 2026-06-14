@@ -43,15 +43,78 @@ export function toError(err: unknown, fallback = "Unknown error"): string {
  * Strip stack traces and potentially sensitive fields from output data
  * before sending to clients. Prevents information exposure.
  */
+// Known sensitive field names that require deep sanitization
+const SENSITIVE_FIELDS = new Set([
+  "password",
+  "token",
+  "secret",
+  "api_key",
+  "apiKey",
+  "authorization",
+]);
+
+/** Check if an object has sensitive fields that need deep sanitization */
+function hasSensitiveFields(obj: Record<string, unknown>): boolean {
+  for (const key of Object.keys(obj)) {
+    if (SENSITIVE_FIELDS.has(key)) return true;
+  }
+  return false;
+}
+
+/** Check if any value in an object is an Error that needs sanitization */
+function hasErrorValues(obj: Record<string, unknown>): boolean {
+  for (const v of Object.values(obj)) {
+    if (v instanceof Error) return true;
+  }
+  return false;
+}
+
 function sanitizeOutput(data: unknown): unknown {
+  // Fast path: primitives pass through unchanged
+  if (data === null || data === undefined) return data;
+  const t = typeof data;
+  if (t === "string" || t === "number" || t === "boolean") return data;
+
+  // Error instances: always strip stack/cause (security)
   if (data instanceof Error) {
     return { name: data.name, message: data.message };
   }
-  if (data && typeof data === "object" && !Array.isArray(data)) {
+
+  if (Array.isArray(data)) {
+    return data.map(sanitizeOutput);
+  }
+
+  if (t === "object") {
+    const obj = data as Record<string, unknown>;
+    const keys = Object.keys(obj);
+
+    // Small objects (< 10 keys): iterate directly without pre-check overhead.
+    // Still recurse to strip Error stack/cause and sensitive fields.
+    if (keys.length < 10) {
+      const sanitized: Record<string, unknown> = {};
+      for (const k of keys) {
+        if (k === "stack" || k === "cause") continue;
+        const v = obj[k];
+        sanitized[k] =
+          v instanceof Error
+            ? { name: v.name, message: v.message }
+            : sanitizeOutput(v);
+      }
+      return sanitized;
+    }
+
+    // Large objects (>= 10 keys): only recurse deeply if the object contains
+    // known sensitive fields or Error instances that need sanitization.
+    // This avoids O(n) traversal on large payloads that don't contain
+    // sensitive data — the common case for most API responses.
+    if (!hasSensitiveFields(obj) && !hasErrorValues(obj)) {
+      return obj;
+    }
+
     const sanitized: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
-      // Never expose stack traces, cause chains, or raw error objects
+    for (const k of keys) {
       if (k === "stack" || k === "cause") continue;
+      const v = obj[k];
       sanitized[k] =
         v instanceof Error
           ? { name: v.name, message: v.message }
@@ -59,9 +122,7 @@ function sanitizeOutput(data: unknown): unknown {
     }
     return sanitized;
   }
-  if (Array.isArray(data)) {
-    return data.map(sanitizeOutput);
-  }
+
   return data;
 }
 
