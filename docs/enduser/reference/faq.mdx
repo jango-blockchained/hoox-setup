@@ -1,0 +1,196 @@
+# ❓ Frequently Asked Questions (FAQ)
+
+Answers to the most common questions about setting up, operating, and troubleshooting the Hoox trading platform.
+
+---
+
+## 🏁 Getting Started
+
+### Q: How do I clone the repository correctly?
+```bash
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git
+```
+You **must** use `--recursive` because the worker directories are Git submodules. If you already cloned without this flag, run:
+```bash
+git submodule update --init --recursive
+```
+
+### Q: What are the minimum system requirements?
+- **Bun** ≥ 1.2
+- **Git** ≥ 2.40
+- **Wrangler CLI** (latest)
+- Optionally **Docker Desktop** for containerized local development
+- A free **Cloudflare account** with API token (Worker Edit, D1 Edit, KV Edit, R2 Edit, Queues Edit, AI Read)
+
+### Q: Can I use Hoox for free?
+Yes! All components — Workers, D1, KV, R2, Queues, Vectorize, Workers AI, Browser Rendering, WAF, and Smart Placement — are within the **Cloudflare Free Plan** limits. The only potential cost is if you exceed free tier resource limits (100k requests/day, 5M D1 reads/day, etc.).
+
+### Q: Do I need to know Solidity or blockchain development?
+No. Hoox is designed for **algorithmic traders**, not blockchain developers. On-chain execution is handled by the `web3-wallet-worker` with pre-built EIP-1559 transaction signing. Centralized exchange execution requires only API credentials.
+
+---
+
+## 🔑 Credentials & Secrets
+
+### Q: Where do I get my Cloudflare API token?
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → **My Profile** → **API Tokens**
+2. Click **Create Token**
+3. Use the **"Edit Cloudflare Workers"** template as a starting point
+4. Ensure these permissions are included: `Account > Workers Scripts > Edit`, `Account > D1 > Edit`, `Account > KV > Edit`, `Account > R2 > Edit`, `Account > Queues > Edit`, `Account > AI > Read`
+
+### Q: How do I create exchange API keys?
+- **Binance**: [API Management](https://www.binance.com/en/my/settings/api-management) — Enable "Spot & Margin Trading" permission only. **Never enable "Withdrawals."**
+- **Bybit**: [API Keys](https://account.bybit.com/account/access/api) — Select "Read-Only" + "Trade" permissions.
+- **MEXC**: [API Management](https://www.mexc.com/settings/api-management) — Select "Spot Trading" only.
+
+### Q: Are my API keys safe?
+Yes. API keys are stored as **Cloudflare Workers Secrets** — encrypted at rest with hardware-level key management. They are injected directly into the V8 execution isolate at runtime and can never be read back via any API. They are never stored in plaintext on disk or in Git.
+
+### Q: Can I rotate API keys without downtime?
+Yes. Simply update the secret:
+```bash
+hoox secrets set BYBIT_API_KEY "new_key_here"
+hoox secrets set BYBIT_API_SECRET "new_secret_here"
+```
+The change takes effect on the next worker request — no redeployment needed.
+
+---
+
+## ⚡ Deployment & Configuration
+
+### Q: What's the difference between `hoox deploy all` and deploying individual workers?
+`hoox deploy all --auto` compiles and deploys all enabled workers in their **correct dependency order** (D1 → trade-worker → gateway → agent/telegram → dashboard). Individual worker deploys are useful for hot-fixes but skip dependency validation.
+
+### Q: Why does my first deploy take longer than subsequent ones?
+The initial deployment provisions Cloudflare resources (D1 databases, KV namespaces, Queue topics, R2 buckets). Subsequent deploys only update the worker code, which is much faster.
+
+### Q: How do I change the exchange routing?
+Dynamically — no code changes required:
+```bash
+# Change default exchange from Bybit to Binance
+hoox config kv set exchanges:default_routing binance
+
+# Enable dynamic symbol-based routing
+hoox config kv set routing:dynamic:enabled true
+```
+
+### Q: What happens when I toggle the kill switch on?
+The `trade:kill_switch` flag is set to `true` in KV. On the next incoming webhook request, the `hoox` gateway checks this flag and immediately returns a `503 Service Unavailable` response. The agent-worker also runs this check before executing any trailing-stop operations. **Active existing positions are NOT automatically closed** — you must manually flatten them.
+
+---
+
+## 🐛 Troubleshooting
+
+### Q: I get "409 Conflict" errors. What's wrong?
+This means the Durable Object idempotency engine detected a duplicate request. This typically happens when:
+- TradingView fires multiple alerts for the same signal (configure `alert.freq_once_per_bar_close`)
+- You accidentally reused the same `idempotencyKey` in a manual test
+
+This is **by design** — it protects you from accidentally executing a trade twice. Wait for the TTL expiry (24 hours) or use a unique ID for subsequent signals.
+
+### Q: My webhooks work locally but fail in production. Why?
+Common causes:
+1. **WAF IP blocking** — Enable TradingView IP allow-listing: `hoox waf configure --TradingView-only`
+2. **Missing secrets** — Run `hoox secrets check` to verify all required secrets are bound
+3. **Service binding not deployed** — Run `hoox deploy all --auto` to ensure all internal workers are live
+
+### Q: How do I check what's happening inside my workers?
+```bash
+# Live logs from a specific worker
+hoox logs tail trade-worker
+
+# Health status of all workers
+hoox monitor status
+
+# Recent trade execution history
+hoox monitor trades
+
+# Or use the full-screen Terminal UI
+./hoox-tui
+```
+
+### Q: What should I do if `hoox repair check` fails?
+Follow the guided repair prompts:
+1. Submodule failure → `git submodule update --init --recursive`
+2. Dependency failure → `bun install`
+3. Type error → `bun run typecheck`
+4. Missing Cloudflare binding → `hoox repair infra`
+5. Missing secret → `hoox secret set <NAME> <VALUE>`
+
+---
+
+## 🧠 AI & Advanced Features
+
+### Q: Do I need AI providers for basic trading?
+No. The `agent-worker` can run trailing-stop and kill-switch logic **without any AI provider**. AI providers are only needed for:
+- Conversational chat (`/agent/chat`)
+- Chart image analysis (`/agent/vision`)
+- Complex strategy reasoning (`/agent/reasoning`)
+- Natural language Telegram bot interactions
+
+### Q: Which AI provider is best?
+All five are supported with automatic fallback ordering:
+1. **Workers AI** (Cloudflare) — Free with generous limits, runs at the edge
+2. **Anthropic** (Claude) — Strong reasoning, complex analysis
+3. **Google AI** (Gemini) — Large context windows, multimodal
+4. **OpenAI** (GPT-4o) — Most capable general-purpose model
+5. **Azure OpenAI** — Enterprise SLA, private networking
+
+Providers are tried sequentially on failure. You only pay for the one that responds.
+
+### Q: What's the 5-minute cron doing exactly?
+The `agent-worker` runs every 5 minutes via Cloudflare Cron and performs:
+1. Reads all open positions from D1
+2. Fetches current market prices from exchange APIs
+3. Calculates trailing stop-loss prices
+4. Checks if daily drawdown limit is exceeded → kills switch if so
+5. Partially closes positions that hit take-profit targets
+6. Sends a Telegram health summary
+
+---
+
+## 📦 Infrastructure
+
+### Q: What data is stored in D1 vs KV vs R2?
+| Store | What Lives Here |
+|-------|----------------|
+| **D1 (SQLite)** | Trade fills, open positions, balance history, system logs, trade signals |
+| **KV** | Runtime config (kill switch, exchange routing, rate limiter state, AI keys, email patterns) |
+| **R2** | Raw API request/response logs, generated PDF reports |
+
+### Q: How does Hoox handle exchange downtime?
+When a direct exchange API call fails (timeout, rate limit, HTTP 5xx), the gateway automatically enqueues the trade payload into **Cloudflare Queues** with exponential backoff:
+- Retry 1: 30 seconds
+- Retry 2: 1 minute
+- Retry 3: 5 minutes  
+- Retry 4: 15 minutes
+- Retry 5: 30 minutes
+After max retries, the trade is logged as failed (not lost).
+
+### Q: Can I use a custom domain?
+Yes. Cloudflare Workers supports custom domains. After deploying, configure your domain in the Cloudflare dashboard under **Workers & Pages → Custom Domains**.
+
+---
+
+## 📋 Comparisons
+
+### Q: Why edge workers instead of a VPS?
+| Factor | VPS | Cloudflare Edge |
+|--------|-----|-----------------|
+| Latency to Binance (Frankfurt) | 80-150ms | 2-8ms |
+| Cold-start time | 1,000-15,000ms | <3ms |
+| Monthly cost | $5-50+ | $0 (free tier) |
+| Maintenance | Manual updates | Fully managed |
+| DDoS protection | Self-managed | Built-in WAF |
+| Global failover | Complex setup | Automatic |
+
+### Q: Why Cloudflare over AWS Lambda@Edge?
+- **No cold starts** — V8 isolates stay warm between requests
+- **True global distribution** — 330+ PoPs vs. Lambda@Edge's 6 regions
+- **Native SQLite** — D1 is first-class, not bolted-on
+- **Built-in queuing** — Cloudflare Queues vs. SQS
+- **Zero egress fees** — R2 is S3-compatible with no bandwidth charges
+
+---
+
+<Note>Open an issue on [GitHub](https://github.com/jango-blockchained/hoox-setup/issues) or join our community discussions.</Note>

@@ -1,0 +1,222 @@
+---
+title: "API Endpoint Specification"
+description: "Complete REST API reference for the Hoox gateway, webhooks, health checks, AI chat streams, and edge error models."
+---
+
+# 🌐 API Endpoint Specification
+
+This document details the public REST API endpoints exposed by the Hoox gateway (`workers/hoox`). These endpoints are used to ingest automated trade signals, register Telegram bots, query AI metrics, and check serverless V8 isolate health status.
+
+---
+
+## 🔒 Request Headers & Security Policy
+
+Every public HTTP request submitted to the Hoox gateway must include the following headers:
+
+```http
+Content-Type: application/json
+Accept: application/json
+```
+
+### CORS & Origin Policies
+
+For security, **Cross-Origin Resource Sharing (CORS)** is disabled by default on the `/webhook` route—it only accepts direct server-to-server POST requests (e.g. from TradingView or custom server scripts).
+
+To interact with the dashboard, the gateway verifies active authorization cookies and tokens inside the V8 engine context.
+
+---
+
+## 🎯 1. Ingest Trade Signal Webhook
+
+Receives, validates, and routes trade orders to exchange APIs.
+
+- **Endpoint**: `/webhook`
+- **Method**: `POST`
+
+### Request Payload (JSON Schema)
+
+```json
+{
+  "apiKey": "alpha_secure_key_18305",
+  "exchange": "bybit",
+  "action": "LONG",
+  "symbol": "BTCUSDT",
+  "quantity": 0.005,
+  "leverage": 10,
+  "idempotencyKey": "uuid-9b1deb4d-3b7d"
+}
+```
+
+### Response Models
+
+#### A. Success Path (Order Filled Instantly - 200 OK)
+
+```json
+{
+  "success": true,
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "exchange": "bybit",
+  "symbol": "BTCUSDT",
+  "action": "LONG",
+  "result": {
+    "orderId": "18049284739",
+    "status": "Filled",
+    "executedQty": 0.005,
+    "price": 68425.5,
+    "timestamp": 1779261050000
+  }
+}
+```
+
+#### B. Queue Failover Path (Exchange Offline / Rate-limited - 202 Accepted)
+
+If the exchange is down, the signal is enqueued for guaranteed asynchronous delivery.
+
+```json
+{
+  "success": true,
+  "requestId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "status": "Enqueued",
+  "message": "Signal enqueued in trade-execution Queue for background execution retry."
+}
+```
+
+---
+
+## 🟢 2. System Health Check
+
+Probes the gateway isolate, validating connections to D1 databases and CONFIG_KV caches.
+
+- **Endpoint**: `/health`
+- **Method**: `GET`
+
+### Success Response (200 OK)
+
+```json
+{
+  "status": "ok",
+  "timestamp": 1779261050000,
+  "bindings": {
+    "d1": "connected",
+    "kv": "connected",
+    "queue": "active"
+  }
+}
+```
+
+---
+
+## 🤖 3. Conversational AI Chat & Telemetry
+
+Integrates with the `agent-worker` Multi-Provider AI Gateway.
+
+### A. Conversational Chat Stream
+
+- **Endpoint**: `/agent/chat`
+- **Method**: `POST`
+- **Headers**: `Accept: text/event-stream` (Supports Server-Sent Events)
+
+#### Request Payload
+
+```json
+{
+  "prompt": "Evaluate my trade performance over the last 24 hours.",
+  "stream": true,
+  "provider": "anthropic"
+}
+```
+
+---
+
+### B. AI Gateway Telemetry
+
+- **Endpoint**: `/agent/usage`
+- **Method**: `GET`
+
+#### Response Payload (200 OK)
+
+```json
+{
+  "success": true,
+  "timestamp": 1779261050000,
+  "usage": {
+    "openai": { "inputTokens": 45180, "outputTokens": 8920, "costUSD": 0.183 },
+    "anthropic": {
+      "inputTokens": 18240,
+      "outputTokens": 4010,
+      "costUSD": 0.081
+    },
+    "workersAi": { "neuronsUsed": 842000, "costUSD": 0.0 }
+  }
+}
+```
+
+---
+
+## 🚨 4. Standard Platform Error Models
+
+When an API check fails, the gateway uses the shared `@jango-blockchained/hoox-shared` package to return a standardized JSON error format:
+
+### A. 400 Bad Request (Payload Validation Failure)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid JSON payload structure.",
+    "details": [
+      { "field": "quantity", "issue": "Must be greater than zero." },
+      {
+        "field": "exchange",
+        "issue": "Invalid exchange router. Options: binance, bybit, mexc."
+      }
+    ]
+  }
+}
+```
+
+### B. 401 Unauthorized (Invalid API Key / IP Address)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication failed. Mismatched apiKey or unauthorized origin IP."
+  }
+}
+```
+
+### C. 409 Conflict (Duplicate Request Intercepted)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "DUPLICATE_REQUEST",
+    "message": "Order rejected. Durable Object locked: trace ID already processed in the last 24 hours."
+  }
+}
+```
+
+### D. 503 Service Unavailable (Kill Switch Engaged)
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "KILL_SWITCH_ACTIVE",
+    "message": "Trading halted globally. The emergency Global Kill Switch is currently turned ON in CONFIG_KV."
+  }
+}
+```
+
+---
+
+<Tip>Every error code is designed to map directly to a readable prompt in the Telegram bot and Next.js dashboard UI, allowing you to instantly diagnose execution problems.</Tip>
+
+### 🔗 Next Steps
+
+|- **[Request Payload Schemas](payloads)** — Analyze the complete JSON request schemas and TypeScript interfaces.
+- **[CLI Commands Reference](cli-commands)** — Review all CLI commands, options, and JSON flags.

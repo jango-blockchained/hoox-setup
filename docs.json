@@ -1,0 +1,155 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Hoox",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#55D799",
+    "dark": "#0D9373"
+  },
+  "topbarCtaButton": {
+    "name": "GitHub",
+    "url": "https://github.com/jango-blockchained/hoox-setup"
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@hoox.sh"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "End User",
+      "pages": [
+        "docs/index",
+        {
+          "group": "🚀 Getting Started",
+          "pages": [
+            "docs/enduser/getting-started/installation",
+            "docs/enduser/getting-started/configuration",
+            "docs/enduser/getting-started/quick-start"
+          ]
+        },
+        {
+          "group": "🧠 Core Concepts",
+          "pages": [
+            "docs/enduser/concepts/how-hoox-works",
+            "docs/enduser/concepts/edge-architecture",
+            "docs/enduser/concepts/cloudflare-services",
+            "docs/enduser/concepts/idempotency",
+            "docs/enduser/concepts/signals-and-trades",
+            "docs/enduser/concepts/ai-risk-manager"
+          ]
+        },
+        {
+          "group": "🛠️ Guides",
+          "pages": [
+            "docs/enduser/guides/local-development",
+            "docs/enduser/guides/tui",
+            "docs/enduser/guides/database-ops",
+            "docs/enduser/guides/secrets-security",
+            "docs/enduser/guides/manage-infra",
+            "docs/enduser/guides/deploy-workers",
+            "docs/enduser/guides/repair",
+            "docs/enduser/guides/monitor-trading"
+          ]
+        },
+        {
+          "group": "📚 Tutorials",
+          "pages": [
+            "docs/enduser/tutorials/tradingview-webhook",
+            "docs/enduser/tutorials/telegram-bot",
+            "docs/enduser/tutorials/email-signals"
+          ]
+        },
+        {
+          "group": "📖 Reference",
+          "pages": [
+            "docs/enduser/reference/cli-commands",
+            "docs/enduser/reference/api-endpoints",
+            "docs/enduser/reference/configuration",
+            "docs/enduser/reference/faq",
+            "docs/enduser/reference/glossary"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "DevOps",
+      "pages": [
+        "docs/devops/index",
+        {
+          "group": "🏗️ Architecture",
+          "pages": [
+            "docs/devops/architecture/overview",
+            "docs/devops/architecture/communication",
+            "docs/devops/architecture/data-flow",
+            "docs/devops/architecture/bindings",
+            "docs/devops/architecture/storage",
+            "docs/devops/architecture/endpoints",
+            "docs/devops/architecture/design-system",
+            "docs/devops/architecture/adrs"
+          ]
+        },
+        {
+          "group": "🔧 Workers",
+          "pages": [
+            "docs/devops/workers/hoox-gateway",
+            "docs/devops/workers/trade-worker",
+            "docs/devops/workers/agent-worker",
+            "docs/devops/workers/d1-worker",
+            "docs/devops/workers/telegram-worker",
+            "docs/devops/workers/web3-wallet-worker",
+            "docs/devops/workers/email-worker",
+            "docs/devops/workers/analytics-worker",
+            "docs/devops/workers/report-worker",
+            "docs/devops/workers/dashboard"
+          ]
+        },
+        {
+          "group": "🚀 Deployment",
+          "pages": [
+            "docs/devops/deployment/production",
+            "docs/devops/deployment/cicd",
+            "docs/devops/deployment/monitoring",
+            "docs/devops/deployment/zero-trust"
+          ]
+        },
+        {
+          "group": "💻 Development",
+          "pages": [
+            "docs/devops/development/local-dev",
+            "docs/devops/development/testing",
+            "docs/devops/development/debugging"
+          ]
+        },
+        {
+          "group": "🔗 API",
+          "pages": [
+            "docs/devops/api/endpoints",
+            "docs/devops/api/payloads",
+            "docs/devops/api/responses"
+          ]
+        },
+        {
+          "group": "🛡️ Security",
+          "pages": ["docs/devops/security/overview"]
+        },
+        {
+          "group": "📋 Other",
+          "pages": [
+            "docs/devops/bindings",
+            "docs/devops/cli-features",
+            "docs/devops/installation-flow",
+            "docs/devops/setup-and-operations",
+            "docs/devops/tui",
+            "docs/devops/refactoring/workers-pattern-consolidation"
+          ]
+        }
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/jango-blockchained/hoox-setup"
+  }
+}

@@ -1,0 +1,131 @@
+---
+title: "Local Development"
+description: "How to run, hot-reload, and test Hoox workers locally using native wrangler runtimes or Docker Compose containers."
+---
+
+# 💻 Local Development
+
+Hoox provides a comprehensive local development workspace designed to match your production Cloudflare edge environment. You can run all microservices with hot-reload enabled, monitor them visually via the Terminal UI (TUI), and execute the full test suite using native Bun tools or isolated Docker containers.
+
+---
+
+## 🚀 Starting the Local Workspace
+
+To spin up all enabled workers simultaneously:
+
+```bash
+hoox dev start
+```
+
+On execution, the CLI automatically detects your environment and prompts you to select a runtime:
+
+### Option A: Native Runtime (Recommended for speed)
+
+- Runs each worker in a separate background thread using `wrangler dev` (the official Cloudflare local server).
+- **Speed**: Instant startup and sub-millisecond hot-reloading.
+- **Requirements**: Local node/bun installation.
+
+### Option B: Docker Runtime (Recommended for isolation)
+
+- Launches a multi-container stack using **Docker Compose**.
+- **Isolation**: All environment variables, SQLite databases, and queue handlers run in isolated Linux containers, ensuring zero conflicts with local packages.
+- **Requirements**: Docker Desktop installed.
+
+<Tip>The CLI saves your runtime preference inside `wrangler.jsonc.dev.runtime`. Subsequent launches skip the prompt. You can override your preference at any time using flags:</Tip>
+
+```bash
+# Force native execution
+hoox dev start --runtime native
+
+# Force Docker Compose execution
+hoox dev start --runtime docker
+```
+
+---
+
+## 🐳 Docker Compose Profiles
+
+If you choose the Docker runtime, Hoox manages orchestration using three specialized Docker Compose profiles defined in `docker-compose.yml`:
+
+```bash
+# Profile 1: Workers Only (No frontend dashboard)
+docker compose --profile workers up
+
+# Profile 2: Dashboard Only (Next.js server only)
+docker compose --profile dashboard up
+
+# Profile 3: Full Stack (All workers + Next.js dashboard)
+docker compose --profile full up
+```
+
+---
+
+## 📍 Local Port Mapping & Endpoint Access
+
+During local development, all enabled workers are assigned dedicated local ports, simulating service boundaries locally:
+
+| Worker                | Local Port | Endpoint URL            | Purpose                           |
+|| :-------------------- | :--------: | :---------------------- | :-------------------------------- |
+|| **`hoox`**            |   `8787`   | `http://localhost:8787` | Public Gateway & Webhook Receiver |
+|| **`trade-worker`**    |   `8789`   | `http://localhost:8789` | Trade Execution Engine            |
+|| **`telegram-worker`** |   `8791`   | `http://localhost:8791` | Telegram Bot Alerts & Commands    |
+|| **`d1-worker`**       |   `8792`   | `http://localhost:8792` | SQLite Database Operations        |
+|| **`web3-wallet`**     |   `8793`   | `http://localhost:8793` | On-Chain DeFi Execution           |
+|| **`dashboard`**       |   `8794`   | `http://localhost:8794` | Next.js Dashboard Cockpit         |
+|| **`agent-worker`**    |   `8795`   | `http://localhost:8795` | AI Risk Manager & Cron Engine     |
+|| **`email-worker`**    |   `8796`   | `http://localhost:8796` | Email Signal Parsing              |
+|| **`report-worker`**   |   `8797`   | `http://localhost:8797` | PDF Portfolio Report Generator    |
+
+---
+
+## 🛠️ Operating Individual Services
+
+If you only want to work on a single microservice rather than running the full stack, you can spin up individual modules:
+
+```bash
+# Dev run a single worker (gateway)
+hoox dev worker hoox
+
+# Dev run trade-worker with hot-reloading
+hoox dev worker trade-worker
+
+# Dev run dashboard separately (Next.js dev server with Turbopack)
+hoox dev dashboard
+```
+
+---
+
+## 🧪 Running the Verification CI Pipeline
+
+Hoox features a rigorous local test pipeline to ensure that all TypeScript types, formatting, and unit tests pass perfectly before pushing to git:
+
+```bash
+# Run the complete CI verification pipeline locally
+hoox test
+```
+
+The pipeline executes four verification steps in a strict dependency sequence:
+
+1. **Lint Check** (`bun run lint`): Validates ESLint styling rules across the monorepo.
+2. **Type Check** (`bun run typecheck`): Compiles code via `tsc --noEmit` to verify type safety.
+3. **Unit Tests** (`bun test`): Fires all unit and integration test assertions using Bun's native test runner.
+4. **Build Check** (`bun run build`): Compiles all workspaces (`cli`, `tui`, `shared`, `dashboard`) to verify production packaging.
+
+```
+🔍 Running local CI Pipeline...
+[STARTED] lint check... [PASSED]
+[STARTED] TypeScript typecheck... [PASSED]
+[STARTED] bun test runner... [PASSED] (1,574 assertions)
+[STARTED] workspace builds... [PASSED]
+✔ Local CI Pipeline Succeeded!
+```
+
+---
+
+<Note>Local unit tests utilize Bun's native test runner for instantaneous execution. You can target specific workspace folders or run files individually: `bun test workers/trade-worker/src/index.test.ts`.</Note>
+
+### 🔗 Next Steps
+
+- **[Testing Standards](testing)** — Run unit and integration tests using Bun's native test runner.
+- **[Terminal UI Operations](../guides/tui)** — Launch the full-screen terminal cockpit (`./hoox-tui`) to monitor these local runs.
+- **[Database Migrations](../database-ops)** — Set up, query, and migrate your local SQLite D1 database.
