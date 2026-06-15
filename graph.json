@@ -1,29 +1,29 @@
 {
   "metadata": {
-    "generatedAt": "2026-06-09T22:42:01.525Z",
+    "generatedAt": "2026-06-15T12:41:39.910Z",
     "workspace": "hoox-monorepo",
-    "totalFiles": 1044,
-    "totalNodes": 1203,
-    "totalEdges": 7635,
+    "totalFiles": 1046,
+    "totalNodes": 1214,
+    "totalEdges": 7811,
     "nodeKinds": {
       "type": 128,
-      "interface": 463,
+      "interface": 468,
       "const": 260,
-      "function": 977,
-      "class": 59,
+      "function": 981,
+      "class": 61,
       "enum": 2,
       "package": 5,
       "worker": 10,
       "infrastructure": 13
     },
     "edgeKinds": {
-      "imports": 3681,
+      "imports": 3750,
       "extends": 8,
       "implements": 2,
-      "references": 3358,
-      "calls": 523,
-      "service-binding": 11,
-      "workspace-dep": 12,
+      "references": 3434,
+      "calls": 542,
+      "service-binding": 22,
+      "workspace-dep": 13,
       "infra-binding": 24,
       "data-flow": 16
     },
@@ -54,7 +54,7 @@
         "infrastructure": "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)"
       }
     },
-    "enhancedAt": "2026-06-09T22:42:30.999Z"
+    "enhancedAt": "2026-06-15T12:42:11.693Z"
   },
   "nodes": [
     {
@@ -3415,6 +3415,15 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "label": "ExchangeConnectionManager",
+      "kind": "class",
+      "filePath": "workers/trade-worker/src/exchange-connection-manager.ts",
+      "workspace": "workers/trade-worker",
+      "exports": ["ExchangeConnectionManager"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider",
       "label": "IExchangeProvider",
       "kind": "interface",
@@ -3539,6 +3548,15 @@
       "workspace": "workers/trade-worker",
       "exports": ["TradeExecutionResult"],
       "isEntryPoint": false
+    },
+    {
+      "id": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "label": "ExchangeConnectionManager",
+      "kind": "class",
+      "filePath": "workers/trade-worker/src/index.ts",
+      "workspace": "workers/trade-worker",
+      "exports": ["ExchangeConnectionManager"],
+      "isEntryPoint": true
     },
     {
       "id": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
@@ -5809,12 +5827,30 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "label": "HousekeepingEnv",
+      "kind": "interface",
+      "filePath": "workers/agent-worker/src/logic/housekeeping.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["HousekeepingEnv"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
       "label": "processRoutine",
       "kind": "function",
       "filePath": "workers/agent-worker/src/logic/routine.ts",
       "workspace": "workers/agent-worker",
       "exports": ["processRoutine"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "label": "RoutineEnv",
+      "kind": "interface",
+      "filePath": "workers/agent-worker/src/logic/routine.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["RoutineEnv"],
       "isEntryPoint": false
     },
     {
@@ -6250,6 +6286,42 @@
       "isEntryPoint": false
     },
     {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "label": "getBreadcrumbs",
+      "kind": "function",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["getBreadcrumbs"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "label": "getFlattenedPages",
+      "kind": "function",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["getFlattenedPages"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "label": "getPrevNext",
+      "kind": "function",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["getPrevNext"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "label": "getHeaderMenus",
+      "kind": "function",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["getHeaderMenus"],
+      "isEntryPoint": false
+    },
+    {
       "id": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
       "label": "NavItem",
       "kind": "interface",
@@ -6265,6 +6337,33 @@
       "filePath": "pages/docs/src/lib/navigation.ts",
       "workspace": "pages/docs",
       "exports": ["NavSection"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "label": "BreadcrumbItem",
+      "kind": "interface",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["BreadcrumbItem"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "label": "PrevNextItem",
+      "kind": "interface",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["PrevNextItem"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "label": "HeaderMenu",
+      "kind": "interface",
+      "filePath": "pages/docs/src/lib/navigation.ts",
+      "workspace": "pages/docs",
+      "exports": ["HeaderMenu"],
       "isEntryPoint": false
     },
     {
@@ -10835,7 +10934,7 @@
         "d1-reader"
       ],
       "llmContext": "Automated portfolio report generator. Cron: 0 6,18 * * * (twice daily at 06:00/18:00 UTC). Scheduled handler calls generateAndStoreReport. Also triggerable via GET /report (requires internal auth, returns 202 Accepted, runs via ctx.waitUntil). Report generation flow: (1) fetchPortfolioSummary — calls d1-worker via D1_SERVICE binding (GET /api/balances + GET /api/positions, requires X-Internal-Auth-Key), aggregates totalValue, dailyPnL, totalPnL, openPositions, winRate, topAsset; (2) buildReportHtml — renders responsive HTML template with grid cards, conditional positive/negative P&L styling, A4-formatted with inline CSS; (3) generatePdf — calls Cloudflare Browser Rendering REST API (POST https://api.cloudflare.com/client/v4/{account}/browser-rendering/pdf with html + options { format: A4, printBackground: true, margin }), requires CF_API_TOKEN_BINDING; (4) stores PDF in REPORTS_BUCKET R2 (key: reports/daily-{timestamp}.pdf, contentType: application/pdf); (5) sendNotification — calls telegram-worker via TELEGRAM_SERVICE binding (POST /process with markdown message including signed report URL). Exported for testing: generatePdf, sendNotification, fetchPortfolioSummary, buildReportHtml, generateAndStoreReport. Uses @cloudflare/workers-types ScheduledController for cron type.",
-      "cron": "0 6,18 * * *",
+      "cron": "0 8 * * *, 0 18 * * *",
       "isPublic": false,
       "smartPlacement": true,
       "entryPoint": "scheduled (0 6,18 * * *), GET /report (manual trigger), GET /health"
@@ -18467,6 +18566,55 @@
       "label": "serviceFetch"
     },
     {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:checkIdempotency->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:checkIdempotency",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:processTrade->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processTrade",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:processNotification->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processNotification",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
       "id": "imports:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->workers/hoox:workers/hoox/src/types.ts:WebhookData",
       "source": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
       "target": "workers/hoox:workers/hoox/src/types.ts:WebhookData",
@@ -19846,6 +19994,41 @@
       "label": "createLogger"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
+      "kind": "imports",
+      "label": "createLogger"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/index.ts:Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
+      "kind": "imports",
+      "label": "Env"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient",
+      "kind": "imports",
+      "label": "BinanceClient"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:WebhookPayload",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:WebhookPayload",
+      "kind": "imports",
+      "label": "WebhookPayload"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "kind": "imports",
+      "label": "TradeExecutionResult"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider->workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
       "source": "workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider",
       "target": "workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
@@ -20973,6 +21156,13 @@
       "label": "sendTradeNotificationToTelegram"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
+      "kind": "imports",
+      "label": "MexcClient"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
@@ -20985,6 +21175,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient",
       "kind": "imports",
       "label": "MexcClient"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient",
+      "kind": "imports",
+      "label": "BinanceClient"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/binance-client.ts:BinanceClient",
@@ -21001,6 +21198,13 @@
       "label": "BinanceClient"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient",
+      "kind": "imports",
+      "label": "BybitClient"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient",
@@ -21013,6 +21217,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/bybit-client.ts:BybitClient",
       "kind": "imports",
       "label": "BybitClient"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
+      "kind": "imports",
+      "label": "DbLogger"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
@@ -21029,6 +21240,13 @@
       "label": "DbLogger"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/errors.ts:Errors",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/errors.ts:Errors",
+      "kind": "imports",
+      "label": "Errors"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:Errors",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/errors.ts:Errors",
@@ -21041,6 +21259,13 @@
       "target": "packages/shared:packages/shared/src/errors.ts:Errors",
       "kind": "imports",
       "label": "Errors"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/errors.ts:createJsonResponse",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/errors.ts:createJsonResponse",
+      "kind": "imports",
+      "label": "createJsonResponse"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:createJsonResponse",
@@ -21057,6 +21282,13 @@
       "label": "createJsonResponse"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "imports",
+      "label": "toError"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
@@ -21069,6 +21301,13 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "imports",
       "label": "toError"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
+      "kind": "imports",
+      "label": "createLogger"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
@@ -21085,6 +21324,13 @@
       "label": "createLogger"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
+      "kind": "imports",
+      "label": "withRequestLog"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
@@ -21097,6 +21343,13 @@
       "target": "packages/shared:packages/shared/src/middleware/index.ts:withRequestLog",
       "kind": "imports",
       "label": "withRequestLog"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:validateJson",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:validateJson",
+      "kind": "imports",
+      "label": "validateJson"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:validateJson",
@@ -21113,6 +21366,13 @@
       "label": "validateJson"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth",
+      "kind": "imports",
+      "label": "requireInternalAuth"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth",
@@ -21125,6 +21385,13 @@
       "target": "packages/shared:packages/shared/src/middleware/index.ts:requireInternalAuth",
       "kind": "imports",
       "label": "requireInternalAuth"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
+      "kind": "imports",
+      "label": "InternalAuthEnv"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/index.ts:InternalAuthEnv",
@@ -21141,6 +21408,13 @@
       "label": "InternalAuthEnv"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/router.ts:createRouter",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/router.ts:createRouter",
+      "kind": "imports",
+      "label": "createRouter"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/router.ts:createRouter",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/router.ts:createRouter",
@@ -21153,6 +21427,13 @@
       "target": "packages/shared:packages/shared/src/router.ts:createRouter",
       "kind": "imports",
       "label": "createRouter"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/queue-handler.ts:createQueueHandler",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/queue-handler.ts:createQueueHandler",
+      "kind": "imports",
+      "label": "createQueueHandler"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/queue-handler.ts:createQueueHandler",
@@ -21169,6 +21450,13 @@
       "label": "createQueueHandler"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:WebhookPayload",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:WebhookPayload",
+      "kind": "imports",
+      "label": "WebhookPayload"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/types.ts:WebhookPayload",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/types.ts:WebhookPayload",
@@ -21181,6 +21469,13 @@
       "target": "packages/shared:packages/shared/src/types.ts:WebhookPayload",
       "kind": "imports",
       "label": "WebhookPayload"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:WebhookPayloadSchema",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:WebhookPayloadSchema",
+      "kind": "imports",
+      "label": "WebhookPayloadSchema"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/types.ts:WebhookPayloadSchema",
@@ -21197,6 +21492,13 @@
       "label": "WebhookPayloadSchema"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:ProcessRequestBody",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:ProcessRequestBody",
+      "kind": "imports",
+      "label": "ProcessRequestBody"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/types.ts:ProcessRequestBody",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/types.ts:ProcessRequestBody",
@@ -21209,6 +21511,13 @@
       "target": "packages/shared:packages/shared/src/types.ts:ProcessRequestBody",
       "kind": "imports",
       "label": "ProcessRequestBody"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "kind": "imports",
+      "label": "trackAnalytics"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
@@ -21225,6 +21534,13 @@
       "label": "trackAnalytics"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/health.ts:healthCheck",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/health.ts:healthCheck",
+      "kind": "imports",
+      "label": "healthCheck"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/health.ts:healthCheck",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/health.ts:healthCheck",
@@ -21237,6 +21553,13 @@
       "target": "packages/shared:packages/shared/src/health.ts:healthCheck",
       "kind": "imports",
       "label": "healthCheck"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
@@ -21253,6 +21576,13 @@
       "label": "KVKeys"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "kind": "imports",
+      "label": "serviceFetch"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
@@ -21265,6 +21595,13 @@
       "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "kind": "imports",
       "label": "serviceFetch"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:executeTrade",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:executeTrade",
+      "kind": "imports",
+      "label": "executeTrade"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:executeTrade",
@@ -21281,6 +21618,13 @@
       "label": "executeTrade"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:validateApiCredentials",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:validateApiCredentials",
+      "kind": "imports",
+      "label": "validateApiCredentials"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:validateApiCredentials",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:validateApiCredentials",
@@ -21293,6 +21637,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:validateApiCredentials",
       "kind": "imports",
       "label": "validateApiCredentials"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:updateD1TradeRecords",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:updateD1TradeRecords",
+      "kind": "imports",
+      "label": "updateD1TradeRecords"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:updateD1TradeRecords",
@@ -21309,6 +21660,13 @@
       "label": "updateD1TradeRecords"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
+      "kind": "imports",
+      "label": "ExecutionEnv"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
@@ -21321,6 +21679,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
       "kind": "imports",
       "label": "ExecutionEnv"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "kind": "imports",
+      "label": "TradeExecutionResult"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
@@ -21337,6 +21702,13 @@
       "label": "TradeExecutionResult"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
+      "kind": "imports",
+      "label": "IExchangeClient"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
@@ -21349,6 +21721,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
       "kind": "imports",
       "label": "IExchangeClient"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
+      "kind": "imports",
+      "label": "insertSignal"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
@@ -21365,6 +21744,13 @@
       "label": "insertSignal"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
+      "kind": "imports",
+      "label": "getRecentSignals"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
@@ -21377,6 +21763,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
       "kind": "imports",
       "label": "getRecentSignals"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest",
+      "kind": "imports",
+      "label": "handlePostSignalRequest"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest",
@@ -21393,6 +21786,13 @@
       "label": "handlePostSignalRequest"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
+      "kind": "imports",
+      "label": "handleGetSignalsRequest"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
@@ -21405,6 +21805,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
       "kind": "imports",
       "label": "handleGetSignalsRequest"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "imports",
+      "label": "D1Env"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
@@ -21421,6 +21828,13 @@
       "label": "D1Env"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/reports.ts:saveReportToR2",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/reports.ts:saveReportToR2",
+      "kind": "imports",
+      "label": "saveReportToR2"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/reports.ts:saveReportToR2",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/reports.ts:saveReportToR2",
@@ -21433,6 +21847,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/reports.ts:saveReportToR2",
       "kind": "imports",
       "label": "saveReportToR2"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/reports.ts:handleGetReportRequest",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/reports.ts:handleGetReportRequest",
+      "kind": "imports",
+      "label": "handleGetReportRequest"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/reports.ts:handleGetReportRequest",
@@ -21449,6 +21870,13 @@
       "label": "handleGetReportRequest"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotification",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotification",
+      "kind": "imports",
+      "label": "sendTradeNotification"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotification",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotification",
@@ -21461,6 +21889,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotification",
       "kind": "imports",
       "label": "sendTradeNotification"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotificationToTelegram",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotificationToTelegram",
+      "kind": "imports",
+      "label": "sendTradeNotificationToTelegram"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/notifications.ts:sendTradeNotificationToTelegram",
@@ -21477,6 +21912,13 @@
       "label": "sendTradeNotificationToTelegram"
     },
     {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
+      "kind": "imports",
+      "label": "TradeQueueMessage"
+    },
+    {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
@@ -21489,6 +21931,27 @@
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
       "kind": "imports",
       "label": "TradeQueueMessage"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "imports",
+      "label": "ExchangeConnectionManager"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "imports",
+      "label": "ExchangeConnectionManager"
+    },
+    {
+      "id": "imports:workers/trade-worker:workers/trade-worker/src/index.ts:factories->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:factories",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "imports",
+      "label": "ExchangeConnectionManager"
     },
     {
       "id": "imports:workers/trade-worker:workers/trade-worker/src/mexc-client.ts:MexcClient->packages/shared:packages/shared/src/middleware/index.ts:createLogger",
@@ -25180,8 +25643,22 @@
       "label": "toError"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "imports",
+      "label": "toError"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
       "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
       "kind": "imports",
       "label": "KVKeys"
@@ -25194,6 +25671,13 @@
       "label": "serviceFetch"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "kind": "imports",
+      "label": "serviceFetch"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
       "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
@@ -25201,8 +25685,36 @@
       "label": "trackAnalytics"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "kind": "imports",
+      "label": "trackAnalytics"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "imports",
+      "label": "toError"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "imports",
       "label": "toError"
@@ -25215,8 +25727,22 @@
       "label": "KVKeys"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "kind": "imports",
+      "label": "serviceFetch"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
       "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "kind": "imports",
       "label": "serviceFetch"
@@ -25229,8 +25755,50 @@
       "label": "trackAnalytics"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "packages/shared:packages/shared/src/analytics.ts:trackAnalytics",
+      "kind": "imports",
+      "label": "trackAnalytics"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "imports",
+      "label": "Logger"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "kind": "imports",
+      "label": "ProviderManager"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "kind": "imports",
+      "label": "ProviderManager"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
+      "kind": "imports",
+      "label": "AIRequest"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
       "target": "workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
       "kind": "imports",
       "label": "AIRequest"
@@ -25243,8 +25811,22 @@
       "label": "fetchMarkPrice"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/trade.ts:fetchMarkPrice",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/trade.ts:fetchMarkPrice",
+      "kind": "imports",
+      "label": "fetchMarkPrice"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/trade.ts:sendCloseOrder",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/trade.ts:sendCloseOrder",
+      "kind": "imports",
+      "label": "sendCloseOrder"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/trade.ts:sendCloseOrder",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
       "target": "workers/agent-worker:workers/agent-worker/src/logic/trade.ts:sendCloseOrder",
       "kind": "imports",
       "label": "sendCloseOrder"
@@ -46187,6 +46769,55 @@
       "label": "TradeData"
     },
     {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:checkIdempotency->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:checkIdempotency",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:processTrade->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processTrade",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:processNotification->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processNotification",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
       "id": "references:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore",
       "source": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
       "target": "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore",
@@ -46500,6 +47131,27 @@
       "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
       "kind": "references",
       "label": "Logger"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:Env",
+      "kind": "references",
+      "label": "Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/index.ts:WebhookPayload",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/index.ts:WebhookPayload",
+      "kind": "references",
+      "label": "WebhookPayload"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "kind": "references",
+      "label": "TradeExecutionResult"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider->workers/trade-worker:workers/trade-worker/src/execution.ts:IExchangeClient",
@@ -47020,6 +47672,34 @@
       "label": "IExchangeClient"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "references",
+      "label": "ExchangeConnectionManager"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "references",
+      "label": "ExchangeConnectionManager"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:factories->workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:factories",
+      "target": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "kind": "references",
+      "label": "ExchangeConnectionManager"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
+      "kind": "references",
+      "label": "DbLogger"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
@@ -47032,6 +47712,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:DbLogger",
       "kind": "references",
       "label": "DbLogger"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/index.ts:ProcessRequestBody",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/index.ts:ProcessRequestBody",
+      "kind": "references",
+      "label": "ProcessRequestBody"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/index.ts:ProcessRequestBody",
@@ -47048,6 +47735,13 @@
       "label": "ProcessRequestBody"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/index.ts:WebhookPayload",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/index.ts:WebhookPayload",
+      "kind": "references",
+      "label": "WebhookPayload"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/index.ts:WebhookPayload",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/index.ts:WebhookPayload",
@@ -47060,6 +47754,13 @@
       "target": "packages/shared:packages/shared/src/index.ts:WebhookPayload",
       "kind": "references",
       "label": "WebhookPayload"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
+      "kind": "references",
+      "label": "ExecutionEnv"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:ExecutionEnv",
@@ -47076,6 +47777,13 @@
       "label": "ExecutionEnv"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
+      "kind": "references",
+      "label": "TradeQueueMessage"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
@@ -47088,6 +47796,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/notifications.ts:TradeQueueMessage",
       "kind": "references",
       "label": "TradeQueueMessage"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types.ts:Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types.ts:Env",
+      "kind": "references",
+      "label": "Env"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/types.ts:Env",
@@ -47104,6 +47819,13 @@
       "label": "Env"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
+      "kind": "references",
+      "label": "TradeExecutionResult"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/execution.ts:TradeExecutionResult",
@@ -47118,6 +47840,13 @@
       "label": "TradeExecutionResult"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
@@ -47130,6 +47859,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
       "kind": "references",
       "label": "D1Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
+      "kind": "references",
+      "label": "InternalAuthEnv"
     },
     {
       "id": "references:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/auth.ts:InternalAuthEnv",
@@ -47230,6 +47966,41 @@
       "label": "ReportsEnv"
     },
     {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
+      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:TradeSignalRecord->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:TradeSignalRecord",
+      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
+      "kind": "references",
+      "label": "D1Env"
+    },
+    {
       "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal->packages/shared:packages/shared/src/index.ts:TradeSignalRecord",
       "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
       "target": "packages/shared:packages/shared/src/index.ts:TradeSignalRecord",
@@ -47270,41 +48041,6 @@
       "target": "packages/shared:packages/shared/src/index.ts:TradeSignalRecord",
       "kind": "references",
       "label": "TradeSignalRecord"
-    },
-    {
-      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:insertSignal",
-      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "kind": "references",
-      "label": "D1Env"
-    },
-    {
-      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:getRecentSignals",
-      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "kind": "references",
-      "label": "D1Env"
-    },
-    {
-      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:handlePostSignalRequest",
-      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "kind": "references",
-      "label": "D1Env"
-    },
-    {
-      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:handleGetSignalsRequest",
-      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "kind": "references",
-      "label": "D1Env"
-    },
-    {
-      "id": "references:workers/trade-worker:workers/trade-worker/src/signals.ts:TradeSignalRecord->workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "source": "workers/trade-worker:workers/trade-worker/src/signals.ts:TradeSignalRecord",
-      "target": "workers/trade-worker:workers/trade-worker/src/signals.ts:D1Env",
-      "kind": "references",
-      "label": "D1Env"
     },
     {
       "id": "references:workers/web3-wallet-worker:workers/web3-wallet-worker/src/config.ts:getConfig->workers/web3-wallet-worker:workers/web3-wallet-worker/src/types.ts:WalletConfig",
@@ -47697,6 +48433,13 @@
       "target": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/types.ts:TransactionRecord",
       "kind": "references",
       "label": "TransactionRecord"
+    },
+    {
+      "id": "references:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->workers/web3-wallet-worker:workers/web3-wallet-worker/src/types.ts:SwapRequest",
+      "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
+      "target": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/types.ts:SwapRequest",
+      "kind": "references",
+      "label": "SwapRequest"
     },
     {
       "id": "references:workers/web3-wallet-worker:workers/web3-wallet-worker/src/providers.ts:getReadOnlyProvider->workers/web3-wallet-worker:workers/web3-wallet-worker/src/types.ts:ChainName",
@@ -51563,8 +52306,71 @@
       "label": "WizardState"
     },
     {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "kind": "references",
+      "label": "HousekeepingEnv"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "kind": "references",
+      "label": "RoutineEnv"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "packages/shared:packages/shared/src/middleware/index.ts:Logger",
+      "kind": "references",
+      "label": "Logger"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "kind": "references",
+      "label": "ProviderManager"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:ProviderManager",
+      "kind": "references",
+      "label": "ProviderManager"
+    },
+    {
       "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
+      "kind": "references",
+      "label": "AIRequest"
+    },
+    {
+      "id": "references:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
       "target": "workers/agent-worker:workers/agent-worker/src/types.ts:AIRequest",
       "kind": "references",
       "label": "AIRequest"
@@ -52347,8 +53153,57 @@
       "label": "NavItem"
     },
     {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
       "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavSection->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
       "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "kind": "references",
+      "label": "NavItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu->pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
       "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
       "kind": "references",
       "label": "NavItem"
@@ -52368,11 +53223,270 @@
       "label": "NavSection"
     },
     {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
       "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavItem->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
       "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
       "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
       "kind": "references",
       "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu->pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "kind": "references",
+      "label": "NavSection"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavItem->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavSection->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu->pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "kind": "references",
+      "label": "BreadcrumbItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavItem->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavSection->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu->pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "kind": "references",
+      "label": "PrevNextItem"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:filterNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:buildNavigation",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getBreadcrumbs",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getFlattenedPages",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getPrevNext",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:getHeaderMenus",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavItem->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:NavSection->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:NavSection",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:BreadcrumbItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
+    },
+    {
+      "id": "references:pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem->pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "source": "pages/docs:pages/docs/src/lib/navigation.ts:PrevNextItem",
+      "target": "pages/docs:pages/docs/src/lib/navigation.ts:HeaderMenu",
+      "kind": "references",
+      "label": "HeaderMenu"
     },
     {
       "id": "references:packages/cli:packages/cli/src/commands/agent/agent-command.ts:registerAgentCommand->packages/cli:packages/cli/src/index.ts:FormatOptions",
@@ -61020,6 +62134,41 @@
       "label": "get"
     },
     {
+      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:parseEmailSignal->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/email-worker:workers/email-worker/src/index.ts:parseEmailSignal",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/email-worker:workers/email-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:SignalPatterns->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/email-worker:workers/email-worker/src/index.ts:SignalPatterns",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:EmailSignal->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/email-worker:workers/email-worker/src/index.ts:EmailSignal",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
       "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
@@ -61053,41 +62202,6 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "calls",
       "label": "unauthorized"
-    },
-    {
-      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/email-worker:workers/email-worker/src/index.ts:loadSignalPatterns",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
-    },
-    {
-      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:parseEmailSignal->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/email-worker:workers/email-worker/src/index.ts:parseEmailSignal",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
-    },
-    {
-      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/email-worker:workers/email-worker/src/index.ts:Env",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
-    },
-    {
-      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:SignalPatterns->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/email-worker:workers/email-worker/src/index.ts:SignalPatterns",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
-    },
-    {
-      "id": "calls:workers/email-worker:workers/email-worker/src/index.ts:EmailSignal->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/email-worker:workers/email-worker/src/index.ts:EmailSignal",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
     },
     {
       "id": "calls:workers/hoox:workers/hoox/src/index.ts:IdempotencyStore->packages/shared:packages/shared/src/middleware/rate-limit.ts:createRateLimiter",
@@ -61193,6 +62307,55 @@
       "target": "workers/hoox:workers/hoox/src/idempotencyStore.ts:IdempotencyStore",
       "kind": "calls",
       "label": "checkAndStore"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:getQueueMode",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:generateIdempotencyKey",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:checkIdempotency->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:checkIdempotency",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:sendTradeToQueue",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:processTrade->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processTrade",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:processNotification->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:processNotification",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
+      "id": "calls:workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/hoox:workers/hoox/src/logic.ts:createDefaultMessage",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
     },
     {
       "id": "calls:workers/hoox:workers/hoox/src/sessionManager.ts:getOrCreateSession->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
@@ -61440,6 +62603,20 @@
       "label": "warn"
     },
     {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/exchanges/base-exchange-client.ts:ExchangeConfig",
+      "source": "workers/trade-worker:workers/trade-worker/src/exchange-connection-manager.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/exchanges/base-exchange-client.ts:ExchangeConfig",
+      "kind": "calls",
+      "label": "openLong"
+    },
+    {
       "id": "calls:workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider->packages/shared:packages/shared/src/exchange-client.ts:ExchangeName",
       "source": "workers/trade-worker:workers/trade-worker/src/exchange-router.ts:IExchangeProvider",
       "target": "packages/shared:packages/shared/src/exchange-client.ts:ExchangeName",
@@ -61685,6 +62862,13 @@
       "label": "route"
     },
     {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "error"
+    },
+    {
       "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
@@ -61697,6 +62881,13 @@
       "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
       "kind": "calls",
       "label": "error"
+    },
+    {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/errors.ts:toError",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/errors.ts:toError",
+      "kind": "calls",
+      "label": "internal"
     },
     {
       "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:toError",
@@ -61713,6 +62904,13 @@
       "label": "internal"
     },
     {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->workers/trade-worker:workers/trade-worker/src/db-logger.ts:IDbLogger",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:IDbLogger",
+      "kind": "calls",
+      "label": "logResponse"
+    },
+    {
       "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:Env->workers/trade-worker:workers/trade-worker/src/db-logger.ts:IDbLogger",
       "source": "workers/trade-worker:workers/trade-worker/src/index.ts:Env",
       "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:IDbLogger",
@@ -61725,6 +62923,13 @@
       "target": "workers/trade-worker:workers/trade-worker/src/db-logger.ts:IDbLogger",
       "kind": "calls",
       "label": "logResponse"
+    },
+    {
+      "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager->packages/shared:packages/shared/src/types/router.ts:RouteParams",
+      "source": "workers/trade-worker:workers/trade-worker/src/index.ts:ExchangeConnectionManager",
+      "target": "packages/shared:packages/shared/src/types/router.ts:RouteParams",
+      "kind": "calls",
+      "label": "get"
     },
     {
       "id": "calls:workers/trade-worker:workers/trade-worker/src/index.ts:Env->packages/shared:packages/shared/src/types/router.ts:RouteParams",
@@ -62103,6 +63308,48 @@
       "target": "packages/shared:packages/shared/src/wizard/types.ts:StepId",
       "kind": "calls",
       "label": "validate"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:runHousekeeping",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/housekeeping.ts:HousekeepingEnv",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/providers.ts:createProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:createProviderManager",
+      "kind": "calls",
+      "label": "loadConfig"
+    },
+    {
+      "id": "calls:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/providers.ts:createProviderManager",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/providers.ts:createProviderManager",
+      "kind": "calls",
+      "label": "loadConfig"
     },
     {
       "id": "calls:workers/hoox:workers/hoox/src/handlers/webhook.ts:handleRequest->packages/shared:packages/shared/src/errors.ts:toError",
@@ -64100,6 +65347,76 @@
       "label": "badRequest"
     },
     {
+      "id": "sb:workers/agent-worker->workers/d1-worker",
+      "source": "workspace:workers/agent-worker",
+      "target": "workspace:workers/d1-worker",
+      "kind": "service-binding",
+      "label": "service: workers/d1-worker"
+    },
+    {
+      "id": "sb:workers/agent-worker->workers/trade-worker",
+      "source": "workspace:workers/agent-worker",
+      "target": "workspace:workers/trade-worker",
+      "kind": "service-binding",
+      "label": "service: workers/trade-worker"
+    },
+    {
+      "id": "sb:workers/agent-worker->workers/telegram-worker",
+      "source": "workspace:workers/agent-worker",
+      "target": "workspace:workers/telegram-worker",
+      "kind": "service-binding",
+      "label": "service: workers/telegram-worker"
+    },
+    {
+      "id": "sb:workers/agent-worker->workers/analytics-worker",
+      "source": "workspace:workers/agent-worker",
+      "target": "workspace:workers/analytics-worker",
+      "kind": "service-binding",
+      "label": "service: workers/analytics-worker"
+    },
+    {
+      "id": "sb:workers/d1-worker->workers/analytics-worker",
+      "source": "workspace:workers/d1-worker",
+      "target": "workspace:workers/analytics-worker",
+      "kind": "service-binding",
+      "label": "service: workers/analytics-worker"
+    },
+    {
+      "id": "sb:workers/dashboard->workers/d1-worker",
+      "source": "workspace:workers/dashboard",
+      "target": "workspace:workers/d1-worker",
+      "kind": "service-binding",
+      "label": "service: workers/d1-worker"
+    },
+    {
+      "id": "sb:workers/dashboard->workers/agent-worker",
+      "source": "workspace:workers/dashboard",
+      "target": "workspace:workers/agent-worker",
+      "kind": "service-binding",
+      "label": "service: workers/agent-worker"
+    },
+    {
+      "id": "sb:workers/dashboard->workers/web3-wallet-worker",
+      "source": "workspace:workers/dashboard",
+      "target": "workspace:workers/web3-wallet-worker",
+      "kind": "service-binding",
+      "label": "service: workers/web3-wallet-worker"
+    },
+    {
+      "id": "sb:workers/email-worker->workers/trade-worker",
+      "source": "workspace:workers/email-worker",
+      "target": "workspace:workers/trade-worker",
+      "kind": "service-binding",
+      "label": "service: workers/trade-worker"
+    },
+    {
+      "id": "sb:workers/email-worker->workers/analytics-worker",
+      "source": "workspace:workers/email-worker",
+      "target": "workspace:workers/analytics-worker",
+      "kind": "service-binding",
+      "label": "service: workers/analytics-worker"
+    },
+    {
       "id": "sb:workers/hoox->workers/trade-worker",
       "source": "workspace:workers/hoox",
       "target": "workspace:workers/trade-worker",
@@ -64121,18 +65438,32 @@
       "label": "service: workers/analytics-worker"
     },
     {
-      "id": "sb:workers/dashboard->workers/d1-worker",
-      "source": "workspace:workers/dashboard",
+      "id": "sb:workers/hoox->workers/web3-wallet-worker",
+      "source": "workspace:workers/hoox",
+      "target": "workspace:workers/web3-wallet-worker",
+      "kind": "service-binding",
+      "label": "service: workers/web3-wallet-worker"
+    },
+    {
+      "id": "sb:workers/report-worker->workers/d1-worker",
+      "source": "workspace:workers/report-worker",
       "target": "workspace:workers/d1-worker",
       "kind": "service-binding",
       "label": "service: workers/d1-worker"
     },
     {
-      "id": "sb:workers/dashboard->workers/agent-worker",
-      "source": "workspace:workers/dashboard",
-      "target": "workspace:workers/agent-worker",
+      "id": "sb:workers/report-worker->workers/telegram-worker",
+      "source": "workspace:workers/report-worker",
+      "target": "workspace:workers/telegram-worker",
       "kind": "service-binding",
-      "label": "service: workers/agent-worker"
+      "label": "service: workers/telegram-worker"
+    },
+    {
+      "id": "sb:workers/telegram-worker->workers/analytics-worker",
+      "source": "workspace:workers/telegram-worker",
+      "target": "workspace:workers/analytics-worker",
+      "kind": "service-binding",
+      "label": "service: workers/analytics-worker"
     },
     {
       "id": "sb:workers/trade-worker->workers/d1-worker",
@@ -64156,25 +65487,18 @@
       "label": "service: workers/analytics-worker"
     },
     {
-      "id": "sb:workers/agent-worker->workers/d1-worker",
-      "source": "workspace:workers/agent-worker",
-      "target": "workspace:workers/d1-worker",
-      "kind": "service-binding",
-      "label": "service: workers/d1-worker"
-    },
-    {
-      "id": "sb:workers/agent-worker->workers/trade-worker",
-      "source": "workspace:workers/agent-worker",
-      "target": "workspace:workers/trade-worker",
-      "kind": "service-binding",
-      "label": "service: workers/trade-worker"
-    },
-    {
-      "id": "sb:workers/agent-worker->workers/telegram-worker",
-      "source": "workspace:workers/agent-worker",
+      "id": "sb:workers/web3-wallet-worker->workers/telegram-worker",
+      "source": "workspace:workers/web3-wallet-worker",
       "target": "workspace:workers/telegram-worker",
       "kind": "service-binding",
       "label": "service: workers/telegram-worker"
+    },
+    {
+      "id": "sb:workers/web3-wallet-worker->workers/analytics-worker",
+      "source": "workspace:workers/web3-wallet-worker",
+      "target": "workspace:workers/analytics-worker",
+      "kind": "service-binding",
+      "label": "service: workers/analytics-worker"
     },
     {
       "id": "ws-dep:packages/cli->packages/shared",
@@ -64261,6 +65585,22 @@
       "label": "@jango-blockchained/hoox-shared"
     },
     {
+      "id": "ws-dep:pages/docs->packages/shared",
+      "source": "workspace:pages/docs",
+      "target": "workspace:packages/shared",
+      "kind": "workspace-dep",
+      "label": "@jango-blockchained/hoox-shared"
+    },
+    {
+      "id": "infra-binding:workers/agent-worker->d1:trade-data-db",
+      "source": "workspace:workers/agent-worker",
+      "target": "infra:d1:trade-data-db",
+      "kind": "infra-binding",
+      "label": "DB",
+      "description": "Cloudflare D1 SQLite database. Stores trade_signals, trades, positions, balances, system_logs tables. Database ID: a682f084-594e-4bd8-be2d-40ea5f8cf42e.",
+      "bindingName": "DB"
+    },
+    {
       "id": "infra-binding:workers/d1-worker->d1:trade-data-db",
       "source": "workspace:workers/d1-worker",
       "target": "infra:d1:trade-data-db",
@@ -64279,17 +65619,8 @@
       "bindingName": "DB"
     },
     {
-      "id": "infra-binding:workers/agent-worker->d1:trade-data-db",
-      "source": "workspace:workers/agent-worker",
-      "target": "infra:d1:trade-data-db",
-      "kind": "infra-binding",
-      "label": "DB",
-      "description": "Cloudflare D1 SQLite database. Stores trade_signals, trades, positions, balances, system_logs tables. Database ID: a682f084-594e-4bd8-be2d-40ea5f8cf42e.",
-      "bindingName": "DB"
-    },
-    {
-      "id": "infra-binding:workers/trade-worker->r2:trade-reports",
-      "source": "workspace:workers/trade-worker",
+      "id": "infra-binding:workers/report-worker->r2:trade-reports",
+      "source": "workspace:workers/report-worker",
       "target": "infra:r2:trade-reports",
       "kind": "infra-binding",
       "label": "REPORTS_BUCKET",
@@ -64297,8 +65628,8 @@
       "bindingName": "REPORTS_BUCKET"
     },
     {
-      "id": "infra-binding:workers/report-worker->r2:trade-reports",
-      "source": "workspace:workers/report-worker",
+      "id": "infra-binding:workers/trade-worker->r2:trade-reports",
+      "source": "workspace:workers/trade-worker",
       "target": "infra:r2:trade-reports",
       "kind": "infra-binding",
       "label": "REPORTS_BUCKET",
@@ -64324,8 +65655,8 @@
       "bindingName": "UPLOADS_BUCKET"
     },
     {
-      "id": "infra-binding:workers/hoox->kv:CONFIG_KV",
-      "source": "workspace:workers/hoox",
+      "id": "infra-binding:workers/agent-worker->kv:CONFIG_KV",
+      "source": "workspace:workers/agent-worker",
       "target": "infra:kv:CONFIG_KV",
       "kind": "infra-binding",
       "label": "CONFIG_KV",
@@ -64342,26 +65673,8 @@
       "bindingName": "CONFIG_KV"
     },
     {
-      "id": "infra-binding:workers/trade-worker->kv:CONFIG_KV",
-      "source": "workspace:workers/trade-worker",
-      "target": "infra:kv:CONFIG_KV",
-      "kind": "infra-binding",
-      "label": "CONFIG_KV",
-      "description": "KV namespace for configuration storage. Used by 7 workers for feature flags, kill switch, exchange config, secrets, and runtime settings.",
-      "bindingName": "CONFIG_KV"
-    },
-    {
-      "id": "infra-binding:workers/agent-worker->kv:CONFIG_KV",
-      "source": "workspace:workers/agent-worker",
-      "target": "infra:kv:CONFIG_KV",
-      "kind": "infra-binding",
-      "label": "CONFIG_KV",
-      "description": "KV namespace for configuration storage. Used by 7 workers for feature flags, kill switch, exchange config, secrets, and runtime settings.",
-      "bindingName": "CONFIG_KV"
-    },
-    {
-      "id": "infra-binding:workers/telegram-worker->kv:CONFIG_KV",
-      "source": "workspace:workers/telegram-worker",
+      "id": "infra-binding:workers/dashboard->kv:CONFIG_KV",
+      "source": "workspace:workers/dashboard",
       "target": "infra:kv:CONFIG_KV",
       "kind": "infra-binding",
       "label": "CONFIG_KV",
@@ -64378,8 +65691,26 @@
       "bindingName": "CONFIG_KV"
     },
     {
-      "id": "infra-binding:workers/dashboard->kv:CONFIG_KV",
-      "source": "workspace:workers/dashboard",
+      "id": "infra-binding:workers/hoox->kv:CONFIG_KV",
+      "source": "workspace:workers/hoox",
+      "target": "infra:kv:CONFIG_KV",
+      "kind": "infra-binding",
+      "label": "CONFIG_KV",
+      "description": "KV namespace for configuration storage. Used by 7 workers for feature flags, kill switch, exchange config, secrets, and runtime settings.",
+      "bindingName": "CONFIG_KV"
+    },
+    {
+      "id": "infra-binding:workers/telegram-worker->kv:CONFIG_KV",
+      "source": "workspace:workers/telegram-worker",
+      "target": "infra:kv:CONFIG_KV",
+      "kind": "infra-binding",
+      "label": "CONFIG_KV",
+      "description": "KV namespace for configuration storage. Used by 7 workers for feature flags, kill switch, exchange config, secrets, and runtime settings.",
+      "bindingName": "CONFIG_KV"
+    },
+    {
+      "id": "infra-binding:workers/trade-worker->kv:CONFIG_KV",
+      "source": "workspace:workers/trade-worker",
       "target": "infra:kv:CONFIG_KV",
       "kind": "infra-binding",
       "label": "CONFIG_KV",
@@ -64414,8 +65745,8 @@
       "bindingName": "IDEMPOTENCY_STORE"
     },
     {
-      "id": "infra-binding:workers/hoox->ai:WORKERS_AI",
-      "source": "workspace:workers/hoox",
+      "id": "infra-binding:workers/agent-worker->ai:WORKERS_AI",
+      "source": "workspace:workers/agent-worker",
       "target": "infra:ai:WORKERS_AI",
       "kind": "infra-binding",
       "label": "AI",
@@ -64423,8 +65754,8 @@
       "bindingName": "AI"
     },
     {
-      "id": "infra-binding:workers/agent-worker->ai:WORKERS_AI",
-      "source": "workspace:workers/agent-worker",
+      "id": "infra-binding:workers/hoox->ai:WORKERS_AI",
+      "source": "workspace:workers/hoox",
       "target": "infra:ai:WORKERS_AI",
       "kind": "infra-binding",
       "label": "AI",

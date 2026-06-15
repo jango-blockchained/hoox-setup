@@ -210,7 +210,7 @@
         "d1-reader"
       ],
       "llmContext": "Automated portfolio report generator. Cron: 0 6,18 * * * (twice daily at 06:00/18:00 UTC). Scheduled handler calls generateAndStoreReport. Also triggerable via GET /report (requires internal auth, returns 202 Accepted, runs via ctx.waitUntil). Report generation flow: (1) fetchPortfolioSummary — calls d1-worker via D1_SERVICE binding (GET /api/balances + GET /api/positions, requires X-Internal-Auth-Key), aggregates totalValue, dailyPnL, totalPnL, openPositions, winRate, topAsset; (2) buildReportHtml — renders responsive HTML template with grid cards, conditional positive/negative P&L styling, A4-formatted with inline CSS; (3) generatePdf — calls Cloudflare Browser Rendering REST API (POST https://api.cloudflare.com/client/v4/{account}/browser-rendering/pdf with html + options { format: A4, printBackground: true, margin }), requires CF_API_TOKEN_BINDING; (4) stores PDF in REPORTS_BUCKET R2 (key: reports/daily-{timestamp}.pdf, contentType: application/pdf); (5) sendNotification — calls telegram-worker via TELEGRAM_SERVICE binding (POST /process with markdown message including signed report URL). Exported for testing: generatePdf, sendNotification, fetchPortfolioSummary, buildReportHtml, generateAndStoreReport. Uses @cloudflare/workers-types ScheduledController for cron type.",
-      "cron": "0 6,18 * * *",
+      "cron": "0 8 * * *, 0 18 * * *",
       "isPublic": false,
       "smartPlacement": true,
       "entryPoints": [
@@ -257,9 +257,9 @@
       "llmContext": "Central SQLite database (D1). Tables: trade_signals (incoming signals with raw payload + parsed status), trades (executed orders with exchange/symbol/quantity/price/status), positions (open/closed positions with unrealized_pnl), balances (exchange/asset balance snapshots with timestamps), system_logs (structured app logs with level/source/message/details), trade_requests, trade_responses (request/response pair audit log). Accessed exclusively through d1-worker service binding (workers/d1-worker). Direct DB binding also available for workers/trade-worker (legacy, for DbLogger) and workers/agent-worker (legacy direct D1 access, being migrated to d1-worker). DB ID: a682f084-594e-4bd8-be2d-40ea5f8cf42e. All queries validated against table allowlist.",
       "bindingName": "DB",
       "usedBy": [
+        "workers/agent-worker",
         "workers/d1-worker",
-        "workers/trade-worker",
-        "workers/agent-worker"
+        "workers/trade-worker"
       ]
     },
     "r2:trade-reports": {
@@ -271,7 +271,7 @@
       "tags": ["r2", "storage", "reports", "pdf"],
       "llmContext": "R2 bucket for PDF trade reports. Written by trade-worker (saveReportToR2 — per-trade report on successful execution via ctx.waitUntil) and report-worker (generateAndStoreReport — twice-daily portfolio summaries, keys: reports/daily-{timestamp}.pdf). Read by dashboard for user download links. Binding name: REPORTS_BUCKET. Content type: application/pdf.",
       "bindingName": "REPORTS_BUCKET",
-      "usedBy": ["workers/trade-worker", "workers/report-worker"]
+      "usedBy": ["workers/report-worker", "workers/trade-worker"]
     },
     "r2:hoox-system-logs": {
       "id": "infra:r2:hoox-system-logs",
@@ -305,13 +305,13 @@
       "llmContext": "Shared configuration KV — the most widely used binding (7 workers). Key namespaces: kill_switch (global trading disable), webhook:tradingview:ip_check_enabled and webhook:tradingview:allowed_ips (IP validation), trade:watermark:* (trailing stop tracking by agent-worker), global:* (general settings via d1-worker api/settings), agent:* (agent config overrides), email:* (coin pattern, action pattern, quantity multiplier for email-worker signal parsing). Session rate limiting state (hoox createRateLimiter uses CONFIG_KV). KVKeys exported from @jango-blockchained/hoox-shared/kvKeys provides typed key constants. Used by: hoox, d1-worker, trade-worker, agent-worker, telegram-worker, email-worker, dashboard.",
       "bindingName": "CONFIG_KV",
       "usedBy": [
-        "workers/hoox",
-        "workers/d1-worker",
-        "workers/trade-worker",
         "workers/agent-worker",
-        "workers/telegram-worker",
+        "workers/d1-worker",
+        "workers/dashboard",
         "workers/email-worker",
-        "workers/dashboard"
+        "workers/hoox",
+        "workers/telegram-worker",
+        "workers/trade-worker"
       ]
     },
     "kv:SESSIONS_KV": {
@@ -370,8 +370,8 @@
       "llmContext": "Workers AI inference binding — primary AI provider in the multi-provider chain (workers-ai → openai → anthropic → google). Used by: hoox (signal content validation, lightweight inference), agent-worker (risk assessment as primary — ProviderManager defaults to workers-ai with model map for routing, also supports embeddings via runEmbedding), telegram-worker (message summarization via Workers AI before sending Telegram notifications). Also accessible via agent-worker's POST /agent/test-model and POST /agent/chat endpoints.",
       "bindingName": "AI",
       "usedBy": [
-        "workers/hoox",
         "workers/agent-worker",
+        "workers/hoox",
         "workers/telegram-worker"
       ]
     },
