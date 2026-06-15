@@ -1,0 +1,99 @@
+---
+title: "Telegram Bot Setup"
+description: "How to provision a secure Telegram Bot via BotFather, bind credentials, deploy webhooks, and execute commands."
+---
+
+# 💬 Telegram Bot Setup
+
+The **`telegram-worker`** is a central operational pillar of the Hoox trading ecosystem. It serves two critical functions:
+
+1. **Push Notifications**: Sends instant real-time order fill alerts, daily P&L audits, and system health status updates directly to your mobile phone.
+2. **Interactive Command Console**: Provides a secure chat terminal allowing you to query open positions, check D1 balance logs, and trigger the Global Kill Switch directly via Telegram chat.
+
+This tutorial guides you through creating a bot, binding secrets, deploying the secure Cloudflare webhook, and using commands.
+
+---
+
+## 🏁 Step-by-Step Configuration Path
+
+### Step 1: Provision a Bot via BotFather
+
+1. Open the Telegram app and search for the verified **`@BotFather`** account.
+2. Click **Start** and send the command:
+   ```telegram
+   /newbot
+   ```
+3. Enter a friendly name for your bot (e.g. `My Hoox Edge Bot`).
+4. Choose a unique username ending in "bot" (e.g. `AlphaHooxTradeBot`).
+5. BotFather will output your **HTTP API Token** (save this securely):
+   `5829104829:AAFkL92jL-492kLl...`
+
+---
+
+### Step 2: Retrieve Your Private Chat ID
+
+To ensure that only **you** can command your bot (and to prevent unauthorized users from viewing your trading balances), you must capture your private Telegram Chat ID:
+
+1. Search for the username **`@userinfobot`** in Telegram and start a chat.
+2. The bot will instantly return your numeric **Id** (e.g., `987654321`).
+
+---
+
+### Step 3: Inject Credentials via Hoox CLI
+
+Bind your bot token and authorized Chat ID as encrypted Workers Secrets in your workspace:
+
+```bash
+# Inject the secure Telegram Bot token
+hoox secrets set TELEGRAM_BOT_TOKEN "5829104829:AAFkL92jL-492kLl..."
+
+# Inject your authorized Telegram Chat ID
+hoox secrets set TELEGRAM_CHAT_ID "987654321"
+```
+
+---
+
+### Step 4: Register the Webhook with Telegram
+
+To allow Telegram’s servers to route incoming chat commands straight to your edge worker, you must register your deployed gateway URL as the bot's official webhook handler:
+
+```bash
+# Automatically register the webhook endpoint with Telegram's APIs
+hoox deploy telegram-webhook
+```
+
+_The CLI calls Telegram’s API to configure the route:_
+`https://hoox.alpha-trading.workers.dev/telegram-webhook`
+
+---
+
+## 🕹️ Interactive Chat Commands
+
+Open your private bot chat in Telegram, click **Start**, and send the following commands to manage your edge:
+
+| Command          | Action             | Description                                                            |
+| :--------------- | :----------------- | :--------------------------------------------------------------------- |
+| **`/start`**     | Onboarding         | Verifies connection and returns system welcome message.                |
+| **`/status`**    | System Audit       | Probes all workers and returns online/offline health status.           |
+| **`/trades`**    | Transaction Log    | Retrieves a formatted table of the 5 most recent executed fills.       |
+| **`/positions`** | Exposure Audit     | Lists all currently active long/short positions with unrealized P&L.   |
+| **`/kill_on`**   | **Emergency Halt** | Instantly activates the Global Kill Switch in KV, halting all trading. |
+| **`/kill_off`**  | Resume             | Deactivates the Global Kill Switch, restoring signal processing.       |
+
+---
+
+## 🧠 Conversational AI Chat & Chart Audits
+
+Beyond static commands, `telegram-worker` is integrated with **Cloudflare Workers AI** and the **Multi-Provider AI Gateway**:
+
+- **Natural Language Queries**: You can ask the bot conversational questions like _"Should I close my BTC position?"_ or _"Analyze my trade win rate today"_. The bot queries your D1 SQL database, aggregates context using Vectorize, and responds with a LLaMA-3 analytical summary.
+- **Chart Image Audits**: If you upload a screenshot of a trading chart or a portfolio page, the AI Gateway uses vision models (like Claude 3.5 Sonnet or Gemini 1.5 Pro) to analyze the chart and return an automated risk audit.
+
+---
+
+<Warning>The `telegram-worker` strictly filters all incoming messages. If a message originates from a `Chat ID` that does not match your authorized `TELEGRAM_CHAT_ID` secret, it is silently dropped and logged as a security alert, ensuring your account remains 100% secure.</Warning>
+
+### 🔗 Next Steps
+
+|- **[Alert Troubleshooting](../tutorials/tradingview-webhook#webhook-troubleshooting-runbook)** — Common TradingView webhook errors and resolutions.
+|- **[Platform Configuration Guide](../getting-started/configuration)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.

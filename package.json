@@ -26,7 +26,6 @@
     "build:cli": "cd packages/cli && bun run build",
     "build:tui": "cd packages/tui && bun run build",
     "build:dashboard": "cd workers/dashboard && bun run build",
-    "build:docs": "cd pages/docs && bun run build",
     "typecheck": "bun scripts/typecheck-all.ts",
     "typecheck:root": "tsc --noEmit",
     "typecheck:prod": "tsc -p tsconfig.prod.json --noEmit",

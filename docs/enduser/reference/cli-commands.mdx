@@ -1,0 +1,151 @@
+---
+title: "CLI Commands Reference"
+description: "Comprehensive CLI directory detailing all 15 command groups, 50+ subcommands, global flags, and positional options for the hoox binary."
+---
+
+# 🛠️ CLI Commands Reference
+
+The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development, provisioning, deployment, monitoring, and self-healing pipelines. This reference provides the complete command tree, positional arguments, optional flags, and concrete examples for all 15 command groups.
+
+---
+
+## 🗺️ Global Flags
+
+These options are registered globally and can be appended to any command:
+
+| Flag        | Description                                                         | Example                         |
+| :---------- | :------------------------------------------------------------------ | :------------------------------ |
+| `--json`    | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox monitor status --json`    |
+| `--quiet`   | Suppresses headers, banners, and interactive prompts.               | `hoox deploy kv-config --quiet` |
+| `--help`    | Prints complete parameter and option listings.                      | `hoox infra d1 --help`          |
+| `--version` | Outputs active CLI package build version.                           | `hoox --version`                |
+
+---
+
+## 🗂️ Command Groups Directory
+
+```
+hoox                                 Launch TUI (when run with no args)
+├── init                             Interactive multi-phase setup wizard
+├── clone [name]                     Bootstrap workspace from template
+├── dev                              Local development execution engine
+│   ├── start                        Start all workers (native or Docker)
+│   ├── worker <name>                Start a single worker
+│   └── dashboard                    Start Next.js dashboard dev server
+├── deploy                           Edge deployment pipelines
+│   ├── all                          Roll out all workers + dashboard in sequence
+│   ├── worker <name>                Deploy a single edge worker
+│   ├── dashboard                    Deploy Next.js dashboard via OpenNext
+│   ├── telegram-webhook             Register Telegram bot webhook API
+│   ├── update-internal-urls         Bind inter-worker Service Binding URLs
+│   └── kv-config                    Synchronize KV manifest variables
+├── infra                            Cloudflare resource provisioning IaC
+│   ├── provision                    Auto-provision all required services
+│   ├── d1 [list/create/delete]      Manage D1 databases
+│   ├── kv [list/create/delete]      Manage KV namespaces
+│   ├── r2 [list/create/delete]      Manage R2 object storage buckets
+│   ├── queues [list/create/delete]  Manage Cloudflare Queues
+│   └── vectorize [create/delete]    Manage vector search indexes
+├── config                           Workspace and environmental variables
+│   ├── env [init/show/validate]     Manage .env.local build variables
+│   ├── kv [set/get/list/delete]     Get/Set dynamic KV runtime parameters
+│   └── show/set                     View or set wrangler.jsonc values
+├── check                            Toolchain and route diagnostic suite
+│   ├── prerequisites                Validate local machine tool installs
+│   ├── setup                        Audit .env configurations
+│   └── health                       Probe worker /health endpoints
+├── db                               SQLite D1 Database administration
+│   ├── apply                    Apply DDL schemas to D1
+│   ├── migrate                  Run schema migrations
+│   ├── list                     Display active SQLite tables
+│   ├── query <sql>              Execute custom SQL reads
+│   ├── export                   Dump database as a secure SQL file
+│   └── reset                    Destructive truncate of all tables
+├── monitor                          Observability and emergency controls
+│   ├── status                       Probe active worker health routes
+│   ├── trades [N]                   Aggregate recent filled transactions
+│   ├── logs [worker]                Tail and inspect time-series logs
+│   ├── queue-depth                  Audit message counts in queues
+│   ├── backup                       Backup SQL ledger to backups/
+│   └── kill-switch [show/on/off]    Emergency global trading halt
+├── repair                           System diagnostics & self-healing
+│   ├── check                        Run 5-step checklist
+│   ├── worker <name>                Rebuild a degraded worker
+│   ├── infra                        Verify and repair missing edge bindings
+│   ├── secrets                      Re-sync hardware secrets
+│   ├── kv                           Restore KV manifest defaults
+│   ├── db                           Re-apply Drizzle migrations
+│   └── rebuild                      Full destructive interactive rebuild
+├── logs                             Time-series log extraction
+│   ├── tail <worker>                Stream live edge logging console
+│   └── download <worker>            Download logs to a local file
+├── test                             Run verification pipeline (CI)
+└── waf                              Auto-configure Cloudflare WAF firewall rules
+```
+
+---
+
+## 🚀 Key Commands Detail & Examples
+
+### A. Initialization & Bootstrap
+
+```bash
+# Onboard a new machine, configure accounts and select worker profile
+hoox init
+
+# Verify that git, bun, wrangler, and docker are correctly configured
+hoox check prerequisites
+```
+
+### B. Local Development
+
+```bash
+# Start all workers in a Docker container stack
+hoox dev start --runtime docker
+
+# Start only the Next.js frontend developer server
+hoox dev dashboard
+```
+
+### C. Edge Provisioning & Deployment
+
+```bash
+# Provision all databases, buckets, and queues on your Cloudflare account
+hoox infra provision
+
+# Deploy the entire microservices stack in sequence, automatically updating URLs
+hoox deploy all --auto
+```
+
+### D. Operational Monitoring & Emergency halting
+
+```bash
+# Emergency Halt: halt all trade signals globally in under 10 seconds
+hoox config kv set trade:kill_switch true
+
+# Audit active trade history table
+hoox monitor trades 25
+```
+
+### E. Database Administration
+
+```bash
+# Query the total sum of fees paid today across Bybit
+hoox db query "SELECT SUM(fee) FROM trades WHERE created_at >= date('now')" --remote
+```
+
+### F. Self-Healing & Diagnostics
+
+```bash
+# Run a full workspace system audit
+hoox repair check
+```
+
+---
+
+<Tip>Every single subcommand is fully documented locally! Append `--help` to any command (e.g. `hoox config env --help`) to view advanced positional arguments and specific flag options instantly.</Tip>
+
+### 🔗 Next Steps
+
+|- **[Configuration Dictionary](getting-started/configuration)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
+- **[API Endpoint Reference](api-endpoints)** — Analyze REST routes, schemas, and gateway error structures.
