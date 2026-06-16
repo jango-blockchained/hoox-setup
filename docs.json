@@ -161,16 +161,8 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "https://raw.githubusercontent.com/jango-blockchained/hoox-setup/main/docs/openapi.yaml",
-        "groups": [
-          {
-            "group": "Events",
-            "asyncapi": {
-              "source": "https://raw.githubusercontent.com/jango-blockchained/hoox-setup/main/docs/asyncapi.yaml",
-              "directory": "events"
-            }
-          }
-        ]
+        "openapi": "openapi.yaml",
+        "asyncapi": "asyncapi.yaml"
       }
     ]
   },
