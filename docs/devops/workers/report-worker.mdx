@@ -123,9 +123,13 @@ await env.TELEGRAM_SERVICE.fetch("https://telegram-worker/alert", {
 
 ---
 
-<Tip>If `CF_API_TOKEN` is not configured, the worker gracefully fails by compiling a rich text-only P&L summary and pushing it directly via Telegram instead of generating a PDF, guaranteeing continuous operations without hard crashes.</Tip>
+<Tip>
+  If `CF_API_TOKEN` is not configured, the worker gracefully fails by compiling
+  a rich text-only P&L summary and pushing it directly via Telegram instead of
+  generating a PDF, guaranteeing continuous operations without hard crashes.
+</Tip>
 
 ### 🔗 Next Steps
 
 - **[telegram-worker Profile](telegram-worker)** — Review push alert configurations and webhook tunnels.
-- **[D1 Database Operations](../guides/database-ops)** — Manage Drizzle schemas and execute custom queries.
+- **[D1 Database Operations](../../enduser/guides/database-ops)** — Manage Drizzle schemas and execute custom queries.

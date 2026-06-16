@@ -154,9 +154,14 @@ try {
 
 ---
 
-<Tip>If the exchange API rejects an order due to account rate-limiting, the queue consumer automatically returns a retry flag. Cloudflare Queues will back off and re-route the batch at intervals starting at 30 seconds, protecting your strategy from missed fills.</Tip>
+<Tip>
+  If the exchange API rejects an order due to account rate-limiting, the queue
+  consumer automatically returns a retry flag. Cloudflare Queues will back off
+  and re-route the batch at intervals starting at 30 seconds, protecting your
+  strategy from missed fills.
+</Tip>
 
 ### 🔗 Next Steps
 
 - **[hoox Gateway Profile](hoox)** — Review WAF rules and Durable Object idempotency locks.
-- **[D1 Database Operations](../guides/database-ops)** — Manage Drizzle schemas, migrations, and query operations.
+- **[D1 Database Operations](../../enduser/guides/database-ops)** — Manage Drizzle schemas, migrations, and query operations.

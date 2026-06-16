@@ -80,7 +80,10 @@ All workers now have authentication on their internal endpoints:
 | **web3-wallet-worker** | `X-Internal-Auth-Key`                        | `GET /` (wallet address)                                         | `GET /health`                                    |
 | **dashboard**          | Session cookie                               | All routes                                                       | `/login`, `/api/auth`, `/_next/*`                |
 
-<Note>Health check endpoints (`GET /health`) are intentionally left unauthenticated for monitoring systems.</Note>
+<Note>
+  Health check endpoints (`GET /health`) are intentionally left unauthenticated
+  for monitoring systems.
+</Note>
 
 ---
 
@@ -247,7 +250,7 @@ graph LR
 **File:** `tests/load/`
 **Tool:** k6 (separate from bun test)
 
-See [Load Testing README](../../tests/load/README) for full documentation.
+See the `tests/load/` directory for full documentation.
 
 | Script              | Target                        | Description                    |
 | ------------------- | ----------------------------- | ------------------------------ |
