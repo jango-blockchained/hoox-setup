@@ -49,7 +49,12 @@ if (shortCondition)
     alert(shortAlertJson, alert.freq_once_per_bar_close)
 ```
 
-<Tip>Replace `"your-hoox-webhook-passkey"` in your Pine Script with the actual passkey configured in your `CONFIG_KV` store (`webhooks:api_key`). This is a critical security step—the gateway will reject any alerts with mismatched keys with a `401 Unauthorized` error.</Tip>
+<Tip>
+  Replace `"your-hoox-webhook-passkey"` in your Pine Script with the actual
+  passkey configured in your `CONFIG_KV` store (`webhooks:api_key`). This is a
+  critical security step—the gateway will reject any alerts with mismatched keys
+  with a `401 Unauthorized` error.
+</Tip>
 
 ---
 
@@ -98,5 +103,5 @@ When the Moving Average crossover occurs on your chart:
 
 ### 🔗 Next Steps
 
-- **[Setting Up Telegram Alerts](telegram-bot)** — Integrate Telegram notifications to get fills pushed directly to your phone.
-- **[API Endpoint Reference](../reference/api-endpoints)** — Review full request schemas and status codes.
+- **[Setting Up Telegram Alerts](../tutorials/telegram-bot.mdx)** — Integrate Telegram notifications to get fills pushed directly to your phone.
+- **[API Endpoint Reference](../reference/api-endpoints.mdx)** — Review full request schemas and status codes.
