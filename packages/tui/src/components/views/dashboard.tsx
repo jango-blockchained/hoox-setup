@@ -20,7 +20,7 @@ import { StatusDot } from "../shared/status-dot";
 import { cliBridge } from "../../services/cli-bridge";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
-import { Spinner, EmptyState } from "../shared/spinner";
+import { Spinner } from "../shared/spinner";
 import {
   AutoRepairPanel,
   RepairFixItem,

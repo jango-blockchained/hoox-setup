@@ -344,7 +344,6 @@ function SqlInputRow({
     }
   });
 
-  const valid = validation?.readonly !== false;
   const label = validation ? validationLabel(validation) : "Type a query…";
   const color = validation ? validationColor(validation) : Colors.muted;
 

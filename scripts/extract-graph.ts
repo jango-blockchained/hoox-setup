@@ -1828,7 +1828,7 @@ function regenerateMetadataFile(
     infraUsers.get(targetId)!.add(workerPath);
   }
 
-  for (const [key, infra] of Object.entries(archData.infrastructure)) {
+  for (const [, infra] of Object.entries(archData.infrastructure)) {
     const users = infraUsers.get(infra.id);
     if (users && users.size > 0) {
       infra.usedBy = [...users].sort();
@@ -1850,9 +1850,9 @@ function regenerateMetadataFile(
 
   for (const flow of archData.dataFlows) {
     const pair = `${flow.source}→${flow.target}`;
-    const hasSB = sbPairs.has(pair);
-    // Add a note about binding status if missing
-    // (This is informational; the data flow is still valid as logical flow)
+    // Service-binding pairs are tracked in `sbPairs` for cross-reference;
+    // the data flow itself is still valid as a logical flow.
+    void pair;
   }
 
   // ── 4. Write updated metadata ─────────────────────────────────────────

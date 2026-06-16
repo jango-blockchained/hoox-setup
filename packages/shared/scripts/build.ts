@@ -11,7 +11,7 @@
 
 import { $ } from "bun";
 import { existsSync, rmSync, readdirSync, statSync } from "node:fs";
-import { resolve, relative, sep } from "node:path";
+import { resolve, relative } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "..");
 const SRC = resolve(ROOT, "src");

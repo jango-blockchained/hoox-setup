@@ -157,8 +157,9 @@ export function EdgeTopology() {
   }
 
   // Determine what to show in the right column
-  let rightColumnContent = null;
-  if (selectedNode && metadata) {
+  // (metadata is non-null here: the guard at the top of this branch returns early)
+  let rightColumnContent;
+  if (selectedNode) {
     const isWorker = selectedNode.startsWith("workers/");
     if (isWorker) {
       const worker = metadata.workers[selectedNode];
@@ -239,7 +240,7 @@ export function EdgeTopology() {
         </box>
       );
     }
-  } else if (metadata) {
+  } else {
     // Default flows view
     rightColumnContent = (
       <box flexDirection="column" flexGrow={1} overflow="hidden">
@@ -285,7 +286,7 @@ export function EdgeTopology() {
         </text>
         <text fg={Colors.muted} dim marginLeft={2}>
           {workers.length} Workers • {infra.length} Infrastructure Nodes •{" "}
-          {metadata ? metadata.dataFlows.length : 0} Data Flows
+          {metadata.dataFlows.length} Data Flows
         </text>
       </box>
 

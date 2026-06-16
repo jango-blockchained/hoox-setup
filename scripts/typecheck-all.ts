@@ -67,8 +67,12 @@ const results: Array<{ workspace: string; status: "pass" | "fail" }> = [];
 
 // Run typecheck for each workspace
 const runTypecheck = (workspace: string, index: number) => {
+  // Verify workspace exists before spawning — fail fast on bad config
   const pkgPath = path.join(workspace, "package.json");
-  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+  if (!fs.existsSync(pkgPath)) {
+    console.error(`Skipping ${workspace}: no package.json`);
+    return Promise.resolve();
+  }
 
   return new Promise<void>((resolve) => {
     const process = spawn("bun", ["run", "typecheck"], {

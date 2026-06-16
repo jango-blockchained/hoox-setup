@@ -104,7 +104,6 @@ function MetricsPane({ worker }: { worker: Worker }) {
   const memMB = worker.memory;
   const memLimitMB = worker.memory;
   const requests = worker.requests;
-  const errors = 0; // errors24h not available on WorkerInfo
 
   const rows: [string, string, string][] = [
     ["Uptime", formatUptime(worker.uptime), Colors.success],
@@ -124,7 +123,6 @@ function MetricsPane({ worker }: { worker: Worker }) {
       memMB > 100 ? Colors.warning : Colors.success,
     ],
     ["Requests (24h)", requests.toLocaleString(), Colors.info],
-    ["Errors (24h)", `${errors}`, errors > 0 ? Colors.error : Colors.success],
   ];
 
   return (

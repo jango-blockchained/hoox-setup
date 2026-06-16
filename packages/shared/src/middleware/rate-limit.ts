@@ -131,20 +131,14 @@ function createStorage(kv?: KVNamespace): RateLimitStorage {
       await kv.put(key, value, opts);
     },
     async incr(key, opts) {
-      // KV doesn't support atomic increment — use get-then-put with retry loop
-      const maxRetries = 3;
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        const current = await kv.get(key);
-        const count = current ? parseInt(current, 10) : 0;
-        const next = count + 1;
-        // put() will succeed even if key changed (last-write-wins for KV)
-        // Retry loop gives other writers a chance to complete before our next read
-        await kv.put(key, String(next), opts);
-        return next;
-      }
-      // Fallback after max retries: read current and trust approximate count
+      // KV doesn't support atomic increment — use get-then-put.
+      // put() will succeed even if the key changed (last-write-wins for KV).
+      // Callers that need exactly-once semantics should use a Durable Object.
       const current = await kv.get(key);
-      return current ? parseInt(current, 10) + 1 : 1;
+      const count = current ? parseInt(current, 10) : 0;
+      const next = count + 1;
+      await kv.put(key, String(next), opts);
+      return next;
     },
   };
 }

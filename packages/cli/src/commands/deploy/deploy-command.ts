@@ -27,7 +27,13 @@ import { runRichTasks, type RichTaskResult } from "../../utils/rich.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import type { DeployResult } from "./types.js";
-import { statSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  statSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  renameSync,
+} from "node:fs";
 import { resolve } from "node:path";
 import { TelegramService } from "./telegram-service.js";
 import { EnvService } from "../../services/env/index.js";
@@ -608,7 +614,11 @@ async function doUpdateInternalUrls(fmt: FormatOptions): Promise<void> {
     const edits = jsonc.modify(fresh, ["vars"], vars, {
       formattingOptions: { tabSize: 2, insertSpaces: true },
     });
-    writeFileSync(filePath, jsonc.applyEdits(fresh, edits), "utf-8");
+    // Atomic write (write to temp, then rename) to avoid TOCTOU races
+    // when other tools edit the file concurrently.
+    const tmpPath = `${filePath}.tmp-${process.pid}`;
+    writeFileSync(tmpPath, jsonc.applyEdits(fresh, edits), "utf-8");
+    renameSync(tmpPath, filePath);
     formatSuccess(
       `Updated ${changesCount} service URL(s) in dashboard wrangler.jsonc`,
       fmt

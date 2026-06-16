@@ -86,6 +86,9 @@ replaceDependencies(packageJson.dependencies);
 replaceDependencies(packageJson.devDependencies);
 replaceDependencies(packageJson.peerDependencies);
 
-// Write back the modified package.json
-fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\n");
+// Write back the modified package.json atomically (write to temp, then rename)
+// to avoid TOCTOU races with concurrent editors/CI tools.
+const tmpPath = `${packageJsonPath}.tmp-${process.pid}`;
+fs.writeFileSync(tmpPath, JSON.stringify(packageJson, null, 2) + "\n");
+fs.renameSync(tmpPath, packageJsonPath);
 console.log(`✅ Updated ${packageJsonPath}`);
