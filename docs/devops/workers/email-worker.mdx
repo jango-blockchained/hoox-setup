@@ -13,13 +13,18 @@ The worker also tracks signal ingestion metrics by forwarding event data to `ana
 
 ## ⚡ 1. Endpoints
 
+> **Note:** For the canonical endpoint directory with full request/response examples across all workers, see [`/docs/devops/api/endpoints`](../api/endpoints).
+
 | Endpoint        | Method | Auth                            | Purpose                                      |
 | --------------- | ------ | ------------------------------- | -------------------------------------------- |
 | `/webhook`      | POST   | Mailgun signature (HMAC-SHA256) | Inbound Mailgun webhook for forwarded emails |
 | `/email-signal` | POST   | `X-Internal-Auth-Key` header    | Direct JSON signal ingestion                 |
 | `/health`       | GET    | None                            | Health check                                 |
 
-<Note>The Mailgun webhook endpoint is `/webhook`, not `/webhook/mailgun`. The direct JSON endpoint is `/email-signal`, not `/process`.</Note>
+<Note>
+  The Mailgun webhook endpoint is `/webhook`, not `/webhook/mailgun`. The direct
+  JSON endpoint is `/email-signal`, not `/process`.
+</Note>
 
 ---
 

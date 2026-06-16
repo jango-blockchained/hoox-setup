@@ -1,0 +1,173 @@
+/* ============================================================
+ * Hoox Brand Polish — Mintlify Docs
+ * Brand: #0D9373 primary · #55D799 light · #064E3B deep
+ * Goal: subtle visual polish — no layout-breaking changes
+ * ============================================================ */
+
+:root {
+  --hoox-primary: #0d9373;
+  --hoox-light: #55d799;
+  --hoox-deep: #064e3b;
+  --hoox-tint: rgba(13, 147, 115, 0.06);
+  --hoox-tint-strong: rgba(13, 147, 115, 0.12);
+  --hoox-border: rgba(13, 147, 115, 0.18);
+}
+
+/* ----- Code blocks: brand-tinted container, token color nudges ----- */
+code-block {
+  border-top: 2px solid var(--hoox-primary);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+pre,
+code-block pre {
+  border-radius: 8px;
+}
+
+/* Best-effort token recoloring — Shiki emits inline-styled spans, so we
+ * target the typical blue/purple keyword hexes used by VS-Code–style
+ * themes and remap them to hoox green. Fail-safe: scoped to attribute
+ * selectors — if the theme doesn't emit those exact hexes, no match. */
+code-block pre span[style*="569cd6"],
+code-block pre span[style*="c586c0"],
+code-block pre span[style*="af00db"],
+code-block pre span[style*="0000ff"] {
+  color: var(--hoox-primary) !important;
+  font-weight: 500;
+}
+
+code-block pre span[style*="9cdcfe"],
+code-block pre span[style*="001080"],
+code-block pre span[style*="2e7d32"] {
+  color: var(--hoox-light) !important;
+}
+
+/* ----- Callouts: semantic colors per type, soft corners ----- */
+/* Covers MDX components (<Tip>, <Note>, <Warning>) and blockquote-style
+ * callouts ("> **Note:** …"). CSS has no :contains(), so type detection
+ * relies on Mintlify's emitted attributes/classes. */
+.callout,
+[data-callout-type],
+blockquote.callout,
+blockquote[data-callout-type] {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--hoox-primary);
+  background: var(--hoox-tint);
+}
+
+/* Note — subtle blue accent */
+.callout-note,
+[data-callout-type="note"],
+.callout-info,
+[data-callout-type="info"],
+blockquote.callout-note,
+blockquote[data-callout-type="note"] {
+  border-left-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.06);
+}
+
+/* Tip & Welcome — brand green accent (already default above) */
+.callout-tip,
+[data-callout-type="tip"],
+.callout-welcome,
+[data-callout-type="welcome"] {
+  border-left-color: var(--hoox-primary);
+  background: var(--hoox-tint);
+}
+
+/* Warning — orange-red accent */
+.callout-warning,
+[data-callout-type="warning"],
+blockquote.callout-warning,
+blockquote[data-callout-type="warning"] {
+  border-left-color: #ea580c;
+  background: rgba(234, 88, 12, 0.06);
+}
+
+/* ----- Tables: zebra striping with brand-tinted rows ----- */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--hoox-border);
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+thead {
+  background: var(--hoox-tint-strong);
+}
+
+thead th {
+  border-bottom: 1.5px solid var(--hoox-border);
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+tbody tr:nth-child(even) {
+  background: var(--hoox-tint);
+}
+
+tbody tr:hover {
+  background: var(--hoox-tint-strong);
+  transition: background-color 0.15s ease;
+}
+
+tbody td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid rgba(13, 147, 115, 0.08);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ----- Mermaid diagrams: thicker borders, soft tint ----- */
+mermaid {
+  border: 1.5px solid var(--hoox-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.4);
+  display: block;
+  margin: 1.25rem 0;
+}
+
+/* ----- Links: brand color, subtle underline on hover ----- */
+a {
+  color: var(--hoox-primary);
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--hoox-light);
+  color: var(--hoox-deep);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--hoox-light);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ----- Headings (h1): emoji-aware left padding for alignment ----- */
+h1 {
+  padding-left: 0.25rem;
+  scroll-margin-top: 5rem;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    padding-left: 0;
+  }
+}

@@ -44,6 +44,8 @@ The `analytics-worker` binds directly to Cloudflare’s **Analytics Engine** dat
 
 ## 🔌 3. Internal REST API Specification
 
+> **Note:** For the canonical endpoint directory with full request/response examples across all workers, see [`/docs/devops/api/endpoints`](../api/endpoints).
+
 All endpoints are reachable via Cloudflare Service Bindings only (no public URL). Each endpoint validates its payload with a Zod schema using `.strict()` to reject unknown fields.
 
 ### A. Track Trade Event
@@ -167,7 +169,11 @@ The metrics written to `hoox-analytics` are queried by the dashboard to render:
 
 ---
 
-<Tip>Testing analytics locally? Local Wrangler dev automatically intercepts `writeDataPoint` calls and logs the parsed Blobs and Doubles straight to your terminal standard output, ensuring easy debugging!</Tip>
+<Tip>
+  Testing analytics locally? Local Wrangler dev automatically intercepts
+  `writeDataPoint` calls and logs the parsed Blobs and Doubles straight to your
+  terminal standard output, ensuring easy debugging!
+</Tip>
 
 ### 🔗 Next Steps
 

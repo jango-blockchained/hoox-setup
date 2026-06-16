@@ -65,6 +65,8 @@ The `d1-worker` binds directly to the production SQLite database (`trade-data-db
 
 ## 🔌 2. Internal REST API Specification
 
+> **Note:** For the canonical endpoint directory with full request/response examples across all workers, see [`/docs/devops/api/endpoints`](../api/endpoints).
+
 Every endpoint is secured via `requireInternalAuth` and expects the `X-Internal-Auth-Key` header.
 
 ### A. Execute Single SQL Query

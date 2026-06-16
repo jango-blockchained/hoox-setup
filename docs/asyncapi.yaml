@@ -208,55 +208,117 @@ channels:
         messages:
           - $ref: "#/channels/WalletOperation/messages/DexSwap"
 
-  RiskAssessment:
-    address: agent-worker
-    title: AI risk management
+  risk/cron:
+    address: agent-worker/cron
+    title: Scheduled AI risk assessment (cron)
     description: |
-      Scheduled AI-powered risk analysis running every 5 minutes via cron
-      trigger. Analyzes positions, market conditions, and adjusts trailing
-      stops. Also handles on-demand chat and embedding requests.
+      Scheduled AI-powered risk analysis running every 5 minutes via the
+      Cloudflare Workers `scheduled` handler in `workers/agent-worker`.
+      The cron trigger invokes `runHousekeeping` and `processRoutine`,
+      analyzing positions, market conditions, and adjusting trailing
+      stops. Receives a `RiskOverride` message that may carry a
+      human-supplied trailing-stop override to apply.
     messages:
       RiskOverride:
         $ref: "#/components/messages/RiskOverride"
-      AgentConfig:
-        $ref: "#/components/messages/AgentConfig"
-      AiChatRequest:
-        $ref: "#/components/messages/AiChatRequest"
-      EmbeddingRequest:
-        $ref: "#/components/messages/EmbeddingRequest"
     operations:
       scheduledRiskCheck:
         action: receive
         title: Scheduled risk assessment
         summary: 5-minute cron trigger for automated risk analysis
         channel:
-          $ref: "#/channels/RiskAssessment"
+          $ref: "#/channels/risk/cron"
         messages:
-          - $ref: "#/channels/RiskAssessment/messages/RiskOverride"
+          - $ref: "#/channels/risk/cron/messages/RiskOverride"
+
+  risk/chat:
+    address: agent-worker/agent/chat
+    title: AI chat session
+    description: |
+      Conversational AI request handled by `POST /agent/chat` in the
+      agent-worker. Invoked from the dashboard and CLI. Supports
+      multi-provider chat completions (`openai`, `anthropic`,
+      `workers-ai`, `google`) via the `provider` field.
+    messages:
+      AiChatRequest:
+        $ref: "#/components/messages/AiChatRequest"
+    operations:
       chatWithAI:
         action: receive
         title: AI chat session
         summary: Conversational AI request from dashboard or CLI
         channel:
-          $ref: "#/channels/RiskAssessment"
+          $ref: "#/channels/risk/chat"
         messages:
-          - $ref: "#/channels/RiskAssessment/messages/AiChatRequest"
+          - $ref: "#/channels/risk/chat/messages/AiChatRequest"
+
+  risk/embedding:
+    address: agent-worker/agent/embedding
+    title: Text embedding generation
+    description: |
+      Vector embedding request handled by `POST /agent/embedding` in
+      the agent-worker. Used by the dashboard and automation to
+      generate embeddings via Workers AI (default) or another
+      configured provider.
+    messages:
+      EmbeddingRequest:
+        $ref: "#/components/messages/EmbeddingRequest"
+    operations:
       generateEmbedding:
         action: receive
         title: Generate text embedding
         summary: Vector embedding request from dashboard or automation
         channel:
-          $ref: "#/channels/RiskAssessment"
+          $ref: "#/channels/risk/embedding"
         messages:
-          - $ref: "#/channels/RiskAssessment/messages/EmbeddingRequest"
+          - $ref: "#/channels/risk/embedding/messages/EmbeddingRequest"
+
+  risk/config:
+    address: agent-worker/agent/config
+    title: AI agent configuration
+    description: |
+      Agent configuration read/write handled by
+      `GET /agent/config` and `POST /agent/config` in the
+      agent-worker. Updates the provider manager's
+      `defaultProvider`, `fallbackChain`, and `modelMap`, which are
+      persisted in `CONFIG_KV`.
+    messages:
+      AgentConfig:
+        $ref: "#/components/messages/AgentConfig"
+    operations:
+      getAgentConfig:
+        action: receive
+        title: Read agent configuration
+        summary: Dashboard or CLI reads the current provider manager config
+        channel:
+          $ref: "#/channels/risk/config"
+        messages:
+          - $ref: "#/channels/risk/config/messages/AgentConfig"
+      updateAgentConfig:
+        action: send
+        title: Update agent configuration
+        summary: Dashboard or CLI updates the provider manager config
+        channel:
+          $ref: "#/channels/risk/config"
+        messages:
+          - $ref: "#/channels/risk/config/messages/AgentConfig"
 
   IdempotencyStore:
-    address: IDEMPOTENCY_STORE
+    address: IdempotencyStore
     title: Idempotency Durable Object
     description: |
       Durable Object that maintains a 24-hour lock on processed trade
-      keys to prevent duplicate execution. Accessed via RPC from the
-      gateway's logic layer.
+      keys to prevent duplicate execution. Accessed via **Cloudflare
+      Durable Object RPC** (not HTTP) from the gateway's logic layer
+      using the `IDEMPOTENCY_STORE` binding declared in
+      `workers/hoox/wrangler.jsonc`. The DO class name is
+      `IdempotencyStore` (`workers/hoox/src/idempotencyStore.ts`) and
+      the binding name in the worker env is `IDEMPOTENCY_STORE`.
+    bindings:
+      durable-object:
+        name: IDEMPOTENCY_STORE
+        className: IdempotencyStore
+        bindingType: rpc
     messages:
       IdempotencyKey:
         $ref: "#/components/messages/IdempotencyKey"
@@ -377,6 +439,13 @@ components:
           leverage:
             type: integer
             description: Optional margin leverage
+          idempotencyKey:
+            type: string
+            description: |
+              Optional client-supplied dedup signature. If omitted, the
+              gateway auto-generates one as
+              `SHA256(symbol + exchange + action + timestamp)`.
+            example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
           notify:
             type: object
             description: Optional Telegram notification
@@ -637,33 +706,69 @@ components:
     EmailSignal:
       name: EmailSignal
       title: Email trade signal
-      summary: Trade signal parsed from forwarded email
-      contentType: application/json
+      summary: |
+        Trade signal parsed from a forwarded email. Two delivery paths
+        converge on the same envelope:
+
+        1. **Cloudflare Email Routing** — the email worker receives a
+           `ForwardableEmailMessage` whose `.raw` field is the RFC 822
+           message stream. The worker reads it as a multipart MIME
+           body and extracts `from`, `subject`, and the plain-text part.
+        2. **Mailgun webhook** — `POST /webhook` arrives as
+           `multipart/form-data` with fields like `body-plain`,
+           `stripped-text`, `from`, and `subject`.
+
+        Both paths yield the same logical payload described below
+        (extracted headers + parsed trade parameters).
+      contentType: multipart/form-data
       payload:
         type: object
+        description: |
+          Multipart form body. Field names match the upstream provider:
+
+          - Cloudflare Email Routing: `from`, `subject`, `body`
+            (extracted from the raw RFC 822 stream by the worker).
+          - Mailgun: `from`, `subject`, `body-plain` or `stripped-text`.
+
+          The worker unifies these into a single `EmailSignal` shape
+          before forwarding to the trade-worker via service binding.
         properties:
           from:
             type: string
             format: email
-            description: Sender email address
+            description: Sender email address (from the envelope)
           subject:
             type: string
             description: Email subject line
           body:
             type: string
-            description: Raw email body
+            description: |
+              Plain-text email body. The worker reads either
+              `body-plain` / `stripped-text` (Mailgun) or the raw
+              text MIME part (Cloudflare Email Routing).
           parsedSignal:
             type: object
-            description: Extracted trade parameters
+            description: |
+              Extracted trade parameters — populated by
+              `parseEmailSignal` after pattern matching against
+              `CONFIG_KV.email.*` regex keys.
             properties:
               exchange:
                 type: string
+                enum: [binance, bybit, mexc]
+                description: Normalized exchange identifier
               action:
                 type: string
+                enum: [buy, sell]
+                description: Normalized action (`buy` / `sell`)
               symbol:
                 type: string
+                description: Uppercased, sanitized trading pair
               quantity:
                 type: number
+                description: |
+                  Order size, multiplied by
+                  `CONFIG_KV.email.quantity_multiplier`
 
     AnalyticsEvent:
       name: AnalyticsEvent

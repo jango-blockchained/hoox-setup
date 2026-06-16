@@ -26,10 +26,11 @@ paths:
         Primary endpoint for receiving automated trade signals from
         TradingView webhooks, cURL scripts, or any HTTP client.
 
-        The gateway validates the API key, checks IP allowlist, enforces
-        rate limits, and verifies the kill switch before routing the trade
-        to the execution engine — either directly via service binding or
-        asynchronously via Cloudflare Queue (depending on queue mode).
+        The gateway validates the API key (provided in the JSON body as
+        `apiKey`), checks the IP allowlist, enforces rate limits, and
+        verifies the kill switch before routing the trade to the execution
+        engine — either directly via service binding or asynchronously via
+        Cloudflare Queue (depending on queue mode).
       operationId: ingestTradeSignal
       tags:
         - Trades
@@ -48,7 +49,9 @@ paths:
               properties:
                 apiKey:
                   type: string
-                  description: Webhook authentication key
+                  description: |
+                    Webhook authentication key. Provided inside the JSON
+                    payload body — NOT as an HTTP header.
                   example: whk_live_a1b2c3d4e5f6
                 exchange:
                   type: string
@@ -87,6 +90,15 @@ paths:
                   description: Optional leverage multiplier for margin trades
                   minimum: 1
                   example: 10
+                idempotencyKey:
+                  type: string
+                  format: uuid
+                  description: |
+                    Optional client-supplied idempotency key. When the
+                    gateway receives a duplicate request with the same
+                    key inside the dedupe TTL window, the original
+                    response is replayed (see 409 below).
+                  example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
                 notify:
                   type: object
                   description: Optional Telegram notification configuration
@@ -99,6 +111,20 @@ paths:
                       type: string
                       description: Custom notification message
                       example: "BTC Long signal received"
+                    parseMode:
+                      type: string
+                      description: |
+                        Optional Telegram Bot API parse mode applied to
+                        `message`. Use `HTML` or `MarkdownV2` to enable
+                        rich-text formatting. Omit (or use `Plain`) to
+                        send literal text.
+                      enum:
+                        - Plain
+                        - HTML
+                        - Markdown
+                        - MarkdownV2
+                      default: Plain
+                      example: HTML
       responses:
         "200":
           description: Trade processed successfully
@@ -248,7 +274,843 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid request
+          description: |
+            Invalid request — malformed JSON, missing required fields,
+            or invalid value (e.g. malformed address, non-positive wei
+            value, gas limit out of range).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: |
+            Internal authentication missing or invalid. Wallet routes
+            require the `X-Internal-Auth-Key` header (or service
+            binding from another worker).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: |
+            Authorization failed — caller's IP not on the allowlist,
+            wallet disabled in `WALLET_CONFIG_KV`, or the target chain
+            is not enabled.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: |
+            Rate limit exceeded on wallet operations. Default ceiling
+            is enforced by the shared `createRateLimiter` middleware.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: |
+            Internal processing error — RPC provider failure, signing
+            failure, or unhandled exception in the web3-wallet-worker.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /query:
+    post:
+      summary: Execute single SQL statement
+      description: |
+        Internal endpoint on `d1-worker`. Executes a single parameterised
+        SQL statement against the D1 database. Only `SELECT`,
+        `INSERT`, `UPDATE`, `DELETE`, and `REPLACE` are allowed.
+        String literals and `UNION` are rejected.
+      operationId: executeQuery
+      tags:
+        - Database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                requestId:
+                  type: string
+                  format: uuid
+                  description: Optional correlation ID for tracing
+                  example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+                query:
+                  type: string
+                  description: Parameterised SQL statement
+                  example: "SELECT * FROM trades WHERE symbol = ? LIMIT ?"
+                params:
+                  type: array
+                  description: Bound parameters for the prepared statement
+                  items: {}
+                  example:
+                    - BTCUSDT
+                    - 5
+      responses:
+        "200":
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  requestId:
+                    type: string
+                    format: uuid
+                    example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+                  results:
+                    type: array
+                    description: Rows returned by SELECT queries
+                    items: {}
+                  lastRowId:
+                    type: integer
+                    nullable: true
+                    description: Row ID for INSERT/REPLACE
+                  changes:
+                    type: integer
+                    nullable: true
+                    description: Rows changed for INSERT/UPDATE/DELETE
+        "400":
+          description: Invalid SQL or parameter binding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: |
+            Table not in the allowlist, `UNION` detected, or subquery
+            in `WHERE`/`HAVING` clause.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal D1 error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /batch:
+    post:
+      summary: Execute transactional SQL batch
+      description: |
+        Internal endpoint on `d1-worker`. Executes multiple SQL
+        statements atomically via D1's `db.batch()`. Each statement
+        is validated against the same allowlist as `/query`.
+      operationId: executeBatch
+      tags:
+        - Database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - statements
+              properties:
+                requestId:
+                  type: string
+                  format: uuid
+                  description: Optional correlation ID for tracing
+                  example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+                statements:
+                  type: array
+                  description: Ordered list of parameterised statements
+                  items:
+                    type: object
+                    required:
+                      - query
+                    properties:
+                      query:
+                        type: string
+                        example: "INSERT INTO trades (id, symbol) VALUES (?, ?)"
+                      params:
+                        type: array
+                        items: {}
+      responses:
+        "200":
+          description: Batch executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  requestId:
+                    type: string
+                    format: uuid
+                  results:
+                    type: array
+                    items: {}
+        "400":
+          description: Invalid batch payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: One or more statements failed allowlist validation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal D1 error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signals:
+    get:
+      summary: List recent trade signals
+      description: |
+        Internal endpoint on `trade-worker`. Returns the most recent
+        trade signals persisted to D1, newest first.
+      operationId: listSignals
+      tags:
+        - Signals
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Maximum number of signals to return
+      responses:
+        "200":
+          description: Signals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        signal_id:
+                          type: string
+                          format: uuid
+                        timestamp:
+                          type: integer
+                        symbol:
+                          type: string
+                          example: BTCUSDT
+                        signal_type:
+                          type: string
+                          example: LONG
+                        source:
+                          type: string
+                          nullable: true
+                          example: tv-webhook
+        "400":
+          description: Invalid limit parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error retrieving signals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Persist trade signal
+      description: |
+        Internal endpoint on `trade-worker`. Inserts a new trade signal
+        record into the `trade_signals` D1 table.
+      operationId: postSignal
+      tags:
+        - Signals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - signal_type
+                - timestamp
+              properties:
+                symbol:
+                  type: string
+                  example: BTCUSDT
+                signal_type:
+                  type: string
+                  enum:
+                    - LONG
+                    - SHORT
+                    - CLOSE_LONG
+                    - CLOSE_SHORT
+                  example: LONG
+                timestamp:
+                  type: integer
+                  description: Unix timestamp in milliseconds
+                  example: 1779261050000
+                source:
+                  type: string
+                  example: tv-webhook
+                raw_data:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "201":
+          description: Signal created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  result:
+                    type: object
+                    properties:
+                      signalId:
+                        type: string
+                        format: uuid
+        "400":
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error storing signal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/chat:
+    post:
+      summary: AI chat completion
+      description: |
+        Internal endpoint on `agent-worker`. Sends a chat-style prompt
+        to the configured multi-provider AI manager and returns the
+        completion. Supports custom system prompts, temperature, and
+        max tokens.
+      operationId: agentChat
+      tags:
+        - AI Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  description: Pre-built chat messages
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum:
+                          - system
+                          - user
+                          - assistant
+                      content:
+                        type: string
+                systemPrompt:
+                  type: string
+                  description: System prompt (used if `messages` is omitted)
+                  example: "You are a helpful trading assistant."
+                prompt:
+                  type: string
+                  description: User prompt (used if `messages` is omitted)
+                  example: "Summarize my trade history and win rate today."
+                temperature:
+                  type: number
+                  minimum: 0
+                  maximum: 2
+                maxTokens:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Chat completion returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  response:
+                    type: string
+                  model:
+                    type: string
+                  provider:
+                    type: string
+                  error:
+                    type: string
+                    nullable: true
+        "400":
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream provider failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/embedding:
+    post:
+      summary: Generate text embedding
+      description: |
+        Internal endpoint on `agent-worker`. Generates a vector
+        embedding for the supplied text via Workers AI (or the chosen
+        provider override).
+      operationId: agentEmbedding
+      tags:
+        - AI Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+                  maxLength: 10000
+                  example: "BTC funding rate flipped positive after 14 days"
+                provider:
+                  type: string
+                  description: Optional provider override
+                  example: workers-ai
+      responses:
+        "200":
+          description: Embedding returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  embedding:
+                    type: array
+                    items:
+                      type: number
+                  model:
+                    type: string
+                  error:
+                    type: string
+                    nullable: true
+        "400":
+          description: Missing or empty `text`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream provider failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/vision:
+    post:
+      summary: Multimodal vision audit
+      description: |
+        Internal endpoint proxied by the gateway to a vision-capable
+        AI provider. Accepts a base64-encoded image (typically a chart
+        screenshot) and an analysis prompt.
+      operationId: agentVision
+      tags:
+        - AI Agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageBase64
+                - prompt
+              properties:
+                imageBase64:
+                  type: string
+                  description: Base64-encoded image (PNG/JPEG)
+                  example: iVBORw0KGgoAAAANSUhEUgAA...
+                prompt:
+                  type: string
+                  example: "Evaluate this chart for support and resistance."
+      responses:
+        "200":
+          description: Vision analysis returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  analysis:
+                    type: string
+        "400":
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream provider failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/status:
+    get:
+      summary: Agent worker status
+      description: |
+        Internal endpoint on `agent-worker`. Returns the current
+        provider manager configuration and active trailing-stop keys.
+      operationId: agentStatus
+      tags:
+        - AI Agent
+      responses:
+        "200":
+          description: Status returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  status:
+                    type: string
+                    example: Healthy
+                  config:
+                    type: object
+                    properties:
+                      defaultProvider:
+                        type: string
+                      fallbackChain:
+                        type: array
+                        items:
+                          type: string
+                      modelMap:
+                        type: object
+                        additionalProperties:
+                          type: string
+                  activeTrailingStops:
+                    type: array
+                    items:
+                      type: string
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to load provider configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/usage:
+    get:
+      summary: Agent usage statistics
+      description: |
+        Proxied by the gateway to the dashboard's
+        `/api/agent/usage` endpoint. Returns aggregated AI provider
+        usage, including token counts, request counts, and cost
+        estimates for the configured window.
+      operationId: agentUsage
+      tags:
+        - AI Agent
+      responses:
+        "200":
+          description: Usage statistics returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  totalRequests:
+                    type: integer
+                    example: 1247
+                  totalTokens:
+                    type: integer
+                    example: 384521
+                  totalCostUsd:
+                    type: number
+                    format: float
+                    example: 2.184
+                  byProvider:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        requests:
+                          type: integer
+                        tokens:
+                          type: integer
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to retrieve usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /agent/health:
+    get:
+      summary: AI provider health
+      description: |
+        Returns the health status of all configured AI providers.
+        This endpoint is called via service binding and is not
+        externally authenticated.
+      operationId: agentHealth
+      tags:
+        - AI Agent
+      responses:
+        "200":
+          description: Provider statuses returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  providers:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        healthy:
+                          type: boolean
+                        latencyMs:
+                          type: integer
+                        lastError:
+                          type: string
+                          nullable: true
+
+  /telegram/{secret}:
+    post:
+      summary: Telegram Bot API webhook
+      description: |
+        Webhook URL configured with Telegram via `setWebhook`. The
+        `{secret}` path parameter must match the
+        `TELEGRAM_WEBHOOK_SECRET` binding; otherwise the request is
+        rejected with 401. Receives interactive update payloads
+        (messages, callback queries, inline queries) and routes them
+        to the bot's command dispatcher.
+      operationId: telegramWebhook
+      tags:
+        - Telegram
+      parameters:
+        - name: secret
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Shared secret matching `TELEGRAM_WEBHOOK_SECRET`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Telegram Bot API Update object
+              additionalProperties: true
+              example:
+                update_id: 123456789
+                message:
+                  message_id: 1
+                  from:
+                    id: 987654321
+                    is_bot: false
+                    first_name: "Trader"
+                  chat:
+                    id: 987654321
+                    type: "private"
+                  date: 1779261050
+                  text: "/status"
+      responses:
+        "200":
+          description: Webhook accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        "401":
+          description: |
+            Path secret does not match `TELEGRAM_WEBHOOK_SECRET`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: |
+            Internal processing error in the telegram command
+            dispatcher.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /email-signal:
+    post:
+      summary: Forward direct email signal
+      description: |
+        Internal endpoint on `email-worker`. Accepts a JSON body
+        containing the email `text` or `body`, parses it for a trade
+        signal, and forwards to `trade-worker`. Use this for
+        programmatic email-to-signal pipelines that bypass the
+        Mailgun webhook.
+      operationId: emailSignal
+      tags:
+        - Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+                  example: "BTC Long entry"
+                text:
+                  type: string
+                  example: "exchange: binance, action: buy, symbol: BTCUSDT, qty: 0.002"
+                body:
+                  type: string
+                  description: Alias for `text`
+      responses:
+        "200":
+          description: Signal forwarded to trade-worker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  requestId:
+                    type: string
+                    format: uuid
+                    example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        "400":
+          description: No valid signal found in payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Internal authentication missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: |
+            Failed to forward signal to `trade-worker` (service binding
+            unavailable, invalid configuration, or upstream error).
           content:
             application/json:
               schema:
@@ -256,13 +1118,31 @@ paths:
 
 components:
   securitySchemes:
-    ApiKeyAuth:
+    WebhookApiKeyInBody:
+      description: |
+        Webhook authentication. The API key is supplied **inside the
+        JSON request body** as the `apiKey` field, not via an HTTP
+        header. This matches the runtime model in `workers/hoox` where
+        `body.apiKey` is validated against the `WEBHOOK_API_KEY` binding
+        on every request.
+
+        OpenAPI 3.0.3 does not support a native body location for
+        security schemes, so the field is documented here for reference
+        and defined in each path's request body schema.
       type: apiKey
       in: header
-      name: X-API-Key
+      name: X-Reserved-Body-Auth
+      x-where: body.apiKey
+      x-actualLocation: body
+    InternalAuthKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Auth-Key
       description: |
-        API key for direct API access. For webhook signals, the API key
-        is provided inside the JSON payload body as `apiKey`.
+        Shared secret used for service-binding calls between workers
+        (e.g. `d1-worker`, `agent-worker`, `telegram-worker`,
+        `email-worker`, `trade-worker`). Must match the
+        `INTERNAL_KEY_BINDING` on the receiving worker.
 
   schemas:
     SuccessResponse:
