@@ -162,8 +162,12 @@
       {
         "tab": "API Reference",
         "openapi": {
-          "source": "openapi-minimal.yaml",
+          "source": "openapi.yaml",
           "directory": "api-reference"
+        },
+        "asyncapi": {
+          "source": "asyncapi.yaml",
+          "directory": "events"
         }
       }
     ]
