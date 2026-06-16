@@ -161,8 +161,7 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "openapi.yaml",
-        "asyncapi": "asyncapi.yaml"
+        "openapi": "openapi.yaml"
       }
     ]
   },
