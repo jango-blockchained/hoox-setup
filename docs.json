@@ -63,7 +63,7 @@
     "primary": {
       "type": "button",
       "label": "GitHub",
-      "url": "https://github.com/jango-blockchained/hoox-setup"
+      "href": "https://github.com/jango-blockchained/hoox-setup"
     }
   },
   "footerSocials": {
