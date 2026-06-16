@@ -137,7 +137,10 @@ hoox clone my-hoox-app
 
 ### 3.1 Secret Inventory
 
-<Warning>All production secrets must be set via `wrangler secret put` or `hoox secrets update-cf`. Never commit secrets to version control.</Warning>
+<Warning>
+  All production secrets must be set via `wrangler secret put` or `hoox secrets
+  update-cf`. Never commit secrets to version control.
+</Warning>
 
 | Secret Name               | Worker(s)                           | Set Via               | Required For | Description                            |
 | ------------------------- | ----------------------------------- | --------------------- | ------------ | -------------------------------------- |
@@ -660,7 +663,10 @@ This is automatically applied on first deploy.
 
 ## 7. Worker Deployment Sequence
 
-<Warning>Deploy order matters due to service bindings. A worker must be deployed before another worker can bind to it.</Warning>
+<Warning>
+  Deploy order matters due to service bindings. A worker must be deployed before
+  another worker can bind to it.
+</Warning>
 
 ### 7.1 Deployment Order
 
@@ -1250,16 +1256,17 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 
 ### 13.6 Documentation Files
 
-| Document                                | Purpose                    |
-| --------------------------------------- | -------------------------- |
-| `docs/home.md`                          | Project home               |
-| `docs/getting-started/installation.md`  | Installation guide         |
-| `docs/getting-started/configuration.md` | Configuration guide        |
-| `docs/deployment/production.md`         | Production deployment      |
-| `docs/development/local-dev.md`         | Local development          |
-| `docs/workers/*.md`                     | Per-worker documentation   |
-| `docs/architecture/*.md`                | Architecture documentation |
-| `docs/api/*.md`                         | API documentation          |
+| Document                                | Purpose                      |
+| --------------------------------------- | ---------------------------- |
+| `docs/home.md`                          | Project home                 |
+| `docs/getting-started/installation.md`  | Installation guide           |
+| `docs/getting-started/configuration.md` | Configuration guide          |
+| `docs/deployment/production.md`         | Production deployment        |
+| `docs/development/local-dev.md`         | Local development            |
+| `docs/workers/*.md`                     | Per-worker documentation     |
+| `docs/architecture/*.md`                | Architecture documentation   |
+| `docs/specs/openapi.yaml`               | OpenAPI REST specification   |
+| `docs/specs/asyncapi.yaml`              | AsyncAPI event specification |
 
 ---
 

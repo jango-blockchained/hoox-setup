@@ -161,8 +161,19 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "docs/api/openapi.yaml",
-        "asyncapi": "docs/api/asyncapi.yaml"
+        "groups": [
+          {
+            "group": "REST API",
+            "openapi": "docs/specs/openapi.yaml"
+          },
+          {
+            "group": "Events",
+            "asyncapi": {
+              "source": "docs/specs/asyncapi.yaml",
+              "directory": "events"
+            }
+          }
+        ]
       }
     ]
   },
