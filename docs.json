@@ -162,11 +162,11 @@
       {
         "tab": "API Reference",
         "openapi": {
-          "source": "openapi.yaml",
+          "source": "docs/openapi.yaml",
           "directory": "api-reference"
         },
         "asyncapi": {
-          "source": "asyncapi.yaml",
+          "source": "docs/asyncapi.yaml",
           "directory": "events"
         }
       }
