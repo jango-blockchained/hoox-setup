@@ -161,7 +161,10 @@
       },
       {
         "tab": "API Reference",
-        "openapi": "openapi-minimal.yaml"
+        "openapi": {
+          "source": "openapi-minimal.yaml",
+          "directory": "api-reference"
+        }
       }
     ]
   },
