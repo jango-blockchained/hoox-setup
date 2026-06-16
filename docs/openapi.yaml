@@ -1,0 +1,348 @@
+openapi: "3.0.3"
+info:
+  title: Hoox API
+  description: |
+    REST API for the Hoox algorithmic trading platform.
+
+    Ingest trade signals, check system health, and manage DeFi wallet
+    operations on the Cloudflare edge. All requests are handled by the
+    Hoox gateway worker (`workers/hoox`) running at the network edge.
+  version: "1.0.0"
+  contact:
+    name: Hoox Support
+    email: support@hoox.sh
+
+servers:
+  - url: https://api.hoox.sh
+    description: Production API
+  - url: https://staging.hoox.sh
+    description: Staging environment
+
+paths:
+  /webhook:
+    post:
+      summary: Ingest trade signal
+      description: |
+        Primary endpoint for receiving automated trade signals from
+        TradingView webhooks, cURL scripts, or any HTTP client.
+
+        The gateway validates the API key, checks IP allowlist, enforces
+        rate limits, and verifies the kill switch before routing the trade
+        to the execution engine — either directly via service binding or
+        asynchronously via Cloudflare Queue (depending on queue mode).
+      operationId: ingestTradeSignal
+      tags:
+        - Trades
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - apiKey
+                - exchange
+                - action
+                - symbol
+                - quantity
+              properties:
+                apiKey:
+                  type: string
+                  description: Webhook authentication key
+                  example: whk_live_a1b2c3d4e5f6
+                exchange:
+                  type: string
+                  description: Target exchange
+                  enum:
+                    - binance
+                    - bybit
+                    - mexc
+                  example: bybit
+                action:
+                  type: string
+                  description: Trade action to execute
+                  enum:
+                    - LONG
+                    - SHORT
+                    - CLOSE_LONG
+                    - CLOSE_SHORT
+                  example: LONG
+                symbol:
+                  type: string
+                  description: Trading pair symbol
+                  maxLength: 20
+                  example: BTCUSDT
+                quantity:
+                  type: number
+                  description: Order size in contracts or base currency
+                  exclusiveMinimum: 0
+                  example: 0.002
+                price:
+                  type: number
+                  description: Optional limit price (market order if omitted)
+                  exclusiveMinimum: 0
+                  example: 68500.50
+                leverage:
+                  type: integer
+                  description: Optional leverage multiplier for margin trades
+                  minimum: 1
+                  example: 10
+                notify:
+                  type: object
+                  description: Optional Telegram notification configuration
+                  properties:
+                    chatId:
+                      type: string
+                      description: Target Telegram chat ID
+                      example: "987654321"
+                    message:
+                      type: string
+                      description: Custom notification message
+                      example: "BTC Long signal received"
+      responses:
+        "200":
+          description: Trade processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "202":
+          description: Trade enqueued for asynchronous execution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  requestId:
+                    type: string
+                    description: Unique request trace ID
+                    example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+                  status:
+                    type: string
+                    example: Enqueued
+                  message:
+                    type: string
+                    example: Trade queued for execution
+        "400":
+          description: Invalid payload structure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Authentication failed or IP blocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate trade detected (idempotency check)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal processing error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Service disabled (kill switch active)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /health:
+    get:
+      summary: System health check
+      description: |
+        Probes the gateway worker's connectivity to critical edge
+        infrastructure — D1 database, KV store, and Queue — and
+        returns the health status of each binding.
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        "200":
+          description: All bindings operational
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: One or more bindings degraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /wallet/{path}:
+    parameters:
+      - name: path
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Wallet operation path (e.g., swap, balance, approve)
+    post:
+      summary: Execute wallet operation
+      description: |
+        Proxies DeFi wallet operations to the web3-wallet-worker via
+        service binding. Supports EVM chain operations including swaps,
+        balance checks, and token approvals.
+      operationId: executeWalletOperation
+      tags:
+        - Wallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chain
+                - to
+                - value
+                - data
+              properties:
+                chain:
+                  type: string
+                  description: EVM-compatible chain
+                  enum:
+                    - ethereum
+                    - arbitrum
+                    - polygon
+                  example: arbitrum
+                to:
+                  type: string
+                  description: Recipient or contract address
+                  example: "0x6b175474e89094c44da98b954eedeac495271d0f"
+                value:
+                  type: string
+                  description: Transaction value in wei (as string)
+                  example: "100000000000000000"
+                data:
+                  type: string
+                  description: Encoded contract call data
+                  example: "0xa9059cbb000000000000000000000000..."
+                gasLimit:
+                  type: integer
+                  description: Optional transaction gas limit
+                  example: 200000
+      responses:
+        "200":
+          description: Wallet operation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for direct API access. For webhook signals, the API key
+        is provided inside the JSON payload body as `apiKey`.
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        requestId:
+          type: string
+          format: uuid
+          description: Unique request trace identifier
+          example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        tradeResult:
+          type: object
+          nullable: true
+          properties:
+            success:
+              type: boolean
+            orderId:
+              type: string
+              example: "18049284739"
+            status:
+              type: string
+              example: Filled
+            executedQty:
+              type: number
+              example: 0.005
+            price:
+              type: number
+              example: 68425.5
+            queued:
+              type: boolean
+              description: True if the trade was queued rather than executed immediately
+        notificationResult:
+          type: object
+          nullable: true
+          properties:
+            success:
+              type: boolean
+            messageId:
+              type: integer
+              nullable: true
+              example: 482904
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        requestId:
+          type: string
+          format: uuid
+          description: Request trace identifier
+          example: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+        error:
+          type: string
+          description: Human-readable error description
+          example: "Invalid JSON payload structure."
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        timestamp:
+          type: integer
+          description: Unix timestamp in milliseconds
+          example: 1779261050000
+        bindings:
+          type: object
+          properties:
+            d1:
+              type: string
+              example: connected
+            kv:
+              type: string
+              example: connected
+            queue:
+              type: string
+              example: active
