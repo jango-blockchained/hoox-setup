@@ -293,8 +293,7 @@
         "openapi": {
           "source": "docs/openapi-minimal.yaml",
           "directory": "api-reference"
-        },
-        "asyncapi": "/docs/asyncapi-minimal.yaml"
+        }
       }
     ]
   }
