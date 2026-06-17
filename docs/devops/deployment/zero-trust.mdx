@@ -3,8 +3,6 @@ title: "Zero Trust & Security Hardening"
 description: "How to configure Cloudflare Access (Zero Trust), enforce Multi-Factor Authentication (MFA), and configure WAF firewall allow-lists for TradingView webhook IPs."
 ---
 
-# 🔒 Zero Trust & Security Hardening
-
 While the Hoox dashboard features a highly secure, custom cookie-based authentication middleware, wrapping your dashboard and API endpoints inside **Cloudflare® Zero Trust (Access)** provides an enterprise-grade security perimeter.
 
 By placing your deployment behind Cloudflare Access, you can enforce Multi-Factor Authentication (MFA), restrict access to specific GitHub/Google SSO identities, evaluate device posture, and drop malicious scanner payloads at the DNS level before they ever hit your workers.

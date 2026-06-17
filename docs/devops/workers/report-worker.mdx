@@ -3,8 +3,6 @@ title: "report-worker Isolate Profile"
 description: "Comprehensive engineering specification for the Hoox PDF Report Worker, covering Cloudflare Browser Rendering APIs, Puppeteer Chrome automation, and R2 bucketing."
 ---
 
-# 📄 report-worker Isolate Profile
-
 The **`report-worker`** is the automated document compiler of the Hoox trading platform. Deployed as a scheduled cron isolate, this worker runs twice daily (at 06:00 and 18:00 UTC) to pull D1 transactional stats, construct a highly styled HTML5 portfolio report, spin up a serverless **Cloudflare Browser Rendering** Chrome instance to compile the page into a PDF buffer, offload the file to R2, and push a private download link to your Telegram.
 
 ---

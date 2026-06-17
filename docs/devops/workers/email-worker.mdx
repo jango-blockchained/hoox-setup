@@ -3,8 +3,6 @@ title: "📧 email-worker Isolate Profile"
 description: "Engineering specification for the Hoox email parsing worker, covering Mailgun webhook ingestion, direct JSON signal parsing, KV-configured regex patterns, and service bindings."
 ---
 
-# 📧 email-worker Isolate Profile
-
 The **`email-worker`** ingests trading signals from email sources, parses them, and forwards them to `trade-worker` for execution. It receives emails via Mailgun webhook (`POST /webhook`) or direct JSON POST (`POST /email-signal`). No IMAP/SMTP polling — Cloudflare Workers edge runtime does not support the Node.js `net`/`tls` modules required for IMAP.
 
 The worker also tracks signal ingestion metrics by forwarding event data to `analytics-worker` via service binding.

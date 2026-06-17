@@ -3,8 +3,6 @@ title: "Storage & Data Engineering Spec"
 description: "High-integrity architecture specifications for edge SQLite D1 databases, zero-egress R2 object stores, and eventually consistent KV cache namespaces."
 ---
 
-# 💾 Storage & Data Engineering Spec
-
 Hoox operates a **multi-tier edge storage topology** to balance high-speed read/write performance, relational transactional safety, and long-term analytical capacity. By separating high-frequency dynamic states from static parameters and verbose event logs, Hoox ensures that latency remains in the single-digit milliseconds while keeping storage costs at $0/month.
 
 ---

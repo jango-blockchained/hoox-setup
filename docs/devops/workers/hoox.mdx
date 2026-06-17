@@ -3,8 +3,6 @@ title: "hoox Gateway Isolate Profile"
 description: "Comprehensive engineering specification for the Hoox public gateway, covering ingress WAF rules, Durable Object idempotency stores, and Service Binding configurations."
 ---
 
-# 🔐 hoox Gateway Isolate Profile
-
 The **`hoox`** gateway is the public-facing entry point of the trading ecosystem. Running as an ultra-low-latency Cloudflare Worker, the gateway is responsible for authorizing incoming trade signals (TradingView alerts, email routing, manual commands), executing rate-limiting checks, locking transaction trace IDs via Durable Objects to prevent duplicate fills, and routing validated events privately to background compute nodes.
 
 ---

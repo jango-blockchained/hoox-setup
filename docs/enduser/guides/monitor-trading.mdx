@@ -58,7 +58,6 @@ The CLI runs asynchronous concurrent health probes, displaying green indicators 
 The **Global Kill Switch** is your emergency brake. Stored inside the sub-millisecond `CONFIG_KV` namespace, flipping this parameter instantly blocks all incoming trade signals globally in under 10 seconds, without requiring code updates or worker redeployments.
 
 ```bash
-# A. View the active state of the Kill Switch
 hoox monitor kill-switch show
 
 # B. Emergency HALT - disable all edge trade execution immediately

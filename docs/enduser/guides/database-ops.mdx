@@ -89,7 +89,6 @@ CREATE TABLE system_logs (
 When launching a new workspace, you must initialize the required tables. The Hoox CLI handles this via declarative migration scripts:
 
 ```bash
-# 1. Apply schema and seed initial tables to local dev SQLite
 hoox db apply
 
 # 2. Deploy schema and seed tables directly to live production Cloudflare D1
