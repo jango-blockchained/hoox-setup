@@ -22,11 +22,13 @@ hoox infra provision
 
 This command performs a dependency audit and calls Cloudflare's APIs to provision:
 
-1. **D1 SQLite Database** (`hoox-db`).
-2. **CONFIG_KV** Namespace bucket.
-3. **`trade-execution`** messaging Queue.
-4. **`trade-reports`** and **`system-logs`** R2 object storage buckets.
-5. **`rag-index`** Vectorize vector search database.
+<ol>
+  <li><strong>D1 SQLite Database</strong> (<code>hoox-db</code>).</li>
+  <li><strong>CONFIG\_KV</strong> Namespace bucket.</li>
+  <li><strong><code>trade-execution</code></strong> messaging Queue.</li>
+  <li><strong><code>trade-reports</code></strong> and <strong><code>system-logs</code></strong> R2 object storage buckets.</li>
+  <li><strong><code>rag-index</code></strong> Vectorize vector search database.</li>
+</ol>
 
 ---
 
@@ -46,10 +48,7 @@ hoox infra d1 delete my-custom-db
 ```
 
 <Note>
-  Once a D1 database is created, the CLI will output its unique `database_id` (a
-  36-character UUID). You must ensure this ID is bound in your worker's
-  `wrangler.jsonc` file so the worker V8 isolate can establish a connection at
-  runtime.
+  Once a D1 database is created, the CLI will output its unique `database_id` (a 36-character UUID). You must ensure this ID is bound in your worker's `wrangler.jsonc` file so the worker V8 isolate can establish a connection at runtime.
 </Note>
 
 ---
@@ -120,9 +119,11 @@ hoox infra vectorize create rag-index --dimensions 1536 --metric cosine
 
 ---
 
-<Warning>Destroying resources via `hoox infra <service> delete` is highly destructive and irreversible. Deleting a D1 database instantly wipes your trading records; deleting a KV bucket drops all configurations and triggers immediate gateway errors. Always backup ledgers before running deletions!</Warning>
+<Warning>
+  Destroying resources via `hoox infra <service> delete` is highly destructive and irreversible. Deleting a D1 database instantly wipes your trading records; deleting a KV bucket drops all configurations and triggers immediate gateway errors. Always backup ledgers before running deletions!
+</Warning>
 
 ### 🔗 Next Steps
 
-- **[Database Migrations & SQL](database-ops)** — Run queries, manage drizzle schemas, and restore backups.
-- **[Take-to-Production Deployments](deploy-workers)** — Deploy your compiled workers and bind V8 isolates globally.
+- [**Database Migrations & SQL**](database-ops) — Run queries, manage drizzle schemas, and restore backups.
+- [**Take-to-Production Deployments**](deploy-workers) — Deploy your compiled workers and bind V8 isolates globally.

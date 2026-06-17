@@ -122,9 +122,11 @@ To allow operators to extend the platform's settings without touching React code
 
 ### Form Submission Flow
 
-1. When you save the settings form, the Next.js server actions intercept the payload.
-2. The server action iterates over the JSON schema keys and writes the values directly to the bound `CONFIG_KV` namespace.
-3. The changes propagate globally to your edge executors in under 10 seconds.
+<ol>
+  <li>When you save the settings form, the Next.js server actions intercept the payload.</li>
+  <li>The server action iterates over the JSON schema keys and writes the values directly to the bound <code>CONFIG\_KV</code> namespace.</li>
+  <li>The changes propagate globally to your edge executors in under 10 seconds.</li>
+</ol>
 
 ---
 
@@ -144,30 +146,27 @@ bun run opennext:deploy
 ```
 
 <Warning>
-  Framer Motion components and interactive visual elements used in Next.js pages
-  **must** declare the `'use client'` directive at the top of the file. Under
-  OpenNext, client-side pages cannot export metadata directly—move metadata
-  definitions to separate `metadata.ts` files!
+  Framer Motion components and interactive visual elements used in Next.js pages **must** declare the `'use client'` directive at the top of the file. Under OpenNext, client-side pages cannot export metadata directly—move metadata definitions to separate `metadata.ts` files!
 </Warning>
 
 ### 🛡️ Security Headers
 
 The dashboard applies **7 security headers** on every response via the shared `@jango-blockchained/hoox-shared/middleware` `secureHeaders()` factory:
 
-| Header                      | Value                                 |
-| --------------------------- | ------------------------------------- |
-| `X-Content-Type-Options`    | `nosniff`                             |
-| `X-Frame-Options`           | `DENY`                                |
-| `X-XSS-Protection`          | `1; mode=block`                       |
-| `Referrer-Policy`           | `strict-origin-when-cross-origin`     |
-| `Permissions-Policy`        | All features disabled                 |
+| Header | Value |
+| --- | --- |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `X-XSS-Protection` | `1; mode=block` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Permissions-Policy` | All features disabled |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
-| `Content-Security-Policy`   | `default-src 'self'`                  |
+| `Content-Security-Policy` | `default-src 'self'` |
 
 Headers are applied via the `withSecurityHeaders()` wrapper in `src/middleware.ts`, covering **all** return paths including static files, login pages, CSRF errors, and auth failures.
 
 ### 🔗 Next Steps
 
-- **[Security Testing & Hardening](../security/overview)** — Auth hardening, security tests, and CI/CD scanning.
-- **[agent-worker Profile](agent-worker)** — Review AI chat streaming and risk evaluation structures.
-- **[d1-worker Profile](d1-worker)** — Check REST schemas that feed database metrics to the dashboard.
+- [**Security Testing & Hardening**](../security/overview) — Auth hardening, security tests, and CI/CD scanning.
+- [**agent-worker Profile**](agent-worker) — Review AI chat streaming and risk evaluation structures.
+- [**d1-worker Profile**](d1-worker) — Check REST schemas that feed database metrics to the dashboard.

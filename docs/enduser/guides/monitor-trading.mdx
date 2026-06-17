@@ -1,3 +1,7 @@
+---
+title: "monitor-trading"
+---
+
 # 📈 Monitoring Operations
 
 Algorithmic trading demands high-integrity, real-time observability. Because Hoox microservices are distributed across Cloudflare's global edge network, tracking health, logs, and message queues requires a consolidated management plane.
@@ -20,7 +24,7 @@ hoox monitor status
 
 The CLI runs asynchronous concurrent health probes, displaying green indicators and public route locations:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │               Hoox Microservice Health Probes                │
 ├─────────────────────────────────────────────────────────────┤
@@ -40,12 +44,12 @@ The CLI runs asynchronous concurrent health probes, displaying green indicators 
 
 ### Interpreting Health States
 
-| Indicator   | Meaning                               | Action Required                            |
-| ----------- | ------------------------------------- | ------------------------------------------ |
-| ✅ OK       | All bindings active, D1 responsive    | None — operating normally                  |
-| ⚠️ DEGRADED | Some bindings unavailable             | Check `hoox logs tail <worker>` for errors |
-| ❌ FAILED   | Worker unreachable or D1 disconnected | Run `hoox repair check` immediately        |
-| 🔄 STARTING | Worker is still booting after deploy  | Wait 30–60 seconds and retry               |
+| Indicator | Meaning | Action Required |
+| --- | --- | --- |
+| ✅ OK | All bindings active, D1 responsive | None — operating normally |
+| ⚠️ DEGRADED | Some bindings unavailable | Check `hoox logs tail <worker>` for errors |
+| ❌ FAILED | Worker unreachable or D1 disconnected | Run `hoox repair check` immediately |
+| 🔄 STARTING | Worker is still booting after deploy | Wait 30–60 seconds and retry |
 
 ---
 
@@ -68,17 +72,17 @@ hoox monitor kill-switch off
 
 When activated, the following sequence occurs automatically:
 
-1. `hoox` gateway rejects all incoming `/webhook` POST requests with `503 Service Unavailable`
-2. A `KILL_SWITCH_ACTIVE` event is logged to D1 for audit trail
-3. `agent-worker` halts its 5-minute cron execution loop
-4. `trade-worker` queues any in-flight payloads for retry (not abandoned)
-5. Telegram notification is sent to alert you
+<ol>
+  <li><code>hoox</code> gateway rejects all incoming <code>/webhook</code> POST requests with <code>503 Service Unavailable</code>.</li>
+  <li>A <code>KILL\_SWITCH\_ACTIVE</code> event is logged to D1 for audit trail.</li>
+  <li><code>agent-worker</code> halts its 5-minute cron execution loop.</li>
+  <li><code>trade-worker</code> queues any in-flight payloads for retry (not abandoned).</li>
+  <li>Telegram notification is sent to alert you.</li>
+</ol>
 
 <Warning>
-  When the Kill Switch is turned `ON`, the `hoox` gateway router immediately
-  rejects all incoming TradingView alerts and API webhook requests with a `503
-  Service Unavailable` error and logs a `KILL_SWITCH_ACTIVE` warning. Active
-  positions must be flattened manually or via `hoox monitor trades close-all`.
+  When the Kill Switch is turned `ON`, the `hoox` gateway router immediately rejects all incoming TradingView alerts and API webhook requests with a `503
+  Service Unavailable` error and logs a `KILL_SWITCH_ACTIVE` warning. Active positions must be flattened manually or via `hoox monitor trades close-all`.
 </Warning>
 
 ---
@@ -101,17 +105,16 @@ hoox monitor trades --exchange bybit
 hoox monitor trades --from 2026-05-15 --to 2026-05-20
 ```
 
-This aggregates entries from your production D1 database and prints a formatted terminal table outlining:
-`TIMESTAMP | REQUEST_ID | EXCHANGE | SYMBOL | ACTION | QUANTITY | PRICE | STATUS`
+This aggregates entries from your production D1 database and prints a formatted terminal table outlining: `TIMESTAMP | REQUEST_ID | EXCHANGE | SYMBOL | ACTION | QUANTITY | PRICE | STATUS`
 
 ### Trade Status Codes
 
-| Status     | Meaning                                        |
-| ---------- | ---------------------------------------------- |
-| `Filled`   | Order fully executed on the exchange           |
-| `Partial`  | Only portion filled; remainder queued          |
-| `Rejected` | Exchange returned a business logic error       |
-| `Failed`   | Max queue retries exhausted; logged for review |
+| Status | Meaning |
+| --- | --- |
+| `Filled` | Order fully executed on the exchange |
+| `Partial` | Only portion filled; remainder queued |
+| `Rejected` | Exchange returned a business logic error |
+| `Failed` | Max queue retries exhausted; logged for review |
 | `Enqueued` | Submitted to Cloudflare Queues for async retry |
 
 ---
@@ -131,12 +134,12 @@ This displays the number of pending messages in the queue:
 
 ### Queue Health Indicators
 
-| Queue Depth | Risk Level  | Recommended Action                                                                                 |
-| :---------: | :---------: | -------------------------------------------------------------------------------------------------- |
-|      0      |  🟢 Normal  | No action needed                                                                                   |
-|     1–5     | 🟡 Watchful | Monitor exchange health pages                                                                      |
-|    6–20     | 🟠 Elevated | Check exchange maintenance schedule; consider `hoox config kv set webhooks:queue_mode direct_only` |
-|     20+     | 🔴 Critical | Verify exchange API keys are valid; check rate limit headers; scale manually if needed             |
+| Queue Depth | Risk Level | Recommended Action |
+| :-: | :-: | --- |
+| 0 | 🟢 Normal | No action needed |
+| 1–5 | 🟡 Watchful | Monitor exchange health pages |
+| 6–20 | 🟠 Elevated | Check exchange maintenance schedule; consider `hoox config kv set webhooks:queue_mode direct_only` |
+| 20\+ | 🔴 Critical | Verify exchange API keys are valid; check rate limit headers; scale manually if needed |
 
 ---
 
@@ -185,25 +188,24 @@ hoox dashboard
 
 ### Key Metrics Tracked
 
-| Metric           | Source            | Description                      |
-| ---------------- | ----------------- | -------------------------------- |
-| Orders/Min       | analytics-worker  | Trade execution throughput       |
-| Avg Latency (ms) | analytics-worker  | Signal-to-fill round-trip time   |
-| Error Rate (%)   | analytics-worker  | Failed orders / total attempts   |
-| Queue Depth      | Cloudflare Queues | Pending execution backlog        |
-| Daily P&L        | D1 Database       | Realized profit/loss calculation |
-| Drawdown %       | agent-worker      | Current daily asset drawdown     |
+| Metric | Source | Description |
+| --- | --- | --- |
+| Orders/Min | analytics-worker | Trade execution throughput |
+| Avg Latency (ms) | analytics-worker | Signal-to-fill round-trip time |
+| Error Rate (%) | analytics-worker | Failed orders / total attempts |
+| Queue Depth | Cloudflare Queues | Pending execution backlog |
+| Daily P&L | D1 Database | Realized profit/loss calculation |
+| Drawdown % | agent-worker | Current daily asset drawdown |
 
 ---
 
 <Tip>
   If the system status check returns a red error indicator (e.g. `d1-worker ...
-  ❌ FAILED`), immediately proceed to the **[Self-Healing & Repair
-  Guide](repair)** to run automated diagnostics and restore service bindings!
+  ❌ FAILED`), immediately proceed to the [**Self-Healing & Repair Guide**](repair) to run automated diagnostics and restore service bindings!
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[Self-Healing & Repair](repair)** — Diagnose connection drops, recreate broken bindings, and rebuild environments.
-- **[Terminal UI Operations](tui)** — Monitor health status, tail logs, and edit configurations interactively in a full-screen GUI cockpit.
-- **[Infrastructure Management](manage-infra)** — Manage KV config namespaces, Queue parameters, and R2 storage buckets.
+- [**Self-Healing & Repair**](repair) — Diagnose connection drops, recreate broken bindings, and rebuild environments.
+- [**Terminal UI Operations**](tui) — Monitor health status, tail logs, and edit configurations interactively in a full-screen GUI cockpit.
+- [**Infrastructure Management**](manage-infra) — Manage KV config namespaces, Queue parameters, and R2 storage buckets.

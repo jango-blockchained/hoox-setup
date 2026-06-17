@@ -30,7 +30,7 @@ Hoox uses **Bun** as its primary package manager, script runner, and native test
 
 All Hoox workers are compiled to run on **Cloudflare's Edge V8 isolates**. You will need a free Cloudflare account:
 
-- **Account**: [Register a free account](https://dash.cloudflare.com/) (the free tier provides 100,000 requests/day, D1 database, KV storage, Queues, R2, and vector search—costing $0/month).
+- **Account**: [Register a free account](https://dash.cloudflare.com/) (the free tier provides 100,000 requests/day, D1 database, KV storage, Queues, R2, and vector search—costing \$0/month).
 - **Cloudflare CLI**: Ensure you have `wrangler` installed globally (though Hoox manages local wrangler operations automatically, having it indexed globally is recommended):
   ```bash
   bun add -g wrangler
@@ -80,8 +80,7 @@ bun run build:cli
 
 <Warning>
   You MUST use `git clone --recursive` or run `git submodule update --init
-  --recursive` after cloning. If you omit submodules, the worker directories
-  under `workers/` will be empty and deployments will fail.
+  --recursive` after cloning. If you omit submodules, the worker directories under `workers/` will be empty and deployments will fail.
 </Warning>
 
 ---
@@ -98,7 +97,7 @@ cd my-trading-empire
 
 This command automatically structures your directories as a clean monorepo:
 
-```
+```text
 my-trading-empire/
 ├── packages/
 │   ├── cli/       # Workspace CLI management binaries
@@ -123,12 +122,14 @@ hoox init
 
 The CLI wizard will guide you through 4 critical setup phases:
 
-1. **Toolchain Validation**: Probes your machine for `bun`, `git`, `wrangler`, and `docker` configurations.
-2. **Cloudflare Authentication**: Prompts for your Cloudflare API token (with `Account.D1`, `Account.KV`, `Account.Workers` permissions) and Account ID.
-3. **Microservice Profile Selection**: Lets you declaratively toggle which edge workers to enable (e.g., enable Gateway and Trade Worker, disable Web3 Wallet if you only trade centralized exchanges).
-4. **Local Credentials Encryption**: Generates safe local `.dev.vars` matrices and sets up initial KV configuration structures.
+<ol>
+  <li><strong>Toolchain Validation</strong>: Probes your machine for <code>bun</code>, <code>git</code>, <code>wrangler</code>, and <code>docker</code> configurations.</li>
+  <li><strong>Cloudflare Authentication</strong>: Prompts for your Cloudflare API token (with <code>Account.D1</code>, <code>Account.KV</code>, <code>Account.Workers</code> permissions) and Account ID.</li>
+  <li><strong>Microservice Profile Selection</strong>: Lets you declaratively toggle which edge workers to enable (e.g., enable Gateway and Trade Worker, disable Web3 Wallet if you only trade centralized exchanges).</li>
+  <li><strong>Local Credentials Encryption</strong>: Generates safe local <code>.dev.vars</code> matrices and sets up initial KV configuration structures.</li>
+</ol>
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │               hoox Setup & Initialization              │
 ├────────────────────────────────────────────────────────┤
@@ -159,12 +160,10 @@ If all diagnostic checks pass, you are ready to proceed with configuration!
 ---
 
 <Tip>
-  Got installation issues? Run `hoox repair check` to automatically analyze
-  common path resolution issues, missing environment variables, or node-gyp
-  build failures, and recover your local workspace seamlessly.
+  Got installation issues? Run `hoox repair check` to automatically analyze common path resolution issues, missing environment variables, or node-gyp build failures, and recover your local workspace seamlessly.
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[Configuration Matrix](configuration)** — Map out your 31-key environment variables and 16-key KV registries.
-- **[5-Minute Quick Start Guide](quick-start)** — Execute your first simulated edge trade in under 5 minutes.
+- [**Configuration Matrix**](configuration) — Map out your 31-key environment variables and 16-key KV registries.
+- [**5-Minute Quick Start Guide**](quick-start) — Execute your first simulated edge trade in under 5 minutes.

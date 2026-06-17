@@ -1,3 +1,7 @@
+---
+title: "glossary"
+---
+
 # 📖 Glossary
 
 A curated vocabulary of terms used throughout the Hoox documentation. Understanding these terms is essential for effective navigation of the platform.
@@ -6,77 +10,79 @@ A curated vocabulary of terms used throughout the Hoox documentation. Understand
 
 ## General Trading
 
-| Term                   | Definition                                                                                                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Webhook**            | An automated HTTP POST callback triggered by an external system (e.g., TradingView) when a specific event occurs, such as a technical indicator crossover.                     |
-| **Signal**             | A structured JSON payload sent to the Hoox Gateway instructing it to execute a trade. Signals originate from TradingView alerts, email parsing, or Telegram commands.          |
-| **Leverage**           | A multiplier applied to a position's notional value, allowing traders to control larger positions with less capital. E.g., 10x leverage on a $1,000 position controls $10,000. |
-| **LONG**               | A trade direction indicating the purchase (buy) of an asset with the expectation that its price will rise.                                                                     |
-| **SHORT**              | A trade direction indicating the sale (sell) of an asset with the expectation that its price will fall.                                                                        |
-| **CLOSE**              | An action to flatten (exit) an existing open position, returning the account to a neutral state.                                                                               |
-| **Side (BUY/SELL)**    | The translated exchange-level direction. `LONG` → `BUY`, `SHORT` → `SELL`.                                                                                                     |
-| **PositionSide**       | The margin mode direction (`LONG` or `SHORT`) used in hedge-mode futures trading.                                                                                              |
-| **Trailing Stop-Loss** | A dynamic stop-loss order that automatically adjusts as the market moves in the trader's favor, locking in profits while limiting downside.                                    |
-| **Take-Profit (TP)**   | A target price at which a position is automatically closed to lock in profits.                                                                                                 |
-| **Drawdown**           | The percentage decline in account equity from its peak to its current level.                                                                                                   |
-| **Liquidation**        | The forced closure of a leveraged position when margin requirements are no longer met.                                                                                         |
-| **Fill**               | A successfully executed trade order on the exchange.                                                                                                                           |
-| **Slippage**           | The difference between the expected price of a trade and the actual price at which it is executed, often caused by market volatility or latency.                               |
+| Term | Definition |
+| --- | --- |
+| **Webhook** | An automated HTTP POST callback triggered by an external system (e.g., TradingView) when a specific event occurs, such as a technical indicator crossover. |
+| **Signal** | A structured JSON payload sent to the Hoox Gateway instructing it to execute a trade. Signals originate from TradingView alerts, email parsing, or Telegram commands. |
+| **Leverage** |
+| **LONG** | A trade direction indicating the purchase (buy) of an asset with the expectation that its price will rise. |
+| **SHORT** | A trade direction indicating the sale (sell) of an asset with the expectation that its price will fall. |
+| **CLOSE** | An action to flatten (exit) an existing open position, returning the account to a neutral state. |
+| **Side (BUY/SELL)** | The translated exchange-level direction. `LONG` maps to `BUY`, `SHORT` maps to `SELL`. |
+| **PositionSide** | The margin mode direction (`LONG` or `SHORT`) used in hedge-mode futures trading. |
+| **Trailing Stop-Loss** | A dynamic stop-loss order that automatically adjusts as the market moves in the trader's favor, locking in profits while limiting downside. |
+| **Take-Profit (TP)** | A target price at which a position is automatically closed to lock in profits. |
+| **Drawdown** | The percentage decline in account equity from its peak to its current level. |
+| **Liquidation** | The forced closure of a leveraged position when margin requirements are no longer met. |
+| **Fill** | A successfully executed trade order on the exchange. |
+| **Slippage** | The difference between the expected price of a trade and the actual price at which it is executed, often caused by market volatility or latency. |
 
 ## Architecture & Infrastructure
 
-| Term                        | Definition                                                                                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Edge Worker**             | A lightweight JavaScript function running on Cloudflare's globally distributed edge servers, executing code as close to end users (or data sources) as possible. |
-| **V8 Isolate**              | A sandboxed JavaScript runtime instance within Cloudflare Workers, providing strong isolation between tenants with zero shared memory.                           |
-| **Microservice**            | A small, independently deployable service that performs a single business function within the Hoox architecture.                                                 |
-| **Service Binding**         | A Cloudflare feature enabling direct, zero-latency communication between edge workers inside the V8 engine — no public internet routing required.                |
-| **Durable Object (DO)**     | A Cloudflare primitive providing single-threaded, persistent server-side state. Used by Hoox for idempotency locks and distributed coordination.                 |
-| **D1 Database**             | Cloudflare's serverless, edge-native SQLite database offering ACID-compliant transactions with sub-5ms query latency.                                            |
-| **KV (Key-Value Store)**    | A globally distributed, highly available key-value store optimized for high-read/low-write operations at sub-millisecond latency.                                |
-| **R2 Object Storage**       | An S3-compatible, zero-egress-fee object storage service for storing arbitrary data (logs, reports, backups).                                                    |
-| **Cloudflare Queues**       | A serverless message broker providing at-least-once delivery with built-in exponential backoff retry for asynchronous processing.                                |
-| **Vectorize**               | A serverless vector search database enabling semantic matching and retrieval-augmented generation (RAG).                                                         |
-| **Browser Rendering**       | A Cloudflare service providing headless Chrome instances at the edge for automated web interaction and PDF generation.                                           |
-| **Analytics Engine**        | A time-series metrics platform for tracking API call latency, error rates, and custom events across all workers.                                                 |
-| **Smart Placement**         | A Cloudflare optimization that automatically deploys worker code to the edge node geographically closest to its external API dependencies.                       |
-| **Zero Trust Architecture** | A security model where no service trusts any other by default. All access is authenticated, authorized, and encrypted — even internal communications.            |
-| **Kill Switch**             | An emergency mechanism (stored in KV) that instantly halts all trade execution globally when activated, requiring no code redeployment.                          |
+| Term | Definition |
+| --- | --- |
+| **Edge Worker** | A lightweight JavaScript function running on Cloudflare's globally distributed edge servers, executing code as close to end users (or data sources) as possible. |
+| **V8 Isolate** | A sandboxed JavaScript runtime instance within Cloudflare Workers, providing strong isolation between tenants with zero shared memory. |
+| **Microservice** | A small, independently deployable service that performs a single business function within the Hoox architecture. |
+| **Service Binding** | A Cloudflare feature enabling direct, zero-latency communication between edge workers inside the V8 engine — no public internet routing required. |
+| **Durable Object (DO)** | A Cloudflare primitive providing single-threaded, persistent server-side state. Used by Hoox for idempotency locks and distributed coordination. |
+| **D1 Database** | Cloudflare's serverless, edge-native SQLite database offering ACID-compliant transactions with sub-5ms query latency. |
+| **KV (Key-Value Store)** | A globally distributed, highly available key-value store optimized for high-read/low-write operations at sub-millisecond latency. |
+| **R2 Object Storage** | An S3-compatible, zero-egress-fee object storage service for storing arbitrary data (logs, reports, backups). |
+| **Cloudflare Queues** | A serverless message broker providing at-least-once delivery with built-in exponential backoff retry for asynchronous processing. |
+| **Vectorize** | A serverless vector search database enabling semantic matching and retrieval-augmented generation (RAG). |
+| **Browser Rendering** | A Cloudflare service providing headless Chrome instances at the edge for automated web interaction and PDF generation. |
+| **Analytics Engine** | A time-series metrics platform for tracking API call latency, error rates, and custom events across all workers. |
+| **Smart Placement** | A Cloudflare optimization that automatically deploys worker code to the edge node geographically closest to its external API dependencies. |
+| **Zero Trust Architecture** | A security model where no service trusts any other by default. All access is authenticated, authorized, and encrypted — even internal communications. |
+| **Kill Switch** | An emergency mechanism (stored in KV) that instantly halts all trade execution globally when activated, requiring no code redeployment. |
 
 ## Security
 
-| Term                                     | Definition                                                                                                                                                          |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Iparamotency**                         | The property ensuring that a given operation (e.g., a trade signal) produces the same result whether executed once or multiple times — preventing duplicate trades. |
-| **HMAC-SHA256**                          | A cryptographic signing algorithm used to authenticate order payloads sent to exchange APIs, ensuring message integrity and origin verification.                    |
-| **Secret Binding**                       | An encrypted credential injected directly into a V8 isolate at runtime. Secrets are never stored in code, config files, or logs.                                    |
-| **WAF (Web Application Firewall)**       | A network-layer security service that filters, monitors, and blocks HTTP traffic based on customizable rules (e.g., IP allow-listing).                              |
-| **CORS (Cross-Origin Resource Sharing)** | A browser security mechanism. Hoox disables CORS on the gateway to prevent unauthorized cross-domain requests.                                                      |
-| **IP Allow-listing**                     | Restricting access to the webhook endpoint to a predefined list of trusted IP addresses (e.g., TradingView's known ranges).                                         |
+| Term | Definition |
+| --- | --- |
+| **Idempotency** | The property ensuring that a given operation (e.g., a trade signal) produces the same result whether executed once or multiple times — preventing duplicate trades. |
+| **HMAC-SHA256** | A cryptographic signing algorithm used to authenticate order payloads sent to exchange APIs, ensuring message integrity and origin verification. |
+| **Secret Binding** | An encrypted credential injected directly into a V8 isolate at runtime. Secrets are never stored in code, config files, or logs. |
+| **WAF (Web Application Firewall)** | A network-layer security service that filters, monitors, and blocks HTTP traffic based on customizable rules (e.g., IP allow-listing). |
+| **CORS (Cross-Origin Resource Sharing)** | A browser security mechanism. Hoox disables CORS on the gateway to prevent unauthorized cross-domain requests. |
+| **IP Allow-listing** | Restricting access to the webhook endpoint to a predefined list of trusted IP addresses (e.g., TradingView's known ranges). |
 
 ## Development & Tooling
 
-| Term                              | Definition                                                                                                                     |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Bun**                           | A fast JavaScript runtime, package manager, and test runner used as Hoox's primary development toolchain.                      |
-| **monorepo**                      | A repository structure containing multiple packages/workers managed together with shared dependencies and tooling.             |
-| **Bun Workspace**                 | A Bun feature enabling multiple packages within a monorepo to share dependencies and reference each other locally.             |
-| **Wrangler**                      | Cloudflare's official CLI tool for developing, deploying, and managing Cloudflare Workers and associated resources.            |
-| **Docker Compose**                | A container orchestration tool used by Hoox for running isolated local development environments with all services.             |
-| **TUI (Terminal User Interface)** | A full-screen, keyboard-driven terminal dashboard (`./hoox-tui`) for monitoring and controlling the Hoox platform.             |
-| **OpenTUI**                       | A React-based framework for building terminal user interfaces, used to construct Hoox's TUI.                                   |
-| **OpenNext**                      | An adapter enabling Next.js applications to run on Cloudflare Workers. Hoox uses it for the dashboard Command Center.          |
-| **Drizzle**                       | A lightweight TypeScript ORM used with D1 for database schema management and migrations.                                       |
-| **CI/CD**                         | Continuous Integration / Continuous Deployment. Hoox's pipeline runs linting, type checks, unit tests, and build verification. |
+| Term | Definition |
+| --- | --- |
+| **Bun** | A fast JavaScript runtime, package manager, and test runner used as Hoox's primary development toolchain. |
+| **monorepo** | A repository structure containing multiple packages/workers managed together with shared dependencies and tooling. |
+| **Bun Workspace** | A Bun feature enabling multiple packages within a monorepo to share dependencies and reference each other locally. |
+| **Wrangler** | Cloudflare's official CLI tool for developing, deploying, and managing Cloudflare Workers and associated resources. |
+| **Docker Compose** | A container orchestration tool used by Hoox for running isolated local development environments with all services. |
+| **TUI (Terminal User Interface)** | A full-screen, keyboard-driven terminal dashboard (`./hoox-tui`) for monitoring and controlling the Hoox platform. |
+| **OpenTUI** | A React-based framework for building terminal user interfaces, used to construct Hoox's TUI. |
+| **OpenNext** | An adapter enabling Next.js applications to run on Cloudflare Workers. Hoox uses it for the dashboard Command Center. |
+| **Drizzle** | A lightweight TypeScript ORM used with D1 for database schema management and migrations. |
+| **CI/CD** | Continuous Integration / Continuous Deployment. Hoox's pipeline runs linting, type checks, unit tests, and build verification. |
 
 ## Exchange-Specific
 
-| Term        | Definition                                                                                                  |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| **MEXC**    | A global cryptocurrency exchange supporting spot and futures trading. One of three supported exchanges.     |
-| **Bybit**   | A cryptocurrency derivatives exchange known for its high-performance API. One of three supported exchanges. |
-| **Binance** | The world's largest cryptocurrency exchange by volume. One of three supported exchanges.                    |
+| Term | Definition |
+| --- | --- |
+| **MEXC** | A global cryptocurrency exchange supporting spot and futures trading. One of three supported exchanges. |
+| **Bybit** | A cryptocurrency derivatives exchange known for its high-performance API. One of three supported exchanges. |
+| **Binance** | The world's largest cryptocurrency exchange by volume. One of three supported exchanges. |
 
 ---
 
-<Tip>Cross-referenced from nearly every section of the documentation.</Tip>
+<Tip>
+  Cross-referenced from nearly every section of the documentation.
+</Tip>

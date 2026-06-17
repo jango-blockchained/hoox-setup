@@ -13,18 +13,18 @@ The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development,
 
 These options are registered globally and can be appended to any command:
 
-| Flag        | Description                                                         | Example                         |
-| :---------- | :------------------------------------------------------------------ | :------------------------------ |
-| `--json`    | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox monitor status --json`    |
-| `--quiet`   | Suppresses headers, banners, and interactive prompts.               | `hoox deploy kv-config --quiet` |
-| `--help`    | Prints complete parameter and option listings.                      | `hoox infra d1 --help`          |
-| `--version` | Outputs active CLI package build version.                           | `hoox --version`                |
+| Flag | Description | Example |
+| :-- | :-- | :-- |
+| `--json` | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox monitor status --json` |
+| `--quiet` | Suppresses headers, banners, and interactive prompts. | `hoox deploy kv-config --quiet` |
+| `--help` | Prints complete parameter and option listings. | `hoox infra d1 --help` |
+| `--version` | Outputs active CLI package build version. | `hoox --version` |
 
 ---
 
 ## 🗂️ Command Groups Directory
 
-```
+```text
 hoox                                 Launch TUI (when run with no args)
 ├── init                             Interactive multi-phase setup wizard
 ├── clone [name]                     Bootstrap workspace from template
@@ -144,13 +144,10 @@ hoox repair check
 ---
 
 <Tip>
-  Every single subcommand is fully documented locally! Append `--help` to any
-  command (e.g. `hoox config env --help`) to view advanced positional arguments
-  and specific flag options instantly.
+  Every single subcommand is fully documented locally! Append `--help` to any command (e.g. `hoox config env --help`) to view advanced positional arguments and specific flag options instantly.
 </Tip>
 
 ### 🔗 Next Steps
 
-|- **[Configuration Dictionary](getting-started/configuration)** — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
-
-- **[API Endpoint Reference](api-endpoints)** — Analyze REST routes, schemas, and gateway error structures.
+- [**Configuration Dictionary**](getting-started/configuration) — Comprehensive dictionary of all 31 env keys and 16 KV key-value items.
+- [**API Endpoint Reference**](api-endpoints) — Analyze REST routes, schemas, and gateway error structures.

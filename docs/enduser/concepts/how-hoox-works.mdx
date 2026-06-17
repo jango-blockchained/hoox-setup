@@ -67,11 +67,13 @@ Signals represent specific instructions to buy, sell, or close positions. Hoox i
 
 When a signal hits your public endpoint, the **`hoox` gateway** interceptor immediately evaluates the request inside a sandboxed V8 isolate:
 
-1. **API Key Authorization**: Authenticates the payload's `apiKey` property against your secure manifest stored in Cloudflare KV.
-2. **IP Allow-listing**: Verifies that the client IP matches a authorized IP range in KV (essential for restricting access solely to TradingView's known webhook IPs).
-3. **Global Kill Switch check**: Ensures `trade:kill_switch` is `false`. If `true`, the pipeline aborts immediately to protect your capital.
-4. **Rate Limiting**: Verifies that signal frequency does not exceed safe execution thresholds (default: 10 orders/minute).
-5. **Idempotency Check**: Locks a unique transaction trace ID using a **SQLite-backed Durable Object**. If the DO detects that the exact same signal hash was already processed, it drops the request to prevent double-ordering.
+<ol>
+  <li><strong>API Key Authorization</strong>: Authenticates the payload's <code>apiKey</code> property against your secure manifest stored in Cloudflare KV.</li>
+  <li><strong>IP Allow-listing</strong>: Verifies that the client IP matches a authorized IP range in KV (essential for restricting access solely to TradingView's known webhook IPs).</li>
+  <li><strong>Global Kill Switch check</strong>: Ensures <code>trade:kill\_switch</code> is <code>false</code>. If <code>true</code>, the pipeline aborts immediately to protect your capital.</li>
+  <li><strong>Rate Limiting</strong>: Verifies that signal frequency does not exceed safe execution thresholds (default: 10 orders/minute).</li>
+  <li><strong>Idempotency Check</strong>: Locks a unique transaction trace ID using a <strong>SQLite-backed Durable Object</strong>. If the DO detects that the exact same signal hash was already processed, it drops the request to prevent double-ordering.</li>
+</ol>
 
 ---
 
@@ -112,14 +114,10 @@ Finally, the `trade-worker` pings **`telegram-worker`** via an internal binding:
 ---
 
 <Tip>
-  If the exchange API experiences transient network dropouts or severe rate
-  limits, the Hoox Gateway automatically transfers the payload to **Cloudflare
-  Queues** with an exponential retry schedule (`30s` → `1m` → `5m` → `15m`),
-  keeping your strategy fully reliable even during periods of heavy market
-  volatility.
+  If the exchange API experiences transient network dropouts or severe rate limits, the Hoox Gateway automatically transfers the payload to **Cloudflare Queues** with an exponential retry schedule (`30s` → `1m` → `5m` → `15m`), keeping your strategy fully reliable even during periods of heavy market volatility.
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[Edge-First Architecture](edge-architecture)** — Understand the absolute latency benefits of edge workers vs VPS.
-- **[Signals & Trade Specifications](signals-and-trades)** — Analyze the complete JSON webhook and order formatting.
+- [**Edge-First Architecture**](edge-architecture) — Understand the absolute latency benefits of edge workers vs VPS.
+- [**Signals & Trade Specifications**](signals-and-trades) — Analyze the complete JSON webhook and order formatting.

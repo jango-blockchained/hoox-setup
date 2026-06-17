@@ -1,3 +1,7 @@
+---
+title: "deploy-workers"
+---
+
 # 🚀 Deploying to Production
 
 Deploying your algorithmic trading ecosystem to Cloudflare's production edge requires careful orchestration. Because workers communicate internally using fast-path **Service Bindings**, they have strict compile-time and deploy-time dependencies.
@@ -12,7 +16,7 @@ When you deploy, workers must be uploaded in a specific sequence. If you attempt
 
 The Hoox CLI automates this dependency hierarchy:
 
-```
+```text
 [1. D1 Database Schema] ──► [2. d1-worker (SQL Hub)] ──► [3. trade-worker (Execution Engine)]
                                                                     │
     ┌───────────────────────────────────────────────────────────────┘
@@ -25,14 +29,14 @@ The Hoox CLI automates this dependency hierarchy:
 
 ### Deployment Order Explained
 
-| Step | Worker                         | Why First?                                                  |
-| :--: | ------------------------------ | ----------------------------------------------------------- |
-|  1   | D1 Schema                      | Database tables must exist before workers try to read/write |
-|  2   | d1-worker                      | SQL hub must be available for other workers' DB operations  |
-|  3   | trade-worker                   | Core execution engine — other workers depend on it          |
-|  4   | hoox Gateway                   | Public-facing router — needs all internal workers live      |
-|  5   | agent-worker + telegram-worker | Background services — can deploy independently              |
-|  6   | Dashboard (OpenNext)           | Frontend — depends on gateway and all APIs                  |
+| Step | Worker | Why First? |
+| :-: | --- | --- |
+| 1 | D1 Schema | Database tables must exist before workers try to read/write |
+| 2 | d1-worker | SQL hub must be available for other workers' DB operations |
+| 3 | trade-worker | Core execution engine — other workers depend on it |
+| 4 | hoox Gateway | Public-facing router — needs all internal workers live |
+| 5 | agent-worker \+ telegram-worker | Background services — can deploy independently |
+| 6 | Dashboard (OpenNext) | Frontend — depends on gateway and all APIs |
 
 ---
 
@@ -53,12 +57,12 @@ hoox deploy dashboard
 
 ### Deploy All Flags
 
-| Flag             | Description                               | Example                                 |
-| ---------------- | ----------------------------------------- | --------------------------------------- |
-| `--auto`         | Automatically resolves dependency order   | `hoox deploy all --auto`                |
-| `--skip-tests`   | Skip pre-deploy test suite                | `hoox deploy all --auto --skip-tests`   |
-| `--dry-run`      | Preview deployment plan without uploading | `hoox deploy all --auto --dry-run`      |
-| `--workers-only` | Skip dashboard deployment                 | `hoox deploy all --auto --workers-only` |
+| Flag | Description | Example |
+| --- | --- | --- |
+| `--auto` | Automatically resolves dependency order | `hoox deploy all --auto` |
+| `--skip-tests` | Skip pre-deploy test suite | `hoox deploy all --auto --skip-tests` |
+| `--dry-run` | Preview deployment plan without uploading | `hoox deploy all --auto --dry-run` |
+| `--workers-only` | Skip dashboard deployment | `hoox deploy all --auto --workers-only` |
 
 ---
 
@@ -79,9 +83,11 @@ hoox deploy kv-config
 
 ### Why These Steps Are Required
 
-1. **Telegram Webhook Registration** — Tells Telegram's Bot API where to send user messages. Without this, your bot will be unreachable.
-2. **Internal URL Binding** — After deployment, each worker gets a new URL. This command updates all Service Binding references so workers can find each other.
-3. **KV Manifest Sync** — Ensures your runtime configuration (kill switch, rate limits, routing rules) matches the freshly deployed workers.
+<ol>
+  <li><strong>Telegram Webhook Registration</strong> — Tells Telegram's Bot API where to send user messages. Without this, your bot will be unreachable.</li>
+  <li><strong>Internal URL Binding</strong> — After deployment, each worker gets a new URL. This command updates all Service Binding references so workers can find each other.</li>
+  <li><strong>KV Manifest Sync</strong> — Ensures your runtime configuration (kill switch, rate limits, routing rules) matches the freshly deployed workers.</li>
+</ol>
 
 ---
 
@@ -91,10 +97,12 @@ The Hoox Command Center is a modern Next.js 16 web application that runs directl
 
 When you run `hoox deploy dashboard`:
 
-1. The CLI compiles the Next.js app using the **Turbopack** build engine.
-2. The **OpenNext** compiler bundles the application logic into a single Edge-compliant V8 worker file: `.open-next/worker.js`.
-3. All static files (images, JS chunks, CSS) are isolated under `.open-next/assets/`.
-4. The CLI uses `wrangler` to deploy the worker and binds the static assets to Cloudflare's **ASSETS binding**, serving pages at sub-millisecond speeds.
+<ol>
+  <li>The CLI compiles the Next.js app using the <strong>Turbopack</strong> build engine.</li>
+  <li>The <strong>OpenNext</strong> compiler bundles the application logic into a single Edge-compliant V8 worker file: <code>.open-next/worker.js</code>.</li>
+  <li>All static files (images, JS chunks, CSS) are isolated under <code>.open-next/assets/</code>.</li>
+  <li>The CLI uses <code>wrangler</code> to deploy the worker and binds the static assets to Cloudflare's <strong>ASSETS binding</strong>, serving pages at sub-millisecond speeds.</li>
+</ol>
 
 ```bash
 # Build and deploy the Next.js Dashboard to Cloudflare Workers
@@ -153,25 +161,23 @@ hoox deploy all --auto
 
 ## 🛠️ Post-Deployment Troubleshooting Matrix
 
-| Error Code / Symptom          | Primary Root Cause                                | Guided Resolution                                                                                                                 |
-| :---------------------------- | :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| **`502 Bad Gateway`**         | Service binding target is missing or has crashed. | Ensure the dependency worker (e.g., `trade-worker`) has been deployed successfully. Run `hoox deploy all` to rebuild all bonds.   |
-| **`503 Service Unavailable`** | The Global Kill Switch is active in KV.           | Verify switch state: `hoox monitor kill-switch show`. If safe, restore trading: `hoox monitor kill-switch off`.                   |
-| **`401 Unauthorized`**        | Webhook request failed passkey check.             | Audit KV authorization key: `hoox config kv get webhooks:api_key`. Verify the payload `apiKey` matches this value.                |
-| **`409 Conflict`**            | Durable Object intercepted a duplicate trace ID.  | Verify TV alert settings. Do not configure rapid-fire duplicate alerts within the same minute unless idempotency keys are unique. |
-| **Dashboard shows 500**       | Next.js build failed or D1 schema mismatch.       | Re-run `hoox deploy dashboard` and check logs: `hoox logs tail dashboard`.                                                        |
-| **Telegram bot unresponsive** | Webhook URL expired or token rotated.             | Re-register: `hoox deploy telegram-webhook` and verify token: `hoox secrets check`.                                               |
+| Error Code / Symptom | Primary Root Cause | Guided Resolution |
+| :-- | :-- | :-- |
+| **`502 Bad Gateway`** | Service binding target is missing or has crashed. | Ensure the dependency worker (e.g., `trade-worker`) has been deployed successfully. Run `hoox deploy all` to rebuild all bonds. |
+| **`503 Service Unavailable`** | The Global Kill Switch is active in KV. | Verify switch state: `hoox monitor kill-switch show`. If safe, restore trading: `hoox monitor kill-switch off`. |
+| **`401 Unauthorized`** | Webhook request failed passkey check. | Audit KV authorization key: `hoox config kv get webhooks:api_key`. Verify the payload `apiKey` matches this value. |
+| **`409 Conflict`** | Durable Object intercepted a duplicate trace ID. | Verify TV alert settings. Do not configure rapid-fire duplicate alerts within the same minute unless idempotency keys are unique. |
+| **Dashboard shows 500** | Next.js build failed or D1 schema mismatch. | Re-run `hoox deploy dashboard` and check logs: `hoox logs tail dashboard`. |
+| **Telegram bot unresponsive** | Webhook URL expired or token rotated. | Re-register: `hoox deploy telegram-webhook` and verify token: `hoox secrets check`. |
 
 ---
 
 <Tip>
-  By utilizing **Smart Placement** in your production builds, Cloudflare will
-  automatically route execution to the edge nodes located geographically closest
-  to your exchanges (Frankfurt, Tokyo), ensuring high-speed fills!
+  By utilizing **Smart Placement** in your production builds, Cloudflare will automatically route execution to the edge nodes located geographically closest to your exchanges (Frankfurt, Tokyo), ensuring high-speed fills!
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[Real-Time Observability & Monitoring](monitor-trading)** — Audit live fills, tail console logs, and run health diagnostics.
-- **[System Self-Healing & Repair](repair)** — Rebuild broken bindings and recover from deployment anomalies.
-- **[Infrastructure Management](manage-infra)** — Provision and inspect KV, Queues, R2, and Vectorize indexes.
+- [**Real-Time Observability & Monitoring**](monitor-trading) — Audit live fills, tail console logs, and run health diagnostics.
+- [**System Self-Healing & Repair**](repair) — Rebuild broken bindings and recover from deployment anomalies.
+- [**Infrastructure Management**](manage-infra) — Provision and inspect KV, Queues, R2, and Vectorize indexes.

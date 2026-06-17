@@ -1,3 +1,7 @@
+---
+title: "database-ops"
+---
+
 # 🗄️ Database Operations
 
 Hoox utilizes **Cloudflare® D1**—a fully serverless, highly optimized SQLite database engine distributed globally across Cloudflare's edge network. This document serves as your operational runbook for executing database schemas, running schema migrations, querying transaction ledgers, and performing secure database backup and recovery.
@@ -8,13 +12,13 @@ Hoox utilizes **Cloudflare® D1**—a fully serverless, highly optimized SQLite 
 
 The database schema defines five fundamental tables designed for trading operations, plus supporting indices for fast query performance:
 
-| Table               | Purpose                                                                                              | Row Estimate (Active User) |
-| ------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------- |
-| **`trades`**        | The primary ledger. Execution prices, contract quantities, timestamps, fees, and exchange order IDs. | ~10,000/mo                 |
-| **`positions`**     | Tracks open margin/futures exposure (average entry price, size, leverage, direction).                | ~50–200                    |
-| **`balances`**      | Periodic snapshots of account equity, margin balance, and available free collateral.                 | ~30/day                    |
-| **`trade_signals`** | Historical record of every raw incoming webhook alert before execution processing.                   | ~10,000/mo                 |
-| **`system_logs`**   | Crucial debug and error messages offloaded from compute nodes.                                       | ~5,000/mo                  |
+| Table | Purpose | Row Estimate (Active User) |
+| --- | --- | --- |
+| **`trades`** | The primary ledger. Execution prices, contract quantities, timestamps, fees, and exchange order IDs. | ~10,000/mo |
+| **`positions`** | Tracks open margin/futures exposure (average entry price, size, leverage, direction). | ~50–200 |
+| **`balances`** | Periodic snapshots of account equity, margin balance, and available free collateral. | ~30/day |
+| **`trade_signals`** | Historical record of every raw incoming webhook alert before execution processing. | ~10,000/mo |
+| **`system_logs`** | Crucial debug and error messages offloaded from compute nodes. | ~5,000/mo |
 
 ### Schema Details
 
@@ -96,7 +100,7 @@ hoox db apply --remote
 
 Migrations are stored in `workers/d1-worker/src/drizzle/` and are automatically versioned:
 
-```
+```text
 workers/d1-worker/src/drizzle/
 ├── 0001_initial_schema.sql
 ├── 0002_add_leverage_column.sql
@@ -106,9 +110,7 @@ workers/d1-worker/src/drizzle/
 ```
 
 <Warning>
-  Running `hoox db apply` compiles migrations and seeds the database locally.
-  For production deployment, you **must** append the `--remote` flag to execute
-  operations directly on your active Cloudflare D1 instance.
+  Running `hoox db apply` compiles migrations and seeds the database locally. For production deployment, you **must** append the `--remote` flag to execute operations directly on your active Cloudflare D1 instance.
 </Warning>
 
 ---
@@ -132,10 +134,12 @@ The migration engine tracks history inside a special `d1_migrations` table, ensu
 
 ### Migration Best Practices
 
-1. **Always write reversible migrations** — include both `UP` and `DOWN` scripts
-2. **Never modify existing migrations** — create new ones for schema changes
-3. **Test locally first** — run `hoox db apply` without `--remote` to verify
-4. **Backup before migrating** — export your production database first
+<ol>
+  <li><strong>Always write reversible migrations</strong> — include both <code>UP</code> and <code>DOWN</code> scripts.</li>
+  <li><strong>Never modify existing migrations</strong> — create new ones for schema changes.</li>
+  <li><strong>Test locally first</strong> — run <code>hoox db apply</code> without <code>--remote</code> to verify.</li>
+  <li><strong>Backup before migrating</strong> — export your production database first.</li>
+</ol>
 
 ---
 
@@ -198,8 +202,7 @@ hoox db export --remote --output backups/my-backup.sql
 
 ### Export Output & Structure
 
-The export command creates a timestamped SQL dump inside your workspace directory:
-`backups/db-backup-2026-05-19-174000.sql`
+The export command creates a timestamped SQL dump inside your workspace directory: `backups/db-backup-2026-05-19-174000.sql`
 
 This file contains standard DDL and DML commands:
 
@@ -236,9 +239,7 @@ hoox db reset --remote --confirm
 ```
 
 <Warning>
-  Wiping your production D1 database is an irreversible operation. It will
-  permanently delete all trade logs, position records, and asset histories.
-  **Always** execute `hoox db export --remote` before running a reset!
+  Wiping your production D1 database is an irreversible operation. It will permanently delete all trade logs, position records, and asset histories. **Always** execute `hoox db export --remote` before running a reset!
 </Warning>
 
 ### Soft Reset Alternative
@@ -254,17 +255,17 @@ hoox db query "DELETE FROM trades; DELETE FROM positions; DELETE FROM balances; 
 
 ## 📋 D1 Free Tier Limits & Monitoring
 
-| Resource         | Free Tier Limit | Monitoring Command                                                                           |
-| ---------------- | --------------- | -------------------------------------------------------------------------------------------- |
-| Rows Read/Day    | 5,000,000       | `hoox db query "SELECT COUNT(*) FROM trades WHERE created_at >= date('now', '-1 day')"`      |
-| Rows Written/Day | 100,000         | `hoox db query "SELECT COUNT(*) FROM trades WHERE created_at >= date('now', '-1 day')"`      |
-| Storage          | 5 GB            | `hoox db query "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size()"` |
-| Max Connections  | Concurrent      | N/A — serverless, no connection pool                                                         |
+| Resource | Free Tier Limit | Monitoring Command |
+| --- | --- | --- |
+| Rows Read/Day | 5,000,000 | `hoox db query "SELECT COUNT(*) FROM trades WHERE created_at >= date('now', '-1 day')"` |
+| Rows Written/Day | 100,000 | `hoox db query "SELECT COUNT(*) FROM trades WHERE created_at >= date('now', '-1 day')"` |
+| Storage | 5 GB | `hoox db query "SELECT page_count * page_size FROM pragma_page_count(), pragma_page_size()"` |
+| Max Connections | Concurrent | N/A — serverless, no connection pool |
 
 ---
 
 ### 🔗 Next Steps
 
-- **[Local Development & Testing](local-development)** — Run your local V8 wrangler isolates with local D1 SQLite bindings.
-- **[Infrastructure Management](../guides/manage-infra)** — Manage KV config namespaces, Queue parameters, and R2 storage buckets.
-- **[Schema Reference](../../devops/architecture/storage)** — Detailed DDL documentation and storage engineering details.
+- [**Local Development & Testing**](local-development) — Run your local V8 wrangler isolates with local D1 SQLite bindings.
+- [**Infrastructure Management**](../guides/manage-infra) — Manage KV config namespaces, Queue parameters, and R2 storage buckets.
+- [**Schema Reference**](../../devops/architecture/storage) — Detailed DDL documentation and storage engineering details.
