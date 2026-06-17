@@ -134,7 +134,6 @@
   },
   "api": {
     "openapi": "docs/openapi-minimal.yaml",
-    "asyncapi": "docs/asyncapi-minimal.yaml",
     "playground": {
       "display": "interactive"
     },
