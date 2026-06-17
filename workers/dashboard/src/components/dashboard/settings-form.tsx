@@ -33,11 +33,9 @@ import { toast } from "sonner";
 import {
   Zap,
   Shield,
-  AlertTriangle,
   Brain,
   Bell,
   Save,
-  KeyRound,
   Database,
   Mail,
   Layers,

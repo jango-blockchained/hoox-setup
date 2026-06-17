@@ -453,6 +453,7 @@ function parseKvManifest(
 }
 
 /** ANSI escape sequence pattern for stripping terminal color codes */
+// eslint-disable-next-line no-control-regex -- intentional: matches ESC (\x1b) sequences
 const ANSI_PATTERN = /\x1b\[[0-9;]*[A-Za-z]/g;
 
 /** Remove ANSI color escape codes from a string. */

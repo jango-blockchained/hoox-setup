@@ -283,7 +283,7 @@ export function LogsViewer() {
     new Set()
   );
   const [searchText, setSearchText] = useState("");
-  const [focusZone, setFocusZone] = useState<"filters" | "stream">("filters");
+  const [, setFocusZone] = useState<"filters" | "stream">("filters");
 
   // ── Store subscriptions (selectors only) ────────────────────────────────
   const allLogs = useServiceStore((s) => s.logs);

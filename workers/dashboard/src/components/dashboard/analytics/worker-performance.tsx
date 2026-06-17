@@ -27,6 +27,13 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface WorkerPerformanceRow {
+  data_type: string;
+  total_requests: number;
+  total_errors: number;
+  avg_duration_ms: number;
+}
+
 const WORKERS = [
   "trade-worker",
   "agent-worker",
@@ -36,7 +43,7 @@ const WORKERS = [
 ];
 
 export function WorkerPerformance() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<WorkerPerformanceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorker, setSelectedWorker] = useState(WORKERS[0]);
   const [mounted, setMounted] = useState(false);
@@ -56,7 +63,10 @@ export function WorkerPerformance() {
         );
         url.searchParams.set("worker", selectedWorker);
         const res = await fetch(url.toString(), { signal: controller.signal });
-        const json = (await res.json()) as { success: boolean; data?: any[] };
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: WorkerPerformanceRow[];
+        };
         if (json.success) {
           setData(json.data || []);
         }

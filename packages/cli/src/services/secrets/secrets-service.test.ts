@@ -72,7 +72,7 @@ async function createService(workersJsonc?: string): Promise<SecretsService> {
   // Object.defineProperty with configurable:true fails because Bun.file
   // is not configurable, but direct assignment (which requires only writable)
   // works in Bun 1.3.x for individual Bun properties.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   (Bun as any).file = mock((path: string) => {
     if (typeof path === "string" && path.endsWith("wrangler.jsonc")) {
       return {
@@ -87,7 +87,7 @@ async function createService(workersJsonc?: string): Promise<SecretsService> {
   const svc = await SecretsService.create("wrangler.jsonc");
 
   // Restore original so subsequent tests aren't polluted
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   (Bun as any).file = originalBunFile;
 
   return svc;
@@ -172,7 +172,7 @@ describe("SecretsService", () => {
       const dir = tmpDir();
       try {
         // Override the worker path to point at the temp dir
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const result = await svc.checkLocalSecrets("trade-worker");
@@ -201,7 +201,7 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const result = await svc.checkLocalSecrets("trade-worker");
@@ -225,7 +225,7 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const result = await svc.checkLocalSecrets("trade-worker");
@@ -248,7 +248,7 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const result = await svc.checkLocalSecrets("trade-worker");
@@ -275,7 +275,7 @@ describe("SecretsService", () => {
       const dir = tmpDir();
       try {
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         const result = await svc.generateDevVars("telegram-worker");
@@ -295,7 +295,7 @@ describe("SecretsService", () => {
       const dir = tmpDir();
       try {
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["no-secrets-worker"].path = dir;
 
         const result = await svc.generateDevVars("no-secrets-worker");
@@ -320,7 +320,7 @@ describe("SecretsService", () => {
         writeFileSync(join(dir, ".dev.vars"), "OLD_KEY=old_value\n");
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         await svc.generateDevVars("telegram-worker");
@@ -348,12 +348,12 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         // Stub execWranglerSecretPut to avoid real wrangler calls.
         const called: Array<[string, string]> = [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
@@ -377,11 +377,11 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const called: Array<[string, string]> = [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
@@ -403,11 +403,11 @@ describe("SecretsService", () => {
       const dir = tmpDir();
       try {
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["trade-worker"].path = dir;
 
         const called: Array<[string, string]> = [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).execWranglerSecretPut = mock(
           async (_path: string, name: string, value: string) => {
             called.push([name, value]);
@@ -440,11 +440,11 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         // Stub execWranglerSecretPut to throw
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).execWranglerSecretPut = mock(async () => {
           throw new Error("wrangler command failed");
         });
@@ -460,7 +460,7 @@ describe("SecretsService", () => {
       const dir = tmpDir();
       try {
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["no-secrets-worker"].path = dir;
 
         const result = await svc.syncToCloudflare("no-secrets-worker");
@@ -489,7 +489,7 @@ describe("SecretsService", () => {
         );
 
         const svc = await createService();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         (svc as any).config.workers["telegram-worker"].path = dir;
 
         const result = await svc.checkLocalSecrets("telegram-worker");

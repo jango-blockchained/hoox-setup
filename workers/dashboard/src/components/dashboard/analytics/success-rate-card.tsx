@@ -50,7 +50,14 @@ export function SuccessRateCard() {
         );
         if (timeRangeParam) url.searchParams.set("timeRange", timeRangeParam);
         const res = await fetch(url.toString(), { signal: controller.signal });
-        const json = (await res.json()) as { success: boolean; data?: any[] };
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: {
+            total: number;
+            successes: number;
+            success_rate: number;
+          }[];
+        };
         if (json.success && json.data && json.data.length > 0) {
           setData(json.data[0]);
         }

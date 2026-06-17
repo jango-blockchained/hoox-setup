@@ -7,7 +7,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,14 +19,12 @@ import {
   Copy,
   CloudOff,
   Cloud,
-  Check,
   Activity,
   Clock,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CF_SERVICES } from "@/components/ui/cf-service-badge";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -37,6 +34,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+interface HousekeepingCheck {
+  service: string;
+  status: "ok" | "error";
+  detail: string;
+}
+
+interface HousekeepingResult {
+  timestamp?: string;
+  error?: string;
+  checks?: HousekeepingCheck[];
+}
 
 const REQUIRED_SECRETS = [
   {
@@ -177,7 +186,9 @@ function CircularProgress({ value, total }: { value: number; total: number }) {
 }
 
 export function SetupChecklist() {
-  const [housekeeping, setHousekeeping] = useState<any>(null);
+  const [housekeeping, setHousekeeping] = useState<HousekeepingResult | null>(
+    null
+  );
   const [secretsList, setSecretsList] = useState(
     REQUIRED_SECRETS.map((req) => ({
       ...req,
@@ -197,7 +208,7 @@ export function SetupChecklist() {
       toast.success("Webhook connection successful!", {
         description: "Gateway is reachable.",
       });
-    } catch (e) {
+    } catch {
       toast.error("Webhook test failed.");
     } finally {
       setIsTestingWebhook(false);
@@ -208,7 +219,7 @@ export function SetupChecklist() {
     setLoading(true);
     try {
       const res = await api.getHousekeeping();
-      setHousekeeping(res);
+      setHousekeeping(res as HousekeepingResult);
     } catch (e) {
       setHousekeeping({ error: String(e) });
     }
@@ -399,9 +410,8 @@ export function SetupChecklist() {
                 <span className="font-bold text-emerald-500">
                   {housekeeping?.checks
                     ? Math.round(
-                        (housekeeping.checks.filter(
-                          (c: any) => c.status === "ok"
-                        ).length /
+                        (housekeeping.checks.filter((c) => c.status === "ok")
+                          .length /
                           housekeeping.checks.length) *
                           100
                       )
@@ -412,7 +422,7 @@ export function SetupChecklist() {
               <Progress
                 value={
                   housekeeping?.checks
-                    ? (housekeeping.checks.filter((c: any) => c.status === "ok")
+                    ? (housekeeping.checks.filter((c) => c.status === "ok")
                         .length /
                         housekeeping.checks.length) *
                       100
@@ -443,7 +453,7 @@ export function SetupChecklist() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {housekeeping.checks.map((check: any, i: number) => (
+                    {housekeeping.checks.map((check, i) => (
                       <tr
                         key={i}
                         className="hover:bg-muted/30 transition-colors"

@@ -4,4 +4,5 @@ export interface DashboardEnv {
   CONFIG_KV: KVNamespace;
   D1_SERVICE: Fetcher;
   AGENT_SERVICE: Fetcher;
+  AGENT_INTERNAL_KEY?: string;
 }

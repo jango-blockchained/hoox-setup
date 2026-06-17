@@ -16,10 +16,35 @@ import { useState, useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
+interface AgentConfig {
+  defaultProvider?: string;
+  fallbackChain?: string[];
+  trailingStopPercent?: number;
+  takeProfitPercent?: number;
+  maxDailyDrawdownPercent?: number;
+}
+
+interface AgentStatus {
+  killSwitch?: boolean;
+  config?: AgentConfig;
+  activeStops?: number;
+}
+
+interface AgentStatusResponse {
+  success: boolean;
+  status?: AgentStatus;
+}
+
+interface KillSwitchResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 export default function AgentClient() {
   const [status, setStatus] = useState<{
     killSwitch?: boolean;
-    config?: any;
+    config?: AgentConfig;
     activeStops?: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,9 +54,9 @@ export default function AgentClient() {
     setLoading(true);
     try {
       const res = await fetch("/api/agent/status", { signal });
-      const data: any = await res.json();
+      const data = (await res.json()) as AgentStatusResponse;
       if (data.success) {
-        setStatus(data.status);
+        setStatus(data.status ?? null);
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return;
@@ -57,14 +82,14 @@ export default function AgentClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as KillSwitchResponse;
       if (data.success) {
         toast.success(data.message);
         fetchStatus();
       } else {
         toast.error(data.error || "Action failed");
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to update kill switch");
     } finally {
       setActionLoading(false);

@@ -121,14 +121,17 @@ export function WorkersOverview() {
         const res = await fetch("/api/agent/status", {
           signal: controller.signal,
         });
-        const data: any = await res.json();
+        const data = (await res.json()) as {
+          success: boolean;
+          status?: { killSwitch?: boolean };
+        };
         if (data.success && data.status) {
           setWorkers((prev) =>
             prev.map((w) => {
               if (w.name === "agent-worker") {
                 return {
                   ...w,
-                  status: data.status.killSwitch
+                  status: data.status?.killSwitch
                     ? ("idle" as const)
                     : ("active" as const),
                   metrics: {

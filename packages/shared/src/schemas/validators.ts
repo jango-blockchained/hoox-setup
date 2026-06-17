@@ -1,6 +1,17 @@
 import { parse } from "jsonc-parser";
 import type { WorkerManifest, ValidationError } from "./types.js";
 
+/** Shape of a parsed wrangler.jsonc object — fields we read for validation. */
+interface ParsedWrangler {
+  vars?: Record<string, unknown>;
+  services?: Array<{ binding: string; service: string }>;
+}
+
+/** Shape of a parsed root wrangler.jsonc — we only need per-worker secret lists. */
+interface ParsedRootWrangler {
+  workers?: Record<string, { secrets?: string[] }>;
+}
+
 /**
  * Validate a per-worker wrangler.jsonc against its manifest.
  * Returns an array of errors (empty = perfect match).
@@ -11,7 +22,7 @@ export function validateWranglerJsonc(
   jsoncContent: string
 ): ValidationError[] {
   const errors: ValidationError[] = [];
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = parse(jsoncContent);
   } catch {
@@ -34,8 +45,10 @@ export function validateWranglerJsonc(
     return errors;
   }
 
+  const wrangler = parsed as ParsedWrangler;
+
   // Check vars
-  const declaredVars = parsed?.vars ?? {};
+  const declaredVars = wrangler.vars ?? {};
   for (const [name, def] of Object.entries(manifest.vars)) {
     if (!(name in declaredVars)) {
       errors.push({
@@ -72,16 +85,14 @@ export function validateWranglerJsonc(
   }
 
   // Check services
-  const declaredServices: Array<{ binding: string; service: string }> =
-    parsed?.services ?? [];
+  const declaredServices = wrangler.services ?? [];
   for (const expected of manifest.services) {
     const match = declaredServices.find(
-      (s: any) =>
-        s.binding === expected.binding && s.service === expected.service
+      (s) => s.binding === expected.binding && s.service === expected.service
     );
     if (!match) {
       const declared = declaredServices.find(
-        (s: any) => s.binding === expected.binding
+        (s) => s.binding === expected.binding
       );
       if (declared) {
         errors.push({
@@ -128,7 +139,7 @@ export function validateRootSecrets(
   rootJsoncContent: string
 ): ValidationError[] {
   const errors: ValidationError[] = [];
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = parse(rootJsoncContent);
   } catch {
@@ -150,7 +161,9 @@ export function validateRootSecrets(
     return errors;
   }
 
-  const rootSecrets: string[] = parsed?.workers?.[workerName]?.secrets ?? [];
+  const rootWrangler = parsed as ParsedRootWrangler;
+  const rootSecrets: string[] =
+    rootWrangler.workers?.[workerName]?.secrets ?? [];
   const expectedSecrets = Object.entries(manifest.vars)
     .filter(([_, def]) => def.type === "secret")
     .map(([name]) => name);

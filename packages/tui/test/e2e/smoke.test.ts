@@ -37,11 +37,13 @@ const REQUIRED_PATTERNS: { name: string; pattern: RegExp }[] = [
   { name: "Workers view label", pattern: /Workers/i },
   { name: "Settings view label", pattern: /Settings/i },
   { name: "Status bar hints", pattern: /Ctrl\+[PQ]/i },
+  // eslint-disable-next-line no-control-regex -- intentional: matches ESC (\x1b) sequences
   { name: "Alternate screen enter", pattern: /\x1b\[\?1049h/ },
 ];
 
 /** Patterns that should appear on clean exit */
 const EXIT_PATTERNS: { name: string; pattern: RegExp }[] = [
+  // eslint-disable-next-line no-control-regex -- intentional: matches ESC (\x1b) sequences
   { name: "Alternate screen exit", pattern: /\x1b\[\?1049l/ },
 ];
 

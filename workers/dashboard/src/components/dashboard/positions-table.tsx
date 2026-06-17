@@ -63,24 +63,6 @@ interface Position {
 
 const initialPositions: Position[] = [];
 
-function getPositionSafe(pos: Partial<Position>): Position {
-  return {
-    id: pos.id ?? 0,
-    exchange: pos.exchange ?? "",
-    symbol: pos.symbol ?? "",
-    side: pos.side ?? "LONG",
-    size: pos.size ?? 0,
-    entryPrice: pos.entryPrice ?? 0,
-    currentPrice: pos.currentPrice ?? 0,
-    pnl: pos.pnl ?? 0,
-    pnlPercent: pos.pnlPercent ?? 0,
-    leverage: pos.leverage ?? 1,
-    status: pos.status ?? "open",
-    openedAt: pos.openedAt ?? Date.now(),
-    updatedAt: pos.updatedAt ?? Date.now(),
-  };
-}
-
 function formatTimeAgo(timestamp: number) {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
   if (seconds < 60) return `${seconds}s ago`;

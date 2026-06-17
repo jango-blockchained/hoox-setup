@@ -267,7 +267,7 @@ export function agentChatStream(
         if (completed || abortController.signal.aborted) {
           break;
         }
-      } catch (err) {
+      } catch {
         if (abortController.signal.aborted || completed) break;
 
         onStatus?.("reconnecting");

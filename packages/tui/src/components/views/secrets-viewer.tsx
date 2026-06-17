@@ -116,10 +116,10 @@ interface SearchBoxProps {
 
 function SearchBox({
   query,
-  onChange,
+  onChange: _onChange,
   active,
   onActivate,
-  onDeactivate,
+  onDeactivate: _onDeactivate,
 }: SearchBoxProps) {
   // Note: keyboard handling for search is delegated to global handler below
   // to avoid conflicts with the main view's keyboard handling.

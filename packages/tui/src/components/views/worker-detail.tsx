@@ -173,7 +173,7 @@ function LogsPane({
   const [paused, setPaused] = useState(false);
 
   // Auto-scroll: track whether we're at the bottom
-  const [_autoScroll, setAutoScroll] = useState(true);
+  const [, setAutoScroll] = useState(true);
 
   // When not paused, always show newest entries
   useEffect(() => {

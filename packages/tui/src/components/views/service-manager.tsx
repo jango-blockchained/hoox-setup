@@ -76,32 +76,6 @@ const EDGE_LOCATIONS: EdgeLocation[] = [
 const MAP_WIDTH = 60;
 const MAP_HEIGHT = 12;
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Resolve a single-character edge dot for a worker status */
-function statusChar(status: WorkerInfo["status"]): string {
-  switch (status) {
-    case "operational":
-      return "█";
-    case "degraded":
-      return "▌";
-    case "down":
-      return "░";
-  }
-}
-
-/** Resolve a color for a worker status */
-function statusColor(status: WorkerInfo["status"]): string {
-  switch (status) {
-    case "operational":
-      return Colors.success;
-    case "degraded":
-      return Colors.warning;
-    case "down":
-      return Colors.error;
-  }
-}
-
 // ─── Edge Map Component ─────────────────────────────────────────────────────
 
 function EdgeMap() {

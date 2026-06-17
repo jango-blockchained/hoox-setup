@@ -8,7 +8,6 @@ const settingsValueSchema = z.unknown();
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type Settings = Record<string, string | number | boolean | undefined>;
 type AllSettings = Record<
   string,
   Record<string, string | number | boolean | undefined>
@@ -84,14 +83,14 @@ function stripWorkerPrefix(kvKey: string, worker: string): string {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   _context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
     const env = getCloudflareContext().env as DashboardEnv;
 
     if (env.CONFIG_KV) {
-      const settings: Record<string, any> = {};
+      const settings: Record<string, unknown> = {};
       const prefixes = [
         "global:",
         "webhook:",
@@ -130,7 +129,13 @@ export async function GET(
         if (worker) {
           const cleanKey = stripWorkerPrefix(key, worker);
           if (!normalized[worker]) normalized[worker] = {};
-          normalized[worker][cleanKey] = value;
+          if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+          ) {
+            normalized[worker][cleanKey] = value;
+          }
         }
       }
 
@@ -156,7 +161,7 @@ export async function GET(
           string,
           string | number | boolean
         >;
-        const normalized: Record<string, any> = {};
+        const normalized: AllSettings = {};
 
         for (const [key, value] of Object.entries(settings)) {
           const worker = findWorkerByPrefix(key);

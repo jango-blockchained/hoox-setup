@@ -67,6 +67,99 @@ Object.assign(global, {
 global.Response = Response;
 global.Request = Request;
 global.Headers = Headers;
+// yoga-layout (dep of @opentui/core) uses fetch() with a data: URL to load
+// its WASM binary. Bun's native fetch doesn't support data: URLs, so we wrap
+// it with a polyfill that handles data: URLs by decoding the base64 content.
+const _nativeFetch = fetch;
+global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+  const url =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  if (typeof url === "string" && url.startsWith("data:")) {
+    const commaIdx = url.indexOf(",");
+    const isBase64 = url.slice(0, commaIdx).includes(";base64");
+    const data = url.slice(commaIdx + 1);
+    const bytes = isBase64
+      ? Uint8Array.from(atob(data), (c) => c.charCodeAt(0))
+      : new TextEncoder().encode(decodeURIComponent(data));
+    return Promise.resolve(
+      new Response(bytes, {
+        status: 200,
+        headers: { "Content-Type": url.slice(5, commaIdx).split(";")[0] },
+      })
+    );
+  }
+  return _nativeFetch(input, init);
+}) as typeof fetch;
+
+// Mock yoga-layout to prevent WASM loading failures in test environment.
+// yoga-layout's WASM loader uses fetch() with a data: URL which may fail
+// in isolated test contexts. This mock provides a stub Node interface
+// sufficient for @opentui/core's layout calculations.
+//
+// We mock both the package name AND the WASM loader file to ensure
+// coverage regardless of how bun resolves the module.
+mock.module("yoga-layout", () => ({
+  default: {
+    Node: {
+      create: () => createMockNode(),
+    },
+  },
+}));
+
+// Also mock the WASM loader entry point that causes the fetch() error
+mock.module("yoga-layout/dist/binaries/yoga-wasm-base64-esm.js", () => ({
+  default: {
+    Node: {
+      create: () => createMockNode(),
+    },
+  },
+}));
+
+function createMockNode() {
+  return {
+    setWidth: () => {},
+    setHeight: () => {},
+    setMinWidth: () => {},
+    setMinHeight: () => {},
+    setMaxWidth: () => {},
+    setMaxHeight: () => {},
+    setFlexDirection: () => {},
+    setJustifyContent: () => {},
+    setAlignItems: () => {},
+    setAlignSelf: () => {},
+    setAlignContent: () => {},
+    setFlexWrap: () => {},
+    setFlexGrow: () => {},
+    setFlexShrink: () => {},
+    setFlexBasis: () => {},
+    setPositionType: () => {},
+    setPosition: () => {},
+    setMargin: () => {},
+    setPadding: () => {},
+    setBorder: () => {},
+    setDisplay: () => {},
+    setOverflow: () => {},
+    insertChild: () => {},
+    removeChild: () => {},
+    getChildCount: () => 0,
+    getChild: () => null,
+    calculateLayout: () => {},
+    getComputedLayout: () => ({
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+    }),
+    free: () => {},
+    freeRecursive: () => {},
+  };
+}
 
 // ── 3. Mock the workerd `cloudflare:workers` module ─────────────────────────
 //

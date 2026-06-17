@@ -38,7 +38,9 @@ function checkEnvVar(name: string): string | null {
   try {
     const val = process.env[name];
     if (val && val.length > 0) return val;
-  } catch {}
+  } catch {
+    // intentionally ignored — env var access should not throw, but be defensive
+  }
   return null;
 }
 
@@ -58,7 +60,9 @@ function checkDevVars(): Record<string, string> {
         const value = trimmed.slice(eqIdx + 1).trim();
         if (key && value) found[key] = value;
       }
-    } catch {}
+    } catch {
+      // intentionally ignored — .dev.vars file may not exist yet
+    }
   }
 
   return found;

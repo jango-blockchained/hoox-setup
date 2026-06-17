@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   BarChart,
   Bar,
@@ -44,8 +43,15 @@ const chartConfig = {
   },
 };
 
+interface TradeMetricsRow {
+  exchange: string;
+  trade_count: number;
+  success_count: number;
+  failure_count: number;
+}
+
 export function TradeMetricsChart() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<TradeMetricsRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("7d");
   const [mounted, setMounted] = useState(false);
@@ -72,7 +78,10 @@ export function TradeMetricsChart() {
           `/api/analytics/trade-metrics?start=${start}&end=${end}`,
           { signal: controller.signal }
         );
-        const json = (await res.json()) as { success: boolean; data?: any[] };
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: TradeMetricsRow[];
+        };
         if (json.success) {
           setData(json.data || []);
         }

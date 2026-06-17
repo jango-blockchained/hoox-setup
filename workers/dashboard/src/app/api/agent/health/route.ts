@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { Ai } from "@cloudflare/workers-types";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 import type { DashboardEnv } from "@/lib/env";
 
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest) {
   try {
-    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: Ai };
 
     const providers = [
       { name: "workers-ai", available: !!env.AI },

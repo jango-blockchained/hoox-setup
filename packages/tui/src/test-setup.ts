@@ -18,6 +18,11 @@
  * imports trigger resolveRenderLib. It also wraps createTestRenderer with
  * error handling for environments where the native library is absent.
  */
+
+// yoga-layout (dep of @opentui/core) uses fetch() to load its WASM binary.
+// Must be set BEFORE @opentui/core is imported below.
+global.fetch = fetch;
+
 import { mock } from "bun:test";
 
 // ── Module-level state ────────────────────────────────────────────────────────
@@ -102,7 +107,7 @@ mock.module("@opentui/core/testing", () => {
     MockTreeSitterClient: class {},
     KeyCodes: {},
     MouseButtons: {},
-    pasteBytes: (s: string) => new Uint8Array(),
+    pasteBytes: (_s: string) => new Uint8Array(),
     createMockKeys: () => ({}),
     createMockMouse: () => ({}),
     TestRecorder: class {},
@@ -126,7 +131,7 @@ function shareTestingExports(): Record<string, any> {
     MockTreeSitterClient: class {},
     KeyCodes: {},
     MouseButtons: {},
-    pasteBytes: (s: string) => new Uint8Array(),
+    pasteBytes: (_s: string) => new Uint8Array(),
     createMockKeys: () => ({}),
     createMockMouse: () => ({}),
     TestRecorder: class {},

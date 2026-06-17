@@ -23,9 +23,14 @@ import { useState } from "react";
 
 const PROVIDERS = ["workers-ai", "openai", "anthropic", "google", "azure"];
 
+interface ConfigResponse {
+  success: boolean;
+  error?: string;
+}
+
 export function ModelConfig() {
   const [defaultProvider, setDefaultProvider] = useState("workers-ai");
-  const [fallbackChain, setFallbackChain] = useState(["workers-ai", "openai"]);
+  const fallbackChain = ["workers-ai", "openai"];
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -41,7 +46,7 @@ export function ModelConfig() {
         }),
         signal: controller.signal,
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as ConfigResponse;
       if (data.success) {
         toast.success("Configuration saved");
       } else {

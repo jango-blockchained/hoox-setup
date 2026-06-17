@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { Ai } from "@cloudflare/workers-types";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 import type { DashboardEnv } from "@/lib/env";
 import { agentConfigSchema } from "@/lib/agent-config-schema";
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       return Errors.badRequest("Messages are required");
     }
 
-    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: Ai };
 
     let selectedModel = model;
     if (!selectedModel && env.CONFIG_KV) {
@@ -56,10 +57,11 @@ export async function POST(request: NextRequest) {
 
     if (stream && env.AI) {
       const encoder = new TextEncoder();
+      const ai = env.AI;
       const stream = new ReadableStream({
         async start(controller) {
           try {
-            const result = await env.AI.run(selectedModel, {
+            const result = await ai.run(selectedModel, {
               messages,
               temperature,
               max_tokens: maxTokens,
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
             });
 
             if (result && typeof result === "object" && "response" in result) {
-              const aiStream = result.response;
+              const aiStream = result.response as ReadableStream<Uint8Array>;
               if (aiStream && typeof aiStream.getReader === "function") {
                 const reader = aiStream.getReader();
                 while (true) {
@@ -105,7 +107,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (env.AI) {
-      const result = await env.AI.run(selectedModel, {
+      const ai = env.AI;
+      const result = await ai.run(selectedModel, {
         messages,
         temperature,
         max_tokens: maxTokens,
@@ -113,7 +116,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        response: result.response || String(result),
+        response: (result as { response?: string }).response || String(result),
         model: selectedModel,
       });
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Brain,
@@ -45,20 +45,18 @@ const insights: AIInsight[] = [
 export function AiHealthCard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [riskLevel, setRiskLevel] = useState(23);
-  const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [displayedInsights, setDisplayedInsights] = useState<AIInsight[]>([
     insights[0],
   ]);
+  const indexRef = useRef(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentInsightIndex((prev) => {
-        const next = (prev + 1) % insights.length;
-        setDisplayedInsights((current) => {
-          const newInsights = [insights[next], ...current];
-          return newInsights.slice(0, 3);
-        });
-        return next;
+      const next = (indexRef.current + 1) % insights.length;
+      indexRef.current = next;
+      setDisplayedInsights((current) => {
+        const newInsights = [insights[next], ...current];
+        return newInsights.slice(0, 3);
       });
     }, 8000);
     return () => clearInterval(interval);

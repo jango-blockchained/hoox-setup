@@ -17,7 +17,7 @@ export async function POST() {
       );
     }
 
-    const internalKey = (env as any).AGENT_INTERNAL_KEY;
+    const internalKey = env.AGENT_INTERNAL_KEY;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };

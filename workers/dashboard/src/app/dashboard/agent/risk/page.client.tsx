@@ -8,6 +8,17 @@ import { Shield } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { toast } from "sonner";
 
+interface AgentStatusResponse {
+  success: boolean;
+  status?: { killSwitch?: boolean };
+}
+
+interface KillSwitchResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 export default function RiskClient() {
   const [killSwitchActive, setKillSwitchActive] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,7 +26,7 @@ export default function RiskClient() {
   const fetchStatus = async (signal?: AbortSignal) => {
     try {
       const res = await fetch("/api/agent/status", { signal });
-      const data: any = await res.json();
+      const data = (await res.json()) as AgentStatusResponse;
       if (data.success) {
         setKillSwitchActive(data.status?.killSwitch || false);
       }
@@ -42,14 +53,14 @@ export default function RiskClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as KillSwitchResponse;
       if (data.success) {
         toast.success(data.message);
         fetchStatus();
       } else {
         toast.error(data.error || "Action failed");
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to toggle kill switch");
     }
   };

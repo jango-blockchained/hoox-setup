@@ -74,7 +74,7 @@ describe("api-client", () => {
 
     // Mock sleep to avoid waiting in tests
     const originalSetTimeout = global.setTimeout;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (global as any).setTimeout = (cb: () => void) => cb();
 
     const result = await hooxFetch("/test");
@@ -99,7 +99,7 @@ describe("api-client", () => {
 
     // Mock sleep to avoid waiting in tests
     const originalSetTimeout = global.setTimeout;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (global as any).setTimeout = (cb: () => void) => cb();
 
     const result = await hooxFetch("/test");

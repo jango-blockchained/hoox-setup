@@ -15,6 +15,11 @@ import { FieldGroup } from "@/components/ui/field";
 import { toast } from "sonner";
 import { useState } from "react";
 
+interface ConfigResponse {
+  success: boolean;
+  error?: string;
+}
+
 export function RiskParameters() {
   const [drawdown, setDrawdown] = useState(-5);
   const [trailingStop, setTrailingStop] = useState(5);
@@ -35,7 +40,7 @@ export function RiskParameters() {
         }),
         signal: controller.signal,
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as ConfigResponse;
       if (data.success) {
         toast.success("Risk parameters saved");
       } else {

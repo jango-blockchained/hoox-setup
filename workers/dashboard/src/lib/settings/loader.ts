@@ -1,10 +1,4 @@
-import type {
-  DashboardSection,
-  WorkerDashboardConfig,
-  MergedSettings,
-  SettingField,
-  SettingOption,
-} from "./types";
+import type { DashboardSection, MergedSettings, SettingField } from "./types";
 
 export interface WorkerConfigManifest {
   worker: string;
@@ -249,7 +243,7 @@ export function flattenSettings(
 }
 
 export async function getRuntimeOverrides(
-  workerNames: string[]
+  _workerNames: string[]
 ): Promise<Record<string, string | number | boolean>> {
   try {
     const res = await fetch(`/api/settings`);

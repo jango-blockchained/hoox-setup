@@ -125,70 +125,6 @@ function generateSignal(): Signal {
   };
 }
 
-function SignalParticle({
-  signal,
-  stageIndex,
-  totalStages,
-  onComplete,
-}: {
-  signal: Signal;
-  stageIndex: number;
-  totalStages: number;
-  onComplete: () => void;
-}) {
-  const progress = (stageIndex + 1) / totalStages;
-  const stage = stages[stageIndex];
-
-  useEffect(() => {
-    const timer = setTimeout(onComplete, 800 + Math.random() * 400);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
-
-  return (
-    <motion.div
-      className="absolute z-20"
-      initial={{
-        left: `${(stageIndex / totalStages) * 100}%`,
-        opacity: 0,
-        scale: 0,
-      }}
-      animate={{
-        left: `${((stageIndex + 0.5) / totalStages) * 100}%`,
-        opacity: 1,
-        scale: 1,
-      }}
-      exit={{
-        left: `${((stageIndex + 1) / totalStages) * 100}%`,
-        opacity: 0,
-        scale: 0,
-      }}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
-      style={{ top: "50%", transform: "translateY(-50%)" }}
-    >
-      <motion.div
-        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium bg-gradient-to-r ${stage?.color} text-white shadow-lg`}
-        animate={{
-          boxShadow: [
-            "0 0 10px rgba(255,255,255,0.3)",
-            "0 0 20px rgba(255,255,255,0.5)",
-            "0 0 10px rgba(255,255,255,0.3)",
-          ],
-        }}
-        transition={{ duration: 1, repeat: Infinity }}
-      >
-        <span
-          className={
-            signal.action === "BUY" ? "text-green-200" : "text-red-200"
-          }
-        >
-          {signal.action}
-        </span>
-        <span>{signal.symbol.split("/")[0]}</span>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 function StageNode({
   stage,
   isActive,
@@ -281,12 +217,10 @@ function StageNode({
 
 function ConnectionLine({
   fromStage,
-  toStage,
   isActive,
   hasSignal,
 }: {
   fromStage: number;
-  toStage: number;
   isActive: boolean;
   hasSignal: boolean;
 }) {
@@ -528,7 +462,6 @@ export function SignalFlowVisualization() {
                 {index < stages.length - 1 && (
                   <ConnectionLine
                     fromStage={index}
-                    toStage={index + 1}
                     isActive={stageStats[index].processed > 0}
                     hasSignal={signals.some(
                       (s) =>

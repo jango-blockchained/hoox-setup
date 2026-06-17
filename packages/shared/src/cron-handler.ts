@@ -11,8 +11,8 @@ export interface CronHandlerOptions<Env = unknown> {
   ) => Promise<void> | void;
   /** Optional logger instance */
   logger?: {
-    info(message: string, data?: Record<string, any>): void;
-    error(message: string, data?: Record<string, any>): void;
+    info(message: string, data?: Record<string, unknown>): void;
+    error(message: string, data?: Record<string, unknown>): void;
   };
 }
 

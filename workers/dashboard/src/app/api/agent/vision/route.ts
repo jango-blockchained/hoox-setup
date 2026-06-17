@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { Ai } from "@cloudflare/workers-types";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 import type { DashboardEnv } from "@/lib/env";
 import { agentConfigSchema } from "@/lib/agent-config-schema";
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       return Errors.badRequest("imageUrl or imageBase64 is required");
     }
 
-    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: Ai };
 
     let selectedModel = model;
     if (!selectedModel && env.CONFIG_KV) {

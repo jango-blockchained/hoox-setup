@@ -112,10 +112,10 @@ export function requireInternalAuth(
  */
 export function createInternalAuthMiddleware(
   keyName: string = "INTERNAL_KEY_BINDING"
-): MiddlewareHandler<any> {
+): MiddlewareHandler<InternalAuthEnv> {
   return async (
     request: Request,
-    env: any,
+    env: InternalAuthEnv,
     _ctx: ExecutionContext
   ): Promise<Response | void> => {
     const expectedKey = env[keyName] as string | undefined;

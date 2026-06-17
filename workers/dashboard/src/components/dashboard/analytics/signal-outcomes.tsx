@@ -27,8 +27,16 @@ import { Badge } from "@/components/ui/badge";
 import { Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface SignalOutcomeRow {
+  source: string;
+  signal_type: string;
+  symbol: string;
+  signal_count: number;
+  avg_confidence: number;
+}
+
 export function SignalOutcomes() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<SignalOutcomeRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30d");
   const [mounted, setMounted] = useState(false);
@@ -51,7 +59,10 @@ export function SignalOutcomes() {
           );
         }
         const res = await fetch(url.toString(), { signal: controller.signal });
-        const json = (await res.json()) as { success: boolean; data?: any[] };
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: SignalOutcomeRow[];
+        };
         if (json.success) {
           setData(json.data || []);
         }

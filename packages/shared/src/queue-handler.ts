@@ -6,7 +6,7 @@ export interface QueueHandlerOptions<T> {
   /** Array of delay times in seconds for exponential backoff */
   backoffDelays: number[];
   /** Handler function called for each message */
-  onMessage: (message: T, attemptNumber: number) => Promise<any> | any;
+  onMessage: (message: T, attemptNumber: number) => Promise<unknown> | unknown;
   /** Called when a message fails and will be retried */
   onRetry?: (
     message: T,
@@ -22,8 +22,8 @@ export interface QueueHandlerOptions<T> {
   ) => void | Promise<void>;
   /** Logger function for debugging */
   logger?: {
-    info(msg: string, data?: any): void;
-    error(msg: string, data?: any): void;
+    info(msg: string, data?: unknown): void;
+    error(msg: string, data?: unknown): void;
   };
 }
 

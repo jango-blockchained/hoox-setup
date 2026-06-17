@@ -237,7 +237,11 @@ const PALETTE_COMMANDS: CommandEntry[] = [
  *   2. On unmount (cleanup): save session to $HOME/.hoox/.tui-state/session.json
  *   3. Crash: CrashScreen rendered with [Restart] [Safe Mode] [Report Bug]
  */
-export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
+export function AppRoot({
+  safeMode: _safeMode = false,
+}: {
+  safeMode?: boolean;
+}) {
   const [restoring, setRestoring] = useState(true);
   const activeView = useUIStore((s) => s.activeView);
   const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);

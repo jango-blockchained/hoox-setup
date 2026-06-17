@@ -312,11 +312,6 @@ function ThemePanel({
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const resetDefaults = useConfigStore((s) => s.resetDefaults);
 
-  const currentRateIndex = REFRESH_RATES.indexOf(
-    refreshIntervalMs as (typeof REFRESH_RATES)[number]
-  );
-  const currentViewIndex = VIEW_OPTIONS.indexOf(defaultView);
-
   const isDark = theme === "dark";
 
   return (
@@ -852,9 +847,7 @@ export function SettingsView() {
   const defaultView = useConfigStore((s) => s.defaultView);
   const resetDefaults = useConfigStore((s) => s.resetDefaults);
   const toggleNotification = useConfigStore((s) => s.toggleNotification);
-  const notifications = useConfigStore((s) => s.notifications);
   const soundEnabled = useConfigStore((s) => s.soundEnabled);
-  const theme = useConfigStore((s) => s.theme);
 
   // ── Data panel handlers ────────────────────────────────────────────────────
 

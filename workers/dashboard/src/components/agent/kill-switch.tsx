@@ -5,7 +5,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Shield, ShieldOff } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 interface KillSwitchProps {
   active: boolean;

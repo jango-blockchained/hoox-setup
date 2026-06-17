@@ -24,6 +24,14 @@ import { Brain, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
+interface ReasoningResponse {
+  success: boolean;
+  reasoning?: string;
+  answer?: string;
+  response?: string;
+  error?: string;
+}
+
 export function ReasoningPanel() {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("workers-ai");
@@ -48,10 +56,10 @@ export function ReasoningPanel() {
         body: JSON.stringify({ prompt, model, reasoningEffort: effort }),
         signal: controller.signal,
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as ReasoningResponse;
       if (data.success) {
-        setReasoning(data.reasoning || null);
-        setAnswer(data.answer || data.response);
+        setReasoning(data.reasoning ?? null);
+        setAnswer(data.answer ?? data.response ?? null);
         toast.success("Reasoning complete");
       } else {
         toast.error(data.error || "Reasoning failed");

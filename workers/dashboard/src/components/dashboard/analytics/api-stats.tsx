@@ -27,10 +27,17 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface ApiStatRow {
+  endpoint: string;
+  call_count: number;
+  success_count: number;
+  avg_latency_ms: number;
+}
+
 const EXCHANGES = ["Binance", "Bybit", "MEXC", "all"];
 
 export function ApiStats() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<ApiStatRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedExchange, setSelectedExchange] = useState("all");
   const [mounted, setMounted] = useState(false);
@@ -49,7 +56,10 @@ export function ApiStats() {
           url.searchParams.set("exchange", selectedExchange);
         }
         const res = await fetch(url.toString(), { signal: controller.signal });
-        const json = (await res.json()) as { success: boolean; data?: any[] };
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: ApiStatRow[];
+        };
         if (json.success) {
           setData(json.data || []);
         }

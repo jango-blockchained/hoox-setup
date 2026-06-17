@@ -157,12 +157,12 @@ function SparkLine({ data, positive }: { data: number[]; positive: boolean }) {
 
 export function MetricsCards() {
   const [metrics, setMetrics] = useState(initialMetrics);
-  const [sparkData, setSparkData] = useState<Record<string, number[]>>({
+  const sparkData: Record<string, number[]> = {
     "Total Trades": [0, 0, 0, 0, 0, 0, 0],
     "Win Rate": [0, 0, 0, 0, 0, 0, 0],
     "Open Positions": [0, 0, 0, 0, 0, 0, 0],
     "Daily Drawdown": [0, 0, 0, 0, 0, 0, 0],
-  });
+  };
 
   useEffect(() => {
     async function fetchStats() {

@@ -148,8 +148,12 @@ export default [
       },
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
+      // Test files intentionally use `any` for mocks/fixtures and may have
+      // unused parameters across AAA phases. AGENTS.md: "ESLint relaxes
+      // rules in test files". The `argsIgnorePattern: "^_"` from the main
+      // rule config still applies if these rules are re-enabled later.
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/ban-ts-comment": "warn",
       "no-empty": "warn",
     },

@@ -290,7 +290,7 @@ beforeEach(() => {
   installClackSpies();
 
   // Mock Bun.write to capture all file writes
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   spyOn(Bun, "write" as any).mockImplementation(
     async (path: string | URL, content: string | Uint8Array) => {
       captured.writes[String(path)] =
@@ -302,7 +302,7 @@ beforeEach(() => {
   );
 
   // Mock Bun.file to simulate filesystem (no existing wrangler.jsonc by default)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   spyOn(Bun, "file" as any).mockImplementation(
     (_path: string | URL) =>
       ({
@@ -408,7 +408,6 @@ describe("init command", () => {
     });
 
     it("collects account ID with default from existing wrangler.jsonc", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const fileSpy = spyOn(Bun, "file" as any).mockImplementation(
         (path: string) => {
           if (path === "wrangler.jsonc") {

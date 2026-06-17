@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { Ai } from "@cloudflare/workers-types";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 import type { DashboardEnv } from "@/lib/env";
 
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const { provider = "workers-ai", model, prompt = "Say hello" } = body;
 
-    const env = getCloudflareContext().env as DashboardEnv & { AI?: any };
+    const env = getCloudflareContext().env as DashboardEnv & { AI?: Ai };
 
     const start = Date.now();
 

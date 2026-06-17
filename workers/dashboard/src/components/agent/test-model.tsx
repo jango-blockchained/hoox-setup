@@ -23,6 +23,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useState } from "react";
 import { toast } from "sonner";
 
+interface TestModelResponse {
+  success: boolean;
+  response?: string;
+  error?: string;
+}
+
 export function TestModel() {
   const [provider, setProvider] = useState("workers-ai");
   const [model, setModel] = useState("");
@@ -41,9 +47,9 @@ export function TestModel() {
         body: JSON.stringify({ provider, model, prompt }),
         signal: controller.signal,
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as TestModelResponse;
       if (data.success) {
-        setResult(data.response);
+        setResult(data.response ?? null);
         toast.success("Test successful");
       } else {
         toast.error(data.error || "Test failed");

@@ -7,8 +7,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
-import { Pie, PieChart, Sector } from "recharts";
-import { useState } from "react";
+import { Pie, PieChart } from "recharts";
 import {
   Card,
   CardContent,
@@ -38,8 +37,6 @@ export function DistributionChart({
   type = "donut",
   className,
 }: DistributionChartProps) {
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-
   const chartConfig = data.reduce((acc, item, index) => {
     acc[item.name.toLowerCase().replace(/\s+/g, "-")] = {
       label: item.name,
@@ -77,19 +74,12 @@ export function DistributionChart({
               nameKey="name"
               innerRadius={type === "donut" ? 60 : 0}
               strokeWidth={5}
-              onMouseEnter={(_, index) => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex(-1)}
             />
           </PieChart>
         </ChartContainer>
         <div className="mt-4 flex flex-wrap justify-center gap-4">
           {data.map((item, index) => (
-            <div
-              key={item.name}
-              className="flex items-center gap-2 text-sm"
-              onMouseEnter={() => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex(-1)}
-            >
+            <div key={item.name} className="flex items-center gap-2 text-sm">
               <div
                 className="h-3 w-3 rounded-full"
                 style={{

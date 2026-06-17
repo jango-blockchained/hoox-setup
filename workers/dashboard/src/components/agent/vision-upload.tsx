@@ -79,9 +79,13 @@ export function VisionUpload() {
         }),
         signal: controller.signal,
       });
-      const data: any = await res.json();
+      const data = (await res.json()) as {
+        success: boolean;
+        response?: string;
+        error?: string;
+      };
       if (data.success) {
-        setResult(data.response);
+        setResult(data.response ?? null);
         toast.success("Analysis complete");
       } else {
         toast.error(data.error || "Analysis failed");
