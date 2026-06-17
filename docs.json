@@ -295,7 +295,7 @@
           "directory": "api-reference"
         },
         "asyncapi": {
-          "source": "docs/asyncapi-minimal.yaml",
+          "source": "asyncapi-minimal.yaml",
           "directory": "events"
         }
       }
