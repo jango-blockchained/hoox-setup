@@ -133,7 +133,7 @@
     ]
   },
   "api": {
-    "openapi": "docs/openapi.yaml",
+    "openapi": "https://raw.githubusercontent.com/jango-blockchained/hoox-setup/main/docs/openapi.yaml",
     "playground": {
       "display": "interactive"
     },
