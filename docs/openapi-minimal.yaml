@@ -78,12 +78,14 @@ paths:
                 quantity:
                   type: number
                   description: Order size in contracts or base currency
-                  exclusiveMinimum: 0
+                  minimum: 0
+                  exclusiveMinimum: true
                   example: 0.002
                 price:
                   type: number
                   description: Optional limit price (market order if omitted)
-                  exclusiveMinimum: 0
+                  minimum: 0
+                  exclusiveMinimum: true
                   example: 68500.50
                 leverage:
                   type: integer
