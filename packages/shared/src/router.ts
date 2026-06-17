@@ -15,7 +15,7 @@ import type {
 } from "./types/router";
 
 // Re-export types for convenience — consumers can import from "router.ts" as well
-export type { Handler, RouteParams } from "./types/router";
+export type { Handler, MiddlewareHandler, RouteParams } from "./types/router";
 
 export function createRouter<TEnv = unknown>(): Router<TEnv> {
   const routes: RouteDefinition<TEnv>[] = [];
