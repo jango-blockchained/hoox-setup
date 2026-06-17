@@ -24,7 +24,7 @@ Traditional trading bots are deployed on a single virtual private server (VPS) i
 
 1. **Signal Generation**: A TradingView alert fires in London.
 2. **Edge Ingestion**: The alert hits Cloudflare's nearest London Point of Presence (PoP) in **1.8ms**.
-3. **V8 Isolate Processing**: A sandboxed V8 isolate processes and validates the order instantly (**<3ms**).
+3. **V8 Isolate Processing**: A sandboxed V8 isolate processes and validates the order instantly (**\&lt;3ms**).
 4. **Smart Placement Routing**: The internal service binding transfers compute to the edge node geographically closest to Bybit's servers (Frankfurt) within **8ms**.
 5. **Total Edge Latency**: **Under 15ms** total network transit time.
 
