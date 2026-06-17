@@ -20,7 +20,6 @@ info:
                     email-worker ──→ trade-worker
                     dashboard ──→ d1-worker, agent-worker
     ```
-
 servers:
   production:
     host: cloudflare-workers
@@ -30,9 +29,7 @@ servers:
     host: cloudflare-queues
     protocol: cloudflare-queues
     description: Cloudflare Queues for asynchronous message delivery
-
 defaultContentType: application/json
-
 channels:
   TradeWebhook:
     address: /webhook
@@ -44,16 +41,6 @@ channels:
     messages:
       WebhookSignal:
         $ref: "#/components/messages/WebhookSignal"
-    operations:
-      receiveSignal:
-        action: receive
-        title: Receive trade signal
-        summary: Gateway receives external trade signal via HTTP POST
-        channel:
-          $ref: "#/channels/TradeWebhook"
-        messages:
-          - $ref: "#/channels/TradeWebhook/messages/WebhookSignal"
-
   TradeExecution:
     address: trade-worker
     title: Trade execution
@@ -63,24 +50,6 @@ channels:
     messages:
       TradeRequest:
         $ref: "#/components/messages/TradeRequest"
-    operations:
-      executeTrade:
-        action: send
-        title: Forward trade for execution
-        summary: Gateway sends validated trade to trade-worker via service binding
-        channel:
-          $ref: "#/channels/TradeExecution"
-        messages:
-          - $ref: "#/channels/TradeExecution/messages/TradeRequest"
-      processTradeFromEmail:
-        action: send
-        title: Forward parsed email signal
-        summary: Email-worker sends parsed trade signal to trade-worker
-        channel:
-          $ref: "#/channels/TradeExecution"
-        messages:
-          - $ref: "#/channels/TradeExecution/messages/TradeRequest"
-
   TradeQueue:
     address: TRADE_QUEUE
     title: Trade execution queue
@@ -91,24 +60,6 @@ channels:
     messages:
       QueuedTrade:
         $ref: "#/components/messages/QueuedTrade"
-    operations:
-      enqueueTrade:
-        action: send
-        title: Enqueue trade for async execution
-        summary: Gateway sends trade to queue instead of direct service call
-        channel:
-          $ref: "#/channels/TradeQueue"
-        messages:
-          - $ref: "#/channels/TradeQueue/messages/QueuedTrade"
-      dequeueTrade:
-        action: receive
-        title: Process queued trade
-        summary: Trade-worker consumer processes enqueued trades
-        channel:
-          $ref: "#/channels/TradeQueue"
-        messages:
-          - $ref: "#/channels/TradeQueue/messages/QueuedTrade"
-
   DatabaseQuery:
     address: d1-worker
     title: D1 database operations
@@ -121,22 +72,6 @@ channels:
         $ref: "#/components/messages/SqlQuery"
       SqlBatch:
         $ref: "#/components/messages/SqlBatch"
-    operations:
-      querySingle:
-        action: send
-        title: Execute single SQL query
-        channel:
-          $ref: "#/channels/DatabaseQuery"
-        messages:
-          - $ref: "#/channels/DatabaseQuery/messages/SqlQuery"
-      queryBatch:
-        action: send
-        title: Execute batch SQL statements
-        channel:
-          $ref: "#/channels/DatabaseQuery"
-        messages:
-          - $ref: "#/channels/DatabaseQuery/messages/SqlBatch"
-
   TelegramNotification:
     address: telegram-worker
     title: Telegram notifications
@@ -147,48 +82,6 @@ channels:
     messages:
       TelegramAlert:
         $ref: "#/components/messages/TelegramAlert"
-    operations:
-      sendAlertFromGateway:
-        action: send
-        title: Send trade notification
-        summary: Gateway sends trade confirmation to Telegram
-        channel:
-          $ref: "#/channels/TelegramNotification"
-        messages:
-          - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
-      sendAlertFromAgent:
-        action: send
-        title: Send risk alert
-        summary: Agent-worker sends risk assessment alerts to Telegram
-        channel:
-          $ref: "#/channels/TelegramNotification"
-        messages:
-          - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
-      sendAlertFromWallet:
-        action: send
-        title: Send wallet notification
-        summary: Web3-wallet-worker sends DeFi operation results to Telegram
-        channel:
-          $ref: "#/channels/TelegramNotification"
-        messages:
-          - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
-      sendAlertFromReport:
-        action: send
-        title: Send report notification
-        summary: Report-worker sends PDF report delivery notification to Telegram
-        channel:
-          $ref: "#/channels/TelegramNotification"
-        messages:
-          - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
-      receiveAlert:
-        action: receive
-        title: Receive notification request
-        summary: Telegram-worker receives and dispatches notification
-        channel:
-          $ref: "#/channels/TelegramNotification"
-        messages:
-          - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
-
   WalletOperation:
     address: web3-wallet-worker
     title: DeFi wallet operations
@@ -198,16 +91,6 @@ channels:
     messages:
       DexSwap:
         $ref: "#/components/messages/DexSwap"
-    operations:
-      executeWalletOp:
-        action: send
-        title: Execute wallet operation
-        summary: Gateway forwards /wallet/* requests to web3-wallet-worker
-        channel:
-          $ref: "#/channels/WalletOperation"
-        messages:
-          - $ref: "#/channels/WalletOperation/messages/DexSwap"
-
   risk/cron:
     address: agent-worker/cron
     title: Scheduled AI risk assessment (cron)
@@ -221,16 +104,6 @@ channels:
     messages:
       RiskOverride:
         $ref: "#/components/messages/RiskOverride"
-    operations:
-      scheduledRiskCheck:
-        action: receive
-        title: Scheduled risk assessment
-        summary: 5-minute cron trigger for automated risk analysis
-        channel:
-          $ref: "#/channels/risk/cron"
-        messages:
-          - $ref: "#/channels/risk/cron/messages/RiskOverride"
-
   risk/chat:
     address: agent-worker/agent/chat
     title: AI chat session
@@ -242,16 +115,6 @@ channels:
     messages:
       AiChatRequest:
         $ref: "#/components/messages/AiChatRequest"
-    operations:
-      chatWithAI:
-        action: receive
-        title: AI chat session
-        summary: Conversational AI request from dashboard or CLI
-        channel:
-          $ref: "#/channels/risk/chat"
-        messages:
-          - $ref: "#/channels/risk/chat/messages/AiChatRequest"
-
   risk/embedding:
     address: agent-worker/agent/embedding
     title: Text embedding generation
@@ -263,16 +126,6 @@ channels:
     messages:
       EmbeddingRequest:
         $ref: "#/components/messages/EmbeddingRequest"
-    operations:
-      generateEmbedding:
-        action: receive
-        title: Generate text embedding
-        summary: Vector embedding request from dashboard or automation
-        channel:
-          $ref: "#/channels/risk/embedding"
-        messages:
-          - $ref: "#/channels/risk/embedding/messages/EmbeddingRequest"
-
   risk/config:
     address: agent-worker/agent/config
     title: AI agent configuration
@@ -285,24 +138,6 @@ channels:
     messages:
       AgentConfig:
         $ref: "#/components/messages/AgentConfig"
-    operations:
-      getAgentConfig:
-        action: receive
-        title: Read agent configuration
-        summary: Dashboard or CLI reads the current provider manager config
-        channel:
-          $ref: "#/channels/risk/config"
-        messages:
-          - $ref: "#/channels/risk/config/messages/AgentConfig"
-      updateAgentConfig:
-        action: send
-        title: Update agent configuration
-        summary: Dashboard or CLI updates the provider manager config
-        channel:
-          $ref: "#/channels/risk/config"
-        messages:
-          - $ref: "#/channels/risk/config/messages/AgentConfig"
-
   IdempotencyStore:
     address: IdempotencyStore
     title: Idempotency Durable Object
@@ -322,16 +157,6 @@ channels:
     messages:
       IdempotencyKey:
         $ref: "#/components/messages/IdempotencyKey"
-    operations:
-      checkIdempotency:
-        action: receive
-        title: Check and store idempotency key
-        summary: Durable Object RPC call to verify trade uniqueness
-        channel:
-          $ref: "#/channels/IdempotencyStore"
-        messages:
-          - $ref: "#/channels/IdempotencyStore/messages/IdempotencyKey"
-
   EmailParsing:
     address: email-worker
     title: Email signal parsing
@@ -342,24 +167,6 @@ channels:
     messages:
       EmailSignal:
         $ref: "#/components/messages/EmailSignal"
-    operations:
-      receiveEmail:
-        action: receive
-        title: Receive incoming email
-        summary: Email-worker receives forwarded email with trade signal
-        channel:
-          $ref: "#/channels/EmailParsing"
-        messages:
-          - $ref: "#/channels/EmailParsing/messages/EmailSignal"
-      forwardParsedSignal:
-        action: send
-        title: Forward parsed signal to execution
-        summary: Email-worker sends parsed trade to trade-worker
-        channel:
-          $ref: "#/channels/EmailParsing"
-        messages:
-          - $ref: "#/channels/EmailParsing/messages/EmailSignal"
-
   AnalyticsTracking:
     address: analytics-worker
     title: Analytics and reporting
@@ -369,16 +176,6 @@ channels:
     messages:
       AnalyticsEvent:
         $ref: "#/components/messages/AnalyticsEvent"
-    operations:
-      trackApiCall:
-        action: send
-        title: Track API call metric
-        summary: Workers emit analytics events after processing requests
-        channel:
-          $ref: "#/channels/AnalyticsTracking"
-        messages:
-          - $ref: "#/channels/AnalyticsTracking/messages/AnalyticsEvent"
-
   PDFReport:
     address: report-worker
     title: PDF report generation
@@ -389,16 +186,6 @@ channels:
     messages:
       ReportRequest:
         $ref: "#/components/messages/ReportRequest"
-    operations:
-      generateReport:
-        action: receive
-        title: Generate PDF report
-        summary: Report-worker renders and returns a PDF document
-        channel:
-          $ref: "#/channels/PDFReport"
-        messages:
-          - $ref: "#/channels/PDFReport/messages/ReportRequest"
-
 components:
   messages:
     WebhookSignal:
@@ -420,11 +207,18 @@ components:
             description: Webhook authentication key
           exchange:
             type: string
-            enum: [binance, bybit, mexc]
+            enum:
+              - binance
+              - bybit
+              - mexc
             description: Target exchange
           action:
             type: string
-            enum: [LONG, SHORT, CLOSE_LONG, CLOSE_SHORT]
+            enum:
+              - LONG
+              - SHORT
+              - CLOSE_LONG
+              - CLOSE_SHORT
             description: Trade action
           symbol:
             type: string
@@ -454,7 +248,6 @@ components:
                 type: string
               message:
                 type: string
-
     TradeRequest:
       name: TradeRequest
       title: Trade execution request
@@ -491,7 +284,6 @@ components:
           leverage:
             type: integer
             description: Optional margin leverage
-
     QueuedTrade:
       name: QueuedTrade
       title: Queued trade message
@@ -526,7 +318,6 @@ components:
             type: string
             format: date-time
             description: ISO-8601 timestamp of when the message was queued
-
     SqlQuery:
       name: SqlQuery
       title: D1 SQL query
@@ -549,7 +340,6 @@ components:
             items:
               type: string
             description: SQL parameter bindings
-
     SqlBatch:
       name: SqlBatch
       title: D1 SQL batch
@@ -567,7 +357,6 @@ components:
             type: array
             items:
               $ref: "#/components/messages/SqlQuery/payload"
-
     TelegramAlert:
       name: TelegramAlert
       title: Telegram notification
@@ -590,9 +379,10 @@ components:
             description: Target Telegram chat ID
           parseMode:
             type: string
-            enum: [HTML, MarkdownV2]
+            enum:
+              - HTML
+              - MarkdownV2
             description: Message formatting mode
-
     DexSwap:
       name: DexSwap
       title: DEX swap operation
@@ -608,7 +398,10 @@ components:
         properties:
           chain:
             type: string
-            enum: [ethereum, arbitrum, polygon]
+            enum:
+              - ethereum
+              - arbitrum
+              - polygon
             description: EVM-compatible chain
           to:
             type: string
@@ -622,7 +415,6 @@ components:
           gasLimit:
             type: integer
             description: Optional gas limit override
-
     RiskOverride:
       name: RiskOverride
       title: Risk override
@@ -636,7 +428,6 @@ components:
             minimum: 0
             maximum: 100
             description: Global trailing stop percentage override
-
     AgentConfig:
       name: AgentConfig
       title: Agent configuration
@@ -647,7 +438,11 @@ components:
         properties:
           defaultProvider:
             type: string
-            enum: [workers-ai, openai, anthropic, google]
+            enum:
+              - workers-ai
+              - openai
+              - anthropic
+              - google
           fallbackChain:
             type: array
             items:
@@ -655,7 +450,6 @@ components:
           modelMap:
             type: object
             description: Provider-to-model mapping overrides
-
     AiChatRequest:
       name: AiChatRequest
       title: AI chat request
@@ -672,9 +466,12 @@ components:
             description: Enable streaming response
           provider:
             type: string
-            enum: [openai, anthropic, workers-ai, google]
+            enum:
+              - openai
+              - anthropic
+              - workers-ai
+              - google
             description: AI provider to use
-
     EmbeddingRequest:
       name: EmbeddingRequest
       title: Embedding generation request
@@ -693,7 +490,6 @@ components:
           provider:
             type: string
             description: Optional provider override
-
     IdempotencyKey:
       name: IdempotencyKey
       title: Idempotency key
@@ -702,7 +498,6 @@ components:
       payload:
         type: string
         description: "Format: trade:{exchange}:{symbol}:{action}:{quantity}"
-
     EmailSignal:
       name: EmailSignal
       title: Email trade signal
@@ -755,11 +550,16 @@ components:
             properties:
               exchange:
                 type: string
-                enum: [binance, bybit, mexc]
+                enum:
+                  - binance
+                  - bybit
+                  - mexc
                 description: Normalized exchange identifier
               action:
                 type: string
-                enum: [buy, sell]
+                enum:
+                  - buy
+                  - sell
                 description: Normalized action (`buy` / `sell`)
               symbol:
                 type: string
@@ -769,7 +569,6 @@ components:
                 description: |
                   Order size, multiplied by
                   `CONFIG_KV.email.quantity_multiplier`
-
     AnalyticsEvent:
       name: AnalyticsEvent
       title: Analytics event
@@ -790,7 +589,6 @@ components:
           success:
             type: boolean
             description: Whether the operation succeeded
-
     ReportRequest:
       name: ReportRequest
       title: PDF report request
@@ -804,7 +602,8 @@ components:
             format: uuid
           format:
             type: string
-            enum: [pdf]
+            enum:
+              - pdf
             description: Output format
           dateRange:
             type: object
@@ -817,3 +616,186 @@ components:
                 type: string
                 format: date-time
                 description: Report end date
+operations:
+  receiveSignal:
+    action: receive
+    channel:
+      $ref: "#/channels/TradeWebhook"
+    messages:
+      - $ref: "#/channels/TradeWebhook/messages/WebhookSignal"
+    summary: Gateway receives external trade signal via HTTP POST
+    title: Receive trade signal
+  executeTrade:
+    action: send
+    channel:
+      $ref: "#/channels/TradeExecution"
+    messages:
+      - $ref: "#/channels/TradeExecution/messages/TradeRequest"
+    summary: Gateway sends validated trade to trade-worker via service binding
+    title: Forward trade for execution
+  processTradeFromEmail:
+    action: send
+    channel:
+      $ref: "#/channels/TradeExecution"
+    messages:
+      - $ref: "#/channels/TradeExecution/messages/TradeRequest"
+    summary: Email-worker sends parsed trade signal to trade-worker
+    title: Forward parsed email signal
+  enqueueTrade:
+    action: send
+    channel:
+      $ref: "#/channels/TradeQueue"
+    messages:
+      - $ref: "#/channels/TradeQueue/messages/QueuedTrade"
+    summary: Gateway sends trade to queue instead of direct service call
+    title: Enqueue trade for async execution
+  dequeueTrade:
+    action: receive
+    channel:
+      $ref: "#/channels/TradeQueue"
+    messages:
+      - $ref: "#/channels/TradeQueue/messages/QueuedTrade"
+    summary: Trade-worker consumer processes enqueued trades
+    title: Process queued trade
+  querySingle:
+    action: send
+    channel:
+      $ref: "#/channels/DatabaseQuery"
+    messages:
+      - $ref: "#/channels/DatabaseQuery/messages/SqlQuery"
+    title: Execute single SQL query
+  queryBatch:
+    action: send
+    channel:
+      $ref: "#/channels/DatabaseQuery"
+    messages:
+      - $ref: "#/channels/DatabaseQuery/messages/SqlBatch"
+    title: Execute batch SQL statements
+  sendAlertFromGateway:
+    action: send
+    channel:
+      $ref: "#/channels/TelegramNotification"
+    messages:
+      - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
+    summary: Gateway sends trade confirmation to Telegram
+    title: Send trade notification
+  sendAlertFromAgent:
+    action: send
+    channel:
+      $ref: "#/channels/TelegramNotification"
+    messages:
+      - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
+    summary: Agent-worker sends risk assessment alerts to Telegram
+    title: Send risk alert
+  sendAlertFromWallet:
+    action: send
+    channel:
+      $ref: "#/channels/TelegramNotification"
+    messages:
+      - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
+    summary: Web3-wallet-worker sends DeFi operation results to Telegram
+    title: Send wallet notification
+  sendAlertFromReport:
+    action: send
+    channel:
+      $ref: "#/channels/TelegramNotification"
+    messages:
+      - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
+    summary: Report-worker sends PDF report delivery notification to Telegram
+    title: Send report notification
+  receiveAlert:
+    action: receive
+    channel:
+      $ref: "#/channels/TelegramNotification"
+    messages:
+      - $ref: "#/channels/TelegramNotification/messages/TelegramAlert"
+    summary: Telegram-worker receives and dispatches notification
+    title: Receive notification request
+  executeWalletOp:
+    action: send
+    channel:
+      $ref: "#/channels/WalletOperation"
+    messages:
+      - $ref: "#/channels/WalletOperation/messages/DexSwap"
+    summary: Gateway forwards /wallet/* requests to web3-wallet-worker
+    title: Execute wallet operation
+  scheduledRiskCheck:
+    action: receive
+    channel:
+      $ref: "#/channels/risk~1cron"
+    messages:
+      - $ref: "#/channels/risk~1cron/messages/RiskOverride"
+    summary: 5-minute cron trigger for automated risk analysis
+    title: Scheduled risk assessment
+  chatWithAI:
+    action: receive
+    channel:
+      $ref: "#/channels/risk~1chat"
+    messages:
+      - $ref: "#/channels/risk~1chat/messages/AiChatRequest"
+    summary: Conversational AI request from dashboard or CLI
+    title: AI chat session
+  generateEmbedding:
+    action: receive
+    channel:
+      $ref: "#/channels/risk~1embedding"
+    messages:
+      - $ref: "#/channels/risk~1embedding/messages/EmbeddingRequest"
+    summary: Vector embedding request from dashboard or automation
+    title: Generate text embedding
+  getAgentConfig:
+    action: receive
+    channel:
+      $ref: "#/channels/risk~1config"
+    messages:
+      - $ref: "#/channels/risk~1config/messages/AgentConfig"
+    summary: Dashboard or CLI reads the current provider manager config
+    title: Read agent configuration
+  updateAgentConfig:
+    action: send
+    channel:
+      $ref: "#/channels/risk~1config"
+    messages:
+      - $ref: "#/channels/risk~1config/messages/AgentConfig"
+    summary: Dashboard or CLI updates the provider manager config
+    title: Update agent configuration
+  checkIdempotency:
+    action: receive
+    channel:
+      $ref: "#/channels/IdempotencyStore"
+    messages:
+      - $ref: "#/channels/IdempotencyStore/messages/IdempotencyKey"
+    summary: Durable Object RPC call to verify trade uniqueness
+    title: Check and store idempotency key
+  receiveEmail:
+    action: receive
+    channel:
+      $ref: "#/channels/EmailParsing"
+    messages:
+      - $ref: "#/channels/EmailParsing/messages/EmailSignal"
+    summary: Email-worker receives forwarded email with trade signal
+    title: Receive incoming email
+  forwardParsedSignal:
+    action: send
+    channel:
+      $ref: "#/channels/EmailParsing"
+    messages:
+      - $ref: "#/channels/EmailParsing/messages/EmailSignal"
+    summary: Email-worker sends parsed trade to trade-worker
+    title: Forward parsed signal to execution
+  trackApiCall:
+    action: send
+    channel:
+      $ref: "#/channels/AnalyticsTracking"
+    messages:
+      - $ref: "#/channels/AnalyticsTracking/messages/AnalyticsEvent"
+    summary: Workers emit analytics events after processing requests
+    title: Track API call metric
+  generateReport:
+    action: receive
+    channel:
+      $ref: "#/channels/PDFReport"
+    messages:
+      - $ref: "#/channels/PDFReport/messages/ReportRequest"
+    summary: Report-worker renders and returns a PDF document
+    title: Generate PDF report
