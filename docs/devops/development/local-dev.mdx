@@ -13,22 +13,20 @@ Hoox provides a comprehensive local development workspace designed to emulate yo
 
 The `hoox dev start` command orchestrates the boot sequence for all enabled workers and supports two execution runtimes:
 
-| Runtime Mode | Boot Command        | Latency / Hot-Reload |         Isolation Level          | Ideal Use Case                                                   |
-| :----------- | :------------------ | :------------------: | :------------------------------: | :--------------------------------------------------------------- |
-| **Native**   | `wrangler dev`      |      **< 10ms**      |  Low (shares local host ports)   | High-speed script tweaking, rapid feature iterations.            |
-| **Docker**   | `docker compose up` |      **~100ms**      | High (isolated Linux containers) | Testing full integrations, database migrations, queue failovers. |
+| Runtime Mode | Boot Command | Latency / Hot-Reload | Isolation Level | Ideal Use Case |
+| :-- | :-- | :-: | :-: | :-- |
+| **Native** | `wrangler dev` | **\< 10ms** | Low (shares local host ports) | High-speed script tweaking, rapid feature iterations. |
+| **Docker** | `docker compose up` | **~100ms** | High (isolated Linux containers) | Testing full integrations, database migrations, queue failovers. |
 
 ### The Guided Startup Flow
 
 When you run `hoox dev start`:
 
-1. **Wrangler Version Verification**: Probes your global/local Wrangler package. If Wrangler is outdated, it prompts an advisory upgrade warning:
-   ```
-   ⚠️  Wrangler CLI is outdated (v3.50.0 < v3.88.0)
-       Run `bunx wrangler update` to update, or press Enter to continue.
-   ```
-2. **Docker Environment Probing**: Checks if the Docker daemon is active and `docker-compose.yml` is present in the workspace.
-3. **Runtime Preference Lock**: If both runtimes are available, the CLI prompts you to select your preference. This choice is written to your `wrangler.jsonc` file under the `"dev": { "runtime": "..." }` block, bypassing future prompts.
+<ol>
+  <li><strong>Wrangler Version Verification</strong>: Probes your global/local Wrangler package. If Wrangler is outdated, it prompts an advisory upgrade warning. The warning shows the current vs minimum version and offers a one-line update command.</li>
+  <li><strong>Docker Environment Probing</strong>: Checks if the Docker daemon is active and <code>docker-compose.yml</code> is present in the workspace.</li>
+  <li><strong>Runtime Preference Lock</strong>: If both runtimes are available, the CLI prompts you to select your preference. This choice is written to your <code>wrangler.jsonc</code> file under the dev runtime block, bypassing future prompts.</li>
+</ol>
 
 ```bash
 # Override the saved runtime preference on the fly
@@ -59,15 +57,15 @@ docker compose --profile full up
 
 In the local environment, each V8 dev instance mounts to a dedicated host port. Ensure no other applications are occupying these ports before launching:
 
-| Microservice          | Default Port | Local Binding URL       | Purpose                   |
-| :-------------------- | :----------: | :---------------------- | :------------------------ |
-| **`hoox`**            |    `8787`    | `http://localhost:8787` | Ingress Gateway           |
-| **`trade-worker`**    |    `8789`    | `http://localhost:8789` | Order Execution Engine    |
-| **`telegram-worker`** |    `8791`    | `http://localhost:8791` | Notifications Hub         |
-| **`d1-worker`**       |    `8792`    | `http://localhost:8792` | Relational SQLite Manager |
-| **`web3-wallet`**     |    `8793`    | `http://localhost:8793` | On-Chain DeFi Node        |
-| **`dashboard`**       |    `8794`    | `http://localhost:8794` | Next.js Dashboard SSR     |
-| **`agent-worker`**    |    `8795`    | `http://localhost:8795` | Cron Risk Monitor         |
+| Microservice | Default Port | Local Binding URL | Purpose |
+| :-- | :-: | :-- | :-- |
+| **`hoox`** | `8787` | `http://localhost:8787` | Ingress Gateway |
+| **`trade-worker`** | `8789` | `http://localhost:8789` | Order Execution Engine |
+| **`telegram-worker`** | `8791` | `http://localhost:8791` | Notifications Hub |
+| **`d1-worker`** | `8792` | `http://localhost:8792` | Relational SQLite Manager |
+| **`web3-wallet`** | `8793` | `http://localhost:8793` | On-Chain DeFi Node |
+| **`dashboard`** | `8794` | `http://localhost:8794` | Next.js Dashboard SSR |
+| **`agent-worker`** | `8795` | `http://localhost:8795` | Cron Risk Monitor |
 
 ---
 
@@ -84,16 +82,13 @@ echo 'INTERNAL_KEY_BINDING="local_test_key"' >> workers/hoox/.dev.vars
 ```
 
 <Warning>
-  `.dev.vars` files contain local plaintext keys and are excluded from git index
-  tracking via `.gitignore`. **Never** remove these files from `.gitignore` or
-  check them into your repository.
+  `.dev.vars` files contain local plaintext keys and are excluded from git index tracking via `.gitignore`. **Never** remove these files from `.gitignore` or check them into your repository.
 </Warning>
 
 ---
 
 <Tip>
-  If local tests fail with `Time-Stamp Expired` errors when calling exchange
-  APIs, check that your local machine's NTP system clock is synchronized: `sudo
+  If local tests fail with `Time-Stamp Expired` errors when calling exchange APIs, check that your local machine's NTP system clock is synchronized: `sudo
   ntpdate pool.ntp.org` (or check date/time settings on macOS/Windows)!
 </Tip>
 
@@ -162,7 +157,7 @@ bun run graph
 
 This runs `scripts/extract-graph.ts` (ts-morph) and scans 917 source files across all 14 workspaces. During extraction, a **live progress bar** shows each phase with elapsed time:
 
-```
+```text
 🔍 Extracting exported declarations...
   [██░░░░░░░░░░░░░░░░░░] 13%  exports: 1667 nodes             10.6s
 🔍 Extracting import relationships...
@@ -180,10 +175,10 @@ The 8 extraction phases (exports → imports → extends/implements → type ref
 
 ### Outputs
 
-| File         | Contents                                                   |
-| ------------ | ---------------------------------------------------------- |
-| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph        |
-| `graph.dot`  | Graphviz DOT with 14 workspace clusters, color-coded edges |
+| File | Contents |
+| --- | --- |
+| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph |
+| `graph.dot` | Graphviz DOT with 14 workspace clusters, color-coded edges |
 
 ### Quick Render
 
@@ -197,12 +192,10 @@ dot -Tsvg graph.dot -o graph.svg && open graph.svg
 ```
 
 <Tip>
-  Use `graph.json` as AI/LLM context for codebase-aware queries, or paste
-  `graph.dot` into [Edotor](https://edotor.net/) for instant browser
-  visualization without installing Graphviz.
+  Use `graph.json` as AI/LLM context for codebase-aware queries, or paste `graph.dot` into [Edotor](https://edotor.net/) for instant browser visualization without installing Graphviz.
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[Testing Standards](testing)** — Run unit and integration tests using Bun's native test runner.
-- **[Debugging Runbook](debugging)** — Debug local and remote isolates, tail logs, and trace queries.
+- [**Testing Standards**](testing) — Run unit and integration tests using Bun's native test runner.
+- [**Debugging Runbook**](debugging) — Debug local and remote isolates, tail logs, and trace queries.

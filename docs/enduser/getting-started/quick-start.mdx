@@ -38,10 +38,7 @@ hoox secrets set BINANCE_API_SECRET "your_binance_secret_here"
 ```
 
 <Warning>
-  Cloudflare Secrets are encrypted at rest using hardware-level keys and are
-  injected straight into your V8 execution isolates at runtime. They can never
-  be decrypted or read back via the API, ensuring top-tier security for your
-  capital.
+  Cloudflare Secrets are encrypted at rest using hardware-level keys and are injected straight into your V8 execution isolates at runtime. They can never be decrypted or read back via the API, ensuring top-tier security for your capital.
 </Warning>
 
 ---
@@ -57,14 +54,15 @@ hoox deploy all --auto
 
 _This command automatically provisions:_
 
-1. **D1 Edge Database** (`hoox-db`)
-2. **CONFIG_KV** configuration namespace
-3. **Internal Workers** (`trade-worker`, `d1-worker`, `telegram-worker`)
-4. **Public Gateway** (`hoox` gateway router)
-5. **Next.js Dashboard Command Center** (`workers/dashboard`)
+<ol>
+  <li><strong>D1 Edge Database</strong> (<code>hoox-db</code>)</li>
+  <li><strong>CONFIG\_KV</strong> configuration namespace</li>
+  <li><strong>Internal Workers</strong> (<code>trade-worker</code>, <code>d1-worker</code>, <code>telegram-worker</code>)</li>
+  <li><strong>Public Gateway</strong> (<code>hoox</code> gateway router)</li>
+  <li><strong>Next.js Dashboard Command Center</strong> (<code>workers/dashboard</code>)</li>
+</ol>
 
-Once completed, the CLI will output your public Gateway endpoint URL:
-`https://hoox.alpha-trading.workers.dev`
+Once completed, the CLI will output your public Gateway endpoint URL: `https://hoox.alpha-trading.workers.dev`
 
 ---
 
@@ -91,14 +89,14 @@ curl -X POST https://hoox.alpha-trading.workers.dev/webhook \
 
 Every webhook payload fired to your Gateway must match the following JSON Schema:
 
-| Parameter  |   Type   | Required | Description                                                                                      |
-| :--------- | :------: | :------: | :----------------------------------------------------------------------------------------------- |
-| `apiKey`   | `string` | **Yes**  | Your custom webhook authorization passkey (defined in `CONFIG_KV`).                              |
-| `exchange` | `string` | **Yes**  | Target exchange router: `binance`, `bybit`, or `mexc`.                                           |
-| `action`   | `string` | **Yes**  | Trading action direction: `LONG` (buy/open), `SHORT` (sell/open), or `CLOSE` (flatten position). |
-| `symbol`   | `string` | **Yes**  | Standard market symbol.                                                                          |
-| `quantity` | `number` | **Yes**  | Position size / quantity.                                                                        |
-| `leverage` | `number` |    No    | Leverage coefficient. Defaults to `1` (spot) if omitted.                                         |
+| Parameter | Type | Required | Description |
+| :-- | :-: | :-: | :-- |
+| `apiKey` | `string` | **Yes** | Your custom webhook authorization passkey (defined in `CONFIG_KV`). |
+| `exchange` | `string` | **Yes** | Target exchange router: `binance`, `bybit`, or `mexc`. |
+| `action` | `string` | **Yes** | Trading action direction: `LONG` (buy/open), `SHORT` (sell/open), or `CLOSE` (flatten position). |
+| `symbol` | `string` | **Yes** | Standard market symbol. |
+| `quantity` | `number` | **Yes** | Position size / quantity. |
+| `leverage` | `number` | No | Leverage coefficient. Defaults to `1` (spot) if omitted. |
 
 ---
 
@@ -128,14 +126,11 @@ You will receive an instantaneous, low-latency JSON response:
 ---
 
 <Tip>
-  If the exchange is temporarily undergoing system maintenance or experiences
-  high network congestion, Hoox will automatically intercept the failure,
-  enqueue the trade in **Cloudflare Queues** with exponential backoff retry
-  policies, and return a `"status": "Enqueued"` response to guarantee delivery!
+  If the exchange is temporarily undergoing system maintenance or experiences high network congestion, Hoox will automatically intercept the failure, enqueue the trade in **Cloudflare Queues** with exponential backoff retry policies, and return a `"status": "Enqueued"` response to guarantee delivery!
 </Tip>
 
 ### 🔗 Next Steps
 
-- **[How Hoox Works](../concepts/how-hoox-works)** — Take a deep dive into the edge processing pipelines.
-- **[Terminal UI Guide](../guides/tui)** — Run, hot-reload, and inspect live metrics in a full-screen console interface.
-- **[Set Up Telegram Alerts](../tutorials/telegram-bot)** — Link your bot to get order fills pushed straight to your phone.
+- [**How Hoox Works**](../concepts/how-hoox-works) — Take a deep dive into the edge processing pipelines.
+- [**Terminal UI Guide**](../guides/tui) — Run, hot-reload, and inspect live metrics in a full-screen console interface.
+- [**Set Up Telegram Alerts**](../tutorials/telegram-bot) — Link your bot to get order fills pushed straight to your phone.
