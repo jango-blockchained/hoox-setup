@@ -134,7 +134,6 @@
   },
   "api": {
     "openapi": "docs/openapi-minimal.yaml",
-    "asyncapi": "docs/asyncapi-minimal.yaml",
     "playground": {
       "display": "interactive"
     },
@@ -294,10 +293,6 @@
         "openapi": {
           "source": "docs/openapi-minimal.yaml",
           "directory": "api-reference"
-        },
-        "asyncapi": {
-          "source": "docs/asyncapi-minimal.yaml",
-          "directory": "events"
         }
       }
     ]
