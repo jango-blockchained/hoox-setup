@@ -294,10 +294,7 @@
           "source": "docs/openapi-minimal.yaml",
           "directory": "api-reference"
         },
-        "asyncapi": {
-          "source": "asyncapi-minimal.yaml",
-          "directory": "events"
-        }
+        "asyncapi": "/docs/asyncapi-minimal.yaml"
       }
     ]
   }
