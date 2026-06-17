@@ -31,13 +31,13 @@ The diagnostics engine runs a strict, sequential analysis of your entire monorep
 
 ### Step Details
 
-| Step | Check | What It Validates |
-|:----:|-------|-------------------|
-| 1 | **Submodule Integrity** | All 9 worker folders under `workers/` are fully populated and registered in Git |
-| 2 | **Dependency Resolution** | `node_modules` across Bun workspaces are complete with no missing or duplicate libraries |
-| 3 | **Type Safety** | TypeScript compilation via `tsc --noEmit` catches syntax or interface errors |
-| 4 | **Edge Bindings** | Connects to Cloudflare's API to verify D1, KV, Queues, R2, and Vectorize resources exist on your account |
-| 5 | **Secrets Validation** | Audits your Workers Secrets to ensure all required exchange keys and tokens are securely bound |
+| Step | Check                     | What It Validates                                                                                        |
+| :--: | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+|  1   | **Submodule Integrity**   | All 9 worker folders under `workers/` are fully populated and registered in Git                          |
+|  2   | **Dependency Resolution** | `node_modules` across Bun workspaces are complete with no missing or duplicate libraries                 |
+|  3   | **Type Safety**           | TypeScript compilation via `tsc --noEmit` catches syntax or interface errors                             |
+|  4   | **Edge Bindings**         | Connects to Cloudflare's API to verify D1, KV, Queues, R2, and Vectorize resources exist on your account |
+|  5   | **Secrets Validation**    | Audits your Workers Secrets to ensure all required exchange keys and tokens are securely bound           |
 
 ---
 
@@ -67,14 +67,14 @@ hoox repair rebuild
 
 ### Repair Command Quick Reference
 
-| Command | Use Case | Safe? | Downtime? |
-|---------|----------|:-----:|:---------:|
-| `hoox repair infra` | Missing D1/KV/Queue bindings on Cloudflare | ✅ Yes | None |
-| `hoox repair secrets` | Rotated API keys need re-binding | ✅ Yes | None |
-| `hoox repair kv` | Configuration drift, need factory defaults | ⚠️ Caution | <10s |
-| `hoox repair db` | Schema mismatch or failed migrations | ⚠️ Caution | Seconds |
-| `hoox repair worker <name>` | Single worker crash or build failure | ✅ Yes | Seconds |
-| `hoox repair rebuild` | Catastrophic failure, full system reset | 🔴 Destructive | Minutes |
+| Command                     | Use Case                                   |     Safe?      | Downtime? |
+| --------------------------- | ------------------------------------------ | :------------: | :-------: |
+| `hoox repair infra`         | Missing D1/KV/Queue bindings on Cloudflare |     ✅ Yes     |   None    |
+| `hoox repair secrets`       | Rotated API keys need re-binding           |     ✅ Yes     |   None    |
+| `hoox repair kv`            | Configuration drift, need factory defaults |   ⚠️ Caution   |   <10s    |
+| `hoox repair db`            | Schema mismatch or failed migrations       |   ⚠️ Caution   |  Seconds  |
+| `hoox repair worker <name>` | Single worker crash or build failure       |     ✅ Yes     |  Seconds  |
+| `hoox repair rebuild`       | Catastrophic failure, full system reset    | 🔴 Destructive |  Minutes  |
 
 ---
 
@@ -91,30 +91,34 @@ hoox repair rebuild
 
 When triggered, the CLI walks you through a structured recovery protocol:
 
-| Phase | Action | Automatic? |
-|:-----:|--------|:----------:|
-| 1 | **D1 Database Backup** — Exports current ledger to `backups/recovery-pre-rebuild.sql` | ✅ Yes |
-| 2 | **Infrastructure Tear-Down** — Deletes corrupted D1, KV, and Queue instances | ✅ Yes |
-| 3 | **Fresh Provisioning** — Recreates all database tables and config buckets on Cloudflare | ✅ Yes |
-| 4 | **Sequenced Redeployment** — Re-compiles and deploys all 9 edge workers in correct dependency order | ✅ Yes |
-| 5 | **Database Seeding** — Restores backup SQL data and re-applies schema migrations | ✅ Yes |
-| 6 | **KV Sync** — Applies the 16-key configuration manifest defaults | ✅ Yes |
+| Phase | Action                                                                                              | Automatic? |
+| :---: | --------------------------------------------------------------------------------------------------- | :--------: |
+|   1   | **D1 Database Backup** — Exports current ledger to `backups/recovery-pre-rebuild.sql`               |   ✅ Yes   |
+|   2   | **Infrastructure Tear-Down** — Deletes corrupted D1, KV, and Queue instances                        |   ✅ Yes   |
+|   3   | **Fresh Provisioning** — Recreates all database tables and config buckets on Cloudflare             |   ✅ Yes   |
+|   4   | **Sequenced Redeployment** — Re-compiles and deploys all 9 edge workers in correct dependency order |   ✅ Yes   |
+|   5   | **Database Seeding** — Restores backup SQL data and re-applies schema migrations                    |   ✅ Yes   |
+|   6   | **KV Sync** — Applies the 16-key configuration manifest defaults                                    |   ✅ Yes   |
 
-<Warning>The `hoox repair rebuild` command performs destructive resets on D1 and KV instances. Ensure you carefully read the interactive prompts and confirm database backup completion before letting the script proceed!</Warning>
+<Warning>
+  The `hoox repair rebuild` command performs destructive resets on D1 and KV
+  instances. Ensure you carefully read the interactive prompts and confirm
+  database backup completion before letting the script proceed!
+</Warning>
 
 ---
 
 ## 📋 4. Common Troubleshooting Scenarios
 
-| Symptom / Failure | Primary Root Cause | CLI Healing Action |
-| :--- | :--- | :--- |
-| `bun install` or build crashes | Git submodules are empty or out of sync | `git submodule update --init --recursive` then `hoox repair check` |
-| `D1_ERROR: no such table` | SQLite D1 tables were not initialized | `hoox db apply --remote` |
-| `500 Internal Server Error` | Missing or rotated exchange API secrets | `hoox secrets set BYBIT_API_KEY "key"` then `hoox deploy update-internal-urls` |
-| Telegram Bot is mute | BotFather token is wrong, or webhook is unregistered | `hoox secrets set TELEGRAM_BOT_TOKEN "token"` then `hoox deploy telegram-webhook` |
-| Queue depth growing indefinitely | Exchange API consistently returning errors | Check exchange API key validity; `hoox monitor queue-depth` |
-| Dashboard at 500 errors | Next.js build failed or D1 schema outdated | `hoox repair db` then `hoox deploy dashboard` |
-| All trades returning 409 | Idempotency keys colliding from rapid duplicate webhooks | Verify TradingView `alert.freq_once_per_bar_close` setting; wait 24h for DO TTL cleanup |
+| Symptom / Failure                | Primary Root Cause                                       | CLI Healing Action                                                                      |
+| :------------------------------- | :------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+| `bun install` or build crashes   | Git submodules are empty or out of sync                  | `git submodule update --init --recursive` then `hoox repair check`                      |
+| `D1_ERROR: no such table`        | SQLite D1 tables were not initialized                    | `hoox db apply --remote`                                                                |
+| `500 Internal Server Error`      | Missing or rotated exchange API secrets                  | `hoox secrets set BYBIT_API_KEY "key"` then `hoox deploy update-internal-urls`          |
+| Telegram Bot is mute             | BotFather token is wrong, or webhook is unregistered     | `hoox secrets set TELEGRAM_BOT_TOKEN "token"` then `hoox deploy telegram-webhook`       |
+| Queue depth growing indefinitely | Exchange API consistently returning errors               | Check exchange API key validity; `hoox monitor queue-depth`                             |
+| Dashboard at 500 errors          | Next.js build failed or D1 schema outdated               | `hoox repair db` then `hoox deploy dashboard`                                           |
+| All trades returning 409         | Idempotency keys colliding from rapid duplicate webhooks | Verify TradingView `alert.freq_once_per_bar_close` setting; wait 24h for DO TTL cleanup |
 
 ### Emergency Decision Tree
 

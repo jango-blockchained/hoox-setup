@@ -83,11 +83,19 @@ cp workers/hoox/.dev.vars.example workers/hoox/.dev.vars
 echo 'INTERNAL_KEY_BINDING="local_test_key"' >> workers/hoox/.dev.vars
 ```
 
-<Warning>`.dev.vars` files contain local plaintext keys and are excluded from git index tracking via `.gitignore`. **Never** remove these files from `.gitignore` or check them into your repository.</Warning>
+<Warning>
+  `.dev.vars` files contain local plaintext keys and are excluded from git index
+  tracking via `.gitignore`. **Never** remove these files from `.gitignore` or
+  check them into your repository.
+</Warning>
 
 ---
 
-<Tip>If local tests fail with `Time-Stamp Expired` errors when calling exchange APIs, check that your local machine's NTP system clock is synchronized: `sudo ntpdate pool.ntp.org` (or check date/time settings on macOS/Windows)!</Tip>
+<Tip>
+  If local tests fail with `Time-Stamp Expired` errors when calling exchange
+  APIs, check that your local machine's NTP system clock is synchronized: `sudo
+  ntpdate pool.ntp.org` (or check date/time settings on macOS/Windows)!
+</Tip>
 
 ---
 
@@ -188,7 +196,11 @@ The 8 extraction phases (exports → imports → extends/implements → type ref
 dot -Tsvg graph.dot -o graph.svg && open graph.svg
 ```
 
-<Tip>Use `graph.json` as AI/LLM context for codebase-aware queries, or paste `graph.dot` into [Edotor](https://edotor.net/) for instant browser visualization without installing Graphviz.</Tip>
+<Tip>
+  Use `graph.json` as AI/LLM context for codebase-aware queries, or paste
+  `graph.dot` into [Edotor](https://edotor.net/) for instant browser
+  visualization without installing Graphviz.
+</Tip>
 
 ### 🔗 Next Steps
 

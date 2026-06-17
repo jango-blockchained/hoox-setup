@@ -35,7 +35,9 @@ const junitPath = "./reports/junit.xml";
 // Ensure global test preload to stub dangerous external spawns is included
 const PRELOAD = "./packages/test-setup-global.ts";
 let bunArgs = ["bun", "test"];
-const hasPreload = args.some(a => a === "--preload" || a.startsWith("--preload="));
+const hasPreload = args.some(
+  (a) => a === "--preload" || a.startsWith("--preload=")
+);
 if (!hasPreload) {
   bunArgs.push("--preload", PRELOAD);
 }

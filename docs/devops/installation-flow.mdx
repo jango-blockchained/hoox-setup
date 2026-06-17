@@ -7,7 +7,12 @@ description: "Detailed system onboarding, toolchain validation steps, wrangler.j
 
 This document details the step-by-step installation, bootstrapping, and validation workflows executed by the Hoox CLI during project initialization.
 
-<Note>The Hoox CLI enforces strict type validation for all configuration files via the `Config` and `WorkerConfig` TypeScript interfaces defined in `packages/cli/src/core/types.ts`. Avoid using `as any` or type bypasses when extending wrangler parameters to prevent build-time CLI crashes.</Note>
+<Note>
+  The Hoox CLI enforces strict type validation for all configuration files via
+  the `Config` and `WorkerConfig` TypeScript interfaces defined in
+  `packages/cli/src/core/types.ts`. Avoid using `as any` or type bypasses when
+  extending wrangler parameters to prevent build-time CLI crashes.
+</Note>
 
 ---
 
@@ -154,7 +159,11 @@ This guarantees that secrets are never logged, never cached in plain text on dis
 
 ---
 
-<Tip>Made a configuration mistake or changed your subdomain? You can re-run `hoox check-setup` at any time to execute high-integrity type validation and ensure all bindings and configurations match production examples perfectly!</Tip>
+<Tip>
+  Made a configuration mistake or changed your subdomain? You can re-run `hoox
+  check-setup` at any time to execute high-integrity type validation and ensure
+  all bindings and configurations match production examples perfectly!
+</Tip>
 
 ### 🔗 Next Steps
 

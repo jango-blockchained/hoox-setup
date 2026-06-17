@@ -64,7 +64,12 @@ describe("Zod + validateJson Integration", () => {
   });
 
   test("validateJson + TradeActionSchema accepts all valid actions", () => {
-    for (const action of ["LONG", "SHORT", "CLOSE_LONG", "CLOSE_SHORT"] as const) {
+    for (const action of [
+      "LONG",
+      "SHORT",
+      "CLOSE_LONG",
+      "CLOSE_SHORT",
+    ] as const) {
       const result = TradeActionSchema.safeParse(action);
       expect(result.success).toBe(true);
     }
@@ -180,7 +185,8 @@ describe("Miniflare Gateway Integration", () => {
       return;
     }
 
-    const { env, createExecutionContext, waitOnExecutionContext } = cloudflareTest;
+    const { env, createExecutionContext, waitOnExecutionContext } =
+      cloudflareTest;
     const worker = (await import("../../workers/hoox/src/index")).default;
 
     const request = new Request("http://localhost/webhook", {
@@ -210,7 +216,8 @@ describe("Miniflare Gateway Integration", () => {
       return;
     }
 
-    const { env, createExecutionContext, waitOnExecutionContext } = cloudflareTest;
+    const { env, createExecutionContext, waitOnExecutionContext } =
+      cloudflareTest;
     const worker = (await import("../../workers/hoox/src/index")).default;
 
     const request = new Request("http://localhost/webhook", {

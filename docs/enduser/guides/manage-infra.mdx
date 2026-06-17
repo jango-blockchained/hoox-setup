@@ -45,7 +45,12 @@ hoox infra d1 create my-custom-db
 hoox infra d1 delete my-custom-db
 ```
 
-<Note>Once a D1 database is created, the CLI will output its unique `database_id` (a 36-character UUID). You must ensure this ID is bound in your worker's `wrangler.jsonc` file so the worker V8 isolate can establish a connection at runtime.</Note>
+<Note>
+  Once a D1 database is created, the CLI will output its unique `database_id` (a
+  36-character UUID). You must ensure this ID is bound in your worker's
+  `wrangler.jsonc` file so the worker V8 isolate can establish a connection at
+  runtime.
+</Note>
 
 ---
 

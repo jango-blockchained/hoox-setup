@@ -33,16 +33,16 @@ bun test tests/live/secrets.test.ts
 
 ## What Gets Tested
 
-| Test file | CF Service | What it does |
-|-----------|-----------|--------------|
-| `d1.test.ts` | D1 SQL Database | Execute queries, create/drop tables, insert/select rows, batch operations |
-| `kv.test.ts` | KV Namespace | Put/get/delete key-value pairs, list keys, bulk operations |
-| `r2.test.ts` | R2 Object Storage | Put/get/delete objects, list buckets, multipart upload |
-| `queues.test.ts` | Queues | Send/receive messages, batch sends, queue lifecycle |
-| `ai.test.ts` | Workers AI | Text generation, embeddings, text classification inference |
-| `durable-objects.test.ts` | Durable Objects | DO class registration, counter/alarm operations (deploys test worker) |
-| `secrets.test.ts` | Secrets | List/create/delete secrets via wrangler |
-| `api.test.ts` | Cloudflare REST API | Account details, zone listing, user info |
+| Test file                 | CF Service          | What it does                                                              |
+| ------------------------- | ------------------- | ------------------------------------------------------------------------- |
+| `d1.test.ts`              | D1 SQL Database     | Execute queries, create/drop tables, insert/select rows, batch operations |
+| `kv.test.ts`              | KV Namespace        | Put/get/delete key-value pairs, list keys, bulk operations                |
+| `r2.test.ts`              | R2 Object Storage   | Put/get/delete objects, list buckets, multipart upload                    |
+| `queues.test.ts`          | Queues              | Send/receive messages, batch sends, queue lifecycle                       |
+| `ai.test.ts`              | Workers AI          | Text generation, embeddings, text classification inference                |
+| `durable-objects.test.ts` | Durable Objects     | DO class registration, counter/alarm operations (deploys test worker)     |
+| `secrets.test.ts`         | Secrets             | List/create/delete secrets via wrangler                                   |
+| `api.test.ts`             | Cloudflare REST API | Account details, zone listing, user info                                  |
 
 ## Safety
 

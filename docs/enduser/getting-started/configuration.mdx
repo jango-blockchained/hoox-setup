@@ -78,7 +78,12 @@ hoox config env validate
 hoox config env generate-dev-vars
 ```
 
-<Note>Decrypted `.dev.vars` files contain local environment credentials and are excluded from git history via `.gitignore` automatically. Running `hoox config env generate-dev-vars` ensures that local worker testing via `bun run dev` has access to simulated credentials safely.</Note>
+<Note>
+  Decrypted `.dev.vars` files contain local environment credentials and are
+  excluded from git history via `.gitignore` automatically. Running `hoox config
+  env generate-dev-vars` ensures that local worker testing via `bun run dev` has
+  access to simulated credentials safely.
+</Note>
 
 ---
 
@@ -133,7 +138,11 @@ hoox config kv apply-manifest
 
 ---
 
-<Tip>Changed exchange configurations or toggled the kill switch? There is **no need** to redeploy. The changes are distributed across Cloudflare's 330+ global edge locations near-instantaneously!</Tip>
+<Tip>
+  Changed exchange configurations or toggled the kill switch? There is **no
+  need** to redeploy. The changes are distributed across Cloudflare's 330+
+  global edge locations near-instantaneously!
+</Tip>
 
 ### 🔗 Next Steps
 

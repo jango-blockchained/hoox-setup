@@ -145,7 +145,13 @@ To authorize GitHub to interact with your Cloudflare account, navigate to your r
 4. **`GITHUB_TOKEN`**: Auto-provided, used by gitleaks for PR annotations.
 5. **`INTERNAL_AUTH_KEY`**, **`HOOX_API_KEY`**, **`LOAD_TEST_BASE_URL`**: Required for nightly k6 load tests (see [Security Overview](../security/overview#environment-setup)).
 
-<Note>You **never** need to store worker-specific secrets (like Bybit API keys or Telegram Bot tokens) in GitHub Secrets. These are stored directly in Cloudflare's secured key vaults. The CI pipeline only deploys the code logic; the running edge isolates pull their credentials locally from Cloudflare’s hardware-level Secret Store at runtime.</Note>
+<Note>
+  You **never** need to store worker-specific secrets (like Bybit API keys or
+  Telegram Bot tokens) in GitHub Secrets. These are stored directly in
+  Cloudflare's secured key vaults. The CI pipeline only deploys the code logic;
+  the running edge isolates pull their credentials locally from Cloudflare’s
+  hardware-level Secret Store at runtime.
+</Note>
 
 ---
 

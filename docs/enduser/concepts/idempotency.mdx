@@ -110,14 +110,18 @@ This means idempotency protection **survives worker restarts, cold starts, and i
 
 ## 📊 Performance Impact
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| DO ping overhead | **< 2ms** | Per-request latency added |
-| Lock acquisition | **< 1ms** | Single-threaded, no contention |
-| Dedup check (cache hit) | **< 0.5ms** | In-memory SQLite query |
-| Storage alarm cleanup | **< 5ms** | Runs in background, non-blocking |
+| Metric                  | Value       | Notes                            |
+| ----------------------- | ----------- | -------------------------------- |
+| DO ping overhead        | **< 2ms**   | Per-request latency added        |
+| Lock acquisition        | **< 1ms**   | Single-threaded, no contention   |
+| Dedup check (cache hit) | **< 0.5ms** | In-memory SQLite query           |
+| Storage alarm cleanup   | **< 5ms**   | Runs in background, non-blocking |
 
-<Warning>Never disable idempotency check bindings in your `wrangler.jsonc` file in production. The performance cost of pinging the DO is less than **2 milliseconds**, while the cost of a duplicate order could be catastrophic.</Warning>
+<Warning>
+  Never disable idempotency check bindings in your `wrangler.jsonc` file in
+  production. The performance cost of pinging the DO is less than **2
+  milliseconds**, while the cost of a duplicate order could be catastrophic.
+</Warning>
 
 ### 🔗 Next Steps
 

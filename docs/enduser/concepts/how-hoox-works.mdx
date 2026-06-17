@@ -111,7 +111,13 @@ Finally, the `trade-worker` pings **`telegram-worker`** via an internal binding:
 
 ---
 
-<Tip>If the exchange API experiences transient network dropouts or severe rate limits, the Hoox Gateway automatically transfers the payload to **Cloudflare Queues** with an exponential retry schedule (`30s` → `1m` → `5m` → `15m`), keeping your strategy fully reliable even during periods of heavy market volatility.</Tip>
+<Tip>
+  If the exchange API experiences transient network dropouts or severe rate
+  limits, the Hoox Gateway automatically transfers the payload to **Cloudflare
+  Queues** with an exponential retry schedule (`30s` → `1m` → `5m` → `15m`),
+  keeping your strategy fully reliable even during periods of heavy market
+  volatility.
+</Tip>
 
 ### 🔗 Next Steps
 

@@ -143,7 +143,12 @@ bun run opennext:build
 bun run opennext:deploy
 ```
 
-<Warning>Framer Motion components and interactive visual elements used in Next.js pages **must** declare the `'use client'` directive at the top of the file. Under OpenNext, client-side pages cannot export metadata directly—move metadata definitions to separate `metadata.ts` files!</Warning>
+<Warning>
+  Framer Motion components and interactive visual elements used in Next.js pages
+  **must** declare the `'use client'` directive at the top of the file. Under
+  OpenNext, client-side pages cannot export metadata directly—move metadata
+  definitions to separate `metadata.ts` files!
+</Warning>
 
 ### 🛡️ Security Headers
 

@@ -10,33 +10,33 @@ Every signal received by the public gateway at `/webhook` must contain a valid, 
 
 ```typescript
 export interface WebhookSignal {
-  apiKey: string;         // Authentication token matching CONFIG_KV webhooks:api_key
-  exchange: "binance" | "bybit" | "mexc";   // Target exchange router
-  action: "LONG" | "SHORT" | "CLOSE";       // Position intent
-  symbol: string;         // Asset symbol (e.g. "BTCUSDT", "ETHUSDT")
-  quantity: number;       // Order size (amount of asset or contracts)
-  leverage?: number;      // Optional leverage multiplier (default: 1, max: 125)
+  apiKey: string; // Authentication token matching CONFIG_KV webhooks:api_key
+  exchange: "binance" | "bybit" | "mexc"; // Target exchange router
+  action: "LONG" | "SHORT" | "CLOSE"; // Position intent
+  symbol: string; // Asset symbol (e.g. "BTCUSDT", "ETHUSDT")
+  quantity: number; // Order size (amount of asset or contracts)
+  leverage?: number; // Optional leverage multiplier (default: 1, max: 125)
   idempotencyKey?: string; // Optional unique signature for dedup (auto-generated if omitted)
-  price?: number;         // Optional limit price (default: market price)
-  takeProfit?: number;    // Optional take-profit price target
-  stopLoss?: number;      // Optional stop-loss price target
+  price?: number; // Optional limit price (default: market price)
+  takeProfit?: number; // Optional take-profit price target
+  stopLoss?: number; // Optional stop-loss price target
 }
 ```
 
 ### Parameter Rules & Type Constraints
 
-| Parameter | Type | Required | Constraints |
-|-----------|------|:--------:|-------------|
-| `apiKey` | `string` | **Yes** | Must match the encrypted `webhooks:api_key` hash in your `CONFIG_KV` namespace |
-| `exchange` | `string` | **Yes** | One of: `binance`, `bybit`, `mexc` — must match a configured exchange router |
-| `action` | `string` | **Yes** | One of: `LONG` (buy/open), `SHORT` (sell/open), `CLOSE` (flatten position) |
-| `symbol` | `string` | **Yes** | Parsed and standardized — `BTC-USDT`, `BTC_USDT`, and `btc/usdt` all become `BTCUSDT` |
-| `quantity` | `number` | **Yes** | Must be greater than zero; checked against exchange minimum order size |
-| `leverage` | `number` | No | Range: `1` to `125` depending on exchange margin profiles; defaults to `1` (spot) |
-| `idempotencyKey` | `string` | No | If omitted, auto-generated from `SHA256(symbol + exchange + action + timestamp)` |
-| `price` | `number` | No | Limit price; defaults to current market price if omitted |
-| `takeProfit` | `number` | No | Target exit price for automatic partial close |
-| `stopLoss` | `number` | No | Stop-loss trigger price; overrides agent-worker trailing stop if specified |
+| Parameter        | Type     | Required | Constraints                                                                           |
+| ---------------- | -------- | :------: | ------------------------------------------------------------------------------------- |
+| `apiKey`         | `string` | **Yes**  | Must match the encrypted `webhooks:api_key` hash in your `CONFIG_KV` namespace        |
+| `exchange`       | `string` | **Yes**  | One of: `binance`, `bybit`, `mexc` — must match a configured exchange router          |
+| `action`         | `string` | **Yes**  | One of: `LONG` (buy/open), `SHORT` (sell/open), `CLOSE` (flatten position)            |
+| `symbol`         | `string` | **Yes**  | Parsed and standardized — `BTC-USDT`, `BTC_USDT`, and `btc/usdt` all become `BTCUSDT` |
+| `quantity`       | `number` | **Yes**  | Must be greater than zero; checked against exchange minimum order size                |
+| `leverage`       | `number` |    No    | Range: `1` to `125` depending on exchange margin profiles; defaults to `1` (spot)     |
+| `idempotencyKey` | `string` |    No    | If omitted, auto-generated from `SHA256(symbol + exchange + action + timestamp)`      |
+| `price`          | `number` |    No    | Limit price; defaults to current market price if omitted                              |
+| `takeProfit`     | `number` |    No    | Target exit price for automatic partial close                                         |
+| `stopLoss`       | `number` |    No    | Stop-loss trigger price; overrides agent-worker trailing stop if specified            |
 
 ---
 
@@ -48,12 +48,12 @@ The `trade-worker` parses the incoming signal and translates the business logic 
 
 ### A. Translation Table (One-Way Margin / Spot)
 
-| Action | Position State | Translated Exchange Side | Operation Type |
-| :----- | :------------: | :----------------------: | :------------- |
-| **`LONG`** | Closed / No Position | **`BUY`** | Opens a long position (spot or margin) |
-| **`SHORT`** | Closed / No Position | **`SELL`** | Opens a short position (margin/futures) |
-| **`CLOSE`** | Long Position Active | **`SELL`** | Closes and flattens an existing long position |
-| **`CLOSE`** | Short Position Active | **`BUY`** | Closes and flattens an existing short position |
+| Action      |    Position State     | Translated Exchange Side | Operation Type                                 |
+| :---------- | :-------------------: | :----------------------: | :--------------------------------------------- |
+| **`LONG`**  | Closed / No Position  |        **`BUY`**         | Opens a long position (spot or margin)         |
+| **`SHORT`** | Closed / No Position  |        **`SELL`**        | Opens a short position (margin/futures)        |
+| **`CLOSE`** | Long Position Active  |        **`SELL`**        | Closes and flattens an existing long position  |
+| **`CLOSE`** | Short Position Active |        **`BUY`**         | Closes and flattens an existing short position |
 
 ### B. Hedge-Mode PositionSide Mapping
 
@@ -90,11 +90,11 @@ If the signal includes a `leverage` parameter greater than `1` (e.g., `"leverage
 
 ### Precision Table by Exchange
 
-| Exchange | Price Precision | Quantity Precision | Min Order Size |
-|----------|----------------|-------------------|----------------|
-| Binance | Varies by symbol | Varies by symbol | ~$10 equivalent |
-| Bybit | 0.1 – 0.001 | 3–6 decimal places | Varies by tier |
-| MEXC | 0.1 – 0.00000001 | 2–8 decimal places | ~$5 equivalent |
+| Exchange | Price Precision  | Quantity Precision | Min Order Size  |
+| -------- | ---------------- | ------------------ | --------------- |
+| Binance  | Varies by symbol | Varies by symbol   | ~$10 equivalent |
+| Bybit    | 0.1 – 0.001      | 3–6 decimal places | Varies by tier  |
+| MEXC     | 0.1 – 0.00000001 | 2–8 decimal places | ~$5 equivalent  |
 
 ---
 
@@ -148,20 +148,25 @@ hoox db query "SELECT symbol, side, quantity, entry_price FROM positions WHERE q
 
 When the exchange API returns an error (timeout, rate limit, HTTP 5xx), the gateway automatically enqueues the trade payload into **Cloudflare Queues** for guaranteed delivery:
 
-| Retry Attempt | Delay | Trigger Condition |
-|:------------:|:-----:|:-----------------:|
-| 1 | Immediate | First failure |
-| 2 | 30 seconds | Network timeout |
-| 3 | 1 minute | Rate limit (429) |
-| 4 | 5 minutes | Exchange error (502/503) |
-| 5 | 15 minutes | Extended maintenance |
-| 6 | 30 minutes | Final retry before logging as failed |
+| Retry Attempt |   Delay    |          Trigger Condition           |
+| :-----------: | :--------: | :----------------------------------: |
+|       1       | Immediate  |            First failure             |
+|       2       | 30 seconds |           Network timeout            |
+|       3       |  1 minute  |           Rate limit (429)           |
+|       4       | 5 minutes  |       Exchange error (502/503)       |
+|       5       | 15 minutes |         Extended maintenance         |
+|       6       | 30 minutes | Final retry before logging as failed |
 
 After max retries, the trade is logged to D1 with `status = 'Failed'` — not lost, but visibly flagged for manual review.
 
 ---
 
-<Tip>By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks the exact execution duration of each pipeline step. You can audit the latency breakdown (e.g., Gateway auth took `1.2ms`, Trade-worker signing took `0.8ms`, Bybit API roundtrip took `18.5ms`) directly in your Next.js dashboard!</Tip>
+<Tip>
+  By utilizing time-series logging via Cloudflare Analytics Engine, Hoox tracks
+  the exact execution duration of each pipeline step. You can audit the latency
+  breakdown (e.g., Gateway auth took `1.2ms`, Trade-worker signing took `0.8ms`,
+  Bybit API roundtrip took `18.5ms`) directly in your Next.js dashboard!
+</Tip>
 
 ### 🔗 Next Steps
 

@@ -39,12 +39,12 @@ This section guides you through submitting a bug report for Hoox. Following thes
 
 ### Prerequisites
 
-| Tool | Minimum Version | Purpose |
-|------|----------------|---------|
-| [Bun](https://bun.sh) | 1.2+ | Runtime, package manager, test runner |
-| [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) | Latest | Cloudflare Workers deployment |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Latest (optional) | Containerized local development |
-| [GCloud/gh CLI](https://cli.github.com/) | Latest (optional) | GitHub automation |
+| Tool                                                                | Minimum Version   | Purpose                               |
+| ------------------------------------------------------------------- | ----------------- | ------------------------------------- |
+| [Bun](https://bun.sh)                                               | 1.2+              | Runtime, package manager, test runner |
+| [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) | Latest            | Cloudflare Workers deployment         |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/)   | Latest (optional) | Containerized local development       |
+| [GCloud/gh CLI](https://cli.github.com/)                            | Latest (optional) | GitHub automation                     |
 
 ### Step-by-Step Setup
 
@@ -158,10 +158,10 @@ Be respectful, constructive, and professional. We follow the [Contributor Covena
 
 ## 📋 Reference
 
-| Resource | Link |
-|----------|------|
-| Bug Tracker | [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues) |
-| Documentation Home | [docs/enduser/home.md](docs/enduser/home.md) |
-| DevOps Manual | [docs/devops/home.md](docs/devops/home.md) |
+| Resource              | Link                                                                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Bug Tracker           | [GitHub Issues](https://github.com/jango-blockchained/hoox-setup/issues)                                                                |
+| Documentation Home    | [docs/enduser/home.md](docs/enduser/home.md)                                                                                            |
+| DevOps Manual         | [docs/devops/home.md](docs/devops/home.md)                                                                                              |
 | Enduser Full Docs PDF | [/hoox-setup/Enduser-Full-Documentation.pdf](https://github.com/jango-blockchained/hoox-setup/blob/main/Enduser-Full-Documentation.pdf) |
-| Latest Release | [Releases Page](https://github.com/jango-blockchained/hoox-setup/releases) |
+| Latest Release        | [Releases Page](https://github.com/jango-blockchained/hoox-setup/releases)                                                              |
