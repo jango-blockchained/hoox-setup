@@ -1,16 +1,28 @@
 /* ============================================================
  * Hoox Brand Polish — Mintlify Docs
- * Brand: #0D9373 primary · #55D799 light · #064E3B deep
+ * Brand: #F97316 primary · #FB923C light · #EA580C dark (orange)
  * Goal: subtle visual polish — no layout-breaking changes
  * ============================================================ */
 
 :root {
-  --hoox-primary: #0d9373;
-  --hoox-light: #55d799;
-  --hoox-deep: #064e3b;
-  --hoox-tint: rgba(13, 147, 115, 0.06);
-  --hoox-tint-strong: rgba(13, 147, 115, 0.12);
-  --hoox-border: rgba(13, 147, 115, 0.18);
+  --hoox-primary: #f97316;
+  --hoox-light: #fb923c;
+  --hoox-deep: #c2410c;
+  --hoox-tint: rgba(249, 115, 22, 0.06);
+  --hoox-tint-strong: rgba(249, 115, 22, 0.12);
+  --hoox-border: rgba(249, 115, 22, 0.18);
+}
+
+/* ----- Scroll progress bar — fixed top of page ----- */
+#scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--hoox-primary), var(--hoox-light));
+  z-index: 9999;
+  transition: width 0.1s ease-out;
+  pointer-events: none;
 }
 
 /* ----- Code blocks: brand-tinted container, token color nudges ----- */
@@ -28,7 +40,7 @@ code-block pre {
 
 /* Best-effort token recoloring — Shiki emits inline-styled spans, so we
  * target the typical blue/purple keyword hexes used by VS-Code–style
- * themes and remap them to hoox green. Fail-safe: scoped to attribute
+ * themes and remap them to hoox orange. Fail-safe: scoped to attribute
  * selectors — if the theme doesn't emit those exact hexes, no match. */
 code-block pre span[style*="569cd6"],
 code-block pre span[style*="c586c0"],
@@ -45,9 +57,6 @@ code-block pre span[style*="2e7d32"] {
 }
 
 /* ----- Callouts: semantic colors per type, soft corners ----- */
-/* Covers MDX components (<Tip>, <Note>, <Warning>) and blockquote-style
- * callouts ("> **Note:** …"). CSS has no :contains(), so type detection
- * relies on Mintlify's emitted attributes/classes. */
 .callout,
 [data-callout-type],
 blockquote.callout,
@@ -70,7 +79,7 @@ blockquote[data-callout-type="note"] {
   background: rgba(59, 130, 246, 0.06);
 }
 
-/* Tip & Welcome — brand green accent (already default above) */
+/* Tip & Welcome — brand orange accent */
 .callout-tip,
 [data-callout-type="tip"],
 .callout-welcome,
@@ -120,7 +129,7 @@ tbody tr:hover {
 
 tbody td {
   padding: 0.55rem 0.9rem;
-  border-bottom: 1px solid rgba(13, 147, 115, 0.08);
+  border-bottom: 1px solid rgba(249, 115, 22, 0.08);
 }
 
 tbody tr:last-child td {
@@ -137,7 +146,7 @@ mermaid {
   margin: 1.25rem 0;
 }
 
-/* ----- Links: brand color, subtle underline on hover ----- */
+/* ----- Links: brand orange color, orange underline on hover ----- */
 a {
   color: var(--hoox-primary);
   text-decoration: none;
@@ -150,7 +159,7 @@ a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
-  text-decoration-color: var(--hoox-light);
+  text-decoration-color: var(--hoox-primary);
   color: var(--hoox-deep);
 }
 
@@ -164,6 +173,29 @@ a:focus-visible {
 h1 {
   padding-left: 0.25rem;
   scroll-margin-top: 5rem;
+}
+
+/* ----- Table of contents: right sidebar section headers in orange ----- */
+#table-of-contents h1,
+#table-of-contents h2,
+#table-of-contents h3,
+#table-of-contents h4,
+#table-of-contents-content h1,
+#table-of-contents-content h2,
+#table-of-contents-content h3,
+#table-of-contents-content h4 {
+  color: var(--hoox-primary);
+}
+
+#table-of-contents a,
+#table-of-contents-content a {
+  color: var(--hoox-primary);
+}
+
+#table-of-contents a:hover,
+#table-of-contents-content a:hover {
+  color: var(--hoox-deep);
+  text-decoration-color: var(--hoox-primary);
 }
 
 @media (max-width: 768px) {
