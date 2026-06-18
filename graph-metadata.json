@@ -407,6 +407,61 @@
       "llmContext": "Browser Rendering REST API for serverless PDF generation. Used exclusively by report-worker's generatePdf() function. API: POST https://api.cloudflare.com/client/v4/{account}/browser-rendering/pdf, Bearer token auth (CF_API_TOKEN_BINDING). Request body: { html: string, options: { format: 'A4', printBackground: true, margin: { top/bottom/left/right: '1cm' } } }. Not accessed via service binding — called as external REST API. Returns ArrayBuffer PDF. Requires account-level API token with Browser Rendering permissions. Triggered twice daily via cron (06:00/18:00 UTC) or on-demand via GET /report endpoint.",
       "bindingName": "BROWSER",
       "usedBy": ["workers/report-worker"]
+    },
+    "binding:TELEGRAM_SERVICE": {
+      "id": "infra:binding:TELEGRAM_SERVICE",
+      "label": "TELEGRAM_SERVICE (Service Binding)",
+      "kind": "infrastructure",
+      "category": "service-binding",
+      "description": "Cloudflare Service Binding to telegram-worker. Used by 5 workers to send notifications, alerts, and report delivery via Telegram Bot API.",
+      "tags": ["service-binding", "telegram", "notification", "inter-worker"],
+      "llmContext": "Service binding to telegram-worker for sending notifications. Target endpoint: POST /webhook (primary) or POST /process (legacy). Called by: hoox (kill switch alerts, signal confirmation), trade-worker (trade execution notifications), agent-worker (risk alerts, trailing stop triggers), report-worker (PDF report delivery with signed URL), web3-wallet-worker (wallet initialization confirmation). Fire-and-forget via ctx.waitUntil. NotificationPayload: { message: string, chatId?: string } — uses TG_CHAT_ID_BINDING if chatId omitted.",
+      "bindingName": "TELEGRAM_SERVICE",
+      "usedBy": [
+        "workers/hoox",
+        "workers/trade-worker",
+        "workers/agent-worker",
+        "workers/report-worker",
+        "workers/web3-wallet-worker"
+      ]
+    },
+    "binding:TRADE_SERVICE": {
+      "id": "infra:binding:TRADE_SERVICE",
+      "label": "TRADE_SERVICE (Service Binding)",
+      "kind": "infrastructure",
+      "category": "service-binding",
+      "description": "Cloudflare Service Binding to trade-worker. Used by 3 workers to forward trading signals for execution.",
+      "tags": ["service-binding", "trade", "execution", "inter-worker"],
+      "llmContext": "Service binding to trade-worker for trade signal execution. Target endpoint: POST /webhook. Called by: hoox (queue producer fallback), email-worker (parsed email signals with X-Internal-Auth-Key + X-Source: email-worker headers), agent-worker (AI-initiated risk adjustments). Trade execution via exchange router (Binance/MEXC/Bybit) with exponential backoff retry.",
+      "bindingName": "TRADE_SERVICE",
+      "usedBy": ["workers/hoox", "workers/email-worker", "workers/agent-worker"]
+    },
+    "binding:D1_SERVICE": {
+      "id": "infra:binding:D1_SERVICE",
+      "label": "D1_SERVICE (Service Binding)",
+      "kind": "infrastructure",
+      "category": "service-binding",
+      "description": "Cloudflare Service Binding to d1-worker. Used by 4 workers for centralized database operations.",
+      "tags": ["service-binding", "d1", "database", "inter-worker"],
+      "llmContext": "Service binding to d1-worker for centralized D1 database access. Provides table-allowlist-validated SQL execution (allowed tables: trade_signals, trades, positions, balances, system_logs, trade_requests, trade_responses). Endpoints: POST /query (single SQL), POST /batch (atomic multi-statement), GET/POST /api/settings, GET /api/balances, GET /api/positions, GET /api/logs. All endpoints except /health require internal auth. Called by: trade-worker (trade persistence, balance tracking), report-worker (portfolio summary for PDF reports), dashboard (data read for UI rendering), agent-worker (position monitoring for AI risk assessment).",
+      "bindingName": "D1_SERVICE",
+      "usedBy": [
+        "workers/trade-worker",
+        "workers/report-worker",
+        "workers/dashboard",
+        "workers/agent-worker"
+      ]
+    },
+    "binding:AGENT_SERVICE": {
+      "id": "infra:binding:AGENT_SERVICE",
+      "label": "AGENT_SERVICE (Service Binding)",
+      "kind": "infrastructure",
+      "category": "service-binding",
+      "description": "Cloudflare Service Binding to agent-worker. Used by dashboard for AI risk management status and on-demand housekeeping triggers.",
+      "tags": ["service-binding", "ai", "agent", "inter-worker"],
+      "llmContext": "Service binding to agent-worker for AI risk management. Target endpoints: POST /agent/housekeeping (trigger on-demand housekeeping), GET /agent/status (provider config + active trailing stops). Called by: dashboard (status page display, manual housekeeping trigger). Returns AI risk assessment results including open positions, trailing stop status, and risk threshold compliance.",
+      "bindingName": "AGENT_SERVICE",
+      "usedBy": ["workers/dashboard"]
     }
   },
   "dataFlows": [
@@ -552,7 +607,11 @@
         "infra:ai:WORKERS_AI",
         "infra:vectorize:my-rag-index",
         "infra:analytics:hoox-analytics",
-        "infra:browser:REPORT_RENDERER"
+        "infra:browser:REPORT_RENDERER",
+        "infra:binding:TELEGRAM_SERVICE",
+        "infra:binding:TRADE_SERVICE",
+        "infra:binding:D1_SERVICE",
+        "infra:binding:AGENT_SERVICE"
       ]
     },
     {

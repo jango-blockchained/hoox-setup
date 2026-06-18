@@ -65,7 +65,13 @@ export function middleware(request: NextRequest) {
       }
     }
 
-    // Validate required env vars
+    // NOTE: Next.js middleware cannot access the Cloudflare `env` binding directly.
+    // The `env` parameter is only available in route handlers via `getCloudflareContext().env`.
+    // OpenNext's cloudflare-edge wrapper (handler.mjs) copies string bindings to `process.env`
+    // before invoking the Next.js middleware, so `process.env.DASHBOARD_USER` works for vars.
+    // If DASHBOARD_USER were a secret (not a var), this would not work — secrets are not
+    // copied to process.env. For secrets, the architecture would need to change (e.g., passing
+    // env through the converter or using a different auth pattern in middleware).
     if (!process.env.DASHBOARD_USER) {
       if (pathname.startsWith("/api/")) {
         return withSecurityHeaders(

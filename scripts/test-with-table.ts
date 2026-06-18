@@ -41,6 +41,10 @@ const hasPreload = args.some(
 if (!hasPreload) {
   bunArgs.push("--preload", PRELOAD);
 }
+// Enforce coverage thresholds (values from bunfig.toml)
+bunArgs.push(
+  "--coverage-threshold=lines=80,statements=80,functions=80,branches=75"
+);
 bunArgs.push(...args);
 
 const proc = Bun.spawn(bunArgs, {
