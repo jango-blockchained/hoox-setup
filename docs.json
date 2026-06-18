@@ -4,14 +4,13 @@
   "name": "Hoox",
   "description": "Zero-Latency Algorithmic Trading Ecosystem on the Cloudflare Edge. Free, open-source framework for trade signal ingestion, risk management, and execution at the edge.",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#55D799",
-    "dark": "#0D9373"
+    "primary": "#F97316",
+    "light": "#FB923C",
+    "dark": "#EA580C"
   },
   "favicon": "/favicon.svg",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg",
+    "text": "HOOX",
     "href": "https://github.com/jango-blockchained/hoox-setup"
   },
   "appearance": {
