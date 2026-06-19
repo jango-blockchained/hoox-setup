@@ -47,6 +47,7 @@ export default [
         // k6 load testing globals
         __ENV: "readonly",
         __ITER: "readonly",
+        __VU: "readonly",
       },
     },
     rules: {
