@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Hoox docs — custom theming
+   --------------------------------------------------------------------------
+   docs.json `colors` only accepts { primary, light, dark } and rejects extra
+   keys (additionalProperties:false on colorsSchema), so secondary tokens are
+   defined here as CSS custom properties and applied via selectors.
+
+   Color roles
+     --hoox-primary    #F97316  — brand (active TOC, primary CTA, logo)
+     --hoox-blue       #2563EB  — body content links (blue-600, not sky)
+     --hoox-blue-hover #1D4ED8  — body content links on hover (blue-700)
+     Left sidebar / footer / navbar secondary — white in dark, dark in light
+
+   Balance mirrors the Cloudflare dashboard: orange is reserved for primary
+   brand moments; everything else blends in (white in dark, near-black in light).
+   ========================================================================== */
+
+:root {
+  --hoox-blue: #2563eb;
+  --hoox-blue-hover: #1d4ed8;
+}
+
+/* ---------- Right sidebar "On this page" TOC -------------------------
+   id "table-of-contents" lives on a wrapper <div>, not the <nav>.
+   Tailwind generates .dark\:text-gray-400 with !important (specificity 0,2,0);
+   `html` prefix lifts our specificity to (0,1,2,1) so the override wins.
+   Inactive links → grey. Hover → white. Active → brand orange. */
+
+html #table-of-contents a,
+html #table-of-contents .toc-item a,
+html #table-of-contents nav a,
+html #table-of-contents ul li a {
+  color: #d4d4d8 !important;
+}
+
+html #table-of-contents a:hover,
+html #table-of-contents .toc-item a:hover,
+html #table-of-contents nav a:hover {
+  color: #ffffff !important;
+}
+
+html #table-of-contents a[aria-current="location"],
+html #table-of-contents a[data-active="true"] {
+  color: #f97316 !important;
+}
+
+/* ---------- Body content links → blue (blue-600) ---------------------
+   Covers the main MDX article and any in-content anchor elements.
+   Primary CTA buttons excluded via :not([class*="button"]):not([class*="bg-"]). */
+
+html article a:not([class*="button"]):not([class*="bg-"]),
+html main a:not([class*="button"]):not([class*="bg-"]),
+html #content-area a:not([class*="button"]):not([class*="bg-"]) {
+  color: var(--hoox-blue) !important;
+}
+
+html article a:not([class*="button"]):not([class*="bg-"]):hover,
+html main a:not([class*="button"]):not([class*="bg-"]):hover,
+html #content-area a:not([class*="button"]):not([class*="bg-"]):hover {
+  color: var(--hoox-blue-hover) !important;
+}
+
+/* ---------- Left sidebar (nav, tabs, pages) → white / dark ----------
+   Covers the tab bar (End User / DevOps / API Reference), the navigation
+   tree, and the current page indicator. Scoped to dark mode for white,
+   with a light-mode fallback. The right TOC is excluded by scoping to
+   elements that are NOT inside #content-side-layout. */
+
+html.dark :not(#content-side-layout) > nav a,
+html.dark :not(#content-side-layout) > nav button,
+html.dark :not(#content-side-layout) > nav span,
+html.dark aside:not(#content-side-layout *) a,
+html.dark aside:not(#content-side-layout *) button,
+html.dark aside:not(#content-side-layout *) span,
+html.dark [data-sidebar] a,
+html.dark [data-sidebar] button,
+html.dark [class*="sidebar"]:not(#content-side-layout *) a,
+html.dark [class*="sidebar"]:not(#content-side-layout *) button {
+  color: #ffffff !important;
+}
+
+html.dark [data-sidebar] a[aria-current="page"],
+html.dark
+  [class*="sidebar"]:not(#content-side-layout *)
+  a[aria-current="page"] {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+:where(html:not(.dark)) :not(#content-side-layout) > nav a,
+:where(html:not(.dark)) :not(#content-side-layout) > nav button,
+:where(html:not(.dark)) :not(#content-side-layout) > nav span,
+:where(html:not(.dark)) aside a,
+:where(html:not(.dark)) [data-sidebar] a,
+:where(html:not(.dark)) [data-sidebar] button,
+:where(html:not(.dark)) [class*="sidebar"] a,
+:where(html:not(.dark)) [class*="sidebar"] button {
+  color: #1f2937 !important;
+}
+
+:where(html:not(.dark)) [data-sidebar] a[aria-current="page"],
+:where(html:not(.dark)) [class*="sidebar"] a[aria-current="page"] {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+/* ---------- Footer → white (dark) / dark (light) ---------------------
+   Comprehensive coverage: text, links, headings — all descendants. */
+
+html.dark footer,
+html.dark footer * {
+  color: #ffffff !important;
+}
+
+html.dark footer a:hover {
+  color: #cbd5e1 !important;
+}
+
+footer,
+footer * {
+  color: #1f2937 !important;
+}
+
+footer a:hover {
+  color: #111827 !important;
+}

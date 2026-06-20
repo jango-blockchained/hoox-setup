@@ -10,8 +10,8 @@
   },
   "favicon": "/favicon.svg",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg",
+    "light": "/logo/dark.svg",
+    "dark": "/logo/light.svg",
     "href": "https://github.com/jango-blockchained/hoox-setup"
   },
   "appearance": {
@@ -50,16 +50,6 @@
     "dismissible": true
   },
   "navbar": {
-    "links": [
-      {
-        "type": "github",
-        "href": "https://github.com/jango-blockchained/hoox-setup"
-      },
-      {
-        "label": "Support",
-        "href": "mailto:support@hoox.sh"
-      }
-    ],
     "primary": {
       "type": "button",
       "label": "GitHub",
