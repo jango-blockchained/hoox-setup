@@ -141,6 +141,8 @@ import { registerDevCommand } from "./commands/dev/index.js";
 import { registerDeployCommand } from "./commands/deploy/index.js";
 import { registerInfraCommand } from "./commands/infra/index.js";
 import { registerConfigCommand } from "./commands/config/index.js";
+import { registerSecretsCommand } from "./commands/secrets/index.js";
+import { registerKeysCommand } from "./commands/keys/index.js";
 import { registerCheckCommand } from "./commands/check/index.js";
 import { registerLogsCommand } from "./commands/logs/index.js";
 import { registerTestCommand } from "./commands/test/index.js";
@@ -169,6 +171,8 @@ registerDevCommand(program);
 registerDeployCommand(program);
 registerInfraCommand(program);
 registerConfigCommand(program);
+registerSecretsCommand(program);
+registerKeysCommand(program);
 registerCheckCommand(program);
 registerLogsCommand(program);
 registerTestCommand(program);
@@ -217,7 +221,7 @@ program
   local cur prev opts
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
-    opts="--help --version --json --quiet --yes init onboard bootstrap quickstart setup clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer agent workers trace perf"
+    opts="--help --version --json --quiet --yes init onboard bootstrap quickstart setup clone dev deploy infra config secrets keys check db monitor repair logs test waf dashboard schema update tui disclaimer agent workers trace perf"
   COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
   return 0
 }
@@ -235,6 +239,8 @@ _hoox() {
     'init:Interactive setup wizard (config only)'
     'onboard:One-shot full bootstrap (init + setup)'
     'setup:Auto-bootstrap infrastructure'
+    'secrets:Manage Cloudflare Worker secrets'
+    'keys:Manage internal auth keys'
     'clone:Clone worker repositories'
     'dev:Local development'
     'deploy:Deploy to Cloudflare'
