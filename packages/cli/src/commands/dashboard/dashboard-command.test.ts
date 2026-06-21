@@ -1,47 +1,26 @@
 import { describe, it, expect } from "bun:test";
-import type { Command } from "commander";
-
-const { registerDashboardCommand } = await import("./dashboard-command.js");
+import { Command } from "commander";
+import { registerDashboardCommand } from "./dashboard-command.js";
 
 describe("registerDashboardCommand", () => {
-  it("registers dashboard command group on program", () => {
-    const commands: { name: string; description: string }[] = [];
-    const subcommands: { parent: string; name: string; description: string }[] =
-      [];
+  it("registers dashboard command with dev and deploy subcommands", () => {
+    const program = new Command();
+    registerDashboardCommand(program);
 
-    const mockProgram = {
-      command: (name: string) => {
-        commands.push({ name, description: "" });
-        const desc = (d: string) => {
-          commands[commands.length - 1].description = d;
-          return {
-            command: (subName: string) => {
-              subcommands.push({
-                parent: name,
-                name: subName,
-                description: "",
-              });
-              return {
-                description: (d2: string) => {
-                  subcommands[subcommands.length - 1].description = d2;
-                  return {
-                    option: () => ({ action: () => {} }),
-                  };
-                },
-              };
-            },
-          };
-        };
-        return { description: desc };
-      },
-      opts: () => ({ json: false, quiet: false }),
-    } as unknown as Command;
+    const dashboard = program.commands.find((c) => c.name() === "dashboard");
+    expect(dashboard).toBeDefined();
+    const subNames = dashboard!.commands.map((c) => c.name()).sort();
+    expect(subNames).toEqual(["deploy", "dev"]);
+  });
 
-    registerDashboardCommand(mockProgram);
+  it("does NOT register the old 'update-urls' subcommand", () => {
+    const program = new Command();
+    registerDashboardCommand(program);
 
-    expect(commands.length).toBe(1);
-    expect(commands[0].name).toBe("dashboard");
-    expect(subcommands.length).toBe(1);
-    expect(subcommands[0].name).toBe("update-urls");
+    const dashboard = program.commands.find((c) => c.name() === "dashboard")!;
+    const updateUrls = dashboard.commands.find(
+      (c) => c.name() === "update-urls"
+    );
+    expect(updateUrls).toBeUndefined();
   });
 });

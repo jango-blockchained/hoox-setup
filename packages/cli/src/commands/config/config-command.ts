@@ -172,7 +172,7 @@ function generateKey(bytes = 32): string {
 export function registerConfigCommand(program: Command): void {
   const configCmd = program
     .command("config")
-    .summary("Manage configuration, secrets, and keys")
+    .summary("Manage wrangler.jsonc configuration")
     .description(
       `Manage your Hoox configuration and secrets.
 

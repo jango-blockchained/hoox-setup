@@ -1,18 +1,18 @@
 /**
  * Unit tests for the monitor command.
  *
- * Stubs MonitorService, DbService, and KvSyncService prototypes to verify
+ * Stubs DbService and KvSyncService prototypes to verify
  * the monitor command logic in isolation. Uses Commander's exitOverride to
  * suppress process exits during test runs.
+ *
+ * Note: 'hoox monitor status' was removed in v0.7.5 — use 'hoox check health'.
  */
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Command } from "commander";
-import { MonitorService } from "./monitor-service.js";
 import { DbService } from "../../services/db/db-service.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
 
 // Stub variables
-let checkAllWorkerHealthMock: ReturnType<typeof mock>;
 let resolveDbNameMock: ReturnType<typeof mock>;
 let queryMock: ReturnType<typeof mock>;
 let exportMock: ReturnType<typeof mock>;
@@ -21,7 +21,6 @@ let getMock: ReturnType<typeof mock>;
 let setMock: ReturnType<typeof mock>;
 
 // Preserve originals
-const origCheckAll = MonitorService.prototype.checkAllWorkerHealth;
 const origResolveDbName = DbService.prototype.resolveDbName;
 const origQuery = DbService.prototype.query;
 const origExport = DbService.prototype.export;
@@ -34,9 +33,6 @@ beforeEach(() => {
   process.exitCode = 0;
 
   // Restore originals
-  (
-    MonitorService.prototype as unknown as Record<string, unknown>
-  ).checkAllWorkerHealth = origCheckAll;
   (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
   (DbService.prototype as unknown as Record<string, unknown>).query = origQuery;
@@ -49,16 +45,6 @@ beforeEach(() => {
   (KvSyncService.prototype as unknown as Record<string, unknown>).set = origSet;
 
   // Fresh mocks
-  checkAllWorkerHealthMock = mock(async () => ({
-    workers: [
-      { worker: "hoox", status: "healthy", statusCode: 200 },
-      { worker: "trade-worker", status: "healthy", statusCode: 200 },
-    ],
-    healthyCount: 2,
-    degradedCount: 0,
-    unreachableCount: 0,
-  }));
-
   resolveDbNameMock = mock(async () => "trade-data-db");
   queryMock = mock(
     async (_dbName: string, _sql: string, _remote: boolean) =>
@@ -70,9 +56,6 @@ beforeEach(() => {
   setMock = mock(async (_nsId: string, _key: string, _value: string) => {});
 
   // Install mocks on prototypes
-  (
-    MonitorService.prototype as unknown as Record<string, unknown>
-  ).checkAllWorkerHealth = checkAllWorkerHealthMock;
   (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     resolveDbNameMock;
   (DbService.prototype as unknown as Record<string, unknown>).query = queryMock;
@@ -87,9 +70,6 @@ beforeEach(() => {
 
 afterEach(() => {
   mock.restore();
-  (
-    MonitorService.prototype as unknown as Record<string, unknown>
-  ).checkAllWorkerHealth = origCheckAll;
   (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
     origResolveDbName;
   (DbService.prototype as unknown as Record<string, unknown>).query = origQuery;
@@ -124,11 +104,11 @@ describe("registerMonitorCommand", () => {
     expect(cmd).toBeDefined();
   });
 
-  it("registers 'monitor status' subcommand", async () => {
+  it("does NOT register 'monitor status' (use 'hoox check health' instead)", async () => {
     const program = await createProgram();
     const monitorCmd = program.commands.find((c) => c.name() === "monitor")!;
     const statusCmd = monitorCmd.commands.find((c) => c.name() === "status");
-    expect(statusCmd).toBeDefined();
+    expect(statusCmd).toBeUndefined();
   });
 
   it("registers 'monitor trades' subcommand with argument", async () => {
@@ -169,37 +149,6 @@ describe("registerMonitorCommand", () => {
     const monitorCmd = program.commands.find((c) => c.name() === "monitor")!;
     const backupCmd = monitorCmd.commands.find((c) => c.name() === "backup");
     expect(backupCmd).toBeDefined();
-  });
-
-  // -- monitor status -------------------------------------------------------
-
-  describe("monitor status", () => {
-    it("calls checkAllWorkerHealth", async () => {
-      const program = await createProgram();
-      await program.parseAsync(["monitor", "status"], { from: "user" });
-      expect(checkAllWorkerHealthMock).toHaveBeenCalled();
-    });
-
-    it("exits cleanly on success", async () => {
-      process.exitCode = 0;
-      const program = await createProgram();
-      process.exitCode = 0;
-      await program.parseAsync(["monitor", "status"], { from: "user" });
-      expect(process.exitCode).toBe(0);
-    });
-
-    it("sets exitCode on service failure", async () => {
-      checkAllWorkerHealthMock = mock(async () => {
-        throw new Error("Connection failed");
-      });
-      (
-        MonitorService.prototype as unknown as Record<string, unknown>
-      ).checkAllWorkerHealth = checkAllWorkerHealthMock;
-
-      const program = await createProgram();
-      await program.parseAsync(["monitor", "status"], { from: "user" });
-      expect(process.exitCode).toBe(1);
-    });
   });
 
   // -- monitor trades -------------------------------------------------------

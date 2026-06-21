@@ -1,12 +1,12 @@
 /**
- * `hoox workers` command group — facade that delegates to existing commands
- * and provides a unified worker listing interface.
+ * `hoox workers` command group — facade for worker management.
  *
  * Subcommands:
  *   list             — List all workers with enabled/disabled status, path, secrets count
- *   status           — Delegate to `hoox monitor status`
  *   dev <name>       — Delegate to `hoox dev worker <name>`
  *   logs <name>      — Delegate to `hoox logs worker <name>`
+ *
+ * Note: 'hoox workers status' was removed — use 'hoox check health' instead.
  */
 
 import { Command } from "commander";
@@ -57,25 +57,26 @@ async function doListWorkers(fmt: FormatOptions): Promise<void> {
 
 /**
  * Register the `hoox workers` command group with subcommands:
- * list, status, dev <name>, logs <name>.
+ * list, dev <name>, logs <name>.
  */
 export function registerWorkersCommand(program: Command): void {
   const workersCmd = program
     .command("workers")
-    .summary("Manage and monitor Cloudflare Workers")
+    .summary("Manage Cloudflare Workers (list, dev, logs)")
     .description(
-      `Manage and monitor your Hoox Cloudflare Workers.
+      `Manage your Hoox Cloudflare Workers.
 
 SUBCOMMANDS:
   list              List all workers with status, path, and secrets count
-  status            Check health status of all workers (DEPRECATED, use 'hoox check health')
   dev <name>        Start a worker for local development (delegates to dev worker)
   logs <name>       Tail logs for a specific worker (delegates to logs worker)
+
+For health checks, use 'hoox check health'.
+For deployments, use 'hoox deploy workers' or 'hoox deploy worker <name>'.
 
 EXAMPLES:
   hoox workers list                   List all workers
   hoox workers list --json            List workers as JSON (respects global --json)
-  hoox workers status                 Check health of all workers
   hoox workers dev trade-worker       Start dev server for trade-worker
   hoox workers logs hoox              Tail logs for the hoox gateway`
     );
@@ -104,46 +105,6 @@ EXAMPLES:
         async (_opts: unknown, cmd: Command) => {
           const fmt = getFormatOptions(cmd);
           await doListWorkers(fmt);
-        },
-        { service: "workers" }
-      )
-    );
-
-  // -- workers status --------------------------------------------------------
-  // DEPRECATED: delegates to `hoox monitor status`. Use `hoox check health` instead.
-
-  workersCmd
-    .command("status")
-    .summary(
-      "Check health status of all workers (DEPRECATED: use 'hoox check health')"
-    )
-    .description(
-      `Check the health of all workers.
-
-DEPRECATED: This command is superseded by 'hoox check health'. It now
-prints a deprecation warning and delegates to 'hoox monitor status'
-(which is itself deprecated). This alias will be removed in a future release.
-
-EXAMPLES:
-  hoox workers status            Check all worker health
-  hoox workers status --json     JSON output (via delegated command)`
-    )
-    .action(
-      withErrorHandling(
-        async (_, cmd: Command) => {
-          const fmt = getFormatOptions(cmd);
-          if (!fmt.json) {
-            process.stderr.write(
-              `\u26a0 'hoox workers status' is deprecated. Use 'hoox check health' instead.\n`
-            );
-          }
-          const proc = Bun.spawn(["hoox", "monitor", "status"], {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          const exitCode = await proc.exited;
-          if (exitCode !== 0) {
-            process.exitCode = exitCode;
-          }
         },
         { service: "workers" }
       )

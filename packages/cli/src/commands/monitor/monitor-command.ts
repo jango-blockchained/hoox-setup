@@ -1,6 +1,5 @@
 import { Command } from "commander";
 import { DbService } from "../../services/db/index.js";
-import { MonitorService } from "./monitor-service.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
 import {
   formatSuccess,
@@ -12,33 +11,6 @@ import type { FormatOptions } from "../../utils/formatters.js";
 import { ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
-
-async function doMonitorStatus(fmt: FormatOptions): Promise<void> {
-  try {
-    const monitor = new MonitorService();
-    const result = await monitor.checkAllWorkerHealth();
-
-    if (fmt.json) {
-      process.stdout.write(JSON.stringify(result, null, 2) + "\n");
-      return;
-    }
-
-    const rows = result.workers.map((w) => ({
-      Worker: w.worker,
-      Status: w.status,
-      "Status Code": String(w.statusCode ?? "-"),
-      Error: w.error ?? "-",
-    }));
-    formatTable(rows, fmt);
-
-    process.stdout.write(
-      `\n${theme.heading("Summary:")} ${result.healthyCount} healthy, ${result.degradedCount} degraded, ${result.unreachableCount} unreachable\n`
-    );
-  } catch (err) {
-    formatError(err instanceof Error ? err.message : String(err), fmt);
-    process.exitCode = ExitCode.ERROR;
-  }
-}
 
 function assertSafeInteger(value: number, name: string, max: number): void {
   if (
@@ -297,7 +269,6 @@ export function registerMonitorCommand(program: Command): void {
       `Monitor worker health, trades, logs, and perform operational tasks.
 
 SUBCOMMANDS:
-  status          Check health of all workers (DEPRECATED, use 'hoox check health')
   trades [N]      Show N most recent trades (default: 10)
   logs [worker]   Show recent system logs from D1
   kill-switch     Emergency stop/resume trading
@@ -306,7 +277,6 @@ SUBCOMMANDS:
   analytics       Query analytics data from D1
 
 EXAMPLES:
-  hoox monitor status                  Check all workers health
   hoox monitor trades 20               Show 20 recent trades
   hoox monitor logs hoox               Show logs for hoox worker
   hoox monitor kill-switch show        Check kill switch status
@@ -316,33 +286,6 @@ EXAMPLES:
   hoox monitor backup                  Export D1 database
   hoox monitor analytics summary       Show event rollup statistics
   hoox monitor analytics errors        Show error/warning counts`
-    );
-
-  monitorCmd
-    .command("status")
-    .summary(
-      "Check health of all workers (DEPRECATED: use 'hoox check health')"
-    )
-    .description(
-      `Probe each worker's /health endpoint and report status.
-
-DEPRECATED: This command is superseded by 'hoox check health', which provides
-the same health checks plus more detail and a --fix option. This alias will
-be removed in a future release.`
-    )
-    .action(
-      withErrorHandling(
-        async (_, cmd: Command) => {
-          const fmt = getFormatOptions(cmd);
-          if (!fmt.json) {
-            process.stderr.write(
-              `${theme.warning("⚠ 'hoox monitor status' is deprecated. Use 'hoox check health' instead.\n")}`
-            );
-          }
-          await doMonitorStatus(fmt);
-        },
-        { service: "monitor" }
-      )
     );
 
   monitorCmd

@@ -319,17 +319,12 @@ export async function main(): Promise<void> {
     const hasWizardState = await wizardStateFile.exists();
 
     if (!hasConfig) {
-      // No wrangler.jsonc → project is uninitialized → run the wizard
-      // If there's a partial wizard state file, auto-resume
-      const args = hasWizardState ? ["init", "--resume"] : ["init"];
+      // No wrangler.jsonc → project is uninitialized → auto-run the
+      // recommended one-shot bootstrap. This chains init (config) + setup
+      // (infrastructure) so the user gets a fully operational system.
+      // For finer control, run 'hoox init' and 'hoox setup' separately.
+      const args = hasWizardState ? ["onboard", "--resume"] : ["onboard"];
       await program.parseAsync(args, { from: "user" });
-      // After init, prompt the user to run setup to actually provision
-      // infrastructure (D1, keys, secrets, dashboard). We don't auto-chain
-      // because setup can take a while and may require interactive prompts.
-      process.stderr.write(
-        "\nNext step: run `hoox setup` to generate keys, apply D1 schema,\n" +
-          "push secrets to Cloudflare, and deploy the dashboard.\n"
-      );
       process.exit(ExitCode.SUCCESS);
     }
 

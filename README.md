@@ -123,7 +123,7 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 
    ```bash
    bun install
-   hoox init
+   hoox onboard
    ```
 
 ### Deploy
@@ -198,13 +198,13 @@ hoox                                 Interactive TUI (no args)
 
 ### Key Workflows
 
-| Workflow    | Commands                                                                                            |
-| ----------- | --------------------------------------------------------------------------------------------------- |
-| **Setup**   | `hoox init` → `hoox check prerequisites` → `hoox config env init` → `hoox config kv apply-manifest` |
-| **Deploy**  | `hoox deploy all --auto` → `hoox deploy telegram-webhook` → `hoox deploy update-internal-urls`      |
-| **Operate** | `hoox monitor status` → `hoox monitor trades` → `hoox monitor kill-switch`                          |
-| **Repair**  | `hoox repair check` → `hoox repair infra` → `hoox repair secrets` → `hoox repair rebuild`           |
-| **Infra**   | `hoox infra d1 list` → `hoox infra vectorize list` → `hoox infra queues list`                       |
+| Workflow    | Commands                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| **Setup**   | `hoox onboard` → `hoox check prerequisites` → `hoox config env init` → `hoox config kv apply-manifest` |
+| **Deploy**  | `hoox deploy all --auto` → `hoox deploy telegram-webhook` → `hoox deploy update-internal-urls`         |
+| **Operate** | `hoox check health` → `hoox monitor trades` → `hoox monitor kill-switch`                               |
+| **Repair**  | `hoox repair check` → `hoox repair infra` → `hoox repair secrets` → `hoox repair rebuild`              |
+| **Infra**   | `hoox infra d1 list` → `hoox infra vectorize list` → `hoox infra queues list`                          |
 
 ### Features
 

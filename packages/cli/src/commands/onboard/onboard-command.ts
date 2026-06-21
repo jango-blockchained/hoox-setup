@@ -45,6 +45,7 @@ export interface OnboardOptions {
   prefix?: string;
   preset?: "minimal" | "standard" | "full";
   acceptRisk?: boolean;
+  resume?: boolean;
   // setup flags
   skipKeys?: boolean;
   skipDb?: boolean;
@@ -90,6 +91,7 @@ OPTIONS:
   --prefix <prefix>        Subdomain prefix (init, default: cryptolinx)
   --preset <name>          Worker preset: minimal, standard, full (init)
   --accept-risk            Skip risk acknowledgment (init)
+  --resume                 Resume init from saved wizard state
   --skip-keys              Skip generating internal keys (setup)
   --skip-db                Skip applying D1 schema (setup)
   --skip-secrets           Skip pushing secrets to Cloudflare (setup)
@@ -102,6 +104,7 @@ EXAMPLES:
   hoox onboard --token cfut_xxx --account xxx        Non-interactive
   hoox onboard --preset full --token cfut_xxx --account xxx  Full preset
   hoox onboard --skip-dashboard                     Skip dashboard rebuild
+  hoox onboard --resume                             Resume from saved wizard state
 `
     )
     .option("--token <token>", "Cloudflare API token (init)")
@@ -114,6 +117,7 @@ EXAMPLES:
     )
     .option("--preset <name>", "Worker preset: minimal, standard, full (init)")
     .option("--accept-risk", "Skip risk acknowledgment (init)")
+    .option("--resume", "Resume init from saved wizard state")
     .option("--skip-keys", "Skip generating internal keys (setup)")
     .option("--skip-db", "Skip applying D1 schema (setup)")
     .option("--skip-secrets", "Skip pushing secrets to Cloudflare (setup)")
@@ -157,7 +161,7 @@ async function runOnboard(
     secretStore: options.secretStore,
     prefix: options.prefix,
     preset: options.preset,
-    resume: false,
+    resume: options.resume ?? false,
     acceptRisk: options.acceptRisk,
   };
 

@@ -1,8 +1,5 @@
 /**
- * `hoox keys` — Top-level alias for `hoox config keys`.
- *
- * Existing functionality lives under `hoox config keys`. This top-level
- * command is a thin shell wrapper for discoverability.
+ * `hoox keys` — Manage internal auth keys for inter-worker communication.
  *
  * Commands:
  *   generate     Generate new internal keys
@@ -11,17 +8,15 @@
 
 import type { Command } from "commander";
 import { withErrorHandling } from "../../utils/error-handler.js";
-import { theme } from "../../utils/theme.js";
 
 export function registerKeysCommand(program: Command): void {
   const cmd = program
     .command("keys")
-    .summary("Manage internal auth keys (alias for 'config keys')")
+    .summary("Manage internal auth keys")
     .description(
       `Generate and manage internal auth keys for inter-worker communication.
 
-This is a top-level alias for 'hoox config keys'. Both commands work
-identically. Use whichever is more convenient.
+Keys are stored in the .keys/ directory (add to .gitignore).
 
 COMMANDS:
   generate      Generate new internal keys (writes to .keys/)
@@ -34,15 +29,10 @@ EXAMPLES:
 
   cmd
     .command("generate")
-    .description(
-      "Generate new internal keys (alias for 'hoox config keys generate')"
-    )
+    .description("Generate new internal keys")
     .action(
       withErrorHandling(
         async () => {
-          process.stderr.write(
-            theme.dim("→ 'hoox keys' is an alias for 'hoox config keys'\n")
-          );
           const proc = Bun.spawn(["hoox", "config", "keys", "generate"], {
             stdio: ["inherit", "inherit", "inherit"],
           });
@@ -54,13 +44,10 @@ EXAMPLES:
 
   cmd
     .command("list")
-    .description("List existing keys (alias for 'hoox config keys list')")
+    .description("List existing keys")
     .action(
       withErrorHandling(
         async () => {
-          process.stderr.write(
-            theme.dim("→ 'hoox keys' is an alias for 'hoox config keys'\n")
-          );
           const proc = Bun.spawn(["hoox", "config", "keys", "list"], {
             stdio: ["inherit", "inherit", "inherit"],
           });
