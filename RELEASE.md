@@ -10,7 +10,6 @@ The release pipeline is fully automated via GitHub Actions. Pushing a version ta
 2. **npm Publish** — publishes `@jango-blockchained/hoox-cli` to the npm registry
 3. **GitHub Packages Publish** — publishes the same package to GitHub Packages
 4. **GitHub Release** — creates a tagged release on GitHub
-5. **Docker Image** (parallel job) — builds and pushes a multi-arch Docker image to `ghcr.io`
 
 ## Prerequisites
 
@@ -58,16 +57,14 @@ After the workflow completes:
 - **npm**: `npm view @jango-blockchained/hoox-cli` should show the new version
 - **GitHub Packages**: Check https://github.com/jango-blockchained/hoox-setup/packages
 - **GitHub Release**: Check https://github.com/jango-blockchained/hoox-setup/releases
-- **Docker**: `docker pull ghcr.io/jango-blockchained/hoox-setup:latest`
 
 ## What Gets Published
 
-| Artifact                                             | Destination               | Trigger                                   |
-| ---------------------------------------------------- | ------------------------- | ----------------------------------------- |
-| `@jango-blockchained/hoox-cli`                       | npm registry              | `v*.*.*` tag                              |
-| `@jango-blockchained/hoox-cli`                       | GitHub Packages           | `v*.*.*` tag                              |
-| GitHub Release                                       | GitHub Releases           | `v*.*.*` tag                              |
-| Docker image `ghcr.io/jango-blockchained/hoox-setup` | GitHub Container Registry | `v*.*.*` tag + `latest` on default branch |
+| Artifact                       | Destination     | Trigger      |
+| ------------------------------ | --------------- | ------------ |
+| `@jango-blockchained/hoox-cli` | npm registry    | `v*.*.*` tag |
+| `@jango-blockchained/hoox-cli` | GitHub Packages | `v*.*.*` tag |
+| GitHub Release                 | GitHub Releases | `v*.*.*` tag |
 
 ## Versioning
 

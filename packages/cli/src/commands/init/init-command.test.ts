@@ -355,9 +355,10 @@ describe("init command", () => {
       expect(captured.intro.some((m) => m.includes("Hoox Setup Wizard"))).toBe(
         true
       );
-      expect(captured.outro.some((m) => m.includes("Setup complete"))).toBe(
+      expect(captured.outro.some((m) => m.includes("Config written"))).toBe(
         true
       );
+      expect(captured.outro.some((m) => m.includes("hoox setup"))).toBe(true);
     });
 
     it("collects Cloudflare API token with validation", async () => {

@@ -171,13 +171,22 @@ export function registerInitCommand(program: Command): void {
     .description(
       `Initialize a new Hoox workspace with interactive prompts.
 
-This wizard helps you set up:
-  - Cloudflare API token and account
-  - Subdomain prefix for worker URLs
-  - Secret store configuration
-  - Worker selection with preset templates
-  - Infrastructure provisioning (D1, KV)
-  - Initial worker configuration
+This wizard writes the workspace configuration (wrangler.jsonc) and collects
+integration secrets. It does NOT generate keys, apply D1 schema, push secrets
+to Cloudflare, or build the dashboard — run 'hoox setup' after this to do
+that.
+
+WHAT THIS COMMAND DOES:
+  - Collects Cloudflare API token and account
+  - Collects subdomain prefix for worker URLs
+  - Selects worker preset (minimal, standard, full)
+  - Provisions D1 databases and KV namespaces (interactive mode only)
+  - Collects integration secrets (writes to .dev.vars)
+  - Writes wrangler.jsonc
+
+WHAT YOU STILL NEED TO RUN:
+  - hoox setup            Generate keys, apply schema, push secrets, deploy dashboard
+  - hoox check setup      Verify the installation
 
 INTERACTIVE MODE:
   Run without flags to use the interactive wizard.
@@ -196,7 +205,9 @@ OPTIONS:
 
 EXAMPLES:
   hoox init                           Interactive wizard
-  hoox init --token cfut_xxx --account xxx  Non-interactive`
+  hoox init --token cfut_xxx --account xxx  Non-interactive
+  hoox init --preset full --token cfut_xxx --account xxx  Full preset, non-interactive
+  hoox init && hoox setup             Full bootstrap: config then infrastructure`
     )
     .option("--token <token>", "Cloudflare API token (non-interactive)")
     .option("--account <id>", "Cloudflare Account ID (non-interactive)")
@@ -278,7 +289,11 @@ export async function runInitCommand(
     await createDevVars(config, {}, globalOpts);
 
     if (!globalOpts.quiet) {
-      p.outro("Setup complete! Run hoox check setup to verify.");
+      p.outro(
+        "Config written. Next: run `hoox setup` to generate keys, " +
+          "apply D1 schema, push secrets, and deploy the dashboard. " +
+          "Then run `hoox check setup` to verify."
+      );
     }
     return;
   }
@@ -589,7 +604,11 @@ export async function runInitCommand(
 
   // ── Done ──────────────────────────────────────────────────────────────
   p.outro(
-    theme.success("Setup complete! Run ") +
+    theme.success("Config written. Next: run ") +
+      theme.bold("hoox setup") +
+      theme.success(
+        " to generate keys, apply D1 schema, push secrets, and deploy the dashboard. Then run "
+      ) +
       theme.bold("hoox check setup") +
       theme.success(" to verify.")
   );

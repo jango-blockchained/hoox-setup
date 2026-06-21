@@ -314,6 +314,13 @@ export async function main(): Promise<void> {
       // If there's a partial wizard state file, auto-resume
       const args = hasWizardState ? ["init", "--resume"] : ["init"];
       await program.parseAsync(args, { from: "user" });
+      // After init, prompt the user to run setup to actually provision
+      // infrastructure (D1, keys, secrets, dashboard). We don't auto-chain
+      // because setup can take a while and may require interactive prompts.
+      process.stderr.write(
+        "\nNext step: run `hoox setup` to generate keys, apply D1 schema,\n" +
+          "push secrets to Cloudflare, and deploy the dashboard.\n"
+      );
       process.exit(ExitCode.SUCCESS);
     }
 
