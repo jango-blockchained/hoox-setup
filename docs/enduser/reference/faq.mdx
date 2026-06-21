@@ -57,11 +57,11 @@ Yes. API keys are stored as **Cloudflare Workers Secrets** — encrypted at rest
 
 ### Q: Can I rotate API keys without downtime?
 
-Yes. Simply update the secret:
+Yes. Simply update the secret (worker name is the first argument):
 
 ```bash
-hoox secrets set BYBIT_API_KEY "new_key_here"
-hoox secrets set BYBIT_API_SECRET "new_secret_here"
+hoox secrets set trade-worker BYBIT_KEY_BINDING "new_key_here"
+hoox secrets set trade-worker BYBIT_SECRET_BINDING "new_secret_here"
 ```
 
 The change takes effect on the next worker request — no redeployment needed.
@@ -112,7 +112,7 @@ This is **by design** — it protects you from accidentally executing a trade tw
 Common causes:
 
 1. **WAF IP blocking** — Enable TradingView IP allow-listing: `hoox waf configure --TradingView-only`
-2. **Missing secrets** — Run `hoox secrets check` to verify all required secrets are bound
+2. **Missing secrets** — Run `hoox secrets list <worker>` to verify all required secrets are bound
 3. **Service binding not deployed** — Run `hoox deploy all --auto` to ensure all internal workers are live
 
 ### Q: How do I check what's happening inside my workers?
@@ -121,14 +121,14 @@ Common causes:
 # Live logs from a specific worker
 hoox logs tail trade-worker
 
-# Health status of all workers
-hoox monitor status
+# Health status of all workers (single source of truth)
+hoox check health
 
 # Recent trade execution history
 hoox monitor trades
 
 # Or use the full-screen Terminal UI
-./hoox-tui
+hoox tui
 ```
 
 ### Q: What should I do if `hoox repair check` fails?

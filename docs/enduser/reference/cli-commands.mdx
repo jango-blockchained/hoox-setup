@@ -1,9 +1,11 @@
 ---
 title: "CLI Commands Reference"
-description: "Comprehensive CLI directory detailing all 15 command groups, 50+ subcommands, global flags, and positional options for the hoox binary."
+description: "Comprehensive CLI directory detailing all 25 command groups, 60+ subcommands, global flags, and positional options for the hoox binary."
 ---
 
-The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development, provisioning, deployment, monitoring, and self-healing pipelines. This reference provides the complete command tree, positional arguments, optional flags, and concrete examples for all 15 command groups.
+The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development, provisioning, deployment, monitoring, and self-healing pipelines. This reference provides the complete command tree, positional arguments, optional flags, and concrete examples for all command groups.
+
+> **Heads up (v0.8.0):** The CLI surface was recently refactored. New top-level commands (`hoox onboard`, `hoox secrets`, `hoox keys`, `hoox perf`) were added; redundant commands (`hoox monitor status`, `hoox workers status`, `hoox dashboard update-urls`) were removed. See the [changelog](#v080-refactor) below.
 
 ---
 
@@ -11,20 +13,23 @@ The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development,
 
 These options are registered globally and can be appended to any command:
 
-| Flag | Description | Example |
-| :-- | :-- | :-- |
-| `--json` | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox monitor status --json` |
-| `--quiet` | Suppresses headers, banners, and interactive prompts. | `hoox deploy kv-config --quiet` |
-| `--help` | Prints complete parameter and option listings. | `hoox infra d1 --help` |
-| `--version` | Outputs active CLI package build version. | `hoox --version` |
+| Flag        | Description                                                         | Example                         |
+| :---------- | :------------------------------------------------------------------ | :------------------------------ |
+| `--json`    | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox check health --json`      |
+| `--quiet`   | Suppresses headers, banners, and interactive prompts.               | `hoox deploy kv-config --quiet` |
+| `--help`    | Prints complete parameter and option listings.                      | `hoox infra d1 --help`          |
+| `--version` | Outputs active CLI package build version.                           | `hoox --version`                |
+| `-y, --yes` | Skip confirmation prompts (where supported).                        | `hoox repair rebuild --yes`     |
 
 ---
 
 ## 🗂️ Command Groups Directory
 
 ```text
-hoox                                 Launch TUI (when run with no args)
-├── init                             Interactive multi-phase setup wizard
+hoox                                 Launch TUI (when run with no args on an init'd workspace)
+├── onboard                          One-shot full bootstrap (init + setup) [recommended]
+├── init                             Interactive setup wizard (config only)
+├── setup                            Auto-bootstrap infrastructure (keys, D1, secrets, dashboard)
 ├── clone [name]                     Bootstrap workspace from template
 ├── dev                              Local development execution engine
 │   ├── start                        Start all workers (native or Docker)
@@ -32,40 +37,61 @@ hoox                                 Launch TUI (when run with no args)
 │   └── dashboard                    Start Next.js dashboard dev server
 ├── deploy                           Edge deployment pipelines
 │   ├── all                          Roll out all workers + dashboard in sequence
+│   ├── workers                      Deploy all workers only (skip dashboard)
 │   ├── worker <name>                Deploy a single edge worker
 │   ├── dashboard                    Deploy Next.js dashboard via OpenNext
 │   ├── telegram-webhook             Register Telegram bot webhook API
 │   ├── update-internal-urls         Bind inter-worker Service Binding URLs
-│   └── kv-config                    Synchronize KV manifest variables
+│   ├── kv-config                    Synchronize KV manifest variables
+│   ├── history <worker>             Show deployment history
+│   └── rollback <worker>            Rollback to a previous version
 ├── infra                            Cloudflare resource provisioning IaC
 │   ├── provision                    Auto-provision all required services
 │   ├── d1 [list/create/delete]      Manage D1 databases
 │   ├── kv [list/create/delete]      Manage KV namespaces
 │   ├── r2 [list/create/delete]      Manage R2 object storage buckets
 │   ├── queues [list/create/delete]  Manage Cloudflare Queues
-│   └── vectorize [create/delete]    Manage vector search indexes
-├── config                           Workspace and environmental variables
+│   ├── vectorize [create/delete]    Manage vector search indexes
+│   └── analytics [list]             Manage Analytics Engine datasets
+├── config                           Manage wrangler.jsonc configuration
+│   ├── show                         View current configuration
+│   ├── set <key> <value>            Update a config value
 │   ├── env [init/show/validate]     Manage .env.local build variables
 │   ├── kv [set/get/list/delete]     Get/Set dynamic KV runtime parameters
-│   └── show/set                     View or set wrangler.jsonc values
+│   ├── secrets [list/set/delete/sync]  Cloudflare Worker secrets (legacy location)
+│   └── keys [generate/list]         Internal auth keys (legacy location)
+├── secrets                          Manage Cloudflare Worker secrets [top-level]
+│   ├── list [worker]                List secrets for a worker
+│   ├── set <worker> <name>          Set a secret
+│   ├── delete <worker> <name>       Delete a secret
+│   └── sync [worker]                Sync local .dev.vars to Cloudflare
+├── keys                             Manage internal auth keys [top-level]
+│   ├── generate                     Generate new keys
+│   └── list                         List existing keys
 ├── check                            Toolchain and route diagnostic suite
 │   ├── prerequisites                Validate local machine tool installs
-│   ├── setup                        Audit .env configurations
-│   └── health                       Probe worker /health endpoints
+│   ├── setup                        Full system validation (config, infra, secrets, db)
+│   ├── health [--fix]               Probe worker /health endpoints
+│   ├── fix [--dry-run]              Auto-repair common issues
+│   └── submodule-gitignore (sg)     Validate/fix worker submodule .gitignore
 ├── db                               SQLite D1 Database administration
-│   ├── apply                    Apply DDL schemas to D1
-│   ├── migrate                  Run schema migrations
-│   ├── list                     Display active SQLite tables
-│   ├── query <sql>              Execute custom SQL reads
-│   ├── export                   Dump database as a secure SQL file
-│   └── reset                    Destructive truncate of all tables
+│   ├── apply                        Apply DDL schemas to D1
+│   ├── migrate                      Run schema migrations
+│   ├── list                         Display active SQLite tables
+│   ├── query <sql>                  Execute custom SQL reads
+│   ├── export                       Dump database as a secure SQL file
+│   └── reset                        Destructive truncate of all tables
 ├── monitor                          Observability and emergency controls
-│   ├── status                       Probe active worker health routes
 │   ├── trades [N]                   Aggregate recent filled transactions
 │   ├── logs [worker]                Tail and inspect time-series logs
 │   ├── queue-depth                  Audit message counts in queues
 │   ├── backup                       Backup SQL ledger to backups/
-│   └── kill-switch [show/on/off]    Emergency global trading halt
+│   ├── kill-switch [show/on/off]    Emergency global trading halt
+│   └── analytics                    Query analytics data from D1
+├── workers                          Per-worker operations
+│   ├── list                         List all workers with status/path/secrets count
+│   ├── dev <name>                   Start a worker for local development
+│   └── logs <name>                  Tail logs for a specific worker
 ├── repair                           System diagnostics & self-healing
 │   ├── check                        Run 5-step checklist
 │   ├── worker <name>                Rebuild a degraded worker
@@ -77,21 +103,45 @@ hoox                                 Launch TUI (when run with no args)
 ├── logs                             Time-series log extraction
 │   ├── tail <worker>                Stream live edge logging console
 │   └── download <worker>            Download logs to a local file
+├── schema                           Validate wrangler.jsonc schemas and workers
+├── update                           Self-update the CLI or wrangler
 ├── test                             Run verification pipeline (CI)
-└── waf                              Auto-configure Cloudflare WAF firewall rules
+├── waf                              Auto-configure Cloudflare WAF firewall rules
+├── clone [name]                     Clone worker repositories as submodules
+├── dashboard                        Unified dashboard operations
+│   ├── dev                          Start the dashboard dev server
+│   └── deploy [--rebuild]           Build and deploy the dashboard
+├── tui                              Launch the OpenTUI terminal dashboard
+├── agent                            AI agent operations and health checks
+├── trace                            Query Cloudflare Workers Observability (events, metrics)
+├── perf                             Performance measurement tools
+│   └── fastpath                     Probe-based latency measurement
+│       ├── run [options]            Send N probes, report p50/p95/p99
+│       ├── tail [options]           Continuous probing for a duration
+│       └── report [options]          Query past probe events
+├── disclaimer                       Display legal disclaimer
+└── completion [shell]               Generate shell completion script (bash, zsh, fish)
 ```
 
 ---
 
 ## 🚀 Key Commands Detail & Examples
 
-### A. Initialization & Bootstrap
+### A. Onboarding (Start Here)
 
 ```bash
-# Onboard a new machine, configure accounts and select worker profile
-hoox init
+# Recommended: one-shot full bootstrap (collects credentials, provisions, deploys)
+hoox onboard
 
-# Verify that git, bun, wrangler, and docker are correctly configured
+# Non-interactive one-shot
+hoox onboard --token cfut_xxx --account xxx --preset full
+
+# Step-by-step (more control)
+hoox init        # Write wrangler.jsonc, collect integration secrets
+hoox setup       # Generate keys, apply D1 schema, push secrets, deploy dashboard
+
+# Verify the system
+hoox check setup
 hoox check prerequisites
 ```
 
@@ -101,8 +151,16 @@ hoox check prerequisites
 # Start all workers in a Docker container stack
 hoox dev start --runtime docker
 
-# Start only the Next.js frontend developer server
+# Start all workers natively via wrangler dev
+hoox dev start --runtime native
+
+# Start a single worker
+hoox dev worker trade-worker
+
+# Start the Next.js dashboard dev server
 hoox dev dashboard
+# OR (equivalent):
+hoox dashboard dev
 ```
 
 ### C. Edge Provisioning & Deployment
@@ -113,36 +171,110 @@ hoox infra provision
 
 # Deploy the entire microservices stack in sequence, automatically updating URLs
 hoox deploy all --auto
+
+# Deploy a single worker
+hoox deploy worker trade-worker
+
+# Build and deploy the Next.js dashboard
+hoox dashboard deploy --rebuild
+# OR (equivalent):
+hoox deploy dashboard --rebuild
 ```
 
-### D. Operational Monitoring & Emergency halting
+### D. Health Checks & Monitoring
 
 ```bash
-# Emergency Halt: halt all trade signals globally in under 10 seconds
-hoox config kv set trade:kill_switch true
+# Check all worker health endpoints (the single source of truth)
+hoox check health
+
+# Try to auto-fix any issues found
+hoox check health --fix
 
 # Audit active trade history table
 hoox monitor trades 25
+
+# Emergency Halt: halt all trade signals globally in under 10 seconds
+hoox monitor kill-switch on
 ```
 
-### E. Database Administration
+### E. Secrets & Keys Management
+
+```bash
+# Set a Cloudflare Worker secret
+hoox secrets set trade-worker BINANCE_KEY_BINDING "your_key_here"
+hoox secrets set trade-worker BINANCE_SECRET_BINDING "your_secret_here"
+
+# List secrets for a worker
+hoox secrets list trade-worker
+
+# Sync local .dev.vars to Cloudflare
+hoox secrets sync
+
+# Generate internal auth keys
+hoox keys generate
+
+# List existing keys
+hoox keys list
+```
+
+### F. Database Administration
 
 ```bash
 # Query the total sum of fees paid today across Bybit
 hoox db query "SELECT SUM(fee) FROM trades WHERE created_at >= date('now')" --remote
 ```
 
-### F. Self-Healing & Diagnostics
+### G. Performance Measurement
+
+```bash
+# Send 50 synthetic probes and report p50/p95/p99 per-hop latency
+hoox perf fastpath run --n 50
+
+# Continuous probing for 60 seconds
+hoox perf fastpath tail --duration 60
+
+# Query past probe events
+hoox perf fastpath report --from 1h
+```
+
+### H. Self-Healing & Diagnostics
 
 ```bash
 # Run a full workspace system audit
 hoox repair check
+
+# Verify worker health (the single source of truth)
+hoox check health
 ```
 
 ---
 
+## 🆕 v0.8.0 Refactor
+
+The v0.8.0 release consolidated and cleaned up the CLI surface. **Pre-1.0 breaking changes were made without deprecation warnings** since this is still active development.
+
+### New commands (added in v0.8.0)
+
+- **`hoox onboard`** (aliases: `bootstrap`, `quickstart`) — One-shot full bootstrap that chains `init` + `setup`. The recommended entry point for new users. When you run `hoox` with no arguments and no `wrangler.jsonc` exists, the CLI now auto-launches this.
+- **`hoox secrets`** (top-level) — Promoted from `hoox config secrets` for discoverability.
+- **`hoox keys`** (top-level) — Promoted from `hoox config keys` for discoverability.
+- **`hoox perf fastpath`** — Probe-based latency measurement (active synthetic probes with p50/p95/p99 per-hop breakdown).
+- **`hoox dashboard dev` / `hoox dashboard deploy`** — Unified dashboard operations that were previously split across `hoox dev dashboard` and `hoox deploy dashboard`.
+
+### Removed commands (use the replacement)
+
+- `hoox monitor status` → use `hoox check health` (single source of truth for health checks)
+- `hoox workers status` → use `hoox check health`
+- `hoox dashboard update-urls` → use `hoox deploy update-internal-urls`
+- `hoox config secrets` → use `hoox secrets` (top-level now)
+- `hoox config keys` → use `hoox keys` (top-level now)
+
+---
+
 <Tip>
-  Every single subcommand is fully documented locally! Append `--help` to any command (e.g. `hoox config env --help`) to view advanced positional arguments and specific flag options instantly.
+  Every single subcommand is fully documented locally! Append `--help` to any
+  command (e.g. `hoox config env --help`) to view advanced positional arguments
+  and specific flag options instantly.
 </Tip>
 
 ### 🔗 Next Steps

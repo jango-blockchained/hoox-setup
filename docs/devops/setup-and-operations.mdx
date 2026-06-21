@@ -869,10 +869,10 @@ MEXC_SECRET_BINDING=dev-mexc-secret
 hoox check-setup
 
 # Check secrets
-hoox secrets check
+hoox secrets list
 
-# Check worker status
-hoox workers status
+# Check worker health
+hoox check health
 
 # Run tests
 bun test
@@ -1015,13 +1015,13 @@ wrangler queues list
 wrangler vectorize list
 
 # 6. Verify secrets
-hoox secrets check
+hoox secrets list
 
-# 7. Verify worker status
-hoox workers status
+# 7. Verify worker health
+hoox check health
 
 # 8. Redeploy if needed
-hoox workers deploy --all
+hoox deploy workers
 ```
 
 ### 11.2 Individual Worker Repair
@@ -1119,7 +1119,7 @@ cd workers/dashboard && bun run opennext:build && bun run opennext:deploy
 
 ```bash
 # Check system health
-hoox workers status
+hoox check health
 
 # Check recent trades
 wrangler d1 execute trade-data-db --command="SELECT * FROM trades ORDER BY timestamp DESC LIMIT 5" --remote
@@ -1153,10 +1153,10 @@ bun run typecheck
 bun test
 
 # Deploy updated workers
-hoox workers deploy --all
+hoox deploy workers
 
 # Verify deployment
-hoox workers status
+hoox check health
 ```
 
 ### 12.4 Rotating Secrets
@@ -1297,13 +1297,13 @@ wrangler d1 export trade-data-db --output=backup-$(date +%Y%m%d).sql --remote
 ```bash
 # Setup
 bun install
-hoox init
-hoox secrets update-cf
+hoox onboard                  # One-shot full bootstrap (recommended)
+hoox secrets sync             # Push .dev.vars to Cloudflare
 
 # Development
-hoox dev start               # Start all workers (choose runtime)
-hoox dev dashboard           # Dashboard only
-./hoox-tui                   # Interactive TUI
+hoox dev start                # Start all workers (choose runtime)
+hoox dashboard dev            # Dashboard only
+hoox tui                      # Interactive TUI
 hoox workers dev <name>       # Dev single worker
 bun run dev                   # Dashboard dev
 
@@ -1313,15 +1313,16 @@ bun run tests:coverage        # Coverage
 bun run test:integration      # Integration tests
 
 # Deployment
-hoox workers deploy           # Deploy all
-hoox workers deploy <name>    # Deploy one
-bun run pages:deploy          # Deploy dashboard
+hoox deploy workers           # Deploy all workers
+hoox deploy worker <name>     # Deploy one worker
+hoox dashboard deploy         # Deploy dashboard
+# OR (equivalent): hoox deploy dashboard
 
 # Operations
-hoox workers status           # Check status
-hoox workers logs <name>      # View logs
-hoox check-setup              # Validate setup
-hoox secrets check            # Check secrets
+hoox check health             # Check worker health (single source of truth)
+hoox workers logs <name>      # View worker logs
+hoox check setup              # Validate setup
+hoox secrets list <worker>    # Check secrets
 
 # Database
 wrangler d1 execute trade-data-db --file=workers/trade-worker/schema.sql --remote

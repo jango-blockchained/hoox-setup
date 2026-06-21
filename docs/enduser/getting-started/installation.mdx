@@ -78,7 +78,8 @@ bun run build:cli
 
 <Warning>
   You MUST use `git clone --recursive` or run `git submodule update --init
-  --recursive` after cloning. If you omit submodules, the worker directories under `workers/` will be empty and deployments will fail.
+  --recursive` after cloning. If you omit submodules, the worker directories
+  under `workers/` will be empty and deployments will fail.
 </Warning>
 
 ---
@@ -110,21 +111,44 @@ my-trading-empire/
 
 ---
 
-## 🪄 Running the Interactive Setup Wizard
+## 🪄 Running the Onboarding Wizard
 
-With your folder structured, execute the interactive bootstrap wizard:
+With your folder structured, run the one-shot bootstrap wizard:
 
 ```bash
-hoox init
+# Recommended: chains config + infrastructure in one command
+hoox onboard
 ```
 
-The CLI wizard will guide you through 4 critical setup phases:
+For fine-grained control, run the two steps separately:
+
+```bash
+hoox init    # Step 1: write wrangler.jsonc, collect integration secrets
+hoox setup   # Step 2: generate keys, apply D1 schema, push secrets, deploy dashboard
+```
+
+The `hoox onboard` wizard chains both steps and will guide you through the critical setup phases:
 
 <ol>
-  <li><strong>Toolchain Validation</strong>: Probes your machine for <code>bun</code>, <code>git</code>, <code>wrangler</code>, and <code>docker</code> configurations.</li>
-  <li><strong>Cloudflare Authentication</strong>: Prompts for your Cloudflare API token (with <code>Account.D1</code>, <code>Account.KV</code>, <code>Account.Workers</code> permissions) and Account ID.</li>
-  <li><strong>Microservice Profile Selection</strong>: Lets you declaratively toggle which edge workers to enable (e.g., enable Gateway and Trade Worker, disable Web3 Wallet if you only trade centralized exchanges).</li>
-  <li><strong>Local Credentials Encryption</strong>: Generates safe local <code>.dev.vars</code> matrices and sets up initial KV configuration structures.</li>
+  <li>
+    <strong>Cloudflare Authentication</strong>: Prompts for your Cloudflare API
+    token (with <code>Account.D1</code>, <code>Account.KV</code>,{" "}
+    <code>Account.Workers</code> permissions) and Account ID.
+  </li>
+  <li>
+    <strong>Microservice Profile Selection</strong>: Lets you declaratively
+    toggle which edge workers to enable (e.g., enable Gateway and Trade Worker,
+    disable Web3 Wallet if you only trade centralized exchanges).
+  </li>
+  <li>
+    <strong>Local Credentials Encryption</strong>: Generates safe local{" "}
+    <code>.dev.vars</code> matrices and sets up initial KV configuration
+    structures.
+  </li>
+  <li>
+    <strong>Infrastructure Provisioning</strong>: Creates D1 databases, KV
+    namespaces, and other resources on your Cloudflare account.
+  </li>
 </ol>
 
 ```text
@@ -158,7 +182,9 @@ If all diagnostic checks pass, you are ready to proceed with configuration!
 ---
 
 <Tip>
-  Got installation issues? Run `hoox repair check` to automatically analyze common path resolution issues, missing environment variables, or node-gyp build failures, and recover your local workspace seamlessly.
+  Got installation issues? Run `hoox repair check` to automatically analyze
+  common path resolution issues, missing environment variables, or node-gyp
+  build failures, and recover your local workspace seamlessly.
 </Tip>
 
 ### 🔗 Next Steps

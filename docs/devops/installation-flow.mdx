@@ -14,68 +14,48 @@ This document details the step-by-step installation, bootstrapping, and validati
 
 ---
 
-## 🏗️ Interactive Setup Wizard (`hoox init`)
+## 🏗️ Onboarding Wizard (`hoox onboard`)
 
-To start the system bootstrap, run the init wizard from the monorepo root:
+> **v0.8.0 update:** The recommended entry point is now `hoox onboard`, which chains `init` (configuration) and `setup` (infrastructure) into a single command. Running `hoox` with no arguments on an uninitialized workspace will auto-launch `onboard`.
+
+To start the system bootstrap, run the one-shot wizard from the monorepo root:
 
 ```bash
-hoox init
+hoox onboard
 ```
 
-The setup wizard guides you through 7 critical onboarding phases:
+For fine-grained control, run the two steps separately:
 
-### Phase 1: Toolchain Diagnostics
+```bash
+hoox init    # 1. Write wrangler.jsonc, collect integration secrets
+hoox setup   # 2. Generate keys, apply D1 schema, push secrets, deploy dashboard
+```
 
-Probes your machine to verify that essential developer tools are accessible:
+The setup wizard guides you through these critical onboarding phases:
 
-- **Bun**: Used for monorepo package management, CLI binaries execution, and fast unit testing.
-- **Git**: Used to verify recursive cloning of worker submodules.
-- **Wrangler**: Cloudflare's CLI used to login, tail logs, and upload V8 isolates.
+### Phase 1: Cloudflare Authentication
 
----
+Prompts for your Cloudflare API token (with `Account.D1`, `Account.KV`, `Account.Workers` permissions) and Account ID.
 
-### Phase 2: Global Configuration Mapping
-
-Configures your master workspace credentials stored in `.env.local` and `wrangler.jsonc`:
-
-- **Cloudflare API Token**: Generates and checks permissions.
-- **Cloudflare Account ID**: Uniquely identifies your hosting space.
-- **Subdomain Prefix**: Defines the worker routing domain (e.g. `hoox` routes to `https://hoox.alpha-trading.workers.dev`).
-
----
-
-### Phase 3: Microservice Profile Selection
+### Phase 2: Microservice Profile Selection
 
 Lets you selectively enable or disable specific workers from the `workers/` directory based on your trading intent (e.g., cross-margin futures execution vs. Web3 DeFi wallet swaps). Disabling unnecessary workers saves deployment bandwidth and keeps resource bindings clean.
 
----
+### Phase 3: Integration Secrets
 
-### Phase 4: SQLite Database Provisioning
+Collects any integration secrets required by the selected workers (exchange API keys, Telegram bot tokens, AI provider keys) and writes them to local `.dev.vars` files.
 
-Checks if enabled workers require persistent D1 storage. If yes, it creates the database and initializes database schemas:
-
-```bash
-# Done automatically by the wizard
-wrangler d1 create trade-data-db
-```
-
----
-
-### Phase 5: Manifest Compilation
+### Phase 4: Configuration Write
 
 Consolidates all chosen parameters and writes your central `wrangler.jsonc` file, mapping out variables and bindings for every worker.
 
----
+### Phase 5: Infrastructure Provisioning
 
-### Phase 6: Workers Secrets Injection
+Generates internal auth keys, creates D1 databases, applies the schema, and pushes secrets to Cloudflare. Builds and deploys the Next.js dashboard.
 
-Secures sensitive credentials (exchange API keys, Telegram tokens, AI API keys) by encrypting and uploading them to Cloudflare as encrypted Workers Secrets.
+### Phase 6: Verification
 
----
-
-### Phase 7: Initial Rollout
-
-Compiles, lint-checks, type-checks, and deploys all enabled workers to Cloudflare's edge in the correct mathematical dependency sequence.
+Runs `hoox check setup` to verify that all components are operational.
 
 ---
 
@@ -114,7 +94,7 @@ This file represents the declarative single source of truth for your monorepo's 
 
 During the interactive setup, the CLI caches your current step and intermediate inputs inside `.install-wizard-state.json` at your project root.
 
-- **State Recovery**: If your terminal session is disconnected or wrangler login prompts timeout, you can run `hoox init` again. The CLI will detect the state file and seamlessly resume your onboarding from the last incomplete step.
+- **State Recovery**: If your terminal session is disconnected or wrangler login prompts timeout, you can run `hoox onboard` (or `hoox init --resume`) again. The CLI will detect the state file and seamlessly resume your onboarding from the last incomplete step.
 - **Auto-Cleanup**: Upon final completion of Phase 7, the state file is automatically purged to keep your root directory clean.
 
 ---
