@@ -3,47 +3,47 @@
   "version": "1.0.9",
   "description": "Shared utilities, types, and stores for HOOX CLI, TUI, and Cloudflare Workers",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./src/index.ts",
+      "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./middleware": {
       "types": "./dist/middleware/index.d.ts",
-      "import": "./src/middleware/index.ts",
+      "import": "./dist/middleware/index.js",
       "default": "./dist/middleware/index.js"
     },
     "./d1": {
       "types": "./dist/d1/index.d.ts",
-      "import": "./src/d1/index.ts",
+      "import": "./dist/d1/index.js",
       "default": "./dist/d1/index.js"
     },
     "./schemas": {
       "types": "./dist/schemas/index.d.ts",
-      "import": "./src/schemas/index.ts",
+      "import": "./dist/schemas/index.js",
       "default": "./dist/schemas/index.js"
     },
     "./wizard": {
       "types": "./dist/wizard/index.d.ts",
-      "import": "./src/wizard/index.ts",
+      "import": "./dist/wizard/index.js",
       "default": "./dist/wizard/index.js"
     },
     "./exchanges": {
       "types": "./dist/exchanges/index.d.ts",
-      "import": "./src/exchanges/index.ts",
+      "import": "./dist/exchanges/index.js",
       "default": "./dist/exchanges/index.js"
     },
     "./stores/*": {
       "types": "./dist/stores/*.d.ts",
-      "import": "./src/stores/*.ts",
+      "import": "./dist/stores/*.js",
       "default": "./dist/stores/*.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "import": "./src/*.ts",
+      "import": "./dist/*.js",
       "default": "./dist/*.js"
     }
   },
