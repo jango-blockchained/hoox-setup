@@ -13,6 +13,7 @@ import {
   type ProbeRequest,
 } from "../../../services/perf/probe-sender.js";
 import { summarize } from "../../../services/perf/percentile.js";
+import { CLIError, ExitCode } from "../../../utils/errors.js";
 import type { FastPathReport, HopStats } from "./types.js";
 
 export interface RunConfig {
@@ -187,8 +188,9 @@ function clampInt(
   name: string
 ): number {
   if (!Number.isInteger(value) || value < min || value > max) {
-    throw new Error(
-      `${name} must be an integer in [${min}, ${max}], got ${value}`
+    throw new CLIError(
+      `${name} must be an integer in [${min}, ${max}], got ${value}`,
+      ExitCode.INVALID_USAGE
     );
   }
   return value;

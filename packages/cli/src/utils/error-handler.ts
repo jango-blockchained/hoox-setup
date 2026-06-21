@@ -44,18 +44,20 @@ export function withErrorHandling<T extends unknown[]>(
       const service = options?.service ?? "cli";
 
       if (error instanceof CLIError) {
-        // CLIError is already structured — pass through for proper formatting
         formatError(error, options?.opts);
         process.exitCode = error.code;
+        process.exit(error.code);
       } else if (error instanceof Error) {
         formatError(`[${service}] ${error.message}`, options?.opts);
         process.exitCode = ExitCode.ERROR;
+        process.exit(ExitCode.ERROR);
       } else {
         formatError(
           `[${service}] Unknown error: ${String(error)}`,
           options?.opts
         );
         process.exitCode = ExitCode.CommandFailed;
+        process.exit(ExitCode.CommandFailed);
       }
     }
   };
