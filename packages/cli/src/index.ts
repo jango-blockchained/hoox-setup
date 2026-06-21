@@ -135,6 +135,7 @@ process.on("unhandledRejection", (reason) => {
 // ---------------------------------------------------------------------------
 
 import { registerInitCommand } from "./commands/init/index.js";
+import { registerOnboardCommand } from "./commands/onboard/index.js";
 import { WIZARD_STATE_PATH } from "@jango-blockchained/hoox-shared";
 import { registerDevCommand } from "./commands/dev/index.js";
 import { registerDeployCommand } from "./commands/deploy/index.js";
@@ -163,6 +164,7 @@ import { runInteractiveTUI } from "./ui/index.js";
 // ── Command registration ────────────────────────────────────────────────
 
 registerInitCommand(program);
+registerOnboardCommand(program);
 registerDevCommand(program);
 registerDeployCommand(program);
 registerInfraCommand(program);
@@ -215,7 +217,7 @@ program
   local cur prev opts
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
-    opts="--help --version --json --quiet --yes init setup clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer agent workers trace perf"
+    opts="--help --version --json --quiet --yes init onboard bootstrap quickstart setup clone dev deploy infra config check db monitor repair logs test waf dashboard schema update tui disclaimer agent workers trace perf"
   COMPREPLY=( $(compgen -W "\${opts}" -- \${cur}) )
   return 0
 }
@@ -230,7 +232,8 @@ _hoox() {
     '--version:Show version'
     '--json:JSON output'
     '--quiet:Minimal output'
-    'init:Interactive setup wizard'
+    'init:Interactive setup wizard (config only)'
+    'onboard:One-shot full bootstrap (init + setup)'
     'setup:Auto-bootstrap infrastructure'
     'clone:Clone worker repositories'
     'dev:Local development'
