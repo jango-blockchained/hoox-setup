@@ -92,11 +92,81 @@ function updateWranglerVars(
 export function registerDashboardCommand(program: Command): void {
   const dashboardCmd = program
     .command("dashboard")
-    .description("Dashboard-specific operations");
+    .summary(
+      "Dashboard operations (alias for 'deploy dashboard' / 'dev dashboard')"
+    )
+    .description(
+      `Dashboard operations. This is a top-level alias that unifies the
+dashboard-related commands that are scattered across the CLI:
+
+  hoox dashboard dev          →  hoox dev dashboard
+  hoox dashboard deploy       →  hoox deploy dashboard
+  hoox dashboard update-urls  →  hoox deploy update-internal-urls (DEPRECATED)
+
+Use whichever is more convenient — both work identically.
+
+EXAMPLES:
+  hoox dashboard dev                      Start dashboard dev server
+  hoox dashboard deploy                   Build and deploy the dashboard
+  hoox dashboard deploy --rebuild         Force rebuild before deploy
+`
+    );
+
+  // -- dashboard dev ------------------------------------------------------
+  // Top-level alias for `hoox dev dashboard`
+
+  dashboardCmd
+    .command("dev")
+    .description(
+      "Start the dashboard dev server (alias for 'hoox dev dashboard')"
+    )
+    .action(
+      withErrorHandling(
+        async () => {
+          const proc = Bun.spawn(["hoox", "dev", "dashboard"], {
+            stdio: ["inherit", "inherit", "inherit"],
+          });
+          process.exitCode = await proc.exited;
+        },
+        { service: "dashboard" }
+      )
+    );
+
+  // -- dashboard deploy ---------------------------------------------------
+  // Top-level alias for `hoox deploy dashboard`
+
+  dashboardCmd
+    .command("deploy")
+    .description(
+      "Build and deploy the dashboard (alias for 'hoox deploy dashboard')"
+    )
+    .option("--rebuild", "Force rebuild before deploying")
+    .option(
+      "--auto",
+      "Skip dashboard rebuild prompt, use existing build if available"
+    )
+    .action(
+      withErrorHandling(
+        async (options: { rebuild?: boolean; auto?: boolean }) => {
+          const args = ["hoox", "deploy", "dashboard"];
+          if (options.rebuild) args.push("--rebuild");
+          if (options.auto) args.push("--auto");
+          const proc = Bun.spawn(args, {
+            stdio: ["inherit", "inherit", "inherit"],
+          });
+          process.exitCode = await proc.exited;
+        },
+        { service: "dashboard" }
+      )
+    );
+
+  // -- dashboard update-urls (DEPRECATED) ---------------------------------
 
   dashboardCmd
     .command("update-urls")
-    .description("Update dashboard wrangler.jsonc with current service URLs")
+    .description(
+      "Update dashboard wrangler.jsonc with current service URLs (DEPRECATED)"
+    )
     .option("--dry-run", "Show changes without applying")
     .action(
       withErrorHandling(
