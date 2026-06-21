@@ -68,7 +68,7 @@ export function registerWorkersCommand(program: Command): void {
 
 SUBCOMMANDS:
   list              List all workers with status, path, and secrets count
-  status            Check health status of all workers (delegates to monitor status)
+  status            Check health status of all workers (DEPRECATED, use 'hoox check health')
   dev <name>        Start a worker for local development (delegates to dev worker)
   logs <name>       Tail logs for a specific worker (delegates to logs worker)
 
@@ -110,16 +110,19 @@ EXAMPLES:
     );
 
   // -- workers status --------------------------------------------------------
-  // Delegates entirely to `hoox monitor status`
+  // DEPRECATED: delegates to `hoox monitor status`. Use `hoox check health` instead.
 
   workersCmd
     .command("status")
-    .summary("Check health status of all workers")
+    .summary(
+      "Check health status of all workers (DEPRECATED: use 'hoox check health')"
+    )
     .description(
-      `Check the health of all workers by delegating to \`hoox monitor status\`.
+      `Check the health of all workers.
 
-This command spawns \`hoox monitor status\` with inherited stdio, passing
-all output directly to the terminal.
+DEPRECATED: This command is superseded by 'hoox check health'. It now
+prints a deprecation warning and delegates to 'hoox monitor status'
+(which is itself deprecated). This alias will be removed in a future release.
 
 EXAMPLES:
   hoox workers status            Check all worker health
@@ -127,7 +130,13 @@ EXAMPLES:
     )
     .action(
       withErrorHandling(
-        async () => {
+        async (_, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          if (!fmt.json) {
+            process.stderr.write(
+              `\u26a0 'hoox workers status' is deprecated. Use 'hoox check health' instead.\n`
+            );
+          }
           const proc = Bun.spawn(["hoox", "monitor", "status"], {
             stdio: ["inherit", "inherit", "inherit"],
           });

@@ -297,7 +297,7 @@ export function registerMonitorCommand(program: Command): void {
       `Monitor worker health, trades, logs, and perform operational tasks.
 
 SUBCOMMANDS:
-  status          Check health of all workers
+  status          Check health of all workers (DEPRECATED, use 'hoox check health')
   trades [N]      Show N most recent trades (default: 10)
   logs [worker]   Show recent system logs from D1
   kill-switch     Emergency stop/resume trading
@@ -320,12 +320,25 @@ EXAMPLES:
 
   monitorCmd
     .command("status")
-    .summary("Check health of all workers")
-    .description("Probe each worker's /health endpoint and report status.")
+    .summary(
+      "Check health of all workers (DEPRECATED: use 'hoox check health')"
+    )
+    .description(
+      `Probe each worker's /health endpoint and report status.
+
+DEPRECATED: This command is superseded by 'hoox check health', which provides
+the same health checks plus more detail and a --fix option. This alias will
+be removed in a future release.`
+    )
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
           const fmt = getFormatOptions(cmd);
+          if (!fmt.json) {
+            process.stderr.write(
+              `${theme.warning("⚠ 'hoox monitor status' is deprecated. Use 'hoox check health' instead.\n")}`
+            );
+          }
           await doMonitorStatus(fmt);
         },
         { service: "monitor" }
