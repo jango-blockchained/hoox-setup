@@ -15,7 +15,7 @@ COPY . .
 RUN PUPPETEER_SKIP_DOWNLOAD=true bun install
 
 # Expose common worker/dashboard dev ports
-EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796
+EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796 8797 8798
 
 # Default command: keep container running (service command is overridden in docker-compose)
 CMD ["tail", "-f", "/dev/null"]
