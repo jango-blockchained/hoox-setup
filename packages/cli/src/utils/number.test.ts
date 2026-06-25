@@ -10,6 +10,14 @@ describe("formatNumber", () => {
     expect(formatNumber(-42)).toBe("-42");
   });
 
+  it("formats negative scaled values with K/M/B suffix", () => {
+    expect(formatNumber(-1_000)).toBe("-1.0K");
+    expect(formatNumber(-1_234)).toBe("-1.2K");
+    expect(formatNumber(-12_345)).toBe("-12K");
+    expect(formatNumber(-1_000_000)).toBe("-1.0M");
+    expect(formatNumber(-2_500_000_000)).toBe("-2.5B");
+  });
+
   it("returns plain integer for values under 1000", () => {
     expect(formatNumber(999)).toBe("999");
     expect(formatNumber(123)).toBe("123");

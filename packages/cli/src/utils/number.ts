@@ -34,7 +34,6 @@ export function formatNumber(n: number): string {
   if (Math.abs(n) < 1000) return String(n);
 
   const abs = Math.abs(n);
-  const sign = n < 0 ? "-" : "";
 
   // Pick the largest unit whose threshold the magnitude reaches.
   let unit: string;
@@ -53,14 +52,12 @@ export function formatNumber(n: number): string {
     divisor = 1e3;
   }
 
+  // scaled / Math.round(scaled) already carry the sign of n.
   const scaled = n / divisor;
-  const absScaled = Math.abs(scaled);
-
-  // 1 decimal for single-digit scaled values, 0 decimals for 10+.
   const formatted =
-    absScaled < 10 ? scaled.toFixed(1) : String(Math.round(scaled));
+    Math.abs(scaled) < 10 ? scaled.toFixed(1) : String(Math.round(scaled));
 
-  return `${sign}${formatted}${unit}`;
+  return `${formatted}${unit}`;
 }
 
 /**
