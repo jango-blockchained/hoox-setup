@@ -3,6 +3,12 @@
 All notable changes to `@jango-blockchained/hoox-cli` are documented here.
 This project adheres loosely to [Semantic Versioning](https://semver.org/).
 
+## [0.9.1] — 2026-06-25
+
+### Fixed
+
+- **Banner version lookup broken in global install**: `ui/banner.ts` used a relative path (`../../package.json`) that works from source but not from the bundled `dist/index.js` in a globally-installed package. When the user ran `hoox` with no args, the banner tried to read `/path/to/install/@jango-blockchained/package.json` (which doesn't exist) and threw `ENOENT`. The fix walks up from `import.meta.url` looking for the hoox-cli `package.json` by name, working in both layouts.
+
 ## [0.9.0] — 2026-06-24
 
 ### Added

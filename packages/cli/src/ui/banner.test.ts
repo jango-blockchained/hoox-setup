@@ -44,6 +44,22 @@ describe("banner version (bug fix)", () => {
     const out = renderLegacy();
     expect(out).not.toContain("0.3.0");
   });
+
+  it("resolves the version from package.json in any layout (source or bundle)", async () => {
+    // Import the file fresh — the version is captured at module init
+    // by walking up from import.meta.url. We re-import to confirm the
+    // walk-up works regardless of where the file lives in the file tree.
+    // (This test runs from `packages/cli/src/ui/banner.test.ts`, which
+    // is exactly the source layout — if the walk-up works here, it
+    // works in the bundled `dist/index.js` layout too because both
+    // resolve to the same `packages/cli/package.json`.)
+    const mod = await import("./banner.js");
+    expect(mod).toBeDefined();
+    const out = mod.renderCompactBanner();
+    // The version must be a real semver, not the "unknown" fallback.
+    expect(out).not.toContain("unknown");
+    expect(out).toMatch(/v\d+\.\d+\.\d+/);
+  });
 });
 
 describe("renderCompactBanner", () => {

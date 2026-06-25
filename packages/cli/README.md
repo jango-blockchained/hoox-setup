@@ -6,7 +6,7 @@
 
 > **Runtime requirement:** Bun ≥ 1.2. The bin shebang and bundle target are Bun-only; `npm install -g` will install the package but the CLI will not run under Node.js.
 
-**v0.9.0** — 411 unit tests, 25 command groups, 60+ subcommands. Modern-minimal visual refresh, completion footer, did-you-mean suggestions, custom help.
+**v0.9.1** — 411 unit tests, 25 command groups, 60+ subcommands. Modern-minimal visual refresh, completion footer, did-you-mean suggestions, custom help. **v0.9.0** had a banner version-lookup bug in global installs — fixed in 0.9.1.
 
 ## Features
 

@@ -9,15 +9,41 @@
  * Version is read at module init from `package.json` to avoid drift.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { theme, stripAnsi } from "../utils/theme.js";
 
 const TAGLINE = "Cloudflare Workers Platform";
 
-// Read the CLI version from package.json (no hardcoding).
-const VERSION: string = JSON.parse(
-  readFileSync(new URL("../../package.json", import.meta.url), "utf-8")
-).version;
+/**
+ * Walk up from this file's directory looking for the hoox-cli
+ * `package.json`. This works in both source (`src/ui/banner.ts`,
+ * `../../package.json`) and bundled (`dist/index.js`, `../package.json`)
+ * contexts, and survives the layout mismatch between dev and a
+ * globally-installed package.
+ */
+function findCliVersion(): string {
+  const PKG_NAME = "@jango-blockchained/hoox-cli";
+  let dir = dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 5; i++) {
+    const pkgPath = join(dir, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+        if (pkg.name === PKG_NAME) return pkg.version;
+      } catch {
+        // continue
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return "unknown";
+}
+
+const VERSION: string = findCliVersion();
 
 /** Disclaimer line rendered below the banner and in the footer. */
 export const DISCLAIMER =
