@@ -684,6 +684,7 @@ describe("formatTable refinements", () => {
       { name: "gamma-long", count: "3" },
     ];
     formatTable(rows);
+    // eslint-disable-next-line no-control-regex
     const out = capture.output().replace(/\x1b\[[0-9;]*m/g, "");
     // The "3" should be right-aligned to match the width of "200".
     expect(out).toMatch(/gamma-long\s+│\s+3\s*│/);
