@@ -431,40 +431,48 @@ export function formatJson(data: unknown, opts?: FormatOptions): void {
  * Output key-value pairs.
  * - JSON mode:  JSON object
  * - Quiet mode: prints nothing
- * - Human mode: "label: value" with themed labels
+ * - Human mode: "label: value" with subtle labels, padded for alignment
  */
 export function formatKeyValue(
   pairs: Record<string, string>,
-  opts?: FormatOptions
+  opts: FormatOptions = {}
 ): void {
-  if (opts?.quiet) return;
+  if (opts.quiet) return;
 
-  if (opts?.json) {
+  if (opts.json) {
     process.stdout.write(JSON.stringify(pairs, null, 2) + "\n");
     return;
   }
 
   const maxKeyLen = Math.max(
-    ...Object.keys(pairs).map((k) => stripAnsi(k).length)
+    ...Object.keys(pairs).map((k) => stripAnsi(k).length),
+    0
   );
 
   for (const [key, value] of Object.entries(pairs)) {
     const paddedKey = key.padEnd(maxKeyLen);
     process.stdout.write(
-      `  ${theme.key(paddedKey)} ${theme.dim(":")} ${value}\n`
+      `  ${theme.key(paddedKey)} ${theme.textMuted(":")} ${value}\n`
     );
   }
 }
 
 /**
  * Output a section header with decorative separator.
+ * Optionally render a dim subtitle below the rule.
  */
-export function formatHeader(text: string, opts?: FormatOptions): void {
-  if (opts?.quiet) return;
-  if (opts?.json) return;
+export function formatHeader(
+  text: string,
+  opts: FormatOptions & { subtitle?: string } = {}
+): void {
+  if (opts.quiet) return;
+  if (opts.json) return;
 
   process.stdout.write(`\n${theme.heading(text)}\n`);
   process.stdout.write(`${hr()}\n`);
+  if (opts.subtitle) {
+    process.stdout.write(`${theme.textMuted(opts.subtitle)}\n\n`);
+  }
 }
 
 /**
