@@ -10,7 +10,7 @@
  */
 
 import { readFileSync } from "node:fs";
-import { theme } from "../utils/theme.js";
+import { theme, stripAnsi } from "../utils/theme.js";
 
 const TAGLINE = "Cloudflare Workers Platform";
 
@@ -128,7 +128,9 @@ export function renderBannerMinimal(): string {
     ` ${theme.textFaint("│")}${" ".repeat(bw - 2)}${theme.textFaint("│")}`,
     // Leading space keeps the title line on-column with the rest of the box
     // and ensures the line does not start with a raw ANSI escape (`\x1b`).
-    ` ${theme.textFaint("│")}${titleLine}${" ".repeat(Math.max(0, bw - titleLine.length - 2))}${theme.textFaint("│")}`,
+    // Pad to the visible (ANSI-stripped) title length, not the raw string
+    // length, so the right border sits in the correct column.
+    ` ${theme.textFaint("│")}${titleLine}${" ".repeat(Math.max(0, bw - stripAnsi(titleLine).length - 2))}${theme.textFaint("│")}`,
     ` ${theme.textFaint("│")}${" ".repeat(bw - 2)}${theme.textFaint("│")}`,
     ` ${rule}`,
   ].join("\n");
