@@ -11,6 +11,7 @@ import { toError } from "@jango-blockchained/hoox-shared";
 import { COPYRIGHT } from "@jango-blockchained/hoox-shared/legal";
 import { CLIError, ExitCode } from "./utils/errors.js";
 import { formatError } from "./utils/formatters.js";
+import { suggestForCommand } from "./utils/error-handler.js";
 import { theme } from "./utils/theme.js";
 
 // ---------------------------------------------------------------------------
@@ -70,10 +71,18 @@ program.exitOverride((err) => {
   }
 
   // Unknown command / option: exit code 2 (invalid usage)
-  if (
-    err.code === "commander.unknownCommand" ||
-    err.code === "commander.unknownOption"
-  ) {
+  if (err.code === "commander.unknownCommand") {
+    // Try to extract the bad arg and find a similar command.
+    const match = err.message.match(/'([^']+)'/);
+    const badArg = match?.[1] ?? "";
+    const suggestion = suggestForCommand(program, badArg);
+    formatError(
+      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
+      suggestion ? { suggestions: [suggestion] } : undefined
+    );
+    process.exit(ExitCode.INVALID_USAGE);
+  }
+  if (err.code === "commander.unknownOption") {
     formatError(
       new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false)
     );
