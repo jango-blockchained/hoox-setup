@@ -18,6 +18,20 @@ export interface FormatOptions {
   noColor?: boolean;
 }
 
+/**
+ * Options for `formatTable`. Extends `FormatOptions` with visual flags.
+ */
+export interface FormatTableOptions extends FormatOptions {
+  /** Alternate-row text-subtle treatment. Default: true. */
+  zebra?: boolean;
+  /** Right-align columns where every value parses as a number. Default: true. */
+  alignNumbers?: boolean;
+  /** Auto-color values that match a known status word. Default: true. */
+  colorizeStatus?: boolean;
+  /** Drop the top/middle/bottom borders; keep a single rule under the header. */
+  compact?: boolean;
+}
+
 // ── Progress bar ──────────────────────────────────────────────────
 
 const PROGRESS_BAR_WIDTH = 30;
@@ -214,17 +228,24 @@ export function formatError(error: Error | string, opts?: FormatOptions): void {
 
 /**
  * Output tabular data with enhanced box-drawing borders.
+ *
  * - JSON mode:  JSON array of objects
  * - Quiet mode: prints nothing
  * - Human mode: themed box-drawn table with column headers
+ *
+ * Visual options (all default to true except `compact`):
+ *   - `zebra`         alternate-row subtle text treatment
+ *   - `alignNumbers`  right-align columns that are all numeric
+ *   - `colorizeStatus` auto-color values matching ok/healthy/.../warn/.../err/...
+ *   - `compact`       drop outer borders, keep one rule under the header
  */
 export function formatTable(
   rows: Record<string, string>[],
-  opts?: FormatOptions
+  opts: FormatTableOptions = {}
 ): void {
-  if (opts?.quiet) return;
+  if (opts.quiet) return;
 
-  if (opts?.json) {
+  if (opts.json) {
     process.stdout.write(JSON.stringify(rows, null, 2) + "\n");
     return;
   }
@@ -234,48 +255,129 @@ export function formatTable(
     return;
   }
 
-  // Collect all keys in display order (first row defines column order)
+  const zebra = opts.zebra !== false; // default true
+  const alignNumbers = opts.alignNumbers !== false; // default true
+  const colorizeStatus = opts.colorizeStatus !== false; // default true
+  const compact = opts.compact === true; // default false
+
+  // Collect all keys in display order (first row defines column order).
   const keys = Object.keys(rows[0]);
 
-  // Calculate column widths
+  // Pre-process cells: apply status colorization.
+  const processed: Array<Record<string, string>> = rows.map((row) => {
+    const out: Record<string, string> = {};
+    for (const k of keys) {
+      const raw = row[k] ?? "";
+      out[k] = colorizeCell(raw, colorizeStatus);
+    }
+    return out;
+  });
+
+  // Determine which columns are numeric (for right-alignment).
+  const numericColumns = new Set<string>();
+  if (alignNumbers) {
+    for (const k of keys) {
+      let allNumeric = true;
+      let anyNonEmpty = false;
+      for (const row of processed) {
+        const v = stripAnsi(row[k] ?? "");
+        if (v.length === 0) continue;
+        anyNonEmpty = true;
+        if (!/^-?\d+(\.\d+)?$/.test(v)) {
+          allNumeric = false;
+          break;
+        }
+      }
+      if (allNumeric && anyNonEmpty) numericColumns.add(k);
+    }
+  }
+
+  // Calculate column widths (based on the visible / stripped length).
   const widths: Record<string, number> = {};
   for (const key of keys) {
     widths[key] = stripAnsi(key).length;
-    for (const row of rows) {
+    for (const row of processed) {
       const value = row[key] ?? "";
       const stripped = stripAnsi(value).length;
       widths[key] = Math.max(widths[key], stripped);
     }
   }
 
-  // Build border segments
+  // Build border segments.
   const topParts = keys.map((k) => "─".repeat(widths[k] + 2));
   const topBorder = `┌${topParts.join("┬")}┐`;
   const sepBorder = `├${topParts.join("┼")}┤`;
   const botBorder = `└${topParts.join("┴")}┘`;
 
-  // Header row with themed styling
+  // Header row with themed styling.
   const headerCells = keys.map((k) =>
     theme.bold(k.padEnd(widths[k])).toString()
   );
   const headerRow = `│ ${headerCells.join(" │ ")} │`;
 
-  // Data rows
-  const dataRows = rows.map((row) => {
+  // Data rows, with zebra striping and number alignment.
+  const dataRows = processed.map((row, rowIdx) => {
+    const isAlt = zebra && rowIdx % 2 === 0;
     const cells = keys.map((k) => {
       const value = row[k] ?? "";
-      return value.padEnd(widths[k]);
+      const padded = numericColumns.has(k)
+        ? value.padStart(widths[k])
+        : value.padEnd(widths[k]);
+      // For zebra, re-apply textSubtle to non-status cells. Status cells
+      // keep their color.
+      if (isAlt && !value.includes("\u001b")) {
+        return theme.textMuted(padded);
+      }
+      return padded;
     });
     return `│ ${cells.join(" │ ")} │`;
   });
 
-  process.stdout.write(
-    `${theme.dim(topBorder)}\n` +
-      `${headerRow}\n` +
-      `${theme.dim(sepBorder)}\n` +
-      `${dataRows.join("\n")}\n` +
-      `${theme.dim(botBorder)}\n`
-  );
+  const borderOut = compact
+    ? `${headerRow}\n${theme.dim("─".repeat(stripAnsi(headerRow).length))}\n${dataRows.join("\n")}\n`
+    : `${theme.dim(topBorder)}\n${headerRow}\n${theme.dim(sepBorder)}\n${dataRows.join("\n")}\n${theme.dim(botBorder)}\n`;
+
+  process.stdout.write(borderOut);
+}
+
+/**
+ * Apply status-color auto-detection to a single cell value.
+ * Pure function — exposed for unit testing.
+ */
+function colorizeCell(value: string, colorizeStatus: boolean): string {
+  if (!colorizeStatus) return value;
+  const v = value.trim();
+  const lower = v.toLowerCase();
+  if (
+    [
+      "ok",
+      "pass",
+      "healthy",
+      "operational",
+      "up",
+      "active",
+      "enabled",
+    ].includes(lower)
+  ) {
+    return `${theme.success(icons.success)} ${theme.text(v)}`;
+  }
+  if (["warn", "warning", "degraded", "partial", "pending"].includes(lower)) {
+    return `${theme.warning(icons.warning)} ${theme.text(v)}`;
+  }
+  if (
+    [
+      "err",
+      "error",
+      "fail",
+      "failed",
+      "down",
+      "unreachable",
+      "disabled",
+    ].includes(lower)
+  ) {
+    return `${theme.error(icons.error)} ${theme.text(v)}`;
+  }
+  return value;
 }
 
 /**

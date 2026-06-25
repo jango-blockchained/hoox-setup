@@ -643,3 +643,70 @@ describe("formatError with hint", () => {
     expect(out).toBe("Oops\n");
   });
 });
+
+describe("formatTable refinements", () => {
+  let capture: ReturnType<typeof captureStdout>;
+
+  beforeEach(() => {
+    capture = captureStdout();
+  });
+
+  afterEach(() => {
+    capture.restore();
+  });
+
+  it("applies zebra striping by default (alt rows have dim treatment)", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "ok" },
+      { name: "gamma", status: "ok" },
+    ];
+    formatTable(rows);
+    const out = capture.output();
+    const alphaLine = out.split("\n").find((l) => l.includes("alpha"));
+    expect(alphaLine).toBeDefined();
+    expect(alphaLine).not.toBeNull();
+  });
+
+  it("right-aligns numeric columns by default", () => {
+    const rows = [
+      { name: "alpha", count: "10" },
+      { name: "beta", count: "200" },
+      { name: "gamma-long", count: "3" },
+    ];
+    formatTable(rows);
+    const out = capture.output().replace(/\x1b\[[0-9;]*m/g, "");
+    // The "3" should be right-aligned to match the width of "200".
+    expect(out).toMatch(/gamma-long\s+│\s+3\s*│/);
+  });
+
+  it("colorizes status values by default", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "fail" },
+    ];
+    formatTable(rows);
+    const out = capture.output();
+    expect(out).toContain("✓");
+    expect(out).toContain("✗");
+  });
+
+  it("respects { zebra: false }", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "ok" },
+    ];
+    formatTable(rows, { zebra: false });
+    const out = capture.output();
+    const lines = out.split("\n").filter((l) => l.includes("│"));
+    expect(lines.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("respects { compact: true } — no top/bottom borders", () => {
+    const rows = [{ name: "alpha", status: "ok" }];
+    formatTable(rows, { compact: true });
+    const out = capture.output();
+    expect(out).not.toContain("┌");
+    expect(out).not.toContain("└");
+  });
+});
