@@ -1,5 +1,4 @@
 import { describe, it, expect } from "bun:test";
-import ansis from "ansis";
 import { theme, icons, stripAnsi } from "./theme.js";
 
 describe("theme tokens", () => {
