@@ -6,7 +6,7 @@
 
 > **Runtime requirement:** Bun ≥ 1.2. The bin shebang and bundle target are Bun-only; `npm install -g` will install the package but the CLI will not run under Node.js.
 
-**v0.8.0** — 411 unit tests, 25 command groups, 60+ subcommands.
+**v0.9.0** — 411 unit tests, 25 command groups, 60+ subcommands. Modern-minimal visual refresh, completion footer, did-you-mean suggestions, custom help.
 
 ## Features
 
@@ -25,6 +25,7 @@
 - **Top-level Secrets & Keys**: `hoox secrets` and `hoox keys` for Cloudflare Worker secrets and internal auth keys.
 - **Unified Dashboard** (`hoox dashboard dev | deploy`): Start the dev server or build & deploy the Next.js dashboard.
 - **Interactive TUI**: Launch an interactive terminal UI when running `hoox` with no arguments.
+- **Modern-minimal output polish (v0.9.0)**: Refined zinc/indigo palette, completion footer with "next step" suggestions after every command, "did you mean …" for typos, custom help formatter, `--no-color` flag, `NO_COLOR` / `TERM=dumb` honored, `formatNumber` and `formatBytes` for compact tables. All available to plugin authors via the shared `format*` exports.
 - **Shell Completions**: bash, zsh, and fish completion scripts via `hoox completion <shell>`.
 
 ## Installation
