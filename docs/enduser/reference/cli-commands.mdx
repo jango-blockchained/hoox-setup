@@ -5,7 +5,14 @@ description: "Comprehensive CLI directory detailing all 25 command groups, 60+ s
 
 The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development, provisioning, deployment, monitoring, and self-healing pipelines. This reference provides the complete command tree, positional arguments, optional flags, and concrete examples for all command groups.
 
-> **Heads up (v0.8.0):** The CLI surface was recently refactored. New top-level commands (`hoox onboard`, `hoox secrets`, `hoox keys`, `hoox perf`) were added; redundant commands (`hoox monitor status`, `hoox workers status`, `hoox dashboard update-urls`) were removed. See the [changelog](#v080-refactor) below.
+> **Heads up (v0.9.0):** The output framework was polished. New global flag
+> `--no-color` (alongside `NO_COLOR` env var and `TERM=dumb` honored); every
+> successful command prints a `✓ Done in 1.2s` footer with an optional
+> `→ next: hoox …` suggestion; typos like `hoox deplpy` produce
+> `did you mean 'hoox deploy' ?`; `hoox --help` uses a new sectioned layout
+> (Usage / Options / Examples / See also). See the
+> [changelog](#v090-output-polish) below. Also see the v0.8.0 refactor notes
+> further down for the command-tree changes.
 
 ---
 
@@ -13,13 +20,14 @@ The `@jango-blockchained/hoox-cli` tool manages the entire monorepo development,
 
 These options are registered globally and can be appended to any command:
 
-| Flag        | Description                                                         | Example                         |
-| :---------- | :------------------------------------------------------------------ | :------------------------------ |
-| `--json`    | Outputs machine-parseable JSON format (ideal for script pipelines). | `hoox check health --json`      |
-| `--quiet`   | Suppresses headers, banners, and interactive prompts.               | `hoox deploy kv-config --quiet` |
-| `--help`    | Prints complete parameter and option listings.                      | `hoox infra d1 --help`          |
-| `--version` | Outputs active CLI package build version.                           | `hoox --version`                |
-| `-y, --yes` | Skip confirmation prompts (where supported).                        | `hoox repair rebuild --yes`     |
+| Flag         | Description                                                          | Example                         |
+| :----------- | :------------------------------------------------------------------- | :------------------------------ |
+| `--json`     | Outputs machine-parseable JSON format (ideal for script pipelines).  | `hoox check health --json`      |
+| `--quiet`    | Suppresses headers, banners, and interactive prompts.                | `hoox deploy kv-config --quiet` |
+| `--no-color` | Disable ANSI color output (also: `NO_COLOR=1` env var, `TERM=dumb`). | `hoox --no-color check health`  |
+| `--help`     | Prints complete parameter and option listings.                       | `hoox infra d1 --help`          |
+| `--version`  | Outputs active CLI package build version.                            | `hoox --version`                |
+| `-y, --yes`  | Skip confirmation prompts (where supported).                         | `hoox repair rebuild --yes`     |
 
 ---
 
@@ -246,6 +254,32 @@ hoox repair check
 # Verify worker health (the single source of truth)
 hoox check health
 ```
+
+---
+
+## 🆕 v0.9.0 Output Polish
+
+The v0.9.0 release polished the output framework. **No new commands and no breaking changes** — every command picks up the improvements automatically through the shared formatters. The new primitives are also available to plugin authors via the package's public exports.
+
+### New output primitives
+
+- **`--no-color` global flag** — suppresses all ANSI color output. Also honored: `NO_COLOR=1` env var (https://no-color.org standard) and `TERM=dumb`.
+- **`formatCompletion(message, { durationMs, suggestion })`** — prints a `✓ Done in 1.2s` footer after every successful command, with an optional `→ next: hoox …` suggestion. Wired into the global `program.hook("postAction", ...)`.
+- **"Did you mean" suggestions** — typos like `hoox deplpy` produce `did you mean 'hoox deploy' ?`. Levenshtein distance ≤ 2 against all registered command names.
+- **Custom help formatter** — `hoox --help` and per-command `--help` use a sectioned layout (Usage / Options / Examples / See also) with refined colors.
+- **`formatNumber(n)`** — compact notation (`1.2K`, `1.5M`, `2.5B`) used by `formatTable` number auto-alignment and by `hoox perf fastpath` / `hoox monitor status` / `hoox trace metrics`.
+- **`formatBytes(n, { binary? })`** — SI (`KB`, `MB`) or binary (`KiB`, `MiB`) units.
+
+### Visual changes (visible in every command)
+
+- **Theme palette** — refined to a modern-minimal aesthetic: zinc/slate text, single indigo-400 accent, de-saturated status colors (emerald/rose/amber/sky). The visual change ripples through every command; information content is unchanged.
+- **Badge style** — `formatBadge()` no longer uses high-contrast background chips; it now renders colored glyph + colored text (Vercel / Linear style).
+- **Spinner** — uses braille dots (`⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏`) instead of plain ASCII (`-\|/`).
+- **`formatTable` options** — supports `zebra`, `alignNumbers`, `colorizeStatus`, `compact` (all default to on, except `compact` which defaults to off). Backward compatible.
+- **`formatError`** — card layout with `[code]` badge and `suggestions` support. JSON output now includes a new `suggestions` field.
+- **Banner default** — `minimal` (was `legacy`). The banner's version is read dynamically from `package.json` (v0.9.0 also fixed a real version-drift bug where the banner was hardcoded to `v0.3.0` while the package was at `v0.8.0`).
+
+See [`packages/cli/CHANGELOG.md`](https://github.com/jango-blockchained/hoox-setup/blob/main/packages/cli/CHANGELOG.md) for the full release notes.
 
 ---
 

@@ -72,6 +72,134 @@ hoox repair infra
   effortlessly!
 </Tip>
 
+---
+
+## 🎨 4. Output Framework (v0.9.0+)
+
+The CLI's terminal output is built on a shared framework of small, focused primitives
+that every command composes. The framework lives in `packages/cli/src/utils/` and
+spans five layers:
+
+### Theme tokens (`utils/theme.ts`)
+
+A single source of truth for color and iconography. Refined in v0.9.0 to a
+**modern-minimal** aesthetic (zinc/slate text, single indigo-400 accent,
+de-saturated status colors). New tokens available to every command:
+
+- **Text scale**: `theme.text` (zinc-200), `textMuted` (zinc-400), `textSubtle`
+  (zinc-500), `textFaint` (zinc-600)
+- **Status**: `success` (emerald-400), `error` (rose-400), `warning` (amber-400),
+  `info` (sky-400), `accent` (indigo-400)
+- **Borders**: `border` (zinc-700), `borderStrong` (zinc-600)
+- **Spinner**: braille dots `["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"]`
+
+All previous named tokens (`success`, `error`, `heading`, `value`, etc.) are
+preserved for backward compatibility — only the values changed.
+
+### Output formatters (`utils/formatters.ts`)
+
+Every command uses one of these for consistent output:
+
+| Formatter                            | Purpose                                                         | Key options                                          |
+| ------------------------------------ | --------------------------------------------------------------- | ---------------------------------------------------- |
+| `formatSuccess(msg)`                 | Single-line success indicator                                   | `--json` / `--quiet`                                 |
+| `formatError(err, opts?)`            | Card-style error with `[code]` badge, `did you mean` suggestion | `suggestions?`, `inCard?`                            |
+| `formatTable(rows, opts?)`           | Box-drawn table                                                 | `zebra`, `alignNumbers`, `colorizeStatus`, `compact` |
+| `formatKeyValue(pairs)`              | Aligned `key: value` pairs                                      | —                                                    |
+| `formatHeader(text, opts?)`          | Section heading with rule                                       | `subtitle?`                                          |
+| `formatList(items)`                  | Bulleted list                                                   | —                                                    |
+| `formatJson(data)`                   | Always-JSON output                                              | —                                                    |
+| `formatBadge(level, text?)`          | Inline status chip                                              | —                                                    |
+| `formatHint(text)`                   | Subtle hint line                                                | —                                                    |
+| `formatCompletion(msg, opts?)`       | "✓ Done in 1.2s" footer + next-step suggestion                  | `durationMs?`, `suggestion?`                         |
+| `formatNumber(n)` / `formatBytes(n)` | Compact notation (`1.2K` / `1.5M` / `1.0 KiB`)                  | —                                                    |
+
+### Rich mode gate (`utils/format-mode.ts`)
+
+`isRichMode(opts)` is the single switch every formatter checks before
+emitting color. It returns `false` (i.e. suppresses color) when any of these is true:
+
+- `--json` or `--quiet` flag is set
+- `--no-color` flag is set
+- `NO_COLOR` env var is set (https://no-color.org)
+- `TERM=dumb` is set
+- stdout is not a TTY (piped, redirected, or running under CI)
+
+This is the single place that encodes "is rich output appropriate right now?" — every
+formatter asks it instead of duplicating TTY/env detection.
+
+### Custom help formatter (`utils/help-formatter.ts`)
+
+Replaces Commander's default flat help layout with a sectioned modern-minimal
+layout for `hoox --help` and per-command `--help`:
+
+```
+ hoox deploy all
+ Cloudflare Workers Platform
+ ───────────────────────────────────────────────────
+
+ Usage
+   hoox deploy all [options]
+
+ Options
+   --auto              Skip confirmations
+   --json              Output JSON
+
+ Examples
+   $ hoox deploy all
+   $ hoox deploy all --auto
+```
+
+Wired into the program via `program.configureHelp({ formatHelp: (cmd, helper) => renderHelp(cmd, helper) })`.
+
+### "Did you mean" + completion footer (`utils/completion.ts`, `utils/error-handler.ts`)
+
+Two small touches that improve UX on errors and after successful commands:
+
+- **Did you mean** — `hoox deplpy` → `did you mean 'hoox deploy' ?`. Uses Levenshtein
+  distance with a threshold of 2; checks against all registered command names
+  (top-level + nested).
+- **Completion footer** — every successful command prints `✓ <message> in 1.2s`
+  and optionally `→ next: hoox <next-command> (<reason>)`. Wired into the global
+  `program.hook("postAction", ...)` in `index.ts`.
+
+### Banner (`ui/banner.ts`)
+
+`renderBanner()` is called when the CLI runs with no arguments. The version is
+read at module init by walking up from `import.meta.url` looking for the
+`@jango-blockchained/hoox-cli` `package.json` — this works in source, bundle,
+and global install layouts. Default variant is `minimal` (the cleanest of four);
+`legacy`, `horizon`, and `signal` are opt-ins.
+
+### Adding a new output
+
+When writing a new command, the pattern is:
+
+```ts
+import {
+  formatSuccess,
+  formatTable,
+  formatHint,
+  getFormatOptions,
+} from "../../utils/formatters.js";
+import { Command } from "commander";
+
+export function registerMyCommand(program: Command) {
+  program.command("my").action(
+    withErrorHandling(async (cmd) => {
+      const opts = getFormatOptions(cmd);
+      const rows = await loadMyData();
+      formatTable(rows, opts); // respects --json / --quiet / --no-color
+      formatSuccess("Done", opts); // suppressed in --json/--quiet
+      formatHint("next: hoox deploy", opts);
+    })
+  );
+}
+```
+
+Every formatter handles the format modes for you — you never read
+`process.stdout.isTTY` or `process.env.NO_COLOR` yourself.
+
 ### 🔗 Next Steps
 
 - **[CLI Reference Manual](../../docs/enduser/reference/cli-commands)** — Review the complete command tree, positional arguments, and flags.
