@@ -440,7 +440,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: undefined, quiet: undefined }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: false, quiet: false });
+    expect(opts).toEqual({ json: false, quiet: false, noColor: false });
   });
 
   it("returns json=true when --json flag is set", () => {
@@ -448,7 +448,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: true, quiet: false }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: true, quiet: false });
+    expect(opts).toEqual({ json: true, quiet: false, noColor: false });
   });
 
   it("returns quiet=true when --quiet flag is set", () => {
@@ -456,7 +456,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: false, quiet: true }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: false, quiet: true });
+    expect(opts).toEqual({ json: false, quiet: true, noColor: false });
   });
 
   it("returns both true when both flags are set", () => {
@@ -464,7 +464,15 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: true, quiet: true }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: true, quiet: true });
+    expect(opts).toEqual({ json: true, quiet: true, noColor: false });
+  });
+
+  it("returns noColor=true when --no-color flag is set (commander negates to color:false)", () => {
+    const cmd = {
+      optsWithGlobals: () => ({ json: false, quiet: false, color: false }),
+    } as unknown as Command;
+    const opts = getFormatOptions(cmd);
+    expect(opts).toEqual({ json: false, quiet: false, noColor: true });
   });
 });
 

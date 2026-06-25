@@ -496,12 +496,18 @@ export function formatList(
 }
 
 /**
- * Build the format options for output, reading global --json / --quiet flags.
- * Uses `optsWithGlobals()` to include options inherited from the top-level program.
+ * Build the format options for output, reading global --json / --quiet
+ * / --no-color flags. Uses `optsWithGlobals()` to include options
+ * inherited from the top-level program.
  */
 export function getFormatOptions(cmd: Command): FormatOptions {
   const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
+  return {
+    json: Boolean(opts.json),
+    quiet: Boolean(opts.quiet),
+    // commander lowercases --no-color to `color` and negates to `false`.
+    noColor: Boolean(opts.color === false),
+  };
 }
 
 /**

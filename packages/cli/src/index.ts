@@ -10,9 +10,11 @@ import { Command } from "commander";
 import { toError } from "@jango-blockchained/hoox-shared";
 import { COPYRIGHT } from "@jango-blockchained/hoox-shared/legal";
 import { CLIError, ExitCode } from "./utils/errors.js";
-import { formatError } from "./utils/formatters.js";
+import { formatError, formatCompletion } from "./utils/formatters.js";
 import { suggestForCommand } from "./utils/error-handler.js";
 import { theme } from "./utils/theme.js";
+import { renderHelp } from "./utils/help-formatter.js";
+import { suggestNextCommand, getCmdPath } from "./utils/completion.js";
 
 // ---------------------------------------------------------------------------
 // Program setup
@@ -37,6 +39,7 @@ program
     theme.heading("\nHoox CLI — Cloudflare Workers Platform\n")
   )
   .configureHelp({
+    formatHelp: (cmd, helper) => renderHelp(cmd, helper),
     styleTitle: (str: string) => theme.heading(str),
     styleCommandText: (str: string) => theme.bold(str),
     styleOptionText: (str: string) => str,
@@ -46,7 +49,32 @@ program
 // Global options — accessible by all commands via program.opts()
 program.option("--json", "Output in JSON format");
 program.option("--quiet", "Minimal output");
+program.option("--no-color", "Disable color output");
 program.option("-y, --yes", "Skip confirmation prompts");
+
+// ---------------------------------------------------------------------------
+// Completion hooks — stamp start time + print footer on success
+// ---------------------------------------------------------------------------
+
+// Stamp a start time on each leaf command.
+program.hook("preAction", (thisCmd) => {
+  (thisCmd as Command & { _hooxStartedAt?: number })._hooxStartedAt =
+    Date.now();
+});
+
+// Print a completion footer after each successful command.
+program.hook("postAction", (thisCmd) => {
+  // postAction does not fire if the action threw, but be defensive
+  // about callers that set process.exitCode explicitly.
+  if (process.exitCode && process.exitCode !== 0) return;
+  const startedAt = (thisCmd as Command & { _hooxStartedAt?: number })
+    ._hooxStartedAt;
+  if (startedAt === undefined) return; // preAction didn't run — skip
+  const durationMs = Date.now() - startedAt;
+  const path = getCmdPath(thisCmd);
+  const suggestion = suggestNextCommand(path);
+  formatCompletion("Done", { durationMs, suggestion });
+});
 
 // ---------------------------------------------------------------------------
 // Error handling — map CommanderError and CLIError to proper exit codes
