@@ -14,6 +14,8 @@ import { Command } from "commander";
 export interface FormatOptions {
   json?: boolean;
   quiet?: boolean;
+  /** Suppress color even when stdout is a TTY. Honored by `isRichMode`. */
+  noColor?: boolean;
 }
 
 // ── Progress bar ──────────────────────────────────────────────────
