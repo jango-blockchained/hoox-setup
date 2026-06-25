@@ -13,6 +13,7 @@ import {
   formatDuration,
   formatBadge,
   formatHint,
+  formatCompletion,
 } from "./formatters.js";
 import { CLIError, ExitCode } from "./errors.js";
 import { Command } from "commander";
@@ -751,5 +752,65 @@ describe("formatError refinements", () => {
     const out = capture.output();
     const lines = out.split("\n").filter((l) => l.trim().startsWith("│"));
     expect(lines.length).toBe(0);
+  });
+});
+
+describe("formatCompletion", () => {
+  let capture: ReturnType<typeof captureStdout>;
+  const ORIGINAL_TTY = process.stdout.isTTY;
+
+  beforeEach(() => {
+    capture = captureStdout();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+    process.exitCode = 0;
+  });
+
+  afterEach(() => {
+    capture.restore();
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: ORIGINAL_TTY,
+      configurable: true,
+      writable: true,
+    });
+    process.exitCode = 0;
+  });
+
+  it("renders success + message + duration in human mode", () => {
+    formatCompletion("Deploy complete", { durationMs: 12_345 });
+    const out = capture.output();
+    expect(out).toContain("✓");
+    expect(out).toContain("Deploy complete");
+    expect(out).toContain("12.3s"); // formatDuration output
+  });
+
+  it("renders a 'next: ...' line when a suggestion is provided", () => {
+    formatCompletion("Done", {
+      durationMs: 1_000,
+      suggestion: { command: "hoox check health", reason: "verify the deploy" },
+    });
+    const out = capture.output();
+    expect(out).toContain("next:");
+    expect(out).toContain("hoox check health");
+    expect(out).toContain("verify the deploy");
+  });
+
+  it("prints nothing in --json mode", () => {
+    formatCompletion("Done", { json: true, durationMs: 1_000 });
+    expect(capture.output()).toBe("");
+  });
+
+  it("prints nothing in --quiet mode", () => {
+    formatCompletion("Done", { quiet: true, durationMs: 1_000 });
+    expect(capture.output()).toBe("");
+  });
+
+  it("prints nothing when process.exitCode is non-zero", () => {
+    process.exitCode = 1;
+    formatCompletion("Done", { durationMs: 1_000 });
+    expect(capture.output()).toBe("");
   });
 });

@@ -495,3 +495,45 @@ export function getFormatOptions(cmd: Command): FormatOptions {
   const opts = cmd.optsWithGlobals();
   return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
 }
+
+/**
+ * Render a completion footer line(s). Used as the final output of every
+ * successful command when the global `program` postAction hook fires.
+ *
+ * Suppressed entirely in `--json`, `--quiet`, non-TTY, NO_COLOR, and when
+ * the previous command failed (process.exitCode !== 0).
+ *
+ * - JSON mode: prints nothing.
+ * - Quiet mode: prints nothing.
+ * - Human mode: a green check + message + optional duration, then an
+ *   optional "→ next: ..." line with a suggested follow-up command.
+ */
+export function formatCompletion(
+  message: string,
+  opts: FormatOptions & {
+    durationMs?: number;
+    suggestion?: { command: string; reason?: string };
+  } = {}
+): void {
+  // Always bail on these.
+  if (opts.json || opts.quiet) return;
+  if (process.exitCode && process.exitCode !== 0) return;
+  if (!isRichMode(opts)) return;
+
+  const parts: string[] = [theme.success(icons.success), theme.text(message)];
+
+  if (opts.durationMs !== undefined) {
+    parts.push(theme.textMuted(formatDuration(opts.durationMs)));
+  }
+
+  process.stdout.write(`${parts.join(" ")}\n`);
+
+  if (opts.suggestion) {
+    const reason = opts.suggestion.reason
+      ? ` ${theme.textMuted(`(${opts.suggestion.reason})`)}`
+      : "";
+    process.stdout.write(
+      `  ${theme.textMuted("→")} ${theme.textMuted("next:")} ${theme.accent(opts.suggestion.command)}${reason}\n`
+    );
+  }
+}
