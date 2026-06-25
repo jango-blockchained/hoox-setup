@@ -210,9 +210,14 @@ export async function runRichTasks<T = unknown>(
 function renderDefaultSummary<T>(results: RichTaskResult<T>[]): void {
   if (results.length === 0) return;
   const rows = results.map((r) => ({
-    Task: r.title,
+    Task: theme.text(r.title),
     Status: r.ok ? theme.success(icons.success) : theme.error(icons.error),
     Duration: formatDuration(r.ms),
   }));
+  // Use the refined formatTable — zebra striping is on by default,
+  // status values won't match the auto-color list ("✓"/"✗" aren't
+  // keywords"), and there are no numeric columns, so the new options
+  // don't visibly change this table much. The point is to use the
+  // unified primitive.
   formatTable(rows, {});
 }
