@@ -2,8 +2,6 @@ import { describe, it, expect } from "bun:test";
 import {
   renderBanner,
   renderBannerMinimal,
-  renderBannerHorizon,
-  renderBannerSignal,
   renderLegacy,
   renderCompactBanner,
   BANNER_VARIANTS,

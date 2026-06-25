@@ -39,7 +39,9 @@ program
     theme.heading("\nHoox CLI — Cloudflare Workers Platform\n")
   )
   .configureHelp({
-    formatHelp: (cmd, helper) => renderHelp(cmd, helper),
+    // Cast the helper param: renderHelp accepts the standard
+    // helpInformation signature but Commander types it as Help class.
+    formatHelp: (cmd, helper) => renderHelp(cmd, helper as never),
     styleTitle: (str: string) => theme.heading(str),
     styleCommandText: (str: string) => theme.bold(str),
     styleOptionText: (str: string) => str,
