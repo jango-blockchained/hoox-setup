@@ -28,11 +28,10 @@ export function renderHelp(
   cmd: Command,
   helper: (this: Command, context?: HelpContext) => string
 ): string {
-  // Reference the standard helper so the formatter signature stays
-  // compatible with Commander's `.helpInformation` lookup. The actual
-  // Examples / See also block is recovered via event capture because
-  // `helpInformation()` in v15 omits `addHelpText` content.
-  void helper.call(cmd);
+  // The `helper` parameter is the Commander Help class instance.
+  // We don't need it because we walk the Command tree directly and
+  // capture after-help text via the event API (see `captureHelpEvent`).
+  void helper;
 
   // Subcommand listing, if any. The `_hidden` field is the only
   // visibility flag Commander v15 stores on a Command instance.
