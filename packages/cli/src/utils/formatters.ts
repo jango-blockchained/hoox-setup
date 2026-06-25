@@ -183,46 +183,80 @@ export function formatSuccess(message: string, opts?: FormatOptions): void {
 }
 
 /**
- * Output an error message.
- * - JSON mode:  {"success":false,"error":"...","code":1,"details":"...","hint":"..."}
- *               (hint is additive — older consumers ignore unknown fields.)
- * - Quiet mode: prints only the error message (no icon)
- * - Human mode: red "✗ message" + optional details indented + optional hint line
+ * Output an error message with optional card layout and "did you mean" suggestions.
+ *
+ * - JSON mode:  {"success":false,"error":"...","code":1,"details":"...","hint":"...","suggestions":[...]}
+ * - Quiet mode: prints only the error message
+ * - Human mode: card-style error with optional details, hint, suggestions
+ *
+ * Set `inCard: false` to skip the box framing (e.g. for inline errors).
  */
-export function formatError(error: Error | string, opts?: FormatOptions): void {
+export function formatError(
+  error: Error | string,
+  opts: FormatOptions & { suggestions?: string[]; inCard?: boolean } = {}
+): void {
   const message = typeof error === "string" ? error : error.message;
   const cliError = error instanceof CLIError ? error : null;
 
-  if (opts?.json) {
+  if (opts.json) {
     const output: Record<string, unknown> = {
       success: false,
       error: message,
       code: cliError?.code ?? ExitCode.ERROR,
     };
-    if (cliError?.details) {
-      output.details = cliError.details;
-    }
-    if (cliError?.hint) {
-      output.hint = cliError.hint;
+    if (cliError?.details) output.details = cliError.details;
+    if (cliError?.hint) output.hint = cliError.hint;
+    if (opts.suggestions && opts.suggestions.length > 0) {
+      output.suggestions = opts.suggestions;
     }
     process.stdout.write(JSON.stringify(output) + "\n");
     return;
   }
 
-  if (opts?.quiet) {
+  if (opts.quiet) {
     process.stdout.write(`${message}\n`);
     return;
   }
 
-  process.stdout.write(`${theme.error(icons.error)} ${message}\n`);
+  const inCard = opts.inCard !== false; // default true
+
+  // Title line: ✗ [code] message
+  const titleParts: string[] = [theme.error(icons.error)];
+  if (cliError?.code !== undefined) {
+    titleParts.push(theme.textSubtle(`[${cliError.code}]`));
+  }
+  titleParts.push(theme.text(message));
+  process.stdout.write(`${titleParts.join(" ")}\n`);
 
   if (cliError?.details) {
-    process.stdout.write(`  ${theme.dim(cliError.details)}\n`);
+    process.stdout.write(`  ${theme.textMuted(cliError.details)}\n`);
   }
-  if (cliError?.hint) {
-    process.stdout.write(
-      `${theme.dim("↳ hint:")} ${theme.value(cliError.hint)}\n`
-    );
+
+  const hasHint = !!cliError?.hint;
+  const hasSuggestions = !!opts.suggestions && opts.suggestions.length > 0;
+
+  if (hasHint || hasSuggestions) {
+    if (inCard) {
+      process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
+    }
+    if (hasHint) {
+      process.stdout.write(
+        `  ${inCard ? theme.border(icons.pipe) : " "}  ${theme.dim("↳ hint:")} ${theme.value(cliError!.hint!)}\n`
+      );
+    }
+    if (hasSuggestions) {
+      const sugText = opts.suggestions!.map((s) => `'${s}'`).join(", ");
+      process.stdout.write(
+        `  ${inCard ? theme.border(icons.pipe) : " "}  ${theme.dim("did you mean:")} ${theme.accent(sugText)} ${theme.dim("?")}\n`
+      );
+    }
+    if (inCard) {
+      process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
+    }
+  } else if (inCard) {
+    // No hint / suggestions, but caller asked for a card: still frame it
+    // with a single leading pipe for visual consistency.
+    process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
   }
 }
 

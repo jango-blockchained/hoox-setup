@@ -710,3 +710,46 @@ describe("formatTable refinements", () => {
     expect(out).not.toContain("└");
   });
 });
+
+describe("formatError refinements", () => {
+  let capture: ReturnType<typeof captureStdout>;
+
+  beforeEach(() => {
+    capture = captureStdout();
+  });
+
+  afterEach(() => {
+    capture.restore();
+  });
+
+  it("renders a [code] badge when CLIError has a code", () => {
+    formatError(new CLIError("bad token", ExitCode.INVALID_USAGE));
+    const out = capture.output();
+    expect(out).toContain("[2]"); // INVALID_USAGE is exit code 2
+    expect(out).toContain("bad token");
+  });
+
+  it("renders suggestions as a 'did you mean' line", () => {
+    formatError("unknown command", { suggestions: ["hoox deploy"] });
+    const out = capture.output();
+    expect(out).toContain("did you mean");
+    expect(out).toContain("hoox deploy");
+  });
+
+  it("emits suggestions in JSON mode", () => {
+    formatError("unknown command", {
+      json: true,
+      suggestions: ["hoox deploy"],
+    });
+    const out = capture.output();
+    const parsed = JSON.parse(out);
+    expect(parsed.suggestions).toEqual(["hoox deploy"]);
+  });
+
+  it("inCard: false skips the card framing", () => {
+    formatError("plain error", { inCard: false });
+    const out = capture.output();
+    const lines = out.split("\n").filter((l) => l.trim().startsWith("│"));
+    expect(lines.length).toBe(0);
+  });
+});

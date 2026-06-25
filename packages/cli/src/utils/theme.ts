@@ -99,6 +99,7 @@ export const icons = {
   // Added in this revision:
   sep: "·",
   bullet: "•",
+  pipe: "│",
 } as const;
 
 // ── Display helpers ───────────────────────────────────────────────
