@@ -34,6 +34,7 @@ describe("sendProbe", () => {
 
   it("returns ok on 2xx response", async () => {
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-1",
       symbol: "BTCUSDT",
@@ -48,8 +49,9 @@ describe("sendProbe", () => {
     expect(result.probe_id).toBe("p-1");
   });
 
-  it("sends probe body and X-Internal-Auth-Key header", async () => {
+  it("sends apiKey in the body (hoox gateway auth)", async () => {
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-2",
       symbol: "ETHUSDT",
@@ -61,11 +63,16 @@ describe("sendProbe", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const sent = fetchMock.mock.calls[0]?.[0] as Request;
     expect(sent.method).toBe("POST");
-    expect(sent.headers.get("X-Internal-Auth-Key")).toBe("test-internal-key");
     expect(sent.headers.get("Content-Type")).toBe("application/json");
+    // Earlier the apiKey was sent in X-Internal-Auth-Key header,
+    // which the hoox gateway ignored (it reads apiKey from the
+    // body). All probes got 403. Now the apiKey is in the body
+    // and no header is required.
+    expect(sent.headers.get("X-Internal-Auth-Key")).toBeNull();
     const body = (await new Response(sent.body).json()) as ProbeRequest;
     expect(body.probe).toBe(true);
     expect(body.probe_id).toBe("p-2");
+    expect(body.apiKey).toBe("test-internal-key");
   });
 
   it("returns auth_failed on 401/403", async () => {
@@ -74,6 +81,7 @@ describe("sendProbe", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-3",
       symbol: "BTCUSDT",
@@ -92,6 +100,7 @@ describe("sendProbe", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-4",
       symbol: "BTCUSDT",
@@ -115,6 +124,7 @@ describe("sendProbe", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-5",
       symbol: "BTCUSDT",
@@ -130,6 +140,7 @@ describe("sendProbe", () => {
     fetchMock = mock(() => Promise.reject(new Error("network down")));
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     const req: ProbeRequest = {
+      apiKey: "test-internal-key",
       probe: true,
       probe_id: "p-6",
       symbol: "BTCUSDT",
