@@ -47,10 +47,18 @@ import {
   Send,
   Sparkles,
   Percent,
+  Wallet,
+  Server,
+  Cpu,
+  FileText,
+  BarChart3,
+  Globe,
+  Key,
 } from "lucide-react";
 import type { WorkerConfigManifest } from "@/lib/settings/loader";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
 import type { DashboardSection, SettingField } from "@/lib/settings/types";
+import { DEFAULT_WORKER_LIST } from "@/lib/settings/workers";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   router: Router,
@@ -68,23 +76,27 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   send: Send,
   sparkles: Sparkles,
   percent: Percent,
+  // F-5: web3-wallet-worker.jsonc uses "wallet" — was missing from the map
+  // so it fell back to Zap. Now correctly renders the Wallet icon.
+  wallet: Wallet,
+  // Newly added for analytics-worker / report-worker / agent-worker
+  // sub-sections that were previously hidden because the parent jsonc
+  // was drifted.
+  server: Server,
+  cpu: Cpu,
+  "file-text": FileText,
+  "bar-chart": BarChart3,
+  globe: Globe,
+  key: Key,
 };
 
-interface ConnectedWorker {
-  name: string;
-  displayName: string;
-  enabled: boolean;
+interface WorkerHealth {
+  kvReachable: boolean;
+  lastChecked: number;
+  error?: string;
 }
 
-const DEFAULT_WORKERS: ConnectedWorker[] = [
-  { name: "hoox", displayName: "Gateway", enabled: true },
-  { name: "trade-worker", displayName: "Trade Worker", enabled: true },
-  { name: "d1-worker", displayName: "D1 Worker", enabled: true },
-  { name: "agent-worker", displayName: "Agent Worker", enabled: true },
-  { name: "telegram-worker", displayName: "Telegram Worker", enabled: true },
-  { name: "email-worker", displayName: "Email Worker", enabled: true },
-  { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: true },
-];
+type WorkerHealthMap = Record<string, WorkerHealth>;
 
 export function SettingsForm() {
   const [configs, setConfigs] = useState<WorkerConfigManifest[]>([]);
@@ -93,21 +105,33 @@ export function SettingsForm() {
   >({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [workerHealth, setWorkerHealth] = useState<WorkerHealthMap>({});
 
   useEffect(() => {
     const controller = new AbortController();
 
     async function load() {
       try {
-        const workerNames = DEFAULT_WORKERS.filter((w) => w.enabled).map(
+        const workerNames = DEFAULT_WORKER_LIST.filter((w) => w.enabled).map(
           (w) => w.name
         );
-        const loadedConfigs = await loadAllConfigs(workerNames);
-        const loadedSettings = await loadMergedSettings(workerNames);
+        const [loadedConfigs, loadedSettings, healthRes] = await Promise.all([
+          loadAllConfigs(workerNames),
+          loadMergedSettings(workerNames),
+          fetch("/api/workers/health", { signal: controller.signal }).catch(
+            () => null
+          ),
+        ]);
 
         if (!controller.signal.aborted) {
           setConfigs(loadedConfigs);
           setSettings(loadedSettings);
+          if (healthRes && healthRes.ok) {
+            const data = (await healthRes.json()) as {
+              workers: WorkerHealthMap;
+            };
+            setWorkerHealth(data.workers);
+          }
         }
       } catch (err) {
         if (err instanceof Error && err.name !== "AbortError") {
@@ -142,8 +166,6 @@ export function SettingsForm() {
   const handleSave = async () => {
     const controller = new AbortController();
     setIsSaving(true);
-    let savedCount = 0;
-    let failedCount = 0;
     let skippedCount = 0;
 
     // Build a set of "section:key" for secret fields so we skip them.
@@ -157,41 +179,49 @@ export function SettingsForm() {
       }
     }
 
-    try {
-      for (const [worker, fields] of Object.entries(settings)) {
-        for (const [key, value] of Object.entries(fields)) {
-          if (secretKeys.has(key)) {
-            skippedCount++;
-            continue;
-          }
-          const res = await fetch(`/api/settings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ worker, key, value }),
-            signal: controller.signal,
-          });
-
-          if (res.ok) {
-            savedCount++;
-          } else {
-            failedCount++;
-            const error = await res.json();
-            console.error(`Failed to save ${worker}.${key}:`, error);
-          }
+    // Build the batched payload: { settings: { [worker]: { [key]: value } } }
+    // Single round-trip instead of N sequential POSTs.
+    const batch: Record<string, Record<string, string | number | boolean>> = {};
+    for (const [worker, fields] of Object.entries(settings)) {
+      for (const [key, value] of Object.entries(fields)) {
+        if (secretKeys.has(key)) {
+          skippedCount++;
+          continue;
         }
+        (batch[worker] ??= {})[key] = value;
       }
+    }
 
-      if (failedCount === 0) {
+    const totalFields = Object.values(batch).reduce(
+      (n, fields) => n + Object.keys(fields).length,
+      0
+    );
+
+    try {
+      const res = await fetch(`/api/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: batch }),
+        signal: controller.signal,
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { written?: number };
+        const written = data.written ?? totalFields;
         toast.success("Settings saved successfully", {
           description:
             skippedCount > 0
-              ? `${savedCount} setting(s) synced to workers. ${skippedCount} secret field(s) skipped (set via CLI).`
-              : `${savedCount} setting(s) synced to workers.`,
+              ? `${written} setting(s) synced to workers. ${skippedCount} secret field(s) skipped (set via CLI).`
+              : `${written} setting(s) synced to workers.`,
         });
       } else {
-        toast.warning("Settings partially saved", {
-          description: `${savedCount} saved, ${failedCount} failed, ${skippedCount} secret(s) skipped.`,
+        const error = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        toast.error("Failed to save settings", {
+          description: error.error ?? "Check console for details.",
         });
+        console.error("Settings save error:", error);
       }
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
@@ -368,20 +398,36 @@ export function SettingsForm() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {DEFAULT_WORKERS.map((worker) => (
-              <Badge
-                key={worker.name}
-                variant={worker.enabled ? "default" : "secondary"}
-                className={worker.enabled ? "bg-primary/20 text-primary" : ""}
-              >
-                <span
-                  className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                    worker.enabled ? "bg-emerald-500" : "bg-muted-foreground"
-                  }`}
-                />
-                {worker.displayName}
-              </Badge>
-            ))}
+            {DEFAULT_WORKER_LIST.map((worker) => {
+              const health = workerHealth[worker.name];
+              // Health states:
+              //   green: CONFIG_KV reachable (worker can read/write)
+              //   red:   worker missing CONFIG_KV binding (unreachable)
+              //   gray:  health endpoint didn't return a status (e.g. /api/workers/health not yet reachable in dev)
+              const dotClass = !health
+                ? "bg-muted-foreground"
+                : health.kvReachable
+                  ? "bg-emerald-500"
+                  : "bg-red-500";
+              const tooltip = !health
+                ? "Health endpoint unreachable"
+                : health.kvReachable
+                  ? "CONFIG_KV reachable"
+                  : `Unreachable: ${health.error ?? "missing CONFIG_KV binding"}`;
+              return (
+                <Badge
+                  key={worker.name}
+                  variant={worker.enabled ? "default" : "secondary"}
+                  className={worker.enabled ? "bg-primary/20 text-primary" : ""}
+                  title={tooltip}
+                >
+                  <span
+                    className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dotClass}`}
+                  />
+                  {worker.displayName}
+                </Badge>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

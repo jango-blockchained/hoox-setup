@@ -89,6 +89,7 @@ describe("Login API Route", () => {
   test("POST returns 401 with invalid credentials", async () => {
     process.env.DASHBOARD_USER = "admin";
     process.env.DASHBOARD_PASS = "password123";
+    process.env.SESSION_SECRET = "test-session-secret-for-unit-tests-only";
 
     const request = new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -106,6 +107,7 @@ describe("Login API Route", () => {
   test("POST returns success with valid credentials", async () => {
     process.env.DASHBOARD_USER = "admin";
     process.env.DASHBOARD_PASS = "password123";
+    process.env.SESSION_SECRET = "test-session-secret-for-unit-tests-only";
 
     const request = new Request("http://localhost/api/auth/login", {
       method: "POST",
@@ -134,6 +136,61 @@ describe("Login API Route", () => {
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);
     expect(body.error).toContain("Invalid request");
+  });
+
+  test("POST returns 500 when SESSION_SECRET is the insecure default in production", async () => {
+    process.env.DASHBOARD_USER = "admin";
+    process.env.DASHBOARD_PASS = "password123";
+    process.env.SESSION_SECRET = "change-me-in-production";
+    // NODE_ENV is typed as readonly in @types/node; replace the env object
+    // entirely to set it. Restored by afterEach in this describe.
+    process.env = { ...process.env, NODE_ENV: "production" };
+
+    const request = new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "password123" }),
+    });
+
+    const response = await loginRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toBe("Server misconfigured");
+  });
+
+  test("POST returns 400 when AUTH_TYPE=cf-access", async () => {
+    process.env.AUTH_TYPE = "cf-access";
+    process.env.SESSION_SECRET = "test-session-secret-for-unit-tests-only";
+
+    const request = new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "x" }),
+    });
+
+    const response = await loginRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toContain("Cloudflare Access");
+  });
+
+  test("POST returns 200 immediately when AUTH_TYPE=none", async () => {
+    process.env.AUTH_TYPE = "none";
+    delete process.env.SESSION_SECRET;
+
+    const request = new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    const response = await loginRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
   });
 
   test("DELETE clears session cookie", async () => {
@@ -257,7 +314,7 @@ describe("Settings API Route", () => {
     expect(body.kvKey).toBe("webhook:url");
   });
 
-  test("POST returns 400 when missing worker or key", async () => {
+  test("POST returns 400 with Zod errors when worker/key are empty", async () => {
     const request = new Request("http://localhost/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -268,7 +325,47 @@ describe("Settings API Route", () => {
     const body = await response.json();
 
     expect(response.status).toBe(400);
-    expect(body.error).toBe("Missing worker or key");
+    expect(body.error).toBe("Invalid request body");
+    expect(body.singleErrors).toBeDefined();
+    expect(body.singleErrors.length).toBeGreaterThan(0);
+  });
+
+  test("POST accepts batched shape with multiple workers in one call", async () => {
+    const request = new Request("http://localhost/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        settings: {
+          hoox: { kill_switch: true },
+          "trade-worker": { default_leverage: 10 },
+        },
+      }),
+    });
+
+    const response = await settingsRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.written).toBe(2);
+    expect(mockKV["global:kill_switch"]).toBe(JSON.stringify(true));
+    expect(mockKV["trade:default_leverage"]).toBe(JSON.stringify(10));
+  });
+
+  test("POST rejects non-string/number/boolean values", async () => {
+    const request = new Request("http://localhost/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        settings: { hoox: { config: { nested: "object" } } },
+      }),
+    });
+
+    const response = await settingsRoute.POST(request as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid request body");
   });
 
   test("POST falls back to D1 worker when KV not available", async () => {

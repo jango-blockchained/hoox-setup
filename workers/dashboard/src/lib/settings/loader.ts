@@ -238,6 +238,30 @@ const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
       };
     return parseDashboardJSONC(await res.text(), "web3-wallet-worker");
   },
+  // analytics-worker and report-worker had no CONFIG_KV binding until
+  // the audit remediation. Their jsonc configs are served from public/workers/
+  // so the form can still display them. Their health dot will be red
+  // until the submodule PRs deploy.
+  async "analytics-worker"() {
+    const res = await fetch("/workers/analytics-worker.jsonc");
+    if (!res.ok)
+      return {
+        worker: "analytics-worker",
+        displayName: "Analytics Worker",
+        sections: [],
+      };
+    return parseDashboardJSONC(await res.text(), "analytics-worker");
+  },
+  async "report-worker"() {
+    const res = await fetch("/workers/report-worker.jsonc");
+    if (!res.ok)
+      return {
+        worker: "report-worker",
+        displayName: "Report Worker",
+        sections: [],
+      };
+    return parseDashboardJSONC(await res.text(), "report-worker");
+  },
 };
 
 export async function loadWorkerConfig(
@@ -292,19 +316,33 @@ export function flattenSettings(
   return merged;
 }
 
+/**
+ * Fetch all runtime setting overrides from /api/settings.
+ *
+ * Returns the nested shape: { [worker]: { [key]: value } }.
+ * The shape matches the `MergedSettings` type but is loosely typed at
+ * the field-value layer (any string|number|boolean) so the merge logic
+ * in loadMergedSettings can compare values without per-field casts.
+ *
+ * The `workerNames` argument is accepted for future per-worker filtering
+ * (e.g. when workers don't share a CONFIG_KV namespace) but currently the
+ * server returns all workers' settings in one call. Underscore-prefixed
+ * to acknowledge the unused-warning without committing to remove it.
+ */
 export async function getRuntimeOverrides(
   _workerNames: string[]
-): Promise<Record<string, string | number | boolean>> {
+): Promise<Record<string, Record<string, string | number | boolean>>> {
   try {
     const res = await fetch(`/api/settings`);
     if (res.ok) {
       const data = (await res.json()) as {
-        settings?: Record<string, string | number | boolean>;
+        settings?: Record<string, Record<string, string | number | boolean>>;
       };
-      return data.settings || {};
+      return data.settings ?? {};
     }
   } catch {
-    // API unavailable, return empty
+    // API unavailable (network, CORS, 5xx) — return empty so the form
+    // still renders with default values from dashboard.jsonc.
   }
   return {};
 }
@@ -314,23 +352,26 @@ export async function loadMergedSettings(
 ): Promise<MergedSettings> {
   const configs = await loadAllConfigs(workerNames);
   const defaults = flattenSettings(configs);
-  const overrides = (await getRuntimeOverrides(
-    workerNames
-  )) as unknown as Record<string, Record<string, string | number | boolean>>;
+  const overrides = await getRuntimeOverrides(workerNames);
 
   const merged: MergedSettings = {};
 
   for (const [worker, fields] of Object.entries(defaults)) {
     merged[worker] = { ...fields };
+    const workerOverrides = overrides[worker];
+    if (!workerOverrides) continue;
 
     for (const key of Object.keys(fields)) {
-      if (overrides[worker]) {
-        const rawKey = key.split(":")[1] || key;
-        if (overrides[worker][rawKey] !== undefined) {
-          merged[worker][key] = overrides[worker][rawKey];
-        } else if (overrides[worker][key] !== undefined) {
-          merged[worker][key] = overrides[worker][key];
-        }
+      // L-7: key form is "section:field". The override map can use either
+      // the prefixed form ("section:field") or the raw form ("field"),
+      // depending on how the server stored it. Check both.
+      const rawKey = key.split(":")[1] ?? key;
+      const candidate =
+        workerOverrides[rawKey] !== undefined
+          ? workerOverrides[rawKey]
+          : workerOverrides[key];
+      if (candidate !== undefined) {
+        merged[worker][key] = candidate;
       }
     }
   }
