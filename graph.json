@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generatedAt": "2026-06-27T14:43:51.027Z",
+    "generatedAt": "2026-06-27T21:58:41.453Z",
     "workspace": "hoox-monorepo",
     "totalFiles": 1107,
     "totalNodes": 1286,
@@ -54,7 +54,7 @@
         "infrastructure": "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)"
       }
     },
-    "enhancedAt": "2026-06-27T14:44:59.237Z"
+    "enhancedAt": "2026-06-27T21:59:24.901Z"
   },
   "nodes": [
     {
