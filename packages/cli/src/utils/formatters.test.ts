@@ -500,40 +500,51 @@ describe("formatBadge", () => {
     expect(out).toContain("DONE");
   });
 
-  it("renders FAIL badge by default when level=err", () => {
+  it("renders fail badge by default when level=err", () => {
     const out = formatBadge("err");
-    expect(out).toContain("FAIL");
+    expect(out).toContain("fail");
   });
 
-  it("renders WARN badge by default when level=warn", () => {
+  it("renders warn badge by default when level=warn", () => {
     const out = formatBadge("warn");
-    expect(out).toContain("WARN");
+    expect(out).toContain("warn");
   });
 
-  it("renders INFO badge by default when level=info", () => {
+  it("renders info badge by default when level=info", () => {
     const out = formatBadge("info");
-    expect(out).toContain("INFO");
+    expect(out).toContain("info");
   });
 
-  it("renders OK badge by default when level=ok", () => {
+  it("renders ok badge by default when level=ok", () => {
     const out = formatBadge("ok");
-    expect(out).toContain("OK");
+    expect(out).toContain("ok");
   });
 
-  it("pads short custom text to 4 chars", () => {
+  it("renders the level's status glyph", () => {
+    expect(formatBadge("ok")).toContain("✓");
+    expect(formatBadge("err")).toContain("✗");
+    expect(formatBadge("warn")).toContain("⚠");
+    expect(formatBadge("info")).toContain("ℹ");
+  });
+
+  it("includes the custom text verbatim (no padding)", () => {
     const out = formatBadge("ok", "X");
     expect(out).toContain("X");
-    // padEnd should add spaces; verify length is correct
-    expect(out.length).toBeGreaterThanOrEqual(7);
+    // New style: "✓ X" — 3 visible chars (one space, no padding)
+    expect(out).toContain("X");
   });
 });
 
 describe("formatHint", () => {
   let capture: ReturnType<typeof captureStdout>;
   const originalIsTTY = process.stdout.isTTY;
+  const ORIGINAL_ENV = { ...process.env };
 
   beforeEach(() => {
     capture = captureStdout();
+    // Clear NO_COLOR so isRichMode() can return true when isTTY is forced
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
     Object.defineProperty(process.stdout, "isTTY", {
       value: true,
       configurable: true,
@@ -543,6 +554,7 @@ describe("formatHint", () => {
 
   afterEach(() => {
     capture.restore();
+    process.env = { ...ORIGINAL_ENV };
     Object.defineProperty(process.stdout, "isTTY", {
       value: originalIsTTY,
       configurable: true,
@@ -767,9 +779,13 @@ describe("formatError refinements", () => {
 describe("formatCompletion", () => {
   let capture: ReturnType<typeof captureStdout>;
   const ORIGINAL_TTY = process.stdout.isTTY;
+  const ORIGINAL_ENV = { ...process.env };
 
   beforeEach(() => {
     capture = captureStdout();
+    // Clear NO_COLOR so isRichMode() can return true when isTTY is forced
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
     Object.defineProperty(process.stdout, "isTTY", {
       value: true,
       configurable: true,
@@ -780,6 +796,7 @@ describe("formatCompletion", () => {
 
   afterEach(() => {
     capture.restore();
+    process.env = { ...ORIGINAL_ENV };
     Object.defineProperty(process.stdout, "isTTY", {
       value: ORIGINAL_TTY,
       configurable: true,

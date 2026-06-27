@@ -8,6 +8,32 @@ import {
 import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
 
 /**
+ * Structured error from `ConfigService.tryLoad()`.
+ *
+ * Each variant carries enough context for the caller to surface an
+ * actionable error message (e.g. "wrangler.jsonc not found in
+ * /home/user/hoox — run `hoox config init`") without re-parsing
+ * an English string.
+ */
+export type ConfigError =
+  /** The wrangler.jsonc file (and the cwd fallback) could not be located. */
+  | { code: "not-found"; path: string; triedFallback: string }
+  /** The file exists but contains invalid JSONC. */
+  | { code: "invalid-jsonc"; path: string; errors: string[] }
+  /** The file exists but the root is not a JSON object. */
+  | { code: "not-object"; path: string };
+
+/**
+ * Typed Result for `ConfigService` — extends the shared `Result<T>` (which
+ * only allows `string` errors) to carry a structured `ConfigError`. The
+ * shape is otherwise identical to `@jango-blockchained/hoox-shared` →
+ * `Result<T>` so callers can write the same `if (!r.ok)` checks.
+ */
+export type ConfigResult =
+  | { ok: true; value: HooxConfig }
+  | { ok: false; error: ConfigError };
+
+/**
  * Loads, parses, and validates the central wrangler.jsonc configuration.
  *
  * Uses jsonc-parser for fault-tolerant JSONC parsing with native comment
@@ -21,8 +47,12 @@ import type { HooxConfig, WorkerConfig, GlobalConfig } from "./types";
  * @example
  * ```ts
  * const config = new ConfigService();
- * await config.load();
- * console.log(config.listEnabledWorkers()); // ["d1-worker", "hoox", ...]
+ * const r = await config.tryLoad();
+ * if (!r.ok) {
+ *   // handle ConfigError here, no try/catch needed
+ * } else {
+ *   console.log(r.value.listEnabledWorkers());
+ * }
  * ```
  */
 export class ConfigService {
@@ -87,19 +117,17 @@ export class ConfigService {
   }
 
   /**
-   * Read and parse wrangler.jsonc from disk.
+   * Read and parse wrangler.jsonc from disk, returning a `Result` rather
+   * than throwing. New code should prefer this over `load()` so error
+   * paths are explicit at the call site.
    *
    * Uses a fallback chain: attempts $HOME/.hoox/config/wrangler.jsonc first,
    * then falls back to ./wrangler.jsonc in the current directory (or the
    * custom configPath if one was provided).
    *
-   * Strips JSONC comments via jsonc-parser's native `parse()`.
-   * Throws on file-not-found, invalid JSONC, or missing root object.
-   *
    * @param configPath - Override the path set in the constructor.
-   * @returns The parsed HooxConfig object.
    */
-  async load(configPath?: string): Promise<HooxConfig> {
+  async tryLoad(configPath?: string): Promise<ConfigResult> {
     // Determine candidate paths to try in order
     const explicitPath = configPath ?? null;
     const filePath = explicitPath ?? this.getConfigPath();
@@ -118,15 +146,24 @@ export class ConfigService {
         if (await fallbackFile.exists()) {
           resolvedPath = cwdFallback;
         } else {
-          throw new Error(
-            `Config file not found: ${filePath}. Also tried: ${cwdFallback}. ` +
-              "Run 'hoox config init' to create one."
-          );
+          return {
+            ok: false,
+            error: {
+              code: "not-found",
+              path: filePath,
+              triedFallback: cwdFallback,
+            },
+          };
         }
       } else {
-        throw new Error(
-          `Config file not found: ${filePath}. Run 'hoox config init' to create one.`
-        );
+        return {
+          ok: false,
+          error: {
+            code: "not-found",
+            path: filePath,
+            triedFallback: "",
+          },
+        };
       }
     }
 
@@ -140,21 +177,66 @@ export class ConfigService {
     const raw: unknown = parse(content, errors);
 
     if (errors.length > 0) {
-      const messages = errors.map(
-        (e) =>
-          `  - ${printParseErrorCode(e.error)} at offset ${e.offset} (length ${e.length})`
-      );
-      throw new Error(
-        `Invalid JSONC in ${resolvedPath}:\n${messages.join("\n")}`
-      );
+      return {
+        ok: false,
+        error: {
+          code: "invalid-jsonc",
+          path: resolvedPath,
+          errors: errors.map(
+            (e) =>
+              `${printParseErrorCode(e.error)} at offset ${e.offset} (length ${e.length})`
+          ),
+        },
+      };
     }
 
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-      throw new Error(`${resolvedPath} must contain a JSON object at the root`);
+      return {
+        ok: false,
+        error: {
+          code: "not-object",
+          path: resolvedPath,
+        },
+      };
     }
 
     this.config = raw as HooxConfig;
-    return this.config;
+    return { ok: true, value: this.config };
+  }
+
+  /**
+   * Read and parse wrangler.jsonc from disk.
+   *
+   * Backward-compatible wrapper around `tryLoad()`. **Throws** on any
+   * ConfigError with an English message — useful for code paths that
+   * don't want to handle errors explicitly (most existing callers).
+   *
+   * @deprecated Prefer `tryLoad()` for new code. The `Result` type makes
+   *   error handling explicit at the call site.
+   *
+   * @param configPath - Override the path set in the constructor.
+   * @returns The parsed HooxConfig object.
+   */
+  async load(configPath?: string): Promise<HooxConfig> {
+    const result = await this.tryLoad(configPath);
+    if (!result.ok) {
+      const e = result.error;
+      switch (e.code) {
+        case "not-found":
+          throw new Error(
+            e.triedFallback
+              ? `Config file not found: ${e.path}. Also tried: ${e.triedFallback}. Run 'hoox config init' to create one.`
+              : `Config file not found: ${e.path}. Run 'hoox config init' to create one.`
+          );
+        case "invalid-jsonc":
+          throw new Error(
+            `Invalid JSONC in ${e.path}:\n${e.errors.map((m: string) => `  - ${m}`).join("\n")}`
+          );
+        case "not-object":
+          throw new Error(`${e.path} must contain a JSON object at the root`);
+      }
+    }
+    return result.value;
   }
 
   /**

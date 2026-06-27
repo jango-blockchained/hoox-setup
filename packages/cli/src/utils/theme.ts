@@ -80,10 +80,18 @@ export const theme = {
     ansis.hex(HEX.rose400)("✗") + " " + ansis.hex(HEX.text200)("error"),
   statusInfo: ansis.hex(HEX.sky400)("ℹ") + " " + ansis.hex(HEX.text200)("info"),
 
-  // Decorations
+  // Decorations — box-drawing primitives, named by position so consumers
+  // (banner.ts, menu.ts) don't have to hand-roll them with theme.textFaint.
   separator: ansis.hex(HEX.text600)("─"),
   pipe: ansis.hex(HEX.text600)("│"),
-  corner: ansis.hex(HEX.text600)("┌┐└┘"),
+  box: {
+    topLeft: ansis.hex(HEX.text600)("┌"),
+    topRight: ansis.hex(HEX.text600)("┐"),
+    bottomLeft: ansis.hex(HEX.text600)("└"),
+    bottomRight: ansis.hex(HEX.text600)("┘"),
+    horizontal: ansis.hex(HEX.text600)("─"),
+    vertical: ansis.hex(HEX.text600)("│"),
+  },
 } as const;
 
 // ── Icons ─────────────────────────────────────────────────────────

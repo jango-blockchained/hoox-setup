@@ -63,6 +63,12 @@ export function suggestForCommand(
 
 /**
  * Wraps a command handler with standardized error handling.
+ *
+ * IMPORTANT: This wrapper sets `process.exitCode` but does NOT call
+ * `process.exit()`. The Node/Bun process exit is the responsibility of
+ * the CLI's top-level entry point (see `index.ts` > `main()`), which
+ * lets the test runner intercept the exit via Commander's `exitOverride`
+ * and makes the wrapper testable without monkey-patching `process.exit`.
  */
 export function withErrorHandling<T extends unknown[]>(
   handler: (...args: T) => Promise<void>,
@@ -77,12 +83,10 @@ export function withErrorHandling<T extends unknown[]>(
       if (error instanceof CLIError) {
         formatError(error, options?.opts);
         process.exitCode = error.code;
-        process.exit(error.code);
         return;
       } else if (error instanceof Error) {
         formatError(`[${service}] ${error.message}`, options?.opts);
         process.exitCode = ExitCode.ERROR;
-        process.exit(ExitCode.ERROR);
         return;
       } else {
         formatError(
@@ -90,7 +94,6 @@ export function withErrorHandling<T extends unknown[]>(
           options?.opts
         );
         process.exitCode = ExitCode.CommandFailed;
-        process.exit(ExitCode.CommandFailed);
         return;
       }
     }

@@ -1,9 +1,32 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "bun:test";
 import { isRichMode } from "./format-mode.js";
 
 describe("isRichMode", () => {
+  // Snapshot env at describe-block time so we always restore to the
+  // surrounding runner's environment, regardless of which test ran first
+  // or what other test files mutated process.env concurrently.
   const ORIGINAL_ENV = { ...process.env };
   const ORIGINAL_TTY = process.stdout.isTTY;
+
+  beforeAll(() => {
+    // No-op — kept for symmetry with afterAll, in case future setup is needed.
+  });
+
+  afterAll(() => {
+    process.env = { ...ORIGINAL_ENV };
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: ORIGINAL_TTY,
+      configurable: true,
+    });
+  });
 
   beforeEach(() => {
     process.env = { ...ORIGINAL_ENV };

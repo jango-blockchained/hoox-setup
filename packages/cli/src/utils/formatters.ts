@@ -120,37 +120,34 @@ export const formatDuration = _formatDuration;
 /** Semantic log level for `formatBadge`. */
 export type BadgeLevel = "ok" | "warn" | "err" | "info";
 
+/**
+ * Per-level style for `formatBadge`.
+ * `icon` is a short unicode glyph rendered in the level's color.
+ * `text` is the optional `text` arg (or a default label) rendered in the
+ * normal foreground — so the badge is "colored glyph + colored text" rather
+ * than a high-contrast background chip.
+ */
 const BADGE_STYLE: Record<
   BadgeLevel,
-  { bg: typeof ansis.bgGreen; fg: typeof ansis.black }
+  { icon: string; color: typeof ansis.green; defaultLabel: string }
 > = {
-  ok: { bg: ansis.bgGreen, fg: ansis.black },
-  warn: { bg: ansis.bgYellow, fg: ansis.black },
-  err: { bg: ansis.bgRed, fg: ansis.white },
-  info: { bg: ansis.bgBlue, fg: ansis.white },
+  ok: { icon: "✓", color: ansis.green, defaultLabel: "ok" },
+  warn: { icon: "⚠", color: ansis.yellow, defaultLabel: "warn" },
+  err: { icon: "✗", color: ansis.red, defaultLabel: "fail" },
+  info: { icon: "ℹ", color: ansis.cyan, defaultLabel: "info" },
 };
 
 /**
- * Render a short status badge (e.g. " OK ", " FAIL ") with the appropriate
+ * Render a short status badge (e.g. "✓ OK", "✗ FAIL") with the appropriate
  * theme color. Useful in tables and inline lists.
+ *
+ * Style: colored glyph (one char) + colored text label. Replaces the
+ * earlier background-chip implementation to match the v0.9.0 output
+ * framework (Vercel / Linear / Turborepo style).
  */
 export function formatBadge(level: BadgeLevel, text?: string): string {
-  const content = (text ?? defaultBadgeLabel(level)).padEnd(4, " ");
-  const { bg, fg } = BADGE_STYLE[level];
-  return bg(fg(` ${content} `));
-}
-
-function defaultBadgeLabel(level: BadgeLevel): string {
-  switch (level) {
-    case "ok":
-      return "OK";
-    case "warn":
-      return "WARN";
-    case "err":
-      return "FAIL";
-    case "info":
-      return "INFO";
-  }
+  const { icon, color, defaultLabel } = BADGE_STYLE[level];
+  return `${color(icon)} ${color(text ?? defaultLabel)}`;
 }
 
 /**

@@ -62,9 +62,9 @@ const LEGACY_LINES = [
 
 export function renderLegacy(): string {
   const bw = 52;
-  const line = ` ${theme.textFaint("─").repeat(bw - 2)}`;
-  const top = ` ${theme.textFaint("┌")}${line.slice(2)}${theme.textFaint("┐")}`;
-  const bottom = ` ${theme.textFaint("└")}${line.slice(2)}${theme.textFaint("┘")}`;
+  const line = ` ${theme.box.horizontal.repeat(bw - 2)}`;
+  const top = ` ${theme.box.topLeft}${line.slice(2)}${theme.box.topRight}`;
+  const bottom = ` ${theme.box.bottomLeft}${line.slice(2)}${theme.box.bottomRight}`;
   const ascii = LEGACY_LINES.map((l) => ` ${theme.heading(l)}`);
   const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 2) / 2);
   const tag = ` ${" ".repeat(gap)}${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
@@ -84,9 +84,16 @@ const HORIZON_LINES = [
 
 export function renderBannerHorizon(): string {
   const bw = 56;
-  const inner = theme.textFaint("─").repeat(bw - 2);
-  const top = ` ${theme.textFaint("╭")}${inner}${theme.textFaint("╮")}`;
-  const bottom = ` ${theme.textFaint("╰")}${inner}${theme.textFaint("╯")}`;
+  const inner = theme.box.horizontal.repeat(bw - 2);
+  // Horizon uses rounded corners (╭╮╰╯) — these aren't in theme.box
+  // (which holds square corners for the legacy/minimal styles). Inline
+  // with theme.textFaint for consistency.
+  const topLeft = theme.textFaint("╭");
+  const topRight = theme.textFaint("╮");
+  const bottomLeft = theme.textFaint("╰");
+  const bottomRight = theme.textFaint("╯");
+  const top = ` ${topLeft}${inner}${topRight}`;
+  const bottom = ` ${bottomLeft}${inner}${bottomRight}`;
   const ascii = HORIZON_LINES.map((l) => ` ${theme.accent(l)}`);
   const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 4) / 2);
   const tag = ` ${" ".repeat(gap)}${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
@@ -95,7 +102,7 @@ export function renderBannerHorizon(): string {
   return [
     top,
     ...ascii,
-    ` ${theme.textFaint("─").repeat(bw)}`,
+    ` ${theme.box.horizontal.repeat(bw)}`,
     tag,
     bottom,
   ].join("\n");
@@ -113,9 +120,9 @@ const SIGNAL_LINES = [
 
 export function renderBannerSignal(): string {
   const bw = 54;
-  const line = theme.textFaint("─").repeat(bw);
-  const top = ` ${theme.textFaint("┌")}${line.slice(2)}${theme.textFaint("┐")}`;
-  const bottom = ` ${theme.textFaint("└")}${line.slice(2)}${theme.textFaint("┘")}`;
+  const line = theme.box.horizontal.repeat(bw);
+  const top = ` ${theme.box.topLeft}${line.slice(2)}${theme.box.topRight}`;
+  const bottom = ` ${theme.box.bottomLeft}${line.slice(2)}${theme.box.bottomRight}`;
 
   const wordmark = SIGNAL_LINES.map((l) => {
     return ` ${theme.heading(l.slice(0, 26))}${theme.textFaint(l.slice(26))}`;
@@ -128,7 +135,7 @@ export function renderBannerSignal(): string {
   return [
     top,
     ...wordmark,
-    ` ${theme.textFaint("─").repeat(bw)}`,
+    ` ${theme.box.horizontal.repeat(bw)}`,
     wave,
     bottom,
   ].join("\n");
@@ -151,13 +158,13 @@ export function renderBannerMinimal(): string {
 
   return [
     ` ${rule}`,
-    ` ${theme.textFaint("│")}${" ".repeat(bw - 2)}${theme.textFaint("│")}`,
+    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
     // Leading space keeps the title line on-column with the rest of the box
     // and ensures the line does not start with a raw ANSI escape (`\x1b`).
     // Pad to the visible (ANSI-stripped) title length, not the raw string
     // length, so the right border sits in the correct column.
-    ` ${theme.textFaint("│")}${titleLine}${" ".repeat(Math.max(0, bw - stripAnsi(titleLine).length - 2))}${theme.textFaint("│")}`,
-    ` ${theme.textFaint("│")}${" ".repeat(bw - 2)}${theme.textFaint("│")}`,
+    ` ${theme.box.vertical}${titleLine}${" ".repeat(Math.max(0, bw - stripAnsi(titleLine).length - 2))}${theme.box.vertical}`,
+    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
     ` ${rule}`,
   ].join("\n");
 }

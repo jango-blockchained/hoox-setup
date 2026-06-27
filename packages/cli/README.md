@@ -44,8 +44,13 @@ bun add -g @jango-blockchained/hoox-cli
 ```bash
 cd packages/cli
 bun install
-bun run build
+bun run build   # produces dist/index.js — required for `hoox` after global install
 ```
+
+> `bin/hoox.js` resolves `dist/index.js` first and falls back to `src/index.ts`
+> when `dist/` is missing, so contributors who skip the build step can still
+> run the CLI via `bun bin/hoox.js …` or a `bun link`-based install. Production
+> releases and the `prepublishOnly` script always build first.
 
 ## Quick Start
 
