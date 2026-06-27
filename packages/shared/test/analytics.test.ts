@@ -12,9 +12,12 @@ import type { AnalyticsEnv } from "../src/analytics";
  * When ANALYTICS_SERVICE is configured, the mock fetch records all
  * request details for assertion while returning a 200 response.
  */
-function createMockEnv(withService: boolean): AnalyticsEnv {
+function createMockEnv(
+  withService: boolean,
+  internalKey?: string
+): AnalyticsEnv & { _fetchMock?: ReturnType<typeof mock> } {
   if (!withService) {
-    return {};
+    return internalKey ? { INTERNAL_KEY_BINDING: internalKey } : {};
   }
 
   const fetchFn = mock((_request: Request): Promise<Response> => {
@@ -23,8 +26,9 @@ function createMockEnv(withService: boolean): AnalyticsEnv {
 
   return {
     ANALYTICS_SERVICE: { fetch: fetchFn } as unknown as Fetcher,
+    ...(internalKey ? { INTERNAL_KEY_BINDING: internalKey } : {}),
     _fetchMock: fetchFn,
-  } as AnalyticsEnv & { _fetchMock: ReturnType<typeof mock> };
+  };
 }
 
 describe("trackAnalytics", () => {
@@ -107,5 +111,38 @@ describe("trackAnalytics", () => {
 
     // Verify the fetch was attempted
     expect(fetchFn.mock.calls.length).toBe(1);
+  });
+
+  test("sends X-Internal-Auth-Key header when INTERNAL_KEY_BINDING is set", async () => {
+    const env = createMockEnv(true, "secret-key-123") as AnalyticsEnv & {
+      _fetchMock: ReturnType<typeof mock>;
+    };
+
+    await trackAnalytics(env, "/track/api-call", { action: "test" });
+
+    const request = env._fetchMock.mock.calls[0][0] as Request;
+    expect(request.headers.get("X-Internal-Auth-Key")).toBe("secret-key-123");
+  });
+
+  test("omits X-Internal-Auth-Key header when INTERNAL_KEY_BINDING is unset", async () => {
+    const env = createMockEnv(true) as AnalyticsEnv & {
+      _fetchMock: ReturnType<typeof mock>;
+    };
+
+    await trackAnalytics(env, "/track/api-call", { action: "test" });
+
+    const request = env._fetchMock.mock.calls[0][0] as Request;
+    expect(request.headers.get("X-Internal-Auth-Key")).toBeNull();
+  });
+
+  test("omits X-Internal-Auth-Key header when INTERNAL_KEY_BINDING is empty string", async () => {
+    const env = createMockEnv(true, "") as AnalyticsEnv & {
+      _fetchMock: ReturnType<typeof mock>;
+    };
+
+    await trackAnalytics(env, "/track/api-call", { action: "test" });
+
+    const request = env._fetchMock.mock.calls[0][0] as Request;
+    expect(request.headers.get("X-Internal-Auth-Key")).toBeNull();
   });
 });

@@ -6,9 +6,17 @@
 /**
  * Environment with optional analytics service binding.
  * Workers that support analytics tracking should extend this type.
+ *
+ * `INTERNAL_KEY_BINDING` is required for authenticated delivery to the
+ * analytics worker (its `/track/*` routes are gated by
+ * `requireInternalAuth`). When the binding is absent the helper falls
+ * back to an unauthenticated request; the analytics worker will 401 it,
+ * preserving the old fail-loud behaviour until operators configure the
+ * secret.
  */
 export interface AnalyticsEnv {
   ANALYTICS_SERVICE?: Fetcher;
+  INTERNAL_KEY_BINDING?: string;
 }
 
 /**
@@ -44,10 +52,16 @@ export async function trackAnalytics(
       ...body,
       ...(options?.indexes ? { indexes: [...options.indexes] } : {}),
     };
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (env.INTERNAL_KEY_BINDING) {
+      headers["X-Internal-Auth-Key"] = env.INTERNAL_KEY_BINDING;
+    }
     await env.ANALYTICS_SERVICE.fetch(
       new Request(`http://localhost${endpoint}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(payload),
       })
     );
