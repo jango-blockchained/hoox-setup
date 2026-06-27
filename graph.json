@@ -1,15 +1,15 @@
 {
   "metadata": {
-    "generatedAt": "2026-06-25T13:27:56.505Z",
+    "generatedAt": "2026-06-27T04:53:41.878Z",
     "workspace": "hoox-monorepo",
-    "totalFiles": 1081,
-    "totalNodes": 1262,
-    "totalEdges": 8462,
+    "totalFiles": 1099,
+    "totalNodes": 1249,
+    "totalEdges": 8406,
     "nodeKinds": {
-      "type": 133,
+      "type": 129,
       "interface": 497,
-      "const": 255,
-      "function": 911,
+      "const": 239,
+      "function": 910,
       "class": 66,
       "enum": 2,
       "package": 4,
@@ -17,11 +17,11 @@
       "infrastructure": 17
     },
     "edgeKinds": {
-      "imports": 4006,
+      "imports": 4003,
       "extends": 9,
       "implements": 5,
-      "references": 3791,
-      "calls": 564,
+      "references": 3758,
+      "calls": 544,
       "service-binding": 22,
       "workspace-dep": 12,
       "infra-binding": 37,
@@ -54,7 +54,7 @@
         "infrastructure": "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)"
       }
     },
-    "enhancedAt": "2026-06-25T13:28:25.015Z"
+    "enhancedAt": "2026-06-27T04:53:53.702Z"
   },
   "nodes": [
     {
@@ -3001,33 +3001,6 @@
       "isEntryPoint": false
     },
     {
-      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "label": "DOQueueHandler",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/worker.js",
-      "workspace": "workers/dashboard",
-      "exports": ["DOQueueHandler"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "label": "DOShardedTagCache",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/worker.js",
-      "workspace": "workers/dashboard",
-      "exports": ["DOShardedTagCache"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "label": "BucketCachePurge",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/worker.js",
-      "workspace": "workers/dashboard",
-      "exports": ["BucketCachePurge"],
-      "isEntryPoint": false
-    },
-    {
       "id": "workers/dashboard:workers/dashboard/src/middleware.ts:middleware",
       "label": "middleware",
       "kind": "function",
@@ -4621,6 +4594,15 @@
       "isEntryPoint": false
     },
     {
+      "id": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "label": "attachUpdateCheck",
+      "kind": "function",
+      "filePath": "packages/cli/src/utils/update-check.ts",
+      "workspace": "packages/cli",
+      "exports": ["attachUpdateCheck"],
+      "isEntryPoint": false
+    },
+    {
       "id": "packages/tui:packages/tui/src/hooks/index.ts:KeyEvent",
       "label": "KeyEvent",
       "kind": "interface",
@@ -5818,159 +5800,6 @@
       "isEntryPoint": false
     },
     {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "label": "ParamsOf",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["ParamsOf"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "label": "AppRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["AppRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "label": "PageRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["PageRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "label": "LayoutRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["LayoutRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "label": "RedirectRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["RedirectRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "label": "RewriteRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["RewriteRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "label": "ParamMap",
-      "kind": "interface",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["ParamMap"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "label": "AppRouteHandlerRoutes",
-      "kind": "type",
-      "filePath": "workers/dashboard/.next/types/routes.d.ts",
-      "workspace": "workers/dashboard",
-      "exports": ["AppRouteHandlerRoutes"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "label": "handleCdnCgiImageRequest",
-      "kind": "function",
-      "filePath": "workers/dashboard/.open-next/cloudflare/images.js",
-      "workspace": "workers/dashboard",
-      "exports": ["handleCdnCgiImageRequest"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "label": "handleImageRequest",
-      "kind": "function",
-      "filePath": "workers/dashboard/.open-next/cloudflare/images.js",
-      "workspace": "workers/dashboard",
-      "exports": ["handleImageRequest"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "label": "runWithCloudflareRequestContext",
-      "kind": "function",
-      "filePath": "workers/dashboard/.open-next/cloudflare/init.js",
-      "workspace": "workers/dashboard",
-      "exports": ["runWithCloudflareRequestContext"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
-      "label": "production",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["production"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
-      "label": "development",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["development"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
-      "label": "test",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["test"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "label": "maybeGetSkewProtectionResponse",
-      "kind": "function",
-      "filePath": "workers/dashboard/.open-next/cloudflare/skew-protection.js",
-      "workspace": "workers/dashboard",
-      "exports": ["maybeGetSkewProtectionResponse"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
-      "label": "default",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/middleware/handler.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["default"],
-      "isEntryPoint": false
-    },
-    {
-      "id": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "label": "handler",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/middleware/handler.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["handler"],
-      "isEntryPoint": false
-    },
-    {
       "id": "workers/dashboard:workers/dashboard/src/app/footer.tsx:Footer",
       "label": "Footer",
       "kind": "function",
@@ -6457,6 +6286,24 @@
       "isEntryPoint": true
     },
     {
+      "id": "packages/cli:packages/cli/src/commands/completion/completion-command.ts:registerCompletionCommand",
+      "label": "registerCompletionCommand",
+      "kind": "function",
+      "filePath": "packages/cli/src/commands/completion/completion-command.ts",
+      "workspace": "packages/cli",
+      "exports": ["registerCompletionCommand"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "label": "registerCompletionCommand",
+      "kind": "function",
+      "filePath": "packages/cli/src/commands/completion/index.ts",
+      "workspace": "packages/cli",
+      "exports": ["registerCompletionCommand"],
+      "isEntryPoint": true
+    },
+    {
       "id": "packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand",
       "label": "registerConfigCommand",
       "kind": "function",
@@ -6538,12 +6385,12 @@
       "isEntryPoint": false
     },
     {
-      "id": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "label": "registerDeployCommand",
+      "id": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
+      "label": "register",
       "kind": "function",
       "filePath": "packages/cli/src/commands/deploy/index.ts",
       "workspace": "packages/cli",
-      "exports": ["registerDeployCommand"],
+      "exports": ["register"],
       "isEntryPoint": true
     },
     {
@@ -6554,6 +6401,15 @@
       "workspace": "packages/cli",
       "exports": ["DeployResult"],
       "isEntryPoint": true
+    },
+    {
+      "id": "packages/cli:packages/cli/src/commands/deploy/register.ts:register",
+      "label": "register",
+      "kind": "function",
+      "filePath": "packages/cli/src/commands/deploy/register.ts",
+      "workspace": "packages/cli",
+      "exports": ["register"],
+      "isEntryPoint": false
     },
     {
       "id": "packages/cli:packages/cli/src/commands/deploy/telegram-service.ts:TelegramService",
@@ -6583,13 +6439,22 @@
       "isEntryPoint": false
     },
     {
-      "id": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
-      "label": "registerDevCommand",
+      "id": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
+      "label": "register",
       "kind": "function",
       "filePath": "packages/cli/src/commands/dev/index.ts",
       "workspace": "packages/cli",
-      "exports": ["registerDevCommand"],
+      "exports": ["register"],
       "isEntryPoint": true
+    },
+    {
+      "id": "packages/cli:packages/cli/src/commands/dev/register.ts:register",
+      "label": "register",
+      "kind": "function",
+      "filePath": "packages/cli/src/commands/dev/register.ts",
+      "workspace": "packages/cli",
+      "exports": ["register"],
+      "isEntryPoint": false
     },
     {
       "id": "packages/cli:packages/cli/src/commands/disclaimer/disclaimer-command.ts:registerDisclaimerCommand",
@@ -7627,6 +7492,24 @@
       "isEntryPoint": false
     },
     {
+      "id": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "label": "ConfigError",
+      "kind": "type",
+      "filePath": "packages/cli/src/services/config/config-service.ts",
+      "workspace": "packages/cli",
+      "exports": ["ConfigError"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "label": "ConfigResult",
+      "kind": "type",
+      "filePath": "packages/cli/src/services/config/config-service.ts",
+      "workspace": "packages/cli",
+      "exports": ["ConfigResult"],
+      "isEntryPoint": false
+    },
+    {
       "id": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "label": "ConfigService",
       "kind": "class",
@@ -7760,6 +7643,15 @@
       "workspace": "packages/cli",
       "exports": ["DbService"],
       "isEntryPoint": true
+    },
+    {
+      "id": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerServiceOptions",
+      "label": "DockerServiceOptions",
+      "kind": "interface",
+      "filePath": "packages/cli/src/services/docker/docker-service.ts",
+      "workspace": "packages/cli",
+      "exports": ["DockerServiceOptions"],
+      "isEntryPoint": false
     },
     {
       "id": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerService",
@@ -10516,15 +10408,6 @@
       "isEntryPoint": false
     },
     {
-      "id": "workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler",
-      "label": "handler",
-      "kind": "const",
-      "filePath": "workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs",
-      "workspace": "workers/dashboard",
-      "exports": ["handler"],
-      "isEntryPoint": false
-    },
-    {
       "id": "workers/dashboard:workers/dashboard/src/app/api/agent/chat/route.ts:POST",
       "label": "POST",
       "kind": "function",
@@ -11922,6 +11805,146 @@
       "target": "packages/shared:packages/shared/src/legal.ts:COPYRIGHT",
       "kind": "imports",
       "label": "COPYRIGHT"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:main",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:program",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:CLIError",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:formatError",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:formatTable",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:formatJson",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:theme",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:icons",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupService",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
+      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "kind": "imports",
+      "label": "WIZARD_STATE_PATH"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/utils/errors.ts:CLIError",
@@ -13464,424 +13487,284 @@
       "label": "registerOnboardCommand"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:main",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:program",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:CLIError",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatError",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatTable",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatJson",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:theme",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:icons",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupService",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
-      "target": "packages/shared:packages/shared/src/index.ts:WIZARD_STATE_PATH",
+      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:register",
       "kind": "imports",
-      "label": "WIZARD_STATE_PATH"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:main",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:program",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:CLIError",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatError",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatTable",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatJson",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:theme",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:icons",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupService",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
+      "label": "register"
     },
     {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
-      "target": "packages/cli:packages/cli/src/commands/dev/index.ts:registerDevCommand",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:register",
       "kind": "imports",
-      "label": "registerDevCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:main",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:program",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:CLIError",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:formatError",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:formatTable",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:formatJson",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:theme",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:icons",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupService",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
-      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:registerDeployCommand",
-      "kind": "imports",
-      "label": "registerDeployCommand"
+      "label": "register"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/infra/index.ts:registerInfraCommand",
@@ -16964,6 +16847,146 @@
       "label": "registerPerfCommand"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:main",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:program",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:CLIError",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:formatError",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:formatTable",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:formatJson",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:theme",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:icons",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupService",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
+      "target": "packages/cli:packages/cli/src/commands/completion/index.ts:registerCompletionCommand",
+      "kind": "imports",
+      "label": "registerCompletionCommand"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/ui/index.ts:runInteractiveTUI",
       "source": "packages/cli:packages/cli/src/index.ts:main",
       "target": "packages/cli:packages/cli/src/ui/index.ts:runInteractiveTUI",
@@ -17102,146 +17125,6 @@
       "target": "packages/cli:packages/cli/src/ui/index.ts:runInteractiveTUI",
       "kind": "imports",
       "label": "runInteractiveTUI"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:main",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:program",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:CLIError",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:formatError",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:formatTable",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:formatJson",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:theme",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:icons",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupService",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
-    },
-    {
-      "id": "imports:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
-      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
-      "kind": "imports",
-      "label": "UpdateService"
     },
     {
       "id": "imports:packages/tui:packages/tui/src/app.tsx:AppRoot->packages/shared:packages/shared/src/index.ts:useServiceStore",
@@ -19335,111 +19218,6 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "imports",
       "label": "toError"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "kind": "imports",
-      "label": "handleCdnCgiImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "kind": "imports",
-      "label": "handleCdnCgiImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
-      "kind": "imports",
-      "label": "handleCdnCgiImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "kind": "imports",
-      "label": "handleImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "kind": "imports",
-      "label": "handleImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
-      "kind": "imports",
-      "label": "handleImageRequest"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "kind": "imports",
-      "label": "runWithCloudflareRequestContext"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "kind": "imports",
-      "label": "runWithCloudflareRequestContext"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "kind": "imports",
-      "label": "runWithCloudflareRequestContext"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "kind": "imports",
-      "label": "maybeGetSkewProtectionResponse"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "kind": "imports",
-      "label": "maybeGetSkewProtectionResponse"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
-      "kind": "imports",
-      "label": "maybeGetSkewProtectionResponse"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "kind": "imports",
-      "label": "handler"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
-      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "kind": "imports",
-      "label": "handler"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
-      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
-      "kind": "imports",
-      "label": "handler"
     },
     {
       "id": "imports:workers/dashboard:workers/dashboard/src/middleware.ts:middleware->packages/shared:packages/shared/src/middleware/index.ts:secureHeaders",
@@ -26393,6 +26171,13 @@
       "label": "CLIError"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck->packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
+      "source": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "target": "packages/cli:packages/cli/src/services/update/index.ts:UpdateService",
+      "kind": "imports",
+      "label": "UpdateService"
+    },
+    {
       "id": "imports:packages/tui:packages/tui/src/hooks/use-keyboard.ts:registerGlobalHandler->packages/tui:packages/tui/src/hooks/renderer-ref.ts:getRendererRef",
       "source": "packages/tui:packages/tui/src/hooks/use-keyboard.ts:registerGlobalHandler",
       "target": "packages/tui:packages/tui/src/hooks/renderer-ref.ts:getRendererRef",
@@ -27490,27 +27275,6 @@
       "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "kind": "imports",
       "label": "serviceFetch"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
-      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
-      "kind": "imports",
-      "label": "nextEnvVars.production"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
-      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
-      "kind": "imports",
-      "label": "nextEnvVars.development"
-    },
-    {
-      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
-      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
-      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
-      "kind": "imports",
-      "label": "nextEnvVars.test"
     },
     {
       "id": "imports:workers/dashboard:workers/dashboard/src/app/footer.tsx:Footer->packages/shared:packages/shared/src/legal.ts:FULL_LEGAL_NOTICE",
@@ -28941,6 +28705,20 @@
       "label": "EnvService"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/commands/deploy/register.ts:register->packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand",
+      "source": "packages/cli:packages/cli/src/commands/deploy/register.ts:register",
+      "target": "packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand",
+      "kind": "imports",
+      "label": "registerDeployCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/commands/deploy/register.ts:register->packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "source": "packages/cli:packages/cli/src/commands/deploy/register.ts:register",
+      "target": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "kind": "imports",
+      "label": "attachUpdateCheck"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
       "source": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
       "target": "packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
@@ -29009,6 +28787,20 @@
       "target": "packages/cli:packages/cli/src/utils/error-handler.ts:withErrorHandling",
       "kind": "imports",
       "label": "withErrorHandling"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/commands/dev/register.ts:register->packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
+      "source": "packages/cli:packages/cli/src/commands/dev/register.ts:register",
+      "target": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
+      "kind": "imports",
+      "label": "registerDevCommand"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/commands/dev/register.ts:register->packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "source": "packages/cli:packages/cli/src/commands/dev/register.ts:register",
+      "target": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "kind": "imports",
+      "label": "attachUpdateCheck"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/commands/disclaimer/disclaimer-command.ts:registerDisclaimerCommand->packages/shared:packages/shared/src/legal.ts:FULL_LEGAL_NOTICE",
@@ -32819,11 +32611,39 @@
       "label": "Result"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/shared:packages/shared/src/index.ts:resolveHooxPath",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/shared:packages/shared/src/index.ts:resolveHooxPath",
+      "kind": "imports",
+      "label": "resolveHooxPath"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/shared:packages/shared/src/index.ts:resolveHooxPath",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/shared:packages/shared/src/index.ts:resolveHooxPath",
+      "kind": "imports",
+      "label": "resolveHooxPath"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/shared:packages/shared/src/index.ts:resolveHooxPath",
       "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "target": "packages/shared:packages/shared/src/index.ts:resolveHooxPath",
       "kind": "imports",
       "label": "resolveHooxPath"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/shared:packages/shared/src/index.ts:getHooxWranglerPath",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/shared:packages/shared/src/index.ts:getHooxWranglerPath",
+      "kind": "imports",
+      "label": "getHooxWranglerPath"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/shared:packages/shared/src/index.ts:getHooxWranglerPath",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/shared:packages/shared/src/index.ts:getHooxWranglerPath",
+      "kind": "imports",
+      "label": "getHooxWranglerPath"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/shared:packages/shared/src/index.ts:getHooxWranglerPath",
@@ -32833,6 +32653,20 @@
       "label": "getHooxWranglerPath"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
+      "kind": "imports",
+      "label": "HooxConfig"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
+      "kind": "imports",
+      "label": "HooxConfig"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
       "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "target": "packages/cli:packages/cli/src/services/config/types.ts:HooxConfig",
@@ -32840,11 +32674,39 @@
       "label": "HooxConfig"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
+      "kind": "imports",
+      "label": "WorkerConfig"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
+      "kind": "imports",
+      "label": "WorkerConfig"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
       "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "target": "packages/cli:packages/cli/src/services/config/types.ts:WorkerConfig",
       "kind": "imports",
       "label": "WorkerConfig"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/cli:packages/cli/src/services/config/types.ts:GlobalConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:GlobalConfig",
+      "kind": "imports",
+      "label": "GlobalConfig"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/cli:packages/cli/src/services/config/types.ts:GlobalConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/cli:packages/cli/src/services/config/types.ts:GlobalConfig",
+      "kind": "imports",
+      "label": "GlobalConfig"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/cli:packages/cli/src/services/config/types.ts:GlobalConfig",
@@ -52475,6 +52337,13 @@
       "label": "RunRichTasksOptions"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "source": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "kind": "references",
+      "label": "Command"
+    },
+    {
       "id": "references:packages/tui:packages/tui/src/hooks/use-keyboard.ts:registerGlobalHandler->packages/tui:packages/tui/src/hooks/index.ts:KeyEvent",
       "source": "packages/tui:packages/tui/src/hooks/use-keyboard.ts:registerGlobalHandler",
       "target": "packages/tui:packages/tui/src/hooks/index.ts:KeyEvent",
@@ -55100,349 +54969,6 @@
       "label": "Logger"
     },
     {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "kind": "references",
-      "label": "AppRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "kind": "references",
-      "label": "PageRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "kind": "references",
-      "label": "LayoutRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "kind": "references",
-      "label": "RedirectRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "kind": "references",
-      "label": "RewriteRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "kind": "references",
-      "label": "AppRouteHandlerRoutes"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
-      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
-      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
-      "kind": "references",
-      "label": "ParamMap"
-    },
-    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
       "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
@@ -56332,6 +55858,13 @@
       "label": "Command"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/commands/completion/completion-command.ts:registerCompletionCommand->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "source": "packages/cli:packages/cli/src/commands/completion/completion-command.ts:registerCompletionCommand",
+      "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "kind": "references",
+      "label": "Command"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
       "source": "packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand",
       "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
@@ -56437,8 +55970,22 @@
       "label": "Command"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/commands/deploy/register.ts:register->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "source": "packages/cli:packages/cli/src/commands/deploy/register.ts:register",
+      "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "kind": "references",
+      "label": "Command"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
       "source": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
+      "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "kind": "references",
+      "label": "Command"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/commands/dev/register.ts:register->workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
+      "source": "packages/cli:packages/cli/src/commands/dev/register.ts:register",
       "target": "workers/dashboard:workers/dashboard/src/components/ui/command.tsx:Command",
       "kind": "references",
       "label": "Command"
@@ -59846,6 +59393,20 @@
       "label": "Result"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/shared:packages/shared/src/config.ts:HooxConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/shared:packages/shared/src/config.ts:HooxConfig",
+      "kind": "references",
+      "label": "HooxConfig"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/shared:packages/shared/src/config.ts:HooxConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/shared:packages/shared/src/config.ts:HooxConfig",
+      "kind": "references",
+      "label": "HooxConfig"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/shared:packages/shared/src/config.ts:HooxConfig",
       "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "target": "packages/shared:packages/shared/src/config.ts:HooxConfig",
@@ -59853,11 +59414,74 @@
       "label": "HooxConfig"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "kind": "references",
+      "label": "ConfigError"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "kind": "references",
+      "label": "ConfigError"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "kind": "references",
+      "label": "ConfigError"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "kind": "references",
+      "label": "ConfigResult"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "kind": "references",
+      "label": "ConfigResult"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/shared:packages/shared/src/index.ts:WorkerConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/shared:packages/shared/src/index.ts:WorkerConfig",
+      "kind": "references",
+      "label": "WorkerConfig"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/shared:packages/shared/src/index.ts:WorkerConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/shared:packages/shared/src/index.ts:WorkerConfig",
+      "kind": "references",
+      "label": "WorkerConfig"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/shared:packages/shared/src/index.ts:WorkerConfig",
       "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "target": "packages/shared:packages/shared/src/index.ts:WorkerConfig",
       "kind": "references",
       "label": "WorkerConfig"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError->packages/cli:packages/cli/src/services/config/index.ts:GlobalConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "target": "packages/cli:packages/cli/src/services/config/index.ts:GlobalConfig",
+      "kind": "references",
+      "label": "GlobalConfig"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult->packages/cli:packages/cli/src/services/config/index.ts:GlobalConfig",
+      "source": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigResult",
+      "target": "packages/cli:packages/cli/src/services/config/index.ts:GlobalConfig",
+      "kind": "references",
+      "label": "GlobalConfig"
     },
     {
       "id": "references:packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService->packages/cli:packages/cli/src/services/config/index.ts:GlobalConfig",
@@ -60089,6 +59713,13 @@
       "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "kind": "references",
       "label": "ConfigService"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerService->packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerServiceOptions",
+      "source": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerService",
+      "target": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerServiceOptions",
+      "kind": "references",
+      "label": "DockerServiceOptions"
     },
     {
       "id": "references:packages/cli:packages/cli/src/services/env/env-service.ts:EnvFile->packages/cli:packages/cli/src/services/env/env-service.ts:EnvVarDefinition",
@@ -66461,146 +66092,6 @@
       "label": "heading"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:main",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:program->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:program",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:CLIError->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:CLIError",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:ExitCode->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:ExitCode",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:formatSuccess->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:formatSuccess",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:formatError->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:formatError",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:formatTable->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:formatTable",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:formatJson->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:formatJson",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:formatKeyValue->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:formatKeyValue",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:FormatOptions->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:FormatOptions",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:theme->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:theme",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:icons->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:icons",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:SetupService->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupService",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:GeneratedKeys->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:GeneratedKeys",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:SetupOptions->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupOptions",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:SetupResult->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupResult",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:SetupStepResult->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:SetupStepResult",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:SecretResult->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:SecretResult",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:ProgressEvent->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressEvent",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
-      "id": "calls:packages/cli:packages/cli/src/index.ts:ProgressCallback->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "source": "packages/cli:packages/cli/src/index.ts:ProgressCallback",
-      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
-      "kind": "calls",
-      "label": "checkAndPromptUpdate"
-    },
-    {
       "id": "calls:packages/tui:packages/tui/src/app.tsx:AppRoot->packages/shared:packages/shared/src/stores/service-store.ts:ServiceState",
       "source": "packages/tui:packages/tui/src/app.tsx:AppRoot",
       "target": "packages/shared:packages/shared/src/stores/service-store.ts:ServiceState",
@@ -67858,63 +67349,63 @@
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderLegacy",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:renderBannerHorizon->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderBannerHorizon",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:renderBannerSignal->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderBannerSignal",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:renderBannerMinimal->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderBannerMinimal",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:renderBanner->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderBanner",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:renderCompactBanner->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:renderCompactBanner",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:DISCLAIMER->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:DISCLAIMER",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:BANNER_VARIANTS->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:BANNER_VARIANTS",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/banner.ts:BannerVariant->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "source": "packages/cli:packages/cli/src/ui/banner.ts:BannerVariant",
       "target": "packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
       "kind": "calls",
-      "label": "textFaint"
+      "label": "heading"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/ui/menu.ts:runInteractiveTUI->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
@@ -68113,6 +67604,13 @@
       "label": "ms"
     },
     {
+      "id": "calls:packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck->packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
+      "source": "packages/cli:packages/cli/src/utils/update-check.ts:attachUpdateCheck",
+      "target": "packages/cli:packages/cli/src/services/update/update-service.ts:UpdateResult",
+      "kind": "calls",
+      "label": "checkAndPromptUpdate"
+    },
+    {
       "id": "calls:packages/shared:packages/shared/src/wizard/engine.ts:WizardEngine->packages/shared:packages/shared/src/wizard/types.ts:StepId",
       "source": "packages/shared:packages/shared/src/wizard/engine.ts:WizardEngine",
       "target": "packages/shared:packages/shared/src/wizard/types.ts:StepId",
@@ -68288,9 +67786,9 @@
       "label": "internal"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "validate"
     },
@@ -68344,9 +67842,9 @@
       "label": "success"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/clone/clone-command.ts:registerCloneCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/clone/clone-command.ts:registerCloneCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/clone/clone-command.ts:registerCloneCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "listWorkers"
     },
@@ -68365,9 +67863,9 @@
       "label": "info"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/config/config-command.ts:registerConfigCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -68414,9 +67912,9 @@
       "label": "ms"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "getWorker"
     },
@@ -68456,9 +67954,9 @@
       "label": "resolveNamespaceId"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -68470,9 +67968,9 @@
       "label": "checkWranglerVersion"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerService",
+      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerServiceOptions",
       "source": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
-      "target": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerService",
+      "target": "packages/cli:packages/cli/src/services/docker/docker-service.ts:DockerServiceOptions",
       "kind": "calls",
       "label": "checkAvailability"
     },
@@ -68806,163 +68304,163 @@
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69030,9 +68528,9 @@
       "label": "dim"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/logs/logs-command.ts:registerLogsCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/logs/logs-command.ts:registerLogsCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/logs/logs-command.ts:registerLogsCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69093,9 +68591,9 @@
       "label": "runSystemCheck"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69247,37 +68745,37 @@
       "label": "ms"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:runStep->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:runStep->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/test/test-command.ts:runStep",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:printSummary->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:printSummary->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/test/test-command.ts:printSummary",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:registerTestCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:registerTestCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/test/test-command.ts:registerTestCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:TestStepResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:TestStepResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/test/test-command.ts:TestStepResult",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:TestSummary->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/test/test-command.ts:TestSummary->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/test/test-command.ts:TestSummary",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69310,9 +68808,9 @@
       "label": "updateWrangler"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/update/update-command.ts:registerUpdateCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/update/update-command.ts:registerUpdateCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/update/update-command.ts:registerUpdateCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69345,30 +68843,30 @@
       "label": "heading"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/workers/workers-command.ts:registerWorkersCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/commands/workers/workers-command.ts:registerWorkersCommand->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/commands/workers/workers-command.ts:registerWorkersCommand",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "getWorkerPath"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/db/db-service.ts:QueryResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/services/db/db-service.ts:QueryResult->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/services/db/db-service.ts:QueryResult",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/db/db-service.ts:DbService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "id": "calls:packages/cli:packages/cli/src/services/db/db-service.ts:DbService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "source": "packages/cli:packages/cli/src/services/db/db-service.ts:DbService",
-      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
     },
@@ -69994,13 +69492,6 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "calls",
       "label": "internal"
-    },
-    {
-      "id": "calls:workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
-      "source": "workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler",
-      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
-      "kind": "calls",
-      "label": "Object"
     },
     {
       "id": "calls:workers/dashboard:workers/dashboard/src/app/api/agent/chat/route.ts:POST->packages/shared:packages/shared/src/errors.ts:toError",
@@ -70723,26 +70214,17 @@
       "bindingName": "BROWSER"
     },
     {
-      "id": "infra-binding:workers/hoox->binding:TELEGRAM_SERVICE",
-      "source": "workspace:workers/hoox",
-      "target": "infra:binding:TELEGRAM_SERVICE",
-      "kind": "infra-binding",
-      "label": "TELEGRAM_SERVICE",
-      "description": "Cloudflare Service Binding to telegram-worker. Used by 5 workers to send notifications, alerts, and report delivery via Telegram Bot API.",
-      "bindingName": "TELEGRAM_SERVICE"
-    },
-    {
-      "id": "infra-binding:workers/trade-worker->binding:TELEGRAM_SERVICE",
-      "source": "workspace:workers/trade-worker",
-      "target": "infra:binding:TELEGRAM_SERVICE",
-      "kind": "infra-binding",
-      "label": "TELEGRAM_SERVICE",
-      "description": "Cloudflare Service Binding to telegram-worker. Used by 5 workers to send notifications, alerts, and report delivery via Telegram Bot API.",
-      "bindingName": "TELEGRAM_SERVICE"
-    },
-    {
       "id": "infra-binding:workers/agent-worker->binding:TELEGRAM_SERVICE",
       "source": "workspace:workers/agent-worker",
+      "target": "infra:binding:TELEGRAM_SERVICE",
+      "kind": "infra-binding",
+      "label": "TELEGRAM_SERVICE",
+      "description": "Cloudflare Service Binding to telegram-worker. Used by 5 workers to send notifications, alerts, and report delivery via Telegram Bot API.",
+      "bindingName": "TELEGRAM_SERVICE"
+    },
+    {
+      "id": "infra-binding:workers/hoox->binding:TELEGRAM_SERVICE",
+      "source": "workspace:workers/hoox",
       "target": "infra:binding:TELEGRAM_SERVICE",
       "kind": "infra-binding",
       "label": "TELEGRAM_SERVICE",
@@ -70759,6 +70241,15 @@
       "bindingName": "TELEGRAM_SERVICE"
     },
     {
+      "id": "infra-binding:workers/trade-worker->binding:TELEGRAM_SERVICE",
+      "source": "workspace:workers/trade-worker",
+      "target": "infra:binding:TELEGRAM_SERVICE",
+      "kind": "infra-binding",
+      "label": "TELEGRAM_SERVICE",
+      "description": "Cloudflare Service Binding to telegram-worker. Used by 5 workers to send notifications, alerts, and report delivery via Telegram Bot API.",
+      "bindingName": "TELEGRAM_SERVICE"
+    },
+    {
       "id": "infra-binding:workers/web3-wallet-worker->binding:TELEGRAM_SERVICE",
       "source": "workspace:workers/web3-wallet-worker",
       "target": "infra:binding:TELEGRAM_SERVICE",
@@ -70768,8 +70259,8 @@
       "bindingName": "TELEGRAM_SERVICE"
     },
     {
-      "id": "infra-binding:workers/hoox->binding:TRADE_SERVICE",
-      "source": "workspace:workers/hoox",
+      "id": "infra-binding:workers/agent-worker->binding:TRADE_SERVICE",
+      "source": "workspace:workers/agent-worker",
       "target": "infra:binding:TRADE_SERVICE",
       "kind": "infra-binding",
       "label": "TRADE_SERVICE",
@@ -70786,8 +70277,8 @@
       "bindingName": "TRADE_SERVICE"
     },
     {
-      "id": "infra-binding:workers/agent-worker->binding:TRADE_SERVICE",
-      "source": "workspace:workers/agent-worker",
+      "id": "infra-binding:workers/hoox->binding:TRADE_SERVICE",
+      "source": "workspace:workers/hoox",
       "target": "infra:binding:TRADE_SERVICE",
       "kind": "infra-binding",
       "label": "TRADE_SERVICE",
@@ -70795,17 +70286,8 @@
       "bindingName": "TRADE_SERVICE"
     },
     {
-      "id": "infra-binding:workers/trade-worker->binding:D1_SERVICE",
-      "source": "workspace:workers/trade-worker",
-      "target": "infra:binding:D1_SERVICE",
-      "kind": "infra-binding",
-      "label": "D1_SERVICE",
-      "description": "Cloudflare Service Binding to d1-worker. Used by 4 workers for centralized database operations.",
-      "bindingName": "D1_SERVICE"
-    },
-    {
-      "id": "infra-binding:workers/report-worker->binding:D1_SERVICE",
-      "source": "workspace:workers/report-worker",
+      "id": "infra-binding:workers/agent-worker->binding:D1_SERVICE",
+      "source": "workspace:workers/agent-worker",
       "target": "infra:binding:D1_SERVICE",
       "kind": "infra-binding",
       "label": "D1_SERVICE",
@@ -70822,8 +70304,17 @@
       "bindingName": "D1_SERVICE"
     },
     {
-      "id": "infra-binding:workers/agent-worker->binding:D1_SERVICE",
-      "source": "workspace:workers/agent-worker",
+      "id": "infra-binding:workers/report-worker->binding:D1_SERVICE",
+      "source": "workspace:workers/report-worker",
+      "target": "infra:binding:D1_SERVICE",
+      "kind": "infra-binding",
+      "label": "D1_SERVICE",
+      "description": "Cloudflare Service Binding to d1-worker. Used by 4 workers for centralized database operations.",
+      "bindingName": "D1_SERVICE"
+    },
+    {
+      "id": "infra-binding:workers/trade-worker->binding:D1_SERVICE",
+      "source": "workspace:workers/trade-worker",
       "target": "infra:binding:D1_SERVICE",
       "kind": "infra-binding",
       "label": "D1_SERVICE",
