@@ -12,10 +12,19 @@ import type { AnalyticsEnv } from "../src/analytics";
  * When ANALYTICS_SERVICE is configured, the mock fetch records all
  * request details for assertion while returning a 200 response.
  */
-function createMockEnv(
-  withService: boolean,
-  internalKey?: string
-): AnalyticsEnv & { _fetchMock?: ReturnType<typeof mock> } {
+/**
+ * Mock env type. `INTERNAL_KEY_BINDING` is intentionally NOT on
+ * `AnalyticsEnv` (see comment in src/analytics.ts) to avoid
+ * duplicate-property conflicts in workers whose `Env` extends both
+ * `Cloudflare.Env` and `AnalyticsEnv`. The function reads it
+ * dynamically and tests inject it via the spread below.
+ */
+type MockEnv = AnalyticsEnv & {
+  _fetchMock?: ReturnType<typeof mock>;
+  INTERNAL_KEY_BINDING?: string;
+};
+
+function createMockEnv(withService: boolean, internalKey?: string): MockEnv {
   if (!withService) {
     return internalKey ? { INTERNAL_KEY_BINDING: internalKey } : {};
   }
