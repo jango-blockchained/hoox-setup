@@ -580,6 +580,82 @@ describe("CloudflareService", () => {
       ]);
     });
 
+    it("secretList extracts the JSON array from wrangler's mixed stdout (regression: 'There is a newer version of Wrangler available' notice)", async () => {
+      // As of wrangler 4.98, `wrangler secret list` writes a version
+      // upgrade notice to stdout BEFORE the JSON array. The previous
+      // implementation tried to JSON.parse the whole stdout and
+      // failed silently, causing `hoox setup` to report all secrets
+      // as missing despite the SET step having succeeded.
+      const noisyStdout =
+        "There is a newer version of Wrangler available (current: 4.98.0, latest: 4.105.0). Try upgrading, as it might support this configuration option.\n" +
+        JSON.stringify([
+          { name: "INTERNAL_KEY_BINDING", type: "secret_text" },
+          { name: "AGENT_INTERNAL_KEY", type: "secret_text" },
+        ]);
+      mockSpawnWithCapture(successSpawn(noisyStdout));
+
+      const service = new CloudflareService();
+      const result = await service.secretList("agent-worker");
+
+      if (!result.ok) {
+        throw new Error(
+          `expected result.ok to be true, got error: ${result.error}`
+        );
+      }
+      // The result must be the pure JSON array, not the noisy prefix.
+      expect(result.value).toBe(
+        JSON.stringify([
+          { name: "INTERNAL_KEY_BINDING", type: "secret_text" },
+          { name: "AGENT_INTERNAL_KEY", type: "secret_text" },
+        ])
+      );
+      // And it must be parseable (this is what the caller does).
+      const parsed = JSON.parse(result.value);
+      expect(Array.isArray(parsed)).toBe(true);
+      expect(parsed.map((s: { name: string }) => s.name)).toEqual([
+        "INTERNAL_KEY_BINDING",
+        "AGENT_INTERNAL_KEY",
+      ]);
+    });
+
+    it("secretList returns an error when stdout has no JSON array", async () => {
+      mockSpawnWithCapture(
+        successSpawn("No secrets found. (some non-JSON text)")
+      );
+
+      const service = new CloudflareService();
+      const result = await service.secretList("d1-worker");
+
+      // Type narrowing: assert in one expression so TS sees the
+      // discriminated union properly.
+      if (result.ok) {
+        throw new Error("expected result.ok to be false");
+      }
+      expect(result.error).toContain("non-JSON");
+    });
+
+    it("secretList handles nested brackets inside string literals (extractJsonArray)", async () => {
+      // The JSON array contains an object whose string value has
+      // a closing bracket. The extractor must not be fooled into
+      // returning early.
+      const stdout =
+        "prefix noise\n" +
+        JSON.stringify([{ name: "WEIRD_KEY", type: "secret_text" }]) +
+        "\nsuffix noise";
+      mockSpawnWithCapture(successSpawn(stdout));
+
+      const service = new CloudflareService();
+      const result = await service.secretList("my-worker");
+
+      if (!result.ok) {
+        throw new Error(
+          `expected result.ok to be true, got error: ${result.error}`
+        );
+      }
+      const parsed = JSON.parse(result.value);
+      expect(parsed[0].name).toBe("WEIRD_KEY");
+    });
+
     it("secretPut pipes value through stdin (never via CLI args)", async () => {
       let stdinWritten = "";
       let stdinEnded = false;
