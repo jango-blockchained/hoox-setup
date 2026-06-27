@@ -1,9 +1,44 @@
+# Dependencies and build outputs
 node_modules
 .next
+**/.next
+**/.next/**
 .git
+**/.git
+**/.git/**
 .wrangler
+**/.wrangler
 dist
 build
+**/dist
+.bun
+
+# Local secrets (defense in depth, also gitignored)
 .env.local
 .env.*.local
+**/.dev.vars
+
+# Test and CI artifacts
+coverage
+reports
+*.tsbuildinfo
+
+# Logs
 *.log
+
+# Docker meta — not needed in build context
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# AI agent / IDE artifacts — not needed in build context
+.opencode
+.claude
+.vscode
+.idea
+
+# Per-worker / per-package node_modules (belt-and-braces with `node_modules`)
+**/node_modules
+packages/*/node_modules
+workers/*/node_modules
+

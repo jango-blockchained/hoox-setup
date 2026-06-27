@@ -6,6 +6,7 @@ import { DockerService } from "./docker-service.js";
 // ---------------------------------------------------------------------------
 
 const realSpawn = Bun.spawn;
+const realWhich = Bun.which;
 
 type MockSpawnResult = {
   stdout: Blob;
@@ -60,6 +61,12 @@ function mockSpawnWithCapture(result: MockSpawnResult): void {
   (Bun as unknown as Record<string, unknown>).spawn = _spawnMock;
 }
 
+function mockWhich(paths: Record<string, string | null>): void {
+  (Bun as unknown as Record<string, unknown>).which = mock(
+    (binary: string) => paths[binary] ?? null
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Setup / Teardown
 // ---------------------------------------------------------------------------
@@ -67,10 +74,13 @@ function mockSpawnWithCapture(result: MockSpawnResult): void {
 beforeEach(() => {
   lastSpawnCmd = [];
   lastSpawnEnv = undefined;
+  // Default: docker is on PATH, compose is reachable.
+  mockWhich({ docker: "/usr/bin/docker" });
 });
 
 afterEach(() => {
   (Bun as unknown as Record<string, unknown>).spawn = realSpawn;
+  (Bun as unknown as Record<string, unknown>).which = realWhich;
   mock.restore();
 });
 
@@ -95,21 +105,21 @@ describe("DockerService", () => {
 
   describe("checkAvailability", () => {
     it("returns both true when docker and compose are available", async () => {
-      mockSpawnWithCapture(successSpawn("/usr/bin/docker"));
+      // The new implementation uses Bun.which (no subprocess) for the binary
+      // check, then spawns `docker compose version` to probe the subcommand.
+      mockSpawnWithCapture(successSpawn("Docker Compose version v2.27.0"));
 
       const service = new DockerService();
       const result = await service.checkAvailability();
 
       expect(result.docker).toBe(true);
       expect(result.compose).toBe(true);
-      // The new implementation spawns `which` and (for "docker compose")
-      // additionally spawns `docker compose version` to probe the subcommand.
-      // We don't assert on lastSpawnCmd here because the Promise.all ordering
-      // makes the final captured call non-deterministic.
+      // `docker compose version` should have been spawned exactly once.
+      expect(lastSpawnCmd).toEqual(["docker", "compose", "version"]);
     });
 
-    it("returns both false when docker is not available", async () => {
-      mockSpawnWithCapture(errorSpawn("not found"));
+    it("returns docker: false, compose: false when docker is not on PATH", async () => {
+      mockWhich({ docker: null });
 
       const service = new DockerService();
       const result = await service.checkAvailability();
@@ -118,19 +128,33 @@ describe("DockerService", () => {
       expect(result.compose).toBe(false);
     });
 
-    it("returns false when Bun.spawn fails in isCommandAvailable", async () => {
+    it("returns docker: true, compose: false when only docker binary exists", async () => {
+      // Binary exists (which returns a path) but `docker compose version` fails.
+      mockWhich({ docker: "/usr/bin/docker" });
+      mockSpawnWithCapture(
+        errorSpawn("docker: 'compose' is not a docker command", 1)
+      );
+
+      const service = new DockerService();
+      const result = await service.checkAvailability();
+
+      expect(result.docker).toBe(true);
+      expect(result.compose).toBe(false);
+    });
+
+    it("returns both false when Bun.spawn throws in subcommand probe", async () => {
       const spawnMock = mock(() => {
-        throw new Error("ENOENT: docker not found");
+        throw new Error("ENOENT: binary not found");
       });
       (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
 
       const service = new DockerService();
-
-      // isCommandAvailable now wraps Bun.spawn in try/catch, so a synchronous
-      // throw (e.g. when `which` is missing on minimal Alpine) resolves to
-      // false rather than rejecting the overall checkAvailability call.
       const result = await service.checkAvailability();
-      expect(result).toEqual({ docker: false, compose: false });
+
+      // docker binary is on PATH (mocked in beforeEach), but spawn threw,
+      // so the subcommand probe returns false.
+      expect(result.docker).toBe(true);
+      expect(result.compose).toBe(false);
     });
   });
 
@@ -202,6 +226,22 @@ describe("DockerService", () => {
       expect(lastSpawnEnv).toEqual({ COMPOSE_PROFILES: "workers,dashboard" });
     });
 
+    it("uses stdin: 'ignore' (not stdin: 'pipe') on the spawned process", async () => {
+      let capturedStdin: unknown;
+      const spawnMock = mock(
+        (_cmd: string[], options?: { stdin?: unknown }) => {
+          capturedStdin = options?.stdin;
+          return makeSpawnResult("", "", 0);
+        }
+      );
+      (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
+
+      const service = new DockerService("/project");
+      await service.composeUp(["workers"]);
+
+      expect(capturedStdin).toBe("ignore");
+    });
+
     it("returns error on non-zero exit in non-detached mode", async () => {
       mockSpawnWithCapture(errorSpawn("container crashed", 1));
 
@@ -264,6 +304,28 @@ describe("DockerService", () => {
         expect(result.error).toContain("docker not found");
       }
     });
+
+    it("returns timeout error when proc.exited never resolves", async () => {
+      // Simulate a hung process: exited promise never resolves.
+      const hungProc: MockSpawnResult = {
+        stdout: new Blob([""]),
+        stderr: new Blob([""]),
+        exited: new Promise<number>(() => {}), // never resolves
+        kill: mock(() => {}),
+      };
+      (Bun as unknown as Record<string, unknown>).spawn = mock(() => hungProc);
+
+      // Tiny timeout so the test finishes well under the 5s bun:test default.
+      const service = new DockerService({ cwd: "/project", procTimeoutMs: 50 });
+      const result = await service.composeUp(["workers"]);
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/timed out/);
+      }
+      // The hung process should have been killed.
+      expect(hungProc.kill).toHaveBeenCalled();
+    });
   });
 
   // -- composeDown ----------------------------------------------------------
@@ -277,6 +339,22 @@ describe("DockerService", () => {
 
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual(["docker", "compose", "down"]);
+    });
+
+    it("uses stdin: 'ignore' (not stdin: 'pipe') on the spawned process", async () => {
+      let capturedStdin: unknown;
+      const spawnMock = mock(
+        (_cmd: string[], options?: { stdin?: unknown }) => {
+          capturedStdin = options?.stdin;
+          return makeSpawnResult("", "", 0);
+        }
+      );
+      (Bun as unknown as Record<string, unknown>).spawn = spawnMock;
+
+      const service = new DockerService("/project");
+      await service.composeDown();
+
+      expect(capturedStdin).toBe("ignore");
     });
 
     it("returns error on non-zero exit", async () => {
@@ -316,6 +394,25 @@ describe("DockerService", () => {
       if (!result.ok) {
         expect(result.error).toContain("Failed to run docker compose down");
       }
+    });
+
+    it("returns timeout error when proc.exited never resolves", async () => {
+      const hungProc: MockSpawnResult = {
+        stdout: new Blob([""]),
+        stderr: new Blob([""]),
+        exited: new Promise<number>(() => {}),
+        kill: mock(() => {}),
+      };
+      (Bun as unknown as Record<string, unknown>).spawn = mock(() => hungProc);
+
+      const service = new DockerService({ cwd: "/project", procTimeoutMs: 50 });
+      const result = await service.composeDown();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/timed out/);
+      }
+      expect(hungProc.kill).toHaveBeenCalled();
     });
   });
 });

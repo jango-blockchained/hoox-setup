@@ -1,233 +1,169 @@
+# ---------------------------------------------------------------------------
+# Hoox local development stack.
+#
+# Architecture: only `hoox` (gateway) and `dashboard` are public-facing.
+# All other workers are reachable only via service bindings on the `hoox-net`
+# bridge network — exactly as in production (Cloudflare Workers Service
+# Bindings). Publishing internal worker ports to the host would defeat this
+# and leak internal endpoints to anything bound to the host.
+# ---------------------------------------------------------------------------
+
+# YAML anchors — applied to all worker services to avoid 9× duplication.
+x-worker-base: &worker-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  init: true # PID 1 reaper (M-07): clean signal handling
+  mem_limit: 512m # (M-11) cap runaway workers
+  cpus: "1.0"
+  env_file:
+    - path: .env.local
+      required: false # (M-14) tolerate missing file on fresh clone
+  networks:
+    - hoox-net
+  restart: unless-stopped
+
 services:
   hoox:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-gateway
+    <<: *worker-base
     command: bunx wrangler dev -c workers/hoox/wrangler.jsonc --local --ip 0.0.0.0
     ports:
-      - "8787:8787"
-      - "8788:8788" # trade-worker internal
+      - "8787:8787" # public gateway
     volumes:
       - ./workers/hoox:/app/workers/hoox
-      - ./packages:/app/packages
+      - ./packages:/app/packages # (C-02) parent mount covers shared + cli + tui
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
-    restart: unless-stopped
+    # hoox is required by the dashboard (depends_on: [hoox, d1-worker]), so it
+    # must be part of the `dashboard` profile in addition to `workers`/`full`.
     profiles:
       - workers
+      - dashboard
       - full
 
   trade-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-trade
+    <<: *worker-base
     command: bunx wrangler dev -c workers/trade-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8789:8789"
-      - "8790:8790" # telegram internal
     volumes:
       - ./workers/trade-worker:/app/workers/trade-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   telegram-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-telegram
+    <<: *worker-base
     command: bunx wrangler dev -c workers/telegram-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8791:8791"
     volumes:
       - ./workers/telegram-worker:/app/workers/telegram-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   d1-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-d1
+    <<: *worker-base
     command: bunx wrangler dev -c workers/d1-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8792:8792"
+    mem_limit: 1024m # D1 local emulation can be memory-hungry
     volumes:
       - ./workers/d1-worker:/app/workers/d1-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
+    # d1-worker is required by the dashboard (depends_on: [hoox, d1-worker]),
+    # so it must be part of the `dashboard` profile in addition to `workers`/`full`.
     profiles:
       - workers
+      - dashboard
       - full
 
   web3-wallet-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-web3
+    <<: *worker-base
     command: bunx wrangler dev -c workers/web3-wallet-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8793:8793"
     volumes:
       - ./workers/web3-wallet-worker:/app/workers/web3-wallet-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-dashboard
+    <<: *worker-base
     command: bun run --cwd workers/dashboard dev -H 0.0.0.0 -p 8794
     ports:
-      - "8794:8794"
+      - "8794:8794" # public UI
     volumes:
       - ./workers/dashboard:/app/workers/dashboard
       - ./packages:/app/packages
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
+      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
       - d1-worker
-    restart: unless-stopped
     profiles:
       - dashboard
       - full
 
   agent-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-agent
+    <<: *worker-base
     command: bunx wrangler dev -c workers/agent-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8795:8795"
     volumes:
       - ./workers/agent-worker:/app/workers/agent-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
       - d1-worker
       - trade-worker
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   email-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-email
+    <<: *worker-base
     command: bunx wrangler dev -c workers/email-worker/wrangler.jsonc --local --ip 0.0.0.0
-    ports:
-      - "8796:8796"
     volumes:
       - ./workers/email-worker:/app/workers/email-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   report-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-report
+    <<: *worker-base
     command: bunx wrangler dev -c workers/report-worker/wrangler.jsonc --local --ip 0.0.0.0 --port 8797
-    ports:
-      - "8797:8797"
+    mem_limit: 1024m # Browser Rendering is memory-hungry
     volumes:
       - ./workers/report-worker:/app/workers/report-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
       - d1-worker
-    restart: unless-stopped
     profiles:
       - workers
       - full
 
   analytics-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hoox-analytics
+    <<: *worker-base
     command: bunx wrangler dev -c workers/analytics-worker/wrangler.jsonc --local --ip 0.0.0.0 --port 8798
-    ports:
-      - "8798:8798"
     volumes:
       - ./workers/analytics-worker:/app/workers/analytics-worker
       - ./packages:/app/packages
       - ./.wrangler/state:/app/.wrangler/state
-    env_file:
-      - .env.local
-    networks:
-      - hoox-net
     depends_on:
       - hoox
-    restart: unless-stopped
     profiles:
       - workers
       - full

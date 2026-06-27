@@ -1,0 +1,110 @@
+# =============================================================================
+# Hoox production image.
+#
+# Multi-stage build:
+#   1. `builder`  — oven/bun:1.3.12 (full toolchain) compiles each worker
+#                   into a standalone ESM bundle in dist/<worker>/index.js.
+#   2. `runtime`  — oven/bun:1.3.12-alpine (small) ships the bundle + server.js
+#                   and runs `bun run server.js`.
+#
+# The runtime does NOT contain dev dependencies, source maps, or any
+# source code beyond what's needed to serve the bundled workers.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Stage 1: builder
+# ---------------------------------------------------------------------------
+FROM oven/bun:1.3.12 AS builder
+
+WORKDIR /app
+
+# Use a non-root user for the build (the `bun` user ships with the image).
+# chown is done first so subsequent COPYs can use --chown=bun:bun.
+RUN chown -R bun:bun /app
+USER bun
+
+# Layer-cached install: copy manifests + lockfile first.
+# We also need to satisfy every entry of root `package.json#workspaces`,
+# not just the glob matches. The literal entry `packages/test-utils` would
+# otherwise be "Workspace not found" by bun install.
+COPY --chown=bun:bun package.json bun.lock* ./
+COPY --chown=bun:bun packages/shared/package.json packages/shared/
+COPY --chown=bun:bun packages/cli/package.json packages/cli/
+COPY --chown=bun:bun packages/tui/package.json packages/tui/
+COPY --chown=bun:bun packages/test-utils/package.json packages/test-utils/
+COPY --chown=bun:bun workers/ workers/
+
+# --frozen-lockfile for reproducible builds (CI == local).
+# PUPPETEER_SKIP_DOWNLOAD prevents the puppeteer postinstall from trying to
+# download Chrome in the build container (it would fail without unzip and
+# the browser is downloaded at runtime in the dashboard / report workers).
+RUN PUPPETEER_SKIP_DOWNLOAD=true bun install --frozen-lockfile
+
+# Copy the rest of the source.
+COPY --chown=bun:bun . .
+
+# Build each worker into a standalone bundle. We mark `cloudflare:workers`
+# and the local workspace package as external so the bundle keeps the
+# production-resolved import shape:
+#   - `cloudflare:workers` is provided at runtime by the server.js shim
+#     (subtask 07: DO polyfill decision — option a, fail loudly).
+#   - `@jango-blockchained/hoox-shared` is symlinked into the runtime
+#     image's /app/packages/shared by the runtime stage.
+#
+# Standardized command shape: `bun build <entry> --outdir=dist/<name> ...`
+RUN mkdir -p dist && \
+    bun build workers/hoox/src/index.ts          --outdir=dist/hoox          --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/trade-worker/src/index.ts  --outdir=dist/trade-worker  --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/telegram-worker/src/index.ts --outdir=dist/telegram-worker --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/d1-worker/src/index.ts     --outdir=dist/d1-worker     --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/web3-wallet-worker/src/index.ts --outdir=dist/web3-wallet-worker --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/agent-worker/src/index.ts  --outdir=dist/agent-worker  --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/email-worker/src/index.ts  --outdir=dist/email-worker  --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/report-worker/src/index.ts --outdir=dist/report-worker --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers && \
+    bun build workers/analytics-worker/src/index.ts --outdir=dist/analytics-worker --target=bun --external @jango-blockchained/hoox-shared --external cloudflare:workers
+
+# ---------------------------------------------------------------------------
+# Stage 2: runtime
+# ---------------------------------------------------------------------------
+FROM oven/bun:1.3.12-alpine AS runtime
+
+WORKDIR /app
+
+# Same non-root pattern as builder.
+RUN chown -R bun:bun /app
+USER bun
+
+# Copy server.js (the self-hosted Bun.serve router — see subtask 06) and
+# the worker bundles from the builder stage.
+COPY --from=builder --chown=bun:bun /app/server.js ./server.js
+COPY --from=builder --chown=bun:bun /app/dist ./dist
+
+# Copy packages/shared so the workspace:* symlink target exists at runtime.
+# (The bundles import from `@jango-blockchained/hoox-shared` and the entry
+# resolves through the symlink that `bun build` left intact.)
+COPY --from=builder --chown=bun:bun /app/packages/shared ./packages/shared
+
+# ---------------------------------------------------------------------------
+# cloudflare:workers shim (subtask 07, option a — fail loudly).
+#
+# Worker bundles import `import { DurableObject } from "cloudflare:workers"`.
+# Bun does not provide this module; we ship a shim that throws clearly on
+# instantiation. The shim is placed in node_modules/ under the literal
+# specifier name (with colon) — valid on Linux, which is what Docker uses.
+# (Windows builds are not supported for the production image.)
+# ---------------------------------------------------------------------------
+COPY --from=builder --chown=bun:bun /app/scripts/cloudflare-workers-shim.js \
+     ./node_modules/cloudflare:workers/index.js
+
+# Health check: server.js exposes GET /healthz which returns 200.
+# Useful for orchestrators (k8s, ECS) and `docker ps` status.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:8080/healthz || exit 1
+
+# server.js binds to PORT (default 8080). 8797/8798 are exposed for the
+# report-worker / analytics-worker in case they're proxied directly.
+EXPOSE 8080 8797 8798
+
+# HOOX_SERVER_API_KEY is required in production (server.js exits 1 if
+# missing). See subtask 06 for the hard-fail implementation.
+CMD ["bun", "run", "server.js"]

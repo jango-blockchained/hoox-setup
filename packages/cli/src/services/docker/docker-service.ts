@@ -19,20 +19,44 @@ interface ComposeResult {
  */
 const COMPOSE_FILE = "docker-compose.yml";
 
+/**
+ * Default maximum time to wait for any docker CLI invocation before
+ * failing fast. A hung Docker daemon must not block the CLI forever.
+ */
+const DEFAULT_PROC_TIMEOUT_MS = 15_000;
+
+export interface DockerServiceOptions {
+  cwd?: string;
+  /** Maximum ms to wait for a docker CLI invocation. Default 15000. */
+  procTimeoutMs?: number;
+}
+
 export class DockerService {
   private readonly cwd: string;
+  private readonly procTimeoutMs: number;
 
-  constructor(cwd?: string) {
-    this.cwd = cwd ?? process.cwd();
+  constructor(opts: DockerServiceOptions | string = {}) {
+    // Back-compat: accept a string cwd as the only argument.
+    if (typeof opts === "string") {
+      this.cwd = opts;
+      this.procTimeoutMs = DEFAULT_PROC_TIMEOUT_MS;
+    } else {
+      this.cwd = opts.cwd ?? process.cwd();
+      this.procTimeoutMs = opts.procTimeoutMs ?? DEFAULT_PROC_TIMEOUT_MS;
+    }
   }
 
   /**
    * Check if Docker and docker-compose are available in PATH.
+   *
+   * Probes BOTH the `docker` binary (via Bun.which, no subprocess) and the
+   * `docker compose` subcommand (via `docker compose version`) so that a
+   * missing compose plugin is reported accurately.
    */
   async checkAvailability(): Promise<DockerAvailability> {
     const [dockerOk, composeOk] = await Promise.all([
-      this.isCommandAvailable("docker"),
-      this.isCommandAvailable("docker compose"),
+      this.isBinaryAvailable("docker"),
+      this.isSubcommandAvailable("docker", "compose"),
     ]);
 
     return { docker: dockerOk, compose: composeOk };
@@ -77,14 +101,14 @@ export class DockerService {
         cwd: this.cwd,
         stdout: detached ? "pipe" : "inherit",
         stderr: "inherit",
-        stdin: "pipe",
+        stdin: "ignore",
         env,
       });
 
       if (!detached) {
         // For non-detached, inherit stdout/stderr — user sees real-time output.
         // Wait for the process to exit naturally (Ctrl+C or completion).
-        const exitCode = await proc.exited;
+        const exitCode = await this.withTimeout(proc, "docker compose up");
 
         if (exitCode === 0) {
           return { ok: true };
@@ -97,7 +121,7 @@ export class DockerService {
 
       // Detached mode: capture output
       const stdout = await new Response(proc.stdout).text();
-      const exitCode = await proc.exited;
+      const exitCode = await this.withTimeout(proc, "docker compose up");
 
       if (exitCode === 0) {
         return { ok: true };
@@ -128,11 +152,12 @@ export class DockerService {
         cwd: this.cwd,
         stdout: "pipe",
         stderr: "pipe",
+        stdin: "ignore",
         env,
       });
 
       const stderr = await new Response(proc.stderr).text();
-      const exitCode = await proc.exited;
+      const exitCode = await this.withTimeout(proc, "docker compose down");
 
       if (exitCode === 0) {
         return { ok: true };
@@ -152,80 +177,74 @@ export class DockerService {
   }
 
   /**
-   * Probe PATH for a command's availability without throwing.
-   *
-   * When `cmd` contains a space (e.g. "docker compose"), the first token is
-   * the binary on PATH and the rest is a subcommand. After confirming the
-   * binary is on PATH, we also probe `<binary> <subcommand> version` as a
-   * best-effort check that the subcommand is wired up. If the subcommand
-   * probe itself errors (e.g. binary crashes, timeout), we fall back to
-   * assuming the subcommand exists — modern Docker ships `compose` bundled.
+   * Probe PATH for a binary's availability using Bun.which (no subprocess).
+   * Works on minimal images where `which` may not be installed.
    */
-  private isCommandAvailable(cmd: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      const parts = cmd.split(/\s+/).filter(Boolean);
-      const binary = parts[0]!;
-      const hasSubcommand = parts.length > 1;
+  private isBinaryAvailable(binary: string): Promise<boolean> {
+    return Promise.resolve(Bun.which(binary) !== null);
+  }
 
-      let proc: ReturnType<typeof Bun.spawn>;
-      try {
-        proc = Bun.spawn(["which", binary], {
-          stdout: "pipe",
-          stderr: "pipe",
-        });
-      } catch {
-        // `which` itself unavailable (e.g. minimal Alpine) — treat as not found
-        resolve(false);
-        return;
-      }
+  /**
+   * Probe whether `<binary> <subcommand>` works by spawning
+   * `<binary> <subcommand> version`. Wrapped in a timeout so a hung daemon
+   * cannot block the caller.
+   */
+  private async isSubcommandAvailable(
+    binary: string,
+    subcommand: string
+  ): Promise<boolean> {
+    // First verify the binary itself exists.
+    if (Bun.which(binary) === null) {
+      return false;
+    }
 
-      // 5-second timeout: a hung `which` must not block the caller forever
-      const timer = setTimeout(() => {
+    let proc: ReturnType<typeof Bun.spawn>;
+    try {
+      proc = Bun.spawn([binary, subcommand, "version"], {
+        stdout: "pipe",
+        stderr: "pipe",
+        stdin: "ignore",
+      });
+    } catch {
+      // Binary exists but won't spawn — treat as unavailable.
+      return false;
+    }
+
+    try {
+      const code = await this.withTimeout(proc, `${binary} ${subcommand}`);
+      return code === 0;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Race a subprocess exit against a timeout. If the timeout fires first,
+   * kill the process and throw — the caller converts to a structured error.
+   */
+  private async withTimeout(
+    proc: ReturnType<typeof Bun.spawn>,
+    label: string
+  ): Promise<number> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
         try {
           proc.kill();
         } catch {
           // ignore: process may already be dead
         }
-        resolve(false);
-      }, 5000);
-
-      proc.exited
-        .then((code) => {
-          clearTimeout(timer);
-          if (code !== 0) {
-            resolve(false);
-            return;
-          }
-          if (!hasSubcommand) {
-            resolve(true);
-            return;
-          }
-          // Best-effort subcommand probe: `<binary> <subcommand> version`.
-          // If the spawn or exit promise errors, fall back to `true`
-          // (modern Docker ships `compose` bundled with the CLI).
-          try {
-            const subproc = Bun.spawn([binary, ...parts.slice(1), "version"], {
-              stdout: "pipe",
-              stderr: "pipe",
-            });
-            subproc.exited
-              .then((subcode) => {
-                try {
-                  subproc.kill();
-                } catch {
-                  // ignore
-                }
-                resolve(subcode === 0);
-              })
-              .catch(() => resolve(true));
-          } catch {
-            resolve(true);
-          }
-        })
-        .catch(() => {
-          clearTimeout(timer);
-          resolve(false);
-        });
+        reject(new Error(`${label} timed out after ${this.procTimeoutMs}ms`));
+      }, this.procTimeoutMs);
     });
+
+    try {
+      const code = await Promise.race([proc.exited, timeoutPromise]);
+      return code;
+    } finally {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+    }
   }
 }
