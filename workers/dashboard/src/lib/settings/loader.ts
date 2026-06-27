@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { DashboardSection, MergedSettings, SettingField } from "./types";
 
 export interface WorkerConfigManifest {
@@ -6,15 +7,34 @@ export interface WorkerConfigManifest {
   description?: string;
   sections: DashboardSection[];
 }
-interface ParsedSection {
-  title?: string;
-  description?: string;
-  icon?: string;
-  priority?: number;
-  fields?: Record<string, string | number | boolean>;
-  options?: Record<string, string[]>;
-  descriptions?: Record<string, string>;
-}
+
+/**
+ * Zod schema for the on-disk dashboard.jsonc shape.
+ * Permissive on optional fields; strict on types so a typo in the JSONC
+ * doesn't silently produce a malformed manifest.
+ */
+const ParsedSectionSchema = z
+  .object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    icon: z.string().optional(),
+    priority: z.number().int().nonnegative().optional(),
+    fields: z
+      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .optional(),
+    options: z.record(z.string(), z.array(z.string())).optional(),
+    descriptions: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
+const DashboardManifestFileSchema = z
+  .object({
+    display_name: z.string().optional(),
+    displayName: z.string().optional(),
+    description: z.string().optional(),
+    sections: z.record(z.string(), ParsedSectionSchema).optional(),
+  })
+  .strict();
 
 function parseFieldValue(
   value: string | number | boolean
@@ -49,12 +69,22 @@ export function parseDashboardJSONC(
   try {
     // Strip comments to safely parse JSONC
     const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
-    const parsed = JSON.parse(cleanContent) as {
-      display_name?: string;
-      displayName?: string;
-      description?: string;
-      sections?: Record<string, ParsedSection>;
-    };
+    const result = DashboardManifestFileSchema.safeParse(
+      JSON.parse(cleanContent)
+    );
+    if (!result.success) {
+      console.error(
+        `Failed to parse dashboard.jsonc for ${workerName}:`,
+        result.error.issues
+      );
+      return {
+        worker: workerName,
+        displayName: workerName,
+        description: "Failed to load configuration",
+        sections: [],
+      };
+    }
+    const parsed = result.data;
 
     const displayName = parsed.display_name || parsed.displayName || workerName;
     const description = parsed.description || "";
