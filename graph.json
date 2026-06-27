@@ -1,15 +1,15 @@
 {
   "metadata": {
-    "generatedAt": "2026-06-27T04:53:41.878Z",
+    "generatedAt": "2026-06-27T14:43:51.027Z",
     "workspace": "hoox-monorepo",
-    "totalFiles": 1099,
-    "totalNodes": 1249,
-    "totalEdges": 8406,
+    "totalFiles": 1107,
+    "totalNodes": 1286,
+    "totalEdges": 8535,
     "nodeKinds": {
-      "type": 129,
-      "interface": 497,
-      "const": 239,
-      "function": 910,
+      "type": 139,
+      "interface": 499,
+      "const": 264,
+      "function": 929,
       "class": 66,
       "enum": 2,
       "package": 4,
@@ -17,11 +17,11 @@
       "infrastructure": 17
     },
     "edgeKinds": {
-      "imports": 4003,
+      "imports": 4043,
       "extends": 9,
       "implements": 5,
-      "references": 3758,
-      "calls": 544,
+      "references": 3845,
+      "calls": 546,
       "service-binding": 22,
       "workspace-dep": 12,
       "infra-binding": 37,
@@ -54,7 +54,7 @@
         "infrastructure": "Cloudflare infrastructure resource (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering)"
       }
     },
-    "enhancedAt": "2026-06-27T04:53:53.702Z"
+    "enhancedAt": "2026-06-27T14:44:59.237Z"
   },
   "nodes": [
     {
@@ -3001,6 +3001,33 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "label": "DOQueueHandler",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/worker.js",
+      "workspace": "workers/dashboard",
+      "exports": ["DOQueueHandler"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "label": "DOShardedTagCache",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/worker.js",
+      "workspace": "workers/dashboard",
+      "exports": ["DOShardedTagCache"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "label": "BucketCachePurge",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/worker.js",
+      "workspace": "workers/dashboard",
+      "exports": ["BucketCachePurge"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/dashboard:workers/dashboard/src/middleware.ts:middleware",
       "label": "middleware",
       "kind": "function",
@@ -5764,6 +5791,42 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:sanitizeLogMessage",
+      "label": "sanitizeLogMessage",
+      "kind": "function",
+      "filePath": "workers/agent-worker/src/logic/prompt-sanitizer.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["sanitizeLogMessage"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:isDroppedLog",
+      "label": "isDroppedLog",
+      "kind": "function",
+      "filePath": "workers/agent-worker/src/logic/prompt-sanitizer.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["isDroppedLog"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:validateHealthSummary",
+      "label": "validateHealthSummary",
+      "kind": "function",
+      "filePath": "workers/agent-worker/src/logic/prompt-sanitizer.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["validateHealthSummary"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:wrapLogData",
+      "label": "wrapLogData",
+      "kind": "function",
+      "filePath": "workers/agent-worker/src/logic/prompt-sanitizer.ts",
+      "workspace": "workers/agent-worker",
+      "exports": ["wrapLogData"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
       "label": "processRoutine",
       "kind": "function",
@@ -5797,6 +5860,159 @@
       "filePath": "workers/agent-worker/src/logic/trade.ts",
       "workspace": "workers/agent-worker",
       "exports": ["sendCloseOrder"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "label": "ParamsOf",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["ParamsOf"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "label": "AppRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["AppRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "label": "PageRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["PageRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "label": "LayoutRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["LayoutRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "label": "RedirectRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["RedirectRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "label": "RewriteRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["RewriteRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "label": "ParamMap",
+      "kind": "interface",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["ParamMap"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "label": "AppRouteHandlerRoutes",
+      "kind": "type",
+      "filePath": "workers/dashboard/.next/types/routes.d.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["AppRouteHandlerRoutes"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "label": "handleCdnCgiImageRequest",
+      "kind": "function",
+      "filePath": "workers/dashboard/.open-next/cloudflare/images.js",
+      "workspace": "workers/dashboard",
+      "exports": ["handleCdnCgiImageRequest"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "label": "handleImageRequest",
+      "kind": "function",
+      "filePath": "workers/dashboard/.open-next/cloudflare/images.js",
+      "workspace": "workers/dashboard",
+      "exports": ["handleImageRequest"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "label": "runWithCloudflareRequestContext",
+      "kind": "function",
+      "filePath": "workers/dashboard/.open-next/cloudflare/init.js",
+      "workspace": "workers/dashboard",
+      "exports": ["runWithCloudflareRequestContext"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
+      "label": "production",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["production"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
+      "label": "development",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["development"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
+      "label": "test",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/cloudflare/next-env.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["test"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "label": "maybeGetSkewProtectionResponse",
+      "kind": "function",
+      "filePath": "workers/dashboard/.open-next/cloudflare/skew-protection.js",
+      "workspace": "workers/dashboard",
+      "exports": ["maybeGetSkewProtectionResponse"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
+      "label": "default",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/middleware/handler.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["default"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "label": "handler",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/middleware/handler.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["handler"],
       "isEntryPoint": false
     },
     {
@@ -5863,6 +6079,15 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/dashboard:workers/dashboard/src/lib/config.ts:getAuthType",
+      "label": "getAuthType",
+      "kind": "function",
+      "filePath": "workers/dashboard/src/lib/config.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["getAuthType"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/dashboard:workers/dashboard/src/lib/config.ts:getConfig",
       "label": "getConfig",
       "kind": "function",
@@ -5878,6 +6103,15 @@
       "filePath": "workers/dashboard/src/lib/config.ts",
       "workspace": "workers/dashboard",
       "exports": ["validateRequiredEnv"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/lib/config.ts:requireSafeSessionSecret",
+      "label": "requireSafeSessionSecret",
+      "kind": "function",
+      "filePath": "workers/dashboard/src/lib/config.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["requireSafeSessionSecret"],
       "isEntryPoint": false
     },
     {
@@ -7408,6 +7642,15 @@
       "filePath": "packages/cli/src/commands/workers/workers-command.ts",
       "workspace": "packages/cli",
       "exports": ["registerWorkersCommand"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "label": "extractJsonArray",
+      "kind": "function",
+      "filePath": "packages/cli/src/services/cloudflare/cloudflare-service.ts",
+      "workspace": "packages/cli",
+      "exports": ["extractJsonArray"],
       "isEntryPoint": false
     },
     {
@@ -9742,12 +9985,39 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "label": "ParsedSectionSchema",
+      "kind": "const",
+      "filePath": "workers/dashboard/src/lib/settings/loader.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["ParsedSectionSchema"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "label": "DashboardManifestFileSchema",
+      "kind": "const",
+      "filePath": "workers/dashboard/src/lib/settings/loader.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["DashboardManifestFileSchema"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
       "label": "FieldType",
       "kind": "type",
       "filePath": "workers/dashboard/src/lib/settings/types.ts",
       "workspace": "workers/dashboard",
       "exports": ["FieldType"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "label": "FieldKind",
+      "kind": "type",
+      "filePath": "workers/dashboard/src/lib/settings/types.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["FieldKind"],
       "isEntryPoint": false
     },
     {
@@ -9811,6 +10081,24 @@
       "filePath": "workers/dashboard/src/lib/settings/types.ts",
       "workspace": "workers/dashboard",
       "exports": ["SettingsUpdateRequest"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:WorkerListEntry",
+      "label": "WorkerListEntry",
+      "kind": "interface",
+      "filePath": "workers/dashboard/src/lib/settings/workers.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["WorkerListEntry"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:DEFAULT_WORKER_LIST",
+      "label": "DEFAULT_WORKER_LIST",
+      "kind": "const",
+      "filePath": "workers/dashboard/src/lib/settings/workers.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["DEFAULT_WORKER_LIST"],
       "isEntryPoint": false
     },
     {
@@ -10408,6 +10696,15 @@
       "isEntryPoint": false
     },
     {
+      "id": "workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler",
+      "label": "handler",
+      "kind": "const",
+      "filePath": "workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs",
+      "workspace": "workers/dashboard",
+      "exports": ["handler"],
+      "isEntryPoint": false
+    },
+    {
       "id": "workers/dashboard:workers/dashboard/src/app/api/agent/chat/route.ts:POST",
       "label": "POST",
       "kind": "function",
@@ -10747,6 +11044,42 @@
       "filePath": "workers/dashboard/src/app/api/auth/login/route.ts",
       "workspace": "workers/dashboard",
       "exports": ["runtime"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:GET",
+      "label": "GET",
+      "kind": "function",
+      "filePath": "workers/dashboard/src/app/api/workers/health/route.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["GET"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:dynamic",
+      "label": "dynamic",
+      "kind": "const",
+      "filePath": "workers/dashboard/src/app/api/workers/health/route.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["dynamic"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:runtime",
+      "label": "runtime",
+      "kind": "const",
+      "filePath": "workers/dashboard/src/app/api/workers/health/route.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["runtime"],
+      "isEntryPoint": false
+    },
+    {
+      "id": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "label": "HealthResponse",
+      "kind": "type",
+      "filePath": "workers/dashboard/src/app/api/workers/health/route.ts",
+      "workspace": "workers/dashboard",
+      "exports": ["HealthResponse"],
       "isEntryPoint": false
     },
     {
@@ -19220,6 +19553,111 @@
       "label": "toError"
     },
     {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "kind": "imports",
+      "label": "handleCdnCgiImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "kind": "imports",
+      "label": "handleCdnCgiImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleCdnCgiImageRequest",
+      "kind": "imports",
+      "label": "handleCdnCgiImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "kind": "imports",
+      "label": "handleImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "kind": "imports",
+      "label": "handleImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/images.js:handleImageRequest",
+      "kind": "imports",
+      "label": "handleImageRequest"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "kind": "imports",
+      "label": "runWithCloudflareRequestContext"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "kind": "imports",
+      "label": "runWithCloudflareRequestContext"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "kind": "imports",
+      "label": "runWithCloudflareRequestContext"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "kind": "imports",
+      "label": "maybeGetSkewProtectionResponse"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "kind": "imports",
+      "label": "maybeGetSkewProtectionResponse"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/skew-protection.js:maybeGetSkewProtectionResponse",
+      "kind": "imports",
+      "label": "maybeGetSkewProtectionResponse"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOQueueHandler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "kind": "imports",
+      "label": "handler"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:DOShardedTagCache",
+      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "kind": "imports",
+      "label": "handler"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "source": "workers/dashboard:workers/dashboard/.open-next/worker.js:BucketCachePurge",
+      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:handler",
+      "kind": "imports",
+      "label": "handler"
+    },
+    {
       "id": "imports:workers/dashboard:workers/dashboard/src/middleware.ts:middleware->packages/shared:packages/shared/src/middleware/index.ts:secureHeaders",
       "source": "workers/dashboard:workers/dashboard/src/middleware.ts:middleware",
       "target": "packages/shared:packages/shared/src/middleware/index.ts:secureHeaders",
@@ -19946,6 +20384,20 @@
       "target": "packages/shared:packages/shared/src/middleware/index.ts:createLogger",
       "kind": "imports",
       "label": "createLogger"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/hoox:workers/hoox/src/killSwitch.ts:checkKillSwitch",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
+    },
+    {
+      "id": "imports:workers/hoox:workers/hoox/src/killSwitch.ts:isTradingPaused->packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "source": "workers/hoox:workers/hoox/src/killSwitch.ts:isTradingPaused",
+      "target": "packages/shared:packages/shared/src/kvKeys.ts:KVKeys",
+      "kind": "imports",
+      "label": "KVKeys"
     },
     {
       "id": "imports:workers/hoox:workers/hoox/src/logic.ts:getQueueMode->packages/shared:packages/shared/src/errors.ts:toError",
@@ -24197,6 +24649,13 @@
       "label": "DEFAULT_CHAIN_CONFIGS"
     },
     {
+      "id": "imports:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->workers/web3-wallet-worker:workers/web3-wallet-worker/src/constants.ts:KV_CONFIG_KEY",
+      "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
+      "target": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/constants.ts:KV_CONFIG_KEY",
+      "kind": "imports",
+      "label": "KV_CONFIG_KEY"
+    },
+    {
       "id": "imports:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:createJsonResponse",
       "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/errors.ts:createJsonResponse",
@@ -27235,6 +27694,62 @@
       "label": "sendCloseOrder"
     },
     {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:sanitizeLogMessage",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:sanitizeLogMessage",
+      "kind": "imports",
+      "label": "sanitizeLogMessage"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:sanitizeLogMessage",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:sanitizeLogMessage",
+      "kind": "imports",
+      "label": "sanitizeLogMessage"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:isDroppedLog",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:isDroppedLog",
+      "kind": "imports",
+      "label": "isDroppedLog"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:isDroppedLog",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:isDroppedLog",
+      "kind": "imports",
+      "label": "isDroppedLog"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:validateHealthSummary",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:validateHealthSummary",
+      "kind": "imports",
+      "label": "validateHealthSummary"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:validateHealthSummary",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:validateHealthSummary",
+      "kind": "imports",
+      "label": "validateHealthSummary"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:wrapLogData",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:processRoutine",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:wrapLogData",
+      "kind": "imports",
+      "label": "wrapLogData"
+    },
+    {
+      "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv->workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:wrapLogData",
+      "source": "workers/agent-worker:workers/agent-worker/src/logic/routine.ts:RoutineEnv",
+      "target": "workers/agent-worker:workers/agent-worker/src/logic/prompt-sanitizer.ts:wrapLogData",
+      "kind": "imports",
+      "label": "wrapLogData"
+    },
+    {
       "id": "imports:workers/agent-worker:workers/agent-worker/src/logic/trade.ts:fetchMarkPrice->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/agent-worker:workers/agent-worker/src/logic/trade.ts:fetchMarkPrice",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
@@ -27275,6 +27790,27 @@
       "target": "packages/shared:packages/shared/src/service-bindings.ts:serviceFetch",
       "kind": "imports",
       "label": "serviceFetch"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
+      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:production",
+      "kind": "imports",
+      "label": "nextEnvVars.production"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
+      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:development",
+      "kind": "imports",
+      "label": "nextEnvVars.development"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext->workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
+      "source": "workers/dashboard:workers/dashboard/.open-next/cloudflare/init.js:runWithCloudflareRequestContext",
+      "target": "workers/dashboard:workers/dashboard/.open-next/cloudflare/next-env.mjs:test",
+      "kind": "imports",
+      "label": "nextEnvVars.test"
     },
     {
       "id": "imports:workers/dashboard:workers/dashboard/src/app/footer.tsx:Footer->packages/shared:packages/shared/src/legal.ts:FULL_LEGAL_NOTICE",
@@ -32548,11 +33084,25 @@
       "label": "withErrorHandling"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
+      "kind": "imports",
+      "label": "ConfigService"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/services/config/index.ts:ConfigService",
       "kind": "imports",
       "label": "ConfigService"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/types.ts:WranglerResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:WranglerResult",
+      "kind": "imports",
+      "label": "WranglerResult"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/types.ts:WranglerResult",
@@ -32562,6 +33112,13 @@
       "label": "WranglerResult"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/types.ts:DeployResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:DeployResult",
+      "kind": "imports",
+      "label": "DeployResult"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/types.ts:DeployResult",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:DeployResult",
@@ -32569,11 +33126,25 @@
       "label": "DeployResult"
     },
     {
+      "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/types.ts:DevResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:DevResult",
+      "kind": "imports",
+      "label": "DevResult"
+    },
+    {
       "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/types.ts:DevResult",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:DevResult",
       "kind": "imports",
       "label": "DevResult"
+    },
+    {
+      "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/types.ts:VersionEntry",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/types.ts:VersionEntry",
+      "kind": "imports",
+      "label": "VersionEntry"
     },
     {
       "id": "imports:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/types.ts:VersionEntry",
@@ -38281,6 +38852,20 @@
       "label": "DashboardSection"
     },
     {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "kind": "imports",
+      "label": "DashboardSection"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "kind": "imports",
+      "label": "DashboardSection"
+    },
+    {
       "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
@@ -38330,6 +38915,20 @@
       "label": "MergedSettings"
     },
     {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "kind": "imports",
+      "label": "MergedSettings"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "kind": "imports",
+      "label": "MergedSettings"
+    },
+    {
       "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
@@ -38374,6 +38973,20 @@
     {
       "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "kind": "imports",
+      "label": "SettingField"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "kind": "imports",
+      "label": "SettingField"
+    },
+    {
+      "id": "imports:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "kind": "imports",
       "label": "SettingField"
@@ -54969,6 +55582,349 @@
       "label": "Logger"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "kind": "references",
+      "label": "AppRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "kind": "references",
+      "label": "PageRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "kind": "references",
+      "label": "LayoutRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "kind": "references",
+      "label": "RedirectRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "kind": "references",
+      "label": "RewriteRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "kind": "references",
+      "label": "AppRouteHandlerRoutes"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamsOf",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:PageRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:LayoutRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RedirectRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:RewriteRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes->workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "source": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:AppRouteHandlerRoutes",
+      "target": "workers/dashboard:workers/dashboard/.next/types/routes.d.ts:ParamMap",
+      "kind": "references",
+      "label": "ParamMap"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats->workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
       "source": "workers/dashboard:workers/dashboard/src/lib/api.ts:DashboardStats",
       "target": "workers/d1-worker:workers/d1-worker/src/stats.ts:DashboardStats",
@@ -55144,6 +56100,13 @@
       "label": "AuthType"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:getAuthType->workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
+      "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:getAuthType",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
+      "kind": "references",
+      "label": "AuthType"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:getConfig->workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
       "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:getConfig",
       "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
@@ -55153,6 +56116,13 @@
     {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:validateRequiredEnv->workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
       "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:validateRequiredEnv",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
+      "kind": "references",
+      "label": "AuthType"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:requireSafeSessionSecret->workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
+      "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:requireSafeSessionSecret",
       "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:AuthType",
       "kind": "references",
       "label": "AuthType"
@@ -55186,6 +56156,13 @@
       "label": "ConfigError"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:getAuthType->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:getAuthType",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "kind": "references",
+      "label": "ConfigError"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:getConfig->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
       "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:getConfig",
       "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
@@ -55195,6 +56172,13 @@
     {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:validateRequiredEnv->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
       "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:validateRequiredEnv",
+      "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "kind": "references",
+      "label": "ConfigError"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/config.ts:requireSafeSessionSecret->workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
+      "source": "workers/dashboard:workers/dashboard/src/lib/config.ts:requireSafeSessionSecret",
       "target": "workers/dashboard:workers/dashboard/src/lib/config.ts:ConfigError",
       "kind": "references",
       "label": "ConfigError"
@@ -59330,11 +60314,25 @@
       "label": "Command"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
+      "kind": "references",
+      "label": "ConfigService"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigService",
       "kind": "references",
       "label": "ConfigService"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/index.ts:WranglerResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/index.ts:WranglerResult",
+      "kind": "references",
+      "label": "WranglerResult"
     },
     {
       "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/index.ts:WranglerResult",
@@ -59344,6 +60342,13 @@
       "label": "WranglerResult"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/commands/deploy/index.ts:DeployResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:DeployResult",
+      "kind": "references",
+      "label": "DeployResult"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/commands/deploy/index.ts:DeployResult",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/commands/deploy/index.ts:DeployResult",
@@ -59351,11 +60356,25 @@
       "label": "DeployResult"
     },
     {
+      "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/index.ts:VersionEntry",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/index.ts:VersionEntry",
+      "kind": "references",
+      "label": "VersionEntry"
+    },
+    {
       "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/index.ts:VersionEntry",
       "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
       "target": "packages/cli:packages/cli/src/services/cloudflare/index.ts:VersionEntry",
       "kind": "references",
       "label": "VersionEntry"
+    },
+    {
+      "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/cloudflare/index.ts:DevResult",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/index.ts:DevResult",
+      "kind": "references",
+      "label": "DevResult"
     },
     {
       "id": "references:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/cloudflare/index.ts:DevResult",
@@ -64951,6 +65970,20 @@
       "label": "DashboardSection"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "kind": "references",
+      "label": "DashboardSection"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "kind": "references",
+      "label": "DashboardSection"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
@@ -65000,6 +66033,20 @@
       "label": "SettingField"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "kind": "references",
+      "label": "SettingField"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "kind": "references",
+      "label": "SettingField"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC->workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:parseDashboardJSONC",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
@@ -65037,6 +66084,20 @@
     {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:loadMergedSettings->workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:loadMergedSettings",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
+      "kind": "references",
+      "label": "WorkerConfigManifest"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
+      "kind": "references",
+      "label": "WorkerConfigManifest"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:WorkerConfigManifest",
       "kind": "references",
       "label": "WorkerConfigManifest"
@@ -65089,6 +66150,27 @@
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
       "kind": "references",
       "label": "MergedSettings"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:ParsedSectionSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "kind": "references",
+      "label": "MergedSettings"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/loader.ts:DashboardManifestFileSchema",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "kind": "references",
+      "label": "MergedSettings"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
+      "kind": "references",
+      "label": "FieldType"
     },
     {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
@@ -65147,6 +66229,13 @@
       "label": "SettingOption"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
+      "kind": "references",
+      "label": "SettingOption"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
@@ -65189,8 +66278,71 @@
       "label": "SettingOption"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:WorkerDashboardConfig->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:WorkerDashboardConfig",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:MergedSettings",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingsUpdateRequest->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingsUpdateRequest",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "kind": "references",
+      "label": "FieldKind"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldType",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "kind": "references",
+      "label": "SettingField"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingField",
       "kind": "references",
       "label": "SettingField"
@@ -65245,6 +66397,13 @@
       "label": "DashboardSection"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
+      "kind": "references",
+      "label": "DashboardSection"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardSection",
@@ -65294,6 +66453,13 @@
       "label": "DashboardComponent"
     },
     {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:FieldKind",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
+      "kind": "references",
+      "label": "DashboardComponent"
+    },
+    {
       "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption->workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
       "source": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:SettingOption",
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
@@ -65334,6 +66500,13 @@
       "target": "workers/dashboard:workers/dashboard/src/lib/settings/types.ts:DashboardComponent",
       "kind": "references",
       "label": "DashboardComponent"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:DEFAULT_WORKER_LIST->workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:WorkerListEntry",
+      "source": "workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:DEFAULT_WORKER_LIST",
+      "target": "workers/dashboard:workers/dashboard/src/lib/settings/workers.ts:WorkerListEntry",
+      "kind": "references",
+      "label": "WorkerListEntry"
     },
     {
       "id": "references:packages/cli:packages/cli/src/commands/perf/fastpath/fastpath-command.ts:registerFastpathCommand->packages/cli:packages/cli/src/index.ts:FormatOptions",
@@ -65950,6 +67123,55 @@
       "target": "workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
       "kind": "references",
       "label": "DashboardEnv"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:GET->workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:GET",
+      "target": "workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "kind": "references",
+      "label": "DashboardEnv"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:dynamic->workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:dynamic",
+      "target": "workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "kind": "references",
+      "label": "DashboardEnv"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:runtime->workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:runtime",
+      "target": "workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "kind": "references",
+      "label": "DashboardEnv"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse->workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "target": "workers/dashboard:workers/dashboard/src/lib/env.ts:DashboardEnv",
+      "kind": "references",
+      "label": "DashboardEnv"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:GET->workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:GET",
+      "target": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "kind": "references",
+      "label": "HealthResponse"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:dynamic->workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:dynamic",
+      "target": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "kind": "references",
+      "label": "HealthResponse"
+    },
+    {
+      "id": "references:workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:runtime->workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "source": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:runtime",
+      "target": "workers/dashboard:workers/dashboard/src/app/api/workers/health/route.ts:HealthResponse",
+      "kind": "references",
+      "label": "HealthResponse"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/index.ts:main->packages/cli:packages/cli/src/utils/theme.ts:stripAnsi",
@@ -67324,18 +68546,18 @@
       "label": "info"
     },
     {
+      "id": "calls:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
+      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
+      "kind": "calls",
+      "label": "info"
+    },
+    {
       "id": "calls:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->packages/shared:packages/shared/src/errors.ts:toError",
       "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "calls",
       "label": "badRequest"
-    },
-    {
-      "id": "calls:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "source": "workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env",
-      "target": "packages/shared:packages/shared/src/middleware/logger.ts:createLogger",
-      "kind": "calls",
-      "label": "error"
     },
     {
       "id": "calls:workers/web3-wallet-worker:workers/web3-wallet-worker/src/index.ts:Env->packages/shared:packages/shared/src/types/router.ts:RouteParams",
@@ -67793,9 +69015,9 @@
       "label": "validate"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/check/check-command.ts:registerCheckCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
@@ -67919,9 +69141,9 @@
       "label": "getWorker"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/deploy/deploy-command.ts:registerDeployCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "deploy"
     },
@@ -67975,9 +69197,9 @@
       "label": "checkAvailability"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/dev/dev-command.ts:registerDevCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "dev"
     },
@@ -68143,163 +69365,163 @@
       "label": "label"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:registerInfraCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1List",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Create",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doD1Delete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvList",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvCreate",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doKvDelete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2List",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Create",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doR2Delete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueList",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueCreate",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doQueueDelete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeList",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeCreate",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doVectorizeDelete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsList",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doAnalyticsCreate",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvision",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:doProvisionDryRun",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:displayListResult",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleCreate",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/infra/infra-command.ts:handleDelete",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
@@ -68465,16 +69687,16 @@
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/init/init-command.ts:registerInitCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/init/init-command.ts:registerInitCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/init/init-command.ts:registerInitCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "whoami"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/init/init-command.ts:runInitCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/init/init-command.ts:runInitCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/init/init-command.ts:runInitCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "whoami"
     },
@@ -68598,9 +69820,9 @@
       "label": "load"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/repair/repair-command.ts:registerRepairCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "deploy"
     },
@@ -68626,9 +69848,9 @@
       "label": "resolveDbName"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-service.ts:RepairService->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/repair/repair-service.ts:RepairService->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/repair/repair-service.ts:RepairService",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "d1List"
     },
@@ -68829,9 +70051,9 @@
       "label": "success"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/commands/waf/waf-command.ts:registerWafCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/commands/waf/waf-command.ts:registerWafCommand->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/commands/waf/waf-command.ts:registerWafCommand",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "zonesList"
     },
@@ -68848,6 +70070,13 @@
       "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
       "kind": "calls",
       "label": "load"
+    },
+    {
+      "id": "calls:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "source": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
+      "target": "packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
+      "kind": "calls",
+      "label": "getWorkerPath"
     },
     {
       "id": "calls:packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService->packages/cli:packages/cli/src/services/config/config-service.ts:ConfigError",
@@ -68906,65 +70135,65 @@
       "label": "query"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:GeneratedKeys->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:GeneratedKeys->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:GeneratedKeys",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupOptions->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupOptions->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupOptions",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SecretResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SecretResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:SecretResult",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupStepResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupStepResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupStepResult",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupResult->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupResult",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressEvent->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressEvent->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressEvent",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressCallback->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressCallback->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:ProgressCallback",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupService->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupService->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:SetupService",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
     {
-      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:default->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "id": "calls:packages/cli:packages/cli/src/services/setup/setup-service.ts:default->packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "source": "packages/cli:packages/cli/src/services/setup/setup-service.ts:default",
-      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:CloudflareService",
+      "target": "packages/cli:packages/cli/src/services/cloudflare/cloudflare-service.ts:extractJsonArray",
       "kind": "calls",
       "label": "secretPut"
     },
@@ -69492,6 +70721,13 @@
       "target": "packages/shared:packages/shared/src/errors.ts:toError",
       "kind": "calls",
       "label": "internal"
+    },
+    {
+      "id": "calls:workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler->workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
+      "source": "workers/dashboard:workers/dashboard/.open-next/server-functions/default/workers/dashboard/handler.mjs:handler",
+      "target": "workers/dashboard:workers/dashboard/.open-next/middleware/handler.mjs:default",
+      "kind": "calls",
+      "label": "Object"
     },
     {
       "id": "calls:workers/dashboard:workers/dashboard/src/app/api/agent/chat/route.ts:POST->packages/shared:packages/shared/src/errors.ts:toError",
