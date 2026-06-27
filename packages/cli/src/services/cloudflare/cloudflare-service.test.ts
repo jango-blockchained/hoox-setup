@@ -321,6 +321,70 @@ describe("CloudflareService", () => {
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual(["wrangler", "d1", "delete", "old-db"]);
     });
+
+    it("d1Execute calls wrangler d1 execute with --command and extracts the JSON array (regression: noisy wrangler stdout)", async () => {
+      // wrangler d1 execute writes a noisy prefix to stdout before
+      // the JSON array. The previous implementation returned the
+      // full stdout, which the caller (check setup) then failed to
+      // JSON.parse line-by-line, reporting all tables as missing.
+      const noisyStdout =
+        "⛅️ wrangler 4.98.0 (update available 4.105.0)\n" +
+        "──────────────────────────────────────────────\n" +
+        "Resource location: remote\n" +
+        "\n" +
+        "There is a newer version of Wrangler available (current: 4.98.0, latest: 4.105.0).\n" +
+        "🌀 Executing on remote database trade-data-db (a682f084-...):\n" +
+        "🚣 Executed 1 command in 0.22ms\n" +
+        JSON.stringify([
+          { name: "trade_signals" },
+          { name: "trades" },
+          { name: "positions" },
+        ]);
+      mockSpawnWithCapture(successSpawn(noisyStdout));
+
+      const service = new CloudflareService();
+      const result = await service.d1Execute(
+        "trade-data-db",
+        "SELECT name FROM sqlite_master WHERE type='table'",
+        true
+      );
+
+      if (!result.ok) {
+        throw new Error(
+          `expected result.ok to be true, got error: ${result.error}`
+        );
+      }
+      // The result is the pure JSON array.
+      const parsed = JSON.parse(result.value);
+      expect(parsed).toEqual([
+        { name: "trade_signals" },
+        { name: "trades" },
+        { name: "positions" },
+      ]);
+      expect(lastSpawnCmd).toEqual([
+        "wrangler",
+        "d1",
+        "execute",
+        "trade-data-db",
+        "--command",
+        "SELECT name FROM sqlite_master WHERE type='table'",
+        "--remote",
+      ]);
+    });
+
+    it("d1Execute returns an error when stdout has no JSON array", async () => {
+      mockSpawnWithCapture(
+        successSpawn("Error: database not found (some non-JSON text)")
+      );
+
+      const service = new CloudflareService();
+      const result = await service.d1Execute("missing-db", "SELECT 1", true);
+
+      if (result.ok) {
+        throw new Error("expected result.ok to be false");
+      }
+      expect(result.error).toContain("non-JSON");
+    });
   });
 
   // -- KV -------------------------------------------------------------------

@@ -344,7 +344,19 @@ export class CloudflareService {
     return this.runWrangler(["d1", "delete", name]);
   }
 
-  /** Runs a SQL query on a D1 database (`wrangler d1 execute`). */
+  /**
+   * Runs a SQL query on a D1 database (`wrangler d1 execute`).
+   *
+   * Returns the JSON result array (the tail of wrangler's stdout).
+   * Wrangler's stdout has a noisy prefix (`⛅️ wrangler 4.98.0 (update
+   * available 4.105.0)`, `Resource location: remote`, etc.) before
+   * the JSON. Callers that JSON.parse the result need the pure
+   * JSON, so we extract the trailing array here.
+   *
+   * For backward compat with code that expects the full stdout
+   * (none in the current codebase), this could expose a separate
+   * `d1ExecuteRaw` method. As of 0.9.2 only this method exists.
+   */
   async d1Execute(
     name: string,
     sql: string,
@@ -352,7 +364,16 @@ export class CloudflareService {
   ): Promise<WranglerResult<string>> {
     const args = ["d1", "execute", name, "--command", sql];
     if (remote) args.push("--remote");
-    return this.runWrangler(args);
+    const result = await this.runWrangler(args);
+    if (!result.ok) return result;
+    const extracted = extractJsonArray(result.value);
+    if (extracted === null) {
+      return {
+        ok: false,
+        error: `wrangler d1 execute returned non-JSON output: ${result.value.slice(0, 200)}`,
+      };
+    }
+    return { ok: true, value: extracted };
   }
 
   // ---------------------------------------------------------------------------
