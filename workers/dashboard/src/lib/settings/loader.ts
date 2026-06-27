@@ -12,8 +12,11 @@ export interface WorkerConfigManifest {
  * Zod schema for the on-disk dashboard.jsonc shape.
  * Permissive on optional fields; strict on types so a typo in the JSONC
  * doesn't silently produce a malformed manifest.
+ *
+ * NOTE: Also exported so `scripts/sync-dashboard-configs.ts` can reuse the
+ * schema. Keep the export in sync between both files.
  */
-const ParsedSectionSchema = z
+export const ParsedSectionSchema = z
   .object({
     title: z.string().optional(),
     description: z.string().optional(),
@@ -22,12 +25,19 @@ const ParsedSectionSchema = z
     fields: z
       .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
       .optional(),
-    options: z.record(z.string(), z.array(z.string())).optional(),
+    options: z
+      .record(z.string(), z.array(z.union([z.string(), z.number()])))
+      .optional(),
     descriptions: z.record(z.string(), z.string()).optional(),
+    // Per-field metadata for the UI. "secrets" marks secret fields
+    // (read-only in the form, set via CLI). "secret_commands" maps each
+    // secret field to the exact CLI command.
+    secrets: z.record(z.string(), z.boolean()).optional(),
+    secret_commands: z.record(z.string(), z.string()).optional(),
   })
   .strict();
 
-const DashboardManifestFileSchema = z
+export const DashboardManifestFileSchema = z
   .object({
     display_name: z.string().optional(),
     displayName: z.string().optional(),
@@ -96,6 +106,8 @@ export function parseDashboardJSONC(
         const sectionFields = sectionData.fields || {};
         const sectionOptions = sectionData.options || {};
         const sectionDescriptions = sectionData.descriptions || {};
+        const sectionSecrets = sectionData.secrets || {};
+        const sectionSecretCommands = sectionData.secret_commands || {};
 
         for (const [key, value] of Object.entries(sectionFields)) {
           const field = createField(
@@ -106,14 +118,22 @@ export function parseDashboardJSONC(
 
           if (sectionOptions[key]) {
             field.type = "select";
-            field.options = sectionOptions[key].map((opt: string) => ({
-              value: opt,
-              label: opt,
+            field.options = sectionOptions[key].map((opt: string | number) => ({
+              value: String(opt),
+              label: String(opt),
             }));
           }
 
           if (sectionDescriptions[key]) {
             field.description = String(sectionDescriptions[key]);
+          }
+
+          // S-3: secret fields are read-only in the form. The default value
+          // ("Requires CLI Setup" etc.) is shown as placeholder, not editable.
+          if (sectionSecrets[key]) {
+            field.kind = "secret";
+            field.cliCommand = sectionSecretCommands[key];
+            field.default = value; // keep for display
           }
 
           fields.push(field);

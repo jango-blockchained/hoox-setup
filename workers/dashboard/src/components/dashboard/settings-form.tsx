@@ -144,10 +144,26 @@ export function SettingsForm() {
     setIsSaving(true);
     let savedCount = 0;
     let failedCount = 0;
+    let skippedCount = 0;
+
+    // Build a set of "section:key" for secret fields so we skip them.
+    // (S-3: secret fields must not be POSTed to /api/settings.)
+    const secretKeys = new Set<string>();
+    for (const cfg of configs) {
+      for (const section of cfg.sections) {
+        for (const f of section.fields) {
+          if (f.kind === "secret") secretKeys.add(f.key);
+        }
+      }
+    }
 
     try {
       for (const [worker, fields] of Object.entries(settings)) {
         for (const [key, value] of Object.entries(fields)) {
+          if (secretKeys.has(key)) {
+            skippedCount++;
+            continue;
+          }
           const res = await fetch(`/api/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -167,11 +183,14 @@ export function SettingsForm() {
 
       if (failedCount === 0) {
         toast.success("Settings saved successfully", {
-          description: `${savedCount} setting(s) synced to workers.`,
+          description:
+            skippedCount > 0
+              ? `${savedCount} setting(s) synced to workers. ${skippedCount} secret field(s) skipped (set via CLI).`
+              : `${savedCount} setting(s) synced to workers.`,
         });
       } else {
         toast.warning("Settings partially saved", {
-          description: `${savedCount} saved, ${failedCount} failed.`,
+          description: `${savedCount} saved, ${failedCount} failed, ${skippedCount} secret(s) skipped.`,
         });
       }
     } catch (err) {
@@ -188,6 +207,40 @@ export function SettingsForm() {
 
   const renderField = (worker: string, field: SettingField) => {
     const value = settings[worker]?.[field.key] ?? field.default;
+    const isSecret = field.kind === "secret";
+
+    // S-3: secret fields are read-only. Render a disabled input with a
+    // "Configure via CLI" hint and the exact command to run.
+    if (isSecret) {
+      return (
+        <Field>
+          <FieldLabel className="flex items-center gap-2">
+            {field.label}
+            <Badge variant="secondary" className="font-normal text-xs">
+              Secret — CLI only
+            </Badge>
+          </FieldLabel>
+          <Input
+            type="text"
+            value={String(value)}
+            disabled
+            readOnly
+            placeholder="•••••• (set via CLI)"
+            className="bg-secondary/30 font-mono text-muted-foreground"
+          />
+          {field.cliCommand && (
+            <FieldDescription>
+              <code className="rounded bg-secondary/50 px-1.5 py-0.5 text-xs">
+                {field.cliCommand}
+              </code>
+            </FieldDescription>
+          )}
+          {field.description && !field.cliCommand && (
+            <FieldDescription>{field.description}</FieldDescription>
+          )}
+        </Field>
+      );
+    }
 
     switch (field.type) {
       case "boolean":
