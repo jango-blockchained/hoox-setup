@@ -11,6 +11,7 @@ node_modules
 dist
 build
 **/dist
+**/dist/**
 .bun
 
 # Local secrets (defense in depth, also gitignored)

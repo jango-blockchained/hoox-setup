@@ -38,8 +38,10 @@ COPY --chown=bun:bun workers/ workers/
 # --frozen-lockfile guarantees reproducible builds (CI == local).
 # PUPPETEER_SKIP_DOWNLOAD prevents puppeteer from trying to download Chrome
 # during install (it fails in Docker without unzip; download happens at runtime).
+# --ignore-scripts skips any other postinstall hook (e.g. husky prepare) that
+# would touch git/CI state we don't have inside the build container.
 USER bun
-RUN PUPPETEER_SKIP_DOWNLOAD=true bun install --frozen-lockfile
+RUN PUPPETEER_SKIP_DOWNLOAD=true bun install --frozen-lockfile --ignore-scripts
 
 # Now copy the rest of the source. Anything that changed since the last
 # `docker compose build` lands here, but the install layer above is reused.

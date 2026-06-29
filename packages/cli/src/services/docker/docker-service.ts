@@ -91,7 +91,17 @@ export class DockerService {
       args.push("-d");
     }
 
-    const env: Record<string, string> = {};
+    // `Bun.spawn` env REPLACES the parent environment (does not merge), so we
+    // must explicitly spread process.env and only override the keys we need.
+    // Without this, PATH / HOME / DOCKER_* / user-set secrets would be
+    // stripped and `docker` itself could fail to find its daemon socket.
+    // We filter out undefined entries because `process.env` is typed as
+    // `string | undefined` but `Bun.spawn` env requires plain `string`.
+    const env: Record<string, string> = Object.fromEntries(
+      Object.entries(process.env).filter(
+        (entry): entry is [string, string] => entry[1] !== undefined
+      )
+    );
     if (profiles.length > 0) {
       env.COMPOSE_PROFILES = profiles.join(",");
     }
@@ -119,9 +129,11 @@ export class DockerService {
         };
       }
 
-      // Detached mode: capture output
-      const stdout = await new Response(proc.stdout).text();
+      // Detached mode: capture output. `proc.exited` first guarantees the
+      // stdout stream has been closed before we read it — avoids a race
+      // where the process is still flushing when we try to drain.
       const exitCode = await this.withTimeout(proc, "docker compose up");
+      const stdout = await new Response(proc.stdout).text();
 
       if (exitCode === 0) {
         return { ok: true };
@@ -142,7 +154,17 @@ export class DockerService {
    * @param profiles  - Compose profiles to target (e.g. ["workers"]). Pass empty array for default.
    */
   async composeDown(profiles: string[] = []): Promise<ComposeResult> {
-    const env: Record<string, string> = {};
+    // `Bun.spawn` env REPLACES the parent environment (does not merge), so we
+    // must explicitly spread process.env and only override the keys we need.
+    // Without this, PATH / HOME / DOCKER_* would be stripped and the docker
+    // CLI couldn't even find its daemon. We filter out undefined entries
+    // because `process.env` is typed as `string | undefined` but
+    // `Bun.spawn` env requires plain `string`.
+    const env: Record<string, string> = Object.fromEntries(
+      Object.entries(process.env).filter(
+        (entry): entry is [string, string] => entry[1] !== undefined
+      )
+    );
     if (profiles.length > 0) {
       env.COMPOSE_PROFILES = profiles.join(",");
     }
@@ -156,8 +178,10 @@ export class DockerService {
         env,
       });
 
-      const stderr = await new Response(proc.stderr).text();
+      // Wait for the process to fully exit before reading stderr — avoids a
+      // race where the stream is still being flushed.
       const exitCode = await this.withTimeout(proc, "docker compose down");
+      const stderr = await new Response(proc.stderr).text();
 
       if (exitCode === 0) {
         return { ok: true };

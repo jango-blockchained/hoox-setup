@@ -84,6 +84,13 @@ COPY --from=builder --chown=bun:bun /app/dist ./dist
 # resolves through the symlink that `bun build` left intact.)
 COPY --from=builder --chown=bun:bun /app/packages/shared ./packages/shared
 
+# The worker bundles were built with `--external @jango-blockchained/hoox-shared`,
+# so at runtime they `require("@jango-blockchained/hoox-shared")`. Bun's module
+# resolver looks in `node_modules/`, not in `packages/`. We create a symlink so
+# the import resolves to the just-copied `packages/shared/` directory.
+RUN mkdir -p node_modules/@jango-blockchained && \
+    ln -s /app/packages/shared node_modules/@jango-blockchained/hoox-shared
+
 # ---------------------------------------------------------------------------
 # cloudflare:workers shim (subtask 07, option a — fail loudly).
 #
@@ -98,12 +105,16 @@ COPY --from=builder --chown=bun:bun /app/scripts/cloudflare-workers-shim.js \
 
 # Health check: server.js exposes GET /healthz which returns 200.
 # Useful for orchestrators (k8s, ECS) and `docker ps` status.
+#
+# The alpine base image is minimal and does NOT ship `wget` or `curl`, so we
+# use `bun` itself for the probe. The inline script exits 0 on a 2xx response
+# and 1 otherwise — Docker HEALTHCHECK interprets non-zero as unhealthy.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:8080/healthz || exit 1
+  CMD bun -e "fetch('http://localhost:8080/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
-# server.js binds to PORT (default 8080). 8797/8798 are exposed for the
-# report-worker / analytics-worker in case they're proxied directly.
-EXPOSE 8080 8797 8798
+# server.js binds to PORT (default 8080) and routes /report, /analytics etc.
+# via path prefix — there are no separate listener ports to expose.
+EXPOSE 8080
 
 # HOOX_SERVER_API_KEY is required in production (server.js exits 1 if
 # missing). See subtask 06 for the hard-fail implementation.

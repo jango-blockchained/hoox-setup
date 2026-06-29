@@ -223,7 +223,27 @@ describe("DockerService", () => {
 
       expect(result.ok).toBe(true);
       expect(lastSpawnCmd).toEqual(["docker", "compose", "up"]);
-      expect(lastSpawnEnv).toEqual({ COMPOSE_PROFILES: "workers,dashboard" });
+      // env inherits process.env (so PATH etc. survive) AND adds
+      // COMPOSE_PROFILES — only assert the keys we set, not the whole env.
+      expect(lastSpawnEnv?.COMPOSE_PROFILES).toBe("workers,dashboard");
+    });
+
+    it("inherits process.env (PATH etc.) so docker can find its daemon", async () => {
+      // Regression test for the env-clobber bug: Bun.spawn's `env` REPLACES
+      // (not merges) the parent environment. If we passed only
+      // `{ COMPOSE_PROFILES: ... }`, the spawned `docker` would have no
+      // PATH and fail with "command not found".
+      process.env.HOOX_TEST_VAR = "preserved-for-child";
+      try {
+        mockSpawnWithCapture(makeSpawnResult("", "", 0));
+        const service = new DockerService("/project");
+        await service.composeUp(["workers"]);
+
+        expect(lastSpawnEnv?.HOOX_TEST_VAR).toBe("preserved-for-child");
+        expect(lastSpawnEnv?.COMPOSE_PROFILES).toBe("workers");
+      } finally {
+        delete process.env.HOOX_TEST_VAR;
+      }
     });
 
     it("uses stdin: 'ignore' (not stdin: 'pipe') on the spawned process", async () => {

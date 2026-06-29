@@ -22,6 +22,13 @@ x-worker-base: &worker-base
   networks:
     - hoox-net
   restart: unless-stopped
+  # Common bind mounts — shared across every worker. Sequence merge (`<<:`)
+  # keeps the per-service worker mount (added below) in addition to these two.
+  #   ./packages  → covers shared, cli, tui, test-utils (C-02)
+  #   ./.wrangler/state → local D1 / KV cache (preserved across restarts)
+  volumes:
+    - ./packages:/app/packages
+    - ./.wrangler/state:/app/.wrangler/state
 
 services:
   hoox:
@@ -31,10 +38,9 @@ services:
       - "8787:8787" # public gateway
     volumes:
       - ./workers/hoox:/app/workers/hoox
-      - ./packages:/app/packages # (C-02) parent mount covers shared + cli + tui
-      - ./.wrangler/state:/app/.wrangler/state
-    # hoox is required by the dashboard (depends_on: [hoox, d1-worker]), so it
-    # must be part of the `dashboard` profile in addition to `workers`/`full`.
+    # hoox is required by the dashboard (depends_on: [hoox, d1-worker,
+    # agent-worker]), so it must be part of the `dashboard` profile in
+    # addition to `workers`/`full`.
     profiles:
       - workers
       - dashboard
@@ -45,12 +51,14 @@ services:
     command: bunx wrangler dev -c workers/trade-worker/wrangler.jsonc --local --ip 0.0.0.0
     volumes:
       - ./workers/trade-worker:/app/workers/trade-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
+    # trade-worker is required transitively by agent-worker (which the
+    # dashboard depends on for AI features), so it must be part of the
+    # `dashboard` profile in addition to `workers`/`full`.
     profiles:
       - workers
+      - dashboard
       - full
 
   telegram-worker:
@@ -58,8 +66,6 @@ services:
     command: bunx wrangler dev -c workers/telegram-worker/wrangler.jsonc --local --ip 0.0.0.0
     volumes:
       - ./workers/telegram-worker:/app/workers/telegram-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
     profiles:
@@ -72,12 +78,10 @@ services:
     mem_limit: 1024m # D1 local emulation can be memory-hungry
     volumes:
       - ./workers/d1-worker:/app/workers/d1-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
-    # d1-worker is required by the dashboard (depends_on: [hoox, d1-worker]),
-    # so it must be part of the `dashboard` profile in addition to `workers`/`full`.
+    # d1-worker is required by the dashboard, so it must be part of the
+    # `dashboard` profile in addition to `workers`/`full`.
     profiles:
       - workers
       - dashboard
@@ -88,8 +92,6 @@ services:
     command: bunx wrangler dev -c workers/web3-wallet-worker/wrangler.jsonc --local --ip 0.0.0.0
     volumes:
       - ./workers/web3-wallet-worker:/app/workers/web3-wallet-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
     profiles:
@@ -103,11 +105,10 @@ services:
       - "8794:8794" # public UI
     volumes:
       - ./workers/dashboard:/app/workers/dashboard
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
       - d1-worker
+      - agent-worker
     profiles:
       - dashboard
       - full
@@ -117,14 +118,15 @@ services:
     command: bunx wrangler dev -c workers/agent-worker/wrangler.jsonc --local --ip 0.0.0.0
     volumes:
       - ./workers/agent-worker:/app/workers/agent-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
       - d1-worker
       - trade-worker
+    # agent-worker is required by the dashboard (depends_on: [..., agent-worker]),
+    # so it must be part of the `dashboard` profile in addition to `workers`/`full`.
     profiles:
       - workers
+      - dashboard
       - full
 
   email-worker:
@@ -132,8 +134,6 @@ services:
     command: bunx wrangler dev -c workers/email-worker/wrangler.jsonc --local --ip 0.0.0.0
     volumes:
       - ./workers/email-worker:/app/workers/email-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
     profiles:
@@ -146,8 +146,6 @@ services:
     mem_limit: 1024m # Browser Rendering is memory-hungry
     volumes:
       - ./workers/report-worker:/app/workers/report-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
       - d1-worker
@@ -160,8 +158,6 @@ services:
     command: bunx wrangler dev -c workers/analytics-worker/wrangler.jsonc --local --ip 0.0.0.0 --port 8798
     volumes:
       - ./workers/analytics-worker:/app/workers/analytics-worker
-      - ./packages:/app/packages
-      - ./.wrangler/state:/app/.wrangler/state
     depends_on:
       - hoox
     profiles:
