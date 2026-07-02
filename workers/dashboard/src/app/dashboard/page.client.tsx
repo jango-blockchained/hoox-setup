@@ -42,7 +42,7 @@ export default function DashboardClient() {
         >
           <PnlChart />
         </Suspense>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <Suspense
             fallback={
               <div className="h-48 animate-pulse rounded-lg bg-muted" />

@@ -20,8 +20,13 @@ import {
   Settings,
   Zap,
   GitBranch,
+  BarChart3,
 } from "lucide-react";
 
+// Mobile nav is a curated subset of the desktop nav — keep 5-6 high-priority
+// items. Lower-priority routes (database, signals, notifications, reports,
+// agent sub-pages) remain reachable via the desktop sidebar and the command
+// palette to avoid crowding the mobile sheet drawer.
 const navItems = [
   {
     title: "Overview",
@@ -29,19 +34,24 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Signal Flow",
-    href: "/dashboard/signal-flow",
-    icon: GitBranch,
-  },
-  {
     title: "Positions",
     href: "/dashboard/positions",
     icon: TrendingUp,
   },
   {
+    title: "Signal Flow",
+    href: "/dashboard/signal-flow",
+    icon: GitBranch,
+  },
+  {
     title: "Logs",
     href: "/dashboard/logs",
     icon: ScrollText,
+  },
+  {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
   },
   {
     title: "Settings",

@@ -407,8 +407,8 @@ export function SettingsForm() {
               const dotClass = !health
                 ? "bg-muted-foreground"
                 : health.kvReachable
-                  ? "bg-emerald-500"
-                  : "bg-red-500";
+                  ? "bg-success"
+                  : "bg-destructive";
               const tooltip = !health
                 ? "Health endpoint unreachable"
                 : health.kvReachable
@@ -450,7 +450,7 @@ export function SettingsForm() {
             <TabsContent
               key={config.worker}
               value={config.worker}
-              className="space-y-6"
+              className="flex flex-col gap-6"
             >
               {config.sections.map((section: DashboardSection) => {
                 const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
@@ -461,7 +461,7 @@ export function SettingsForm() {
                   >
                     <CardHeader className="pb-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Icon className="h-5 w-5 text-primary" />
                             {section.title}

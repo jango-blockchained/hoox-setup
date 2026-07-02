@@ -125,6 +125,34 @@ describe("Dashboard Components - Module Imports", () => {
       expect(module).toHaveProperty("NavDocuments");
       expect(module.NavDocuments.name).toBe("NavDocuments");
     });
+
+    it("should expose only valid, real route hrefs (no '#' placeholders)", async () => {
+      const module = await import("../src/components/dashboard/nav-documents");
+      expect(module.NavDocuments).toBeDefined();
+      // The component is a function; we cannot introspect the `quickLinks`
+      // constant directly, so we import the source and assert that no broken
+      // hrefs or duplicates of /dashboard exist.
+      const sourcePath = `${import.meta.dir}/../src/components/dashboard/nav-documents.tsx`;
+      const source = await Bun.file(sourcePath).text();
+      expect(source).not.toMatch(/href:\s*['"]#['"]/);
+      // Ensure the Analytics → /dashboard duplicate is gone.
+      expect(source).not.toMatch(/href:\s*['"]\/dashboard['"]/);
+      // Ensure each remaining href is a real dashboard sub-route.
+      const hrefMatches = [
+        ...source.matchAll(/href:\s*['"](\/dashboard\/[a-z-]+)['"]/g),
+      ];
+      expect(hrefMatches.length).toBeGreaterThan(0);
+      const hrefs = hrefMatches.map((m) => m[1]);
+      for (const href of hrefs) {
+        expect(href).toMatch(/^\/dashboard\/[a-z-]+$/);
+      }
+    });
+
+    it("should not include a destructive Delete action (dashboard pages cannot be deleted)", async () => {
+      const sourcePath = `${import.meta.dir}/../src/components/dashboard/nav-documents.tsx`;
+      const source = await Bun.file(sourcePath).text();
+      expect(source).not.toMatch(/variant:\s*['"]destructive['"]/);
+    });
   });
 
   describe("NavSecondary Component", () => {
@@ -573,6 +601,49 @@ describe("Dashboard Components - Module Imports", () => {
       const { AiHealthCard } =
         await import("../src/components/dashboard/ai-health-card");
       expect(AiHealthCard).toBeDefined();
+    });
+  });
+
+  // Database Explorer
+  describe("DatabaseTableBrowser Component", () => {
+    it("should be importable", async () => {
+      const { DatabaseTableBrowser } =
+        await import("../src/components/dashboard/database-table-browser");
+      expect(DatabaseTableBrowser).toBeDefined();
+      expect(typeof DatabaseTableBrowser).toBe("function");
+    });
+
+    it("should export DatabaseTableBrowser as a React component", async () => {
+      const module =
+        await import("../src/components/dashboard/database-table-browser");
+      expect(module).toHaveProperty("DatabaseTableBrowser");
+      expect(module.DatabaseTableBrowser.name).toBe("DatabaseTableBrowser");
+    });
+
+    it("should be a client component", async () => {
+      const module =
+        await import("../src/components/dashboard/database-table-browser");
+      expect(module.DatabaseTableBrowser).toBeDefined();
+    });
+  });
+
+  describe("SchemaViewer Component", () => {
+    it("should be importable", async () => {
+      const { SchemaViewer } =
+        await import("../src/components/dashboard/schema-viewer");
+      expect(SchemaViewer).toBeDefined();
+      expect(typeof SchemaViewer).toBe("function");
+    });
+
+    it("should export SchemaViewer as a React component", async () => {
+      const module = await import("../src/components/dashboard/schema-viewer");
+      expect(module).toHaveProperty("SchemaViewer");
+      expect(module.SchemaViewer.name).toBe("SchemaViewer");
+    });
+
+    it("should be a client component", async () => {
+      const module = await import("../src/components/dashboard/schema-viewer");
+      expect(module.SchemaViewer).toBeDefined();
     });
   });
 });

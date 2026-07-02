@@ -1,5 +1,6 @@
 import { toError } from "@jango-blockchained/hoox-shared/errors";
 import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared/types";
+import { z } from "zod";
 
 function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
@@ -44,6 +45,31 @@ export interface SystemLog {
   timestamp: number;
   source?: string;
 }
+
+export interface Report {
+  id: string;
+  key: string;
+  name: string;
+  size: number;
+  createdAt: string;
+  type: "pdf" | "csv";
+}
+
+// Zod v4 schemas for the /api/reports contract. The same shape is enforced
+// at the network boundary in workers/dashboard/src/app/api/reports/route.ts.
+const reportSchema = z.object({
+  id: z.string().min(1),
+  key: z.string().min(1),
+  name: z.string().min(1),
+  size: z.number().int().nonnegative(),
+  createdAt: z.string().min(1),
+  type: z.enum(["pdf", "csv"]),
+});
+
+const reportsResponseSchema = z.object({
+  success: z.literal(true),
+  reports: z.array(reportSchema),
+});
 
 export interface WorkerStatus {
   name: string;
@@ -140,6 +166,27 @@ class ApiClient {
     );
     const result = this.asObject(data);
     return { success: result?.success || false, logs: result?.logs || [] };
+  }
+
+  // Reports — proxied via the dashboard's own /api/reports route, which
+  // eventually calls into report-worker. The response is Zod v4-validated
+  // so a schema mismatch fails closed (returns an empty list) rather than
+  // rendering untyped data.
+  async getReports(): Promise<{ success: boolean; reports: Report[] }> {
+    try {
+      const data = await this.fetchWithAuth("/api/reports");
+      const parsed = reportsResponseSchema.safeParse(data);
+      if (parsed.success) {
+        return { success: true, reports: parsed.data.reports };
+      }
+      console.warn("getReports: response did not match schema", {
+        issues: parsed.error.issues.slice(0, 3),
+      });
+      return { success: false, reports: [] };
+    } catch (e) {
+      console.error("getReports: fetch failed", e);
+      return { success: false, reports: [] };
+    }
   }
 
   // Agent Status
@@ -262,6 +309,178 @@ class ApiClient {
         secretValue,
       }),
     });
+  }
+
+  // Database Explorer ─────────────────────────────────────────────────
+  //
+  // Static list of tables exposed by d1-worker. Mirrors the
+  // TABLE_ALLOWLIST in workers/d1-worker/src/index.ts — keep in sync.
+  // d1-worker does not expose a /schema endpoint today, so the dashboard
+  // uses this static catalog. Callers should treat the result as a
+  // best-effort catalog; the server is the source of truth.
+  private static readonly DATABASE_TABLES = [
+    "trade_signals",
+    "trades",
+    "positions",
+    "balances",
+    "system_logs",
+    "trade_requests",
+    "trade_responses",
+  ] as const;
+
+  private static readonly TableNameSchema = z.enum(ApiClient.DATABASE_TABLES);
+
+  private static readonly TableInfoSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    d1Name: z.string().min(1),
+    description: z.string(),
+  });
+
+  private static readonly DatabaseTablesResponseSchema = z.object({
+    tables: z.array(ApiClient.TableInfoSchema),
+  });
+
+  private static readonly QueryResultRowSchema = z.record(
+    z.string(),
+    z.unknown()
+  );
+
+  private static readonly QueryResponseSchema = z.object({
+    success: z.boolean(),
+    results: z.array(ApiClient.QueryResultRowSchema).optional(),
+    error: z.string().optional(),
+  });
+
+  /**
+   * Returns the static catalog of D1 tables the dashboard can browse.
+   * Validated with Zod v4 at the boundary (test-coverage.md).
+   */
+  getDatabaseTables(): {
+    tables: {
+      id: string;
+      label: string;
+      d1Name: string;
+      description: string;
+    }[];
+  } {
+    const tables = ApiClient.DatabaseTablesResponseSchema.parse({
+      tables: [
+        {
+          id: "signals",
+          label: "Signals",
+          d1Name: "trade_signals",
+          description: "Incoming trade signals from webhooks and email parsers",
+        },
+        {
+          id: "positions",
+          label: "Positions",
+          d1Name: "positions",
+          description:
+            "Active and historical trading positions across exchanges",
+        },
+        {
+          id: "trades",
+          label: "Trades",
+          d1Name: "trades",
+          description:
+            "Executed trade records linked to their originating signals",
+        },
+        {
+          id: "agent_logs",
+          label: "Agent Logs",
+          d1Name: "system_logs",
+          description: "Structured log entries from all workers and AI agents",
+        },
+      ],
+    });
+    return tables;
+  }
+
+  /**
+   * Run a paginated read against d1-worker's /query endpoint.
+   *
+   * The endpoint requires the `X-Internal-Auth-Key` header. The internal
+   * key is only available server-side (via `INTERNAL_KEY_BINDING`),
+   * so this method works when invoked from a Next.js Route Handler or
+   * Server Component. In the browser, the request goes out without
+   * the header and d1-worker returns 401 — the caller is expected to
+   * surface that as a graceful empty state.
+   *
+   * Performs two queries in parallel:
+   *   1. `SELECT COUNT(*) AS count FROM <name>`
+   *   2. `SELECT * FROM <name> ORDER BY id DESC LIMIT ?`
+   *
+   * Both responses are Zod-validated at the boundary.
+   */
+  async queryTable(
+    name: string,
+    limit = 20
+  ): Promise<{ count: number; rows: Record<string, unknown>[] }> {
+    const validatedName = ApiClient.TableNameSchema.parse(name);
+    // `limit` is a positive integer, capped server-side by d1-worker
+    // via `bind()` parameter — no SQL injection risk.
+    const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 1000);
+
+    const endpoint = `${getApiUrl("d1Service")}/query`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (this.internalKey) {
+      headers["X-Internal-Auth-Key"] = this.internalKey;
+    }
+
+    const [countRes, rowsRes] = await Promise.all([
+      fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          query: `SELECT COUNT(*) AS count FROM ${validatedName}`,
+        }),
+      }),
+      fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          query: `SELECT * FROM ${validatedName} ORDER BY id DESC LIMIT ?`,
+          params: [safeLimit],
+        }),
+      }),
+    ]);
+
+    if (!countRes.ok) {
+      const body = (await countRes.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      throw new Error(
+        body.error ??
+          `Count query failed: ${countRes.status} ${countRes.statusText}`
+      );
+    }
+    if (!rowsRes.ok) {
+      const body = (await rowsRes.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      throw new Error(
+        body.error ??
+          `Rows query failed: ${rowsRes.status} ${rowsRes.statusText}`
+      );
+    }
+
+    const countJson = ApiClient.QueryResponseSchema.parse(
+      await countRes.json()
+    );
+    const rowsJson = ApiClient.QueryResponseSchema.parse(await rowsRes.json());
+
+    const countValue = countJson.results?.[0]?.["count"];
+    const count =
+      typeof countValue === "number"
+        ? countValue
+        : typeof countValue === "string"
+          ? Number.parseInt(countValue, 10) || 0
+          : 0;
+
+    return { count, rows: rowsJson.results ?? [] };
   }
 }
 

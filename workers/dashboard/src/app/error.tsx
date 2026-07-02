@@ -1,19 +1,20 @@
 "use client";
 
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 /**
- * Dashboard segment error boundary. Rendered when any route under /dashboard
- * throws during render or data-fetching.
+ * Root error boundary. Rendered when a route outside `/dashboard` throws
+ * (e.g. the auth route, the marketing `/` page, or any non-dashboard segment).
  *
- * Uses shadcn Alert (destructive) for the message and a Button with
- * RefreshCw for the retry action. `reset()` re-renders the segment without
- * unmounting the rest of the layout.
+ * Route-specific boundaries (e.g. `dashboard/error.tsx`) take precedence
+ * within their own segment; this one is the last line of defense before
+ * `global-error.tsx` kicks in.
  */
-export default function DashboardError({
+export default function RootError({
   error,
   reset,
 }: {
@@ -24,13 +25,13 @@ export default function DashboardError({
   const message =
     error?.message && error.message.length > 0
       ? error.message
-      : "An unexpected error occurred while loading this page.";
+      : "An unexpected error occurred. Please try again.";
 
   return (
-    <section
+    <main
       role="alert"
       aria-live="assertive"
-      className="flex h-[80vh] flex-col items-center justify-center gap-6 p-4"
+      className="flex min-h-svh flex-col items-center justify-center gap-6 p-4"
     >
       <Alert variant="destructive" className="max-w-md">
         <AlertTriangle />
@@ -46,12 +47,18 @@ export default function DashboardError({
           </div>
         </AlertDescription>
       </Alert>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button onClick={reset} variant="outline">
           <RefreshCw data-icon="inline-start" aria-hidden="true" />
           Try again
         </Button>
+        <Button asChild>
+          <Link href="/dashboard">
+            <Home data-icon="inline-start" aria-hidden="true" />
+            Go to Dashboard
+          </Link>
+        </Button>
       </div>
-    </section>
+    </main>
   );
 }

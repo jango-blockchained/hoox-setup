@@ -175,7 +175,7 @@ function CircularProgress({ value, total }: { value: number; total: number }) {
           fill="transparent"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          className="text-emerald-500 transition-all duration-1000 ease-out"
+          className="text-success transition-all duration-1000 ease-out"
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center text-center">
@@ -262,7 +262,7 @@ export function SetupChecklist() {
         <Card className="md:col-span-2 border-border bg-card backdrop-blur-xl shadow-2xl shadow-primary/5">
           <CardHeader className="pb-3 border-b border-border/50">
             <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-              <Zap className="h-5 w-5 text-yellow-500" /> Quick Start Guide
+              <Zap className="h-5 w-5 text-warning" /> Quick Start Guide
             </h3>
           </CardHeader>
           <CardContent className="pt-6">
@@ -296,7 +296,7 @@ export function SetupChecklist() {
                 <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-secondary/20 px-3 rounded-md transition-colors">
                   3. Configure TradingView Webhooks
                 </AccordionTrigger>
-                <AccordionContent className="text-xs text-muted-foreground pt-4 px-3 space-y-4">
+                <AccordionContent className="flex flex-col gap-4 text-xs text-muted-foreground pt-4 px-3">
                   <p className="leading-relaxed">
                     In TradingView, create a new alert and set the Webhook URL
                     to your gateway endpoint. Make sure to include the payload
@@ -311,7 +311,7 @@ export function SetupChecklist() {
                     <p className="text-[10px] text-muted-foreground mb-1.5 font-semibold">
                       Webhook URL Format:
                     </p>
-                    <code className="text-xs font-mono text-blue-400 block break-all">
+                    <code className="text-xs font-mono text-primary block break-all">
                       https://hoox.[your-prefix].workers.dev/webhook/tradingview
                     </code>
                   </div>
@@ -321,7 +321,7 @@ export function SetupChecklist() {
                       onClick={testWebhook}
                       disabled={isTestingWebhook}
                       variant="outline"
-                      className="w-full sm:w-auto bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-500 border-emerald-500/30"
+                      className="w-full sm:w-auto bg-success/10 text-success hover:bg-success/20 hover:text-success border-success/30"
                     >
                       {isTestingWebhook ? (
                         <>
@@ -374,7 +374,7 @@ export function SetupChecklist() {
           <CardHeader className="pb-3 border-b border-border/50">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-emerald-500" />
+                <Activity className="h-5 w-5 text-success" />
                 Service Connections
               </CardTitle>
               <Button
@@ -407,7 +407,7 @@ export function SetupChecklist() {
                 <span className="font-medium text-muted-foreground">
                   Overall Health
                 </span>
-                <span className="font-bold text-emerald-500">
+                <span className="font-bold text-success">
                   {housekeeping?.checks
                     ? Math.round(
                         (housekeeping.checks.filter((c) => c.status === "ok")
@@ -464,7 +464,7 @@ export function SetupChecklist() {
                         <td className="px-4 py-3 text-center">
                           <div className="flex justify-center">
                             <div
-                              className={`flex items-center justify-center h-6 w-6 rounded-full ${check.status === "ok" ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"}`}
+                              className={`flex items-center justify-center h-6 w-6 rounded-full ${check.status === "ok" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}
                             >
                               {check.status === "ok" ? (
                                 <CheckCircle2 className="h-4 w-4" />
@@ -489,8 +489,8 @@ export function SetupChecklist() {
                   </tbody>
                 </table>
                 <div className="p-4 bg-muted/20 border-t border-border">
-                  <Alert className="bg-background/50 border-emerald-500/20 text-emerald-500">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <Alert className="bg-background/50 border-success/20 text-success">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                     <AlertTitle>Internal Auth Keys Valid</AlertTitle>
                     <AlertDescription className="text-xs text-muted-foreground mt-1">
                       If services show as &quot;ok&quot;, their internal auth
@@ -545,7 +545,7 @@ export function SetupChecklist() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 hover:text-blue-500 border-blue-500/30"
+                  className="bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary border-primary/30"
                   onClick={() => {
                     const cmds = secretsList
                       .filter((s) => !s.configured)
@@ -567,7 +567,7 @@ export function SetupChecklist() {
               </div>
             )}
           </CardHeader>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="flex flex-col gap-6 pt-6">
             {Object.entries(
               secretsList.reduce(
                 (acc, secret) => {
@@ -578,11 +578,11 @@ export function SetupChecklist() {
                 {} as Record<string, typeof secretsList>
               )
             ).map(([group, secrets]) => (
-              <div key={group} className="space-y-3">
+              <div key={group} className="flex flex-col gap-3">
                 <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2">
                   {group}
                 </h3>
-                <div className="space-y-0 divide-y divide-border border border-border rounded-md overflow-hidden">
+                <div className="flex flex-col gap-0 divide-y divide-border border border-border rounded-md overflow-hidden">
                   {secrets.map((req, i) => {
                     const cmd = `bun run scripts/manage.ts secrets update-cf ${req.secret} ${req.worker} "${req.example}"`;
                     return (
@@ -594,7 +594,7 @@ export function SetupChecklist() {
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-2">
                               {req.configured ? (
-                                <Cloud className="h-4 w-4 text-emerald-500 shrink-0" />
+                                <Cloud className="h-4 w-4 text-success shrink-0" />
                               ) : (
                                 <CloudOff className="h-4 w-4 text-muted-foreground shrink-0" />
                               )}
@@ -606,7 +606,7 @@ export function SetupChecklist() {
                               {req.configured && (
                                 <Badge
                                   variant="outline"
-                                  className="text-emerald-500 border-emerald-500 bg-emerald-500/10 h-5 px-1.5 ml-2"
+                                  className="text-success border-success bg-success/10 h-5 px-1.5 ml-2"
                                 >
                                   Synced
                                 </Badge>
@@ -627,15 +627,11 @@ export function SetupChecklist() {
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500 opacity-50" />
                           <div className="flex items-center gap-3 overflow-x-auto w-full pl-2">
                             <Terminal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                            <code className="text-[11px] font-[family-name:var(--font-geist-mono)] whitespace-nowrap text-gray-300">
-                              <span className="text-blue-400">bun run</span>{" "}
+                            <code className="text-[11px] font-[family-name:var(--font-geist-mono)] whitespace-nowrap text-muted-foreground">
+                              <span className="text-primary">bun run</span>{" "}
                               scripts/manage.ts secrets update-cf{" "}
-                              <span className="text-green-400">
-                                {req.secret}
-                              </span>{" "}
-                              <span className="text-yellow-400">
-                                {req.worker}
-                              </span>{" "}
+                              <span className="text-success">{req.secret}</span>{" "}
+                              <span className="text-warning">{req.worker}</span>{" "}
                               <span className="text-neutral-400">
                                 &quot;{req.example}&quot;
                               </span>
@@ -664,7 +660,7 @@ export function SetupChecklist() {
             ))}
 
             <Alert className="mt-6 bg-muted/50 border-border">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
               <AlertTitle>Secret Management</AlertTitle>
               <AlertDescription className="text-xs text-muted-foreground mt-1">
                 Secrets are directly loaded from your Cloudflare Secret Store.

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 import type { DashboardEnv } from "@/lib/env";
-import { READ_PREFIXES } from "@/lib/settings/prefixes";
 import { DEFAULT_WORKER_LIST } from "@/lib/settings/workers";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +93,9 @@ export async function GET(
     }
   }
 
-  // The schema is z.object — server-side, not from the network. Skip
-  // safeParse cost in production. The shape is fixed.
-  return NextResponse.json({ workers });
+  // Run the response through the schema for runtime validation. This
+  // guards against future drift between the declared type and the
+  // actual object built above (e.g. if a new worker field is added).
+  const response = HealthResponseSchema.parse({ workers });
+  return NextResponse.json(response);
 }
