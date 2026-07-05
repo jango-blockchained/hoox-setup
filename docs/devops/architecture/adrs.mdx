@@ -10,14 +10,14 @@ This directory contains the Architecture Decision Records for the Hoox trading p
 
 ## ADR Index
 
-| # | Title | Status | Date |
-| --- | --- | --- | --- |
-| 001 | Cloudflare Workers as Execution Platform | Accepted | 2025-04 |
+| #   | Title                                         | Status   | Date    |
+| --- | --------------------------------------------- | -------- | ------- |
+| 001 | Cloudflare Workers as Execution Platform      | Accepted | 2025-04 |
 | 002 | SQLite-backed Durable Objects for Idempotency | Accepted | 2025-05 |
-| 003 | 9-Microservice Architecture | Accepted | 2025-06 |
-| 004 | Dual-Layer Configuration (Env \+ KV) | Accepted | 2025-06 |
+| 003 | 9-Microservice Architecture                   | Accepted | 2025-06 |
+| 004 | Dual-Layer Configuration (Env \+ KV)          | Accepted | 2025-06 |
 | 005 | Multi-Provider AI Gateway with Fallback Chain | Accepted | 2026-03 |
-| 006 | Bun Workspaces for Monorepo Management | Accepted | 2025-04 |
+| 006 | Bun Workspaces for Monorepo Management        | Accepted | 2025-04 |
 
 ---
 
@@ -61,17 +61,17 @@ This directory contains the Architecture Decision Records for the Hoox trading p
 
 **Decision:** Split the platform into 9 specialized workers, each with a single responsibility:
 
-| Worker | Responsibility |
-| --- | --- |
-| `hoox` | Gateway, validation, rate limiting, idempotency |
-| `trade-worker` | Exchange order execution, leverage calculation |
-| `agent-worker` | AI risk management, trailing stops, cron jobs |
-| `d1-worker` | All SQLite read/write operations |
-| `telegram-worker` | Push notifications, chat command handling |
-| `web3-wallet-worker` | On-chain DeFi swap execution |
-| `email-worker` | Email signal parsing (POP3/IMAP) |
-| `analytics-worker` | Metrics collection and reporting |
-| `report-worker` | PDF portfolio report generation |
+| Worker               | Responsibility                                  |
+| -------------------- | ----------------------------------------------- |
+| `hoox`               | Gateway, validation, rate limiting, idempotency |
+| `trade-worker`       | Exchange order execution, leverage calculation  |
+| `agent-worker`       | AI risk management, trailing stops, cron jobs   |
+| `d1-worker`          | All SQLite read/write operations                |
+| `telegram-worker`    | Push notifications, chat command handling       |
+| `web3-wallet-worker` | On-chain DeFi swap execution                    |
+| `email-worker`       | Email signal parsing (POP3/IMAP)                |
+| `analytics-worker`   | Metrics collection and reporting                |
+| `report-worker`      | PDF portfolio report generation                 |
 
 **Consequences:**
 
@@ -90,8 +90,18 @@ This directory contains the Architecture Decision Records for the Hoox trading p
 **Decision:** Use two distinct configuration layers:
 
 <ol>
-  <li><strong>Build-time (<code>.env.local</code> + Workers Secrets):</strong> API keys, internal auth keys, dashboard credentials. Managed via <code>hoox secrets set</code> and <code>hoox config env</code>.</li>
-  <li><strong>Runtime (Cloudflare KV):</strong> Kill switch, exchange routing, rate-limiter thresholds, email regex patterns. Managed via <code>hoox config kv set</code> and propagates globally in under 10 seconds.</li>
+  <li>
+    <strong>
+      Build-time (<code>.env.local</code> + Workers Secrets):
+    </strong>{" "}
+    API keys, internal auth keys, dashboard credentials. Managed via{" "}
+    <code>hoox secrets set</code> and <code>hoox config env</code>.
+  </li>
+  <li>
+    <strong>Runtime (Cloudflare KV):</strong> Kill switch, exchange routing,
+    rate-limiter thresholds, email regex patterns. Managed via{" "}
+    <code>hoox config kv set</code> and propagates globally in under 10 seconds.
+  </li>
 </ol>
 
 **Consequences:**

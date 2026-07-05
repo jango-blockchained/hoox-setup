@@ -21,11 +21,34 @@ hoox infra provision
 This command performs a dependency audit and calls Cloudflare's APIs to provision:
 
 <ol>
-  <li><strong>D1 SQLite Database</strong> (<code>hoox-db</code>).</li>
-  <li><strong>CONFIG\_KV</strong> Namespace bucket.</li>
-  <li><strong><code>trade-execution</code></strong> messaging Queue.</li>
-  <li><strong><code>trade-reports</code></strong> and <strong><code>system-logs</code></strong> R2 object storage buckets.</li>
-  <li><strong><code>rag-index</code></strong> Vectorize vector search database.</li>
+  <li>
+    <strong>D1 SQLite Database</strong> (<code>hoox-db</code>).
+  </li>
+  <li>
+    <strong>CONFIG\_KV</strong> Namespace bucket.
+  </li>
+  <li>
+    <strong>
+      <code>trade-execution</code>
+    </strong>{" "}
+    messaging Queue.
+  </li>
+  <li>
+    <strong>
+      <code>trade-reports</code>
+    </strong>{" "}
+    and{" "}
+    <strong>
+      <code>system-logs</code>
+    </strong>{" "}
+    R2 object storage buckets.
+  </li>
+  <li>
+    <strong>
+      <code>rag-index</code>
+    </strong>{" "}
+    Vectorize vector search database.
+  </li>
 </ol>
 
 ---
@@ -46,7 +69,10 @@ hoox infra d1 delete my-custom-db
 ```
 
 <Note>
-  Once a D1 database is created, the CLI will output its unique `database_id` (a 36-character UUID). You must ensure this ID is bound in your worker's `wrangler.jsonc` file so the worker V8 isolate can establish a connection at runtime.
+  Once a D1 database is created, the CLI will output its unique `database_id` (a
+  36-character UUID). You must ensure this ID is bound in your worker's
+  `wrangler.jsonc` file so the worker V8 isolate can establish a connection at
+  runtime.
 </Note>
 
 ---

@@ -88,10 +88,25 @@ When a trade signal is fired, it must include a unique transaction signature.
 Before executing any order routing:
 
 <ol>
-  <li>The gateway routes the request to the namespace-mapped Durable Object using the transaction ID as the binding key.</li>
-  <li>The Durable Object checks its internal state. Since DOs are single-threaded, there is <strong>zero risk of race conditions</strong>—if two identical HTTP requests hit Cloudflare simultaneously, they are processed sequentially inside the DO.</li>
-  <li>If the ID exists in the DO's SQLite log, the DO immediately intercepts the request and throws a <code>409 Conflict</code> exception, stopping the pipeline before hitting exchange APIs.</li>
-  <li>If unique, it registers the ID, saves the current timestamp, and returns a lock approval.</li>
+  <li>
+    The gateway routes the request to the namespace-mapped Durable Object using
+    the transaction ID as the binding key.
+  </li>
+  <li>
+    The Durable Object checks its internal state. Since DOs are single-threaded,
+    there is <strong>zero risk of race conditions</strong>—if two identical HTTP
+    requests hit Cloudflare simultaneously, they are processed sequentially
+    inside the DO.
+  </li>
+  <li>
+    If the ID exists in the DO's SQLite log, the DO immediately intercepts the
+    request and throws a <code>409 Conflict</code> exception, stopping the
+    pipeline before hitting exchange APIs.
+  </li>
+  <li>
+    If unique, it registers the ID, saves the current timestamp, and returns a
+    lock approval.
+  </li>
 </ol>
 
 ### 3. Automatic TTL & Storage Alarms
@@ -107,9 +122,14 @@ To prevent the Durable Object's persistent storage from growing indefinitely and
 When a DO instance has been idle (no requests for the TTL period), Cloudflare may evict it from memory. Upon the next request:
 
 <ol>
-  <li>The DO is <strong>reconstructed</strong> from its persisted SQLite state on disk.</li>
+  <li>
+    The DO is <strong>reconstructed</strong> from its persisted SQLite state on
+    disk.
+  </li>
   <li>All previously recorded trace IDs are loaded back into memory.</li>
-  <li>The dedup check continues seamlessly — no data loss, no duplicate risk.</li>
+  <li>
+    The dedup check continues seamlessly — no data loss, no duplicate risk.
+  </li>
 </ol>
 
 This means idempotency protection **survives worker restarts, cold starts, and infrastructure failovers** without any manual intervention.
@@ -118,15 +138,17 @@ This means idempotency protection **survives worker restarts, cold starts, and i
 
 ## 📊 Performance Impact
 
-| Metric | Value | Notes |
-| --- | --- | --- |
-| DO ping overhead | **\< 2ms** | Per-request latency added |
-| Lock acquisition | **\< 1ms** | Single-threaded, no contention |
-| Dedup check (cache hit) | **\< 0.5ms** | In-memory SQLite query |
-| Storage alarm cleanup | **\< 5ms** | Runs in background, non-blocking |
+| Metric                  | Value        | Notes                            |
+| ----------------------- | ------------ | -------------------------------- |
+| DO ping overhead        | **\< 2ms**   | Per-request latency added        |
+| Lock acquisition        | **\< 1ms**   | Single-threaded, no contention   |
+| Dedup check (cache hit) | **\< 0.5ms** | In-memory SQLite query           |
+| Storage alarm cleanup   | **\< 5ms**   | Runs in background, non-blocking |
 
 <Warning>
-  Never disable idempotency check bindings in your `wrangler.jsonc` file in production. The performance cost of pinging the DO is less than **2 milliseconds**, while the cost of a duplicate order could be catastrophic.
+  Never disable idempotency check bindings in your `wrangler.jsonc` file in
+  production. The performance cost of pinging the DO is less than **2
+  milliseconds**, while the cost of a duplicate order could be catastrophic.
 </Warning>
 
 ### 🔗 Next Steps
