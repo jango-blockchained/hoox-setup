@@ -26,7 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MobileNav } from "./mobile-nav";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { motion } from "framer-motion";
 
 export function DashboardHeader() {
@@ -62,7 +62,7 @@ export function DashboardHeader() {
       <header className="sticky top-0 z-50 border-b border-border bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80">
         <div className="flex h-14 items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-4">
-            <MobileNav />
+            <SidebarTrigger className="lg:hidden" />
             <Link href="/dashboard" className="flex items-center gap-2 group">
               <motion.div
                 className="flex size-8 items-center justify-center rounded-md bg-primary transition-transform group-hover:scale-105"

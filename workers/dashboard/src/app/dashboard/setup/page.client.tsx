@@ -1,20 +1,20 @@
 "use client";
 
-import { SetupChecklist } from "@/components/dashboard/setup-checklist";
-import { DeployedInfrastructure } from "@/components/dashboard/deployed-infrastructure";
-import { PageHeader } from "@/components/dashboard/page-header";
 import { Wrench } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { SetupWizard } from "@/components/dashboard/setup/setup-wizard";
+import { DeployedInfrastructure } from "@/components/dashboard/deployed-infrastructure";
 
 export default function SetupClient() {
   return (
-    <div className="flex-1 flex flex-col gap-6 p-4 md:p-8 pt-6">
+    <div className="flex flex-1 flex-col gap-6 p-4 pt-6 md:p-8">
       <PageHeader
         as="h2"
-        icon={<Wrench className="h-8 w-8 text-primary" />}
-        title="Setup Validation"
+        icon={<Wrench className="text-primary size-8" />}
+        title="Setup Wizard"
       />
+      <SetupWizard />
       <DeployedInfrastructure />
-      <SetupChecklist />
     </div>
   );
 }
