@@ -10,10 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavMain } from "./nav-main";
-import { NavDocuments } from "./nav-documents";
-import { NavSecondary } from "./nav-secondary";
-import { NavUser } from "./nav-user";
+import { SidebarNav } from "./sidebar-nav";
+import { NavUser } from "./sidebar-user";
 import Link from "next/link";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -35,9 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain />
-        <NavDocuments />
-        <NavSecondary className="mt-auto" />
+        <SidebarNav />
       </SidebarContent>
       <SidebarFooter>
         <NavUser

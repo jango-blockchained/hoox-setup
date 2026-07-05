@@ -2,6 +2,7 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { LiveTicker } from "@/components/dashboard/live-ticker";
 import { CommandPalette } from "@/components/dashboard/command-palette";
 import { AmbientBackground } from "@/components/dashboard/ambient-background";
+import { FirstRunRedirect } from "@/components/dashboard/setup/first-run-redirect";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Footer } from "@/app/footer";
@@ -21,6 +22,7 @@ export default function DashboardLayout({
   return (
     <AmbientBackground>
       <SidebarProvider>
+        <FirstRunRedirect />
         <AppSidebar />
         <SidebarInset>
           <DashboardHeader />
