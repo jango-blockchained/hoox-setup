@@ -20,6 +20,23 @@ This package provides the shared foundation for all Hoox workers. It includes:
 
 → [Architecture Overview](../../docs/devops/architecture/overview.md)
 
+## Public API
+
+This package is published as `@jango-blockchained/hoox-shared` and exposes a layered import surface via the package `exports` map. All subpaths resolve to compiled `dist/*.js` and `dist/*.d.ts` files — the package tarball does **not** include TypeScript sources.
+
+| Import                                            | Resolves to               | Notes                                                               |
+| ------------------------------------------------- | ------------------------- | ------------------------------------------------------------------- |
+| `@jango-blockchained/hoox-shared`                 | `dist/index.js`           | Main barrel — everything in `src/index.ts`                          |
+| `@jango-blockchained/hoox-shared/<subdir>`        | `dist/<subdir>/index.js`  | Sub-barrel for the named subdirectory                               |
+| `@jango-blockchained/hoox-shared/<subdir>/<file>` | `dist/<subdir>/<file>.js` | Specific submodule file                                             |
+| `@jango-blockchained/hoox-shared/stores/<store>`  | `dist/stores/<store>.js`  | Zustand stores — deep-import only (no barrel)                       |
+| `@jango-blockchained/hoox-shared/types`           | `dist/types/index.d.ts`   | Type-only re-exports                                                |
+| `@jango-blockchained/hoox-shared/<anything-else>` | `dist/<anything-else>.js` | Catch-all for top-level modules (e.g. `errors`, `router`, `kvKeys`) |
+
+The named subdirectories with deep-import support are: `middleware`, `d1`, `schemas`, `wizard`, `exchanges`. Each one re-exports its submodules from its `index.ts` barrel, so the bare-subdir form (`<subdir>`) and the deep form (`<subdir>/<file>`) return the same symbols — the bare form is just the pre-bundled rollup.
+
+**Recommendation:** prefer the bare form for subdirectories (`hoox-shared/middleware`) unless you specifically need a single submodule to keep the import graph small. The bare form gives you a stable, curated surface; the deep form is for tree-shaking-conscious or very specific use cases.
+
 ## Development
 
 ```bash
