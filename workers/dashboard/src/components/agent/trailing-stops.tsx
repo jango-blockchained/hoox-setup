@@ -69,7 +69,7 @@ export function TrailingStops() {
                   </Badge>
                 </TableCell>
                 <TableCell>${stop.entry.toLocaleString()}</TableCell>
-                <TableCell className="text-emerald-500">
+                <TableCell className="text-success">
                   ${stop.current.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-destructive">

@@ -113,7 +113,7 @@ export function SuccessRateCard() {
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="text-4xl font-bold">{rate.toFixed(1)}%</div>
@@ -124,9 +124,9 @@ export function SuccessRateCard() {
                 </div>
                 <div className="size-16 rounded-full border-8 border-primary/20 flex items-center justify-center">
                   {rate >= 80 ? (
-                    <TrendingUp className="h-6 w-6 text-green-500" />
+                    <TrendingUp className="h-6 w-6 text-success" />
                   ) : (
-                    <TrendingDown className="h-6 w-6 text-red-500" />
+                    <TrendingDown className="h-6 w-6 text-destructive" />
                   )}
                 </div>
               </div>

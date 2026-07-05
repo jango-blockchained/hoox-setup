@@ -370,22 +370,20 @@ async function runDatabaseChecks(
       );
 
       if (sqlResult.ok) {
-        // wrangler d1 execute --json outputs the result rows
-        // Parse the JSON output to extract table names
-        const tableNames: string[] = [];
-        const lines = sqlResult.value.split("\n");
-        for (const line of lines) {
-          try {
-            const parsed = JSON.parse(line.trim());
-            if (parsed.results) {
-              for (const row of parsed.results) {
-                if (row.name) tableNames.push(row.name);
-              }
-            }
-          } catch {
-            // skip non-JSON lines
-          }
-        }
+        // d1Execute now returns the pure JSON (extracted from
+        // wrangler's noisy stdout). The shape is a top-level
+        // array wrapping an object with a `results` field:
+        //   [{ "results": [{ "name": "..." }, ...], "success": true, ... }]
+        // We need the inner rows. Earlier wrangler versions
+        // returned the rows array directly; the d1Execute wrapper
+        // now normalises to the wrapper shape.
+        const wrapper: Array<{
+          results?: Array<{ name?: string }>;
+        }> = JSON.parse(sqlResult.value);
+        const rows = wrapper[0]?.results ?? [];
+        const tableNames = rows
+          .map((r) => r.name)
+          .filter((n): n is string => Boolean(n));
 
         const missing = requiredTables.filter((t) => !tableNames.includes(t));
         if (missing.length === 0) {

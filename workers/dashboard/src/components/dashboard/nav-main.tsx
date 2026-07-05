@@ -10,8 +10,15 @@ import {
   Brain,
   ChevronDown,
   BarChart3,
+  Database,
+  Radio,
+  Bell,
+  FileText,
 } from "lucide-react";
 import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -24,7 +31,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
 
-const navItems = [
+// Top-level navigation: rendered as a flat list at the top of the sidebar.
+const primaryItems = [
   {
     title: "Overview",
     href: "/dashboard",
@@ -45,6 +53,35 @@ const navItems = [
     href: "/dashboard/analytics",
     icon: BarChart3,
   },
+];
+
+// "Tools" group: data inspection, notifications, and report retrieval.
+// Grouped visually so the sidebar doesn't read as one long list of 12 items.
+const toolsItems = [
+  {
+    title: "Database",
+    href: "/dashboard/database",
+    icon: Database,
+  },
+  {
+    title: "Signals",
+    href: "/dashboard/signals",
+    icon: Radio,
+  },
+  {
+    title: "Notifications",
+    href: "/dashboard/notifications",
+    icon: Bell,
+  },
+  {
+    title: "Reports",
+    href: "/dashboard/reports",
+    icon: FileText,
+  },
+];
+
+// Tail of the sidebar: ops, system, AI agent, settings.
+const tailItems = [
   {
     title: "Logs",
     href: "/dashboard/logs",
@@ -76,67 +113,99 @@ const navItems = [
   },
 ];
 
+interface NavItem {
+  title: string;
+  href?: string;
+  icon: typeof LayoutDashboard;
+  children?: { title: string; href: string }[];
+}
+
+function renderItem(
+  item: NavItem,
+  pathname: string | null,
+  expandedItem: string | null,
+  setExpandedItem: (title: string | null) => void
+) {
+  const isActive =
+    pathname === item.href ||
+    (item.href !== "/dashboard" && pathname?.startsWith(item.href ?? ""));
+
+  const hasChildren = item.children && item.children.length > 0;
+  const isExpanded = expandedItem === item.title;
+
+  return (
+    <div key={item.href || item.title}>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          isActive={isActive}
+          className="transition-colors"
+          onClick={() =>
+            hasChildren && setExpandedItem(isExpanded ? null : item.title)
+          }
+        >
+          {hasChildren ? (
+            <button className="flex items-center w-full">
+              <item.icon />
+              <span>{item.title}</span>
+              <ChevronDown
+                className={cn(
+                  "ml-auto h-4 w-4 transition-transform",
+                  isExpanded && "rotate-180"
+                )}
+              />
+            </button>
+          ) : (
+            <Link href={item.href ?? "#"}>
+              <item.icon />
+              <span>{item.title}</span>
+            </Link>
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      {hasChildren && isExpanded && (
+        <SidebarMenuSub>
+          {item.children?.map((child) => (
+            <SidebarMenuSubItem key={child.href}>
+              <SidebarMenuSubButton asChild isActive={pathname === child.href}>
+                <Link href={child.href}>{child.title}</Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+    </div>
+  );
+}
+
 export function NavMain() {
   const pathname = usePathname();
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   return (
-    <SidebarMenu>
-      {navItems.map((item) => {
-        const isActive =
-          pathname === item.href ||
-          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+    <>
+      <SidebarMenu>
+        {primaryItems.map((item) =>
+          renderItem(item, pathname, expandedItem, setExpandedItem)
+        )}
+      </SidebarMenu>
 
-        const hasChildren = item.children && item.children.length > 0;
-        const isExpanded = expandedItem === item.title;
-
-        return (
-          <div key={item.href || item.title}>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive}
-                className="transition-colors"
-                onClick={() =>
-                  hasChildren && setExpandedItem(isExpanded ? null : item.title)
-                }
-              >
-                {hasChildren ? (
-                  <button className="flex items-center w-full">
-                    <item.icon />
-                    <span>{item.title}</span>
-                    <ChevronDown
-                      className={cn(
-                        "ml-auto h-4 w-4 transition-transform",
-                        isExpanded && "rotate-180"
-                      )}
-                    />
-                  </button>
-                ) : (
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {hasChildren && isExpanded && (
-              <SidebarMenuSub>
-                {item.children.map((child) => (
-                  <SidebarMenuSubItem key={child.href}>
-                    <SidebarMenuSubButton
-                      asChild
-                      isActive={pathname === child.href}
-                    >
-                      <Link href={child.href}>{child.title}</Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
+      <SidebarGroup>
+        <SidebarGroupLabel>Tools</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {toolsItems.map((item) =>
+              renderItem(item, pathname, expandedItem, setExpandedItem)
             )}
-          </div>
-        );
-      })}
-    </SidebarMenu>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarMenu>
+        {tailItems.map((item) =>
+          renderItem(item, pathname, expandedItem, setExpandedItem)
+        )}
+      </SidebarMenu>
+    </>
   );
 }

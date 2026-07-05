@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,31 +9,59 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  CommandShortcut,
 } from "@/components/ui/command";
 import {
+  Activity,
+  BarChart3,
+  Bell,
+  Bot,
+  Brain,
+  Cpu,
+  Database,
+  Eye,
+  FileText,
+  GitBranch,
+  Home,
   LayoutDashboard,
+  MessageSquare,
+  Radio,
+  ScrollText,
+  Search,
+  Settings,
+  ShieldAlert,
+  SunMoon,
   TrendingUp,
   Wrench,
-  Settings,
-  GitBranch,
-  ScrollText,
-  Home,
-  Search,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+
+type CommandGroupName = "Navigation" | "Agent" | "Actions";
 
 interface CommandPaletteItem {
   icon: typeof LayoutDashboard;
   label: string;
   shortcut?: string;
   action: () => void;
-  group: string;
+  group: CommandGroupName;
 }
+
+const GROUP_ORDER: readonly CommandGroupName[] = [
+  "Navigation",
+  "Agent",
+  "Actions",
+];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  // useTheme() is safe to call without a ThemeProvider — next-themes returns
+  // the default context (with a no-op setTheme) so we can still mirror the
+  // change to the DOM and get immediate visual feedback.
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,55 +75,162 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const navigate = (path: string) => () => {
+    setOpen(false);
+    router.push(path);
+  };
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const isDark = root.classList.contains("dark");
+    const next = isDark ? "light" : "dark";
+    setTheme(next);
+    // Mirror to DOM so theme changes immediately, even if no ThemeProvider
+    // is mounted (the project layout doesn't include one yet).
+    root.classList.toggle("dark", next === "dark");
+    setOpen(false);
+    toast.success(`Theme switched to ${next}`);
+  };
+
   const commands: CommandPaletteItem[] = [
+    // Navigation group — alphabetical
     {
-      icon: Home,
-      label: "Go to Home",
-      shortcut: "⌘H",
-      action: () => router.push("/"),
+      icon: BarChart3,
+      label: "Analytics",
+      action: navigate("/dashboard/analytics"),
+      group: "Navigation",
+    },
+    {
+      icon: Database,
+      label: "Database",
+      action: navigate("/dashboard/database"),
       group: "Navigation",
     },
     {
       icon: LayoutDashboard,
       label: "Dashboard",
       shortcut: "⌘D",
-      action: () => router.push("/dashboard"),
+      action: navigate("/dashboard"),
+      group: "Navigation",
+    },
+    {
+      icon: Home,
+      label: "Go to Home",
+      shortcut: "⌘H",
+      action: navigate("/"),
+      group: "Navigation",
+    },
+    {
+      icon: Bell,
+      label: "Notifications",
+      action: navigate("/dashboard/notifications"),
       group: "Navigation",
     },
     {
       icon: TrendingUp,
       label: "Positions",
       shortcut: "⌘P",
-      action: () => router.push("/dashboard/positions"),
+      action: navigate("/dashboard/positions"),
       group: "Navigation",
     },
     {
-      icon: Wrench,
-      label: "Setup",
-      shortcut: "⌘S",
-      action: () => router.push("/dashboard/setup"),
+      icon: FileText,
+      label: "Reports",
+      action: navigate("/dashboard/reports"),
       group: "Navigation",
     },
     {
       icon: Settings,
       label: "Settings",
       shortcut: "⌘,",
-      action: () => router.push("/dashboard/settings"),
+      action: navigate("/dashboard/settings"),
+      group: "Navigation",
+    },
+    {
+      icon: Wrench,
+      label: "Setup",
+      shortcut: "⌘S",
+      action: navigate("/dashboard/setup"),
       group: "Navigation",
     },
     {
       icon: GitBranch,
       label: "Signal Flow",
-      shortcut: "",
-      action: () => router.push("/dashboard/signal-flow"),
+      action: navigate("/dashboard/signal-flow"),
+      group: "Navigation",
+    },
+    {
+      icon: Radio,
+      label: "Signals",
+      action: navigate("/dashboard/signals"),
       group: "Navigation",
     },
     {
       icon: ScrollText,
       label: "System Logs",
-      shortcut: "",
-      action: () => router.push("/dashboard/logs"),
+      action: navigate("/dashboard/logs"),
       group: "Navigation",
+    },
+
+    // Agent group — overview + sub-routes
+    {
+      icon: Brain,
+      label: "Agent Overview",
+      action: navigate("/dashboard/agent"),
+      group: "Agent",
+    },
+    {
+      icon: MessageSquare,
+      label: "Agent Chat",
+      action: navigate("/dashboard/agent/chat"),
+      group: "Agent",
+    },
+    {
+      icon: Eye,
+      label: "Agent Vision",
+      action: navigate("/dashboard/agent/vision"),
+      group: "Agent",
+    },
+    {
+      icon: Cpu,
+      label: "Agent Reasoning",
+      action: navigate("/dashboard/agent/reasoning"),
+      group: "Agent",
+    },
+    {
+      icon: Bot,
+      label: "Agent Models",
+      action: navigate("/dashboard/agent/models"),
+      group: "Agent",
+    },
+    {
+      icon: ShieldAlert,
+      label: "Agent Risk",
+      action: navigate("/dashboard/agent/risk"),
+      group: "Agent",
+    },
+    {
+      icon: Activity,
+      label: "Agent Usage",
+      action: navigate("/dashboard/agent/usage"),
+      group: "Agent",
+    },
+
+    // Actions group — non-navigating commands
+    {
+      icon: Search,
+      label: "Refresh Page",
+      action: () => {
+        setOpen(false);
+        window.location.reload();
+      },
+      group: "Actions",
+    },
+    {
+      icon: SunMoon,
+      label: "Toggle Theme",
+      action: toggleTheme,
+      group: "Actions",
     },
   ];
 
@@ -122,50 +257,28 @@ export function CommandPalette() {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
-
-          <CommandGroup heading="Navigation">
-            {commands
-              .filter((cmd) => cmd.group === "Navigation")
-              .map((cmd) => (
-                <CommandItem
-                  key={cmd.label}
-                  onSelect={() => {
-                    cmd.action();
-                    setOpen(false);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <cmd.icon className="mr-2 h-4 w-4" />
-                  <span>{cmd.label}</span>
-                  {cmd.shortcut && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {cmd.shortcut}
-                    </span>
-                  )}
-                </CommandItem>
-              ))}
-          </CommandGroup>
-
-          <CommandSeparator />
-
-          <CommandGroup heading="Actions">
-            <CommandItem
-              onSelect={() => {
-                window.location.reload();
-                setOpen(false);
-              }}
-              className="cursor-pointer"
-            >
-              <motion.div
-                initial={{ rotate: 0 }}
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Search className="mr-2 h-4 w-4" />
-              </motion.div>
-              <span>Refresh Page</span>
-            </CommandItem>
-          </CommandGroup>
+          {GROUP_ORDER.map((groupName, groupIdx) => (
+            <Fragment key={groupName}>
+              {groupIdx > 0 && <CommandSeparator />}
+              <CommandGroup heading={groupName}>
+                {commands
+                  .filter((cmd) => cmd.group === groupName)
+                  .map((cmd) => (
+                    <CommandItem
+                      key={cmd.label}
+                      onSelect={cmd.action}
+                      className="cursor-pointer"
+                    >
+                      <cmd.icon className="mr-2 h-4 w-4" />
+                      <span>{cmd.label}</span>
+                      {cmd.shortcut && (
+                        <CommandShortcut>{cmd.shortcut}</CommandShortcut>
+                      )}
+                    </CommandItem>
+                  ))}
+              </CommandGroup>
+            </Fragment>
+          ))}
         </CommandList>
       </CommandDialog>
 

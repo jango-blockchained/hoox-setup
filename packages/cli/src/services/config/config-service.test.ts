@@ -458,12 +458,24 @@ describe("ConfigService", () => {
     const homeDir = join(tmpDir, "hoox-home-empty");
     mkdirSync(homeDir, { recursive: true });
 
-    const service = new ConfigService(undefined, homeDir);
-    const config = await service.load();
-    // Falls back to project root's wrangler.jsonc
-    expect(config).toBeDefined();
-    expect(config.global).toBeDefined();
-    expect(typeof config.global.cloudflare_account_id).toBe("string");
+    // Create a cwd fallback file in a tmp dir and chdir into it
+    const cwdDir = join(tmpDir, "cwd-fallback");
+    mkdirSync(cwdDir, { recursive: true });
+    await writeConfig(cwdDir, validConfigJson());
+
+    const previousCwd = process.cwd();
+    process.chdir(cwdDir);
+    try {
+      const service = new ConfigService(undefined, homeDir);
+      const config = await service.load();
+      // Falls back to cwd's wrangler.jsonc
+      expect(config).toBeDefined();
+      expect(config.global).toBeDefined();
+      expect(config.global.cloudflare_account_id).toBe("abc123");
+      expect(config.workers["test-worker"]).toBeDefined();
+    } finally {
+      process.chdir(previousCwd);
+    }
   });
 
   it("load() prefers home config over current directory config", async () => {
@@ -531,5 +543,107 @@ describe("ConfigService", () => {
     expect(service.getConfigPath()).toBe(
       join(tmpDir, ".hoox", "config", "wrangler.jsonc")
     );
+  });
+
+  // ── tryLoad() — Result-returning variant ──────────────────────
+
+  describe("tryLoad() — Result-returning variant", () => {
+    it("returns { ok: true, value } for a valid config", async () => {
+      const homeDir = join(tmpDir, "tryload-home");
+      mkdirSync(join(homeDir, ".hoox", "config"), { recursive: true });
+      await Bun.write(
+        join(homeDir, ".hoox", "config", "wrangler.jsonc"),
+        validConfigJson()
+      );
+
+      const service = new ConfigService(undefined, homeDir);
+      const result = await service.tryLoad();
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.global.cloudflare_account_id).toBe("abc123");
+        expect(result.value.workers["test-worker"]).toBeDefined();
+      }
+    });
+
+    it("returns { ok: false, error: { code: 'not-found' } } when both paths are missing", async () => {
+      const homeDir = join(tmpDir, "tryload-empty");
+      mkdirSync(homeDir, { recursive: true });
+
+      const previousCwd = process.cwd();
+      process.chdir(tmpDir);
+      try {
+        const service = new ConfigService(undefined, homeDir);
+        const result = await service.tryLoad();
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error.code).toBe("not-found");
+          if (result.error.code === "not-found") {
+            expect(result.error.path).toBe(
+              join(homeDir, ".hoox", "config", "wrangler.jsonc")
+            );
+            expect(result.error.triedFallback).toBe("wrangler.jsonc");
+          }
+        }
+      } finally {
+        process.chdir(previousCwd);
+      }
+    });
+
+    it("returns { ok: false, error: { code: 'invalid-jsonc' } } for malformed JSONC", async () => {
+      await writeConfig(tmpDir, "{ global: { cloudflare_account_id: 'abc' },");
+
+      const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
+      const result = await service.tryLoad();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error.code).toBe("invalid-jsonc");
+        if (result.error.code === "invalid-jsonc") {
+          expect(result.error.path).toBe(join(tmpDir, "wrangler.jsonc"));
+          expect(result.error.errors.length).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    it("returns { ok: false, error: { code: 'not-object' } } when root is an array", async () => {
+      await Bun.write(join(tmpDir, "wrangler.jsonc"), "[]");
+
+      const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
+      const result = await service.tryLoad();
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error.code).toBe("not-object");
+        if (result.error.code === "not-object") {
+          expect(result.error.path).toBe(join(tmpDir, "wrangler.jsonc"));
+        }
+      }
+    });
+  });
+
+  // ── load() — backward-compat wrapper ──────────────────────────
+
+  describe("load() — backward-compat wrapper (throws on Result errors)", () => {
+    it("throws with a clear message when file is missing", async () => {
+      const homeDir = join(tmpDir, "load-throws");
+      mkdirSync(homeDir, { recursive: true });
+
+      const previousCwd = process.cwd();
+      process.chdir(tmpDir);
+      try {
+        const service = new ConfigService(undefined, homeDir);
+        await expect(service.load()).rejects.toThrow(/Config file not found/);
+      } finally {
+        process.chdir(previousCwd);
+      }
+    });
+
+    it("throws on invalid JSONC with offset info", async () => {
+      await writeConfig(tmpDir, "{ global: {");
+
+      const service = new ConfigService(join(tmpDir, "wrangler.jsonc"));
+      await expect(service.load()).rejects.toThrow(/Invalid JSONC/);
+    });
   });
 });

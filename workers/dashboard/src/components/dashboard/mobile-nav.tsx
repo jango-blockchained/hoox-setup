@@ -20,6 +20,8 @@ import {
   Settings,
   Zap,
   GitBranch,
+  Wrench,
+  BarChart3,
 } from "lucide-react";
 
 const navItems = [
@@ -42,6 +44,16 @@ const navItems = [
     title: "Logs",
     href: "/dashboard/logs",
     icon: ScrollText,
+  },
+  {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
+  {
+    title: "Setup",
+    href: "/dashboard/setup",
+    icon: Wrench,
   },
   {
     title: "Settings",

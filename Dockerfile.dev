@@ -2,19 +2,54 @@
 # Uses Bun for ultra-fast development with hot-reloading via wrangler dev
 FROM oven/bun:1.3.12
 
+# Use a non-root user (the `bun` user is shipped by the official image at /home/bun)
+# and chown the WORKDIR so bind mounts (./workers, ./packages, ./.wrangler) remain
+# writable from the host. Bind-mount paths in docker-compose.yml continue to
+# target /app/* so the compose files don't need to change.
 WORKDIR /app
+RUN chown -R bun:bun /app
 
-# Copy all source files (including workspace packages/submodules)
-COPY . .
+# ---------------------------------------------------------------------------
+# Layer-cached dependency install.
+#
+# Strategy:
+#   1. Copy manifests (root + every workspace package) + lockfile.
+#   2. Run `bun install --frozen-lockfile` — cached as long as manifests are
+#      stable, even when source code changes.
+#   3. Copy the rest of the source.
+#
+# Why we still need full manifests (not just root package.json):
+#   Bun workspaces resolve `workspace:*` references during install. The
+#   receiving package's package.json is read; the producing package's
+#   package.json is read for the name. The actual source code is not needed
+#   for the install step itself, so copying only manifests is safe and fast.
+#
+# We also need to satisfy every entry of root `package.json#workspaces`,
+# not just the glob matches. The literal entry `packages/test-utils` would
+# otherwise be "Workspace not found" by bun install.
+# ---------------------------------------------------------------------------
+COPY --chown=bun:bun package.json bun.lock* ./
+COPY --chown=bun:bun packages/shared/package.json packages/shared/
+COPY --chown=bun:bun packages/cli/package.json packages/cli/
+COPY --chown=bun:bun packages/tui/package.json packages/tui/
+COPY --chown=bun:bun packages/test-utils/package.json packages/test-utils/
+COPY --chown=bun:bun workers/ workers/
 
-# Install all dependencies (workspaces + packages resolved correctly)
-# Note: COPY must happen before install so workspace directories exist
-# for bun to resolve workspace:* dependencies.
+# --frozen-lockfile guarantees reproducible builds (CI == local).
 # PUPPETEER_SKIP_DOWNLOAD prevents puppeteer from trying to download Chrome
 # during install (it fails in Docker without unzip; download happens at runtime).
-RUN PUPPETEER_SKIP_DOWNLOAD=true bun install
+# --ignore-scripts skips any other postinstall hook (e.g. husky prepare) that
+# would touch git/CI state we don't have inside the build container.
+USER bun
+RUN PUPPETEER_SKIP_DOWNLOAD=true bun install --frozen-lockfile --ignore-scripts
 
-# Expose common worker/dashboard dev ports
+# Now copy the rest of the source. Anything that changed since the last
+# `docker compose build` lands here, but the install layer above is reused.
+COPY --chown=bun:bun . .
+
+# Expose common worker/dashboard dev ports (used by service-to-service
+# communication inside the hoox-net bridge; only hoox:8787 and dashboard:8794
+# are published to the host — see docker-compose.yml).
 EXPOSE 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796 8797 8798
 
 # Default command: keep container running (service command is overridden in docker-compose)

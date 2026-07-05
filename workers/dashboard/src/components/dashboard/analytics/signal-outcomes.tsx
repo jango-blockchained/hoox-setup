@@ -143,10 +143,10 @@ export function SignalOutcomes() {
                       <span
                         className={
                           row.avg_confidence >= 0.7
-                            ? "text-green-500"
+                            ? "text-success"
                             : row.avg_confidence >= 0.4
-                              ? "text-yellow-500"
-                              : "text-red-500"
+                              ? "text-warning"
+                              : "text-destructive"
                         }
                       >
                         {(row.avg_confidence * 100).toFixed(0)}%

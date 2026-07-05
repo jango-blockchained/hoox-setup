@@ -92,12 +92,12 @@ export function DeployedInfrastructure() {
       <CardHeader className="pb-3 border-b border-border/50">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Server className="h-5 w-5 text-blue-500" />
+            <Server className="h-5 w-5 text-primary" />
             Cloudflare Infrastructure
           </CardTitle>
           <Badge
             variant="outline"
-            className="bg-blue-500/10 text-blue-500 border-blue-500/20"
+            className="bg-primary/10 text-primary border-primary/20"
           >
             <Zap className="h-3 w-3 mr-1" /> Edge Network
           </Badge>
@@ -110,11 +110,11 @@ export function DeployedInfrastructure() {
         <div className="grid lg:grid-cols-[1fr_400px] divide-y lg:divide-y-0 lg:divide-x divide-border">
           <div className="flex flex-col divide-y divide-border">
             {/* Workers Section */}
-            <div className="p-4 space-y-4">
+            <div className="flex flex-col gap-4 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground/80 mb-2">
                 <Server className="h-4 w-4" /> Workers
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {DEPLOYED_WORKERS.map((worker) => (
                   <div
                     key={worker.name}
@@ -126,7 +126,7 @@ export function DeployedInfrastructure() {
                           {worker.name}
                         </span>
                         {worker.status === "active" ? (
-                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
                         ) : (
                           <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                         )}
@@ -178,11 +178,11 @@ export function DeployedInfrastructure() {
             </div>
 
             {/* Pages Section */}
-            <div className="p-4 space-y-4">
+            <div className="flex flex-col gap-4 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground/80 mb-2">
                 <Layout className="h-4 w-4" /> Pages
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {DEPLOYED_PAGES.map((page) => (
                   <div
                     key={page.name}
@@ -194,7 +194,7 @@ export function DeployedInfrastructure() {
                           {page.name}
                         </span>
                         {page.status === "active" ? (
-                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_4px_rgba(16,185,129,0.5)] animate-pulse" />
                         ) : (
                           <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                         )}
@@ -237,11 +237,11 @@ export function DeployedInfrastructure() {
             </div>
 
             {/* Storage & Databases Section */}
-            <div className="p-4 space-y-4">
+            <div className="flex flex-col gap-4 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground/80 mb-2">
                 <Server className="h-4 w-4" /> Storage & Databases
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 {[
                   {
                     name: "trade_data",
@@ -277,7 +277,7 @@ export function DeployedInfrastructure() {
                         <span className="font-medium text-sm truncate">
                           {resource.name}
                         </span>
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_4px_rgba(16,185,129,0.5)]" />
                       </div>
                       <span className="text-[10px] text-muted-foreground truncate">
                         {resource.role}
@@ -298,7 +298,7 @@ export function DeployedInfrastructure() {
           </div>
 
           {/* Legend Section */}
-          <div className="p-4 space-y-4">
+          <div className="flex flex-col gap-4 p-4">
             <h3 className="text-sm font-semibold tracking-tight text-foreground/80 mb-2">
               Infrastructure Legend
             </h3>

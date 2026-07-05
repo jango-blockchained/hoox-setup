@@ -6,6 +6,16 @@ export type FieldType =
   | "json"
   | "textarea";
 
+/**
+ * Marks how a field should be rendered in the form.
+ * - "normal" (default): editable
+ * - "dangerous": editable but requires explicit confirmation before save
+ *   (e.g. kill_switch, max_daily_drawdown_percent)
+ * - "secret": read-only in the UI; must be set via CLI (`hoox secrets update-cf`).
+ *   Use the `cliCommand` field to show the user the exact command to run.
+ */
+export type FieldKind = "normal" | "dangerous" | "secret";
+
 export interface SettingOption {
   value: string;
   label: string;
@@ -19,6 +29,16 @@ export interface SettingField {
   default: string | number | boolean;
   options?: SettingOption[];
   placeholder?: string;
+  /**
+   * UI semantics. Default "normal". "secret" fields are read-only and shown
+   * with a "Configure via CLI" hint + the command from `cliCommand`.
+   */
+  kind?: FieldKind;
+  /**
+   * For `kind: "secret"` fields: the exact command the user should run
+   * to set this value (e.g. `hoox secrets update-cf openai_key agent-worker`).
+   */
+  cliCommand?: string;
   validation?: {
     min?: number;
     max?: number;

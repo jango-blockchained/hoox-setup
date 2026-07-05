@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ENV_KEYS, getConfig, validateRequiredEnv } from "@/lib/config";
+import {
+  ENV_KEYS,
+  getAuthType,
+  getConfig,
+  requireSafeSessionSecret,
+  validateRequiredEnv,
+} from "@/lib/config";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +16,20 @@ export async function POST(
   _context: { params: Promise<Record<string, unknown>> }
 ) {
   try {
+    // C-7: when AUTH_TYPE is cf-access, login is handled by the CF Access
+    // proxy before the request reaches this worker. The login form should
+    // not even be reachable, but if it is, return a clear 400.
+    const authType = getAuthType();
+    if (authType === "cf-access") {
+      return NextResponse.json(
+        { error: "Login is handled by Cloudflare Access. No password login." },
+        { status: 400 }
+      );
+    }
+    if (authType === "none") {
+      return NextResponse.json({ success: true });
+    }
+
     const body = (await request.json()) as {
       username?: string;
       password?: string;
@@ -27,6 +47,11 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // C-4: refuse to mint a session cookie with an insecure secret.
+    // In dev this warns + continues; in production it throws (caught below
+    // and returned as a 500 with a sanitized message).
+    requireSafeSessionSecret();
 
     const validUsername = getConfig().auth.username;
     const validPassword = getConfig().auth.password;
@@ -48,6 +73,12 @@ export async function POST(
 
     return response;
   } catch (err) {
+    if (err instanceof Error && err.message.includes("SESSION_SECRET")) {
+      return NextResponse.json(
+        { error: "Server misconfigured" },
+        { status: 500 }
+      );
+    }
     return Errors.badRequest(`Invalid request: ${err}`);
   }
 }

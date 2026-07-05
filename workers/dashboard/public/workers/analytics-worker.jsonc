@@ -1,0 +1,92 @@
+{
+  "display_name": "Analytics Worker",
+  "description": "Event tracking, metrics collection, and analytics querying for the Hoox trading system using Cloudflare Analytics Engine",
+  "sections": {
+    "global": {
+      "title": "Analytics Engine",
+      "description": "Cloudflare Analytics Engine configuration for data collection and querying",
+      "icon": "bar-chart",
+      "priority": 10,
+      "fields": {
+        "enabled": true,
+        "retention_days": 90,
+        "sample_rate": 1
+      },
+      "options": {
+        "retention_days": [
+          7,
+          30,
+          60,
+          90
+        ],
+        "sample_rate": [
+          0.1,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ]
+      },
+      "descriptions": {
+        "enabled": "Master toggle for analytics collection. If false, no data points are written.",
+        "retention_days": "Number of days Analytics Engine retains data (Cloudflare default is 90).",
+        "sample_rate": "Fraction of events to record (1.0 = 100%, 0.1 = 10%)."
+      }
+    },
+    "tracking": {
+      "title": "Tracking",
+      "description": "Enable/disable specific event tracking categories",
+      "icon": "activity",
+      "priority": 20,
+      "fields": {
+        "track_trades": true,
+        "track_api_calls": true,
+        "track_worker_perf": true,
+        "track_signals": true,
+        "track_notifications": true
+      },
+      "descriptions": {
+        "track_trades": "Record trade execution events (exchange, symbol, success/failure, latency).",
+        "track_api_calls": "Record inter-worker API call latency and success rates.",
+        "track_worker_perf": "Record per-worker request counts, error rates, and durations.",
+        "track_signals": "Record incoming TradingView/webhook signal metadata.",
+        "track_notifications": "Record Telegram and other notification delivery status."
+      }
+    },
+    "query": {
+      "title": "Query Access",
+      "description": "Cloudflare API credentials for querying Analytics Engine via SQL API",
+      "icon": "key",
+      "priority": 30,
+      "fields": {
+        "cloudflare_api_token": "Requires CLI Setup",
+        "cloudflare_account_id": "Requires CLI Setup"
+      },
+      "descriptions": {
+        "cloudflare_api_token": "Cloudflare API Token with Analytics:Read permissions. Run: hoox secrets update-cf analytics-worker cloudflare_api_token",
+        "cloudflare_account_id": "Your Cloudflare Account ID. Run: hoox secrets update-cf analytics-worker cloudflare_account_id"
+      },
+      "secrets": {
+        "cloudflare_api_token": true,
+        "cloudflare_account_id": true
+      },
+      "secret_commands": {
+        "cloudflare_api_token": "hoox secrets update-cf cloudflare_api_token analytics-worker",
+        "cloudflare_account_id": "hoox secrets update-cf cloudflare_account_id analytics-worker"
+      }
+    },
+    "endpoints": {
+      "title": "Available Endpoints",
+      "description": "REST endpoints exposed by the analytics-worker for manual tracking and querying",
+      "icon": "globe",
+      "priority": 40,
+      "fields": {
+        "POST /track/trade": "Track a trade execution event",
+        "POST /track/api-call": "Track an inter-worker API call",
+        "POST /track/worker-perf": "Track worker performance metrics",
+        "POST /track/signal": "Track an incoming signal event",
+        "POST /track/notification": "Track a notification delivery event"
+      }
+    }
+  }
+}

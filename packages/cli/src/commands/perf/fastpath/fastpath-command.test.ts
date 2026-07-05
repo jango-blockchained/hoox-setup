@@ -31,24 +31,20 @@ describe("registerFastpathCommand", () => {
     const fastpath = program.commands.find((c) => c.name() === "fastpath")!;
     const run = fastpath.commands.find((c) => c.name() === "run")!;
 
-    let exitCode = 0;
-    const origExit = process.exit;
-    (process as unknown as { exit: (code?: number) => never }).exit = ((
-      code = 0
-    ) => {
-      exitCode = code;
-      throw new Error(`exit ${code}`);
-    }) as never;
+    // The CLI wrapper sets process.exitCode (no longer calls process.exit),
+    // so the test reads exitCode directly after the parse settles.
+    const origExitCode = process.exitCode;
+    process.exitCode = 0;
 
     try {
       await run.parseAsync(["--action", "INVALID"], { from: "user" });
     } catch {
-      // expected
-    } finally {
-      (process as unknown as { exit: typeof origExit }).exit = origExit;
+      // expected — invalid input throws CLIError
     }
 
-    expect(exitCode).toBe(2);
+    const code = process.exitCode ?? 0;
+    process.exitCode = origExitCode;
+    expect(code).toBe(2);
   });
 
   it("rejects --n > 1000 with exit code 2", async () => {
@@ -58,23 +54,17 @@ describe("registerFastpathCommand", () => {
     const fastpath = program.commands.find((c) => c.name() === "fastpath")!;
     const run = fastpath.commands.find((c) => c.name() === "run")!;
 
-    let exitCode = 0;
-    const origExit = process.exit;
-    (process as unknown as { exit: (code?: number) => never }).exit = ((
-      code = 0
-    ) => {
-      exitCode = code;
-      throw new Error(`exit ${code}`);
-    }) as never;
+    const origExitCode = process.exitCode;
+    process.exitCode = 0;
 
     try {
       await run.parseAsync(["--n", "5000"], { from: "user" });
     } catch {
       // expected
-    } finally {
-      (process as unknown as { exit: typeof origExit }).exit = origExit;
     }
 
-    expect(exitCode).toBe(2);
+    const code = process.exitCode ?? 0;
+    process.exitCode = origExitCode;
+    expect(code).toBe(2);
   });
 });

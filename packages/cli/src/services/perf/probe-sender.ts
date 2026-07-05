@@ -2,11 +2,19 @@
  * Sends a single fast-path probe to the deployed hoox gateway.
  * Returns a structured result with status, total_ms, and http_status.
  *
- * The probe is a regular HTTP POST with `probe: true` in the body.
- * Workers downstream short-circuit before any real exchange call.
+ * The probe is a regular HTTP POST with `probe: true` and the API key
+ * (`apiKey` field) in the BODY. Workers downstream short-circuit
+ * before any real exchange call.
+ *
+ * Note: the hoox gateway reads `apiKey` from the JSON body (not
+ * from a header). Earlier versions of this sender put the key
+ * in the `X-Internal-Auth-Key` header, which the gateway ignored
+ * and returned 403. Putting the key in the body matches the
+ * gateway's auth flow.
  */
 
 export interface ProbeRequest {
+  apiKey: string;
   probe: true;
   probe_id: string;
   symbol: string;
@@ -40,11 +48,13 @@ export async function sendProbe(
 
   const t0 = Date.now();
   try {
+    // The hoox gateway's auth flow validates the `apiKey` field in
+    // the JSON body. Earlier we tried `X-Internal-Auth-Key` header,
+    // but the gateway only reads the body field.
     const request = new Request(options.url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Internal-Auth-Key": options.apiKey,
       },
       body: JSON.stringify(req),
       signal: controller.signal,

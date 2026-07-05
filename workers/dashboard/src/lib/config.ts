@@ -5,6 +5,15 @@ const DEFAULT_SERVICE_URLS = {
   AGENT_SERVICE_URL: "https://agent-worker.cryptolinx.workers.dev",
 } as const;
 
+/**
+ * Sentinel value the dashboard used to silently fall back to when SESSION_SECRET
+ * was unset. Anything matching this must be rejected at the boundary so we
+ * never sign cookies with a publicly-known string in production.
+ */
+const INSECURE_DEFAULT_SESSION_SECRET = "change-me-in-production";
+
+const VALID_AUTH_TYPES: readonly AuthType[] = ["basic", "cf-access", "none"];
+
 export const ENV_KEYS = {
   services: {
     d1: "D1_SERVICE_URL",
@@ -35,6 +44,18 @@ export function getEnvVar(key: string): string | undefined {
   return value && value.length > 0 ? value : undefined;
 }
 
+/**
+ * Resolve the AUTH_TYPE env var with validation. Unknown values fall back
+ * to "basic" rather than crashing so a typo doesn't take down the dashboard.
+ */
+export function getAuthType(): AuthType {
+  const raw = getEnvVar(ENV_KEYS.auth.type);
+  if (raw && (VALID_AUTH_TYPES as readonly string[]).includes(raw)) {
+    return raw as AuthType;
+  }
+  return "basic";
+}
+
 export function getConfig() {
   return {
     api: {
@@ -51,16 +72,18 @@ export function getConfig() {
       api: getEnvVar(ENV_KEYS.internalAuth.api),
     },
     auth: {
-      type: (getEnvVar(ENV_KEYS.auth.type) as AuthType) || "basic",
+      type: getAuthType(),
       username: getEnvVar(ENV_KEYS.auth.username),
       password: getEnvVar(ENV_KEYS.auth.password),
       cfAccessTeamName: getEnvVar(ENV_KEYS.auth.cfAccessTeamName),
-      sessionSecret:
-        getEnvVar(ENV_KEYS.auth.sessionSecret) || "change-me-in-production",
+      sessionSecret: getEnvVar(ENV_KEYS.auth.sessionSecret),
     },
   } as const;
 }
 
+// Module-load snapshot for backward compat with existing callers.
+// New code should prefer getConfig() called per-request so env changes
+// (e.g. test setup) are picked up.
 export const config = getConfig();
 
 export type ConfigError = {
@@ -75,4 +98,31 @@ export function validateRequiredEnv(keys: readonly string[]): ConfigError[] {
       key,
       message: `Missing required environment variable: ${key}`,
     }));
+}
+
+/**
+ * Throws if the configured session secret is missing or set to the
+ * well-known insecure default. Call this from any code that signs
+ * session tokens (middleware, login route). In dev (`NODE_ENV=development`)
+ * the insecure default is allowed with a console warning.
+ */
+export function requireSafeSessionSecret(): string {
+  const secret = getEnvVar(ENV_KEYS.auth.sessionSecret);
+  if (!secret) {
+    throw new Error(
+      "SESSION_SECRET is not configured. Set it via `wrangler secret put SESSION_SECRET` or .dev.vars for local dev."
+    );
+  }
+  if (secret === INSECURE_DEFAULT_SESSION_SECRET) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[config] SESSION_SECRET is the insecure default. Acceptable in dev; rotate before deploying."
+      );
+      return secret;
+    }
+    throw new Error(
+      "SESSION_SECRET is set to the publicly-known default value. Rotate it via `wrangler secret put SESSION_SECRET`."
+    );
+  }
+  return secret;
 }

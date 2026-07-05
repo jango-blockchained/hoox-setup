@@ -404,3 +404,246 @@ describe("RateLimiter.enforce", () => {
     expect(result3).toBeNull();
   });
 });
+
+describe("RateLimiter.checkKey", () => {
+  it("allows requests within limit by explicit key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 5,
+      windowSeconds: 60,
+    });
+
+    const result1 = await limiter.checkKey("user-1");
+    expect(result1.allowed).toBe(true);
+    expect(result1.remaining).toBe(4);
+
+    const result2 = await limiter.checkKey("user-1");
+    expect(result2.allowed).toBe(true);
+    expect(result2.remaining).toBe(3);
+  });
+
+  it("rejects requests exceeding limit by explicit key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 2,
+      windowSeconds: 60,
+    });
+
+    await limiter.checkKey("user-1");
+    await limiter.checkKey("user-1");
+    const result = await limiter.checkKey("user-1");
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
+  });
+
+  it("isolates rate limits across different keys", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    const result1 = await limiter.checkKey("user-1");
+    expect(result1.allowed).toBe(true);
+
+    const result2 = await limiter.checkKey("user-2");
+    expect(result2.allowed).toBe(true);
+
+    // user-1 should now be blocked
+    const result3 = await limiter.checkKey("user-1");
+    expect(result3.allowed).toBe(false);
+  });
+
+  it("uses custom keyPrefix with checkKey", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 10,
+      windowSeconds: 60,
+      keyPrefix: "my-prefix",
+    });
+
+    const result = await limiter.checkKey("user-1");
+    expect(result.allowed).toBe(true);
+
+    // The KV should contain entries with the custom prefix
+    const stored = await kv.get("my-prefix:user-1");
+    expect(stored).toBe("1");
+  });
+
+  it("returns retryAfter when limit exceeded via checkKey", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 1,
+      windowSeconds: 30,
+    });
+
+    await limiter.checkKey("user-1");
+    const result = await limiter.checkKey("user-1");
+    expect(result.allowed).toBe(false);
+    expect(result.retryAfter).toBeDefined();
+    expect(typeof result.retryAfter).toBe("number");
+    expect(result.retryAfter).toBeGreaterThan(0);
+  });
+});
+
+describe("RateLimiter.enforceKey", () => {
+  it("returns null when request allowed by key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 10,
+      windowSeconds: 60,
+    });
+
+    const result = await limiter.enforceKey("user-1");
+    expect(result).toBeNull();
+  });
+
+  it("returns 429 response when limit exceeded by key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    await limiter.enforceKey("user-1");
+    const result = await limiter.enforceKey("user-1");
+    expect(result).toBeInstanceOf(Response);
+    expect(result?.status).toBe(429);
+  });
+
+  it("includes error message and retryAfter in 429 response for key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    await limiter.enforceKey("user-1");
+    const result = await limiter.enforceKey("user-1");
+    const body = (await result?.json()) as Record<string, unknown>;
+    expect(body.error).toBe("Rate limit exceeded");
+    expect(body.retryAfter).toBeDefined();
+    expect(typeof body.retryAfter).toBe("number");
+  });
+
+  it("includes Retry-After and Content-Type headers in 429 response for key", async () => {
+    const kv = new MockKV();
+    const limiter = createRateLimiter(kv as any, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    await limiter.enforceKey("user-1");
+    const result = await limiter.enforceKey("user-1");
+    expect(result?.headers.get("Retry-After")).toBeDefined();
+    expect(result?.headers.get("Content-Type")).toBe("application/json");
+  });
+});
+
+describe("In-memory storage (kv=undefined)", () => {
+  it("creates rate limiter without KV namespace", () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 10,
+      windowSeconds: 60,
+    });
+    expect(limiter).toBeDefined();
+    expect(limiter.check).toBeDefined();
+    expect(limiter.enforce).toBeDefined();
+    expect(limiter.checkKey).toBeDefined();
+    expect(limiter.enforceKey).toBeDefined();
+  });
+
+  it("uses in-memory storage for check when KV is undefined", async () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 3,
+      windowSeconds: 60,
+    });
+    const request = new Request("https://example.com/api/test", {
+      headers: { "CF-Connecting-IP": "10.0.0.1" },
+    });
+
+    const result1 = await limiter.check(request);
+    expect(result1.allowed).toBe(true);
+    expect(result1.remaining).toBe(2);
+
+    const result2 = await limiter.check(request);
+    expect(result2.allowed).toBe(true);
+    expect(result2.remaining).toBe(1);
+
+    const result3 = await limiter.check(request);
+    expect(result3.allowed).toBe(true);
+    expect(result3.remaining).toBe(0);
+
+    // 4th request blocked
+    const result4 = await limiter.check(request);
+    expect(result4.allowed).toBe(false);
+    expect(result4.remaining).toBe(0);
+  });
+
+  it("uses in-memory storage for checkKey when KV is undefined", async () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 2,
+      windowSeconds: 60,
+    });
+
+    const result1 = await limiter.checkKey("user-1");
+    expect(result1.allowed).toBe(true);
+
+    const result2 = await limiter.checkKey("user-1");
+    expect(result2.allowed).toBe(true);
+
+    const result3 = await limiter.checkKey("user-1");
+    expect(result3.allowed).toBe(false);
+  });
+
+  it("isolates rate limits across IPs in in-memory storage", async () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    const req1 = new Request("https://example.com", {
+      headers: { "CF-Connecting-IP": "10.0.0.1" },
+    });
+    const req2 = new Request("https://example.com", {
+      headers: { "CF-Connecting-IP": "10.0.0.2" },
+    });
+
+    expect((await limiter.check(req1)).allowed).toBe(true);
+    expect((await limiter.check(req2)).allowed).toBe(true);
+    // First IP blocked, second still allowed
+    expect((await limiter.check(req1)).allowed).toBe(false);
+    expect((await limiter.check(req2)).allowed).toBe(false);
+  });
+
+  it("enforce returns 429 with in-memory storage", async () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+    const request = new Request("https://example.com", {
+      headers: { "CF-Connecting-IP": "10.0.0.1" },
+    });
+
+    const result1 = await limiter.enforce(request);
+    expect(result1).toBeNull();
+
+    const result2 = await limiter.enforce(request);
+    expect(result2).toBeInstanceOf(Response);
+    expect(result2?.status).toBe(429);
+  });
+
+  it("enforceKey returns 429 with in-memory storage", async () => {
+    const limiter = createRateLimiter(undefined, {
+      maxRequests: 1,
+      windowSeconds: 60,
+    });
+
+    const result1 = await limiter.enforceKey("user-1");
+    expect(result1).toBeNull();
+
+    const result2 = await limiter.enforceKey("user-1");
+    expect(result2).toBeInstanceOf(Response);
+    expect(result2?.status).toBe(429);
+  });
+});

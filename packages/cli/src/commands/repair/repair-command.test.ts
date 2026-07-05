@@ -1,13 +1,14 @@
 /**
  * Unit tests for the repair command.
  *
- * Stubs RepairService, CloudflareService, DbService, KvSyncService, and
- * SecretsService prototypes to verify repair command logic in isolation.
+ * Stubs RepairService, ConfigService, CloudflareService, DbService, and
+ * KvSyncService prototypes to verify repair command logic in isolation.
  * Uses Commander's exitOverride to suppress process exits during tests.
  */
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { Command } from "commander";
 import { RepairService } from "./repair-service.js";
+import { ConfigService } from "../../services/config/config-service.js";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
 import { DbService } from "../../services/db/db-service.js";
 import { KvSyncService } from "../../services/kv/kv-sync-service.js";
@@ -15,6 +16,8 @@ import { KvSyncService } from "../../services/kv/kv-sync-service.js";
 // Stubs
 let runSystemCheckMock: ReturnType<typeof mock>;
 let deployMock: ReturnType<typeof mock>;
+let configLoadMock: ReturnType<typeof mock>;
+let configGetWorkerMock: ReturnType<typeof mock>;
 
 // Preserve originals
 const origRunSystemCheck = RepairService.prototype.runSystemCheck;
@@ -30,12 +33,11 @@ const origExport = DbService.prototype.export;
 const origReset = DbService.prototype.reset;
 const origResolveNs = KvSyncService.prototype.resolveNamespaceId;
 const origKvSet = KvSyncService.prototype.set;
+const origConfigLoad = ConfigService.prototype.load;
+const origConfigGetWorker = ConfigService.prototype.getWorker;
+const origConfigListEnabled = ConfigService.prototype.listEnabledWorkers;
 
-beforeEach(() => {
-  mock.restore();
-  process.exitCode = 0;
-
-  // Restore originals
+function restoreProtos(): void {
   (
     RepairService.prototype as unknown as Record<string, unknown>
   ).runSystemCheck = origRunSystemCheck;
@@ -63,6 +65,19 @@ beforeEach(() => {
   ).resolveNamespaceId = origResolveNs;
   (KvSyncService.prototype as unknown as Record<string, unknown>).set =
     origKvSet;
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    origConfigLoad;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
+    origConfigGetWorker;
+  (
+    ConfigService.prototype as unknown as Record<string, unknown>
+  ).listEnabledWorkers = origConfigListEnabled;
+}
+
+beforeEach(() => {
+  mock.restore();
+  process.exitCode = 0;
+  restoreProtos();
 
   // Fresh mocks
   runSystemCheckMock = mock(async () => ({
@@ -83,42 +98,32 @@ beforeEach(() => {
     value: { url: "https://test-worker.cryptolinx.workers.dev" },
   }));
 
+  configLoadMock = mock(async function (this: ConfigService) {
+    (this as unknown as Record<string, unknown>).config = {
+      global: { cloudflare_account_id: "test-account" },
+      workers: { hoox: { enabled: true, path: "workers/hoox" } },
+    };
+    return (this as unknown as Record<string, unknown>).config;
+  });
+  configGetWorkerMock = mock((name: string) => {
+    if (name === "hoox") return { enabled: true, path: "workers/hoox" };
+    return undefined;
+  });
+
   (
     RepairService.prototype as unknown as Record<string, unknown>
   ).runSystemCheck = runSystemCheckMock;
   (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
     deployMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).load =
+    configLoadMock;
+  (ConfigService.prototype as unknown as Record<string, unknown>).getWorker =
+    configGetWorkerMock;
 });
 
 afterEach(() => {
   mock.restore();
-  (
-    RepairService.prototype as unknown as Record<string, unknown>
-  ).runSystemCheck = origRunSystemCheck;
-  (CloudflareService.prototype as unknown as Record<string, unknown>).deploy =
-    origDeploy;
-  (CloudflareService.prototype as unknown as Record<string, unknown>).d1List =
-    origD1List;
-  (CloudflareService.prototype as unknown as Record<string, unknown>).kvList =
-    origKvList;
-  (CloudflareService.prototype as unknown as Record<string, unknown>).r2List =
-    origR2List;
-  (
-    CloudflareService.prototype as unknown as Record<string, unknown>
-  ).queueList = origQueueList;
-  (DbService.prototype as unknown as Record<string, unknown>).resolveDbName =
-    origResolveDbName;
-  (DbService.prototype as unknown as Record<string, unknown>).apply = origApply;
-  (DbService.prototype as unknown as Record<string, unknown>).migrate =
-    origMigrate;
-  (DbService.prototype as unknown as Record<string, unknown>).export =
-    origExport;
-  (DbService.prototype as unknown as Record<string, unknown>).reset = origReset;
-  (
-    KvSyncService.prototype as unknown as Record<string, unknown>
-  ).resolveNamespaceId = origResolveNs;
-  (KvSyncService.prototype as unknown as Record<string, unknown>).set =
-    origKvSet;
+  restoreProtos();
 });
 
 async function importRepairCommand(): Promise<{
@@ -232,7 +237,11 @@ describe("registerRepairCommand", () => {
     });
 
     it("handles unknown worker name", async () => {
-      // Mock getWorker to return undefined
+      configGetWorkerMock = mock(() => undefined);
+      (
+        ConfigService.prototype as unknown as Record<string, unknown>
+      ).getWorker = configGetWorkerMock;
+
       const program = await createProgram();
       await program.parseAsync(["repair", "worker", "nonexistent"], {
         from: "user",

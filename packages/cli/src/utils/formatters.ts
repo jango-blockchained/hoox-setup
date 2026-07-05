@@ -14,6 +14,22 @@ import { Command } from "commander";
 export interface FormatOptions {
   json?: boolean;
   quiet?: boolean;
+  /** Suppress color even when stdout is a TTY. Honored by `isRichMode`. */
+  noColor?: boolean;
+}
+
+/**
+ * Options for `formatTable`. Extends `FormatOptions` with visual flags.
+ */
+export interface FormatTableOptions extends FormatOptions {
+  /** Alternate-row text-subtle treatment. Default: true. */
+  zebra?: boolean;
+  /** Right-align columns where every value parses as a number. Default: true. */
+  alignNumbers?: boolean;
+  /** Auto-color values that match a known status word. Default: true. */
+  colorizeStatus?: boolean;
+  /** Drop the top/middle/bottom borders; keep a single rule under the header. */
+  compact?: boolean;
 }
 
 // ── Progress bar ──────────────────────────────────────────────────
@@ -104,37 +120,34 @@ export const formatDuration = _formatDuration;
 /** Semantic log level for `formatBadge`. */
 export type BadgeLevel = "ok" | "warn" | "err" | "info";
 
+/**
+ * Per-level style for `formatBadge`.
+ * `icon` is a short unicode glyph rendered in the level's color.
+ * `text` is the optional `text` arg (or a default label) rendered in the
+ * normal foreground — so the badge is "colored glyph + colored text" rather
+ * than a high-contrast background chip.
+ */
 const BADGE_STYLE: Record<
   BadgeLevel,
-  { bg: typeof ansis.bgGreen; fg: typeof ansis.black }
+  { icon: string; color: typeof ansis.green; defaultLabel: string }
 > = {
-  ok: { bg: ansis.bgGreen, fg: ansis.black },
-  warn: { bg: ansis.bgYellow, fg: ansis.black },
-  err: { bg: ansis.bgRed, fg: ansis.white },
-  info: { bg: ansis.bgBlue, fg: ansis.white },
+  ok: { icon: "✓", color: ansis.green, defaultLabel: "ok" },
+  warn: { icon: "⚠", color: ansis.yellow, defaultLabel: "warn" },
+  err: { icon: "✗", color: ansis.red, defaultLabel: "fail" },
+  info: { icon: "ℹ", color: ansis.cyan, defaultLabel: "info" },
 };
 
 /**
- * Render a short status badge (e.g. " OK ", " FAIL ") with the appropriate
+ * Render a short status badge (e.g. "✓ OK", "✗ FAIL") with the appropriate
  * theme color. Useful in tables and inline lists.
+ *
+ * Style: colored glyph (one char) + colored text label. Replaces the
+ * earlier background-chip implementation to match the v0.9.0 output
+ * framework (Vercel / Linear / Turborepo style).
  */
 export function formatBadge(level: BadgeLevel, text?: string): string {
-  const content = (text ?? defaultBadgeLabel(level)).padEnd(4, " ");
-  const { bg, fg } = BADGE_STYLE[level];
-  return bg(fg(` ${content} `));
-}
-
-function defaultBadgeLabel(level: BadgeLevel): string {
-  switch (level) {
-    case "ok":
-      return "OK";
-    case "warn":
-      return "WARN";
-    case "err":
-      return "FAIL";
-    case "info":
-      return "INFO";
-  }
+  const { icon, color, defaultLabel } = BADGE_STYLE[level];
+  return `${color(icon)} ${color(text ?? defaultLabel)}`;
 }
 
 /**
@@ -167,62 +180,103 @@ export function formatSuccess(message: string, opts?: FormatOptions): void {
 }
 
 /**
- * Output an error message.
- * - JSON mode:  {"success":false,"error":"...","code":1,"details":"...","hint":"..."}
- *               (hint is additive — older consumers ignore unknown fields.)
- * - Quiet mode: prints only the error message (no icon)
- * - Human mode: red "✗ message" + optional details indented + optional hint line
+ * Output an error message with optional card layout and "did you mean" suggestions.
+ *
+ * - JSON mode:  {"success":false,"error":"...","code":1,"details":"...","hint":"...","suggestions":[...]}
+ * - Quiet mode: prints only the error message
+ * - Human mode: card-style error with optional details, hint, suggestions
+ *
+ * Set `inCard: false` to skip the box framing (e.g. for inline errors).
  */
-export function formatError(error: Error | string, opts?: FormatOptions): void {
+export function formatError(
+  error: Error | string,
+  opts: FormatOptions & { suggestions?: string[]; inCard?: boolean } = {}
+): void {
   const message = typeof error === "string" ? error : error.message;
   const cliError = error instanceof CLIError ? error : null;
 
-  if (opts?.json) {
+  if (opts.json) {
     const output: Record<string, unknown> = {
       success: false,
       error: message,
       code: cliError?.code ?? ExitCode.ERROR,
     };
-    if (cliError?.details) {
-      output.details = cliError.details;
-    }
-    if (cliError?.hint) {
-      output.hint = cliError.hint;
+    if (cliError?.details) output.details = cliError.details;
+    if (cliError?.hint) output.hint = cliError.hint;
+    if (opts.suggestions && opts.suggestions.length > 0) {
+      output.suggestions = opts.suggestions;
     }
     process.stdout.write(JSON.stringify(output) + "\n");
     return;
   }
 
-  if (opts?.quiet) {
+  if (opts.quiet) {
     process.stdout.write(`${message}\n`);
     return;
   }
 
-  process.stdout.write(`${theme.error(icons.error)} ${message}\n`);
+  const inCard = opts.inCard !== false; // default true
+
+  // Title line: ✗ [code] message
+  const titleParts: string[] = [theme.error(icons.error)];
+  if (cliError?.code !== undefined) {
+    titleParts.push(theme.textSubtle(`[${cliError.code}]`));
+  }
+  titleParts.push(theme.text(message));
+  process.stdout.write(`${titleParts.join(" ")}\n`);
 
   if (cliError?.details) {
-    process.stdout.write(`  ${theme.dim(cliError.details)}\n`);
+    process.stdout.write(`  ${theme.textMuted(cliError.details)}\n`);
   }
-  if (cliError?.hint) {
-    process.stdout.write(
-      `${theme.dim("↳ hint:")} ${theme.value(cliError.hint)}\n`
-    );
+
+  const hasHint = !!cliError?.hint;
+  const hasSuggestions = !!opts.suggestions && opts.suggestions.length > 0;
+
+  if (hasHint || hasSuggestions) {
+    if (inCard) {
+      process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
+    }
+    if (hasHint) {
+      process.stdout.write(
+        `  ${inCard ? theme.border(icons.pipe) : " "}  ${theme.dim("↳ hint:")} ${theme.value(cliError!.hint!)}\n`
+      );
+    }
+    if (hasSuggestions) {
+      const sugText = opts.suggestions!.map((s) => `'${s}'`).join(", ");
+      process.stdout.write(
+        `  ${inCard ? theme.border(icons.pipe) : " "}  ${theme.dim("did you mean:")} ${theme.accent(sugText)} ${theme.dim("?")}\n`
+      );
+    }
+    if (inCard) {
+      process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
+    }
+  } else if (inCard) {
+    // No hint / suggestions, but caller asked for a card: still frame it
+    // with a single leading pipe for visual consistency.
+    process.stdout.write(`  ${theme.border(icons.pipe)}\n`);
   }
 }
 
 /**
  * Output tabular data with enhanced box-drawing borders.
+ *
  * - JSON mode:  JSON array of objects
  * - Quiet mode: prints nothing
  * - Human mode: themed box-drawn table with column headers
+ *
+ * Visual options (all default to true except `compact`):
+ *   - `zebra`         alternate-row subtle text treatment
+ *   - `alignNumbers`  right-align columns that are all numeric
+ *   - `colorizeStatus` auto-color values matching ok/healthy/.../warn/.../err/...
+ *   - `compact`       drop outer borders, keep one rule under the header
  */
 export function formatTable(
   rows: Record<string, string>[],
-  opts?: FormatOptions
+  opts: FormatTableOptions = {}
 ): void {
-  if (opts?.quiet) return;
+  if (opts.quiet) return;
 
-  if (opts?.json) {
+  if (opts.json) {
     process.stdout.write(JSON.stringify(rows, null, 2) + "\n");
     return;
   }
@@ -232,48 +286,129 @@ export function formatTable(
     return;
   }
 
-  // Collect all keys in display order (first row defines column order)
+  const zebra = opts.zebra !== false; // default true
+  const alignNumbers = opts.alignNumbers !== false; // default true
+  const colorizeStatus = opts.colorizeStatus !== false; // default true
+  const compact = opts.compact === true; // default false
+
+  // Collect all keys in display order (first row defines column order).
   const keys = Object.keys(rows[0]);
 
-  // Calculate column widths
+  // Pre-process cells: apply status colorization.
+  const processed: Array<Record<string, string>> = rows.map((row) => {
+    const out: Record<string, string> = {};
+    for (const k of keys) {
+      const raw = row[k] ?? "";
+      out[k] = colorizeCell(raw, colorizeStatus);
+    }
+    return out;
+  });
+
+  // Determine which columns are numeric (for right-alignment).
+  const numericColumns = new Set<string>();
+  if (alignNumbers) {
+    for (const k of keys) {
+      let allNumeric = true;
+      let anyNonEmpty = false;
+      for (const row of processed) {
+        const v = stripAnsi(row[k] ?? "");
+        if (v.length === 0) continue;
+        anyNonEmpty = true;
+        if (!/^-?\d+(\.\d+)?$/.test(v)) {
+          allNumeric = false;
+          break;
+        }
+      }
+      if (allNumeric && anyNonEmpty) numericColumns.add(k);
+    }
+  }
+
+  // Calculate column widths (based on the visible / stripped length).
   const widths: Record<string, number> = {};
   for (const key of keys) {
     widths[key] = stripAnsi(key).length;
-    for (const row of rows) {
+    for (const row of processed) {
       const value = row[key] ?? "";
       const stripped = stripAnsi(value).length;
       widths[key] = Math.max(widths[key], stripped);
     }
   }
 
-  // Build border segments
+  // Build border segments.
   const topParts = keys.map((k) => "─".repeat(widths[k] + 2));
   const topBorder = `┌${topParts.join("┬")}┐`;
   const sepBorder = `├${topParts.join("┼")}┤`;
   const botBorder = `└${topParts.join("┴")}┘`;
 
-  // Header row with themed styling
+  // Header row with themed styling.
   const headerCells = keys.map((k) =>
     theme.bold(k.padEnd(widths[k])).toString()
   );
   const headerRow = `│ ${headerCells.join(" │ ")} │`;
 
-  // Data rows
-  const dataRows = rows.map((row) => {
+  // Data rows, with zebra striping and number alignment.
+  const dataRows = processed.map((row, rowIdx) => {
+    const isAlt = zebra && rowIdx % 2 === 0;
     const cells = keys.map((k) => {
       const value = row[k] ?? "";
-      return value.padEnd(widths[k]);
+      const padded = numericColumns.has(k)
+        ? value.padStart(widths[k])
+        : value.padEnd(widths[k]);
+      // For zebra, re-apply textSubtle to non-status cells. Status cells
+      // keep their color.
+      if (isAlt && !value.includes("\u001b")) {
+        return theme.textMuted(padded);
+      }
+      return padded;
     });
     return `│ ${cells.join(" │ ")} │`;
   });
 
-  process.stdout.write(
-    `${theme.dim(topBorder)}\n` +
-      `${headerRow}\n` +
-      `${theme.dim(sepBorder)}\n` +
-      `${dataRows.join("\n")}\n` +
-      `${theme.dim(botBorder)}\n`
-  );
+  const borderOut = compact
+    ? `${headerRow}\n${theme.dim("─".repeat(stripAnsi(headerRow).length))}\n${dataRows.join("\n")}\n`
+    : `${theme.dim(topBorder)}\n${headerRow}\n${theme.dim(sepBorder)}\n${dataRows.join("\n")}\n${theme.dim(botBorder)}\n`;
+
+  process.stdout.write(borderOut);
+}
+
+/**
+ * Apply status-color auto-detection to a single cell value.
+ * Pure function — exposed for unit testing.
+ */
+function colorizeCell(value: string, colorizeStatus: boolean): string {
+  if (!colorizeStatus) return value;
+  const v = value.trim();
+  const lower = v.toLowerCase();
+  if (
+    [
+      "ok",
+      "pass",
+      "healthy",
+      "operational",
+      "up",
+      "active",
+      "enabled",
+    ].includes(lower)
+  ) {
+    return `${theme.success(icons.success)} ${theme.text(v)}`;
+  }
+  if (["warn", "warning", "degraded", "partial", "pending"].includes(lower)) {
+    return `${theme.warning(icons.warning)} ${theme.text(v)}`;
+  }
+  if (
+    [
+      "err",
+      "error",
+      "fail",
+      "failed",
+      "down",
+      "unreachable",
+      "disabled",
+    ].includes(lower)
+  ) {
+    return `${theme.error(icons.error)} ${theme.text(v)}`;
+  }
+  return value;
 }
 
 /**
@@ -293,40 +428,48 @@ export function formatJson(data: unknown, opts?: FormatOptions): void {
  * Output key-value pairs.
  * - JSON mode:  JSON object
  * - Quiet mode: prints nothing
- * - Human mode: "label: value" with themed labels
+ * - Human mode: "label: value" with subtle labels, padded for alignment
  */
 export function formatKeyValue(
   pairs: Record<string, string>,
-  opts?: FormatOptions
+  opts: FormatOptions = {}
 ): void {
-  if (opts?.quiet) return;
+  if (opts.quiet) return;
 
-  if (opts?.json) {
+  if (opts.json) {
     process.stdout.write(JSON.stringify(pairs, null, 2) + "\n");
     return;
   }
 
   const maxKeyLen = Math.max(
-    ...Object.keys(pairs).map((k) => stripAnsi(k).length)
+    ...Object.keys(pairs).map((k) => stripAnsi(k).length),
+    0
   );
 
   for (const [key, value] of Object.entries(pairs)) {
     const paddedKey = key.padEnd(maxKeyLen);
     process.stdout.write(
-      `  ${theme.key(paddedKey)} ${theme.dim(":")} ${value}\n`
+      `  ${theme.key(paddedKey)} ${theme.textMuted(":")} ${value}\n`
     );
   }
 }
 
 /**
  * Output a section header with decorative separator.
+ * Optionally render a dim subtitle below the rule.
  */
-export function formatHeader(text: string, opts?: FormatOptions): void {
-  if (opts?.quiet) return;
-  if (opts?.json) return;
+export function formatHeader(
+  text: string,
+  opts: FormatOptions & { subtitle?: string } = {}
+): void {
+  if (opts.quiet) return;
+  if (opts.json) return;
 
   process.stdout.write(`\n${theme.heading(text)}\n`);
   process.stdout.write(`${hr()}\n`);
+  if (opts.subtitle) {
+    process.stdout.write(`${theme.textMuted(opts.subtitle)}\n\n`);
+  }
 }
 
 /**
@@ -350,10 +493,58 @@ export function formatList(
 }
 
 /**
- * Build the format options for output, reading global --json / --quiet flags.
- * Uses `optsWithGlobals()` to include options inherited from the top-level program.
+ * Build the format options for output, reading global --json / --quiet
+ * / --no-color flags. Uses `optsWithGlobals()` to include options
+ * inherited from the top-level program.
  */
 export function getFormatOptions(cmd: Command): FormatOptions {
   const opts = cmd.optsWithGlobals();
-  return { json: Boolean(opts.json), quiet: Boolean(opts.quiet) };
+  return {
+    json: Boolean(opts.json),
+    quiet: Boolean(opts.quiet),
+    // commander lowercases --no-color to `color` and negates to `false`.
+    noColor: Boolean(opts.color === false),
+  };
+}
+
+/**
+ * Render a completion footer line(s). Used as the final output of every
+ * successful command when the global `program` postAction hook fires.
+ *
+ * Suppressed entirely in `--json`, `--quiet`, non-TTY, NO_COLOR, and when
+ * the previous command failed (process.exitCode !== 0).
+ *
+ * - JSON mode: prints nothing.
+ * - Quiet mode: prints nothing.
+ * - Human mode: a green check + message + optional duration, then an
+ *   optional "→ next: ..." line with a suggested follow-up command.
+ */
+export function formatCompletion(
+  message: string,
+  opts: FormatOptions & {
+    durationMs?: number;
+    suggestion?: { command: string; reason?: string };
+  } = {}
+): void {
+  // Always bail on these.
+  if (opts.json || opts.quiet) return;
+  if (process.exitCode && process.exitCode !== 0) return;
+  if (!isRichMode(opts)) return;
+
+  const parts: string[] = [theme.success(icons.success), theme.text(message)];
+
+  if (opts.durationMs !== undefined) {
+    parts.push(theme.textMuted(formatDuration(opts.durationMs)));
+  }
+
+  process.stdout.write(`${parts.join(" ")}\n`);
+
+  if (opts.suggestion) {
+    const reason = opts.suggestion.reason
+      ? ` ${theme.textMuted(`(${opts.suggestion.reason})`)}`
+      : "";
+    process.stdout.write(
+      `  ${theme.textMuted("→")} ${theme.textMuted("next:")} ${theme.accent(opts.suggestion.command)}${reason}\n`
+    );
+  }
 }

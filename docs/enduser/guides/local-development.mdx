@@ -50,15 +50,22 @@ hoox dev start --runtime docker
 If you choose the Docker runtime, Hoox manages orchestration using three specialized Docker Compose profiles defined in `docker-compose.yml`:
 
 ```bash
-# Profile 1: Workers Only (No frontend dashboard)
+# Profile 1: Workers Only (9 services — all background workers, no UI)
 docker compose --profile workers up
 
-# Profile 2: Dashboard Only (Next.js server only)
+# Profile 2: Dashboard + transitive worker deps (5 services: hoox,
+#           d1-worker, trade-worker, agent-worker, dashboard).
+#           trade-worker is pulled in because agent-worker depends on it
+#           for executing risk-approved trades.
 docker compose --profile dashboard up
 
-# Profile 3: Full Stack (All workers + Next.js dashboard)
+# Profile 3: Full Stack (all 10 services)
 docker compose --profile full up
 ```
+
+Only `hoox` (8787) and `dashboard` (8794) are published to the host. The other
+workers are reachable only via service bindings on the `hoox-net` bridge
+network — the same topology as production Cloudflare Workers Service Bindings.
 
 ---
 
@@ -77,6 +84,7 @@ During local development, all enabled workers are assigned dedicated local ports
 || **`agent-worker`** | `8795` | `http://localhost:8795` | AI Risk Manager & Cron Engine |
 || **`email-worker`** | `8796` | `http://localhost:8796` | Email Signal Parsing |
 || **`report-worker`** | `8797` | `http://localhost:8797` | PDF Portfolio Report Generator |
+|| **`analytics-worker`** | `8798` | `http://localhost:8798` | Analytics & Reporting Engine |
 
 ---
 

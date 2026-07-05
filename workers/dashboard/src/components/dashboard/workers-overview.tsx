@@ -368,7 +368,7 @@ export function WorkersOverview() {
                             {Array.from({ length: 20 }).map((_, i) => (
                               <motion.div
                                 key={`req-${i}`}
-                                className="w-full bg-blue-500/40 rounded-t-[1px]"
+                                className="w-full bg-primary/40 rounded-t-[1px]"
                                 animate={{
                                   height: [
                                     `${Math.random() * 40 + 20}%`,
@@ -398,7 +398,7 @@ export function WorkersOverview() {
                             {Array.from({ length: 20 }).map((_, i) => (
                               <motion.div
                                 key={`lat-${i}`}
-                                className="w-full bg-emerald-500/40 rounded-t-[1px]"
+                                className="w-full bg-success/40 rounded-t-[1px]"
                                 animate={{
                                   height: [
                                     `${Math.random() * 30 + 10}%`,

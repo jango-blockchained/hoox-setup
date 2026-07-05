@@ -1,21 +1,55 @@
 /**
  * Hoox ASCII banner — variants for the interactive TUI.
+ *
  * Each variant provides a different visual style while maintaining
- * consistent branding and theme coloring.
+ * consistent branding and theme coloring. The default variant is now
+ * `minimal` (the cleanest of the four); legacy and horizon are
+ * available as opt-ins.
+ *
+ * Version is read at module init from `package.json` to avoid drift.
  */
 
-import { theme } from "../utils/theme.js";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { theme, stripAnsi } from "../utils/theme.js";
 
 const TAGLINE = "Cloudflare Workers Platform";
-const VERSION = "0.3.0";
 
-// ── Shared constants ──────────────────────────────────────────────
+/**
+ * Walk up from this file's directory looking for the hoox-cli
+ * `package.json`. This works in both source (`src/ui/banner.ts`,
+ * `../../package.json`) and bundled (`dist/index.js`, `../package.json`)
+ * contexts, and survives the layout mismatch between dev and a
+ * globally-installed package.
+ */
+function findCliVersion(): string {
+  const PKG_NAME = "@jango-blockchained/hoox-cli";
+  let dir = dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 5; i++) {
+    const pkgPath = join(dir, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+        if (pkg.name === PKG_NAME) return pkg.version;
+      } catch {
+        // continue
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return "unknown";
+}
+
+const VERSION: string = findCliVersion();
 
 /** Disclaimer line rendered below the banner and in the footer. */
 export const DISCLAIMER =
   "DISCLAIMER: Trading cryptocurrencies involves substantial risk of loss. Use at your own risk.";
 
-// ── Variant 0 — Default (legacy) ──────────────────────────────────
+// ── Variant 0 — Legacy (block ASCII) ───────────────────────────────
 
 const LEGACY_LINES = [
   "██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗",
@@ -26,20 +60,18 @@ const LEGACY_LINES = [
   "╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
 ];
 
-function renderLegacy(): string {
+export function renderLegacy(): string {
   const bw = 52;
-  const line = ` ${theme.dim("─").repeat(bw - 2)}`;
-  const top = ` ${theme.dim("┌")}${line.slice(2)}${theme.dim("┐")}`;
-  const bottom = ` ${theme.dim("└")}${line.slice(2)}${theme.dim("┘")}`;
+  const line = ` ${theme.box.horizontal.repeat(bw - 2)}`;
+  const top = ` ${theme.box.topLeft}${line.slice(2)}${theme.box.topRight}`;
+  const bottom = ` ${theme.box.bottomLeft}${line.slice(2)}${theme.box.bottomRight}`;
   const ascii = LEGACY_LINES.map((l) => ` ${theme.heading(l)}`);
   const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 2) / 2);
-  const tag = ` ${" ".repeat(gap)}${theme.dim(TAGLINE)} ${theme.dim(`v${VERSION}`)}`;
+  const tag = ` ${" ".repeat(gap)}${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
   return [top, ...ascii, line, tag, bottom].join("\n");
 }
 
-// ── Variant 1 — "Horizon" (architectural) ─────────────────────────
-// Uses double-line frame characters and a more open, architectural feel.
-// The "HOOX" wordmark is built from simple geometric blocks.
+// ── Variant 1 — Horizon (architectural) ──────────────────────────
 
 const HORIZON_LINES = [
   "╔═══╗ ╔═══╗ ╔═══╗ ╔═══╗",
@@ -52,18 +84,31 @@ const HORIZON_LINES = [
 
 export function renderBannerHorizon(): string {
   const bw = 56;
-  const inner = theme.dim("─").repeat(bw - 2);
-  const top = ` ${theme.dim("╭")}${inner}${theme.dim("╮")}`;
-  const bottom = ` ${theme.dim("╰")}${inner}${theme.dim("╯")}`;
+  const inner = theme.box.horizontal.repeat(bw - 2);
+  // Horizon uses rounded corners (╭╮╰╯) — these aren't in theme.box
+  // (which holds square corners for the legacy/minimal styles). Inline
+  // with theme.textFaint for consistency.
+  const topLeft = theme.textFaint("╭");
+  const topRight = theme.textFaint("╮");
+  const bottomLeft = theme.textFaint("╰");
+  const bottomRight = theme.textFaint("╯");
+  const top = ` ${topLeft}${inner}${topRight}`;
+  const bottom = ` ${bottomLeft}${inner}${bottomRight}`;
   const ascii = HORIZON_LINES.map((l) => ` ${theme.accent(l)}`);
   const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 4) / 2);
-  const tag = ` ${" ".repeat(gap)}${theme.dim(TAGLINE)} ${theme.dim(`v${VERSION}`)}`;
-  return [top, ...ascii, theme.dim("─").repeat(bw), tag, bottom].join("\n");
+  const tag = ` ${" ".repeat(gap)}${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
+  // Leading space keeps the middle rule on-column with the other lines and
+  // ensures the line does not start with a raw ANSI escape (`\x1b`).
+  return [
+    top,
+    ...ascii,
+    ` ${theme.box.horizontal.repeat(bw)}`,
+    tag,
+    bottom,
+  ].join("\n");
 }
 
-// ── Variant 2 — "Signal" (data / waveform) ────────────────────────
-// Evokes trading signals and monitoring. Uses a smaller wordmark
-// with a dynamic waveform motif beneath it.
+// ── Variant 2 — Signal (data / waveform) ──────────────────────────
 
 const SIGNAL_LINES = [
   "  _   _           _   _   ",
@@ -75,43 +120,51 @@ const SIGNAL_LINES = [
 
 export function renderBannerSignal(): string {
   const bw = 54;
-  const line = theme.dim("─").repeat(bw);
-  const top = ` ${theme.dim("┌")}${line.slice(2)}${theme.dim("┐")}`;
-  const bottom = ` ${theme.dim("└")}${line.slice(2)}${theme.dim("┘")}`;
+  const line = theme.box.horizontal.repeat(bw);
+  const top = ` ${theme.box.topLeft}${line.slice(2)}${theme.box.topRight}`;
+  const bottom = ` ${theme.box.bottomLeft}${line.slice(2)}${theme.box.bottomRight}`;
 
   const wordmark = SIGNAL_LINES.map((l) => {
-    // Colour the letters H O O X, dim the rest
-    return ` ${theme.heading(l.slice(0, 26))}${theme.dim(l.slice(26))}`;
+    return ` ${theme.heading(l.slice(0, 26))}${theme.textFaint(l.slice(26))}`;
   });
 
-  // Waveform line — sine-wave art
-  const wave = ` ${theme.accent("~~")}${theme.dim("~")}${theme.accent("_")}${theme.dim(".")}${theme.accent("/\\")}${theme.dim("~")}${theme.accent("\\/")}${theme.dim("..")}${theme.accent("/~~\\")}${theme.dim("~")}  ${theme.dim(TAGLINE)} ${theme.dim(`v${VERSION}`)}`;
+  const wave = ` ${theme.accent("~~")}${theme.textFaint("~")}${theme.accent("_")}${theme.textFaint(".")}${theme.accent("/\\")}${theme.textFaint("~")}${theme.accent("\\/")}${theme.textFaint("..")}${theme.accent("/~~\\")}${theme.textFaint("~")}  ${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
 
-  return [top, ...wordmark, line, wave, bottom].join("\n");
+  // Leading space keeps the middle rule on-column with the other lines and
+  // ensures the line does not start with a raw ANSI escape (`\x1b`).
+  return [
+    top,
+    ...wordmark,
+    ` ${theme.box.horizontal.repeat(bw)}`,
+    wave,
+    bottom,
+  ].join("\n");
 }
 
-// ── Variant 3 — "Minimal" (clean badge) ───────────────────────────
-// No ASCII art — just the project name, version, and a clean
-// double-rule header. Professional and understated.
+// ── Variant 3 — Minimal (default, clean badge) ───────────────────
 
 export function renderBannerMinimal(): string {
   const bw = 50;
-  const rule = theme.dim("━").repeat(bw);
+  const rule = theme.textFaint("━").repeat(bw);
 
   const leftPad = Math.floor((bw - TAGLINE.length - VERSION.length - 8) / 2);
   const titleLine =
     " ".repeat(leftPad) +
     theme.heading("H O O X") +
     "  " +
-    theme.dim(TAGLINE) +
+    theme.textMuted(TAGLINE) +
     "  " +
-    theme.dim(`v${VERSION}`);
+    theme.textMuted(`v${VERSION}`);
 
   return [
     ` ${rule}`,
-    ` ${theme.dim("│")}${" ".repeat(bw - 2)}${theme.dim("│")}`,
-    `${theme.dim("│")}${titleLine}${" ".repeat(Math.max(0, bw - titleLine.length - 2))}${theme.dim("│")}`,
-    ` ${theme.dim("│")}${" ".repeat(bw - 2)}${theme.dim("│")}`,
+    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
+    // Leading space keeps the title line on-column with the rest of the box
+    // and ensures the line does not start with a raw ANSI escape (`\x1b`).
+    // Pad to the visible (ANSI-stripped) title length, not the raw string
+    // length, so the right border sits in the correct column.
+    ` ${theme.box.vertical}${titleLine}${" ".repeat(Math.max(0, bw - stripAnsi(titleLine).length - 2))}${theme.box.vertical}`,
+    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
     ` ${rule}`,
   ].join("\n");
 }
@@ -119,22 +172,22 @@ export function renderBannerMinimal(): string {
 // ── Exports ───────────────────────────────────────────────────────
 
 export const BANNER_VARIANTS = {
+  minimal: renderBannerMinimal,
   legacy: renderLegacy,
   horizon: renderBannerHorizon,
   signal: renderBannerSignal,
-  minimal: renderBannerMinimal,
 } as const;
 
 export type BannerVariant = keyof typeof BANNER_VARIANTS;
 
-/** Default banner — the legacy ASCII block style. */
+/** Default banner — minimal (clean badge). */
 export function renderBanner(variant?: BannerVariant): string {
-  return variant ? BANNER_VARIANTS[variant]() : renderLegacy();
+  return variant ? BANNER_VARIANTS[variant]() : renderBannerMinimal();
 }
 
 /**
  * Render a compact one-line banner for inline display.
  */
 export function renderCompactBanner(): string {
-  return `${theme.heading("Hoox CLI")} ${theme.dim(`${TAGLINE} ${VERSION}`)}`;
+  return `${theme.heading("Hoox CLI")} ${theme.textMuted(`v${VERSION}`)}`;
 }

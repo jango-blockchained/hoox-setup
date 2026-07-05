@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { DashboardSection, MergedSettings, SettingField } from "./types";
 
 export interface WorkerConfigManifest {
@@ -6,15 +7,44 @@ export interface WorkerConfigManifest {
   description?: string;
   sections: DashboardSection[];
 }
-interface ParsedSection {
-  title?: string;
-  description?: string;
-  icon?: string;
-  priority?: number;
-  fields?: Record<string, string | number | boolean>;
-  options?: Record<string, string[]>;
-  descriptions?: Record<string, string>;
-}
+
+/**
+ * Zod schema for the on-disk dashboard.jsonc shape.
+ * Permissive on optional fields; strict on types so a typo in the JSONC
+ * doesn't silently produce a malformed manifest.
+ *
+ * NOTE: Also exported so `scripts/sync-dashboard-configs.ts` can reuse the
+ * schema. Keep the export in sync between both files.
+ */
+export const ParsedSectionSchema = z
+  .object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    icon: z.string().optional(),
+    priority: z.number().int().nonnegative().optional(),
+    fields: z
+      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .optional(),
+    options: z
+      .record(z.string(), z.array(z.union([z.string(), z.number()])))
+      .optional(),
+    descriptions: z.record(z.string(), z.string()).optional(),
+    // Per-field metadata for the UI. "secrets" marks secret fields
+    // (read-only in the form, set via CLI). "secret_commands" maps each
+    // secret field to the exact CLI command.
+    secrets: z.record(z.string(), z.boolean()).optional(),
+    secret_commands: z.record(z.string(), z.string()).optional(),
+  })
+  .strict();
+
+export const DashboardManifestFileSchema = z
+  .object({
+    display_name: z.string().optional(),
+    displayName: z.string().optional(),
+    description: z.string().optional(),
+    sections: z.record(z.string(), ParsedSectionSchema).optional(),
+  })
+  .strict();
 
 function parseFieldValue(
   value: string | number | boolean
@@ -49,12 +79,22 @@ export function parseDashboardJSONC(
   try {
     // Strip comments to safely parse JSONC
     const cleanContent = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
-    const parsed = JSON.parse(cleanContent) as {
-      display_name?: string;
-      displayName?: string;
-      description?: string;
-      sections?: Record<string, ParsedSection>;
-    };
+    const result = DashboardManifestFileSchema.safeParse(
+      JSON.parse(cleanContent)
+    );
+    if (!result.success) {
+      console.error(
+        `Failed to parse dashboard.jsonc for ${workerName}:`,
+        result.error.issues
+      );
+      return {
+        worker: workerName,
+        displayName: workerName,
+        description: "Failed to load configuration",
+        sections: [],
+      };
+    }
+    const parsed = result.data;
 
     const displayName = parsed.display_name || parsed.displayName || workerName;
     const description = parsed.description || "";
@@ -66,6 +106,8 @@ export function parseDashboardJSONC(
         const sectionFields = sectionData.fields || {};
         const sectionOptions = sectionData.options || {};
         const sectionDescriptions = sectionData.descriptions || {};
+        const sectionSecrets = sectionData.secrets || {};
+        const sectionSecretCommands = sectionData.secret_commands || {};
 
         for (const [key, value] of Object.entries(sectionFields)) {
           const field = createField(
@@ -76,14 +118,22 @@ export function parseDashboardJSONC(
 
           if (sectionOptions[key]) {
             field.type = "select";
-            field.options = sectionOptions[key].map((opt: string) => ({
-              value: opt,
-              label: opt,
+            field.options = sectionOptions[key].map((opt: string | number) => ({
+              value: String(opt),
+              label: String(opt),
             }));
           }
 
           if (sectionDescriptions[key]) {
             field.description = String(sectionDescriptions[key]);
+          }
+
+          // S-3: secret fields are read-only in the form. The default value
+          // ("Requires CLI Setup" etc.) is shown as placeholder, not editable.
+          if (sectionSecrets[key]) {
+            field.kind = "secret";
+            field.cliCommand = sectionSecretCommands[key];
+            field.default = value; // keep for display
           }
 
           fields.push(field);
@@ -188,6 +238,30 @@ const BUILTIN_CONFIGS: Record<string, () => Promise<WorkerConfigManifest>> = {
       };
     return parseDashboardJSONC(await res.text(), "web3-wallet-worker");
   },
+  // analytics-worker and report-worker had no CONFIG_KV binding until
+  // the audit remediation. Their jsonc configs are served from public/workers/
+  // so the form can still display them. Their health dot will be red
+  // until the submodule PRs deploy.
+  async "analytics-worker"() {
+    const res = await fetch("/workers/analytics-worker.jsonc");
+    if (!res.ok)
+      return {
+        worker: "analytics-worker",
+        displayName: "Analytics Worker",
+        sections: [],
+      };
+    return parseDashboardJSONC(await res.text(), "analytics-worker");
+  },
+  async "report-worker"() {
+    const res = await fetch("/workers/report-worker.jsonc");
+    if (!res.ok)
+      return {
+        worker: "report-worker",
+        displayName: "Report Worker",
+        sections: [],
+      };
+    return parseDashboardJSONC(await res.text(), "report-worker");
+  },
 };
 
 export async function loadWorkerConfig(
@@ -242,19 +316,33 @@ export function flattenSettings(
   return merged;
 }
 
+/**
+ * Fetch all runtime setting overrides from /api/settings.
+ *
+ * Returns the nested shape: { [worker]: { [key]: value } }.
+ * The shape matches the `MergedSettings` type but is loosely typed at
+ * the field-value layer (any string|number|boolean) so the merge logic
+ * in loadMergedSettings can compare values without per-field casts.
+ *
+ * The `workerNames` argument is accepted for future per-worker filtering
+ * (e.g. when workers don't share a CONFIG_KV namespace) but currently the
+ * server returns all workers' settings in one call. Underscore-prefixed
+ * to acknowledge the unused-warning without committing to remove it.
+ */
 export async function getRuntimeOverrides(
   _workerNames: string[]
-): Promise<Record<string, string | number | boolean>> {
+): Promise<Record<string, Record<string, string | number | boolean>>> {
   try {
     const res = await fetch(`/api/settings`);
     if (res.ok) {
       const data = (await res.json()) as {
-        settings?: Record<string, string | number | boolean>;
+        settings?: Record<string, Record<string, string | number | boolean>>;
       };
-      return data.settings || {};
+      return data.settings ?? {};
     }
   } catch {
-    // API unavailable, return empty
+    // API unavailable (network, CORS, 5xx) — return empty so the form
+    // still renders with default values from dashboard.jsonc.
   }
   return {};
 }
@@ -264,23 +352,26 @@ export async function loadMergedSettings(
 ): Promise<MergedSettings> {
   const configs = await loadAllConfigs(workerNames);
   const defaults = flattenSettings(configs);
-  const overrides = (await getRuntimeOverrides(
-    workerNames
-  )) as unknown as Record<string, Record<string, string | number | boolean>>;
+  const overrides = await getRuntimeOverrides(workerNames);
 
   const merged: MergedSettings = {};
 
   for (const [worker, fields] of Object.entries(defaults)) {
     merged[worker] = { ...fields };
+    const workerOverrides = overrides[worker];
+    if (!workerOverrides) continue;
 
     for (const key of Object.keys(fields)) {
-      if (overrides[worker]) {
-        const rawKey = key.split(":")[1] || key;
-        if (overrides[worker][rawKey] !== undefined) {
-          merged[worker][key] = overrides[worker][rawKey];
-        } else if (overrides[worker][key] !== undefined) {
-          merged[worker][key] = overrides[worker][key];
-        }
+      // L-7: key form is "section:field". The override map can use either
+      // the prefixed form ("section:field") or the raw form ("field"),
+      // depending on how the server stored it. Check both.
+      const rawKey = key.split(":")[1] ?? key;
+      const candidate =
+        workerOverrides[rawKey] !== undefined
+          ? workerOverrides[rawKey]
+          : workerOverrides[key];
+      if (candidate !== undefined) {
+        merged[worker][key] = candidate;
       }
     }
   }

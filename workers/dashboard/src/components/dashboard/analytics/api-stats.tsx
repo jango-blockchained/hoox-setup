@@ -151,9 +151,9 @@ export function ApiStats() {
                         <span
                           className={
                             latency > 500
-                              ? "text-red-500"
+                              ? "text-destructive"
                               : latency > 200
-                                ? "text-yellow-500"
+                                ? "text-warning"
                                 : ""
                           }
                         >

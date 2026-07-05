@@ -47,10 +47,18 @@ import {
   Send,
   Sparkles,
   Percent,
+  Wallet,
+  Server,
+  Cpu,
+  FileText,
+  BarChart3,
+  Globe,
+  Key,
 } from "lucide-react";
 import type { WorkerConfigManifest } from "@/lib/settings/loader";
 import { loadAllConfigs, loadMergedSettings } from "@/lib/settings/loader";
 import type { DashboardSection, SettingField } from "@/lib/settings/types";
+import { DEFAULT_WORKER_LIST } from "@/lib/settings/workers";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   router: Router,
@@ -68,23 +76,27 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   send: Send,
   sparkles: Sparkles,
   percent: Percent,
+  // F-5: web3-wallet-worker.jsonc uses "wallet" — was missing from the map
+  // so it fell back to Zap. Now correctly renders the Wallet icon.
+  wallet: Wallet,
+  // Newly added for analytics-worker / report-worker / agent-worker
+  // sub-sections that were previously hidden because the parent jsonc
+  // was drifted.
+  server: Server,
+  cpu: Cpu,
+  "file-text": FileText,
+  "bar-chart": BarChart3,
+  globe: Globe,
+  key: Key,
 };
 
-interface ConnectedWorker {
-  name: string;
-  displayName: string;
-  enabled: boolean;
+interface WorkerHealth {
+  kvReachable: boolean;
+  lastChecked: number;
+  error?: string;
 }
 
-const DEFAULT_WORKERS: ConnectedWorker[] = [
-  { name: "hoox", displayName: "Gateway", enabled: true },
-  { name: "trade-worker", displayName: "Trade Worker", enabled: true },
-  { name: "d1-worker", displayName: "D1 Worker", enabled: true },
-  { name: "agent-worker", displayName: "Agent Worker", enabled: true },
-  { name: "telegram-worker", displayName: "Telegram Worker", enabled: true },
-  { name: "email-worker", displayName: "Email Worker", enabled: true },
-  { name: "web3-wallet-worker", displayName: "Web3 Wallet", enabled: true },
-];
+type WorkerHealthMap = Record<string, WorkerHealth>;
 
 export function SettingsForm() {
   const [configs, setConfigs] = useState<WorkerConfigManifest[]>([]);
@@ -93,21 +105,33 @@ export function SettingsForm() {
   >({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [workerHealth, setWorkerHealth] = useState<WorkerHealthMap>({});
 
   useEffect(() => {
     const controller = new AbortController();
 
     async function load() {
       try {
-        const workerNames = DEFAULT_WORKERS.filter((w) => w.enabled).map(
+        const workerNames = DEFAULT_WORKER_LIST.filter((w) => w.enabled).map(
           (w) => w.name
         );
-        const loadedConfigs = await loadAllConfigs(workerNames);
-        const loadedSettings = await loadMergedSettings(workerNames);
+        const [loadedConfigs, loadedSettings, healthRes] = await Promise.all([
+          loadAllConfigs(workerNames),
+          loadMergedSettings(workerNames),
+          fetch("/api/workers/health", { signal: controller.signal }).catch(
+            () => null
+          ),
+        ]);
 
         if (!controller.signal.aborted) {
           setConfigs(loadedConfigs);
           setSettings(loadedSettings);
+          if (healthRes && healthRes.ok) {
+            const data = (await healthRes.json()) as {
+              workers: WorkerHealthMap;
+            };
+            setWorkerHealth(data.workers);
+          }
         }
       } catch (err) {
         if (err instanceof Error && err.name !== "AbortError") {
@@ -142,37 +166,62 @@ export function SettingsForm() {
   const handleSave = async () => {
     const controller = new AbortController();
     setIsSaving(true);
-    let savedCount = 0;
-    let failedCount = 0;
+    let skippedCount = 0;
 
-    try {
-      for (const [worker, fields] of Object.entries(settings)) {
-        for (const [key, value] of Object.entries(fields)) {
-          const res = await fetch(`/api/settings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ worker, key, value }),
-            signal: controller.signal,
-          });
-
-          if (res.ok) {
-            savedCount++;
-          } else {
-            failedCount++;
-            const error = await res.json();
-            console.error(`Failed to save ${worker}.${key}:`, error);
-          }
+    // Build a set of "section:key" for secret fields so we skip them.
+    // (S-3: secret fields must not be POSTed to /api/settings.)
+    const secretKeys = new Set<string>();
+    for (const cfg of configs) {
+      for (const section of cfg.sections) {
+        for (const f of section.fields) {
+          if (f.kind === "secret") secretKeys.add(f.key);
         }
       }
+    }
 
-      if (failedCount === 0) {
+    // Build the batched payload: { settings: { [worker]: { [key]: value } } }
+    // Single round-trip instead of N sequential POSTs.
+    const batch: Record<string, Record<string, string | number | boolean>> = {};
+    for (const [worker, fields] of Object.entries(settings)) {
+      for (const [key, value] of Object.entries(fields)) {
+        if (secretKeys.has(key)) {
+          skippedCount++;
+          continue;
+        }
+        (batch[worker] ??= {})[key] = value;
+      }
+    }
+
+    const totalFields = Object.values(batch).reduce(
+      (n, fields) => n + Object.keys(fields).length,
+      0
+    );
+
+    try {
+      const res = await fetch(`/api/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: batch }),
+        signal: controller.signal,
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as { written?: number };
+        const written = data.written ?? totalFields;
         toast.success("Settings saved successfully", {
-          description: `${savedCount} setting(s) synced to workers.`,
+          description:
+            skippedCount > 0
+              ? `${written} setting(s) synced to workers. ${skippedCount} secret field(s) skipped (set via CLI).`
+              : `${written} setting(s) synced to workers.`,
         });
       } else {
-        toast.warning("Settings partially saved", {
-          description: `${savedCount} saved, ${failedCount} failed.`,
+        const error = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        toast.error("Failed to save settings", {
+          description: error.error ?? "Check console for details.",
         });
+        console.error("Settings save error:", error);
       }
     } catch (err) {
       if (err instanceof Error && err.name !== "AbortError") {
@@ -188,6 +237,40 @@ export function SettingsForm() {
 
   const renderField = (worker: string, field: SettingField) => {
     const value = settings[worker]?.[field.key] ?? field.default;
+    const isSecret = field.kind === "secret";
+
+    // S-3: secret fields are read-only. Render a disabled input with a
+    // "Configure via CLI" hint and the exact command to run.
+    if (isSecret) {
+      return (
+        <Field>
+          <FieldLabel className="flex items-center gap-2">
+            {field.label}
+            <Badge variant="secondary" className="font-normal text-xs">
+              Secret — CLI only
+            </Badge>
+          </FieldLabel>
+          <Input
+            type="text"
+            value={String(value)}
+            disabled
+            readOnly
+            placeholder="•••••• (set via CLI)"
+            className="bg-secondary/30 font-mono text-muted-foreground"
+          />
+          {field.cliCommand && (
+            <FieldDescription>
+              <code className="rounded bg-secondary/50 px-1.5 py-0.5 text-xs">
+                {field.cliCommand}
+              </code>
+            </FieldDescription>
+          )}
+          {field.description && !field.cliCommand && (
+            <FieldDescription>{field.description}</FieldDescription>
+          )}
+        </Field>
+      );
+    }
 
     switch (field.type) {
       case "boolean":
@@ -315,20 +398,36 @@ export function SettingsForm() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {DEFAULT_WORKERS.map((worker) => (
-              <Badge
-                key={worker.name}
-                variant={worker.enabled ? "default" : "secondary"}
-                className={worker.enabled ? "bg-primary/20 text-primary" : ""}
-              >
-                <span
-                  className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-                    worker.enabled ? "bg-emerald-500" : "bg-muted-foreground"
-                  }`}
-                />
-                {worker.displayName}
-              </Badge>
-            ))}
+            {DEFAULT_WORKER_LIST.map((worker) => {
+              const health = workerHealth[worker.name];
+              // Health states:
+              //   green: CONFIG_KV reachable (worker can read/write)
+              //   red:   worker missing CONFIG_KV binding (unreachable)
+              //   gray:  health endpoint didn't return a status (e.g. /api/workers/health not yet reachable in dev)
+              const dotClass = !health
+                ? "bg-muted-foreground"
+                : health.kvReachable
+                  ? "bg-success"
+                  : "bg-destructive";
+              const tooltip = !health
+                ? "Health endpoint unreachable"
+                : health.kvReachable
+                  ? "CONFIG_KV reachable"
+                  : `Unreachable: ${health.error ?? "missing CONFIG_KV binding"}`;
+              return (
+                <Badge
+                  key={worker.name}
+                  variant={worker.enabled ? "default" : "secondary"}
+                  className={worker.enabled ? "bg-primary/20 text-primary" : ""}
+                  title={tooltip}
+                >
+                  <span
+                    className={`mr-1.5 h-1.5 w-1.5 rounded-full ${dotClass}`}
+                  />
+                  {worker.displayName}
+                </Badge>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -351,7 +450,7 @@ export function SettingsForm() {
             <TabsContent
               key={config.worker}
               value={config.worker}
-              className="space-y-6"
+              className="flex flex-col gap-6"
             >
               {config.sections.map((section: DashboardSection) => {
                 const Icon = section.icon ? ICON_MAP[section.icon] || Zap : Zap;
@@ -362,7 +461,7 @@ export function SettingsForm() {
                   >
                     <CardHeader className="pb-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Icon className="h-5 w-5 text-primary" />
                             {section.title}

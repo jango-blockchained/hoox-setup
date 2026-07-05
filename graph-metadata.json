@@ -418,10 +418,10 @@
       "llmContext": "Service binding to telegram-worker for sending notifications. Target endpoint: POST /webhook (primary) or POST /process (legacy). Called by: hoox (kill switch alerts, signal confirmation), trade-worker (trade execution notifications), agent-worker (risk alerts, trailing stop triggers), report-worker (PDF report delivery with signed URL), web3-wallet-worker (wallet initialization confirmation). Fire-and-forget via ctx.waitUntil. NotificationPayload: { message: string, chatId?: string } — uses TG_CHAT_ID_BINDING if chatId omitted.",
       "bindingName": "TELEGRAM_SERVICE",
       "usedBy": [
-        "workers/hoox",
-        "workers/trade-worker",
         "workers/agent-worker",
+        "workers/hoox",
         "workers/report-worker",
+        "workers/trade-worker",
         "workers/web3-wallet-worker"
       ]
     },
@@ -434,7 +434,7 @@
       "tags": ["service-binding", "trade", "execution", "inter-worker"],
       "llmContext": "Service binding to trade-worker for trade signal execution. Target endpoint: POST /webhook. Called by: hoox (queue producer fallback), email-worker (parsed email signals with X-Internal-Auth-Key + X-Source: email-worker headers), agent-worker (AI-initiated risk adjustments). Trade execution via exchange router (Binance/MEXC/Bybit) with exponential backoff retry.",
       "bindingName": "TRADE_SERVICE",
-      "usedBy": ["workers/hoox", "workers/email-worker", "workers/agent-worker"]
+      "usedBy": ["workers/agent-worker", "workers/email-worker", "workers/hoox"]
     },
     "binding:D1_SERVICE": {
       "id": "infra:binding:D1_SERVICE",
@@ -446,10 +446,10 @@
       "llmContext": "Service binding to d1-worker for centralized D1 database access. Provides table-allowlist-validated SQL execution (allowed tables: trade_signals, trades, positions, balances, system_logs, trade_requests, trade_responses). Endpoints: POST /query (single SQL), POST /batch (atomic multi-statement), GET/POST /api/settings, GET /api/balances, GET /api/positions, GET /api/logs. All endpoints except /health require internal auth. Called by: trade-worker (trade persistence, balance tracking), report-worker (portfolio summary for PDF reports), dashboard (data read for UI rendering), agent-worker (position monitoring for AI risk assessment).",
       "bindingName": "D1_SERVICE",
       "usedBy": [
-        "workers/trade-worker",
-        "workers/report-worker",
+        "workers/agent-worker",
         "workers/dashboard",
-        "workers/agent-worker"
+        "workers/report-worker",
+        "workers/trade-worker"
       ]
     },
     "binding:AGENT_SERVICE": {

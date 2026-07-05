@@ -145,7 +145,9 @@ export function WorkerPerformance() {
                     <TableCell>{row.total_requests || 0}</TableCell>
                     <TableCell>
                       <span
-                        className={row.total_errors > 0 ? "text-red-500" : ""}
+                        className={
+                          row.total_errors > 0 ? "text-destructive" : ""
+                        }
                       >
                         {row.total_errors || 0}
                       </span>

@@ -101,7 +101,7 @@ export function CandlestickChart({
                     if (payload?.[0]) {
                       const d = payload[0].payload;
                       return (
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           <p className="font-medium">{label}</p>
                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                             <span className="text-muted-foreground">Open:</span>
@@ -109,18 +109,18 @@ export function CandlestickChart({
                               {d.open?.toFixed(2)}
                             </span>
                             <span className="text-muted-foreground">High:</span>
-                            <span className="font-mono text-green-500">
+                            <span className="font-mono text-success">
                               {d.high?.toFixed(2)}
                             </span>
                             <span className="text-muted-foreground">Low:</span>
-                            <span className="font-mono text-red-500">
+                            <span className="font-mono text-destructive">
                               {d.low?.toFixed(2)}
                             </span>
                             <span className="text-muted-foreground">
                               Close:
                             </span>
                             <span
-                              className={`font-mono ${d.bullish ? "text-green-500" : "text-red-500"}`}
+                              className={`font-mono ${d.bullish ? "text-success" : "text-destructive"}`}
                             >
                               {d.close?.toFixed(2)}
                             </span>

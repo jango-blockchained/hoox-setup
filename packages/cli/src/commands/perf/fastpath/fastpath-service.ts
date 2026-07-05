@@ -68,7 +68,13 @@ export class FastPathService {
       );
     }
 
-    const url = resolveGatewayUrl();
+    // resolveGatewayUrl returns the bare gateway origin (e.g.
+    // https://hoox.cryptolinx.workers.dev). The hoox gateway
+    // exposes the trade webhook at POST /webhook, so we must
+    // append the path. Without this, probes hit the root and
+    // return 404 (the bug behind the 2026-06-27 fastpath
+    // measurement returning 0/50 successful).
+    const url = `${resolveGatewayUrl()}/webhook`;
     const tRunStart = Date.now();
 
     // ── 1. Send probes with bounded concurrency ──
@@ -78,6 +84,11 @@ export class FastPathService {
       async (_i) => {
         const probe_id = crypto.randomUUID();
         const req: ProbeRequest = {
+          // The hoox gateway reads the API key from the body
+          // (apiKey field). Earlier the fastpath put it in a
+          // header, which the gateway ignored → 403. Now we
+          // include it in the body to match the gateway's auth.
+          apiKey: cfg.apiKey,
           probe: true,
           probe_id,
           symbol: cfg.symbol,

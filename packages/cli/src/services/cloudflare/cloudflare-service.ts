@@ -344,7 +344,19 @@ export class CloudflareService {
     return this.runWrangler(["d1", "delete", name]);
   }
 
-  /** Runs a SQL query on a D1 database (`wrangler d1 execute`). */
+  /**
+   * Runs a SQL query on a D1 database (`wrangler d1 execute`).
+   *
+   * Returns the JSON result array (the tail of wrangler's stdout).
+   * Wrangler's stdout has a noisy prefix (`⛅️ wrangler 4.98.0 (update
+   * available 4.105.0)`, `Resource location: remote`, etc.) before
+   * the JSON. Callers that JSON.parse the result need the pure
+   * JSON, so we extract the trailing array here.
+   *
+   * For backward compat with code that expects the full stdout
+   * (none in the current codebase), this could expose a separate
+   * `d1ExecuteRaw` method. As of 0.9.2 only this method exists.
+   */
   async d1Execute(
     name: string,
     sql: string,
@@ -352,7 +364,16 @@ export class CloudflareService {
   ): Promise<WranglerResult<string>> {
     const args = ["d1", "execute", name, "--command", sql];
     if (remote) args.push("--remote");
-    return this.runWrangler(args);
+    const result = await this.runWrangler(args);
+    if (!result.ok) return result;
+    const extracted = extractJsonArray(result.value);
+    if (extracted === null) {
+      return {
+        ok: false,
+        error: `wrangler d1 execute returned non-JSON output: ${result.value.slice(0, 200)}`,
+      };
+    }
+    return { ok: true, value: extracted };
   }
 
   // ---------------------------------------------------------------------------
@@ -476,9 +497,37 @@ export class CloudflareService {
   // Secrets
   // ---------------------------------------------------------------------------
 
-  /** Lists secrets for a worker (`wrangler secret list --name <workerName>`). */
+  /**
+   * Lists secrets for a worker (`wrangler secret list --name <workerName>`).
+   *
+   * Wrangler's stdout is not pure JSON: depending on the wrangler
+   * version it may prepend a "There is a newer version of Wrangler
+   * available" notice (or other upgrade/version warnings) to stdout
+   * before the JSON array. As of wrangler 4.98 the array is always
+   * valid JSON in the tail of stdout, so we extract the JSON array
+   * (first '[' to last matching ']') before returning.
+   *
+   * The caller (setup-service.verifySetup) JSON.parses the result,
+   * so it must be a valid JSON string. If extraction fails, the
+   * caller will see a "parse error" — the fix here is to surface
+   * the raw stdout in `error` so the bug is debuggable.
+   */
   async secretList(workerName: string): Promise<WranglerResult<string>> {
-    return this.runWrangler(["secret", "list", "--name", workerName]);
+    const result = await this.runWrangler([
+      "secret",
+      "list",
+      "--name",
+      workerName,
+    ]);
+    if (!result.ok) return result;
+    const extracted = extractJsonArray(result.value);
+    if (extracted === null) {
+      return {
+        ok: false,
+        error: `wrangler secret list returned non-JSON output: ${result.value.slice(0, 200)}`,
+      };
+    }
+    return { ok: true, value: extracted };
   }
 
   /**
@@ -618,4 +667,48 @@ export class CloudflareService {
     }
     return undefined;
   }
+}
+
+/**
+ * Extract the first top-level JSON array from a string that may
+ * contain leading noise (e.g. "There is a newer version of Wrangler
+ * available..." warnings that wrangler prints to stdout before the
+ * actual JSON payload). Used by `secretList` to recover the
+ * `[{"name":"..."}]` array from wrangler's mixed stdout.
+ *
+ * Returns null if no valid JSON array is found. The extracted
+ * substring is JSON.parse'd by the caller.
+ */
+export function extractJsonArray(raw: string): string | null {
+  const first = raw.indexOf("[");
+  if (first === -1) return null;
+  // Walk forward tracking string literals and bracket depth to find
+  // the matching closing ']'. Wrangler's output is well-formed JSON
+  // so a simple depth counter suffices as long as we skip over
+  // quoted strings.
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = first; i < raw.length; i++) {
+    const ch = raw[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (inString) {
+      if (ch === "\\") escape = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === "[") depth++;
+    else if (ch === "]") {
+      depth--;
+      if (depth === 0) return raw.slice(first, i + 1);
+    }
+  }
+  return null;
 }

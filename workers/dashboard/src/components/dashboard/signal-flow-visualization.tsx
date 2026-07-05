@@ -58,8 +58,8 @@ const stages = [
     worker: "splitter-worker",
     description: "Split across exchanges",
     color: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/30",
+    bgColor: "bg-primary/10",
+    borderColor: "border-primary/30",
     services: ["Service Binding", "Durable Objects"] as CFServiceType[],
   },
   {
@@ -82,8 +82,8 @@ const stages = [
     worker: "risk-worker",
     description: "Risk parameters validation",
     color: "from-emerald-500 to-green-500",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/30",
+    bgColor: "bg-success/10",
+    borderColor: "border-success/30",
     services: ["D1", "KV"] as CFServiceType[],
   },
   {
@@ -94,8 +94,8 @@ const stages = [
     worker: "position-worker",
     description: "Position sizing & management",
     color: "from-neutral-500 to-primary",
-    bgColor: "bg-yellow-500/10",
-    borderColor: "border-yellow-500/30",
+    bgColor: "bg-warning/10",
+    borderColor: "border-warning/30",
     services: ["D1"] as CFServiceType[],
   },
   {
@@ -106,8 +106,8 @@ const stages = [
     worker: "execution-worker",
     description: "Order execution on exchange",
     color: "from-red-500 to-rose-500",
-    bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/30",
+    bgColor: "bg-destructive/10",
+    borderColor: "border-destructive/30",
     services: ["Service Binding", "R2"] as CFServiceType[],
   },
 ];
@@ -406,14 +406,14 @@ export function SignalFlowVisualization() {
             {/* Stats badges */}
             <Badge
               variant="outline"
-              className="gap-1 border-emerald-500/30 text-emerald-500"
+              className="gap-1 border-success/30 text-success"
             >
               <CheckCircle2 className="h-3 w-3" />
               {completedSignals.successful}
             </Badge>
             <Badge
               variant="outline"
-              className="gap-1 border-red-500/30 text-red-500"
+              className="gap-1 border-destructive/30 text-destructive"
             >
               <XCircle className="h-3 w-3" />
               {completedSignals.rejected}
@@ -492,12 +492,12 @@ export function SignalFlowVisualization() {
                       variant="outline"
                       className={`gap-1.5 ${
                         signal.status === "completed"
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                          ? "border-success/30 bg-success/10 text-success"
                           : signal.status === "rejected"
-                            ? "border-red-500/30 bg-red-500/10 text-red-500"
+                            ? "border-destructive/30 bg-destructive/10 text-destructive"
                             : signal.action === "BUY"
-                              ? "border-emerald-500/30 text-emerald-500"
-                              : "border-red-500/30 text-red-500"
+                              ? "border-success/30 text-success"
+                              : "border-destructive/30 text-destructive"
                       }`}
                     >
                       {signal.status === "completed" ? (

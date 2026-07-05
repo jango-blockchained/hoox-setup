@@ -685,6 +685,11 @@ This launches all workers on the following ports:
 | Agent           | 8795 |
 | Email           | 8796 |
 | Report          | 8797 |
+| Analytics       | 8798 |
+
+Note: only `hoox` (8787) and `dashboard` (8794) are published to the host. The
+other workers are reachable only via service bindings on the `hoox-net` bridge
+network — matching the production Cloudflare Workers Service Bindings topology.
 
 To stop local dev cleanly:
 

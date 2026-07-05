@@ -16,6 +16,7 @@
 
 import { getHooxHome } from "./path-utils";
 import type { ViewId } from "./types";
+import { z } from "zod";
 
 // ─── Session shape ───────────────────────────────────────────────────────────
 
@@ -31,6 +32,26 @@ export interface SessionState {
   /** ISO timestamp of when the session was saved */
   savedAt: string;
 }
+
+/**
+ * Zod schema for the on-disk session.json shape.
+ * All fields are optional — missing fields fall back to defaults.
+ * activeView is validated against VALID_VIEW_IDS in the merge step.
+ */
+const SessionStateFileSchema = z
+  .object({
+    activeView: z.string().optional(),
+    sidebarExpanded: z.boolean().optional(),
+    windowSize: z
+      .object({
+        cols: z.number().int().positive(),
+        rows: z.number().int().positive(),
+      })
+      .optional(),
+    lastData: z.number().nonnegative().optional(),
+    savedAt: z.string().optional(),
+  })
+  .strict();
 
 // ─── File path ───────────────────────────────────────────────────────────────
 
@@ -104,12 +125,13 @@ export async function restoreSession(): Promise<SessionState> {
     if (!exists) return { ...DEFAULT_SESSION };
 
     const raw = await file.text();
-    const parsed = JSON.parse(raw) as Partial<SessionState>;
+    const result = SessionStateFileSchema.safeParse(JSON.parse(raw));
+    const parsed = result.success ? result.data : {};
 
     // Validate and merge with defaults
     return {
       activeView: validateViewId(parsed.activeView)
-        ? parsed.activeView!
+        ? (parsed.activeView as ViewId)
         : DEFAULT_SESSION.activeView,
       sidebarExpanded:
         typeof parsed.sidebarExpanded === "boolean"

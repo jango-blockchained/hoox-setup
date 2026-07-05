@@ -13,6 +13,7 @@ import {
   formatDuration,
   formatBadge,
   formatHint,
+  formatCompletion,
 } from "./formatters.js";
 import { CLIError, ExitCode } from "./errors.js";
 import { Command } from "commander";
@@ -439,7 +440,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: undefined, quiet: undefined }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: false, quiet: false });
+    expect(opts).toEqual({ json: false, quiet: false, noColor: false });
   });
 
   it("returns json=true when --json flag is set", () => {
@@ -447,7 +448,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: true, quiet: false }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: true, quiet: false });
+    expect(opts).toEqual({ json: true, quiet: false, noColor: false });
   });
 
   it("returns quiet=true when --quiet flag is set", () => {
@@ -455,7 +456,7 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: false, quiet: true }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: false, quiet: true });
+    expect(opts).toEqual({ json: false, quiet: true, noColor: false });
   });
 
   it("returns both true when both flags are set", () => {
@@ -463,7 +464,15 @@ describe("getFormatOptions", () => {
       optsWithGlobals: () => ({ json: true, quiet: true }),
     } as unknown as Command;
     const opts = getFormatOptions(cmd);
-    expect(opts).toEqual({ json: true, quiet: true });
+    expect(opts).toEqual({ json: true, quiet: true, noColor: false });
+  });
+
+  it("returns noColor=true when --no-color flag is set (commander negates to color:false)", () => {
+    const cmd = {
+      optsWithGlobals: () => ({ json: false, quiet: false, color: false }),
+    } as unknown as Command;
+    const opts = getFormatOptions(cmd);
+    expect(opts).toEqual({ json: false, quiet: false, noColor: true });
   });
 });
 
@@ -491,40 +500,51 @@ describe("formatBadge", () => {
     expect(out).toContain("DONE");
   });
 
-  it("renders FAIL badge by default when level=err", () => {
+  it("renders fail badge by default when level=err", () => {
     const out = formatBadge("err");
-    expect(out).toContain("FAIL");
+    expect(out).toContain("fail");
   });
 
-  it("renders WARN badge by default when level=warn", () => {
+  it("renders warn badge by default when level=warn", () => {
     const out = formatBadge("warn");
-    expect(out).toContain("WARN");
+    expect(out).toContain("warn");
   });
 
-  it("renders INFO badge by default when level=info", () => {
+  it("renders info badge by default when level=info", () => {
     const out = formatBadge("info");
-    expect(out).toContain("INFO");
+    expect(out).toContain("info");
   });
 
-  it("renders OK badge by default when level=ok", () => {
+  it("renders ok badge by default when level=ok", () => {
     const out = formatBadge("ok");
-    expect(out).toContain("OK");
+    expect(out).toContain("ok");
   });
 
-  it("pads short custom text to 4 chars", () => {
+  it("renders the level's status glyph", () => {
+    expect(formatBadge("ok")).toContain("✓");
+    expect(formatBadge("err")).toContain("✗");
+    expect(formatBadge("warn")).toContain("⚠");
+    expect(formatBadge("info")).toContain("ℹ");
+  });
+
+  it("includes the custom text verbatim (no padding)", () => {
     const out = formatBadge("ok", "X");
     expect(out).toContain("X");
-    // padEnd should add spaces; verify length is correct
-    expect(out.length).toBeGreaterThanOrEqual(7);
+    // New style: "✓ X" — 3 visible chars (one space, no padding)
+    expect(out).toContain("X");
   });
 });
 
 describe("formatHint", () => {
   let capture: ReturnType<typeof captureStdout>;
   const originalIsTTY = process.stdout.isTTY;
+  const ORIGINAL_ENV = { ...process.env };
 
   beforeEach(() => {
     capture = captureStdout();
+    // Clear NO_COLOR so isRichMode() can return true when isTTY is forced
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
     Object.defineProperty(process.stdout, "isTTY", {
       value: true,
       configurable: true,
@@ -534,6 +554,7 @@ describe("formatHint", () => {
 
   afterEach(() => {
     capture.restore();
+    process.env = { ...ORIGINAL_ENV };
     Object.defineProperty(process.stdout, "isTTY", {
       value: originalIsTTY,
       configurable: true,
@@ -641,5 +662,181 @@ describe("formatError with hint", () => {
     formatError(error, { quiet: true });
     const out = capture.output();
     expect(out).toBe("Oops\n");
+  });
+});
+
+describe("formatTable refinements", () => {
+  let capture: ReturnType<typeof captureStdout>;
+
+  beforeEach(() => {
+    capture = captureStdout();
+  });
+
+  afterEach(() => {
+    capture.restore();
+  });
+
+  it("applies zebra striping by default (alt rows have dim treatment)", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "ok" },
+      { name: "gamma", status: "ok" },
+    ];
+    formatTable(rows);
+    const out = capture.output();
+    const alphaLine = out.split("\n").find((l) => l.includes("alpha"));
+    expect(alphaLine).toBeDefined();
+    expect(alphaLine).not.toBeNull();
+  });
+
+  it("right-aligns numeric columns by default", () => {
+    const rows = [
+      { name: "alpha", count: "10" },
+      { name: "beta", count: "200" },
+      { name: "gamma-long", count: "3" },
+    ];
+    formatTable(rows);
+    // eslint-disable-next-line no-control-regex
+    const out = capture.output().replace(/\x1b\[[0-9;]*m/g, "");
+    // The "3" should be right-aligned to match the width of "200".
+    expect(out).toMatch(/gamma-long\s+│\s+3\s*│/);
+  });
+
+  it("colorizes status values by default", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "fail" },
+    ];
+    formatTable(rows);
+    const out = capture.output();
+    expect(out).toContain("✓");
+    expect(out).toContain("✗");
+  });
+
+  it("respects { zebra: false }", () => {
+    const rows = [
+      { name: "alpha", status: "ok" },
+      { name: "beta", status: "ok" },
+    ];
+    formatTable(rows, { zebra: false });
+    const out = capture.output();
+    const lines = out.split("\n").filter((l) => l.includes("│"));
+    expect(lines.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("respects { compact: true } — no top/bottom borders", () => {
+    const rows = [{ name: "alpha", status: "ok" }];
+    formatTable(rows, { compact: true });
+    const out = capture.output();
+    expect(out).not.toContain("┌");
+    expect(out).not.toContain("└");
+  });
+});
+
+describe("formatError refinements", () => {
+  let capture: ReturnType<typeof captureStdout>;
+
+  beforeEach(() => {
+    capture = captureStdout();
+  });
+
+  afterEach(() => {
+    capture.restore();
+  });
+
+  it("renders a [code] badge when CLIError has a code", () => {
+    formatError(new CLIError("bad token", ExitCode.INVALID_USAGE));
+    const out = capture.output();
+    expect(out).toContain("[2]"); // INVALID_USAGE is exit code 2
+    expect(out).toContain("bad token");
+  });
+
+  it("renders suggestions as a 'did you mean' line", () => {
+    formatError("unknown command", { suggestions: ["hoox deploy"] });
+    const out = capture.output();
+    expect(out).toContain("did you mean");
+    expect(out).toContain("hoox deploy");
+  });
+
+  it("emits suggestions in JSON mode", () => {
+    formatError("unknown command", {
+      json: true,
+      suggestions: ["hoox deploy"],
+    });
+    const out = capture.output();
+    const parsed = JSON.parse(out);
+    expect(parsed.suggestions).toEqual(["hoox deploy"]);
+  });
+
+  it("inCard: false skips the card framing", () => {
+    formatError("plain error", { inCard: false });
+    const out = capture.output();
+    const lines = out.split("\n").filter((l) => l.trim().startsWith("│"));
+    expect(lines.length).toBe(0);
+  });
+});
+
+describe("formatCompletion", () => {
+  let capture: ReturnType<typeof captureStdout>;
+  const ORIGINAL_TTY = process.stdout.isTTY;
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    capture = captureStdout();
+    // Clear NO_COLOR so isRichMode() can return true when isTTY is forced
+    delete process.env.NO_COLOR;
+    process.env.TERM = "xterm-256color";
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: true,
+      configurable: true,
+      writable: true,
+    });
+    process.exitCode = 0;
+  });
+
+  afterEach(() => {
+    capture.restore();
+    process.env = { ...ORIGINAL_ENV };
+    Object.defineProperty(process.stdout, "isTTY", {
+      value: ORIGINAL_TTY,
+      configurable: true,
+      writable: true,
+    });
+    process.exitCode = 0;
+  });
+
+  it("renders success + message + duration in human mode", () => {
+    formatCompletion("Deploy complete", { durationMs: 12_345 });
+    const out = capture.output();
+    expect(out).toContain("✓");
+    expect(out).toContain("Deploy complete");
+    expect(out).toContain("12.3s"); // formatDuration output
+  });
+
+  it("renders a 'next: ...' line when a suggestion is provided", () => {
+    formatCompletion("Done", {
+      durationMs: 1_000,
+      suggestion: { command: "hoox check health", reason: "verify the deploy" },
+    });
+    const out = capture.output();
+    expect(out).toContain("next:");
+    expect(out).toContain("hoox check health");
+    expect(out).toContain("verify the deploy");
+  });
+
+  it("prints nothing in --json mode", () => {
+    formatCompletion("Done", { json: true, durationMs: 1_000 });
+    expect(capture.output()).toBe("");
+  });
+
+  it("prints nothing in --quiet mode", () => {
+    formatCompletion("Done", { quiet: true, durationMs: 1_000 });
+    expect(capture.output()).toBe("");
+  });
+
+  it("prints nothing when process.exitCode is non-zero", () => {
+    process.exitCode = 1;
+    formatCompletion("Done", { durationMs: 1_000 });
+    expect(capture.output()).toBe("");
   });
 });

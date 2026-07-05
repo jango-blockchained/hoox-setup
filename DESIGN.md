@@ -493,3 +493,56 @@ The graph has three layers:
 1. **Code layer** — TypeScript exports, imports, calls, references (auto-extracted from AST)
 2. **Architecture layer** — Worker nodes with descriptions, infrastructure nodes (D1, R2, KV, Queue, DO, AI, Vectorize, Analytics Engine, Browser Rendering), service binding edges, data flow edges
 3. **Community groups** — Logical clusters: workers, packages, infrastructure, signal-pipeline, ai-system
+
+## 12. Self-Hosted Limitations
+
+The `server.js` + `Dockerfile.prod` pair provides a self-hosted runtime for
+local testing, demos, and air-gapped deployments. **It is not a full
+replacement for the Cloudflare Workers production target.** The following
+Cloudflare-specific features are explicitly not supported in self-hosted
+mode:
+
+| Feature | Status | What happens |
+|---|---|---|
+| **Durable Objects** (e.g. `IDEMPOTENCY_STORE`, `exchange-connection-manager`) | Not supported | Shim at `scripts/cloudflare-workers-shim.js` throws on `new DurableObject(...)`. Subtask 07 chose option (a): fail loudly. Operators see a clear error pointing to this section. |
+| **Service bindings** (`env.SOMETHING_SERVICE.fetch(...)`) | Not supported | `server.js` provides placeholder bindings that throw on use. Workers calling service bindings (e.g. `hoox` → `TRADE_SERVICE`) will fail. |
+| **D1 / R2 / KV / Vectorize / Analytics Engine** | Not supported | The `env` object in `server.js` is `process.env` plus the placeholder service bindings. Cloudflare-specific storage bindings are not provided. |
+| **Workers AI** | Not supported | No adapter. |
+| **Browser Rendering** (`report-worker`) | Not supported | The Chromium binary and session API are not provided. |
+| **Cloudflare WAF / Rate Limiting** | Not supported | No WAF in front of `server.js`. Operators must put a reverse proxy (nginx, Caddy, Traefik) in front for TLS, rate limits, and request size limits. |
+| **Smart Placement** | N/A | Cloudflare-specific. |
+| **Queues / Durable Object alarms** | Not supported | No async backpressure or scheduled tasks. |
+
+### Why option (a) — fail loudly?
+
+The 2026-06-04 Docker setup review flagged the original `Dockerfile.prod`
+polyfill as a critical issue (C-03): it silently turned every `import {
+DurableObject } from "cloudflare:workers"` into a no-op shell. The `hoox`
+worker uses `IDEMPOTENCY_STORE` for trade idempotency — a silent stub
+would allow duplicate trade execution in self-hosted production.
+
+The review offered four options:
+- **(a) Fail loudly** — chosen for short-term safety
+- **(b) In-memory adapter** — `Map<id, instance>` adapter; state lost on restart, single-process only
+- **(c) workerd / miniflare integration** — heaviest, but most accurate
+- **(d) Drop self-hosted `hoox` gateway** — cleanest, removes the option
+
+We chose (a) because:
+1. It surfaces the limitation immediately at boot or first request, not silently
+2. It does not pretend to provide semantics it cannot honor
+3. The Cloudflare deployment remains the recommended path for production
+4. Operators who need DO semantics can implement (b) or (c) and replace the shim
+
+### Recommended deployment
+
+For anything other than local development and demos, deploy to Cloudflare:
+
+```bash
+hoox workers deploy       # all 9 workers
+hoox pages deploy         # dashboard
+hoox secrets update-cf    # push secrets
+```
+
+For air-gapped or self-hosted production, implement option (b) or (c) by
+replacing `scripts/cloudflare-workers-shim.js` with a real adapter, and
+update `server.js` to populate `env` with real service binding proxies.

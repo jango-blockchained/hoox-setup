@@ -11,19 +11,32 @@ Hoox provides a comprehensive local development workspace designed to emulate yo
 
 The `hoox dev start` command orchestrates the boot sequence for all enabled workers and supports two execution runtimes:
 
-| Runtime Mode | Boot Command | Latency / Hot-Reload | Isolation Level | Ideal Use Case |
-| :-- | :-- | :-: | :-: | :-- |
-| **Native** | `wrangler dev` | **\< 10ms** | Low (shares local host ports) | High-speed script tweaking, rapid feature iterations. |
-| **Docker** | `docker compose up` | **~100ms** | High (isolated Linux containers) | Testing full integrations, database migrations, queue failovers. |
+| Runtime Mode | Boot Command        | Latency / Hot-Reload |         Isolation Level          | Ideal Use Case                                                   |
+| :----------- | :------------------ | :------------------: | :------------------------------: | :--------------------------------------------------------------- |
+| **Native**   | `wrangler dev`      |     **\< 10ms**      |  Low (shares local host ports)   | High-speed script tweaking, rapid feature iterations.            |
+| **Docker**   | `docker compose up` |      **~100ms**      | High (isolated Linux containers) | Testing full integrations, database migrations, queue failovers. |
 
 ### The Guided Startup Flow
 
 When you run `hoox dev start`:
 
 <ol>
-  <li><strong>Wrangler Version Verification</strong>: Probes your global/local Wrangler package. If Wrangler is outdated, it prompts an advisory upgrade warning. The warning shows the current vs minimum version and offers a one-line update command.</li>
-  <li><strong>Docker Environment Probing</strong>: Checks if the Docker daemon is active and <code>docker-compose.yml</code> is present in the workspace.</li>
-  <li><strong>Runtime Preference Lock</strong>: If both runtimes are available, the CLI prompts you to select your preference. This choice is written to your <code>wrangler.jsonc</code> file under the dev runtime block, bypassing future prompts.</li>
+  <li>
+    <strong>Wrangler Version Verification</strong>: Probes your global/local
+    Wrangler package. If Wrangler is outdated, it prompts an advisory upgrade
+    warning. The warning shows the current vs minimum version and offers a
+    one-line update command.
+  </li>
+  <li>
+    <strong>Docker Environment Probing</strong>: Checks if the Docker daemon is
+    active and <code>docker-compose.yml</code> is present in the workspace.
+  </li>
+  <li>
+    <strong>Runtime Preference Lock</strong>: If both runtimes are available,
+    the CLI prompts you to select your preference. This choice is written to
+    your <code>wrangler.jsonc</code> file under the dev runtime block, bypassing
+    future prompts.
+  </li>
 </ol>
 
 ```bash
@@ -39,15 +52,22 @@ hoox dev start --runtime docker
 For full stack containerized development, Hoox divides operations into three Docker Compose profiles in your root `docker-compose.yml`:
 
 ```bash
-# Profile 1: Spin up all background workers only
+# Profile 1: All background workers (9 services — no dashboard UI)
 docker compose --profile workers up
 
-# Profile 2: Spin up the Next.js frontend only
+# Profile 2: Dashboard + its transitive worker dependencies (5 services:
+#           hoox, d1-worker, trade-worker, agent-worker, dashboard).
+#           trade-worker is pulled in because agent-worker depends on it.
 docker compose --profile dashboard up
 
-# Profile 3: Full Stack (All workers + Next.js dashboard)
+# Profile 3: Full Stack — all 10 services
 docker compose --profile full up
 ```
+
+Only `hoox` (8787) and `dashboard` (8794) are published to the host. The
+remaining workers are reachable only via service bindings on the `hoox-net`
+bridge network — the same topology as production Cloudflare Workers Service
+Bindings.
 
 ---
 
@@ -55,15 +75,18 @@ docker compose --profile full up
 
 In the local environment, each V8 dev instance mounts to a dedicated host port. Ensure no other applications are occupying these ports before launching:
 
-| Microservice | Default Port | Local Binding URL | Purpose |
-| :-- | :-: | :-- | :-- |
-| **`hoox`** | `8787` | `http://localhost:8787` | Ingress Gateway |
-| **`trade-worker`** | `8789` | `http://localhost:8789` | Order Execution Engine |
-| **`telegram-worker`** | `8791` | `http://localhost:8791` | Notifications Hub |
-| **`d1-worker`** | `8792` | `http://localhost:8792` | Relational SQLite Manager |
-| **`web3-wallet`** | `8793` | `http://localhost:8793` | On-Chain DeFi Node |
-| **`dashboard`** | `8794` | `http://localhost:8794` | Next.js Dashboard SSR |
-| **`agent-worker`** | `8795` | `http://localhost:8795` | Cron Risk Monitor |
+| Microservice           | Default Port | Local Binding URL       | Purpose                   |
+| :--------------------- | :----------: | :---------------------- | :------------------------ |
+| **`hoox`**             |    `8787`    | `http://localhost:8787` | Ingress Gateway           |
+| **`trade-worker`**     |    `8789`    | `http://localhost:8789` | Order Execution Engine    |
+| **`telegram-worker`**  |    `8791`    | `http://localhost:8791` | Notifications Hub         |
+| **`d1-worker`**        |    `8792`    | `http://localhost:8792` | Relational SQLite Manager |
+| **`web3-wallet`**      |    `8793`    | `http://localhost:8793` | On-Chain DeFi Node        |
+| **`dashboard`**        |    `8794`    | `http://localhost:8794` | Next.js Dashboard SSR     |
+| **`agent-worker`**     |    `8795`    | `http://localhost:8795` | Cron Risk Monitor         |
+| **`email-worker`**     |    `8796`    | `http://localhost:8796` | Email Signal Parser       |
+| **`report-worker`**    |    `8797`    | `http://localhost:8797` | PDF Portfolio Generator   |
+| **`analytics-worker`** |    `8798`    | `http://localhost:8798` | Analytics & Reporting     |
 
 ---
 
@@ -80,13 +103,16 @@ echo 'INTERNAL_KEY_BINDING="local_test_key"' >> workers/hoox/.dev.vars
 ```
 
 <Warning>
-  `.dev.vars` files contain local plaintext keys and are excluded from git index tracking via `.gitignore`. **Never** remove these files from `.gitignore` or check them into your repository.
+  `.dev.vars` files contain local plaintext keys and are excluded from git index
+  tracking via `.gitignore`. **Never** remove these files from `.gitignore` or
+  check them into your repository.
 </Warning>
 
 ---
 
 <Tip>
-  If local tests fail with `Time-Stamp Expired` errors when calling exchange APIs, check that your local machine's NTP system clock is synchronized: `sudo
+  If local tests fail with `Time-Stamp Expired` errors when calling exchange
+  APIs, check that your local machine's NTP system clock is synchronized: `sudo
   ntpdate pool.ntp.org` (or check date/time settings on macOS/Windows)!
 </Tip>
 
@@ -173,10 +199,10 @@ The 8 extraction phases (exports → imports → extends/implements → type ref
 
 ### Outputs
 
-| File | Contents |
-| --- | --- |
-| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph |
-| `graph.dot` | Graphviz DOT with 14 workspace clusters, color-coded edges |
+| File         | Contents                                                   |
+| ------------ | ---------------------------------------------------------- |
+| `graph.json` | 997 nodes, 5536 edges — full machine-readable graph        |
+| `graph.dot`  | Graphviz DOT with 14 workspace clusters, color-coded edges |
 
 ### Quick Render
 
@@ -190,7 +216,9 @@ dot -Tsvg graph.dot -o graph.svg && open graph.svg
 ```
 
 <Tip>
-  Use `graph.json` as AI/LLM context for codebase-aware queries, or paste `graph.dot` into [Edotor](https://edotor.net/) for instant browser visualization without installing Graphviz.
+  Use `graph.json` as AI/LLM context for codebase-aware queries, or paste
+  `graph.dot` into [Edotor](https://edotor.net/) for instant browser
+  visualization without installing Graphviz.
 </Tip>
 
 ### 🔗 Next Steps

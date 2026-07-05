@@ -72,6 +72,15 @@ export function middleware(request: NextRequest) {
     // If DASHBOARD_USER were a secret (not a var), this would not work — secrets are not
     // copied to process.env. For secrets, the architecture would need to change (e.g., passing
     // env through the converter or using a different auth pattern in middleware).
+
+    // C-7: respect AUTH_TYPE. With cf-access, the CF Access proxy authenticates
+    // before the request reaches the worker; we just need to let it through.
+    // With "none", no auth is required (dev only).
+    const authType = process.env.AUTH_TYPE ?? "basic";
+    if (authType === "cf-access" || authType === "none") {
+      return withSecurityHeaders(NextResponse.next());
+    }
+
     if (!process.env.DASHBOARD_USER) {
       if (pathname.startsWith("/api/")) {
         return withSecurityHeaders(

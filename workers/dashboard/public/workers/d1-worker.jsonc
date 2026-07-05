@@ -9,12 +9,20 @@
       "priority": 10,
       "fields": {
         "auto_vacuum": true,
-        "cache_size_mb": 128,
+        "cache_size_mb": 128
+      },
+      "options": {
+        "cache_size_mb": [
+          64,
+          128,
+          256,
+          512
+        ]
       },
       "descriptions": {
         "auto_vacuum": "D1 handles vacuuming automatically. This setting is informational for housekeeping tracking.",
-        "cache_size_mb": "D1 internal cache size. This setting is informational.",
-      },
+        "cache_size_mb": "D1 internal cache size. This setting is informational."
+      }
     },
     "retention": {
       "title": "Data Retention",
@@ -24,13 +32,29 @@
       "fields": {
         "logs_retention_days": 30,
         "trades_retention_days": 90,
-        "balances_snapshot_enabled": true,
+        "balances_snapshot_enabled": true
+      },
+      "options": {
+        "logs_retention_days": [
+          7,
+          14,
+          30,
+          60,
+          90
+        ],
+        "trades_retention_days": [
+          30,
+          60,
+          90,
+          180,
+          365
+        ]
       },
       "descriptions": {
         "logs_retention_days": "Number of days to keep system logs before automatic deletion by agent-worker.",
         "trades_retention_days": "Number of days to keep historical trades in the active partition.",
-        "balances_snapshot_enabled": "Take daily snapshots of exchange balances for historical performance tracking.",
-      },
-    },
-  },
+        "balances_snapshot_enabled": "Take daily snapshots of exchange balances for historical performance tracking."
+      }
+    }
+  }
 }
