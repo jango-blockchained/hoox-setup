@@ -27,3 +27,7 @@
 [submodule "workers/report-worker"]
 	path = workers/report-worker
 	url = https://github.com/jango-blockchained/report-worker.git
+[submodule "workers/pine-worker"]
+	path = workers/pine-worker
+	url = https://github.com/jango-blockchained/pine-worker.git
+	branch = main
