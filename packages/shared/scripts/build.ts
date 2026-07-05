@@ -49,15 +49,33 @@ function walk(dir: string, base: string): string[] {
   return results;
 }
 
+// Subdirectories whose non-index files are published as deep imports
+// (e.g. `<pkg>/middleware/auth`). These must mirror the `./<sub>/*` entries
+// in package.json's `exports` map. `index.ts` is covered by `subIndex` below
+// and doesn't need to be listed here.
+const DEEP_IMPORT_SUBDIRS = [
+  "middleware",
+  "d1",
+  "schemas",
+  "wizard",
+  "exchanges",
+] as const;
+
 const allFiles = walk(SRC, ROOT);
 const entries = allFiles
   .filter((f) => {
-    // Include: top-level src/*.ts, subdirectory index.ts, stores/*.ts, types/*.ts
+    // Include: top-level src/*.ts, subdirectory index.ts, stores/*.ts, types/*.ts,
+    // and every non-index .ts in subdirs that declare a `<sub>/*` exports pattern.
     const topLevel = /^src\/[^/]+\.ts$/.test(f);
     const subIndex = /^src\/[^/]+\/index\.ts$/.test(f);
     const storeFiles = /^src\/stores\/.+\.ts$/.test(f);
     const typeFiles = /^src\/types\/.+\.ts$/.test(f);
-    return topLevel || subIndex || storeFiles || typeFiles;
+    const deepImportSubmodule = DEEP_IMPORT_SUBDIRS.some((sub) =>
+      new RegExp(`^src/${sub}/(?!index\\.ts$).+\\.ts$`).test(f)
+    );
+    return (
+      topLevel || subIndex || storeFiles || typeFiles || deepImportSubmodule
+    );
   })
   .sort();
 
