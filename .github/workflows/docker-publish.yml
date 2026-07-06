@@ -78,7 +78,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Compute image metadata
         id: meta
@@ -106,7 +106,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Provenance + SBOM help supply-chain security. Both require
-          # buildx >= 0.10, which docker/setup-buildx-action@v3 ensures.
+          # buildx >= 0.10, which docker/setup-buildx-action@v4 ensures.
           provenance: true
           sbom: true
           # GHA layer cache — fast rebuilds without committing cache to the repo.
