@@ -23,7 +23,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260602.1",
+    "@cloudflare/workers-types": "^5.20260706.1",
     "@hoox/test-utils": "workspace:*",
     "@types/bun": "latest",
     "typescript": "^6.0.3"
