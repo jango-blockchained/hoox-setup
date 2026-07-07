@@ -91,8 +91,8 @@ Hoox is provided "as-is" for educational and research purposes only. The authors
 | Feature                | Description                                                                                                                                                                                                                                                          |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📊 **Command Center**  | Next.js 16 dashboard deployed to Cloudflare Workers via OpenNext. Real-time portfolio monitoring, win rates, live positions, and risk settings—no redeployment to change configuration.                                                                              |
-| 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 9 workers simultaneously with one command.                                                                                                                                       |
-| 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI (15 command groups, 50+ subcommands, 381 tests). Interactive setup wizard, env config, KV sync, D1 ops, health monitoring, repair, and more.                                                                           |
+| 🖥️ **Interactive TUI** | Terminal-based process manager (`./hoox-tui`) for local development. Hot-reload all 10 workers (incl. experimental pyne) simultaneously with one command.                                                                                                            |
+| 🛠️ **CLI Workspaces**  | Bun workspace monorepo managed via `hoox` CLI (16 command groups, 50+ subcommands, 381 tests). Interactive setup wizard, env config, KV sync, D1 ops, health monitoring, repair, and more.                                                                           |
 | 🐳 **Docker Support**  | Full local dev environment with Docker Compose. `hoox dev start` prompts for Native vs Docker runtime, offers `--runtime` flag override. Profiles: `workers`, `dashboard`, `full`.                                                                                   |
 | 🔗 **Shared Package**  | `@jango-blockchained/hoox-shared` provides a custom router with `:param` path parameter support, `Errors.*` response factories, generic exchange provider factory (`ExchangeRouter`), middleware stack (auth, CORS, logging, rate-limit, validation), and utilities. |
 
@@ -154,17 +154,18 @@ hoox deploy kv-config
 
 Hoox uses Git submodules for each worker, allowing independent development and deployment. All workers are part of the [hoox-setup](https://github.com/jango-blockchained/hoox-setup) monorepo.
 
-| Worker                    | Description                                 | Repository                                                                                        |
-| ------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 🔐 **hoox** (Gateway)     | Webhook entrypoint & firewall               | [jango-blockchained/hoox](https://github.com/jango-blockchained/hoox)                             |
-| 📈 **trade-worker**       | Multi-exchange execution engine             | [jango-blockchained/trade-worker](https://github.com/jango-blockchained/trade-worker)             |
-| 🧠 **agent-worker**       | AI risk manager & cron jobs                 | [jango-blockchained/agent-worker](https://github.com/jango-blockchained/agent-worker)             |
-| 💬 **telegram-worker**    | Telegram notifications & commands           | [jango-blockchained/telegram-worker](https://github.com/jango-blockchained/telegram-worker)       |
-| 🗄️ **d1-worker**          | D1 database operations                      | [jango-blockchained/d1-worker](https://github.com/jango-blockchained/d1-worker)                   |
-| 🌐 **web3-wallet-worker** | DeFi & on-chain execution                   | [jango-blockchained/web3-wallet-worker](https://github.com/jango-blockchained/web3-wallet-worker) |
-| 📧 **email-worker**       | Email signal parsing                        | [jango-blockchained/email-worker](https://github.com/jango-blockchained/email-worker)             |
-| 📊 **analytics-worker**   | Analytics & reporting                       | [jango-blockchained/analytics-worker](https://github.com/jango-blockchained/analytics-worker)     |
-| 📄 **report-worker**      | Automated PDF reports via Browser Rendering | [jango-blockchained/report-worker](https://github.com/jango-blockchained/report-worker)           |
+| Worker                    | Description                                   | Repository                                                                                        |
+| ------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 🔐 **hoox** (Gateway)     | Webhook entrypoint & firewall                 | [jango-blockchained/hoox](https://github.com/jango-blockchained/hoox)                             |
+| 📈 **trade-worker**       | Multi-exchange execution engine               | [jango-blockchained/trade-worker](https://github.com/jango-blockchained/trade-worker)             |
+| 🧠 **agent-worker**       | AI risk manager & cron jobs                   | [jango-blockchained/agent-worker](https://github.com/jango-blockchained/agent-worker)             |
+| 💬 **telegram-worker**    | Telegram notifications & commands             | [jango-blockchained/telegram-worker](https://github.com/jango-blockchained/telegram-worker)       |
+| 🗄️ **d1-worker**          | D1 database operations                        | [jango-blockchained/d1-worker](https://github.com/jango-blockchained/d1-worker)                   |
+| 🌐 **web3-wallet-worker** | DeFi & on-chain execution                     | [jango-blockchained/web3-wallet-worker](https://github.com/jango-blockchained/web3-wallet-worker) |
+| 📧 **email-worker**       | Email signal parsing                          | [jango-blockchained/email-worker](https://github.com/jango-blockchained/email-worker)             |
+| 📊 **analytics-worker**   | Analytics & reporting                         | [jango-blockchained/analytics-worker](https://github.com/jango-blockchained/analytics-worker)     |
+| 📄 **report-worker**      | Automated PDF reports via Browser Rendering   | [jango-blockchained/report-worker](https://github.com/jango-blockchained/report-worker)           |
+| 🐍 **pyne-worker** (exp.) | Python Pine Script evaluator (via pynescript) | [jango-blockchained/pyne-worker](https://github.com/jango-blockchained/pyne-worker)               |
 
 > **Note:** Clone with `git clone --recursive` to get all submodules, or run `git submodule update --init --recursive` after cloning.
 
@@ -193,6 +194,7 @@ hoox                                 Interactive TUI (no args)
 ├── logs                             Tail worker logs
 ├── test                             CI pipeline
 ├── waf                              WAF rules
+├── pine                             Pine Script strategy tooling (download, backtest, export, bundle)
 └── dashboard                        Dashboard operations
 ```
 
@@ -622,7 +624,7 @@ bun test --coverage
 - **packages/cli**: 381 tests across 26 files — 0 failures (100% pass rate)
 - **packages/shared**: unit tests covering shared utilities and exchange router logic
 - **packages/tui**: component tests for the OpenTUI terminal interface
-- **workers/**: 74 integration tests covering all 9 worker pipelines
+- **workers/**: tests covering all worker pipelines (incl. experimental pyne-worker)
 
 > **Note**: Coverage targets >80% for all critical execution paths. See [Testing Standards](docs/devops/development/testing.md) for detailed coverage reports and [Phase E Coverage Report](docs/coverage/PHASE_E_COVERAGE_REPORT.md) for the latest results.
 
