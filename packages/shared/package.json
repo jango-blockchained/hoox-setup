@@ -108,7 +108,7 @@
   "author": "jango-blockchained",
   "license": "CC-BY-4.0",
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "engines": {
     "bun": ">=1.0"
