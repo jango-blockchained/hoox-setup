@@ -140,3 +140,23 @@ SKILL.md
 workers/dashboard/tsconfig.tsbuildinfo
 # Personal terminal profiles — never part of the repo
 Konsole
+
+# Papers / LaTeX build artifacts (keep source .tex, Makefile, scripts, manifest)
+papers/dist/
+papers/listings/
+papers/generated/
+papers/figures/*-standalone.*
+papers/*.aux
+papers/*.log
+papers/*.bbl
+papers/*.blg
+papers/*.out
+papers/*.toc
+papers/*.fls
+papers/*.fdb_latexmk
+papers/*.synctex.gz
+papers/hoox-arxiv-paper*.pdf
+papers/hoox-arxiv-paper-core*.pdf
+
+# Exception: keep the listings manifest (source of truth for code extraction)
+!papers/listings/manifest.yaml

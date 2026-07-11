@@ -1,8 +1,0 @@
-// Source: package.json (lines 1-10)
-// Listing id: workspaces
-{
-  "name": "hoox",
-  "version": "0.4.1",
-  "type": "module",
-  "workspaces": ["packages/*", "workers/*", "pages/*", "packages/test-utils"]
-}
