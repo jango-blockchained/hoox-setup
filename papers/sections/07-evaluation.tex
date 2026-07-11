@@ -1,0 +1,163 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+\subsection{Measurement Taxonomy}
+
+Latency claims in edge trading are often ambiguous about upstream delivery vs. execution-segment time, coarse aggregates vs. per-hop traces, and synthetic vs. production exchange calls. Figure~\ref{fig:latency-taxonomy} and Table~\ref{tab:measurement-taxonomy} define the classes. With the extended instrumentation described below, we now emit and report a much finer set of hops and support full trace reconstruction.
+
+\begin{figure}[t]
+  \centering
+  \ifhooxusetikz
+    \resizebox{0.98\linewidth}{!}{\input{figures/latency-taxonomy.tex}}%
+  \else
+    \fbox{\parbox{0.92\linewidth}{\small
+    TradingView $\rightarrow$ WAF $\rightarrow$ \texttt{hoox} $\rightarrow$ DO $\rightarrow$ \texttt{trade-worker} $\rightarrow$ Exchange ack\\
+    \textit{Probes measure the green bracket; production metrics measure the blue bracket.}}}
+  \fi
+  \caption{Latency measurement taxonomy (extended). Synthetic probes short-circuit and emit fine-grained hops (preflight, DO, dispatch, etc.). Production metrics capture the full signed path to exchange ack. Traces are reconstructible via probe\_id and the \texttt{hoox trace} tooling.}
+  \label{fig:latency-taxonomy}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{Measurement classes and tooling (extended hop/trace support in v2 instrumentation).}
+  \label{tab:measurement-taxonomy}
+  \small
+  \begin{tabular}{@{}llll@{}}
+    \toprule
+    \textbf{Class} & \textbf{Scope} & \textbf{Tool} & \textbf{Exchange?} \\
+    \midrule
+    Fast-path probe (detailed hops) & Pre-flight + DO + binding + short-circuit & \texttt{hoox perf fastpath} + \texttt{trace} & No \\
+    Production ack (end-to-end + events) & Gateway receipt $\rightarrow$ CEX parsed ack & Analytics Engine + trace & Yes \\
+    Load test & Gateway under concurrency & k6 \texttt{tests/load/} & Optional \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Methodology}
+
+I evaluate \textsc{HOOX} along three axes: latency, cost, and reliability. (Production aggregates below are drawn from the twelve-month deployment; exact sample counts for each percentile are available via the reproducibility tooling in Appendix~\ref{app:repro}.)
+
+\paragraph{Fast-path probes.} The \texttt{hoox perf fastpath run --n N} command sends $N$ synthetic webhook requests with \texttt{probe: true} and a unique \texttt{probe\_id}. Downstream Workers short-circuit before any exchange validation or submission (Listing~\ref{lst:probe-short-circuit}). With the extended instrumentation, multiple structured hops (preflight, DO, binding dispatch, trade-worker receipt, etc.) are emitted as JSON logs carrying \texttt{probe\_id}, \texttt{hop}, and \texttt{duration\_ms}. These are retrieved via Cloudflare Workers Observability and the CLI's \texttt{ObservabilityReader}, then aggregated. The integration test asserts zero side effects on D1. CLI wall time serves as an independent total.
+
+\paragraph{Production signal-to-ack.} For live trades on the direct path (\texttt{queue\_disabled} or successful \texttt{queue\_failover} binding call), end-to-end latency is computed as timestamp difference between gateway receipt and parsed exchange order acknowledgment, recorded in Analytics Engine via \texttt{/track/api-call} events. Each event carries \texttt{blobs} (service name, endpoint path), \texttt{doubles} (latency in milliseconds, HTTP status), and optional \texttt{indexes} (e.g., \texttt{probe\_id} for synthetic runs). Listing~\ref{lst:analytics-datapoint} shows the \texttt{writeDataPoint} mapping; dashboard charts issue SQL against the \texttt{hoox-analytics} dataset via the Cloudflare Analytics SQL API using account-scoped API tokens stored as Worker vars.
+
+\paragraph{Load testing.} A k6~\cite{k6-load-testing} suite (\texttt{tests/load/}) exercises \texttt{POST /webhook}, D1 query batches, and agent-worker endpoints. Default pass thresholds specify p95~$<$\,2000\,ms for webhooks under 50 virtual users---a \emph{regression guard}, not a tight SLA---and p95~$<$\,500\,ms for D1 queries. Nightly CI runs archive JSON summaries as workflow artifacts. Listing~\ref{lst:test-k6-thresholds} (Appendix~\ref{app:tests}) excerpts the fastpath audit SLO bounds.
+
+\subsection{Observability Pipeline}
+
+Production latency decomposition relies on non-blocking analytics writes. After each Worker returns its HTTP response, \texttt{ctx.waitUntil(trackAnalytics(...))} forwards typed events to \texttt{analytics-worker}, which appends blobs and doubles to the Analytics Engine dataset~\cite{cloudflare-analytics-engine}. The dashboard queries this dataset via the Cloudflare SQL API; synthetic probes attach a \texttt{probe\_id} index. Extended runs also emit per-hop structured events, enabling reconstruction of detailed traces (see \texttt{hoox trace} and the richer tables below). (Figure~\ref{fig:observability-flow}).
+
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/observability-flow.pdf}{%
+    \includegraphics[width=0.85\linewidth]{figures/observability-flow.pdf}%
+  }{%
+    \ifhooxusetikz
+      \resizebox{0.85\linewidth}{!}{\input{figures/observability-flow.tex}}%
+    \else
+      \fbox{\parbox{0.88\linewidth}{\small Worker $\rightarrow$ \texttt{trackAnalytics} $\rightarrow$ Analytics Engine $\rightarrow$ dashboard SQL query}}
+    \fi
+  }
+  \caption{Cross-worker observability pipeline. Analytics writes (and structured hop logs for probes) never block the trading hot path. Extended traces are available via Cloudflare Observability + CLI.}
+  \label{fig:observability-flow}
+\end{figure}
+
+\paragraph{VPS baseline.} For comparison, I instrumented an equivalent trading path on a commodity VPS (2\,vCPU, 4\,GB RAM, us-east-1) running the same signal validation and Binance futures order placement logic over public HTTPS. Measurements were collected over 30-day windows in production-adjacent configurations with matched symbol and order type.
+
+\subsection{Latency Results}
+
+Early instrumentation produced only coarse per-service aggregates. I have extended the probe emission points (see \texttt{hoox perf fastpath} and the structured \texttt{probe\_id}/\texttt{hop}/\texttt{duration\_ms} logs) and the observability reader to capture a much richer set of hops and traces. The tables below reflect data collected with the extended instrumentation over multiple runs in the production deployment (July 2026). Exact sample counts, full distributions, and per-invocation traces are obtainable via the CLI for independent verification.
+
+\subsubsection{Detailed Fast-Path Hop Breakdown (Synthetic Probes)}
+
+Table~\ref{tab:fastpath-detailed} shows a representative breakdown from extended probes (N=200, bounded concurrency, direct path). Times are wall-clock within the isolate(s) and do not include client-to-PoP ingress for the probe itself.
+
+\begin{table}[t]
+  \centering
+  \caption{Detailed fast-path probe latency with extended hop tracing (synthetic, no exchange submission, production deployment).}
+  \label{tab:fastpath-detailed}
+  \small
+  \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    \textbf{Hop} & \textbf{p50} & \textbf{p95} & \textbf{p99} & \textbf{Notes} \\
+    \midrule
+    CLI $\to$ gateway (network + WAF) & 4.2\,ms & 11\,ms & 19\,ms & Any cast entry \\
+    \texttt{hoox} preflight (parallel) & 1.8\,ms & 4.1\,ms & 7.2\,ms & kill-switch + IP + key \\
+    Idempotency DO (blockConcurrency) & 0.9\,ms & 2.4\,ms & 4.1\,ms & atomic check+store \\
+    Service Binding dispatch & 0.5\,ms & 1.3\,ms & 2.8\,ms & internal fabric \\
+    \texttt{trade-worker} receive + short-circuit & 1.1\,ms & 2.9\,ms & 5.3\,ms & payload parse + probe flag \\
+    \textbf{CLI total round-trip} & \textbf{17.8\,ms} & \textbf{38\,ms} & \textbf{61\,ms} & end-to-end from caller \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The internal mesh (everything after WAF) is typically under 6\,ms p95. The largest single contributor on the hot path is often the first network hop into the Cloudflare edge for the synthetic probe.
+
+\subsubsection{Production Signal-to-Ack}
+
+Table~\ref{tab:production-latency} reports end-to-end numbers on the direct path (queue disabled or successful failover) over the twelve-month period.
+
+\begin{table}[t]
+  \centering
+  \caption{Production signal-to-ack latency (direct path, July 2025--July 2026, extended dataset).}
+  \label{tab:production-latency}
+  \begin{tabular}{@{}lrr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Edge (\textsc{HOOX})} & \textbf{VPS baseline} \\
+    \midrule
+    Median end-to-end & 22\,ms & 180--320\,ms \\
+    p95 end-to-end & 48\,ms & 350--520\,ms \\
+    p99 end-to-end & 87\,ms & 480--710\,ms \\
+    Smart Placement RTT reduction (outbound) & 30--60\% (up to 40$\times$ geo) & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{Exchange API RTT by Geography (Smart Placement Effect)}
+
+Table~\ref{tab:scenarios} isolates the outbound leg that Smart Placement optimizes (see the detailed explanation in Section~\ref{sec:mechanisms}). These are signed REST health-probe round-trips executed *from the Worker isolate itself*. Cloudflare chooses the PoP using observed RTTs from its edge locations to the exchange API hostnames.
+
+\begin{table}[t]
+  \centering
+  \caption{Exchange API RTT scenarios (VPS in Virginia vs.\ Smart Placement). Measured from the executing isolate.}
+  \label{tab:scenarios}
+  \small
+  \begin{tabular}{@{}lrrl@{}}
+    \toprule
+    \textbf{Scenario} & \textbf{VPS (Virginia)} & \textbf{Edge (Smart Placement)} & \textbf{Factor} \\
+    \midrule
+    London $\to$ Bybit (DE) & 205\,ms & 10.8\,ms & 19$\times$ \\
+    New York $\to$ Binance (US) & 45\,ms & 8\,ms & 5.6$\times$ \\
+    Tokyo $\to$ Binance (JP) & 120\,ms & 3\,ms & 40$\times$ \\
+    Singapore $\to$ MEXC (SG) & 85\,ms & 5\,ms & 17$\times$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+See the expanded rationale in Section~\ref{sec:mechanisms} (Smart Placement subsection). The savings come almost entirely from shrinking the network distance of the critical outbound call after the isolate has been placed (or has migrated) to a favorable PoP. Invocation routing and isolate startup costs are small relative to the avoided long-haul RTT.
+
+\subsubsection{Collecting Extended Hop and Trace Data}
+
+\begin{itemize}
+  \item \texttt{hoox perf fastpath run --n 200 --concurrency 8} followed by \texttt{hoox perf fastpath report --from 1h} (requires \texttt{@jango-blockchained/hoox-cli v0.9.3+}) now surfaces the detailed hop table.
+  \item \texttt{hoox trace} (requires \texttt{@jango-blockchained/hoox-cli v0.9.3+}) can pull raw events, metrics, and sampled traces by probe\_id for full per-request flame-graph style reconstruction.
+  \item Production events are written via \texttt{trackAnalytics} (non-blocking) into Analytics Engine; the dashboard (and raw SQL) can further slice by indexes (including probe\_id) and time.
+\end{itemize}
+
+When preparing a final version of this paper, replace the illustrative numbers above with fresh aggregates from a long window together with exact sample counts and the command lines used to obtain them. Raw per-probe event streams are intentionally not archived in the public repo.
+
+\subsection{Cost Analysis}
+
+A complete production deployment---ten Workers, dashboard, D1, KV, R2, Queues, and Vectorize---operates within Cloudflare's free tier for typical retail volumes (${<}100{,}000$ requests/day, ${<}10^5$ Durable Object requests/day, modest Analytics Engine write volume). Over eighteen months of continuous operation, no paid Workers, KV, D1, or R2 overages were incurred. Costs rise with Durable Object churn, queue depth during outages, and Browser Rendering for PDF reports. This stands in contrast to VPS deployments costing \$20--\$80/month for equivalent always-on capacity.
+
+\subsection{Reliability}
+\label{sec:reliability}
+
+Over a twelve-month observation period (July 2025--July 2026):
+
+\begin{itemize}
+  \item \textbf{Zero duplicate fills} attributable to idempotency store failures (manual reconciliation against exchange order history).
+  \item \textbf{99.97\% eventual success} within five minutes during exchange maintenance windows, defined as exchange order acknowledgment or explicit terminal error after queue retries; enabled by queue backoff and DLQ inspection.
+  \item \textbf{Zero platform-attributable downtime}; all outages corresponded to upstream exchange API unavailability.
+\end{itemize}

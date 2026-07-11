@@ -1,7 +1,7 @@
 /**
- * Reads per-hop probe timings from Cloudflare Workers Observability.
- * Filters events by probe_id (in $metadata.message JSON payload) and groups
- * by $metadata.service to produce per-worker latency samples.
+ * Reads per-hop probe timings + extended traces from Cloudflare Workers Observability.
+ * Supports both legacy per-service and new explicit `hop` names emitted by
+ * the extended instrumentation (e.g. "hoox:hoox-gateway", "trade-worker:trade-worker-receive").
  */
 
 import { TraceService } from "../../commands/trace/trace-service.js";
@@ -97,11 +97,15 @@ export class ObservabilityReader {
       } catch {
         continue;
       }
-      if (!payload.probe_id || !probeIdSet.has(payload.probe_id)) continue;
+      if (!payload.probe_id || (probeIdSet.size > 0 && !probeIdSet.has(payload.probe_id))) continue;
       if (typeof payload.duration_ms !== "number") continue;
-      const arr = byService.get(ev.service) ?? [];
+
+      // Support both legacy "service" grouping and new explicit hop names
+      // e.g. hop: "hoox-gateway", "trade-worker-receive", "idempotency-do" etc.
+      const hopName = payload.hop ? `${ev.service}:${payload.hop}` : ev.service;
+      const arr = byService.get(hopName) ?? [];
       arr.push(payload.duration_ms);
-      byService.set(ev.service, arr);
+      byService.set(hopName, arr);
     }
 
     const hops: HopSamples[] = [];

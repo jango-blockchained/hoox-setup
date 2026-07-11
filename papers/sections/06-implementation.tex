@@ -1,0 +1,91 @@
+\section{Implementation}
+\label{sec:implementation}
+
+\textsc{HOOX} is implemented in TypeScript~5.x and deployed with Wrangler~4.x. The monorepo uses Bun workspaces (\texttt{package.json} \texttt{workspaces} field); production Workers import a shared package \texttt{@jango-blockchained/hoox-shared} that centralizes routing, validation, exchange abstractions, KV key constants, and Service Binding helpers so binding names and auth semantics stay consistent across ten deployables.
+
+\subsection{Monorepo Layout}
+
+Table~\ref{tab:monorepo-layout} maps repository paths to deployable artifacts. The \texttt{hoox} CLI (\texttt{packages/cli}) reads the same worker registry as documentation generators (\texttt{scripts/sync-dashboard-configs.ts}, \texttt{graph-metadata.json}), ensuring deployment order, Mintlify docs, and this paper's binding tables stay synchronized.
+
+\begin{table}[t]
+  \centering
+  \caption{Monorepo package topology.}
+  \label{tab:monorepo-layout}
+  \small
+  \begin{tabular}{@{}llp{5.8cm}@{}}
+    \toprule
+    \textbf{Path} & \textbf{Artifact} & \textbf{Role} \\
+    \midrule
+    \texttt{packages/shared} & \texttt{hoox-shared} npm pkg & Router, middleware, KV keys, queue handler \\
+    \texttt{packages/cli} & \texttt{hoox} CLI v0.9.3 & Deploy, secrets, \texttt{perf fastpath}, repair \\
+    \texttt{workers/hoox} & Gateway Worker & Public webhook ingress \\
+    \texttt{workers/trade-worker} & Execution Worker & CEX REST/WS, D1/R2 side effects \\
+    \texttt{workers/*} & Nine other Workers & Agent, D1 proxy, analytics, UI, DeFi \\
+    \texttt{tests/integration} & Bun + Miniflare & Gateway and probe regression suites \\
+    \texttt{tests/load} & k6 & Deployed-edge concurrency guards \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Request Pipeline and Middleware}
+
+Every Worker uses \texttt{createRouter<Env>()} from \texttt{hoox-shared}, registering routes as \texttt{router.post(path, handler)}. Shared middleware stacks include:
+
+\begin{itemize}
+  \item \texttt{validateJson(ZodSchema)} --- structured 400 responses with Zod path arrays (Listing~\ref{lst:validate-json}).
+  \item \texttt{requireInternalAuth} --- \texttt{X-Internal-Auth-Key} gate on binding-only routes (Listing~\ref{lst:require-internal-auth}).
+  \item \texttt{createRateLimiter} --- CONFIG\_KV sliding windows (Listing~\ref{lst:rate-limiter}).
+  \item \texttt{withRequestLog} / \texttt{createLogger} --- JSON logs with \texttt{service} and \texttt{module} fields for Workers Observability filters.
+\end{itemize}
+
+The gateway additionally wires session creation before rate limiting: \texttt{getOrCreateSession} reads or mints a session id keyed by API key hash, storing \texttt{lastSeen} in SESSIONS\_KV with a one-hour TTL (Listing~\ref{lst:session-manager}).
+
+\hooxsnippet{lst:session-manager}{session-manager.ts}{Webhook session tracking in SESSIONS\_KV}
+
+\subsection{Configuration Registry}
+
+Runtime toggles use a namespaced KV convention documented in \texttt{packages/shared/src/kvKeys.ts} (Listing~\ref{lst:kv-keys}). Prefixes separate concerns---\texttt{trade:*} for execution risk, \texttt{webhook:*} for ingress policy, \texttt{agent:*} for LLM provider keys---so dashboard settings validation can reject unknown keys. Queue mode literals (\texttt{queue\_failover}, \texttt{queue\_disabled}, \texttt{queue\_everywhere}) are exported as constants to prevent string drift between gateway and CLI.
+
+\hooxsnippet{lst:kv-keys}{kv-keys.ts}{Centralized CONFIG\_KV key registry (excerpt)}
+
+\subsection{Exchange Integrations}
+
+\textsc{HOOX} supports three centralized exchanges via a provider-composed \texttt{ExchangeRouter} (Listing~\ref{lst:exchange-router}):
+
+\begin{itemize}
+  \item \textbf{Binance:} USDT-margined futures at \texttt{fapi.binance.com}; HMAC over sorted query string including \texttt{timestamp} and \texttt{signature} (Listing~\ref{lst:binance-signature}).
+  \item \textbf{Bybit:} V5 REST at \texttt{api.bybit.com}; \texttt{recv\_window=5000}; signature payload \texttt{timestamp + apiKey + recvWindow + body} (Listing~\ref{lst:bybit-signature}).
+  \item \textbf{MEXC:} Contract API at \texttt{contract.mexc.com}; shares \texttt{BaseExchangeClient} HMAC primitive (Listing~\ref{lst:crypto-sign}).
+\end{itemize}
+
+Per-symbol routing reads JSON from \texttt{trade:routing} in CONFIG\_KV; per-exchange \texttt{enabled} and \texttt{use\_websocket} toggles select REST versus \texttt{ExchangeConnectionManager} WebSocket placement without redeployment.
+
+\paragraph{Risk gates before placement.} \texttt{executeTrade} parallel-reads kill switch, default leverage, and max position size from KV, then rejects malformed numeric strings---\texttt{parseInt}/\texttt{parseFloat} NaN values silently disable caps in many codebases; \textsc{HOOX} explicitly checks \texttt{Number.isFinite} before applying limits (Listing~\ref{lst:risk-kv-parse}).
+
+\hooxlisting{lst:risk-kv-parse}{risk-kv-parse.ts}{KV risk gates with safe numeric parsing}
+
+\paragraph{WebSocket amortization.} When \texttt{use\_websocket} is true, the \texttt{ExchangeConnectionManager} Durable Object maintains exchange-specific adapters, a reconnect loop, and a \texttt{pending} RPC map keyed by client order id (Listing~\ref{lst:exchange-connection-do}). Constructor-side \texttt{waitUntil(connectToExchange())} hides TCP+TLS handshake latency from the first REST fallback.
+
+\hooxsnippet{lst:exchange-connection-do}{exchange-connection-do.ts}{ExchangeConnectionManager DO initialization}
+
+\subsection{Autonomous Agent Implementation}
+
+The five-minute cron invokes \texttt{processRoutine}, which batch-fetches open positions from \texttt{d1-worker}, parallel-fetches public mark prices (unsigned REST), and batch-reads KV watermarks and take-profit flags before sequential per-position evaluation (Listing~\ref{lst:agent-trailing-stop}). Trailing-stop triggers dispatch \texttt{CLOSE\_*} payloads to \texttt{trade-worker} via Service Binding; drawdown breaches write \texttt{trade:kill\_switch} before the next gateway ingress.
+
+\hooxlisting{lst:agent-trailing-stop}{agent-trailing-stop.ts}{Agent cron: batched reads and trailing-stop logic}
+
+\subsection{Web3 Execution Worker}
+
+\texttt{web3-wallet-worker} exposes binding-only routes for native transfers, ERC-20 approvals, and DEX swaps using \texttt{ethers} v6 under \texttt{nodejs\_compat}. Before signing, \texttt{validateTransaction} enforces wallet enablement, per-tx USD ceiling, and optional contract whitelists---DEX router addresses are always permitted when whitelist mode is on (Listing~\ref{lst:web3-validate-transaction}).
+
+\hooxlisting{lst:web3-validate-transaction}{web3-validate-transaction.ts}{DeFi transaction validation guards}
+
+Mnemonic and private-key secrets never enter KV; chain defaults and security policy live in CONFIG\_KV with a one-shot migration marker from legacy \texttt{WALLET\_CONFIG\_KV}.
+
+\subsection{Tooling and User Interface}
+
+The \texttt{hoox} CLI exposes 25 command groups spanning initialization, deployment, secret management, database operations, WAF configuration, and repair. The \texttt{hoox perf fastpath} command sends synthetic webhook probes and aggregates per-hop timings from Cloudflare Workers Observability. An interactive terminal UI (\texttt{hoox-tui}) streams worker health via Server-Sent Events.
+
+The dashboard is a Next.js~16 application (React~19) deployed via OpenNext for Cloudflare~\cite{opennext-cloudflare}, consuming the same internal Service Bindings as trading Workers. Request validation across Workers uses Zod schemas via shared \texttt{validateJson} middleware~\cite{zod}.
+
+\paragraph{Deployment graph.} Wrangler project names match Worker registry entries (Listing~\ref{lst:registry-hoox}). Service Binding targets are validated at deploy time by \texttt{scripts/check-worker-submodules.ts} in CI; the graph appendix (Appendix~\ref{app:graph}) is regenerated from \texttt{graph-metadata.json}.

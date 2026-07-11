@@ -3,6 +3,28 @@
 All notable changes to `@jango-blockchained/hoox-cli` are documented here.
 This project adheres loosely to [Semantic Versioning](https://semver.org/).
 
+## [0.9.3] — 2026-07-11
+
+### Added
+
+- **Dramatically extended hop-level tracing and observability for performance measurement** (key for the HOOX arXiv paper):
+  - `hoox perf fastpath` now emits and reports much finer-grained hops (e.g. `hoox:hoox-gateway`, `trade-worker:trade-worker-receive`, preflight, DO mutex, binding dispatch, etc.).
+  - `ObservabilityReader` improved to parse explicit `hop` fields in addition to legacy per-service timings.
+  - Structured JSON logs (`probe_id`, `hop`, `duration_ms`) for easy correlation with `hoox trace` and Analytics Engine.
+  - `hoox perf fastpath report` and `hoox trace` now support detailed per-hop reconstruction and full trace timelines.
+  - Added rich hop breakdown tables and trace collection guidance in the paper's evaluation + reproducibility sections.
+
+- Updated reproducibility commands and documentation to highlight the new extended tracing capabilities.
+
+### Changed
+
+- Minor internal improvements to fast-path probe handling and observability parsing for richer measurement data.
+
+### Documentation
+
+- Updated `hoox-arxiv-paper*` (core + full), `arxiv-submission.md`, `A-reproducibility.tex`, and related sections to reference the richer hop/traces support and Smart Placement rationale.
+- Implementation table now lists CLI v0.9.3.
+
 ## [0.9.2] — 2026-06-26
 
 ### Fixed
