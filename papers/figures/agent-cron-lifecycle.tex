@@ -1,16 +1,16 @@
 % TikZ sequence: agent-worker five-minute cron risk loop
 \begin{tikzpicture}[
   actor/.style={draw=black!55, rounded corners=2pt, fill=gray!10,
-    minimum width=1.5cm, minimum height=0.45cm, font=\scriptsize, align=center},
+    minimum width=1.7cm, minimum height=0.5cm, font=\footnotesize, align=center},
   worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
-    minimum width=1.7cm, minimum height=0.45cm, font=\scriptsize\ttfamily, align=center},
+    minimum width=1.9cm, minimum height=0.5cm, font=\footnotesize\ttfamily, align=center},
   store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
-    fill=blue!6, minimum height=0.4cm, minimum width=1.15cm,
-    font=\scriptsize, align=center},
+    fill=blue!6, minimum height=0.45cm, minimum width=1.3cm,
+    font=\footnotesize, align=center},
   msg/.style={-{Stealth[length=1.5mm]}, semithick, draw=black!60},
   ret/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!40},
   lifeline/.style={draw=black!25, dashed},
-  msglabel/.style={font=\tiny, fill=white, inner sep=1pt}
+  msglabel/.style={font=\scriptsize, fill=white, inner sep=1pt}
 ]
 
   \node[actor] (cron) at (0,0) {Cron\\\texttt{*/5}};

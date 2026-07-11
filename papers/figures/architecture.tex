@@ -1,24 +1,24 @@
 % TikZ architecture diagram for HOOX (included by hoox-arxiv-paper.tex)
 \begin{tikzpicture}[
-  node distance=0.45cm and 0.55cm,
+  node distance=0.6cm and 0.7cm,
   ext/.style={draw=black!50, rounded corners=2pt, fill=gray!8,
-    minimum width=1.85cm, minimum height=0.5cm, font=\scriptsize, align=center},
+    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize, align=center},
   waf/.style={draw=orange!70!black, rounded corners=2pt, fill=orange!8,
-    minimum width=2.4cm, minimum height=0.5cm, font=\scriptsize, align=center},
+    minimum width=2.5cm, minimum height=0.55cm, font=\footnotesize, align=center},
   worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
-    minimum width=2.1cm, minimum height=0.5cm, font=\scriptsize\ttfamily, align=center},
+    minimum width=2.2cm, minimum height=0.55cm, font=\footnotesize\ttfamily, align=center},
   store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
-    fill=blue!6, minimum height=0.45cm, minimum width=1.35cm,
-    font=\scriptsize, align=center},
+    fill=blue!6, minimum height=0.5cm, minimum width=1.5cm,
+    font=\footnotesize, align=center},
   compute/.style={draw=purple!60!black, diamond, aspect=1.8, fill=purple!6,
-    inner sep=0.5pt, font=\scriptsize, align=center},
+    inner sep=1pt, font=\footnotesize, align=center},
   exchange/.style={draw=red!60!black, rounded corners=2pt, fill=red!6,
-    minimum width=1.9cm, minimum height=0.5cm, font=\scriptsize, align=center},
-  layer/.style={draw=black!35, dashed, rounded corners=3pt, inner sep=0.3cm},
+    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize, align=center},
+  layer/.style={draw=black!35, dashed, rounded corners=3pt, inner sep=0.4cm},
   arrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=black!65},
   darrow/.style={-{Stealth[length=1.8mm]}, semithick, dashed, draw=black!45},
   extarrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=red!55!black},
-  sb/.style={font=\tiny, fill=white, inner sep=1pt}
+  sb/.style={font=\scriptsize, fill=white, inner sep=1pt}
 ]
 
   % ── Ingress layer ──
