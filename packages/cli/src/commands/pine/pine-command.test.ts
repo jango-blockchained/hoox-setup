@@ -31,7 +31,7 @@ describe("registerPineCommand", () => {
     const pine = program.commands.find((c) => c.name() === "pine");
     expect(pine).toBeDefined();
     // summary() holds the short one; description() is the long block
-    const summary = (pine as any).summary?.() ?? pine?._summary ?? "";
+    const summary = (pine as any).summary?.() ?? (pine as any)._summary ?? "";
     expect(summary || pine?.description() || "").toContain("Pine Script");
   });
 
