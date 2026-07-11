@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{array}
+\usepackage[numbers,sort&compress]{natbib}
+
+% TikZ figures (requires texlive-pictures)
+\newif\ifhooxusetikz
+\IfFileExists{tikz.sty}{
+  \hooxusetikztrue
+  \usepackage{tikz}
+  \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,decorations.pathreplacing}
+}{}
+\usepackage{xcolor}
+
+\input{macros}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% =============================================================================
+% HOOX arXiv paper -- FULL MONOGRAPH VERSION
+% =============================================================================
+% This is the complete version (~90 pages) including:
+%   - Core paper (Sections 1-10)
+%   - Expansion / implementation monograph (Sections 11-15)
+%   - All appendices (A-G)
+%
+% For a focused core submission (recommended ~15-20 pages, architecture + evaluation):
+%   Use hoox-arxiv-paper-core.tex instead.
+%
+% Build:
+%   make pdf-tikz          (full)
+%   make pdf-core          (core, see Makefile)
+%
+% Primary author voice has been updated to first-person singular ("I") to reflect
+% single-developer authorship.
+% =============================================================================
+
+\title{\textbf{HOOX: Edge-Native Low-Latency Algorithmic Trading\\at the Cloudflare Edge}}
+
+\author{
+  jango\_blockchained\\
+  \textit{Independent Researcher}\\
+  \texttt{https://github.com/jango-blockchained/hoox-setup}
+}
+
+\date{July 2026}
+
+\begin{document}
+\maketitle
+
+\input{front-matter}
+
+% ── Core paper body (sections 01–10) ─────────────────────────────────────
+\input{sections/01-introduction}
+\input{sections/02-background}
+\input{sections/03-architecture}
+\input{sections/04-mechanisms}
+\input{sections/05-security}
+\input{sections/06-implementation}
+\input{sections/07-evaluation}
+\input{sections/08-related}
+\input{sections/09-limitations}
+\input{sections/10-conclusion}
+
+% ── Expansion sections (implementation monograph) ────────────────────────
+% Omitted from the core paper (see hoox-arxiv-paper-core.tex).
+% Included here for the full technical reference / monograph.
+\input{sections/11-adrs}
+\input{sections/12-worker-deepdives}
+\input{sections/13-data-layer}
+\input{sections/14-runtime-semantics}
+\input{sections/15-advanced-mechanisms}
+
+\section*{Acknowledgments}
+
+The author thanks the Cloudflare Workers platform team for edge primitives that made this architecture possible, and the open-source contributors to the \textsc{HOOX} monorepo.
+
+\section*{License}
+
+This paper is released under Creative Commons Attribution 4.0 International (CC~BY~4.0), consistent with the \textsc{HOOX} project license.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+% Full appendices for the monograph version.
+% The core paper includes only the most relevant reproducibility and test material
+% (see hoox-arxiv-paper-core.tex).
+\input{appendices/A-reproducibility}
+\input{appendices/B-cli}
+\input{appendices/C-threat-model}
+\input{appendices/D-bindings-registry}
+\input{appendices/E-graph-reference}
+\input{appendices/F-test-excerpts}
+\input{appendices/G-listings-index}
+
+\end{document}

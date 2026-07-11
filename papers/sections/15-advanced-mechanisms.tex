@@ -1,0 +1,128 @@
+\section{Advanced Mechanisms}
+\label{sec:advanced}
+
+This section details three subsystems referenced throughout Sections~\ref{sec:mechanisms}--\ref{sec:data-layer}: the exchange WebSocket adapter layer, D1 batch semantics, and the \texttt{ProviderManager} fallback state machine.
+
+\subsection{Exchange WebSocket Adapter Internals}
+
+When CONFIG\_KV sets \texttt{use\_websocket} for an exchange, \texttt{trade-worker} routes orders through the \texttt{ExchangeConnectionManager} Durable Object (Listing~\ref{lst:exchange-connection-do}) rather than opening a fresh REST TLS session per fill. The DO holds one WebSocket per \texttt{idFromName("exchange:\{name\}")} instance, amortizing handshake cost across repeated placements.
+
+\paragraph{Adapter contract.} Exchange-specific wire formats are isolated behind \texttt{IWsAdapter} (Listing~\ref{lst:ws-adapter-interface}). Each adapter implements:
+\begin{itemize}
+  \item \texttt{url} --- the exchange WebSocket endpoint.
+  \item \texttt{buildRequest(method, params)} --- async envelope construction (may HMAC-sign per request).
+  \item \texttt{parseResponse(raw)} --- returns a correlated \texttt{WsResponse} or \texttt{null} for push events.
+\end{itemize}
+
+The DO remains exchange-agnostic: it calls \texttt{adapter.buildRequest}, sends on the socket, and routes inbound messages by correlation id.
+
+\hooxsnippet{lst:ws-adapter-interface}{ws-adapter-interface.ts}{\texttt{IWsAdapter} interface}
+
+\paragraph{Factory registry.} \texttt{getAdapter(exchange, creds)} constructs a fresh adapter per DO instance so credentials never leak across connections (Listing~\ref{lst:ws-adapter-registry}). Registered exchanges: Binance, Bybit, MEXC.
+
+\hooxsnippet{lst:ws-adapter-registry}{ws-adapter-registry.ts}{WS adapter factory registry}
+
+\paragraph{Per-exchange wire formats.} Table~\ref{tab:ws-adapters} summarizes authentication and correlation differences. The DO normalizes correlation by reading either \texttt{id} (Binance, MEXC) or \texttt{reqId} (Bybit) from the outbound envelope (Listing~\ref{lst:ws-do-correlation}).
+
+\begin{table}[t]
+  \centering
+  \caption{WebSocket adapter comparison (production registry).}
+  \label{tab:ws-adapters}
+  \small
+  \begin{tabular}{@{}lllp{4.5cm}@{}}
+    \toprule
+    \textbf{Exchange} & \textbf{Endpoint} & \textbf{Correlation key} & \textbf{Auth model} \\
+    \midrule
+    Binance & \texttt{wss://ws-api.binance.com/.../v3} & \texttt{id} (UUID) & Per-request HMAC over sorted params \\
+    Bybit & \texttt{wss://api.bybit.com/v5/private} & \texttt{reqId} & Session auth at connect; \texttt{op} envelope \\
+    MEXC & Contract WS API & \texttt{id} & Exchange-specific signed envelope \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Binance signing example.} The Binance adapter sorts parameters alphabetically, builds a canonical query string, signs with HMAC-SHA256 via \texttt{crypto.subtle}, and embeds \texttt{apiKey}, \texttt{timestamp}, and \texttt{signature} in the JSON envelope (Listing~\ref{lst:ws-adapter-binance}). This mirrors REST signing (Listing~\ref{lst:binance-signature}) but avoids per-order TCP setup.
+
+\hooxlisting{lst:ws-adapter-binance}{ws-adapter-binance.ts}{Binance WS adapter: buildRequest and parseResponse}
+
+\paragraph{Request correlation and timeouts.} \texttt{ExchangeConnectionManager.request} parses the outbound envelope, registers a \texttt{pending} entry keyed by correlation id, starts a 5\,s timer, and \texttt{ws.send}s the payload. Inbound \texttt{message} handlers call \texttt{adapter.parseResponse}; on match, the timer is cleared and the Promise resolves or rejects (Listing~\ref{lst:ws-do-correlation}). Socket \texttt{close}/\texttt{error} rejects all pending RPCs and schedules reconnect via DO alarm (5--10\,s backoff, Section~\ref{sec:runtime}).
+
+\hooxlisting{lst:ws-do-correlation}{ws-do-correlation.ts}{WS RPC correlation with 5s timeout}
+
+\paragraph{WS-to-REST fallback.} \texttt{executeTrade} on the DO attempts \texttt{request("exchange.order.place", params)} when \texttt{ready \&\& ws}; on timeout or adapter error it logs and falls through to \texttt{executeTradeRest}, which instantiates the same REST clients used on the non-WS path (Listing~\ref{lst:exchange-connection-do}, Section~\ref{sec:implementation}). Production median ack latency therefore includes REST RTT whenever the socket is cold or reconnecting.
+
+\subsection{D1 Batch Transaction Semantics}
+
+\textsc{HOOX} uses two D1 access patterns: single-statement \texttt{POST /query} and multi-statement \texttt{POST /batch}. Both require \texttt{X-Internal-Auth-Key}; only \texttt{d1-worker} holds the \texttt{DB} binding.
+
+\paragraph{Read vs.\ write validation asymmetry.}
+\begin{itemize}
+  \item \textbf{SELECT reads} (dashboard, agent cron): pass through \texttt{validateQuery}---comment stripping, no string literals, table allowlist, no \texttt{UNION}/subqueries (Listing~\ref{lst:d1-validate-query}).
+  \item \textbf{Writes} (\texttt{INSERT}, \texttt{REPLACE}, \texttt{UPDATE}, \texttt{DELETE}): skip the SELECT guard; trusted binding callers must use \texttt{?} placeholders only. \texttt{trade-worker} dispatches parallel \texttt{/query} writes inside \texttt{waitUntil} (Listing~\ref{lst:update-d1-records}).
+\end{itemize}
+
+This split prevents ad-hoc SQL injection from dashboard paths while allowing parameterized ledger writes from \texttt{trade-worker}.
+
+\paragraph{HTTP \texttt{/batch} endpoint.} Remote callers submit \texttt{\{statements: [\{query, params\}, ...]\}}. The handler validates \emph{each} statement with \texttt{validateQuery} (SELECT-only), prepares bound statements, and executes \texttt{env.DB.batch(stmts)} atomically---all statements commit or none do (Listing~\ref{lst:d1-batch-endpoint}). Partial failures return \texttt{success: false} with the failing \texttt{D1Result.error}. Analytics track latency via non-blocking \texttt{/track/api-call}.
+
+\hooxlisting{lst:d1-batch-endpoint}{d1-batch-endpoint.ts}{Atomic \texttt{/batch} with per-statement validation}
+
+\paragraph{Internal \texttt{DB.batch} for aggregates.} Dashboard stats bypass HTTP and batch five independent \texttt{COUNT} queries in-process (Listing~\ref{lst:d1-stats-batch}), reducing five round-trips to one SQLite transaction. \texttt{report-worker} and the dashboard UI consume the resulting \texttt{/api/dashboard/stats} JSON.
+
+\hooxsnippet{lst:d1-stats-batch}{d1-stats-batch.ts}{Five-query dashboard aggregate via \texttt{DB.batch}}
+
+\paragraph{Trade write path trade-off.} Post-fill persistence uses \emph{parallel} \texttt{/query} calls (trade row + position row) rather than a single \texttt{/batch} transaction. This accepts a narrow window where one write succeeds and the other fails under isolate eviction; reconciliation uses exchange fill JSON in \texttt{trades.raw\_response} as source of truth. A future optimization could wrap both statements in \texttt{/batch} once write validation is extended to mutating statements with table allowlists.
+
+\subsection{ProviderManager Fallback State Machine}
+
+\texttt{agent-worker} and \texttt{telegram-worker} invoke LLMs only for operational summaries and RAG---never for order placement. Inference reliability is handled by \texttt{ProviderManager} (ADR-005, Section~\ref{sec:adrs}).
+
+\paragraph{Configuration.} \texttt{AgentConfig} defaults (Listing~\ref{lst:agent-config}) set \texttt{fallbackChain: ["workers-ai", "openai"]}, \texttt{retryCount: 3}, and \texttt{timeoutMs: 30000}. Runtime overrides load from \texttt{agent:config} in CONFIG\_KV; missing keys seed defaults on first read.
+
+\paragraph{State machine.} Figure~\ref{fig:provider-fsm} and Algorithm~\ref{alg:provider-fallback} describe \texttt{runWithFallback}. The machine is \emph{not} per-provider retry-with-backoff; it is \textbf{chain iteration} followed by \textbf{full-chain recursion}:
+
+\begin{enumerate}
+  \item For each provider $p$ in \texttt{fallbackChain}, call \texttt{runProvider($p$, request)}.
+  \item On first \texttt{success: true}, return immediately (short-circuit).
+  \item On soft failure (\texttt{success: false}) or thrown exception, record \texttt{lastError} and advance to the next provider.
+  \item If the chain exhausts without success and \texttt{retries > 0}, sleep 1\,s and recurse with \texttt{retries - 1} over the \emph{entire} chain.
+  \item If \texttt{retries == 0}, return aggregate failure.
+\end{enumerate}
+
+With default \texttt{retryCount = 3}, worst case is four full chain passes (initial + 3 retries), i.e., up to $4 \times |\text{chain}|$ provider attempts. Each \texttt{runProvider} call uses an \texttt{AbortController} timeout (\texttt{timeoutMs}).
+
+\begin{figure}[t]
+  \centering
+  \begin{minipage}{0.92\linewidth}
+  \textbf{Algorithm 2:} \texttt{ProviderManager.runWithFallback}
+  \label{alg:provider-fallback}
+  \small
+  \begin{lstlisting}
+Input:  request, chain[0..n-1], retries
+Output: ProviderResult
+lastError <- ""
+for each provider p in chain do
+  try
+    r <- runProvider(p, request)
+    if r.success then return r
+    lastError <- r.error
+  catch e
+    lastError <- string(e)
+if retries > 0 then
+  sleep(1000ms)
+  return runWithFallback(request, chain, retries - 1)
+return { success: false, error: lastError }
+  \end{lstlisting}
+  \end{minipage}
+  \caption{\texttt{ProviderManager} fallback: iterate chain, then recurse with decremented retry budget.}
+  \label{fig:provider-fsm}
+\end{figure}
+
+\paragraph{Provider backends.}
+\begin{itemize}
+  \item \textbf{workers-ai:} \texttt{env.AI.run(model, \{messages\})} with Workers AI binding; default model \texttt{@cf/meta/llama-3.1-8b-instruct}.
+  \item \textbf{openai / anthropic / google:} outbound \texttt{fetch} to vendor REST APIs; API keys read from CONFIG\_KV (\texttt{agent:openai\_key}, etc.); optional Cloudflare AI Gateway URLs via \texttt{env.AI.gateway("aig").getUrl(...)}.
+\end{itemize}
+
+\paragraph{Failure modes.} Missing API keys return soft failures (\texttt{success: false}) and advance the chain---Workers AI can still succeed when OpenAI is unconfigured. \texttt{getProviderStatus} probes each chain member with a minimal \texttt{"Hi"} prompt for dashboard health tiles.
+
+\hooxlisting{lst:provider-fallback}{provider-fallback.ts}{\texttt{runWithFallback}: chain iteration and full-chain retry}

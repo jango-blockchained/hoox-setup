@@ -17,8 +17,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          submodules: recursive
+
+      - name: Initialize git submodules (core workers)
+        run: |
+          git submodule update --init --recursive \
+            workers/hoox \
+            workers/trade-worker \
+            workers/agent-worker \
+            workers/d1-worker \
+            workers/telegram-worker \
+            workers/web3-wallet-worker \
+            workers/email-worker \
+            workers/analytics-worker \
+            workers/report-worker \
+            || echo "::warning::Some submodules (e.g. private) could not be initialized. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

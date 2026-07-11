@@ -1,0 +1,168 @@
+\section{Key Technical Mechanisms}
+\label{sec:mechanisms}
+
+\subsection{Duplicate-Suppression Idempotency}
+
+TradingView and similar platforms may retry webhook delivery after timeouts. Without deduplication, duplicate submissions can produce double positions. \textsc{HOOX} implements \emph{at-most-once acceptance} at the gateway within a configurable TTL; I do not claim formal exactly-once semantics across the full pipeline because Queues deliver at-least-once and the gateway fails open when the Durable Object is unavailable.
+
+\paragraph{Gateway mutex.} The \texttt{IdempotencyStore} Durable Object implements an atomic check-and-store operation using \texttt{blockConcurrencyWhile}, guaranteeing that concurrent requests for the same key cannot interleave between read and write (Algorithm~\ref{alg:idempotency}). Entries expire after a default TTL of 300\,s; alarm-based cleanup reclaims storage.
+
+\begin{figure}[t]
+  \centering
+  \begin{minipage}{0.92\linewidth}
+  \textbf{Algorithm 1:} Idempotency check in \texttt{IdempotencyStore}
+  \label{alg:idempotency}
+  \small
+  \begin{lstlisting}
+Input:  key k, TTL tau
+Output: true if new; false if duplicate
+enter blockConcurrencyWhile
+  e <- storage.get(k)
+  if e != null and (now - e.storedAt) < tau then
+    return false  // duplicate within TTL
+  storage.put(k, {storedAt: now})
+  schedule alarm at now + tau
+  return true
+  \end{lstlisting}
+  \end{minipage}
+\end{figure}
+
+\paragraph{Semantics and limitations.}
+\begin{itemize}
+  \item \textbf{Key granularity:} The key excludes \texttt{requestId} and timestamp. Two legitimate signals with identical exchange, symbol, action, and quantity within the TTL window are treated as duplicates---a deliberate trade-off favoring retry safety over rapid scale-in.
+  \item \textbf{Fail-open:} If the Durable Object RPC fails, the gateway permits the trade rather than halting execution---availability over strict deduplication.
+  \item \textbf{Probe mode:} Synthetic requests with \texttt{probe: true} bypass idempotency and short-circuit in \texttt{trade-worker} before exchange validation, enabling repeatable internal latency measurement without side effects.
+\end{itemize}
+
+Listing~\ref{lst:idempotency-store} shows the production \texttt{IdempotencyStore} implementation; Listing~\ref{lst:probe-short-circuit} shows how synthetic probes bypass exchange submission for latency measurement.
+
+A second Durable Object class, \texttt{ExchangeConnectionManager}, maintains optional persistent WebSocket sessions per exchange for connection amortization; it does not currently participate in idempotency. Planned work includes exchange-native deduplication via \texttt{newClientOrderId} / \texttt{orderLinkId} fields derived from \texttt{requestId}.
+
+\hooxlisting{lst:idempotency-store}{idempotencyStore.ts}{IdempotencyStore Durable Object (full implementation)}
+\hooxsnippet{lst:idempotency-key}{idempotency-key.ts}{Idempotency key generation and fail-open DO check}
+\hooxlisting{lst:probe-short-circuit}{probe-short-circuit.ts}{Probe short-circuit in \texttt{trade-worker} (no exchange call)}
+
+\subsection{Gateway Hot Path}
+
+The \texttt{hoox} \texttt{/webhook} handler minimizes serial I/O on the critical path. After a 100\,KB payload size guard, three security checks---kill switch, IP allow-list, and API key binding---execute in parallel via \texttt{Promise.all} (Listing~\ref{lst:webhook-parallel-checks}). Session creation and per-session rate limiting follow sequentially because they depend on the validated API key.
+
+Validated trade payloads are schema-checked with \texttt{validateJson(WebhookPayloadSchema)} before dispatch. Trade and Telegram notification branches run concurrently when both are present in the same webhook.
+
+\hooxsnippet{lst:webhook-parallel-checks}{webhook-parallel-checks.ts}{Parallel gateway pre-flight checks}
+
+Internal routes between Workers authenticate with \texttt{X-Internal-Auth-Key} and constant-time comparison (Listing~\ref{lst:require-internal-auth}). The gateway fails closed when the binding is unconfigured; idempotency alone fails open on Durable Object errors (Section~\ref{sec:mechanisms}, duplicate-suppression paragraph).
+
+\hooxsnippet{lst:require-internal-auth}{require-internal-auth.ts}{Internal service-to-service authentication}
+
+\paragraph{Payload validation.} All trade payloads pass \texttt{validateJson(WebhookPayloadSchema)} before dispatch. The shared helper returns structured Zod path errors rather than throwing (Listing~\ref{lst:validate-json}).
+
+\hooxsnippet{lst:validate-json}{validate-json.ts}{Zod-based request validation}
+
+\paragraph{Service Binding transport.} Internal Worker calls use \texttt{serviceFetch}, which addresses bindings as \texttt{http://internal\{path\}} with a 30\,s \texttt{AbortSignal} timeout (Listing~\ref{lst:service-fetch}). Queue producers serialize a minimal trade envelope (Listing~\ref{lst:send-trade-to-queue}).
+
+\hooxsnippet{lst:service-fetch}{service-fetch.ts}{Service Binding fetch with timeout}
+\hooxsnippet{lst:send-trade-to-queue}{send-trade-to-queue.ts}{Queue producer message envelope}
+
+\subsection{Smart Placement}
+
+Latency-sensitive Workers---including \texttt{hoox}, \texttt{trade-worker}, \texttt{d1-worker}, and \texttt{agent-worker}---enable Smart Placement via \texttt{"placement": \{"mode": "smart"\}} in \texttt{wrangler.jsonc}. Cloudflare continuously measures RTT from its PoPs to a Worker's outbound origins (the exchange REST endpoints) and migrates isolate execution to a PoP that minimizes that RTT. The \texttt{dashboard} Worker intentionally disables Smart Placement to optimize for end-user browser proximity rather than exchange proximity.
+
+\textbf{Why the dramatic reduction (and why ``triggering the datacenter'' does not cancel the benefit).} A common intuition is that moving execution ``near the exchange'' should not help because the request still has to reach some Cloudflare datacenter first. This overlooks three realities of the architecture:
+
+\begin{enumerate}
+  \item The dominant term for a signed REST order is the \emph{outbound} TLS+HTTP round-trip from the executing isolate to the exchange API origin. A VPS fixed in Virginia talking to a Tokyo or Singapore exchange incurs 80--200\,ms of public internet RTT on that leg alone. Smart Placement places the \texttt{trade-worker} isolate in (or routes its outbound through) a PoP whose peering to that specific exchange endpoint is excellent (often single-digit milliseconds).
+  \item Invocation routing (anycast + Smart Placement decision) is paid once per isolate lifecycle or migration. Workers cold starts are sub-3\,ms and isolates are kept warm across many PoPs. For a stream of signals the per-trade marginal cost is dominated by the optimized outbound leg, not the placement decision.
+  \item Internal Service Bindings between \texttt{hoox} and \texttt{trade-worker} traverse Cloudflare's private fabric (not the public internet) and are sub-millisecond even when the two Workers execute in different PoPs.
+\end{enumerate}
+
+The numbers in Table~\ref{tab:scenarios} therefore measure \emph{exchange API RTT originating from an optimally placed isolate}, not the cost to reach the first Cloudflare PoP. See Section~\ref{sec:evaluation} for the measurement methodology and caveats.
+
+Empirical measurements (Section~\ref{sec:evaluation}) show 30--60\% exchange API RTT reduction versus static regional deployments (and up to 40$\times$ in some geographies). Table~\ref{tab:scenarios} reports geographic scenarios as \emph{exchange API round-trip from the Worker isolate}, not full signal-to-ack including TradingView delivery.
+
+\subsection{Queue-Based Resilience}
+
+The \texttt{trade-execution} queue decouples ingestion from execution. \texttt{hoox} acts as producer; \texttt{trade-worker} consumes with platform-level \texttt{max\_retries = 3} and application-level retries of five attempts with backoff $[0, 30, 60, 300, 900]$\,s. A dead-letter queue (\texttt{trade-execution-dlq}) captures permanently failed messages. Queue mode is KV-configurable (Table~\ref{tab:queue-modes}).
+
+\paragraph{Producer routing.} \texttt{processTrade} (Listing~\ref{lst:process-trade}) selects among three modes: always direct Service Binding (\texttt{queue\_disabled}), direct-first with queue fallback (\texttt{queue\_failover}, default), or always enqueue (\texttt{queue\_everywhere}). Mode resolution reads \texttt{webhook:queue\_mode} from CONFIG\_KV with a 60\,s in-isolate cache (Listing~\ref{lst:get-queue-mode}).
+
+\hooxsnippet{lst:get-queue-mode}{get-queue-mode.ts}{KV-backed queue mode with 60s cache}
+\hooxlisting{lst:process-trade}{process-trade.ts}{Gateway trade dispatch (idempotency, queue, binding)}
+
+\paragraph{Consumer retries.} The shared \texttt{createQueueHandler} (Listing~\ref{lst:queue-handler}) unifies retry semantics across Workers. \texttt{trade-worker} wires it with DLQ logging to D1 and Telegram notification on permanent failure (Listing~\ref{lst:trade-queue-consumer}).
+
+\hooxlisting{lst:queue-handler}{queue-handler.ts}{Queue handler with exponential backoff and DLQ hook}
+\hooxsnippet{lst:trade-queue-consumer}{trade-queue-consumer.ts}{\texttt{trade-worker} queue consumer}
+
+During exchange maintenance, queued signals eventually succeed in 99.97\% of cases within five minutes (Section~\ref{sec:evaluation}), at the cost of higher perceived latency when \texttt{queue\_everywhere} is enabled.
+
+\subsection{Multi-Exchange Execution}
+
+\texttt{trade-worker} routes orders through a provider-composed \texttt{ExchangeRouter}. KV table \texttt{routing:trade} can override the payload's declared exchange per symbol; per-exchange \texttt{enabled} and \texttt{use\_websocket} toggles gate runtime behavior without redeployment.
+
+\hooxlisting{lst:exchange-router}{exchange-router.ts}{Dynamic exchange routing via CONFIG\_KV}
+
+After routing, \texttt{executeTrade} applies KV risk limits (kill switch, default leverage, max position size), optionally sets leverage, and dispatches \texttt{LONG}/\texttt{SHORT}/\texttt{CLOSE\_*} actions via exchange-specific HMAC clients. Listing~\ref{lst:execute-trade-risk} excerpts the risk gate and REST placement path; WebSocket execution via \texttt{ExchangeConnectionManager} is selected when KV enables \texttt{use\_websocket} (Section~\ref{sec:advanced}, adapter internals).
+
+\hooxlisting{lst:execute-trade-risk}{execute-trade-risk.ts}{Risk management and REST order placement}
+
+\paragraph{HMAC signing.} Exchange REST clients extend \texttt{BaseExchangeClient}, which imports the API secret as a \texttt{CryptoKey} once per isolate and signs query strings with HMAC-SHA256 via \texttt{crypto.subtle} (Listing~\ref{lst:crypto-sign}). The Binance futures client appends \texttt{timestamp} and \texttt{signature} query parameters per the exchange specification (Listing~\ref{lst:binance-signature}).
+
+\hooxsnippet{lst:crypto-sign}{crypto-sign.ts}{Shared HMAC-SHA256 signing primitive}
+\hooxlisting{lst:binance-signature}{binance-signature.ts}{Binance authenticated REST request construction}
+
+Figure~\ref{fig:signal-lifecycle} summarizes the end-to-end synchronous path; queued modes defer steps 3--4 until consumer pickup.
+
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/signal-lifecycle.pdf}{%
+    \includegraphics[width=0.98\linewidth]{figures/signal-lifecycle.pdf}%
+  }{%
+    \ifhooxusetikz
+      \resizebox{0.98\linewidth}{!}{\input{figures/signal-lifecycle.tex}}%
+    \else
+      \small
+      \fbox{\begin{minipage}{0.92\linewidth}
+      \vspace{2pt}
+      TradingView $\rightarrow$ \texttt{hoox} $\rightarrow$ Idempotency DO $\rightarrow$ \texttt{trade-worker} $\rightarrow$ CEX $\rightarrow$ \texttt{d1-worker} (background)\\
+      \vspace{2pt}
+      \end{minipage}}
+    \fi
+  }
+  \caption{Signal lifecycle (synchronous Service Binding path). Steps 5--6 use \texttt{waitUntil} for D1 persistence; HTTP ack returns after step 6.}
+  \label{fig:signal-lifecycle}
+\end{figure}
+
+\subsection{Autonomous Risk Management}
+
+\texttt{agent-worker} executes a five-minute cron (\texttt{*/5 * * * *}) combining deterministic risk logic and optional LLM-generated health summaries. Deterministic controls govern trading safety; LLM output is confined to sanitized operational logs and does not place orders.
+
+\paragraph{Deterministic controls.}
+\begin{itemize}
+  \item Trailing stop: 5\% from position watermark (KV-backed).
+  \item Take-profit scale-out: 50\% position reduction at 10\% unrealized gain.
+  \item Maximum daily drawdown: $-5\%$ unrealized portfolio PnL triggers global kill switch (\texttt{trade:kill\_switch} in CONFIG\_KV).
+\end{itemize}
+
+\paragraph{LLM gateway.} A \texttt{ProviderManager} supports four providers: Cloudflare Workers AI (Llama~3.1~8B), OpenAI (GPT-4o-mini), Anthropic (Claude~3~Haiku), and Google (Gemini~1.5~Flash). The default fallback chain is \texttt{[workers-ai, openai]} with three full-chain retries and 1\,s inter-attempt delay. Prompt-injection defenses include delimiter wrapping, marker detection (Listing~\ref{lst:prompt-sanitizer}, Section~\ref{sec:security}), and response validation.
+
+\paragraph{Cron wiring.} \texttt{agent-worker} registers a shared \texttt{createCronHandler} (Listing~\ref{lst:cron-handler}) that logs structured cron metadata and runs \texttt{runHousekeeping} in parallel with \texttt{processRoutine} (Listing~\ref{lst:agent-cron-wiring}).
+
+\hooxsnippet{lst:cron-handler}{cron-handler.ts}{Shared cron handler with structured logging}
+\hooxsnippet{lst:agent-cron-wiring}{agent-cron-wiring.ts}{\texttt{agent-worker} parallel cron tasks}
+
+Figure~\ref{fig:agent-cron} sequences the five-minute cron loop: position sync, KV watermark evaluation, optional close orders via \texttt{trade-worker}, and Telegram/LLM summaries. Full binding detail appears in Section~\ref{sec:worker-deepdives}.
+
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/agent-cron-lifecycle.pdf}{%
+    \includegraphics[width=0.98\linewidth]{figures/agent-cron-lifecycle.pdf}%
+  }{%
+    \ifhooxusetikz
+      \resizebox{0.98\linewidth}{!}{\input{figures/agent-cron-lifecycle.tex}}%
+    \else
+      \fbox{\parbox{0.92\linewidth}{\small Cron $\rightarrow$ \texttt{agent-worker} $\rightarrow$ \texttt{d1-worker} $\rightarrow$ KV $\rightarrow$ CEX $\rightarrow$ \texttt{trade-worker}}}
+    \fi
+  }
+  \caption{\texttt{agent-worker} cron risk loop (\texttt{*/5 * * * *}). Kill-switch activation writes CONFIG\_KV before the next \texttt{hoox} ingress.}
+  \label{fig:agent-cron}
+\end{figure}

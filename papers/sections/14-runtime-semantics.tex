@@ -1,0 +1,57 @@
+\section{Runtime Semantics and Platform Constraints}
+\label{sec:runtime}
+
+\textsc{HOOX} correctness and latency depend on Cloudflare Workers runtime contracts that differ materially from long-running Node.js or container bots. This section documents the primitives that appear repeatedly in Listings~\ref{lst:update-d1-records}--\ref{lst:exchange-connection-do}.
+
+\subsection{V8 Isolate Execution Model}
+
+Each Worker deploys as one or more V8 isolates with a 128\,MB heap ceiling and no general-purpose background threads. CPU time per request is bounded by the Workers plan; trading Workers therefore avoid synchronous loops, large in-memory caches, and blocking I/O. Cold starts are typically sub-3\,ms because isolates reuse pre-warmed V8 contexts rather than booting containers~\cite{cloudflare-workers}.
+
+\paragraph{Implication for trading.} Hot-path code paths---gateway validation, idempotency RPC, Service Binding forward, HMAC signing, exchange \texttt{fetch}---must complete within a single \texttt{fetch} handler invocation. Persistence, analytics, Telegram alerts, and R2 archival are deferred via \texttt{ctx.waitUntil} (Listing~\ref{lst:update-d1-records}) so HTTP responses return after exchange acknowledgment, not after D1 commit.
+
+\subsection{\texttt{waitUntil} and Fire-and-Forget Side Effects}
+
+\texttt{ExecutionContext.waitUntil(promise)} extends isolate lifetime until \texttt{promise} settles, without blocking the response to the caller. \textsc{HOOX} uses this pattern in four places:
+
+\begin{enumerate}
+  \item \textbf{D1 writes:} \texttt{trade-worker} dispatches \texttt{INSERT}/\texttt{REPLACE} to \texttt{d1-worker} after CEX ack.
+  \item \textbf{Analytics:} \texttt{trackAnalytics} wraps Service Binding calls to \texttt{analytics-worker}.
+  \item \textbf{Notifications:} \texttt{telegram-worker} alerts and \texttt{report-worker} PDF links.
+  \item \textbf{WebSocket DO:} \texttt{ExchangeConnectionManager} calls \texttt{this.ctx.waitUntil(this.connectToExchange())} on construction.
+\end{enumerate}
+
+If an isolate is evicted before \texttt{waitUntil} tasks finish, side effects may be lost. The design accepts this for non-critical paths (dashboard charts, Telegram copy) while treating the exchange fill JSON as authoritative. Regression test Listing~\ref{lst:test-d1-fire-and-forget} asserts that D1 dispatch is scheduled via \texttt{waitUntil} when \texttt{ctx} is present.
+
+\subsection{Durable Object Addressing}
+
+Two Durable Object classes participate in production:
+
+\paragraph{\texttt{IdempotencyStore}.} Gateway keys map to DO instances via \texttt{idFromName(compositeKey)} where the composite key is \texttt{trade:\{exchange\}:\{symbol\}:\{action\}:\{quantity\}} (Listing~\ref{lst:idempotency-key}). Each distinct key hashes to a distinct DO instance, sharding mutex contention across symbols. \texttt{checkAndStore} wraps read--write--alarm scheduling in \texttt{blockConcurrencyWhile} (Listing~\ref{lst:idempotency-store}); alarm handlers scan storage and delete expired entries.
+
+\paragraph{\texttt{ExchangeConnectionManager}.} WebSocket sessions use \texttt{idFromName("exchange:\{name\}")} so each exchange maintains at most one persistent connection per account (Listing~\ref{lst:exchange-connection-do}). The DO keeps a \texttt{pending} map correlating in-flight order RPCs with timeouts; when KV enables \texttt{use\_websocket}, \texttt{executeTrade} routes through the DO stub instead of cold REST handshakes.
+
+\paragraph{RPC failure semantics.} Idempotency DO RPC failures fail \emph{open} (Listing~\ref{lst:idempotency-key}); exchange DO failures fall back to REST clients inside \texttt{ExchangeRouter}.
+
+\subsection{KV Consistency and Caching}
+
+CONFIG\_KV and SESSIONS\_KV are eventually consistent with global propagation delays up to ${\sim}$10\,s. \textsc{HOOX} never stores position-level financial state in KV---only configuration, watermarks, and rate-limit counters (Listing~\ref{lst:kv-keys}).
+
+\paragraph{In-isolate caches.} Queue mode resolution caches \texttt{webhook:queue\_mode} for 60\,s (Listing~\ref{lst:get-queue-mode}) to avoid per-trade KV reads. Kill-switch and routing changes may therefore lag up to one minute on the gateway hot path unless the cache is bypassed by isolate recycle.
+
+\paragraph{Session keys.} \texttt{SESSIONS\_KV} stores per-API-key session metadata with \texttt{expirationTtl: 3600} (Listing~\ref{lst:session-manager}). Rate limiting keys use a separate \texttt{hoox-webhook} prefix in CONFIG\_KV (Listing~\ref{lst:rate-limiter}).
+
+\subsection{Queue Retry Composition}
+
+Cloudflare Queues guarantee at-least-once delivery with platform-level \texttt{max\_retries}. \textsc{HOOX} layers application retries in \texttt{createQueueHandler}: five attempts with delays $[0, 30, 60, 300, 900]$\,s (Listing~\ref{lst:queue-handler}). On exhaustion, \texttt{onDLQ} logs to D1 and notifies Telegram (Listing~\ref{lst:trade-queue-consumer}).
+
+Total worst-case retry horizon is therefore ${\approx}$17.5 minutes of application backoff plus platform retries, explaining the 99.97\% five-minute eventual-success statistic in Section~\ref{sec:reliability}: most maintenance windows resolve within the first two backoff steps.
+
+\subsection{Outbound \texttt{fetch} and Smart Placement}
+
+Only \texttt{trade-worker}, \texttt{agent-worker} (public mark prices), \texttt{email-worker} (Mailgun), \texttt{telegram-worker} (Bot API), \texttt{web3-wallet-worker} (RPC providers), and \texttt{dashboard} (browser-origin assets) initiate outbound HTTPS. Exchange clients set per-vendor base URLs (\texttt{fapi.binance.com}, \texttt{api.bybit.com}, \texttt{contract.mexc.com}) and sign with exchange-specific payload canonicalization---Binance appends HMAC over sorted query strings (Listing~\ref{lst:binance-signature}); Bybit concatenates \texttt{timestamp + apiKey + recvWindow + paramsStr} (Listing~\ref{lst:bybit-signature}).
+
+Smart Placement (\texttt{"placement": \{"mode": "smart"\}} in \texttt{wrangler.jsonc}, Listing~\ref{lst:wrangler-hoox-placement}) migrates isolate execution toward the PoP minimizing measured RTT to these origins. The dashboard Worker \emph{disables} Smart Placement so SSR runs near browser users, not exchange APIs.
+
+\subsection{Web3 Isolate Constraints}
+
+\texttt{web3-wallet-worker} enables \texttt{nodejs\_compat} for \texttt{ethers} v6 cryptographic primitives unavailable in the stock Workers runtime. Mnemonic and private-key material are Wrangler secret bindings; on-chain execution is gated by CONFIG\_KV limits before any \texttt{Wallet} signs (Listing~\ref{lst:web3-validate-transaction}). Unlike CEX paths, DeFi swaps cannot use Service Bindings---every chain interaction is a public JSON-RPC \texttt{fetch} to a configured provider URL.

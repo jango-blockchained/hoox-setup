@@ -1,0 +1,22 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Algorithmic trading requires executing strategies with minimal latency to capture fleeting market opportunities and manage risk effectively~\cite{hasbrouck2007empirical,hendershott2011does}. Traditional deployments place trading logic on virtual private servers (VPS) in fixed geographic regions. This architecture introduces substantial round-trip times: a signal generated near an exchange may traverse the public internet to a distant VPS---often incurring 80--120\,ms of transit alone---before an order is signed and returned to the exchange API, yielding total latencies of 180--320\,ms in typical retail configurations.
+
+Cloudflare Workers provide a fundamentally different execution model. User code runs in V8 isolates~\cite{jonas2017isolates} distributed across more than 300 points of presence (PoPs). When combined with Service Bindings, Durable Objects, Queues, Smart Placement, and other edge primitives~\cite{cloudflare-workers,cloudflare-service-bindings,cloudflare-durable-objects}, it becomes possible to construct a complete trading stack without operating any servers. Unlike conventional function-as-a-service (FaaS) platforms, Workers avoid container cold starts on the order of seconds~\cite{shpektor2019coldstart}, and Service Bindings eliminate per-hop TLS and DNS overhead between microservices.
+
+\textsc{HOOX} is a production-grade, fully open-source implementation of such a stack~\cite{hoox-project}. It ingests signals from TradingView webhooks, email, and Telegram; validates and routes them through a hardened gateway; executes trades across Binance, Bybit, and MEXC; manages risk autonomously; and provides observability, PDF compliance reporting, and DeFi execution. All components run as Cloudflare Workers and communicate internally without traversing the public internet.
+
+\paragraph{Terminology.} I use \emph{low latency} to denote retail-grade webhook-to-ack times in the tens of milliseconds, not the sub-10\,ms regime of exchange co-location~\cite{arnold2010latency}. The product name \emph{Zero-Latency} reflects design intent---minimizing network distance to exchange APIs---rather than a literal zero-millisecond guarantee.
+
+\subsection{Contributions}
+
+This paper describes the architecture, mechanisms, and operational results of work I performed to build and run HOOX. It makes the following contributions:
+\begin{enumerate}
+  \item A detailed microservices architecture for edge-based trading using ten cooperating Workers, with a formal seven-stage signal lifecycle and five-layer security model.
+  \item Design and implementation of \emph{duplicate-suppression} semantics using a Durable Object mutex at the gateway, with explicit discussion of fail-open behavior, queue at-least-once delivery, and idempotency key granularity.
+  \item A reproducible evaluation toolchain---\texttt{hoox perf fastpath}, k6 load tests, and nightly CI artifacts---with a clear separation between internal probe latency and production exchange-ack latency (Figure~\ref{fig:latency-taxonomy}).
+  \item Operational measurements over twelve months demonstrating median 22\,ms production signal-to-ack on the direct path and 5.6--40$\times$ geographic RTT improvements versus a Virginia VPS baseline for exchange API reachability.
+  \item A practical demonstration that a complete trading infrastructure can operate within Cloudflare's free tier for typical retail volumes (${<}100{,}000$ requests/day).
+  \item An implementation monograph (provided in the extended version of this paper) with 60 manifest-pinned code listings plus hand-sanitized configuration excerpts (Appendix~\ref{app:listings}), runtime-semantics and advanced-mechanism deep dives, per-Worker implementation reference, ADRs, and a published test methodology with failure taxonomy (Appendices~\ref{app:graph},~\ref{app:tests}). The core paper focuses on the architectural contribution and evaluation; the extended technical reference is available alongside this document and in the open-source repository.
+\end{enumerate}

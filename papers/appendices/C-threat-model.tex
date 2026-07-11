@@ -1,0 +1,27 @@
+\section{Threat Model Summary}
+\label{app:threat}
+
+Table~\ref{tab:threats} maps threats to mitigations.
+
+\begin{table}[h]
+  \centering
+  \caption{Threat model.}
+  \label{tab:threats}
+  \small
+  \begin{tabular}{@{}lp{6.5cm}@{}}
+    \toprule
+    \textbf{Threat} & \textbf{Mitigation} \\
+    \midrule
+    Spoofed webhooks & WAF IP allow-list (Listing~\ref{lst:ip-allowlist}) + API key auth \\
+    Replay attacks & Durable Object idempotency (300\,s TTL) \\
+    Credential brute force & \texttt{timingSafeEqual} (Listing~\ref{lst:timing-safe-equal}) \\
+    Internal privilege escalation & Service Binding isolation + INTERNAL\_KEY \\
+    Session abuse & Per-session rate limit (Listing~\ref{lst:rate-limit-gateway}) \\
+    Prompt injection (LLM) & Marker detection (Listing~\ref{lst:prompt-sanitizer}) \\
+    Spoofed email signals & Mailgun HMAC (Listing~\ref{lst:mailgun-signature}) \\
+    Exchange API outage & Queues with exponential backoff + DLQ \\
+    Runaway losses & Drawdown kill switch + rate limiting \\
+    DO unavailability & Fail-open gateway (documented limitation) \\
+    \bottomrule
+  \end{tabular}
+\end{table}

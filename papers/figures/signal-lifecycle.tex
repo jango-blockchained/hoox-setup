@@ -1,0 +1,49 @@
+% TikZ sequence diagram: TradingView signal lifecycle (included by sections/04-mechanisms.tex)
+\begin{tikzpicture}[
+  node distance=0.35cm,
+  actor/.style={draw=black!55, rounded corners=2pt, fill=gray!10,
+    minimum width=1.6cm, minimum height=0.45cm, font=\scriptsize, align=center},
+  worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
+    minimum width=1.75cm, minimum height=0.45cm, font=\scriptsize\ttfamily, align=center},
+  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
+    fill=blue!6, minimum height=0.4cm, minimum width=1.2cm,
+    font=\scriptsize, align=center},
+  msg/.style={-{Stealth[length=1.5mm]}, semithick, draw=black!60},
+  ret/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!40},
+  lifeline/.style={draw=black!25, dashed},
+  msglabel/.style={font=\tiny, fill=white, inner sep=1pt}
+]
+
+  % Actors (top row)
+  \node[actor] (tv) at (0,0) {TradingView};
+  \node[worker] (gw) at (2.4,0) {hoox};
+  \node[store] (ido) at (4.6,0) {Idempotency\\DO};
+  \node[worker] (tw) at (6.8,0) {trade-worker};
+  \node[actor] (cex) at (9.2,0) {CEX API};
+  \node[worker] (d1) at (11.4,0) {d1-worker};
+
+  % Lifelines
+  \foreach \x in {tv,gw,ido,tw,cex,d1} {
+    \draw[lifeline] (\x.south) -- ++(0,-5.8);
+  }
+
+  % Messages (y decreases downward)
+  \draw[msg] ([yshift=-0.5cm]tv.south) -- node[msglabel, above] {1.\ POST /webhook} ([yshift=-0.5cm]gw.south);
+  \draw[msg] ([yshift=-1.1cm]gw.south) -- node[msglabel, above] {2.\ checkAndStore} ([yshift=-1.1cm]ido.south);
+  \draw[ret] ([yshift=-1.5cm]ido.south) -- node[msglabel, above] {new key} ([yshift=-1.5cm]gw.south);
+
+  \draw[msg] ([yshift=-2.1cm]gw.south) -- node[msglabel, above] {3.\ SB /webhook} ([yshift=-2.1cm]tw.south);
+  \draw[msg] ([yshift=-2.7cm]tw.south) -- node[msglabel, above] {4.\ HMAC REST} ([yshift=-2.7cm]cex.south);
+  \draw[ret] ([yshift=-3.1cm]cex.south) -- node[msglabel, above] {fill ack} ([yshift=-3.1cm]tw.south);
+
+  \draw[msg] ([yshift=-3.7cm]tw.south) -- node[msglabel, above] {5.\ waitUntil INSERT} ([yshift=-3.7cm]d1.south);
+  \draw[ret] ([yshift=-4.3cm]tw.south) -- node[msglabel, above] {6.\ 200 + requestId} ([yshift=-4.3cm]gw.south);
+  \draw[ret] ([yshift=-4.9cm]gw.south) -- node[msglabel, above] {7.\ ack} ([yshift=-4.9cm]tv.south);
+
+  % Queue alternate path (annotation)
+  \node[font=\tiny, align=left, text=black!55] at (5.5,-5.5) {%
+    \textit{Alternate:} steps 3--4 via \texttt{trade-execution} queue\\
+    (modes \texttt{queue\_failover}, \texttt{queue\_everywhere})%
+  };
+
+\end{tikzpicture}

@@ -1,0 +1,14 @@
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+\paragraph{Platform portability.} The architecture depends on Cloudflare-specific primitives (Service Bindings, Durable Objects, Smart Placement). Portability to other edge platforms (e.g., Fastly Compute, Deno Deploy) would require substantial redesign.
+
+\paragraph{Ultra-low-latency strategies.} Strategies requiring sub-10\,ms execution---common in colocated high-frequency trading~\cite{arnold2010latency}---are out of scope. Exchange co-location and kernel-bypass networking remain necessary for that regime.
+
+\paragraph{Event-driven risk management.} The risk manager operates on a fixed five-minute cron rather than event-driven triggers (e.g., on fill notifications or volatility spikes). Future work includes WebSocket-driven position updates via \texttt{ExchangeConnectionManager}.
+
+\paragraph{Evaluation reproducibility.} Raw production latency logs are not archived in the public repository for privacy reasons. I provide open-source probe and load-test tooling (Appendix~\ref{app:repro}) to enable independent verification on deployers' own stacks.
+
+\paragraph{Idempotency completeness.} Exchange-native \texttt{clientOrderId} deduplication and fail-closed gateway behavior under Durable Object outage remain planned hardening steps.
+
+Planned extensions include additional exchange venues, on-chain data feed integration into the risk engine, and a decentralized strategy marketplace leveraging the existing Vectorize RAG infrastructure.

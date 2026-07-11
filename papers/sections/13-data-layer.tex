@@ -1,0 +1,115 @@
+\section{Data Layer and Persistence}
+\label{sec:data-layer}
+
+\textsc{HOOX} segregates state across four edge storage tiers (Table~\ref{tab:storage-tiers}): Durable Objects for strongly consistent coordination, KV for eventually consistent configuration, D1 for relational ACID ledgers, and R2 for verbose object archives. The \texttt{d1-worker} isolate is the sole SQL gateway for dashboard reads; other Workers reach D1 through internal Service Bindings with \texttt{X-Internal-Auth-Key} authentication.
+
+\begin{table}[t]
+  \centering
+  \caption{Multi-tier edge storage topology (from production \texttt{wrangler.jsonc} bindings).}
+  \label{tab:storage-tiers}
+  \small
+  \begin{tabular}{@{}llllp{4.2cm}@{}}
+    \toprule
+    \textbf{Tier} & \textbf{Binding} & \textbf{Consistency} & \textbf{Typical RTT} & \textbf{Use case} \\
+    \midrule
+    Durable Object & \texttt{IDEMPOTENCY\_STORE} & Strong & ${<}5$\,ms & Duplicate-suppression mutex \\
+    KV & \texttt{CONFIG\_KV} & Eventual (${<}10$\,s) & ${<}1$\,ms read & Kill switch, routing, queue mode \\
+    KV & \texttt{SESSIONS\_KV} & Eventual & ${<}1$\,ms read & Webhook session + rate-limit keys \\
+    D1 & \texttt{trade-data-db} & ACID & ${<}12$\,ms write & Trades, positions, balances, logs \\
+    R2 & \texttt{REPORTS\_BUCKET} & Per-object strong & ${<}50$\,ms write & Full JSON fill artifacts \\
+    R2 & \texttt{SYSTEM\_LOGS\_BUCKET} & Per-object strong & ${<}50$\,ms write & Verbose request/response dumps \\
+    Analytics & \texttt{ANALYTICS\_ENGINE} & Append-only & Async & Latency time series, probe indexes \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{D1 Schema}
+
+The trade database schema is idempotent (\texttt{CREATE TABLE IF NOT EXISTS}) so repeated \texttt{hoox setup} runs do not destroy production data. Five core tables capture the trading lifecycle:
+
+\begin{itemize}
+  \item \texttt{trade\_signals} --- inbound signal provenance (TradingView, email, manual).
+  \item \texttt{trades} --- executed order ledger with exchange response JSON.
+  \item \texttt{positions} --- open and closed position snapshots per exchange/symbol/side.
+  \item \texttt{balances} --- periodic exchange balance snapshots.
+  \item \texttt{system\_logs} --- structured operational logs for dashboard and agent consumption.
+\end{itemize}
+
+Listings~\ref{lst:schema-trades}--\ref{lst:schema-system-logs} excerpt the three most frequently queried tables. Zod runtime schemas in \texttt{packages/shared/src/d1/schemas.ts} mirror column types for dashboard query validation (Listing~\ref{lst:d1-trade-schema}).
+
+\hooxsql{lst:schema-trades}{schema-trades.sql}{D1 \texttt{trades} table DDL}
+\hooxsql{lst:schema-positions}{schema-positions.sql}{D1 \texttt{positions} table DDL}
+\hooxsql{lst:schema-system-logs}{schema-system-logs.sql}{D1 \texttt{system\_logs} table DDL}
+\hooxsnippet{lst:d1-trade-schema}{d1-trade-schema.ts}{Zod schemas mirroring D1 \texttt{trades} and \texttt{positions}}
+
+\subsection{Write Path and Latency Trade-off}
+
+After a successful exchange REST call, \texttt{trade-worker} dispatches D1 inserts via \texttt{ctx.waitUntil} rather than awaiting them in the hot path. This fast-path optimization removes two Service Binding round-trips (${\sim}$30--50\,ms each) from signal-to-ack latency; the exchange fill response remains the source of truth if a background write is lost during isolate eviction.
+
+Listing~\ref{lst:update-d1-records} shows the parallel \texttt{INSERT}/\texttt{REPLACE} pattern with per-write error logging. Only structured financial fields land in D1; verbose exchange JSON is offloaded to R2 (next subsection).
+
+\hooxlisting{lst:update-d1-records}{update-d1-records.ts}{Fire-and-forget D1 trade and position writes}
+
+\subsection{SQL Query Guard}
+
+The \texttt{d1-worker} \texttt{/query} endpoint accepts parameterized statements from trusted internal callers. Ad-hoc dashboard reads pass through \texttt{validateQuery}, which enforces a defense-in-depth policy:
+
+\begin{enumerate}
+  \item Strip SQL comments before parsing (prevents \texttt{--} bypass tricks).
+  \item Allow only \texttt{SELECT} for string-submitted queries; writes use bound parameters on \texttt{INSERT}/\texttt{UPDATE}/\texttt{DELETE} paths.
+  \item Reject string literals and quoted identifiers (values must use \texttt{?} placeholders).
+  \item Validate \texttt{FROM}/\texttt{JOIN} table names against an explicit allowlist.
+  \item Block \texttt{UNION} and subqueries in \texttt{WHERE}/\texttt{HAVING} clauses.
+\end{enumerate}
+
+Listing~\ref{lst:d1-validate-query} excerpts the validator; unauthorized table access returns HTTP\,403. The allowlist covers \texttt{trade\_signals}, \texttt{trades}, \texttt{positions}, \texttt{balances}, \texttt{system\_logs}, \texttt{trade\_requests}, and \texttt{trade\_responses}.
+
+\hooxlisting{lst:d1-validate-query}{d1-validate-query.ts}{d1-worker SELECT query security validator}
+
+\subsection{R2 Object Layout}
+
+R2 buckets conserve D1 write volume by storing verbose JSON blobs off the SQLite hot path. Table~\ref{tab:r2-layout} summarizes production bucket bindings; keys follow hierarchical paths for lifecycle management and \texttt{wrangler r2} inspection.
+
+\begin{table}[t]
+  \centering
+  \caption{R2 bucket bindings and key conventions.}
+  \label{tab:r2-layout}
+  \small
+  \begin{tabular}{@{}llp{5.5cm}@{}}
+    \toprule
+    \textbf{Bucket binding} & \textbf{Workers} & \textbf{Key pattern} \\
+    \midrule
+    \texttt{REPORTS\_BUCKET} & \texttt{trade-worker}, \texttt{report-worker} &
+      \texttt{trade-reports/\{exchange\}/\{symbol\}/\{ts\}-\{dbLogId\}.json} \\
+    \texttt{SYSTEM\_LOGS\_BUCKET} & \texttt{trade-worker} &
+      Verbose request/response dumps (date-partitioned) \\
+    \texttt{UPLOADS\_BUCKET} & \texttt{telegram-worker} &
+      User-uploaded attachments for RAG queries \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Listing~\ref{lst:save-report-r2} shows how successful trades trigger fire-and-forget R2 archival via \texttt{triggerReportSave} in \texttt{trade-worker}.
+
+\hooxlisting{lst:save-report-r2}{save-report-r2.ts}{R2 trade report archival}
+
+\subsection{Analytics Engine}
+
+Time-series observability flows through \texttt{analytics-worker}, which writes typed data points to the \texttt{hoox-analytics} Analytics Engine dataset. Five authenticated endpoints accept Zod-validated payloads:
+
+\begin{itemize}
+  \item \texttt{/track/trade} --- exchange, symbol, action, quantity, success, latency.
+  \item \texttt{/track/api-call} --- per-worker endpoint latency (supports \texttt{indexes} for \texttt{probe\_id}).
+  \item \texttt{/track/worker-perf} --- aggregate request/error counters per cron tick.
+  \item \texttt{/track/signal} --- inbound signal metadata (source, confidence).
+  \item \texttt{/track/notification} --- Telegram/email delivery outcomes.
+\end{itemize}
+
+Workers invoke tracking non-blockingly via \texttt{ctx.waitUntil(trackAnalytics(...))} (Listing~\ref{lst:track-analytics}). The analytics worker maps validated bodies to \texttt{ANALYTICS\_ENGINE.writeDataPoint} blobs/doubles/indexes (Listing~\ref{lst:analytics-datapoint}) on Cloudflare's Analytics Engine~\cite{cloudflare-analytics-engine}. Figure~\ref{fig:observability-flow} (Section~\ref{sec:evaluation}) shows the end-to-end flow to dashboard charts.
+
+\hooxsnippet{lst:track-analytics}{track-analytics.ts}{Shared non-blocking analytics client}
+\hooxlisting{lst:analytics-datapoint}{analytics-datapoint.ts}{Analytics Engine data point writes}
+
+\paragraph{KV operational rule.} CONFIG\_KV holds kill switches, routing tables, and queue modes with sub-millisecond reads but up to 10\,s global propagation delay. High-frequency state (position sizes, drawdown) is never stored in KV---only in D1 or Durable Objects---consistent with ADR-004 (Section~\ref{sec:adrs}). Agent trailing-stop watermarks use per-position keys \texttt{trade:watermark:\{exchange\}:\{symbol\}:\{side\}} (Listing~\ref{lst:agent-trailing-stop}); take-profit idempotency flags use \texttt{trade:tp\_hit:...} prefixes.
+
+\paragraph{D1 access patterns.} Writes from \texttt{trade-worker} use parallel parameterized \texttt{POST /query} calls inside \texttt{waitUntil} (Listing~\ref{lst:update-d1-records}). Multi-statement atomic reads use \texttt{POST /batch} or in-process \texttt{DB.batch} (Section~\ref{sec:advanced}). Dashboard SELECT queries pass the \texttt{validateQuery} guard (Listing~\ref{lst:d1-validate-query}). The \texttt{positions} and \texttt{trades} schemas use composite uniqueness constraints on \texttt{(exchange, symbol, side)} and \texttt{request\_id} respectively (Listings~\ref{lst:schema-trades},~\ref{lst:schema-positions}), supporting idempotent upserts when queue consumers retry at-least-once deliveries.

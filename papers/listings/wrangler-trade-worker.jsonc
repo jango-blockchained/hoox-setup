@@ -1,0 +1,29 @@
+// Source: workers/trade-worker/wrangler.jsonc (sanitized excerpt)
+// Listing id: wrangler-trade-bindings
+{
+  "name": "trade-worker",
+  "placement": { "mode": "smart" },
+  "services": [
+    { "binding": "D1_SERVICE", "service": "d1-worker" },
+    { "binding": "TELEGRAM_SERVICE", "service": "telegram-worker" },
+    { "binding": "ANALYTICS_SERVICE", "service": "analytics-worker" }
+  ],
+  "r2_buckets": [
+    { "binding": "REPORTS_BUCKET", "bucket_name": "trade-reports" },
+    { "binding": "SYSTEM_LOGS_BUCKET", "bucket_name": "hoox-system-logs" }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "trade-execution",
+        "max_retries": 3,
+        "dead_letter_queue": "trade-execution-dlq"
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "EXCHANGE_CONNECTION_MANAGER", "class_name": "ExchangeConnectionManager" }
+    ]
+  }
+}

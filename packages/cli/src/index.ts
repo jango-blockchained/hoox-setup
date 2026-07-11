@@ -43,6 +43,7 @@ import { registerSetupCommand } from "./commands/setup/index.js";
 import { registerTraceCommand } from "./commands/trace/index.js";
 import { registerPerfCommand } from "./commands/perf/index.js";
 import { registerCompletionCommand } from "./commands/completion/index.js";
+import { registerPineCommand } from "./commands/pine/index.js";
 import { runInteractiveTUI } from "./ui/index.js";
 
 // ---------------------------------------------------------------------------
@@ -240,6 +241,7 @@ registerSetupCommand(program);
 registerTraceCommand(program);
 registerPerfCommand(program);
 registerCompletionCommand(program);
+registerPineCommand(program);
 
 // ---------------------------------------------------------------------------
 // Main entry — exported so bin/hoox.js can invoke it explicitly

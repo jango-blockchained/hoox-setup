@@ -1,0 +1,10 @@
+% Standalone build: pdflatex latency-taxonomy-standalone.tex
+% Requires: texlive-pictures (provides tikz.sty / pgf)
+\documentclass[11pt]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing,backgrounds}
+\pagestyle{empty}
+\begin{document}
+\noindent\input{latency-taxonomy.tex}
+\end{document}

@@ -1,0 +1,38 @@
+% TikZ sequence: report-worker scheduled PDF pipeline
+\begin{tikzpicture}[
+  actor/.style={draw=black!55, rounded corners=2pt, fill=gray!10,
+    minimum width=1.5cm, minimum height=0.45cm, font=\scriptsize, align=center},
+  worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
+    minimum width=1.7cm, minimum height=0.45cm, font=\scriptsize\ttfamily, align=center},
+  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
+    fill=blue!6, minimum height=0.4cm, minimum width=1.15cm,
+    font=\scriptsize, align=center},
+  msg/.style={-{Stealth[length=1.5mm]}, semithick, draw=black!60},
+  ret/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!40},
+  lifeline/.style={draw=black!25, dashed},
+  msglabel/.style={font=\tiny, fill=white, inner sep=1pt}
+]
+
+  \node[actor] (cron) at (0,0) {Cron\\06/18 UTC};
+  \node[worker] (rw) at (2.4,0) {report-worker};
+  \node[worker] (d1) at (4.8,0) {d1-worker};
+  \node[actor] (br) at (7.2,0) {Browser\\Rendering};
+  \node[store] (r2) at (9.4,0) {R2};
+  \node[worker] (tg) at (11.6,0) {telegram};
+
+  \foreach \x in {cron,rw,d1,br,r2,tg} {
+    \draw[lifeline] (\x.south) -- ++(0,-4.8);
+  }
+
+  \draw[msg] ([yshift=-0.5cm]cron.south) -- node[msglabel, above] {1.\ trigger} ([yshift=-0.5cm]rw.south);
+  \draw[msg] ([yshift=-1.1cm]rw.south) -- node[msglabel, above] {2.\ stats + HTML} ([yshift=-1.1cm]d1.south);
+  \draw[msg] ([yshift=-1.7cm]rw.south) -- node[msglabel, above] {3.\ quickAction PDF} ([yshift=-1.7cm]br.south);
+  \draw[ret] ([yshift=-2.1cm]br.south) -- node[msglabel, above] {buffer} ([yshift=-2.1cm]rw.south);
+  \draw[msg] ([yshift=-2.7cm]rw.south) -- node[msglabel, above] {4.\ PUT \texttt{reports/}} ([yshift=-2.7cm]r2.south);
+  \draw[msg] ([yshift=-3.3cm]rw.south) -- node[msglabel, above] {5.\ download link} ([yshift=-3.3cm]tg.south);
+
+  \node[font=\tiny, align=left, text=black!55] at (5.8,-4.6) {%
+    Step 6 runs via \texttt{waitUntil} (non-blocking)%
+  };
+
+\end{tikzpicture}

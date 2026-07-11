@@ -1,0 +1,8 @@
+\section{Code Listings Index}
+\label{app:listings}
+
+All production excerpts in this monograph are extracted from the \textsc{HOOX} monorepo via \texttt{make listings} (\texttt{papers/listings/manifest.yaml}). Each listing is pinned to a source path and line range so independent verifiers can diff against future commits. Table entries reference the in-document Listing number; the authoritative manifest drives regeneration.
+
+\input{generated/listings-index.tex}
+
+\paragraph{Regeneration.} From \texttt{papers/}, run \texttt{make listings} to refresh \texttt{listings/*.ts} and \texttt{make listings-index} (or \texttt{make pdf-tikz}) to rebuild this index. JSONC wrangler excerpts are hand-sanitized and are not overwritten by the extractor.

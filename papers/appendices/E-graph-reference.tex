@@ -1,0 +1,25 @@
+\section{Graph-Derived Architecture Reference}
+\label{app:graph}
+
+The monorepo maintains a machine-readable architecture graph in \texttt{graph-metadata.json}, regenerated via \texttt{bun run graph}. Figure~\ref{fig:graph-overview} visualizes the five logical communities; Tables~\ref{tab:graph-dataflows} and~\ref{tab:graph-communities} list selected data-flow edges and cluster definitions extracted from the same source.
+
+\begin{figure}[t]
+  \centering
+  \IfFileExists{figures/graph-overview.pdf}{%
+    \includegraphics[width=0.98\linewidth]{figures/graph-overview.pdf}%
+  }{%
+    \ifhooxusetikz
+      \resizebox{0.98\linewidth}{!}{\input{figures/graph-overview.tex}}%
+    \else
+      \fbox{\parbox{0.92\linewidth}{\small Signal pipeline, AI/risk, packages, and ingress/ops clusters from \texttt{graph-metadata.json}}}
+    \fi
+  }
+  \caption{Code-graph community overview. Solid arrows: primary signal path; dashed arrows: cron, shared-library, or auxiliary ingress.}
+  \label{fig:graph-overview}
+\end{figure}
+
+\IfFileExists{generated/graph-tables.tex}{%
+  \input{generated/graph-tables}%
+}{%
+  \paragraph{Graph tables unavailable.} Run \texttt{make graph-tables} from the \texttt{papers/} directory to generate data-flow and community tables from \texttt{graph-metadata.json}.
+}

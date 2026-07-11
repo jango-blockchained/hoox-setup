@@ -1,0 +1,285 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{hasbrouck2007empirical,hendershott2011does}
+\citation{jonas2017isolates}
+\citation{cloudflare-workers,cloudflare-service-bindings,cloudflare-durable-objects}
+\citation{shpektor2019coldstart}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
+\citation{hoox-project}
+\citation{arnold2010latency}
+\citation{hasbrouck2007empirical}
+\@writefile{toc}{\contentsline {paragraph}{Terminology.}{2}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Contributions}{2}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background and Motivation}{2}{section.2}\protected@file@percent }
+\newlabel{sec:background}{{2}{2}{Background and Motivation}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Limitations of VPS-Centric Architectures}{2}{subsection.2.1}\protected@file@percent }
+\citation{cloudflare-service-bindings}
+\citation{cloudflare-smart-placement}
+\citation{cloudflare-durable-objects}
+\citation{cloudflare-queues}
+\citation{freqtrade,jesse}
+\citation{aws-lambda-trading,baldini2017serverless}
+\@writefile{toc}{\contentsline {paragraph}{Latency.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cost and operations.}{3}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reliability.}{3}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Cloudflare Workers as an Execution Platform}{3}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}System Architecture}{3}{section.3}\protected@file@percent }
+\newlabel{sec:architecture}{{3}{3}{System Architecture}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Architectural Overview}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Core \textsc  {HOOX} Workers. Only \texttt  {hoox} and \texttt  {dashboard} expose public endpoints.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:workers}{{1}{4}{Core \textsc {HOOX} Workers. Only \texttt {hoox} and \texttt {dashboard} expose public endpoints}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Queue modes and latency semantics. Default: \texttt  {queue\_failover}.}}{4}{table.2}\protected@file@percent }
+\newlabel{tab:queue-modes}{{2}{4}{Queue modes and latency semantics. Default: \texttt {queue\_failover}}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Signal Lifecycle}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Inter-Service Communication}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Primary Service Binding edges (selected).}}{5}{table.3}\protected@file@percent }
+\newlabel{tab:bindings}{{3}{5}{Primary Service Binding edges (selected)}{table.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Key Technical Mechanisms}{5}{section.4}\protected@file@percent }
+\newlabel{sec:mechanisms}{{4}{5}{Key Technical Mechanisms}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Duplicate-Suppression Idempotency}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Gateway mutex.}{5}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Semantics and limitations.}{5}{section*.6}\protected@file@percent }
+\newlabel{lst:idempotency-store}{{1}{5}{IdempotencyStore Durable Object (full implementation)}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}IdempotencyStore Durable Object (full implementation)}{5}{lstlisting.1}\protected@file@percent }
+\newlabel{lst:idempotency-key}{{2}{7}{Idempotency key generation and fail-open DO check}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Idempotency key generation and fail-open DO check}{7}{lstlisting.2}\protected@file@percent }
+\newlabel{lst:probe-short-circuit}{{3}{8}{Probe short-circuit in \texttt {trade-worker} (no exchange call)}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Probe short-circuit in \texttt  {trade-worker} (no exchange call)}{8}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Gateway Hot Path}{8}{subsection.4.2}\protected@file@percent }
+\newlabel{lst:webhook-parallel-checks}{{4}{8}{Parallel gateway pre-flight checks}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Parallel gateway pre-flight checks}{8}{lstlisting.4}\protected@file@percent }
+\newlabel{lst:require-internal-auth}{{5}{9}{Internal service-to-service authentication}{lstlisting.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}Internal service-to-service authentication}{9}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Payload validation.}{10}{section*.7}\protected@file@percent }
+\newlabel{lst:validate-json}{{6}{10}{Zod-based request validation}{lstlisting.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}Zod-based request validation}{10}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Service Binding transport.}{10}{section*.8}\protected@file@percent }
+\newlabel{lst:service-fetch}{{7}{10}{Service Binding fetch with timeout}{lstlisting.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}Service Binding fetch with timeout}{10}{lstlisting.7}\protected@file@percent }
+\newlabel{lst:send-trade-to-queue}{{8}{11}{Queue producer message envelope}{lstlisting.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}Queue producer message envelope}{11}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Smart Placement}{11}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Queue-Based Resilience}{12}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Producer routing.}{12}{section*.9}\protected@file@percent }
+\newlabel{lst:get-queue-mode}{{9}{12}{KV-backed queue mode with 60s cache}{lstlisting.9}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}KV-backed queue mode with 60s cache}{12}{lstlisting.9}\protected@file@percent }
+\newlabel{lst:process-trade}{{10}{13}{Gateway trade dispatch (idempotency, queue, binding)}{lstlisting.10}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {10}Gateway trade dispatch (idempotency, queue, binding)}{13}{lstlisting.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Consumer retries.}{14}{section*.10}\protected@file@percent }
+\newlabel{lst:queue-handler}{{11}{14}{Queue handler with exponential backoff and DLQ hook}{lstlisting.11}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {11}Queue handler with exponential backoff and DLQ hook}{14}{lstlisting.11}\protected@file@percent }
+\newlabel{lst:trade-queue-consumer}{{12}{15}{\texttt {trade-worker} queue consumer}{lstlisting.12}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {12}\texttt  {trade-worker} queue consumer}{15}{lstlisting.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Multi-Exchange Execution}{16}{subsection.4.5}\protected@file@percent }
+\newlabel{lst:exchange-router}{{13}{16}{Dynamic exchange routing via CONFIG\_KV}{lstlisting.13}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {13}Dynamic exchange routing via CONFIG\_KV}{16}{lstlisting.13}\protected@file@percent }
+\newlabel{lst:execute-trade-risk}{{14}{17}{Risk management and REST order placement}{lstlisting.14}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {14}Risk management and REST order placement}{17}{lstlisting.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{HMAC signing.}{20}{section*.11}\protected@file@percent }
+\newlabel{lst:crypto-sign}{{15}{20}{Shared HMAC-SHA256 signing primitive}{lstlisting.15}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {15}Shared HMAC-SHA256 signing primitive}{20}{lstlisting.15}\protected@file@percent }
+\newlabel{lst:binance-signature}{{16}{20}{Binance authenticated REST request construction}{lstlisting.16}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {16}Binance authenticated REST request construction}{20}{lstlisting.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Autonomous Risk Management}{21}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Deterministic controls.}{21}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{LLM gateway.}{21}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cron wiring.}{21}{section*.14}\protected@file@percent }
+\newlabel{lst:cron-handler}{{17}{21}{Shared cron handler with structured logging}{lstlisting.17}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {17}Shared cron handler with structured logging}{21}{lstlisting.17}\protected@file@percent }
+\newlabel{lst:agent-cron-wiring}{{18}{22}{\texttt {agent-worker} parallel cron tasks}{lstlisting.18}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {18}\texttt  {agent-worker} parallel cron tasks}{22}{lstlisting.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Security Model}{22}{section.5}\protected@file@percent }
+\newlabel{sec:security}{{5}{22}{Security Model}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Ingress Hardening}{23}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Kill switch.}{23}{section*.15}\protected@file@percent }
+\newlabel{lst:kill-switch}{{19}{23}{Global kill switch read from canonical KV key}{lstlisting.19}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {19}Global kill switch read from canonical KV key}{23}{lstlisting.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{IP allow-list.}{23}{section*.16}\protected@file@percent }
+\newlabel{lst:ip-allowlist}{{20}{23}{TradingView IP allow-list with KV override}{lstlisting.20}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {20}TradingView IP allow-list with KV override}{23}{lstlisting.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Parallel pre-flight.}{24}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Payload bounds.}{24}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Authentication Primitives}{24}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Constant-time comparison.}{24}{section*.19}\protected@file@percent }
+\newlabel{lst:timing-safe-equal}{{21}{24}{Constant-time string comparison}{lstlisting.21}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {21}Constant-time string comparison}{24}{lstlisting.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Webhook API key.}{25}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Internal service auth.}{25}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Rate Limiting and Session Abuse}{25}{subsection.5.3}\protected@file@percent }
+\newlabel{lst:rate-limit-gateway}{{22}{25}{Per-session webhook rate limit}{lstlisting.22}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {22}Per-session webhook rate limit}{25}{lstlisting.22}\protected@file@percent }
+\newlabel{lst:rate-limiter}{{23}{25}{KV sliding-window rate limit check}{lstlisting.23}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {23}KV sliding-window rate limit check}{25}{lstlisting.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Response and Transport Hardening}{26}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Security headers.}{26}{section*.22}\protected@file@percent }
+\newlabel{lst:security-headers}{{24}{26}{Default security response headers}{lstlisting.24}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {24}Default security response headers}{26}{lstlisting.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Service Binding transport.}{26}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Secondary Ingress: Email}{26}{subsection.5.5}\protected@file@percent }
+\newlabel{lst:mailgun-signature}{{25}{26}{Mailgun webhook HMAC-SHA256 verification}{lstlisting.25}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {25}Mailgun webhook HMAC-SHA256 verification}{26}{lstlisting.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}LLM and Prompt Injection}{27}{subsection.5.6}\protected@file@percent }
+\newlabel{lst:prompt-sanitizer}{{26}{27}{LLM prompt-injection marker detection}{lstlisting.26}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {26}LLM prompt-injection marker detection}{27}{lstlisting.26}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Security control summary by surface.}}{28}{table.4}\protected@file@percent }
+\newlabel{tab:security-summary}{{4}{28}{Security control summary by surface}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Data-Layer Guards}{28}{subsection.5.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}Exchange Credential Handling}{28}{subsection.5.8}\protected@file@percent }
+\newlabel{lst:bybit-signature}{{27}{28}{Bybit V5 HMAC signature payload}{lstlisting.27}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {27}Bybit V5 HMAC signature payload}{28}{lstlisting.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Operational Security Posture}{28}{subsection.5.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Monorepo package topology.}}{29}{table.5}\protected@file@percent }
+\newlabel{tab:monorepo-layout}{{5}{29}{Monorepo package topology}{table.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Implementation}{29}{section.6}\protected@file@percent }
+\newlabel{sec:implementation}{{6}{29}{Implementation}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Monorepo Layout}{29}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Request Pipeline and Middleware}{29}{subsection.6.2}\protected@file@percent }
+\newlabel{lst:session-manager}{{28}{29}{Webhook session tracking in SESSIONS\_KV}{lstlisting.28}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {28}Webhook session tracking in SESSIONS\_KV}{29}{lstlisting.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Configuration Registry}{30}{subsection.6.3}\protected@file@percent }
+\newlabel{lst:kv-keys}{{29}{30}{Centralized CONFIG\_KV key registry (excerpt)}{lstlisting.29}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {29}Centralized CONFIG\_KV key registry (excerpt)}{30}{lstlisting.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Exchange Integrations}{31}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Risk gates before placement.}{31}{section*.24}\protected@file@percent }
+\newlabel{lst:risk-kv-parse}{{30}{31}{KV risk gates with safe numeric parsing}{lstlisting.30}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {30}KV risk gates with safe numeric parsing}{31}{lstlisting.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{WebSocket amortization.}{33}{section*.25}\protected@file@percent }
+\newlabel{lst:exchange-connection-do}{{31}{33}{ExchangeConnectionManager DO initialization}{lstlisting.31}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {31}ExchangeConnectionManager DO initialization}{33}{lstlisting.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Autonomous Agent Implementation}{34}{subsection.6.5}\protected@file@percent }
+\newlabel{lst:agent-trailing-stop}{{32}{34}{Agent cron: batched reads and trailing-stop logic}{lstlisting.32}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {32}Agent cron: batched reads and trailing-stop logic}{34}{lstlisting.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Web3 Execution Worker}{35}{subsection.6.6}\protected@file@percent }
+\newlabel{lst:web3-validate-transaction}{{33}{35}{DeFi transaction validation guards}{lstlisting.33}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {33}DeFi transaction validation guards}{35}{lstlisting.33}\protected@file@percent }
+\citation{opennext-cloudflare}
+\citation{zod}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}Tooling and User Interface}{36}{subsection.6.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Deployment graph.}{36}{section*.26}\protected@file@percent }
+\citation{k6-load-testing}
+\citation{cloudflare-analytics-engine}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Measurement classes and tooling (extended hop/trace support in v2 instrumentation).}}{37}{table.6}\protected@file@percent }
+\newlabel{tab:measurement-taxonomy}{{6}{37}{Measurement classes and tooling (extended hop/trace support in v2 instrumentation)}{table.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Evaluation}{37}{section.7}\protected@file@percent }
+\newlabel{sec:evaluation}{{7}{37}{Evaluation}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Measurement Taxonomy}{37}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Methodology}{37}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Fast-path probes.}{37}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Production signal-to-ack.}{37}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Load testing.}{37}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Observability Pipeline}{37}{subsection.7.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Detailed fast-path probe latency with extended hop tracing (synthetic, no exchange submission, production deployment).}}{38}{table.7}\protected@file@percent }
+\newlabel{tab:fastpath-detailed}{{7}{38}{Detailed fast-path probe latency with extended hop tracing (synthetic, no exchange submission, production deployment)}{table.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Production signal-to-ack latency (direct path, July 2025--July 2026, extended dataset).}}{38}{table.8}\protected@file@percent }
+\newlabel{tab:production-latency}{{8}{38}{Production signal-to-ack latency (direct path, July 2025--July 2026, extended dataset)}{table.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{VPS baseline.}{38}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Latency Results}{38}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.4.1}Detailed Fast-Path Hop Breakdown (Synthetic Probes)}{38}{subsubsection.7.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.4.2}Production Signal-to-Ack}{38}{subsubsection.7.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Exchange API RTT scenarios (VPS in Virginia vs.\ Smart Placement). Measured from the executing isolate.}}{39}{table.9}\protected@file@percent }
+\newlabel{tab:scenarios}{{9}{39}{Exchange API RTT scenarios (VPS in Virginia vs.\ Smart Placement). Measured from the executing isolate}{table.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.4.3}Exchange API RTT by Geography (Smart Placement Effect)}{39}{subsubsection.7.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.4.4}Collecting Extended Hop and Trace Data}{39}{subsubsection.7.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Cost Analysis}{39}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Reliability}{39}{subsection.7.6}\protected@file@percent }
+\newlabel{sec:reliability}{{7.6}{39}{Reliability}{subsection.7.6}{}}
+\citation{freqtrade,jesse}
+\citation{aws-lambda-trading,baldini2017serverless}
+\citation{chainlink-keepers}
+\citation{jonas2017isolates,cloudflare-workers}
+\citation{arnold2010latency}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Related Work}{40}{section.8}\protected@file@percent }
+\newlabel{sec:related}{{8}{40}{Related Work}{section.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Open-source trading bots.}{40}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Serverless trading.}{40}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{On-chain automation.}{40}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Edge computing.}{40}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Limitations and Future Work}{40}{section.9}\protected@file@percent }
+\newlabel{sec:limitations}{{9}{40}{Limitations and Future Work}{section.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Platform portability.}{40}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Ultra-low-latency strategies.}{40}{section*.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Event-driven risk management.}{40}{section*.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Evaluation reproducibility.}{40}{section*.38}\protected@file@percent }
+\bibstyle{plainnat}
+\bibdata{references}
+\bibcite{arnold2010latency}{{1}{2010}{{Arnold et~al.}}{{Arnold, Sutton, and Jaimungal}}}
+\bibcite{baldini2017serverless}{{2}{2017}{{Baldini et~al.}}{{Baldini, Cheng, Fink, Mitchell, Muthusamy, Rabbah, Suter, and Tardieu}}}
+\bibcite{chainlink-keepers}{{3}{2026}{{Chainlink}}{{}}}
+\bibcite{cloudflare-analytics-engine}{{4}{2026{}}{{Cloudflare}}{{}}}
+\bibcite{cloudflare-durable-objects}{{5}{2026{}}{{Cloudflare}}{{}}}
+\@writefile{toc}{\contentsline {paragraph}{Idempotency completeness.}{41}{section*.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10}Conclusion}{41}{section.10}\protected@file@percent }
+\newlabel{sec:conclusion}{{10}{41}{Conclusion}{section.10}{}}
+\bibcite{cloudflare-queues}{{6}{2026{}}{{Cloudflare}}{{}}}
+\bibcite{cloudflare-service-bindings}{{7}{2026{}}{{Cloudflare}}{{}}}
+\bibcite{cloudflare-smart-placement}{{8}{2026{}}{{Cloudflare}}{{}}}
+\bibcite{cloudflare-workers}{{9}{2026{}}{{Cloudflare}}{{}}}
+\bibcite{zod}{{10}{2026}{{Colinhacks}}{{}}}
+\bibcite{freqtrade}{{11}{2026}{{Freqtrade Contributors}}{{}}}
+\bibcite{k6-load-testing}{{12}{2026}{{Grafana Labs}}{{}}}
+\bibcite{hasbrouck2007empirical}{{13}{2007}{{Hasbrouck}}{{}}}
+\bibcite{hendershott2011does}{{14}{2011}{{Hendershott and Riordan}}{{}}}
+\bibcite{hoox-project}{{15}{2026}{{jango\_blockchained}}{{}}}
+\bibcite{jesse}{{16}{2026}{{Jesse Contributors}}{{}}}
+\bibcite{jonas2017isolates}{{17}{2017}{{Jonas et~al.}}{{}}}
+\bibcite{opennext-cloudflare}{{18}{2026}{{OpenNext Contributors}}{{}}}
+\bibcite{shpektor2019coldstart}{{19}{2019}{{Shpektor et~al.}}{{}}}
+\bibcite{aws-lambda-trading}{{20}{2024}{{Various}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Reproducibility Protocol}{42}{appendix.A}\protected@file@percent }
+\newlabel{app:repro}{{A}{42}{Reproducibility Protocol}{appendix.A}{}}
+\@writefile{toc}{\contentsline {paragraph}{Fast-path probes (internal mesh, no exchange) — extended hops.}{43}{lstlisting.-2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{k6 load tests (gateway under concurrency).}{43}{lstlisting.-3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Production exchange-ack latency.}{43}{section*.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Listing extraction.}{43}{section*.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{arXiv source bundle.}{43}{section*.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Threat Model Summary}{43}{appendix.B}\protected@file@percent }
+\newlabel{app:threat}{{B}{43}{Threat Model Summary}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Threat model.}}{43}{table.10}\protected@file@percent }
+\newlabel{tab:threats}{{10}{43}{Threat model}{table.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Test pyramid and primary verification targets.}}{44}{table.11}\protected@file@percent }
+\newlabel{tab:test-pyramid}{{11}{44}{Test pyramid and primary verification targets}{table.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Test Excerpts and Failure Taxonomy}{44}{appendix.C}\protected@file@percent }
+\newlabel{app:tests}{{C}{44}{Test Excerpts and Failure Taxonomy}{appendix.C}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Representative Unit Tests}{44}{subsection.C.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Idempotency TTL.}{44}{section*.48}\protected@file@percent }
+\newlabel{lst:test-idempotency-ttl}{{34}{44}{Duplicate key rejected within TTL}{lstlisting.34}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {34}Duplicate key rejected within TTL}{44}{lstlisting.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{D1 SQL guard.}{44}{section*.49}\protected@file@percent }
+\newlabel{lst:test-d1-sql-guard}{{35}{44}{Unauthorized table rejected with 403}{lstlisting.35}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {35}Unauthorized table rejected with 403}{44}{lstlisting.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Fire-and-forget regression.}{45}{section*.50}\protected@file@percent }
+\newlabel{lst:test-d1-fire-and-forget}{{36}{45}{D1 writes non-blocking via waitUntil}{lstlisting.36}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {36}D1 writes non-blocking via waitUntil}{45}{lstlisting.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Integration and Security Tests}{45}{subsection.C.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Gateway validation.}{45}{section*.51}\protected@file@percent }
+\newlabel{lst:test-gateway-validation}{{37}{45}{TradingView payload validation}{lstlisting.37}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {37}TradingView payload validation}{45}{lstlisting.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Probe side-effect freedom.}{46}{section*.52}\protected@file@percent }
+\newlabel{lst:test-fastpath-probe}{{38}{46}{Probe integration: no D1 trade rows}{lstlisting.38}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {38}Probe integration: no D1 trade rows}{46}{lstlisting.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Auth fail-closed.}{47}{section*.53}\protected@file@percent }
+\newlabel{lst:test-auth-fail-closed}{{39}{47}{Internal auth fail-closed tests}{lstlisting.39}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {39}Internal auth fail-closed tests}{47}{lstlisting.39}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}Load Test Thresholds}{48}{subsection.C.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Measurement caveat.}{48}{section*.54}\protected@file@percent }
+\newlabel{lst:test-k6-thresholds}{{40}{48}{k6 fastpath audit SLO thresholds}{lstlisting.40}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {40}k6 fastpath audit SLO thresholds}{48}{lstlisting.40}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Failure taxonomy: detection and system response.}}{49}{table.12}\protected@file@percent }
+\newlabel{tab:failure-taxonomy}{{12}{49}{Failure taxonomy: detection and system response}{table.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.4}Failure Taxonomy}{49}{subsection.C.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reproducibility.}{49}{section*.55}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textsc  {HOOX} topology. Service Bindings (SB) connect internal Workers without public HTTP. Smart Placement optimizes outbound RTT from \texttt  {trade-worker} to exchange APIs. Build with \texttt  {make figures} in the \texttt  {papers/} directory.}}{50}{figure.1}\protected@file@percent }
+\newlabel{fig:architecture}{{1}{50}{\textsc {HOOX} topology. Service Bindings (SB) connect internal Workers without public HTTP. Smart Placement optimizes outbound RTT from \texttt {trade-worker} to exchange APIs. Build with \texttt {make figures} in the \texttt {papers/} directory}{figure.1}{}}
+\newlabel{alg:idempotency}{{4.1}{51}{Gateway mutex}{section*.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Signal lifecycle (synchronous Service Binding path). Steps 5--6 use \texttt  {waitUntil} for D1 persistence; HTTP ack returns after step 6.}}{52}{figure.2}\protected@file@percent }
+\newlabel{fig:signal-lifecycle}{{2}{52}{Signal lifecycle (synchronous Service Binding path). Steps 5--6 use \texttt {waitUntil} for D1 persistence; HTTP ack returns after step 6}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \texttt  {agent-worker} cron risk loop (\texttt  {*/5 * * * *}). Kill-switch activation writes CONFIG\_KV before the next \texttt  {hoox} ingress.}}{53}{figure.3}\protected@file@percent }
+\newlabel{fig:agent-cron}{{3}{53}{\texttt {agent-worker} cron risk loop (\texttt {*/5 * * * *}). Kill-switch activation writes CONFIG\_KV before the next \texttt {hoox} ingress}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Latency measurement taxonomy (extended). Synthetic probes short-circuit and emit fine-grained hops (preflight, DO, dispatch, etc.). Production metrics capture the full signed path to exchange ack. Traces are reconstructible via probe\_id and the \texttt  {hoox trace} tooling.}}{54}{figure.4}\protected@file@percent }
+\newlabel{fig:latency-taxonomy}{{4}{54}{Latency measurement taxonomy (extended). Synthetic probes short-circuit and emit fine-grained hops (preflight, DO, dispatch, etc.). Production metrics capture the full signed path to exchange ack. Traces are reconstructible via probe\_id and the \texttt {hoox trace} tooling}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Cross-worker observability pipeline. Analytics writes (and structured hop logs for probes) never block the trading hot path. Extended traces are available via Cloudflare Observability + CLI.}}{54}{figure.5}\protected@file@percent }
+\newlabel{fig:observability-flow}{{5}{54}{Cross-worker observability pipeline. Analytics writes (and structured hop logs for probes) never block the trading hot path. Extended traces are available via Cloudflare Observability + CLI}{figure.5}{}}
+\gdef \@abspage@last{54}

@@ -1,0 +1,127 @@
+\section{Architecture Decision Records}
+\label{sec:adrs}
+
+\textsc{HOOX} documents significant architectural choices as Architecture Decision Records (ADRs). Each ADR states context, the decision taken, alternatives considered, and consequences. Table~\ref{tab:adr-index} indexes the six accepted ADRs that shaped the current implementation.
+
+\begin{table}[t]
+  \centering
+  \caption{Architecture Decision Record index.}
+  \label{tab:adr-index}
+  \small
+  \begin{tabular}{@{}clll@{}}
+    \toprule
+    \textbf{\#} & \textbf{Title} & \textbf{Status} & \textbf{Date} \\
+    \midrule
+    001 & Cloudflare Workers as execution platform & Accepted & 2025-04 \\
+    002 & SQLite-backed Durable Objects for idempotency & Accepted & 2025-05 \\
+    003 & Ten-microservice worker architecture & Accepted & 2025-06 \\
+    004 & Dual-layer configuration (secrets + KV) & Accepted & 2025-06 \\
+    005 & Multi-provider AI gateway with fallback chain & Accepted & 2026-03 \\
+    006 & Bun workspaces for monorepo management & Accepted & 2025-04 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{ADR-001: Cloudflare Workers as Execution Platform}
+
+\paragraph{Context.} Algorithmic trading requires low latency between signal receipt and exchange acknowledgment. VPS-based bots incur 180--320\,ms round trips when signals and exchanges are geographically separated, plus container cold-start penalties after idle periods.
+
+\paragraph{Decision.} Deploy all trading logic as Cloudflare Workers on V8 isolates at the edge, with Smart Placement enabled on latency-sensitive Workers.
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{Long-running VPS bot} (Freqtrade/Jesse model): simpler debugging, but fixed region and always-on cost.
+  \item \textbf{Regional AWS Lambda}: serverless elasticity, but single-region HTTP microservices without edge-wide placement.
+  \item \textbf{Kubernetes at exchange-adjacent DC}: lower RTT, but operational overhead disproportionate for retail volume.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: 30--60\% exchange API RTT reduction versus static VPS; no server patching. Negative: 128\,MB memory ceiling per isolate. Mitigation: stateless Workers with Durable Objects for coordination; Web3 execution delegated to RPC calls in \texttt{web3-wallet-worker}.
+
+\hooxjson{lst:wrangler-hoox-placement}{wrangler-hoox-placement.jsonc}{Smart Placement and Service Binding declarations in \texttt{hoox} \texttt{wrangler.jsonc} (account IDs redacted)}
+
+\subsection{ADR-002: SQLite-Backed Durable Objects for Idempotency}
+
+\paragraph{Context.} TradingView retries webhook delivery on timeouts. Without deduplication, retries can double-fill positions. Financial systems need strongly consistent duplicate detection at the gateway.
+
+\paragraph{Decision.} Implement duplicate suppression using a \texttt{IdempotencyStore} Durable Object with \texttt{blockConcurrencyWhile} over SQLite-backed storage. Composite keys derive from exchange, symbol, action, and quantity (Listing~\ref{lst:idempotency-key}).
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{KV compare-and-swap:} eventually consistent; race under concurrent retries.
+  \item \textbf{External Redis mutex:} adds always-on infrastructure outside the edge model.
+  \item \textbf{Exchange-only deduplication:} insufficient when gateway accepts duplicate before outbound signing.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: single-threaded DO isolation eliminates check-then-act races. Negative: one DO RPC per new trade key; fail-open on DO outage (Listing~\ref{lst:idempotency-key}, Section~\ref{sec:mechanisms}). Mitigation: alarm-based TTL cleanup; planned \texttt{clientOrderId} exchange guard. The full DO implementation appears in Listing~\ref{lst:idempotency-store} (Section~\ref{sec:mechanisms}).
+
+\subsection{ADR-003: Ten-Microservice Worker Architecture}
+
+\paragraph{Context.} Monolithic trading bots couple ingestion, execution, notifications, and persistence---a failure in PDF rendering or Telegram formatting can block order placement.
+
+\paragraph{Decision.} Split production logic into ten specialized Workers (Table~\ref{tab:workers}), communicating exclusively via Service Bindings except for outbound exchange HTTPS. A canonical binding registry in \texttt{hoox-shared} drives CLI deployment ordering and documentation sync (Listing~\ref{lst:registry-hoox}).
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{Single mega-Worker:} fewer deploy units, but blast radius spans all subsystems.
+  \item \textbf{Public HTTP microservices:} familiar pattern, but per-hop TLS/DNS cost violates latency goals.
+  \item \textbf{Two-tier (gateway + executor only):} simpler, but couples DB access and notifications to execution scaling.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: failure isolation; independent Smart Placement per Worker; clear ownership. Negative: binding dependency graph complexity; more Wrangler manifests. Mitigation: \texttt{hoox deploy all --auto} topological ordering; health endpoints on every Worker; TUI fleet status.
+
+\hooxsnippet{lst:registry-hoox}{registry-hoox.ts}{\texttt{hoox} worker manifest excerpt from the shared registry}
+
+\subsection{ADR-004: Dual-Layer Configuration (Secrets + KV)}
+
+\paragraph{Context.} Configuration splits into \emph{secrets} (API keys, internal auth) and \emph{live toggles} (kill switch, queue mode, routing) that operators change without redeployment.
+
+\paragraph{Decision.}
+\begin{enumerate}
+  \item \textbf{Build-time / runtime secrets:} \texttt{wrangler secret put} for exchange keys, \texttt{INTERNAL\_KEY\_BINDING}, webhook API key.
+  \item \textbf{Runtime KV:} \texttt{CONFIG\_KV} and \texttt{SESSIONS\_KV} for operational flags, rate-limiter state, and agent configuration. Keys follow a \texttt{namespace:key} convention (Listing~\ref{lst:kv-keys}, Section~\ref{sec:implementation}).
+\end{enumerate}
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{D1 for all config:} higher latency for hot-path kill-switch reads.
+  \item \textbf{Environment variables only:} requires redeploy for kill switch or queue mode changes.
+  \item \textbf{External config service:} adds non-edge dependency.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: kill switch effective on next KV read; queue mode switchable via \texttt{hoox config kv}. Negative: eventual consistency across PoPs (${<}10$\,s propagation). Mitigation: documented defaults in \texttt{kvKeys.ts}; \texttt{hoox config kv apply-manifest}.
+
+\subsection{ADR-005: Multi-Provider AI Gateway with Fallback Chain}
+
+\paragraph{Context.} \texttt{agent-worker} uses LLMs for operational summaries and chat. A single provider introduces outage and cost concentration risks.
+
+\paragraph{Decision.} Implement \texttt{ProviderManager} with a configurable fallback chain. Default: \texttt{[workers-ai, openai]} with three retries per provider hop (Listing~\ref{lst:agent-config}). Deterministic risk controls (trailing stops, kill switch) remain independent of LLM output.
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{Workers AI only:} zero marginal cost, but model capability ceiling.
+  \item \textbf{OpenAI only:} best quality, but single point of failure and per-token cost.
+  \item \textbf{LLM-driven order placement:} rejected on safety grounds; LLM confined to logs.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: provider outage resilience; cost optimization (free tier first). Negative: response quality variance across providers. Mitigation: delimiter-wrapped prompts; sanitized log output; per-provider usage tracking.
+
+\hooxsnippet{lst:agent-config}{agent-config.ts}{Default \texttt{AgentConfig} and fallback chain}
+
+The full \texttt{runWithFallback} state machine appears in Listing~\ref{lst:provider-fallback} (Section~\ref{sec:advanced}).
+
+\subsection{ADR-006: Bun Workspaces for Monorepo Management}
+
+\paragraph{Context.} The repository contains ten Workers, three shared packages (CLI, TUI, \texttt{hoox-shared}), tests, and paper tooling---all sharing TypeScript types and middleware.
+
+\paragraph{Decision.} Use Bun workspaces with a single \texttt{bun.lock} lockfile. Workers import \texttt{hoox-shared} via Wrangler \texttt{alias} paths and workspace protocol dependencies (Listing~\ref{lst:workspaces}).
+
+\paragraph{Alternatives considered.}
+\begin{itemize}
+  \item \textbf{npm/pnpm workspaces:} broader ecosystem, slower installs in CI.
+  \item \textbf{Independent repos per Worker:} clean isolation, but type drift across service bindings.
+  \item \textbf{Nx/Turborepo:} powerful, but additional config surface for a small team.
+\end{itemize}
+
+\paragraph{Consequences.} Positive: native TypeScript execution; fast CI; shared types resolve at compile time. Negative: Bun maturity vs.\ npm. Mitigation: \texttt{hoox check prerequisites}; Docker-based fallback documented in devops guides.
+
+\hooxjson{lst:workspaces}{workspaces.json}{Root \texttt{package.json} workspace declaration}

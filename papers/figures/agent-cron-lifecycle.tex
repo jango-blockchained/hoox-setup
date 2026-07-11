@@ -1,0 +1,41 @@
+% TikZ sequence: agent-worker five-minute cron risk loop
+\begin{tikzpicture}[
+  actor/.style={draw=black!55, rounded corners=2pt, fill=gray!10,
+    minimum width=1.5cm, minimum height=0.45cm, font=\scriptsize, align=center},
+  worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
+    minimum width=1.7cm, minimum height=0.45cm, font=\scriptsize\ttfamily, align=center},
+  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
+    fill=blue!6, minimum height=0.4cm, minimum width=1.15cm,
+    font=\scriptsize, align=center},
+  msg/.style={-{Stealth[length=1.5mm]}, semithick, draw=black!60},
+  ret/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!40},
+  lifeline/.style={draw=black!25, dashed},
+  msglabel/.style={font=\tiny, fill=white, inner sep=1pt}
+]
+
+  \node[actor] (cron) at (0,0) {Cron\\\texttt{*/5}};
+  \node[worker] (aw) at (2.3,0) {agent-worker};
+  \node[worker] (d1) at (4.5,0) {d1-worker};
+  \node[store] (kv) at (6.5,0) {CONFIG\_KV};
+  \node[actor] (cex) at (8.5,0) {CEX mark};
+  \node[worker] (tw) at (10.5,0) {trade-worker};
+  \node[worker] (tg) at (12.5,0) {telegram};
+
+  \foreach \x in {cron,aw,d1,kv,cex,tw,tg} {
+    \draw[lifeline] (\x.south) -- ++(0,-5.2);
+  }
+
+  \draw[msg] ([yshift=-0.5cm]cron.south) -- node[msglabel, above] {1.\ trigger} ([yshift=-0.5cm]aw.south);
+  \draw[msg] ([yshift=-1.1cm]aw.south) -- node[msglabel, above] {2.\ GET positions} ([yshift=-1.1cm]d1.south);
+  \draw[msg] ([yshift=-1.7cm]aw.south) -- node[msglabel, above] {3.\ GET balances} ([yshift=-1.7cm]d1.south);
+  \draw[msg] ([yshift=-2.3cm]aw.south) -- node[msglabel, above] {4.\ read watermarks} ([yshift=-2.3cm]kv.south);
+  \draw[msg] ([yshift=-2.9cm]aw.south) -- node[msglabel, above] {5.\ mark price} ([yshift=-2.9cm]cex.south);
+  \draw[msg] ([yshift=-3.5cm]aw.south) -- node[msglabel, above] {6.\ CLOSE if rule fires} ([yshift=-3.5cm]tw.south);
+  \draw[msg] ([yshift=-4.1cm]aw.south) -- node[msglabel, above] {7.\ alert / LLM summary} ([yshift=-4.1cm]tg.south);
+
+  \node[font=\tiny, align=left, text=black!55] at (6.2,-5.0) {%
+    Drawdown breach sets \texttt{trade:kill\_switch} in KV (step 4)\\
+    before next \texttt{hoox} webhook is accepted%
+  };
+
+\end{tikzpicture}

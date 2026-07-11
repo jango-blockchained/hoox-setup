@@ -1,0 +1,89 @@
+% Shared macros and listings configuration for HOOX arXiv paper.
+% Included from hoox-arxiv-paper.tex after package imports.
+
+\definecolor{hooxcodebg}{RGB}{248,248,248}
+\definecolor{hooxcodeframe}{RGB}{180,180,180}
+\definecolor{hooxkeyword}{RGB}{0,0,180}
+\definecolor{hooxcomment}{RGB}{0,128,0}
+\definecolor{hooxstring}{RGB}{163,21,21}
+
+\lstdefinelanguage{TypeScript}{
+  keywords={typeof,new,true,false,catch,function,return,null,throw,case,var,let,const,if,in,else,for,while,break,continue,export,import,default,async,await,class,extends,implements,interface,type,enum,readonly,private,public,protected,static,from,as,of,switch,try,finally,void,delete,yield},
+  morekeywords=[2]{string,number,boolean,any,unknown,never,void,Promise,Response,Request,DurableObject,DurableObjectState,DurableObjectNamespace,Queue,Fetcher,Env},
+  keywordstyle=\color{hooxkeyword}\bfseries,
+  keywordstyle=[2]\color{hooxkeyword},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{hooxcomment}\itshape,
+  stringstyle=\color{hooxstring},
+  showstringspaces=false,
+  morestring=[b]",
+  morestring=[b]',
+}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{hooxcodebg},
+  frame=single,
+  rulecolor=\color{hooxcodeframe},
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  tabsize=2,
+  showtabs=false,
+  showspaces=false,
+  xleftmargin=1.5em,
+  framexleftmargin=1.5em,
+  aboveskip=0.75em,
+  belowskip=0.75em,
+  captionpos=b,
+}
+
+% Include a trimmed listing from papers/listings/ with caption and label.
+% Usage: \hooxlisting{lbl:idempotency-store}{idempotencyStore.ts}{IdempotencyStore Durable Object}
+\newcommand{\hooxlisting}[3]{%
+  \lstinputlisting[language=TypeScript,caption={#3},label={#1}]{listings/#2}%
+}
+
+% Same as \hooxlisting but without line numbers (for short snippets).
+\newcommand{\hooxsnippet}[3]{%
+  \lstinputlisting[language=TypeScript,caption={#3},label={#1},numbers=none]{listings/#2}%
+}
+
+% JSON / JSONC wrangler excerpts (hand-sanitized listings).
+\lstdefinelanguage{JSON}{
+  keywords={true,false,null},
+  keywordstyle=\color{hooxkeyword}\bfseries,
+  sensitive=false,
+  comment=[l]{//},
+  commentstyle=\color{hooxcomment}\itshape,
+  stringstyle=\color{hooxstring},
+  showstringspaces=false,
+  morestring=[b]",
+}
+
+\newcommand{\hooxjson}[3]{%
+  \lstinputlisting[language=JSON,caption={#3},label={#1},numbers=none]{listings/#2}%
+}
+
+% SQL DDL excerpts (extracted from schema.sql)
+\lstdefinelanguage{SQL}{
+  keywords={CREATE,TABLE,IF,NOT,EXISTS,PRIMARY,KEY,INTEGER,TEXT,REAL,DEFAULT,INDEX,ON},
+  keywordstyle=\color{hooxkeyword}\bfseries,
+  sensitive=false,
+  comment=[l]{--},
+  commentstyle=\color{hooxcomment}\itshape,
+  stringstyle=\color{hooxstring},
+  showstringspaces=false,
+  morestring=[b]',
+}
+
+\newcommand{\hooxsql}[3]{%
+  \lstinputlisting[language=SQL,caption={#3},label={#1},numbers=none]{listings/#2}%
+}
+

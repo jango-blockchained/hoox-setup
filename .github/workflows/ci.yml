@@ -15,8 +15,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Initialize git submodules
-        run: git submodule update --init --recursive
+      - name: Initialize git submodules (core workers)
+        run: |
+          git submodule update --init --recursive \
+            workers/hoox \
+            workers/trade-worker \
+            workers/agent-worker \
+            workers/d1-worker \
+            workers/telegram-worker \
+            workers/web3-wallet-worker \
+            workers/email-worker \
+            workers/analytics-worker \
+            workers/report-worker \
+            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -61,8 +72,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Initialize git submodules
-        run: git submodule update --init --recursive
+      - name: Initialize git submodules (core workers)
+        run: |
+          git submodule update --init --recursive \
+            workers/hoox \
+            workers/trade-worker \
+            workers/agent-worker \
+            workers/d1-worker \
+            workers/telegram-worker \
+            workers/web3-wallet-worker \
+            workers/email-worker \
+            workers/analytics-worker \
+            workers/report-worker \
+            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -120,8 +142,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Initialize git submodules
-        run: git submodule update --init --recursive
+      - name: Initialize git submodules (core workers)
+        run: |
+          git submodule update --init --recursive \
+            workers/hoox \
+            workers/trade-worker \
+            workers/agent-worker \
+            workers/d1-worker \
+            workers/telegram-worker \
+            workers/web3-wallet-worker \
+            workers/email-worker \
+            workers/analytics-worker \
+            workers/report-worker \
+            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

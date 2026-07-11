@@ -44,11 +44,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          # workers/ are git submodules — Dockerfile.prod bundles each one
-          # via `bun build workers/<name>/src/index.ts ...` in stage 1.
-          submodules: recursive
           # Full history lets docker/metadata-action resolve semver tags.
           fetch-depth: 0
+
+      - name: Initialize git submodules (core workers for Docker)
+        # workers/ are git submodules — Dockerfile.prod bundles each one
+        # via `bun build workers/<name>/src/index.ts ...` in stage 1.
+        # Note: private pine-worker/pyne-worker intentionally omitted; they are
+        # not part of the Docker production image builds.
+        run: |
+          git submodule update --init --recursive \
+            workers/hoox \
+            workers/trade-worker \
+            workers/agent-worker \
+            workers/d1-worker \
+            workers/telegram-worker \
+            workers/web3-wallet-worker \
+            workers/email-worker \
+            workers/analytics-worker \
+            workers/report-worker \
+            || echo "::warning::Some submodules could not be initialized."
 
       - name: Read version from packages/cli/package.json
         id: version

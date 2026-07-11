@@ -1,0 +1,89 @@
+\section{Test Excerpts and Failure Taxonomy}
+\label{app:tests}
+
+\textsc{HOOX} validates correctness and latency claims through a four-tier test pyramid: unit tests (Bun, per-worker), integration tests (local Miniflare/Docker compose), security tests (auth fail-closed), and load tests (k6 against deployed edge). Table~\ref{tab:test-pyramid} maps tiers to representative suites; Listings~\ref{lst:test-idempotency-ttl}--\ref{lst:test-k6-thresholds} excerpt high-signal assertions.
+
+\begin{table}[t]
+  \centering
+  \caption{Test pyramid and primary verification targets.}
+  \label{tab:test-pyramid}
+  \small
+  \begin{tabular}{@{}llp{5.8cm}@{}}
+    \toprule
+    \textbf{Tier} & \textbf{Location} & \textbf{What it proves} \\
+    \midrule
+    Unit & \texttt{workers/*/test/} & DO mutex, SQL guard, HMAC clients, queue retries \\
+    Integration & \texttt{tests/integration/} & Gateway Zod validation, probe no-side-effects \\
+    Security & \texttt{tests/security/} & Internal auth fail-closed, timing-safe compare \\
+    Load & \texttt{tests/load/} & Deployed edge p95 under k6 thresholds \\
+    Live / E2E & \texttt{tests/live/}, \texttt{tests/e2e/} & Binding graph, secrets, signal flow \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Representative Unit Tests}
+
+\paragraph{Idempotency TTL.} Listing~\ref{lst:test-idempotency-ttl} verifies that a duplicate composite key within the 300\,s TTL returns \texttt{false} from \texttt{checkAndStore}, using a deterministic mocked clock.
+
+\hooxlisting{lst:test-idempotency-ttl}{test-idempotency-ttl.ts}{Duplicate key rejected within TTL}
+
+\paragraph{D1 SQL guard.} Listing~\ref{lst:test-d1-sql-guard} asserts HTTP\,403 when a dashboard query references a table outside the allowlist---matching the production validator in Listing~\ref{lst:d1-validate-query}.
+
+\hooxlisting{lst:test-d1-sql-guard}{test-d1-sql-guard.ts}{Unauthorized table rejected with 403}
+
+\paragraph{Fire-and-forget regression.} Listing~\ref{lst:test-d1-fire-and-forget} is the regression test for the 2026 fast-path optimization: with \texttt{ctx} present, \texttt{updateD1TradeRecords} returns in ${<}50$\,ms and dispatches both D1 writes via \texttt{waitUntil}.
+
+\hooxlisting{lst:test-d1-fire-and-forget}{test-d1-fire-and-forget.ts}{D1 writes non-blocking via waitUntil}
+
+\subsection{Integration and Security Tests}
+
+\paragraph{Gateway validation.} Listing~\ref{lst:test-gateway-validation} confirms that real TradingView-shaped payloads pass \texttt{WebhookPayloadSchema} while missing fields and invalid actions produce structured Zod errors.
+
+\hooxlisting{lst:test-gateway-validation}{test-gateway-validation.ts}{TradingView payload validation}
+
+\paragraph{Probe side-effect freedom.} Listing~\ref{lst:test-fastpath-probe} sends a synthetic probe through the local gateway and asserts (a) HTTP\,200 with \texttt{status: "probed"} and (b) zero new rows in the D1 \texttt{trades} table---proving probes do not hit exchanges or persist fills.
+
+\hooxlisting{lst:test-fastpath-probe}{test-fastpath-probe.ts}{Probe integration: no D1 trade rows}
+
+\paragraph{Auth fail-closed.} Listing~\ref{lst:test-auth-fail-closed} verifies that \texttt{requireInternalAuth} returns HTTP\,401 when the binding is missing, the header is absent, or the header value mismatches---never silently allowing the request.
+
+\hooxlisting{lst:test-auth-fail-closed}{test-auth-fail-closed.ts}{Internal auth fail-closed tests}
+
+\subsection{Load Test Thresholds}
+
+The k6 \texttt{fastpath-audit.js} script measures deployed \texttt{POST /webhook} latency under 30 concurrent VUs for two minutes. Listing~\ref{lst:test-k6-thresholds} shows SLO thresholds: gateway happy-path p95 ${<}3000$\,ms, health p95 ${<}500$\,ms, and ${>}80\%$ acceptance rate.
+
+\paragraph{Measurement caveat.} k6 thresholds measure \emph{gateway HTTP response} latency, which includes queue enqueue and binding round-trips when \texttt{queue\_failover} is active. They do not isolate exchange fill RTT. Production probe analytics (Section~\ref{sec:evaluation}) decompose per-hop latency via \texttt{probe\_id} indexes.
+
+\hooxsnippet{lst:test-k6-thresholds}{test-k6-thresholds.js}{k6 fastpath audit SLO thresholds}
+
+\subsection{Failure Taxonomy}
+
+Table~\ref{tab:failure-taxonomy} classifies production failure modes, detection mechanisms, and system response. This taxonomy guides on-call playbooks and explains why certain paths fail open (idempotency DO) while others fail closed (internal auth, SQL guard).
+
+\begin{table}[t]
+  \centering
+  \caption{Failure taxonomy: detection and system response.}
+  \label{tab:failure-taxonomy}
+  \small
+  \begin{tabular}{@{}p{2.4cm}p{3.2cm}p{2.8cm}p{4.2cm}@{}}
+    \toprule
+    \textbf{Failure class} & \textbf{Detection} & \textbf{HTTP / queue} & \textbf{System response} \\
+    \midrule
+    Invalid payload & \texttt{validateJson} & 400 & Reject before trade dispatch; no queue message \\
+    Auth failure (gateway) & API key mismatch & 403 & Reject; rate limit not consumed \\
+    Auth failure (internal) & \texttt{requireInternalAuth} & 401 & Fail closed; no body parsing \\
+    Kill switch active & CONFIG\_KV read & 503 / thrown & Gateway rejects; agent may have set switch \\
+    Duplicate signal & Idempotency DO & 500 (duplicate error) & At-most-once within TTL \\
+    DO unavailable & RPC exception & Proceed (fail-open) & Trade allowed; dedup weakened \\
+    Exchange disabled & KV \texttt{enabled=false} & 400 & Router throws \texttt{EXCHANGE\_DISABLED} \\
+    Exchange API error & HTTP non-2xx & 500 & Logged to DbLogger; queue retries with backoff \\
+    Queue exhaustion & Max retries + DLQ & DLQ message & D1 \texttt{system\_logs} + Telegram alert \\
+    D1 write loss & Missing row vs.\ exchange fill & 200 to caller & Exchange is source of truth; R2 archive \\
+    SQL injection attempt & \texttt{validateQuery} & 400 / 403 & Table allowlist; no literals in SELECT \\
+    Probe misuse & \texttt{probe: true} & 200 probed & No exchange call; no D1 trade row \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Reproducibility.} Run unit tests with \texttt{bun test} from the monorepo root; integration tests require \texttt{docker compose --profile workers up}. Load tests: \texttt{HOOX\_API\_KEY=<key> k6 run tests/load/fastpath-audit.js}. Full commands appear in Appendix~\ref{app:repro}.

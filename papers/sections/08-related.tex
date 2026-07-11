@@ -1,0 +1,12 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Open-source trading bots.} Frameworks such as Freqtrade and Jesse~\cite{freqtrade,jesse} assume a long-running process on a VPS or dedicated server. They offer rich strategy DSLs but inherit the latency and operational liabilities of centralized deployment.
+
+\paragraph{Serverless trading.} AWS Lambda and Google Cloud Functions have been applied to trading automation~\cite{aws-lambda-trading,baldini2017serverless}, but typical architectures still route microservice traffic over public HTTP within a single region, without edge-wide Smart Placement or strongly consistent edge mutexes.
+
+\paragraph{On-chain automation.} DeFi keeper networks such as Chainlink Automation~\cite{chainlink-keepers} achieve low latency within a single blockchain domain but lack native multi-exchange CEX routing and rich off-chain signal sources.
+
+\paragraph{Edge computing.} V8 isolate-based edge platforms~\cite{jonas2017isolates,cloudflare-workers} have been applied to content delivery and API gateways; \textsc{HOOX} extends this model to a latency-sensitive financial control plane with duplicate-suppression semantics and deterministic risk management.
+
+In this work I distinguish HOOX by the exclusive use of edge-native Service Bindings, Durable Object mutexes, Smart Placement, and integrated operational AI summaries within a sub-50\,ms production signal-to-ack environment on the direct path. This experience report shows how these primitives can be composed into a complete, maintainable retail trading stack.

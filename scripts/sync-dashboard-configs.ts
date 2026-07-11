@@ -180,12 +180,11 @@ function sync(): SyncResult[] {
     // Pretty-print with 2-space indent to match existing files; preserve trailing newline
     const output = JSON.stringify(result.data, null, 2) + "\n";
     let prev = "";
-    if (existsSync(dst)) {
-      try {
-        prev = readFileSync(dst, "utf8");
-      } catch {
-        // ignore
-      }
+    // codeql-disable-next-line js/file-system-race
+    try {
+      prev = readFileSync(dst, "utf8");
+    } catch {
+      // dst does not exist or unreadable → will sync
     }
     if (prev === output) {
       results.push({ worker, status: "unchanged" });
@@ -204,6 +203,7 @@ function sync(): SyncResult[] {
   }
 
   // Remove stale public files (e.g. boilerplate-worker.jsonc)
+  // codeql-disable-next-line js/file-system-race
   if (existsSync(PUBLIC_DIR)) {
     for (const file of readdirSync(PUBLIC_DIR)) {
       if (file.endsWith(".jsonc") && !knownWorkers.has(file)) {

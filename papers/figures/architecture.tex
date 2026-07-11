@@ -1,0 +1,85 @@
+% TikZ architecture diagram for HOOX (included by hoox-arxiv-paper.tex)
+\begin{tikzpicture}[
+  node distance=0.45cm and 0.55cm,
+  ext/.style={draw=black!50, rounded corners=2pt, fill=gray!8,
+    minimum width=1.85cm, minimum height=0.5cm, font=\scriptsize, align=center},
+  waf/.style={draw=orange!70!black, rounded corners=2pt, fill=orange!8,
+    minimum width=2.4cm, minimum height=0.5cm, font=\scriptsize, align=center},
+  worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
+    minimum width=2.1cm, minimum height=0.5cm, font=\scriptsize\ttfamily, align=center},
+  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
+    fill=blue!6, minimum height=0.45cm, minimum width=1.35cm,
+    font=\scriptsize, align=center},
+  compute/.style={draw=purple!60!black, diamond, aspect=1.8, fill=purple!6,
+    inner sep=0.5pt, font=\scriptsize, align=center},
+  exchange/.style={draw=red!60!black, rounded corners=2pt, fill=red!6,
+    minimum width=1.9cm, minimum height=0.5cm, font=\scriptsize, align=center},
+  layer/.style={draw=black!35, dashed, rounded corners=3pt, inner sep=0.3cm},
+  arrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=black!65},
+  darrow/.style={-{Stealth[length=1.8mm]}, semithick, dashed, draw=black!45},
+  extarrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=red!55!black},
+  sb/.style={font=\tiny, fill=white, inner sep=1pt}
+]
+
+  % ── Ingress layer ──
+  \node[ext] (tv) {TradingView};
+  \node[ext, right=of tv] (em) {Email};
+  \node[ext, right=of em] (tg) {Telegram};
+  \node[waf, below=0.55cm of em] (waf) {Cloudflare WAF};
+  \node[worker, below=0.45cm of waf] (gw) {hoox};
+
+  % ── Side primitives at gateway ──
+  \node[compute, left=1.0cm of gw] (ido) {Idempotency\\DO};
+  \node[compute, right=1.0cm of gw] (queue) {Queue};
+
+  % ── Compute layer ──
+  \node[worker, below left=1.0cm and 0.1cm of gw] (tw) {trade-worker};
+  \node[worker, below=1.0cm of gw] (d1w) {d1-worker};
+  \node[worker, below right=1.0cm and 0.1cm of gw] (tgw) {telegram-worker};
+  \node[worker, left=1.1cm of tw] (aw) {agent-worker};
+  \node[worker, right=1.1cm of tgw] (anw) {analytics-worker};
+  \node[worker, below=0.55cm of tw] (w3w) {web3-wallet};
+
+  % ── External exchanges (Smart Placement targets outbound RTT) ──
+  \node[exchange, below=0.75cm of tw] (cex) {Binance / Bybit / MEXC\\REST APIs};
+
+  % ── Storage ──
+  \node[store, below=0.55cm of d1w] (db) {D1 SQLite};
+  \node[store, below=0.55cm of anw] (ae) {Analytics\\Engine};
+
+  % ── Edges: ingress ──
+  \draw[arrow] (tv.south) -- ++(0,-0.15) -| (waf.north);
+  \draw[darrow] (em.south) -- ++(0,-0.12) -| ([xshift=-0.4cm]waf.north);
+  \draw[arrow] (waf) -- (gw);
+  \draw[darrow] (tg.south) -- ++(0,-1.55) -| (tgw.north);
+
+  % ── Edges: gateway ──
+  \draw[arrow] (gw) -- node[sb, left] {SB} (tw);
+  \draw[arrow] (gw) -- (ido);
+  \draw[arrow] (gw) -- (queue);
+  \draw[arrow] (queue.south) |- (tw.north);
+
+  % ── Edges: trade-worker fan-out ──
+  \draw[arrow] (tw) -- node[sb, left] {SB} (d1w);
+  \draw[arrow] (tw) -- (tgw);
+  \draw[arrow] (tw) -- (anw);
+  \draw[arrow] (tw) -- (w3w);
+  \draw[extarrow] (tw) -- node[sb, right, font=\tiny] {HTTPS} (cex);
+
+  % ── Edges: agent cron ──
+  \draw[arrow] (aw) -- node[sb, above, font=\tiny] {cron} (tw);
+  \draw[arrow] (aw.east) -| (d1w.west);
+
+  % ── Edges: storage ──
+  \draw[arrow] (d1w) -- (db);
+  \draw[arrow] (anw) -- (ae);
+
+  % ── Layer boxes ──
+  \begin{scope}[on background layer]
+    \node[layer, fit=(tv)(em)(tg)(waf)(gw), label={[font=\scriptsize\bfseries]above:Public ingress}] {};
+    \node[layer, fit=(tw)(d1w)(tgw)(aw)(anw)(w3w), label={[font=\scriptsize\bfseries]above right:Private compute (Service Bindings)}] {};
+    \node[layer, fit=(db)(ae)(ido)(queue), label={[font=\scriptsize\bfseries]below right:Edge storage \& coordination}] {};
+    \node[layer, draw=red!35, fit=(cex), label={[font=\scriptsize\bfseries, text=red!60!black]below:External exchange APIs}] {};
+  \end{scope}
+
+\end{tikzpicture}

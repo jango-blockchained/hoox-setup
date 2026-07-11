@@ -10,6 +10,10 @@ const requiredWorkerDirs = [
   "workers/telegram-worker",
   "workers/web3-wallet-worker",
   "workers/email-worker",
+  "workers/analytics-worker",
+  "workers/report-worker",
+  "workers/pine-worker",
+  "workers/pyne-worker",
 ];
 
 const missing = requiredWorkerDirs.filter(

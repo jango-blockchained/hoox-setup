@@ -1,0 +1,10 @@
+% Standalone build: pdflatex signal-lifecycle-standalone.tex
+% Requires: texlive-pictures (provides tikz.sty / pgf)
+\documentclass[11pt]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\pagestyle{empty}
+\begin{document}
+\noindent\input{signal-lifecycle.tex}
+\end{document}

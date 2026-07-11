@@ -1,0 +1,78 @@
+\section{Cloudflare Bindings Registry}
+\label{app:bindings}
+
+This appendix reproduces the canonical binding registry from the \textsc{HOOX} monorepo. Service Bindings replace public HTTP between Workers; secrets are injected at runtime and never committed to source control.
+
+\subsection{Runtime Secrets}
+
+\begin{table}[h]
+  \centering
+  \caption{Worker secret bindings (selected).}
+  \label{tab:secrets}
+  \small
+  \begin{tabular}{@{}llp{4.8cm}@{}}
+    \toprule
+    \textbf{Secret} & \textbf{Workers} & \textbf{Purpose} \\
+    \midrule
+    \texttt{WEBHOOK\_API\_KEY\_BINDING} & \texttt{hoox} & TradingView webhook auth \\
+    \texttt{INTERNAL\_KEY\_BINDING} & \texttt{hoox}, \texttt{trade-worker}, \texttt{telegram-worker} & Inter-service auth header \\
+    \texttt{BINANCE\_KEY\_BINDING} / \texttt{SECRET} & \texttt{trade-worker} & Binance futures API \\
+    \texttt{BYBIT\_KEY\_BINDING} / \texttt{SECRET} & \texttt{trade-worker} & Bybit V5 API \\
+    \texttt{MEXC\_KEY\_BINDING} / \texttt{SECRET} & \texttt{trade-worker} & MEXC contract API \\
+    \texttt{TG\_BOT\_TOKEN\_BINDING} & \texttt{telegram-worker} & Telegram Bot API \\
+    \texttt{WALLET\_PK\_SECRET} & \texttt{web3-wallet-worker} & On-chain signing \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Service Bindings}
+
+\begin{table}[h]
+  \centering
+  \caption{Service Binding graph.}
+  \label{tab:service-bindings-full}
+  \small
+  \begin{tabular}{@{}llp{5.5cm}@{}}
+    \toprule
+    \textbf{Binding} & \textbf{Target} & \textbf{Callers} \\
+    \midrule
+    \texttt{TRADE\_SERVICE} & \texttt{trade-worker} & \texttt{hoox}, \texttt{agent-worker}, \texttt{email-worker} \\
+    \texttt{TELEGRAM\_SERVICE} & \texttt{telegram-worker} & \texttt{hoox}, \texttt{trade-worker}, \texttt{agent-worker}, \texttt{web3-wallet-worker}, \texttt{report-worker} \\
+    \texttt{D1\_SERVICE} & \texttt{d1-worker} & \texttt{trade-worker}, \texttt{agent-worker}, \texttt{report-worker}, \texttt{dashboard} \\
+    \texttt{ANALYTICS\_SERVICE} & \texttt{analytics-worker} & \texttt{hoox}, \texttt{trade-worker}, \texttt{d1-worker}, others \\
+    \texttt{AGENT\_SERVICE} & \texttt{agent-worker} & \texttt{dashboard} \\
+    \texttt{WEB3\_WALLET\_SERVICE} & \texttt{web3-wallet-worker} & \texttt{hoox} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Storage and Coordination Bindings}
+
+\begin{table}[h]
+  \centering
+  \caption{KV, R2, D1, Queue, and Durable Object bindings.}
+  \label{tab:storage-bindings}
+  \small
+  \begin{tabular}{@{}llp{5.2cm}@{}}
+    \toprule
+    \textbf{Binding} & \textbf{Resource} & \textbf{Primary consumers} \\
+    \midrule
+    \texttt{CONFIG\_KV} & KV namespace & All Workers (kill switch, routing, agent config) \\
+    \texttt{SESSIONS\_KV} & KV namespace & \texttt{hoox} (rate limiter sessions) \\
+    \texttt{DB} & D1 \texttt{trade-data-db} & \texttt{d1-worker}, \texttt{trade-worker}, \texttt{agent-worker} \\
+    \texttt{REPORTS\_BUCKET} & R2 \texttt{trade-reports} & \texttt{trade-worker} \\
+    \texttt{SYSTEM\_LOGS\_BUCKET} & R2 \texttt{hoox-system-logs} & \texttt{trade-worker} \\
+    \texttt{UPLOADS\_BUCKET} & R2 \texttt{user-uploads} & \texttt{telegram-worker} \\
+    \texttt{TRADE\_QUEUE} & Queue \texttt{trade-execution} & Producer: \texttt{hoox}; consumer: \texttt{trade-worker} \\
+    \texttt{IDEMPOTENCY\_STORE} & DO \texttt{IdempotencyStore} & \texttt{hoox} \\
+    \texttt{EXCHANGE\_CONNECTION\_MANAGER} & DO WebSocket pool & \texttt{trade-worker} \\
+    \texttt{VECTORIZE\_INDEX} & Vectorize \texttt{my-rag-index} & \texttt{hoox}, \texttt{telegram-worker} \\
+    \texttt{AI} & Workers AI & \texttt{agent-worker}, \texttt{telegram-worker}, \texttt{dashboard} \\
+    \texttt{ANALYTICS\_ENGINE} & Dataset \texttt{hoox-analytics} & \texttt{analytics-worker} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Wrangler excerpts.} Listings~\ref{lst:wrangler-hoox-placement} and~\ref{lst:wrangler-trade-bindings} show how queue producers, consumers, and Durable Object migrations are declared. Account and namespace IDs are redacted for publication.
+
+\hooxjson{lst:wrangler-trade-bindings}{wrangler-trade-worker.jsonc}{\texttt{trade-worker} queue consumer, R2, and Service Bindings}

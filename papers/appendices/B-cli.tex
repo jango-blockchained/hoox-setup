@@ -1,0 +1,24 @@
+\section{CLI Command Reference (Abbreviated)}
+\label{app:cli}
+
+The \texttt{hoox} CLI exposes 25 command groups. Table~\ref{tab:cli} lists commands most relevant to deployment and evaluation.
+
+\begin{table}[h]
+  \centering
+  \caption{Selected \texttt{hoox} CLI commands.}
+  \label{tab:cli}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Command} & \textbf{Purpose} \\
+    \midrule
+    \texttt{hoox onboard} & Full project bootstrap \\
+    \texttt{hoox deploy all --auto} & Deploy all Workers and dashboard \\
+    \texttt{hoox check health} & Probe Worker health endpoints \\
+    \texttt{hoox perf fastpath run --n 50} & Synthetic internal latency measurement \\
+    \texttt{hoox perf fastpath tail --duration 60} & Stream live probe latencies \\
+    \texttt{hoox monitor kill-switch on/off} & Halt or resume trading \\
+    \texttt{hoox infra provision} & Provision D1, KV, R2, Queues, Vectorize \\
+    \bottomrule
+  \end{tabular}
+\end{table}

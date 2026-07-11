@@ -1,0 +1,36 @@
+% TikZ latency measurement taxonomy (included by hoox-arxiv-paper.tex)
+\begin{tikzpicture}[
+  node distance=0.35cm and 0.4cm,
+  pathbox/.style={draw=black!45, rounded corners=2pt, fill=#1,
+    minimum width=2.35cm, minimum height=0.62cm, font=\scriptsize, align=center},
+  note/.style={font=\tiny, text=black!65, align=center},
+  arrow/.style={-{Stealth[length=1.6mm]}, semithick, draw=black!60},
+  bracket/.style={decorate, decoration={brace, amplitude=4pt}, thick, draw=black!50}
+]
+  \node[pathbox=green!10] (t0) {TradingView\\alert};
+  \node[pathbox=orange!10, right=of t0] (t1) {WAF + \texttt{hoox}};
+  \node[pathbox=purple!8, right=of t1] (t2) {DO mutex};
+  \node[pathbox=green!10, right=of t2] (t3) {\texttt{trade-worker}};
+  \node[pathbox=blue!8, right=of t3] (t4) {Exchange\\REST ack};
+  \node[pathbox=gray!12, right=of t4] (t5) {D1 / notify\\(async)};
+
+  \draw[arrow] (t0) -- (t1);
+  \draw[arrow] (t1) -- (t2);
+  \draw[arrow] (t2) -- (t3);
+  \draw[arrow] (t3) -- (t4);
+  \draw[arrow, dashed] (t4) -- (t5);
+
+  \node[note, below=0.55cm of t1] (n1) {k6 \texttt{webhook-flow}};
+  \node[note, below=0.55cm of t2] (n2) {IdempotencyStore};
+  \node[note, below=0.55cm of t3] (n3) {\texttt{hoox perf fastpath}\\(short-circuit)};
+  \node[note, below=0.55cm of t4] (n4) {Production\\signal-to-ack};
+
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, draw=green!50!black]
+    ([yshift=-0.15cm]t1.south west) -- ([yshift=-0.15cm]t3.south east)
+    node[midway, below=0.45cm, font=\scriptsize\bfseries] {Measured by synthetic probes (no exchange)};
+
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, draw=blue!60!black]
+    ([yshift=-1.35cm]t1.south west) -- ([yshift=-1.35cm]t4.south east)
+    node[midway, below=0.45cm, font=\scriptsize\bfseries] {Production signal-to-ack path};
+
+\end{tikzpicture}

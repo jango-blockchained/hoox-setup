@@ -1,0 +1,96 @@
+\section{Security Model}
+\label{sec:security}
+
+Security is organized as five concentric layers (Figure~\ref{fig:architecture}, ingress ring). Each layer fails closed except idempotency duplicate suppression, which fails open when the Durable Object is unreachable (Section~\ref{sec:mechanisms})---a deliberate availability trade-off documented in the threat model (Appendix~\ref{app:threat}).
+
+\begin{enumerate}
+  \item \textbf{Edge firewall:} Cloudflare WAF and TradingView IP allow-listing (four default CIDR ranges, KV-extensible).
+  \item \textbf{Webhook authentication:} Constant-time comparison of payload \texttt{apiKey} against a runtime-injected secret binding.
+  \item \textbf{Service Binding isolation:} Internal Workers expose no public routes; only explicitly bound callers may invoke them.
+  \item \textbf{Internal authorization:} Shared \texttt{requireInternalAuth} middleware validates \texttt{X-Internal-Auth-Key} on every inter-service request; unconfigured keys fail closed.
+  \item \textbf{Durable Object mutex:} Idempotency locks prevent duplicate gateway acceptance under retry storms.
+\end{enumerate}
+
+\subsection{Ingress Hardening}
+
+\paragraph{Kill switch.} Before any trade payload is parsed, the gateway reads \texttt{trade:kill\_switch} from CONFIG\_KV (Listing~\ref{lst:kill-switch}). When the value is \texttt{true}, ingress returns HTTP\,503 and no downstream Worker is invoked. The same key is written by \texttt{agent-worker} when portfolio drawdown exceeds $-5\%$, halting new signals before the next cron cycle completes.
+
+\hooxsnippet{lst:kill-switch}{kill-switch.ts}{Global kill switch read from canonical KV key}
+
+\paragraph{IP allow-list.} TradingView publishes four webhook source ranges. \texttt{hoox} rejects requests whose \texttt{CF-Connecting-IP} is absent from the default set unless CONFIG\_KV overrides expand the list (Listing~\ref{lst:ip-allowlist}). This complements WAF rules: even a leaked API key cannot trigger trades from arbitrary origins.
+
+\hooxsnippet{lst:ip-allowlist}{ip-allowlist.ts}{TradingView IP allow-list with KV override}
+
+\paragraph{Parallel pre-flight.} Kill switch, IP check, and API key validation execute concurrently via \texttt{Promise.all} on the gateway hot path (Listing~\ref{lst:webhook-parallel-checks}, Section~\ref{sec:mechanisms}), minimizing serial KV reads before session creation.
+
+\paragraph{Payload bounds.} The \texttt{/webhook} handler rejects bodies larger than 100\,KB before JSON parsing, bounding memory use and JSON bomb risk on the public surface.
+
+\subsection{Authentication Primitives}
+
+\paragraph{Constant-time comparison.} API key and internal auth checks use \texttt{timingSafeEqual} (Listing~\ref{lst:timing-safe-equal}) to avoid byte-at-a-time timing leaks that could reduce brute-force search space for short secrets.
+
+\hooxsnippet{lst:timing-safe-equal}{timing-safe-equal.ts}{Constant-time string comparison}
+
+\paragraph{Webhook API key.} The gateway compares the JSON \texttt{apiKey} field against \texttt{WEBHOOK\_API\_KEY\_BINDING} using the same primitive. Missing or mismatched keys yield HTTP\,401 before idempotency or trade routing.
+
+\paragraph{Internal service auth.} All binding-only Workers gate mutating routes with \texttt{requireInternalAuth} (Listing~\ref{lst:require-internal-auth}). Security tests assert HTTP\,401 when the binding is unset, the header is absent, or the header mismatches (Listing~\ref{lst:test-auth-fail-closed}).
+
+\subsection{Rate Limiting and Session Abuse}
+
+After API key validation, \texttt{hoox} creates or resumes a per-key session and enforces 10 trades per 60\,s window (Listing~\ref{lst:rate-limit-gateway}). The shared \texttt{createRateLimiter} stores sliding-window counters in CONFIG\_KV with a \texttt{hoox-webhook} key prefix (Listing~\ref{lst:rate-limiter}). Exceeded limits return HTTP\,429 with \texttt{Retry-After}, complementing exchange-side throttles and constraining credential-compromise blast radius.
+
+\hooxsnippet{lst:rate-limit-gateway}{rate-limit-gateway.ts}{Per-session webhook rate limit}
+\hooxsnippet{lst:rate-limiter}{rate-limiter.ts}{KV sliding-window rate limit check}
+
+\subsection{Response and Transport Hardening}
+
+\paragraph{Security headers.} Public and internal JSON responses attach CSP, \texttt{X-Frame-Options}, \texttt{X-Content-Type-Options}, and HSTS via shared middleware (Listing~\ref{lst:security-headers}). Dashboard SSR inherits the same defaults through the OpenNext Worker entry.
+
+\hooxsnippet{lst:security-headers}{security-headers.ts}{Default security response headers}
+
+\paragraph{Service Binding transport.} Inter-Worker calls never traverse the public internet; bindings address peers as \texttt{http://internal\{path\}} with a 30\,s timeout (Listing~\ref{lst:service-fetch}). This removes per-hop TLS and DNS from the critical path while keeping the attack surface limited to the binding graph (Appendix~\ref{app:bindings}).
+
+\subsection{Secondary Ingress: Email}
+
+\texttt{email-worker} accepts Mailgun push webhooks on a public \texttt{POST /webhook} route. Verification recomputes HMAC-SHA256 over \texttt{timestamp + token} and compares digests with \texttt{timingSafeEqual} (Listing~\ref{lst:mailgun-signature}). Parsed bodies pass the same Zod trade schema as TradingView payloads before forwarding to \texttt{trade-worker}.
+
+\hooxlisting{lst:mailgun-signature}{mailgun-signature.ts}{Mailgun webhook HMAC-SHA256 verification}
+
+\subsection{LLM and Prompt Injection}
+
+\texttt{agent-worker} and \texttt{telegram-worker} invoke multi-provider LLMs for operational summaries and RAG answers. Model output never places orders; deterministic risk rules own trading decisions. Prompt-injection markers in user-supplied or log-derived text are detected before model calls (Listing~\ref{lst:prompt-sanitizer}), and responses pass delimiter wrapping and schema validation.
+
+\hooxsnippet{lst:prompt-sanitizer}{prompt-sanitizer.ts}{LLM prompt-injection marker detection}
+
+\subsection{Data-Layer Guards}
+
+\texttt{d1-worker} exposes parameterized SQL to trusted internal callers only. The \texttt{validateQuery} guard rejects non-\texttt{SELECT} statements, literal injection, \texttt{UNION}, and tables outside an allowlist (Listing~\ref{lst:d1-validate-query}). Dashboard settings keys must match known CONFIG\_KV prefixes. Together with internal auth, this blocks lateral movement from a compromised binding to arbitrary D1 writes.
+
+\subsection{Exchange Credential Handling}
+
+REST placement clients sign requests with HMAC-SHA256 via \texttt{crypto.subtle}; API secrets are imported as \texttt{CryptoKey} once per isolate (Listings~\ref{lst:crypto-sign},~\ref{lst:binance-signature},~\ref{lst:bybit-signature}). Secrets live in Wrangler secret bindings, never in KV or D1. WebSocket session state in \texttt{ExchangeConnectionManager} holds connection handles only---not signing material.
+
+\hooxsnippet{lst:bybit-signature}{bybit-signature.ts}{Bybit V5 HMAC signature payload}
+
+\subsection{Operational Security Posture}
+
+Table~\ref{tab:security-summary} summarizes enforcement points. Full threat-to-mitigation mapping appears in Appendix~\ref{app:threat}; reproduced test excerpts in Appendix~\ref{app:tests}.
+
+\begin{table}[t]
+  \centering
+  \caption{Security control summary by surface.}
+  \label{tab:security-summary}
+  \small
+  \begin{tabular}{@{}llp{5.2cm}@{}}
+    \toprule
+    \textbf{Surface} & \textbf{Control} & \textbf{Failure mode} \\
+    \midrule
+    \texttt{hoox /webhook} & IP + API key + rate limit + kill switch & Fail closed (401/403/429/503) \\
+    Idempotency DO & Mutex duplicate suppression & Fail open (permit trade) \\
+    Internal bindings & \texttt{X-Internal-Auth-Key} & Fail closed (401) \\
+    \texttt{email-worker} & Mailgun HMAC & Fail closed (401) \\
+    \texttt{d1-worker} & SQL allowlist + internal auth & Fail closed (403) \\
+    LLM paths & Sanitizer + no order side effects & Fail closed on marker hit \\
+    \bottomrule
+  \end{tabular}
+\end{table}
