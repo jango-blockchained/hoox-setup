@@ -106,7 +106,7 @@
     "hoox"
   ],
   "author": "jango-blockchained",
-  "license": "CC-BY-4.0",
+  "license": "Apache-2.0",
   "devDependencies": {
     "typescript": "^6.0.3"
   },

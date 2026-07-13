@@ -1,0 +1,39 @@
+---
+title: "HOOX Enterprise"
+description: "Documentation hub for the institutional / Enterprise version of HOOX on Cloudflare."
+---
+
+# HOOX Enterprise
+
+> **This is the commercial / Enterprise extension layer.**
+>
+> HOOX follows an **Open Core** model. The core architecture, most code, and documentation are open source. This section describes the **commercial Enterprise layer** built on top of the open core.
+>
+> See:
+- [OPEN_CORE.md](../../OPEN_CORE.md)
+- [OPEN_CORE_FEATURE_SPLIT.md](../../OPEN_CORE_FEATURE_SPLIT.md)
+
+This section contains **public architecture documentation** for the institutional / paid Enterprise version of HOOX (the commercial extension layer built on the open core). It is designed to run on **Cloudflare Enterprise**.
+
+**Note:** No proprietary Enterprise source code is included in this public repository.
+
+## Documents
+
+- [Architecture](./architecture.mdx) — Overall topology, bleeding-edge primitives, and evolution from retail HOOX.
+- [Multi-Tenancy](./multi-tenancy.mdx) — Workers for Platforms, Dispatch + User Workers, isolation model.
+- [Observability & Audit](./observability-audit.mdx) — Logpush, Traces, Tail Workers, immutable R2 audit.
+- [Security & Compliance](./security-compliance.mdx) — Extended 5-layer model with Bot Management, API Shield, Zero Trust, AI Guardrails.
+
+## Key Differentiators (vs Retail HOOX)
+
+- Workers for Platforms for true multi-tenancy / platform use
+- Cloudflare Workflows for durable, long-running trade & compliance processes
+- Full Logpush + R2 for regulatory-grade audit
+- Enterprise security features (Bot Management, API Shield, etc.)
+- Real-time persistent connections via hibernatable WebSockets in DOs
+- Higher limits, custom SLAs, AI Gateway at scale
+- Data residency and advanced compliance controls
+
+See the approved architecture plan (internal `plan.md`) for phasing and rationale.
+
+All designs build directly on the existing high-quality retail codebase (Service Bindings, DOs, Smart Placement, shared middleware, etc.).

@@ -226,8 +226,57 @@ export type ViewId =
   | "kv-viewer"
   | "secrets-viewer"
   | "db-query"
-  | "ai-chat"
-  | "edge-topology";
+  | "ai-chat";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extension points for Open Core + Enterprise
+// These lightweight types are part of the open core to allow easy extension.
+// Heavy multi-tenant orchestration, billing, and proprietary logic live in
+// the closed-source Enterprise layer (see OPEN_CORE_FEATURE_SPLIT.md).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Lightweight tenant identifier and basic context.
+ * This type lives in the open core.
+ *
+ * Advanced tenant management, quotas, billing, and isolation enforcement
+ * are part of the commercial Enterprise layer.
+ */
+export interface TenantContext {
+  tenantId: string;
+  strategyId?: string;
+  fundId?: string;
+  features?: string[]; // e.g. ["workflows", "realtime-ws"]
+}
+
+/**
+ * Basic audit event shape.
+ * Open core projects can emit these. Full compliance pipelines, retention,
+ * SIEM export, and cryptographic signing are Enterprise features.
+ */
+export interface AuditEvent {
+  timestamp: string;
+  tenantId: string;
+  traceId: string;
+  eventType: string;
+  actor: string;
+  outcome: "success" | "failure" | "skipped";
+  details?: Record<string, unknown>;
+}
+
+/**
+ * Simple workflow step result type.
+ * Useful for open core examples. Production-grade durable workflows,
+ * human-in-the-loop, long-running state, and advanced orchestration
+ * are provided in the Enterprise layer.
+ */
+export interface WorkflowStepResult<T = unknown> {
+  step: string;
+  success: boolean;
+  data?: T;
+  error?: string;
+  retries?: number;
+}
 
 /** Modal dialog state for the TUI. */
 export interface ModalState {

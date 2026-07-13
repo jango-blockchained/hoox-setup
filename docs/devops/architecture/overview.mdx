@@ -235,3 +235,16 @@ dot -Tsvg graph.dot -o graph.svg
 - **[Worker Communication Specifications](communication)** — Deep dive into service bindings, zero-TCP routing, and V8 engines.
 - **[Data Flow Maps](data-flow)** — Step-by-step sequence charts of trade executions and cron risk evaluations.
 - **[Codebase Dependency Graph](overview#-codebase-dependency-graph)** — Generate a live architecture map of all exports, calls, and bindings.
+
+**Enterprise / Institutional Scale**
+
+For the full bleeding-edge Enterprise architecture (Workers for Platforms multi-tenancy, Workflows, Logpush audit, AI Gateway, Bot Management, etc.) — the commercial layer on top of the open core — see:
+
+- `docs/enterprise/architecture.mdx`
+- `docs/enterprise/multi-tenancy.mdx`
+- `docs/enterprise/observability-audit.mdx`
+- `docs/enterprise/security-compliance.mdx`
+
+See also root `OPEN_CORE.md` and `OPEN_CORE_FEATURE_SPLIT.md`.
+
+These build directly on the current retail architecture while unlocking Cloudflare Enterprise features and 2025-2026 primitives.

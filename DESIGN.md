@@ -6,7 +6,17 @@ This document serves as the Single Source of Truth for the Hoox Trading System. 
 
 ## 1. Product Overview & Goal
 
-Hoox is a 100% free, open-source, Zero Latency, Edge-executed trading system. It operates as a Gateway and Execution Engine that ingests trading signals (via TradingView webhooks, emails, or Telegram), validates them using Cloudflare's WAF and Zero Trust architecture, and executes trades across multiple exchanges (Binance, MEXC, Bybit) using smart placement. It features an autonomous AI Risk Manager that monitors portfolios 24/7.
+Hoox follows an **Open Core** model.
+
+- The core system (retail / self-hosted) is fully open source (Apache-2.0 code + CC-BY-4.0 docs).
+- A commercial **HOOX Enterprise** layer (closed source) exists for institutional use. It adds advanced multi-tenancy, proprietary risk models, full compliance pipelines, hosted platform features, etc.
+
+See:
+- [OPEN_CORE.md](OPEN_CORE.md)
+- [OPEN_CORE_FEATURE_SPLIT.md](OPEN_CORE_FEATURE_SPLIT.md)
+- `docs/enterprise/` — Public architecture docs for the commercial layer (note: moved out of devops/ for clarity)
+
+The open core remains the foundation. Enterprise code is strictly separated and not public.
 
 The system runs **10 Cloudflare Workers** across dedicated services: gateway, trade execution, AI agent, D1 data access, notifications, email parsing, on-chain execution, analytics, PDF reporting, and the Next.js dashboard. All project intelligence, plans, specs, and conventions are maintained in `.opencode/` — the central knowledge hub for AI agents.
 

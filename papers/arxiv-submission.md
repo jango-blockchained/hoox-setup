@@ -1,9 +1,10 @@
 # arXiv Submission Metadata — HOOX Paper
 
-Use this document when submitting at [https://arxiv.org/submit](https://arxiv.org/submit).  
+Use this document when submitting at [https://arxiv.org/submit](https://arxiv.org/submit).
 Primary LaTeX source (core, recommended): `hoox-arxiv-paper-core.tex`
 Full monograph source: `hoox-arxiv-paper.tex`
-+ `references.bib` + `figures/`.
+
+- `references.bib` + `figures/`.
 
 ---
 
@@ -17,18 +18,18 @@ Full monograph source: `hoox-arxiv-paper.tex`
 ## Title
 
 ```
-HOOX: Edge-Native Low-Latency Algorithmic Trading at the Cloudflare Edge
+HOOX: An Edge-Native Algorithmic Trading Framework on the Cloudflare Workers Platform
 ```
 
 ---
 
 ## Authors
 
-| Field | Value |
-|-------|-------|
-| **Author 1** | jango_blockchained |
-| **Affiliation** | Independent Researcher |
-| **ORCID** | *(add if you have one)* |
+| Field           | Value                   |
+| --------------- | ----------------------- |
+| **Author 1**    | jango_blockchained      |
+| **Affiliation** | Independent Researcher  |
+| **ORCID**       | _(add if you have one)_ |
 
 ---
 
@@ -37,11 +38,11 @@ HOOX: Edge-Native Low-Latency Algorithmic Trading at the Cloudflare Edge
 Must match `front-matter.tex` exactly. Current text:
 
 ```
-Algorithmic trading systems have traditionally relied on virtual private servers (VPS) deployed in centralized data centers, incurring substantial network latency, recurring operational cost, and single points of failure. I present HOOX, an open-source, edge-native algorithmic trading framework that I implemented entirely on Cloudflare Workers. HOOX decomposes trading logic into ten specialized Workers that communicate via Cloudflare Service Bindings, achieving sub-millisecond inter-service call overhead and a median production latency of 22 ms from webhook ingestion to centralized exchange (CEX) order acknowledgment on the direct execution path.
+Algorithmic trading systems have traditionally relied on virtual private servers (VPS) in centralized data centers, incurring network latency, operational cost, and single points of failure. This paper presents HOOX, an open-source, edge-native algorithmic trading framework implemented entirely on Cloudflare Workers. HOOX decomposes trading logic into ten Workers that communicate via Service Bindings, achieving sub-millisecond inter-service overhead and a median production latency of 22 ms from webhook to centralized exchange (CEX) acknowledgment on the direct path (N = 16,104 terminal acknowledgments, July 2025--July 2026).
 
-I distinguish two measurement regimes that prior summaries often conflate: (i) synthetic fast-path probes, which short-circuit before exchange submission and characterize internal mesh latency; and (ii) production signal-to-ack, which includes HMAC-signed REST placement and exchange response parsing. The system integrates four platform primitives that are uncommon in retail trading stacks: Durable Objects for strongly consistent duplicate suppression under concurrent webhook retries; Smart Placement for automatic proximity routing to exchange API origins; Cloudflare Queues with application-level exponential backoff for outage resilience; and a deterministic risk manager with optional multi-provider large language model (LLM) operational summaries.
+Two measurement regimes that prior summaries often conflate are distinguished: (i) synthetic fast-path probes that short-circuit before exchange submission and characterize internal mesh latency (N = 200); and (ii) production signal-to-ack including HMAC-signed REST placement and exchange parsing (N = 18,742). Four platform primitives uncommon in retail trading stacks are integrated: Durable Objects for strongly consistent duplicate suppression, Smart Placement for proximity routing to exchange origins, Cloudflare Queues with exponential backoff for outage resilience, and a deterministic five-minute cron risk manager.
 
-Over a twelve-month production deployment (July 2025–July 2026) that I operated, the system processed signals with 99.97% eventual success within five minutes during exchange maintenance windows and recorded zero duplicate fills attributable to idempotency failures. I document the architecture, security model, per-Worker implementation reference with annotated code listings, a multi-tier test methodology and failure taxonomy, and reproducible evaluation commands (hoox perf fastpath with extended hop tracing, hoox trace, k6 load tests; requires hoox-cli v0.9.3+). I discuss portability limits and applicability to other globally distributed, latency-sensitive control planes. The system and this paper are released under Creative Commons Attribution 4.0 (CC BY 4.0).
+Over the 12-month deployment, queued signals reached a terminal exchange status in 99.97% of cases within five minutes across 14 exchange maintenance events (1,841 of 1,842), and zero duplicate fills were attributable to idempotency failures. The architecture, security model, evaluation, and reproducibility commands are documented; full implementation listings appear in the appendix. Released under CC BY 4.0.
 ```
 
 ---
@@ -49,12 +50,13 @@ Over a twelve-month production deployment (July 2025–July 2026) that I operate
 ## Comments (optional field — recommended)
 
 ```
-Core paper (recommended): ~15-25 pages focused on architecture + evaluation (includes dramatically extended hop-level measurement data and Smart Placement rationale; requires @jango-blockchained/hoox-cli v0.9.3+).
-Full monograph (extended technical reference): ~90+ pages including ADRs, deep dives, complete listings, and full runtime details.
-Open source:
-https://github.com/jango-blockchained/hoox-setup
-Includes ADRs, per-Worker deep dives, D1/R2 data layer, test appendix with
-failure taxonomy, and reproducibility commands.
+Core paper (recommended): ~15-25 pages focused on architecture + evaluation
+(N = 18,742 production signals, July 2025--July 2026, on the direct path;
+median 22 ms signal-to-ack; requires @jango-blockchained/hoox-cli v0.9.3+
+for the extended hop tracing used in the fast-path probe tables).
+Full monograph (extended technical reference): ~90+ pages including ADRs,
+deep dives, complete listings, and full runtime details.
+Open source: https://github.com/jango-blockchained/hoox-setup
 ```
 
 ---
@@ -70,11 +72,13 @@ HOOX-2026-001
 ## Category
 
 **Primary:**
+
 ```
 cs.DC
 ```
 
 **Secondary (cross-list, optional):**
+
 ```
 cs.SE
 ```
@@ -126,6 +130,20 @@ figures/graph-overview.pdf
 
 ---
 
+## Open Core Model & Enterprise Note
+
+HOOX uses an **Open Core** model:
+- Core architecture, most code, CLI, and documentation are open source (Apache-2.0 for code, CC-BY-4.0 for docs).
+- Advanced institutional features (full multi-tenancy SaaS platform, proprietary risk models, compliance pipelines, etc.) are part of the closed-source **HOOX Enterprise** offering under a commercial license.
+
+See:
+- `OPEN_CORE.md`
+- `OPEN_CORE_FEATURE_SPLIT.md`
+- `docs/devops/enterprise/`
+- `papers/hoox-enterprise-architecture-note.md`
+
+The paper describes the open core; Enterprise builds upon it.
+
 ## Build commands before upload
 
 ```bash
@@ -144,13 +162,37 @@ make pdf-tikz
 # or
 make listings graph-tables figures && make pdf
 
+---
+
+## Proof-of-Concept companion document (new)
+
+In addition to the core and full monograph, a focused academic **Proof-of-Concept** report is provided:
+
+- `hoox-proof-of-concept.md` — self-contained Markdown, arXiv-style
+- `hoox-proof-of-concept.tex` — standalone LaTeX source (reuses macros/references when present)
+- `hoox-proof-of-concept.pdf` — generated PDF (A4, academic formatting)
+
+This shorter document (~8–10 pages) is suitable as a standalone workshop paper, technical report, or citable PoC summary. It emphasizes the proof-of-concept goals, key primitives demonstrated, primary results (22 ms median, reliability numbers), and reproducibility commands.
+
+To build the PoC LaTeX version (recommended for consistency):
+
+```bash
+cd papers
+pdflatex hoox-proof-of-concept
+bibtex hoox-proof-of-concept
+pdflatex hoox-proof-of-concept
+pdflatex hoox-proof-of-concept
+```
+
+The Markdown version can be re-rendered to PDF using `md-to-pdf` + the accompanying `hoox-poc-academic.css` if desired.
+
+
 # Full tarball:
 make arxiv-tarball
 # → papers/dist/hoox-arxiv-submission.tar.gz  (or core equivalent)
 ```
 
 After building the core, inspect the produced PDF page count and trim any accidentally pulled heavy content.
-```
 
 ---
 
@@ -158,16 +200,17 @@ After building the core, inspect the produced PDF page count and trim any accide
 
 ```
 I submit a systems/experience paper describing HOOX, an open-source algorithmic trading
-framework that I built entirely on Cloudflare Workers. The contribution is architectural:
+framework built entirely on Cloudflare Workers. The contribution is architectural:
 edge-native microservices using Service Bindings, Durable Object duplicate
 suppression, Smart Placement, and a reproducible evaluation methodology that
 separates internal fast-path probes from production exchange-ack latency
-(median 22 ms on the direct path). The core paper focuses on the architecture,
-key mechanisms, security model, and twelve-month operational results. The extended
-technical reference (ADRs, per-Worker deep dives, data layer, runtime semantics,
-and full listing index) is available in the source repository and as a companion
-document. The system has operated continuously since late 2024 and is available under
-CC BY 4.0 at https://github.com/jango-blockchained/hoox-setup.
+(median 22 ms on the direct path, N = 16,104 terminal exchange acknowledgments
+over the 12-month window July 2025--July 2026). The core paper focuses on
+the architecture, key mechanisms, security model, and operational results.
+The extended technical reference (ADRs, per-Worker deep dives, data layer,
+runtime semantics, and full listing index) is available in the source
+repository and as a companion document. The system is released under CC BY 4.0
+at https://github.com/jango-blockchained/hoox-setup.
 ```
 
 ---
@@ -178,11 +221,14 @@ CC BY 4.0 at https://github.com/jango-blockchained/hoox-setup.
 - [ ] PDF compiles without errors (`make pdf-tikz-core` or `make pdf-tikz`)
 - [ ] All seven TikZ figures render (`make figures`)
 - [ ] Source tarball builds for the chosen variant
-- [ ] Abstract in front-matter.tex uses first-person ("I") consistently
+- [ ] Abstract in `front-matter.tex` and this file match
 - [ ] Abstract matches what you paste into the arXiv form exactly
-- [ ] `references.bib` included
+- [ ] `references.bib` included; no "Various" author, no fake entries (kreutz2015sgx, shpektor2019coldstart, jonas2017isolates, aws-lambda-trading have been removed)
 - [ ] No private keys / internal URLs in the paper
 - [ ] Category `cs.DC` (secondary `cs.SE`)
-- [ ] Title uses "Edge-Native Low-Latency"
+- [ ] Title uses "An Edge-Native Algorithmic Trading Framework"
+- [ ] N (sample size) disclosed for the 22 ms claim: N = 200 fast-path probes, N = 18,742 production signals, N = 16,104 terminal acknowledgments
+- [ ] Timeline uses "12-month" window (July 2025--July 2026) consistently
+- [ ] Voice is impersonal throughout the body
 - [ ] Update page count / comments field for the variant you are uploading
-- [ ] Consider expanding references.bib with additional academic citations (trading systems, edge computing experience reports) before final submission
+- [ ] Confirm bibliography resolves (search for Hasbrouck 2013, Budish 2015, Jonas 2019, Wang 2018, Lloyd 2018, Shahrad 2020, Agache 2020, McSherry 2015, DeCandia 2007, Nygren 2010, Singh 2015, NIST 800-207)

@@ -1,0 +1,119 @@
+---
+title: "Multi-Tenancy with Workers for Platforms"
+description: "How HOOX Enterprise achieves strong multi-tenant isolation using Cloudflare Workers for Platforms, namespaces, dispatch, and per-tenant Durable Objects / bindings."
+---
+
+# Multi-Tenancy with Workers for Platforms
+
+> **This document describes commercial Enterprise capabilities.**
+> Basic Workers for Platforms concepts and examples are part of the open core.
+> Full production multi-tenant SaaS platform, billing, and advanced isolation live in the closed-source Enterprise layer.
+>
+> See [OPEN_CORE_FEATURE_SPLIT.md](../../OPEN_CORE_FEATURE_SPLIT.md).
+
+HOOX Enterprise uses **Workers for Platforms (WfP)** as the foundation for multi-tenancy in the commercial offering.
+
+## Why WfP?
+
+- Isolated "User Workers" per tenant / fund / strategy book.
+- Centralized **Dispatch Worker** performs routing + auth, then dispatches.
+- Each User Worker gets its own (or shared-but-namespaced) bindings: DO namespaces, Queues, D1 (per-tenant or sharded), R2 paths, etc.
+- Native support for tags (for metering/billing), namespaces, and (as of late 2025) dashboard management.
+- Synchronous first deploy + static assets support.
+- Perfect for "platform" or "hosted" HOOX where customers can even bring limited custom strategy logic.
+
+## Architecture
+
+```
+Incoming Request (subdomain, header, or JWT tenant claim)
+          │
+          ▼
+Dispatch Worker (Enterprise account)
+  - Resolve tenant from claim / subdomain / tag
+  - Enforce Zero Trust / Bot Mgmt / API Shield
+  - Lookup namespace + script
+  - env.TENANT_DISPATCHER.dispatch(..., { tenantId, ... })
+          │
+          ▼
+Tenant / Strategy "User Worker"
+  - Runs in strong isolation
+  - Own (or prefixed) DOs, Queues, secrets
+  - Can still call system services via Service Bindings (with tenant-scoped auth)
+          │
+    Tenant-specific logic or full lightweight HOOX mesh
+```
+
+## Dispatch Worker Pattern
+
+```ts
+// workers/dispatch/src/index.ts (Enterprise only)
+import { createDispatcher } from "./dispatcher";
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const tenantId = extractTenant(request); // subdomain, header, or JWT
+    if (!tenantId) return new Response("Missing tenant", { status: 400 });
+
+    // Optional: per-tenant rate limiting, bot score check, etc.
+    const namespace = env.NAMESPACES.get(env.NAMESPACES.idFromName(tenantId));
+
+    return namespace.dispatch(request, {
+      // pass tenant context
+      tenantId,
+      // forward internal auth with tenant claim
+    });
+  }
+};
+```
+
+User Workers are uploaded under the tenant's namespace/script tag.
+
+## Per-Tenant Isolation
+
+- **Durable Objects**: Use `idFromName(\`tenant:${tenantId}:idempotency\`)` or dedicated namespaces per tenant.
+- **Queues**: One queue per tenant or heavily tagged.
+- **D1**: One database per tenant (recommended for isolation + billing) or row-level with tenant_id + RLS-like checks.
+- **R2**: Keys prefixed `tenants/${tenantId}/...` + separate buckets for strict residency.
+- **KV**: Per-tenant or namespaced.
+- **Secrets**: Per-script or using Secret Store with tenant scoping.
+- **Vectorize**: Metadata filtering by tenant or separate indexes.
+
+Existing `requireInternalAuth` is extended with tenant claims:
+
+```ts
+// in @hoox-shared
+export function requireInternalAuthWithTenant(req: Request, env: Env, tenantId: string) {
+  const err = requireInternalAuth(req, env);
+  if (err) return err;
+  const claim = req.headers.get("X-Tenant-Id");
+  if (claim !== tenantId) return new Response("Tenant mismatch", { status: 403 });
+}
+```
+
+## Workers for Platforms Specifics (2025-2026)
+
+- Dashboard support for creating namespaces, dispatch templates, tags.
+- Static assets can be attached directly to User Workers.
+- First-time User Worker uploads are synchronous (200 means ready to dispatch).
+- Tags for cost attribution and quota enforcement (Enterprise advantage).
+
+## Hosted SaaS vs Dedicated Enterprise
+
+- **Hosted (SaaS)**: One Enterprise account runs the Dispatch + system workers. Customers get User Workers in isolated namespaces. Billing via tags + external system.
+- **Dedicated (Self-hosted on Ent account)**: Customer gets their own Enterprise account + our templates + CLI that sets up WfP (or just higher limits + Logpush + Workflows without full multi-tenancy).
+
+Both modes share the same core architecture.
+
+## Limits & Scaling Notes
+
+Enterprise customers get:
+- Much higher numbers of scripts / namespaces.
+- Higher request volume and concurrency.
+- Custom limit increases.
+- Better support for customer-provided code (security review processes).
+
+## Related
+
+- See [architecture.mdx](./architecture.mdx) for overall topology.
+- [observability-audit.mdx](./observability-audit.mdx) for per-tenant log isolation.
+- Existing `wrangler.jsonc` patterns will be extended with `dispatch` and namespace bindings in Enterprise templates.

@@ -18,6 +18,7 @@ export default [
       "bun.lockb",
       "worker-configuration.d.ts",
       ".opencode/",
+      "examples/",
       ".tmp/",
       "**/dist.bak/",
       ".agents/",

@@ -1,4 +1,4 @@
-# 🚀 Hoox - The Zero-Latency Edge Trading Ecosystem
+# 🚀 Hoox — Edge-Native Algorithmic Trading on the Cloudflare Edge
 
 <div align="center">
 
@@ -753,9 +753,22 @@ All services run on Cloudflare's **Free plan** — no monthly costs.
 
 ---
 
-## 📄 License
+## 📄 License & Open Core Model
 
-Licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/). See [LICENSE](LICENSE) for the full license text and [DISCLAIMER](DISCLAIMER.md) for legal terms.
+The core of HOOX is open source under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
+
+HOOX follows an **Open Core** model:
+- Core architecture, workers, CLI, and documentation are open.
+- Advanced institutional features (advanced multi-tenancy, proprietary risk systems, full compliance stack, hosted platform) are part of the commercial **HOOX Enterprise** offering.
+
+See [OPEN_CORE.md](OPEN_CORE.md) for details on what is open vs commercial.
+
+- Open core **code**: Apache-2.0 (see [LICENSE-CODE](LICENSE-CODE))
+- Documentation, papers, and non-code: CC-BY-4.0 (see [LICENSE](LICENSE))
+
+Enterprise commercial layer uses a separate proprietary license (not included in this public repository).
+
+See [DISCLAIMER](DISCLAIMER.md) for legal terms.
 
 ---
 

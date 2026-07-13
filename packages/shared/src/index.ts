@@ -1,7 +1,13 @@
 /**
- * @hoox/shared — Shared module for HOOX CLI and TUI
+ * @hoox/shared — Shared module for HOOX (Open Core)
  *
  * Barrel export: re-exports all shared utilities, types, stores, and TUI helpers.
+ *
+ * This package is part of the **Open Core**.
+ * Enterprise-only extensions (advanced multi-tenancy, billing, proprietary features)
+ * live in a separate closed-source repository.
+ *
+ * See: /OPEN_CORE.md and /OPEN_CORE_FEATURE_SPLIT.md
  */
 
 // ── Legal boilerplate ─────────────────────────────────────────────────────

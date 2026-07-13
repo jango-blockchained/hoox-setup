@@ -1,0 +1,109 @@
+---
+title: "Enterprise Observability & Audit"
+description: "Full auditability using Logpush, Workers Traces, Tail Workers, R2 immutable storage, and integration with Workflows for compliance in HOOX Enterprise."
+---
+
+# Enterprise Observability & Audit
+
+> **Note:** Core observability (Analytics Engine, basic traces, Logpush examples) is available in the open core.
+> The full production-grade compliance, SIEM integration, long-term immutable audit, and tenant-aware pipelines described here are part of the commercial Enterprise layer.
+
+One of the biggest jumps from retail HOOX to Enterprise is moving from "some analytics" to **regulator-grade, immutable, queryable audit trail**.
+
+## Pillars
+
+1. **Workers Traces** (automatic)
+   - End-to-end visibility across Service Bindings, DO RPC, Queues, Workflows, external fetches.
+   - No code changes needed for basic tracing.
+
+2. **Logpush** (Enterprise strength)
+   - Push Workers Trace Events, HTTP requests, WAF events, Queue events, etc.
+   - Destination: R2 (primary), or external SIEM (SentinelOne, Splunk, etc.).
+   - One-click R2 setup + advanced options (custom fields, raw vs transformed headers, daily partitioning).
+   - High volume support on Enterprise.
+
+3. **Tail Workers**
+   - Sample, filter, enrich, or redact logs in real time before they go to Logpush or storage.
+   - Example: add tenant context, hash sensitive fields, drop health checks.
+
+4. **R2 as Immutable Audit Store**
+   - Combined with R2 Event Notifications → trigger Workflows for post-processing (indexing, compliance checks, retention policies).
+   - Jurisdiction controls for data residency.
+   - Lifecycle + Object Lock for immutability.
+
+5. **Analytics Engine + Dashboard**
+   - Keep high-cardinality real-time metrics (latency, fills, risk events).
+   - Tenant-tagged datasets.
+
+6. **Workflows + Observability**
+   - Every Workflow step can emit structured events.
+   - Workflow execution history is durable and auditable.
+
+## Example Logpush Job (R2)
+
+```json
+{
+  "name": "hoox-enterprise-audit",
+  "dataset": "workers_trace_events",
+  "destination_conf": "r2://hoox-audit-logs/{DATE}?account-id=...&access-key-id=...&secret-access-key=...",
+  "output_options": {
+    "field_names": ["EventTimestamp", "EventType", "RayID", "Worker", "Outcome", "TenantId", ...],
+    "timestamp_format": "rfc3339"
+  },
+  "enabled": true
+}
+```
+
+Use the one-click flow or the API for automation in CLI/deploy.
+
+## Tail Worker Example (Tenant Enrichment + Redaction)
+
+```ts
+// workers/tail-audit/src/index.ts
+export default {
+  async tail(events: TraceItem[], env: Env) {
+    for (const event of events) {
+      // enrich
+      const tenant = event.scriptTags?.find(t => t.startsWith("tenant:"))?.slice(7) || "unknown";
+      
+      // redact secrets
+      const logs = (event.logs || []).map(l => ({
+        ...l,
+        message: l.message?.replace(/secret:[a-z0-9]+/gi, "secret:[REDACTED]")
+      }));
+
+      await env.AUDIT_QUEUE.send({
+        tenant,
+        ray: event.rayID,
+        logs,
+        // ...
+      });
+    }
+  }
+};
+```
+
+## Compliance Use Cases
+
+- **Trade reconstruction**: Pull all events for a `clientOrderId` or `traceId` across Workers, DOs, and Queues from R2.
+- **Kill switch audit**: Every activation + reason + affected positions logged immutably.
+- **Regulatory reports**: Scheduled Workflow reads from R2 + D1, produces signed PDF via Browser Rendering, stores result + manifest in R2.
+- **Anomaly detection**: Feed Logpush stream (or sampled Tail) into AI Gateway + Vectorize for real-time risk signals.
+
+## Retention & Cost
+
+- R2 is dramatically cheaper than traditional logging at scale.
+- Use lifecycle rules: hot (30d) → cold → delete or archive after N years.
+- Enterprise customers often keep 7+ years for compliance.
+
+## Integration Points
+
+- Existing `trackAnalytics` in shared can be extended to also emit to the audit path.
+- All new Workflows and DOs should emit structured `auditEvent` payloads.
+- Dashboard (Enterprise) should have "Audit Explorer" views querying R2 (via Worker or R2 SQL if available) + Analytics Engine.
+
+## Related
+
+- [architecture.mdx](./architecture.mdx)
+- [multi-tenancy.mdx](./multi-tenancy.mdx) — tenant tagging in logs
+- Root `wrangler.jsonc` Enterprise profiles will include Logpush + Tail bindings.
