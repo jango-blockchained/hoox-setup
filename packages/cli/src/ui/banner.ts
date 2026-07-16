@@ -92,7 +92,6 @@ const LOGO_GRID = [
 ] as const;
 
 const LOGO_W = LOGO_GRID[0]!.length;
-const LOGO_H = LOGO_GRID.length;
 
 type CellRole = "solid" | "outline" | "empty";
 
