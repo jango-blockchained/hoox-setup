@@ -43,7 +43,7 @@ import { toast } from "sonner";
 type CommandGroupName = "Navigation" | "Agent" | "Actions";
 
 interface CommandPaletteItem {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   shortcut?: string;
   action: () => void;

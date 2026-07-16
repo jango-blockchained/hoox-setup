@@ -104,6 +104,7 @@ describe("animateBanner", () => {
       // Static path must not use cursor hide / line-clear animation sequences
       expect(out).not.toContain("\x1b[?25l");
       expect(out).not.toContain("\x1b[2K");
+      // eslint-disable-next-line no-control-regex -- intentional: matches ESC cursor-up sequences
       expect(out).not.toMatch(/\x1b\[\d+A/);
     } finally {
       process.stdout.write = origWrite;

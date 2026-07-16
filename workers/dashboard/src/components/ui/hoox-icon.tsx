@@ -50,7 +50,7 @@ export const hooxIcons = {
   user: Reicon.User,
   key: Reicon.Key,
   cloud: Reicon.Cloud,
-  network: Reicon.CloudConnect as any, // fallback to available
+  network: (Reicon.CloudConnect ?? Reicon.Cloud) as typeof Reicon.Globe2,
   globe: Reicon.Globe2,
   file: Reicon.File,
   doc: Reicon.DocText,
