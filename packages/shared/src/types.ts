@@ -21,6 +21,20 @@ export const WebhookPayloadSchema = z
   })
   .strict();
 
+/** Validated trade queue payload (hoox producer → trade-worker consumer). */
+export const TradeQueueMessageSchema = z
+  .object({
+    requestId: z.string().min(1).max(128),
+    exchange: z.string().min(1).max(64),
+    action: TradeActionSchema,
+    symbol: z.string().min(1).max(32),
+    quantity: z.number().positive().finite(),
+    price: z.number().positive().finite().optional(),
+    leverage: z.number().int().positive().max(125).optional(),
+    queuedAt: z.string().min(1).max(64),
+  })
+  .strict();
+
 export const TradeSignalSchema = z
   .object({
     id: z.number().int().positive().optional(),
@@ -183,6 +197,8 @@ export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 export type TradeAction = z.infer<typeof TradeActionSchema>;
 
 export type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
+
+export type TradeQueueMessage = z.infer<typeof TradeQueueMessageSchema>;
 
 export type TradeSignal = z.infer<typeof TradeSignalSchema>;
 

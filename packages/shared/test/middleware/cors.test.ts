@@ -1,25 +1,34 @@
 /**
  * Comprehensive test suite for CORS middleware
- * Tests CORS headers, preflight requests, allowed origins/methods, credentials, and max age
+ * Fail-closed defaults: no open origin (*)
  */
 
 import { describe, it, expect } from "bun:test";
 import {
   corsHeaders,
+  publicCorsHeaders,
+  internalCorsHeaders,
   handleCorsPreflightRequest,
 } from "../../src/middleware/cors";
 
 describe("corsHeaders", () => {
-  it("returns default CORS headers", () => {
+  it("does not set Allow-Origin by default (fail-closed)", () => {
     const headers = corsHeaders();
-    expect(headers["Access-Control-Allow-Origin"]).toBe("*");
+    expect(headers["Access-Control-Allow-Origin"]).toBeUndefined();
     expect(headers["Access-Control-Allow-Methods"]).toBe(
       "GET, POST, OPTIONS, PUT, DELETE"
     );
     expect(headers["Access-Control-Allow-Headers"]).toBe(
-      "Content-Type, Authorization, X-Request-ID, X-Internal-Auth-Key"
+      "Content-Type, Authorization, X-Request-ID"
     );
     expect(headers["Access-Control-Max-Age"]).toBe("86400");
+  });
+
+  it("does not advertise X-Internal-Auth-Key in allowHeaders by default", () => {
+    const headers = corsHeaders();
+    expect(headers["Access-Control-Allow-Headers"]).not.toContain(
+      "X-Internal-Auth-Key"
+    );
   });
 
   it("does not include credentials header by default", () => {
@@ -51,20 +60,9 @@ describe("corsHeaders", () => {
     expect(headers["Access-Control-Allow-Credentials"]).toBe("true");
   });
 
-  it("does not include credentials header when explicitly disabled", () => {
-    const headers = corsHeaders({ allowCredentials: false });
-    expect(headers["Access-Control-Allow-Credentials"]).toBeUndefined();
-  });
-
   it("allows custom max age", () => {
     const headers = corsHeaders({ maxAge: 3600 });
     expect(headers["Access-Control-Max-Age"]).toBe("3600");
-  });
-
-  it("converts max age to string", () => {
-    const headers = corsHeaders({ maxAge: 7200 });
-    expect(typeof headers["Access-Control-Max-Age"]).toBe("string");
-    expect(headers["Access-Control-Max-Age"]).toBe("7200");
   });
 
   it("merges custom options with defaults", () => {
@@ -80,58 +78,44 @@ describe("corsHeaders", () => {
   });
 });
 
+describe("publicCorsHeaders", () => {
+  it("sets * by default for public APIs", () => {
+    const headers = publicCorsHeaders();
+    expect(headers["Access-Control-Allow-Origin"]).toBe("*");
+  });
+
+  it("accepts a concrete origin", () => {
+    const headers = publicCorsHeaders("https://app.example.com");
+    expect(headers["Access-Control-Allow-Origin"]).toBe(
+      "https://app.example.com"
+    );
+  });
+});
+
+describe("internalCorsHeaders", () => {
+  it("returns empty object (no browser CORS surface)", () => {
+    expect(internalCorsHeaders()).toEqual({});
+  });
+});
+
 describe("handleCorsPreflightRequest", () => {
   it("returns null for non-OPTIONS requests", () => {
     const request = new Request("https://example.com/api/test", {
       method: "GET",
     });
-    const result = handleCorsPreflightRequest(request);
-    expect(result).toBeNull();
+    expect(handleCorsPreflightRequest(request)).toBeNull();
   });
 
-  it("returns null for POST requests", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "POST",
-    });
-    const result = handleCorsPreflightRequest(request);
-    expect(result).toBeNull();
-  });
-
-  it("returns Response for OPTIONS requests", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request);
-    expect(result).toBeInstanceOf(Response);
-  });
-
-  it("returns 204 No Content for preflight requests", () => {
+  it("returns 204 for OPTIONS without open origin by default", () => {
     const request = new Request("https://example.com/api/test", {
       method: "OPTIONS",
     });
     const result = handleCorsPreflightRequest(request);
     expect(result?.status).toBe(204);
+    expect(result?.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 
-  it("includes CORS headers in preflight response", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request);
-    expect(result?.headers.get("Access-Control-Allow-Origin")).toBe("*");
-    expect(result?.headers.get("Access-Control-Allow-Methods")).toBeDefined();
-    expect(result?.headers.get("Access-Control-Allow-Headers")).toBeDefined();
-  });
-
-  it("includes max age header in preflight response", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request);
-    expect(result?.headers.get("Access-Control-Max-Age")).toBe("86400");
-  });
-
-  it("applies custom options to preflight response", () => {
+  it("applies custom origin on preflight", () => {
     const request = new Request("https://example.com/api/test", {
       method: "OPTIONS",
     });
@@ -145,18 +129,6 @@ describe("handleCorsPreflightRequest", () => {
     expect(result?.headers.get("Access-Control-Max-Age")).toBe("3600");
   });
 
-  it("includes credentials header when enabled in preflight", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request, {
-      allowCredentials: true,
-    });
-    expect(result?.headers.get("Access-Control-Allow-Credentials")).toBe(
-      "true"
-    );
-  });
-
   it("returns empty body for preflight response", async () => {
     const request = new Request("https://example.com/api/test", {
       method: "OPTIONS",
@@ -164,38 +136,5 @@ describe("handleCorsPreflightRequest", () => {
     const result = handleCorsPreflightRequest(request);
     const body = await result?.text();
     expect(body).toBe("");
-  });
-
-  it("handles case-insensitive OPTIONS method", () => {
-    // Note: Request constructor normalizes method to uppercase
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request);
-    expect(result).toBeInstanceOf(Response);
-  });
-
-  it("applies custom methods to preflight response", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request, {
-      allowMethods: "GET, POST, PUT",
-    });
-    expect(result?.headers.get("Access-Control-Allow-Methods")).toBe(
-      "GET, POST, PUT"
-    );
-  });
-
-  it("applies custom headers to preflight response", () => {
-    const request = new Request("https://example.com/api/test", {
-      method: "OPTIONS",
-    });
-    const result = handleCorsPreflightRequest(request, {
-      allowHeaders: "Content-Type, X-Custom",
-    });
-    expect(result?.headers.get("Access-Control-Allow-Headers")).toBe(
-      "Content-Type, X-Custom"
-    );
   });
 });

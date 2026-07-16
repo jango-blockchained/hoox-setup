@@ -29,6 +29,10 @@ export {
 } from "./validate";
 export {
   corsHeaders,
+  resolveCorsOptions,
+  type CorsEnv,
+  publicCorsHeaders,
+  internalCorsHeaders,
   handleCorsPreflightRequest,
   type CorsOptions,
 } from "./cors";

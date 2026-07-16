@@ -43,11 +43,17 @@ export type {
 export {
   TradeActionSchema,
   WebhookPayloadSchema,
+  TradeQueueMessageSchema,
   TradeSignalSchema,
   PositionSchema,
   BalanceSchema,
 } from "./types";
-export type { TradeAction, WebhookPayload, TradeSignal } from "./types";
+export type {
+  TradeAction,
+  WebhookPayload,
+  TradeQueueMessage,
+  TradeSignal,
+} from "./types";
 export { KVKeys } from "./kvKeys";
 export {
   toError,
@@ -82,7 +88,12 @@ export type { QueueHandlerOptions } from "./queue-handler";
 export { createCronHandler } from "./cron-handler";
 export type { CronHandlerOptions } from "./cron-handler";
 export { D1Repository } from "./d1/index";
-export { serviceFetch } from "./service-bindings";
+export {
+  serviceFetch,
+  authenticatedServiceFetch,
+  ServiceAuthError,
+} from "./service-bindings";
+export type { AuthenticatedServiceEnv } from "./service-bindings";
 export type {
   TradeRecord,
   PositionRecord,
