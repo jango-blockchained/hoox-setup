@@ -5,12 +5,30 @@
  *   dev          Start the dashboard dev server (alias for 'hoox dev dashboard')
  *   deploy       Build and deploy the dashboard (alias for 'hoox deploy dashboard')
  *
- * For other dashboard operations:
- *   hoox deploy update-internal-urls  Update dashboard wrangler.jsonc with current service URLs
+ * Aliases re-parse the root program in-process so PATH does not need a
+ * globally installed `hoox` binary.
  */
 
 import type { Command } from "commander";
 import { withErrorHandling } from "../../utils/error-handler.js";
+
+/** Forward root global flags into a nested parseAsync argv list. */
+function withGlobalFlags(program: Command, args: string[]): string[] {
+  const opts = program.opts() as {
+    json?: boolean;
+    quiet?: boolean;
+    yes?: boolean;
+    color?: boolean;
+  };
+  const out: string[] = [];
+  if (opts.json) out.push("--json");
+  if (opts.quiet) out.push("--quiet");
+  if (opts.yes) out.push("--yes");
+  // Commander stores --no-color as color: false
+  if (opts.color === false) out.push("--no-color");
+  out.push(...args);
+  return out;
+}
 
 export function registerDashboardCommand(program: Command): void {
   const dashboardCmd = program
@@ -33,9 +51,6 @@ EXAMPLES:
 `
     );
 
-  // -- dashboard dev ------------------------------------------------------
-  // Top-level alias for `hoox dev dashboard`
-
   dashboardCmd
     .command("dev")
     .description(
@@ -44,17 +59,14 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async () => {
-          const proc = Bun.spawn(["hoox", "dev", "dashboard"], {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          process.exitCode = await proc.exited;
+          await program.parseAsync(
+            withGlobalFlags(program, ["dev", "dashboard"]),
+            { from: "user" }
+          );
         },
         { service: "dashboard" }
       )
     );
-
-  // -- dashboard deploy ---------------------------------------------------
-  // Top-level alias for `hoox deploy dashboard`
 
   dashboardCmd
     .command("deploy")
@@ -69,13 +81,12 @@ EXAMPLES:
     .action(
       withErrorHandling(
         async (options: { rebuild?: boolean; auto?: boolean }) => {
-          const args = ["hoox", "deploy", "dashboard"];
+          const args = ["deploy", "dashboard"];
           if (options.rebuild) args.push("--rebuild");
           if (options.auto) args.push("--auto");
-          const proc = Bun.spawn(args, {
-            stdio: ["inherit", "inherit", "inherit"],
+          await program.parseAsync(withGlobalFlags(program, args), {
+            from: "user",
           });
-          process.exitCode = await proc.exited;
         },
         { service: "dashboard" }
       )

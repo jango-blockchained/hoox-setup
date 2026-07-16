@@ -1,6 +1,9 @@
 /**
  * `hoox secrets` — Manage Cloudflare Worker secrets.
  *
+ * Top-level alias for `hoox config secrets …`, registered in-process
+ * (no PATH re-spawn of the `hoox` binary).
+ *
  * Commands:
  *   list [worker]           List secrets for a worker
  *   set <worker> <name>     Set a secret
@@ -9,7 +12,7 @@
  */
 
 import type { Command } from "commander";
-import { withErrorHandling } from "../../utils/error-handler.js";
+import { registerSecretsSubcommands } from "../config/secrets-subcommands.js";
 
 export function registerSecretsCommand(program: Command): void {
   const cmd = program
@@ -32,69 +35,5 @@ EXAMPLES:
   hoox secrets sync`
     );
 
-  cmd
-    .command("list [worker]")
-    .description("List secrets for a worker")
-    .action(
-      withErrorHandling(
-        async (worker: string | undefined) => {
-          const args = ["hoox", "config", "secrets", "list"];
-          if (worker) args.push(worker);
-          const proc = Bun.spawn(args, {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          process.exitCode = await proc.exited;
-        },
-        { service: "secrets" }
-      )
-    );
-
-  cmd
-    .command("set <worker> <name>")
-    .description("Set a secret")
-    .action(
-      withErrorHandling(
-        async (worker: string, name: string) => {
-          const proc = Bun.spawn(
-            ["hoox", "config", "secrets", "set", worker, name],
-            { stdio: ["inherit", "inherit", "inherit"] }
-          );
-          process.exitCode = await proc.exited;
-        },
-        { service: "secrets" }
-      )
-    );
-
-  cmd
-    .command("delete <worker> <name>")
-    .description("Delete a secret")
-    .action(
-      withErrorHandling(
-        async (worker: string, name: string) => {
-          const proc = Bun.spawn(
-            ["hoox", "config", "secrets", "delete", worker, name],
-            { stdio: ["inherit", "inherit", "inherit"] }
-          );
-          process.exitCode = await proc.exited;
-        },
-        { service: "secrets" }
-      )
-    );
-
-  cmd
-    .command("sync [worker]")
-    .description("Sync local .dev.vars to Cloudflare")
-    .action(
-      withErrorHandling(
-        async (worker: string | undefined) => {
-          const args = ["hoox", "config", "secrets", "sync"];
-          if (worker) args.push(worker);
-          const proc = Bun.spawn(args, {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          process.exitCode = await proc.exited;
-        },
-        { service: "secrets" }
-      )
-    );
+  registerSecretsSubcommands(cmd, "secrets");
 }

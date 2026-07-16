@@ -1,13 +1,16 @@
 /**
  * `hoox keys` — Manage internal auth keys for inter-worker communication.
  *
+ * Top-level alias for `hoox config keys …`, registered in-process
+ * (no PATH re-spawn of the `hoox` binary).
+ *
  * Commands:
  *   generate     Generate new internal keys
  *   list         List existing keys
  */
 
 import type { Command } from "commander";
-import { withErrorHandling } from "../../utils/error-handler.js";
+import { registerKeysSubcommands } from "../config/keys-subcommands.js";
 
 export function registerKeysCommand(program: Command): void {
   const cmd = program
@@ -27,33 +30,5 @@ EXAMPLES:
   hoox keys list`
     );
 
-  cmd
-    .command("generate")
-    .description("Generate new internal keys")
-    .action(
-      withErrorHandling(
-        async () => {
-          const proc = Bun.spawn(["hoox", "config", "keys", "generate"], {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          process.exitCode = await proc.exited;
-        },
-        { service: "keys" }
-      )
-    );
-
-  cmd
-    .command("list")
-    .description("List existing keys")
-    .action(
-      withErrorHandling(
-        async () => {
-          const proc = Bun.spawn(["hoox", "config", "keys", "list"], {
-            stdio: ["inherit", "inherit", "inherit"],
-          });
-          process.exitCode = await proc.exited;
-        },
-        { service: "keys" }
-      )
-    );
+  registerKeysSubcommands(cmd, "keys");
 }
