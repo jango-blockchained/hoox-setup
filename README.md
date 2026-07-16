@@ -291,13 +291,19 @@ graph LR
 
 ---
 
+## ♾️ Free forever. Open source.
+
+HOOX is free to use, self-host, and modify — **no paid core**, no artificial limits on the open mesh. Deploy the full edge-native stack on Cloudflare’s free tier for typical retail volume. Code is **Apache-2.0**; docs and papers are **CC BY 4.0**. Built for traders and operators who want production-grade infrastructure without a vendor lock-in tax. Optional enterprise features live outside this repository.
+
+---
+
 ## 🔒 Security, cost & disclaimer
 
 🛡️ Zero-trust mesh: internal workers have no public HTTP. Secrets inject into V8 isolates. Free-tier capable for typical retail volume.
 
 ⚠️ **Disclaimer.** Educational and research use. Trading involves substantial risk of loss. Not financial advice. See [DISCLAIMER.md](DISCLAIMER.md) and [LICENSE](LICENSE).
 
-Open core: **Apache-2.0** (code) · **CC BY 4.0** (docs/papers). Enterprise features live outside this repository.
+Open core: **Apache-2.0** (code) · **CC BY 4.0** (docs/papers).
 
 ---
 
