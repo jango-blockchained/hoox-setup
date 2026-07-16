@@ -160,3 +160,7 @@ papers/hoox-arxiv-paper-core*.pdf
 
 # Exception: keep the listings manifest (source of truth for code extraction)
 !papers/listings/manifest.yaml
+
+# Reddit post drafts (local only, not committed)
+.reddit/
+

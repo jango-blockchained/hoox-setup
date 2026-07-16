@@ -8,13 +8,13 @@
   \caption{Core \textsc{HOOX} Workers. Only \texttt{hoox} and \texttt{dashboard} expose public endpoints.}
   \label{tab:workers}
   \small
-  \begin{tabular}{@{}llp{5.2cm}l@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.5cm}l@{}}
     \toprule
     \textbf{Worker} & \textbf{Role} & \textbf{Key responsibilities} & \textbf{Trigger} \\
     \midrule
     \texttt{hoox} & Gateway & Auth, WAF, rate limiting, idempotency & Webhook/API \\
     \texttt{trade-worker} & Execution & Multi-exchange order placement & Binding/Queue \\
-    \texttt{agent-worker} & Risk manager & Trailing stops, kill switch, LLM summary & Cron \texttt{*/5} \\
+    \texttt{agent-worker} & Risk manager & Trailing stops, take-profit, kill switch & Cron \texttt{*/5} \\
     \texttt{telegram-worker} & Notifications & Alerts, RAG queries, bot commands & Binding \\
     \texttt{d1-worker} & Data layer & Centralized D1 SQLite access & Binding \\
     \texttt{email-worker} & Email ingress & Mailgun webhook parsing & Webhook \\
@@ -23,20 +23,20 @@
     \texttt{report-worker} & Reporting & Twice-daily PDF generation & Cron 08:00, 18:00 UTC \\
     \texttt{dashboard} & User interface & Portfolio monitoring (Next.js/OpenNext) & Public UI \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Architectural Overview}
 
 Figure~\ref{fig:architecture} depicts the ingress, compute, storage, and external exchange layers. Public signals enter only through \texttt{hoox} (webhooks) or channel-specific Workers (\texttt{email-worker}, \texttt{telegram-worker}). All downstream execution uses Service Bindings; only \texttt{trade-worker} and \texttt{web3-wallet-worker} initiate outbound HTTPS to external APIs.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \IfFileExists{figures/architecture.pdf}{%
-    \includegraphics[width=0.98\linewidth]{figures/architecture.pdf}%
+    \includegraphics[width=\linewidth]{figures/architecture.pdf}%
   }{%
     \ifhooxusetikz
-      \resizebox{0.98\linewidth}{!}{\input{figures/architecture.tex}}%
+      \resizebox{\linewidth}{!}{\input{figures/architecture.tex}}%
     \else
       \small
       \fbox{\begin{minipage}{0.92\linewidth}
@@ -62,7 +62,7 @@ A representative TradingView signal traverses seven stages:
   \item \textbf{Routing:} On success, the payload is forwarded via Service Binding to \texttt{trade-worker}, or enqueued on \texttt{trade-execution} depending on KV-configured queue mode (Table~\ref{tab:queue-modes}).
   \item \textbf{Execution:} \texttt{trade-worker} resolves the exchange via dynamic KV routing and places the order using HMAC-SHA256 signed REST requests.
   \item \textbf{Persistence and notification:} Results are written to D1 via \texttt{d1-worker}, logged to R2, and forwarded to \texttt{telegram-worker} and \texttt{analytics-worker} via non-blocking \texttt{waitUntil} calls.
-  \item \textbf{Risk management:} Every five minutes, \texttt{agent-worker} evaluates open positions and may adjust trailing stops or activate the global kill switch.
+  \item \textbf{Risk management:} Every five minutes, \texttt{agent-worker} runs a deterministic cron---trailing stops, take-profit scale-out, and a drawdown kill switch. The cron is intentionally simple; event-driven risk management via the WebSocket connection manager is planned future work.
 \end{enumerate}
 
 \begin{table}[t]
@@ -70,7 +70,7 @@ A representative TradingView signal traverses seven stages:
   \caption{Queue modes and latency semantics. Default: \texttt{queue\_failover}.}
   \label{tab:queue-modes}
   \small
-  \begin{tabular}{@{}lp{5.8cm}l@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lp{6cm}l@{}}
     \toprule
     \textbf{Mode} & \textbf{Behavior} & \textbf{Ack latency} \\
     \midrule
@@ -78,21 +78,21 @@ A representative TradingView signal traverses seven stages:
     \texttt{queue\_failover} & Direct first; queue on binding failure & Exchange ack or enqueue status \\
     \texttt{queue\_everywhere} & Always enqueue before consumption & HTTP success before fill \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Inter-Service Communication}
 
-Traditional microservices communicate over HTTP or gRPC, incurring serialization, TLS, and DNS costs at each hop. In \textsc{HOOX}, Service Bindings invoke internal endpoints as \texttt{binding.fetch("http://internal/path")} calls. Measured Service Binding overhead averages 0.4\,ms (Table~\ref{tab:production-latency}). Authorization is enforced on every binding call via an \texttt{X-Internal-Auth-Key} header validated by shared middleware.
+Traditional microservices communicate over HTTP or gRPC, incurring serialization, TLS, and DNS costs at each hop. In \textsc{HOOX}, Service Bindings invoke internal endpoints as \texttt{binding.fetch("http://internal/path")} calls. Measured Service Binding overhead averages 0.4\,ms (Table~\ref{tab:production-latency}). Authorization is enforced on every binding call via an \texttt{X-Internal-Auth-Key} header validated by shared middleware. This style of in-fabric RPC shares design goals with zero-trust networking patterns that avoid per-hop public-internet transit~\cite{nist2020zerotrust,decandia2007dynamo}.
 
-Table~\ref{tab:bindings} summarizes the primary binding graph. The full code-graph community decomposition and data-flow edge catalog appear in Appendix~\ref{app:graph} (Figure~\ref{fig:graph-overview}).
+Table~\ref{tab:bindings} summarizes the primary binding graph. The full code-graph community decomposition and data-flow edge catalog are available in the extended monograph accompanying this paper.
 
 \begin{table}[t]
   \centering
   \caption{Primary Service Binding edges (selected).}
   \label{tab:bindings}
   \small
-  \begin{tabular}{@{}ll@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ll@{}}
     \toprule
     \textbf{Source} & \textbf{Targets} \\
     \midrule
@@ -101,5 +101,5 @@ Table~\ref{tab:bindings} summarizes the primary binding graph. The full code-gra
     \texttt{agent-worker} & \texttt{d1-worker}, \texttt{trade-worker}, \texttt{telegram-worker}, \texttt{analytics-worker} \\
     \texttt{dashboard} & \texttt{d1-worker}, \texttt{agent-worker}, \texttt{web3-wallet-worker} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}

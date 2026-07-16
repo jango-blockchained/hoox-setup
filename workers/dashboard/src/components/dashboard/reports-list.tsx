@@ -3,15 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import {
-  Download,
-  Eye,
-  FileSpreadsheet,
-  FileText,
-  Inbox,
-  RefreshCw,
-  Search,
-} from "lucide-react";
+import { Download, Eye, RefreshCw, Search } from "lucide-react";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,18 +47,18 @@ const typeMeta: Record<
   {
     label: string;
     className: string;
-    icon: typeof FileText;
+    icon: "file" | "chart";
   }
 > = {
   pdf: {
     label: "PDF",
     className: "text-destructive border-destructive/30 bg-destructive/5",
-    icon: FileText,
+    icon: "file" as const,
   },
   csv: {
     label: "CSV",
     className: "text-success border-success/30 bg-success/5",
-    icon: FileSpreadsheet,
+    icon: "chart" as const,
   },
 };
 
@@ -250,7 +243,11 @@ export function ReportsList() {
         ) : !hasAnyReports ? (
           <Empty>
             <EmptyMedia variant="icon">
-              <Inbox className="size-6 text-muted-foreground" />
+              <HooxIcon
+                name="file"
+                size="md"
+                className="text-muted-foreground"
+              />
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>No reports yet</EmptyTitle>
@@ -263,7 +260,11 @@ export function ReportsList() {
         ) : !hasAnyMatches ? (
           <Empty>
             <EmptyMedia variant="icon">
-              <Search className="size-6 text-muted-foreground" />
+              <HooxIcon
+                name="search"
+                size="md"
+                className="text-muted-foreground"
+              />
             </EmptyMedia>
             <EmptyHeader>
               <EmptyTitle>No matching reports</EmptyTitle>
@@ -298,7 +299,6 @@ export function ReportsList() {
                 <AnimatePresence>
                   {filtered.map((report) => {
                     const meta = typeMeta[report.type];
-                    const TypeIcon = meta.icon;
                     return (
                       <motion.tr
                         key={report.id}
@@ -311,8 +311,10 @@ export function ReportsList() {
                       >
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            <TypeIcon
-                              className="h-4 w-4 shrink-0 text-muted-foreground"
+                            <HooxIcon
+                              name={meta.icon}
+                              size="sm"
+                              className="shrink-0 text-muted-foreground"
                               aria-hidden
                             />
                             <span className="truncate" title={report.name}>

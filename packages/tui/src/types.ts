@@ -26,6 +26,8 @@ export const ALL_VIEWS = [
   "kv-viewer",
   "secrets-viewer",
   "db-query",
+  "ai-chat",
+  "edge-topology",
 ] as const;
 
 export type ViewId = (typeof ALL_VIEWS)[number];
@@ -44,6 +46,8 @@ export const VIEW_LABELS: Record<ViewId, string> = {
   "kv-viewer": "KV",
   "secrets-viewer": "SECRETS",
   "db-query": "DB QUERY",
+  "ai-chat": "AI CHAT",
+  "edge-topology": "TOPOLOGY",
 };
 
 export const VIEW_ORDER: ViewId[] = [
@@ -60,6 +64,8 @@ export const VIEW_ORDER: ViewId[] = [
   "kv-viewer",
   "secrets-viewer",
   "db-query",
+  "ai-chat",
+  "edge-topology",
 ];
 
 export function viewIndex(view: ViewId): number {

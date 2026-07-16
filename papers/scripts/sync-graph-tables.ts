@@ -67,7 +67,7 @@ function main(): void {
       "\\caption{Primary data-flow edges (selected).}",
       "\\label{tab:graph-dataflows}",
       "\\small",
-      "\\begin{tabular}{@{}llp{6.8cm}@{}}",
+      "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}llp{6.8cm}@{}}",
       "\\toprule",
       "\\textbf{Source} & \\textbf{Target} & \\textbf{Description} \\\\",
       "\\midrule"
@@ -80,12 +80,7 @@ function main(): void {
       );
     }
 
-    lines.push(
-      "\\bottomrule",
-      "\\end{tabular}",
-      "\\end{table}",
-      ""
-    );
+    lines.push("\\bottomrule", "\\end{tabular*}", "\\end{table}", "");
   }
 
   const communities = meta.communities ?? [];
@@ -98,7 +93,7 @@ function main(): void {
       "\\caption{Logical node clusters in the code graph.}",
       "\\label{tab:graph-communities}",
       "\\small",
-      "\\begin{tabular}{@{}llp{7.5cm}@{}}",
+      "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}llp{7.5cm}@{}}",
       "\\toprule",
       "\\textbf{ID} & \\textbf{Label} & \\textbf{Description} \\\\",
       "\\midrule"
@@ -110,17 +105,14 @@ function main(): void {
       );
     }
 
-    lines.push(
-      "\\bottomrule",
-      "\\end{tabular}",
-      "\\end{table}",
-      ""
-    );
+    lines.push("\\bottomrule", "\\end{tabular*}", "\\end{table}", "");
   }
 
   writeFileSync(OUT_FILE, lines.join("\n") + "\n", "utf-8");
   console.log(`Wrote ${OUT_FILE}`);
-  console.log(`  ${flows.length} data-flow edges, ${communities.length} communities`);
+  console.log(
+    `  ${flows.length} data-flow edges, ${communities.length} communities`
+  );
 }
 
 main();

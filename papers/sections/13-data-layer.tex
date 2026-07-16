@@ -8,7 +8,7 @@
   \caption{Multi-tier edge storage topology (from production \texttt{wrangler.jsonc} bindings).}
   \label{tab:storage-tiers}
   \small
-  \begin{tabular}{@{}llllp{4.2cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llllp{4.5cm}@{}}
     \toprule
     \textbf{Tier} & \textbf{Binding} & \textbf{Consistency} & \textbf{Typical RTT} & \textbf{Use case} \\
     \midrule
@@ -20,7 +20,7 @@
     R2 & \texttt{SYSTEM\_LOGS\_BUCKET} & Per-object strong & ${<}50$\,ms write & Verbose request/response dumps \\
     Analytics & \texttt{ANALYTICS\_ENGINE} & Append-only & Async & Latency time series, probe indexes \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{D1 Schema}
@@ -75,7 +75,7 @@ R2 buckets conserve D1 write volume by storing verbose JSON blobs off the SQLite
   \caption{R2 bucket bindings and key conventions.}
   \label{tab:r2-layout}
   \small
-  \begin{tabular}{@{}llp{5.5cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.5cm}@{}}
     \toprule
     \textbf{Bucket binding} & \textbf{Workers} & \textbf{Key pattern} \\
     \midrule
@@ -86,7 +86,7 @@ R2 buckets conserve D1 write volume by storing verbose JSON blobs off the SQLite
     \texttt{UPLOADS\_BUCKET} & \texttt{telegram-worker} &
       User-uploaded attachments for RAG queries \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 Listing~\ref{lst:save-report-r2} shows how successful trades trigger fire-and-forget R2 archival via \texttt{triggerReportSave} in \texttt{trade-worker}.

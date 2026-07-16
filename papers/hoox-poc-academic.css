@@ -1,0 +1,138 @@
+/* Academic paper styling for md-to-pdf (HOOX PoC) */
+@page {
+  size: A4;
+  margin: 2.5cm 2.5cm;
+}
+
+body {
+  font-family: "Times New Roman", "Liberation Serif", "DejaVu Serif", serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: #111;
+  max-width: 100%;
+}
+
+h1 {
+  font-size: 18pt;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 6pt;
+  border-bottom: none;
+}
+
+h2 {
+  font-size: 13pt;
+  font-weight: bold;
+  margin-top: 16pt;
+  margin-bottom: 6pt;
+  border-bottom: 0.5pt solid #333;
+  padding-bottom: 2pt;
+}
+
+h3 {
+  font-size: 11.5pt;
+  font-weight: bold;
+  margin-top: 12pt;
+  margin-bottom: 4pt;
+}
+
+h4,
+h5 {
+  font-size: 11pt;
+  font-weight: bold;
+  margin-top: 10pt;
+}
+
+p,
+li {
+  text-align: justify;
+}
+
+code {
+  font-family: "DejaVu Sans Mono", "Consolas", "Liberation Mono", monospace;
+  font-size: 9.5pt;
+  background-color: #f6f6f6;
+  padding: 1pt 3pt;
+  border-radius: 2pt;
+}
+
+pre {
+  font-family: "DejaVu Sans Mono", "Consolas", "Liberation Mono", monospace;
+  font-size: 9pt;
+  background-color: #f8f8f8;
+  border: 0.5pt solid #ddd;
+  padding: 8pt;
+  overflow-x: auto;
+  margin: 8pt 0;
+  line-height: 1.3;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 10pt auto;
+  font-size: 9.5pt;
+}
+
+th,
+td {
+  border: 0.5pt solid #444;
+  padding: 4pt 6pt;
+  text-align: left;
+}
+
+th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+blockquote {
+  border-left: 2pt solid #666;
+  margin: 8pt 0;
+  padding-left: 10pt;
+  color: #444;
+  font-style: italic;
+}
+
+hr {
+  border: none;
+  border-top: 0.5pt solid #666;
+  margin: 14pt 0;
+}
+
+a {
+  color: #0033aa;
+  text-decoration: none;
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Title block */
+h1 + p {
+  text-align: center;
+  margin: 2pt 0;
+  font-style: italic;
+}
+
+/* Make lists compact */
+ul,
+ol {
+  margin-top: 4pt;
+  margin-bottom: 6pt;
+}
+
+/* Caption-like for tables/figures in MD */
+p strong {
+  font-weight: bold;
+}
+
+/* Reduce top margin on first elements after title */
+h1 + * {
+  margin-top: 4pt;
+}

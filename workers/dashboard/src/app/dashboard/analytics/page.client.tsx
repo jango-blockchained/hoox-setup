@@ -6,14 +6,14 @@ import { WorkerPerformance } from "@/components/dashboard/analytics/worker-perfo
 import { ApiStats } from "@/components/dashboard/analytics/api-stats";
 import { SignalOutcomes } from "@/components/dashboard/analytics/signal-outcomes";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { BarChart3 } from "lucide-react";
+import { Chart } from "reicon-react";
 import { Suspense } from "react";
 
 export default function AnalyticsClient() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        icon={<BarChart3 className="h-8 w-8 text-primary" />}
+        icon={<Chart className="h-8 w-8 text-primary" />}
         title="Analytics"
         description="Monitor trading system performance, API calls, and signal outcomes"
       />

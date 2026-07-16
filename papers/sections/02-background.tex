@@ -7,7 +7,7 @@ A typical VPS deployment suffers from three structural problems:
 
 \paragraph{Latency.} Consider a TradingView alert fired in London. The alert may travel to a VPS in Virginia (${\approx}85$\,ms), undergo runtime initialization (${\approx}10$\,ms), and then reach an exchange API in Frankfurt or Tokyo (an additional 100--150\,ms). Total transit latency exceeds 200\,ms before order matching~\cite{hasbrouck2007empirical}. TradingView's own webhook delivery often adds 1--5\,s of upstream delay; edge optimization reduces only the \emph{execution segment} after the alert arrives at \texttt{hoox}.
 
-\paragraph{Cost and operations.} Always-on servers incur monthly fees, require patching and monitoring, and demand explicit scaling logic. Container-based bots additionally suffer cold-start delays of 1--15\,s after idle periods.
+\paragraph{Cost and operations.} Always-on servers incur monthly fees, require patching and monitoring, and demand explicit scaling logic. Container-based bots additionally suffer cold-start delays of 1--15\,s after idle periods~\cite{wang2018peeking,lloyd2018serverless}.
 
 \paragraph{Reliability.} A single VPS is a single point of failure. Network partitions or provider outages can prevent order execution during critical market moves.
 
@@ -18,9 +18,9 @@ Cloudflare Workers execute JavaScript and WebAssembly in V8 isolates with a 128\
 \begin{itemize}
   \item \textbf{Service Bindings:} Direct \texttt{fetch} calls between Workers with microsecond-scale overhead and no public HTTP exposure~\cite{cloudflare-service-bindings}.
   \item \textbf{Smart Placement:} Automatic relocation of Worker execution to the data center nearest outbound dependencies (e.g., exchange APIs)~\cite{cloudflare-smart-placement}.
-  \item \textbf{Durable Objects:} Strongly consistent, single-threaded stateful objects with SQLite-backed storage, suitable for distributed mutexes~\cite{cloudflare-durable-objects}.
+  \item \textbf{Durable Objects:} Strongly consistent, single-threaded stateful objects with SQLite-backed storage, suitable for distributed mutexes and duplicate suppression~\cite{cloudflare-durable-objects}.
   \item \textbf{Queues:} At-least-once delivery with configurable retries and dead-letter queues~\cite{cloudflare-queues}.
   \item \textbf{Vectorize, Workers AI, Browser Rendering:} Vector search for retrieval-augmented generation (RAG), on-edge inference, and headless PDF generation.
 \end{itemize}
 
-These primitives enable a design point distinct from both long-running VPS bots~\cite{freqtrade,jesse} and regional serverless deployments~\cite{aws-lambda-trading,baldini2017serverless}: a globally distributed, serverless trading system with sub-50\,ms production signal-to-ack on the direct execution path under normal conditions.
+These primitives enable a design point distinct from both long-running VPS bots~\cite{freqtrade,jesse} and regional serverless deployments~\cite{baldini2017serverless}: a globally distributed, serverless trading system with sub-50\,ms production signal-to-ack on the direct execution path under normal conditions. Edge platforms more broadly have been analyzed in terms of their cost--performance trade-offs and isolation mechanisms~\cite{jonas2019berkeley,agache2020firecracker,shahrad2020serverless}; the design space explored here is a specific instance of that broader question applied to latency-sensitive financial control planes.

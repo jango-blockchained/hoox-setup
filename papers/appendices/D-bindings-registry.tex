@@ -10,7 +10,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
   \caption{Worker secret bindings (selected).}
   \label{tab:secrets}
   \small
-  \begin{tabular}{@{}llp{4.8cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.2cm}@{}}
     \toprule
     \textbf{Secret} & \textbf{Workers} & \textbf{Purpose} \\
     \midrule
@@ -22,7 +22,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
     \texttt{TG\_BOT\_TOKEN\_BINDING} & \texttt{telegram-worker} & Telegram Bot API \\
     \texttt{WALLET\_PK\_SECRET} & \texttt{web3-wallet-worker} & On-chain signing \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Service Bindings}
@@ -32,7 +32,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
   \caption{Service Binding graph.}
   \label{tab:service-bindings-full}
   \small
-  \begin{tabular}{@{}llp{5.5cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.5cm}@{}}
     \toprule
     \textbf{Binding} & \textbf{Target} & \textbf{Callers} \\
     \midrule
@@ -43,7 +43,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
     \texttt{AGENT\_SERVICE} & \texttt{agent-worker} & \texttt{dashboard} \\
     \texttt{WEB3\_WALLET\_SERVICE} & \texttt{web3-wallet-worker} & \texttt{hoox} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Storage and Coordination Bindings}
@@ -53,7 +53,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
   \caption{KV, R2, D1, Queue, and Durable Object bindings.}
   \label{tab:storage-bindings}
   \small
-  \begin{tabular}{@{}llp{5.2cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.5cm}@{}}
     \toprule
     \textbf{Binding} & \textbf{Resource} & \textbf{Primary consumers} \\
     \midrule
@@ -70,7 +70,7 @@ This appendix reproduces the canonical binding registry from the \textsc{HOOX} m
     \texttt{AI} & Workers AI & \texttt{agent-worker}, \texttt{telegram-worker}, \texttt{dashboard} \\
     \texttt{ANALYTICS\_ENGINE} & Dataset \texttt{hoox-analytics} & \texttt{analytics-worker} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \paragraph{Wrangler excerpts.} Listings~\ref{lst:wrangler-hoox-placement} and~\ref{lst:wrangler-trade-bindings} show how queue producers, consumers, and Durable Object migrations are declared. Account and namespace IDs are redacted for publication.

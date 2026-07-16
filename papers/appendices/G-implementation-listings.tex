@@ -1,0 +1,36 @@
+\section{Implementation Listings}
+\label{app:listings}
+
+The body of the paper uses only short, focused excerpts (typically ${<}40$ lines, often with line numbers suppressed) to illustrate specific mechanisms without disrupting reading flow. Complete or longer implementations appear here. Source files in \texttt{papers/listings/} and \texttt{workers/*} (and the monorepo) are authoritative; listings here are a manifest-pinned snapshot for reviewers and reproducibility.
+
+\paragraph{Provenance.} Listings~\ref{lst:idempotency-store}--\ref{lst:web3-validate-transaction} are extracted verbatim from the open-source repository at the tagged release corresponding to the evaluation window. The repository also includes unit and integration tests for each component (Appendix~\ref{app:tests}).
+
+\subsection*{Core execution path}
+
+\hooxlisting{lst:idempotency-store}{idempotencyStore.ts}{IdempotencyStore Durable Object (full implementation)}
+
+\hooxlisting{lst:queue-handler}{queue-handler.ts}{Shared queue handler with exponential backoff and DLQ hook}
+
+\hooxlisting{lst:process-trade}{process-trade.ts}{Gateway trade dispatch (idempotency, queue, binding)}
+
+\hooxlisting{lst:exchange-router}{exchange-router.ts}{Dynamic exchange routing via CONFIG\_KV}
+
+\hooxlisting{lst:execute-trade-risk}{execute-trade-risk.ts}{Risk management and REST order placement}
+
+\hooxlisting{lst:risk-kv-parse}{risk-kv-parse.ts}{Parallel KV risk reads with NaN-safe leverage/size parsing}
+
+\subsection*{WebSocket amortization}
+
+\hooxlisting{lst:ws-amortization}{ws-amortization.ts}{ExchangeConnectionManager: request/response correlation and alarm-driven reconnect}
+
+\subsection*{Security and secondary ingress}
+
+\hooxlisting{lst:mailgun-signature}{mailgun-signature.ts}{Mailgun webhook HMAC-SHA256 verification}
+
+\hooxlisting{lst:binance-signature}{binance-signature.ts}{Binance futures client authenticated request signing}
+
+\subsection*{Autonomous agent and Web3}
+
+\hooxlisting{lst:agent-trailing-stop}{agent-trailing-stop.ts}{Batched mark prices, KV watermarks, trailing-stop trigger}
+
+\hooxlisting{lst:web3-validate-transaction}{web3-validate-transaction.ts}{On-chain transfer guards: max USD, whitelist, enabled flag}

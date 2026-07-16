@@ -99,7 +99,7 @@ When a signal hits your public endpoint, the **`hoox` gateway** interceptor imme
 
 Once validated, the gateway bypasses public internet routing and calls the internal **`trade-worker`** directly via **Service Bindings**:
 
-- **Zero Latency**: Communication occurs within a microsecond inside the V8 engine, with zero TCP handshakes or TLS decryption overhead.
+- **Low Latency**: Communication occurs within a microsecond inside the V8 engine, with zero TCP handshakes or TLS decryption overhead.
 - **Private Isolation**: The `trade-worker` does not expose any public URL, remaining completely isolated from external attacks.
 - **Dynamic Exchange Routing**: The worker parses the symbol (e.g. `BTCUSDT`) and evaluates your KV config. If Bybit is undergoing maintenance, you can instantly redirect trades to MEXC or Binance with one command.
 

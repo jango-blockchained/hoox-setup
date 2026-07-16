@@ -24,6 +24,7 @@ export default [
       ".agents/",
       ".worktrees/",
       "packages/shared/scripts/",
+      "papers/scripts/",
       "workers/pine-worker/src/parser/PinescriptLexer.ts",
       "workers/pine-worker/src/parser/PinescriptParser.ts",
       "workers/pine-worker/src/parser/PinescriptParserVisitor.ts",

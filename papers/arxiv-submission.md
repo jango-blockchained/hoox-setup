@@ -18,7 +18,7 @@ Full monograph source: `hoox-arxiv-paper.tex`
 ## Title
 
 ```
-HOOX: An Edge-Native Algorithmic Trading Framework on the Cloudflare Workers Platform
+HOOX: An Edge-Native Algorithmic Trading Framework on Cloudflare Workers
 ```
 
 ---
@@ -133,10 +133,12 @@ figures/graph-overview.pdf
 ## Open Core Model & Enterprise Note
 
 HOOX uses an **Open Core** model:
+
 - Core architecture, most code, CLI, and documentation are open source (Apache-2.0 for code, CC-BY-4.0 for docs).
 - Advanced institutional features (full multi-tenancy SaaS platform, proprietary risk models, compliance pipelines, etc.) are part of the closed-source **HOOX Enterprise** offering under a commercial license.
 
 See:
+
 - `OPEN_CORE.md`
 - `OPEN_CORE_FEATURE_SPLIT.md`
 - `docs/devops/enterprise/`
@@ -162,6 +164,13 @@ make pdf-tikz
 # or
 make listings graph-tables figures && make pdf
 
+# Full tarball:
+make arxiv-tarball
+# → papers/dist/hoox-arxiv-submission.tar.gz  (or core equivalent)
+```
+
+After building the core, inspect the produced PDF page count and trim any accidentally pulled heavy content.
+
 ---
 
 ## Proof-of-Concept companion document (new)
@@ -185,14 +194,6 @@ pdflatex hoox-proof-of-concept
 ```
 
 The Markdown version can be re-rendered to PDF using `md-to-pdf` + the accompanying `hoox-poc-academic.css` if desired.
-
-
-# Full tarball:
-make arxiv-tarball
-# → papers/dist/hoox-arxiv-submission.tar.gz  (or core equivalent)
-```
-
-After building the core, inspect the produced PDF page count and trim any accidentally pulled heavy content.
 
 ---
 

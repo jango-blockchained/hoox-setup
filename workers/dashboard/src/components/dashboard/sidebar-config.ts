@@ -1,20 +1,7 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  LayoutDashboard,
-  TrendingUp,
-  GitBranch,
-  BarChart3,
-  ScrollText,
-  Radio,
-  Bell,
-  FileText,
-  Database,
-  Brain,
-  Wrench,
-  Settings,
-  HelpCircle,
-  Search,
-} from "lucide-react";
+import { HooxIconName } from "@/components/ui/hoox-icon";
+
+// Use semantic icon names from the Hoox registry for consistency
+type Icon = HooxIconName;
 
 // --- Types ---
 
@@ -26,43 +13,47 @@ export interface NavChildItem {
 export interface NavItem {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: Icon;
   children?: NavChildItem[];
 }
 
 export interface NavFooterItem {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: Icon;
   external?: boolean;
 }
 
 // --- Primary Navigation ---
 
 export const primaryNavItems: NavItem[] = [
-  { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Positions", href: "/dashboard/positions", icon: TrendingUp },
-  { title: "Signal Flow", href: "/dashboard/signal-flow", icon: GitBranch },
-  { title: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Overview", href: "/dashboard", icon: "overview" },
+  { title: "Positions", href: "/dashboard/positions", icon: "positions" },
+  { title: "Signal Flow", href: "/dashboard/signal-flow", icon: "signalFlow" },
+  { title: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
 ];
 
 // --- Monitoring ---
 
 export const monitoringNavItems: NavItem[] = [
-  { title: "Logs", href: "/dashboard/logs", icon: ScrollText },
-  { title: "Signals", href: "/dashboard/signals", icon: Radio },
-  { title: "Notifications", href: "/dashboard/notifications", icon: Bell },
-  { title: "Reports", href: "/dashboard/reports", icon: FileText },
+  { title: "Logs", href: "/dashboard/logs", icon: "logs" },
+  { title: "Signals", href: "/dashboard/signals", icon: "signals" },
+  {
+    title: "Notifications",
+    href: "/dashboard/notifications",
+    icon: "notifications",
+  },
+  { title: "Reports", href: "/dashboard/reports", icon: "reports" },
 ];
 
 // --- System ---
 
 export const systemNavItems: NavItem[] = [
-  { title: "Database", href: "/dashboard/database", icon: Database },
+  { title: "Database", href: "/dashboard/database", icon: "database" },
   {
     title: "Agent",
     href: "/dashboard/agent",
-    icon: Brain,
+    icon: "agent",
     children: [
       { title: "Overview", href: "/dashboard/agent" },
       { title: "Chat", href: "/dashboard/agent/chat" },
@@ -73,7 +64,7 @@ export const systemNavItems: NavItem[] = [
       { title: "Usage", href: "/dashboard/agent/usage" },
     ],
   },
-  { title: "Settings", href: "/dashboard/settings", icon: Settings },
+  { title: "Settings", href: "/dashboard/settings", icon: "settings" },
 ];
 
 // --- Footer ---
@@ -82,14 +73,14 @@ export const footerNavItems: NavFooterItem[] = [
   {
     title: "Get Help",
     href: "https://github.com/jango-blockchained/hoox-setup/issues",
-    icon: HelpCircle,
+    icon: "help",
     external: true,
   },
-  { title: "Setup", href: "/dashboard/setup", icon: Wrench },
+  { title: "Setup", href: "/dashboard/setup", icon: "setup" },
   {
     title: "Search",
     href: "#",
-    icon: Search,
+    icon: "search",
   },
 ];
 

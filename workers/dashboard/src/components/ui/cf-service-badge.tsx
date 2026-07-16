@@ -1,18 +1,5 @@
 import * as React from "react";
 import {
-  AppWindow,
-  Braces,
-  Box,
-  Cable,
-  Cpu,
-  Database,
-  Layers,
-  ListTree,
-  type LucideIcon,
-  Share2,
-  Shield,
-} from "lucide-react";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -20,6 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { HooxIcon, HooxIconName } from "@/components/ui/hoox-icon";
 
 export type CFServiceType =
   | "D1"
@@ -44,7 +32,7 @@ export interface CFServiceDef {
   name: string;
   description: string;
   category: CFServiceCategory;
-  icon: LucideIcon;
+  icon: HooxIconName;
 }
 
 export const CF_SERVICES: Record<CFServiceType, CFServiceDef> = {
@@ -52,61 +40,61 @@ export const CF_SERVICES: Record<CFServiceType, CFServiceDef> = {
     name: "D1",
     description: "Serverless SQL Database",
     category: "Data",
-    icon: Database,
+    icon: "database",
   },
   KV: {
     name: "KV",
     description: "Global Key-Value Store",
     category: "Data",
-    icon: Braces,
+    icon: "chart", // using chart as proxy for key-value / data
   },
   R2: {
     name: "R2",
     description: "Object Storage",
     category: "Data",
-    icon: Box,
+    icon: "cloud",
   },
   Queues: {
     name: "Queues",
     description: "Message Queuing",
     category: "Messaging",
-    icon: ListTree,
+    icon: "signalFlow", // branch/flow for queuing
   },
   "Workers AI": {
     name: "Workers AI",
     description: "Serverless GPU Inference",
     category: "Compute",
-    icon: Cpu,
+    icon: "agent",
   },
   Vectorize: {
     name: "Vectorize",
     description: "Vector Database",
     category: "Data",
-    icon: Share2,
+    icon: "chart",
   },
   "Durable Objects": {
     name: "Durable Objects",
     description: "Strong Consistency & State",
     category: "Compute",
-    icon: Layers,
+    icon: "shield",
   },
   "Rate Limiting": {
     name: "Rate Limiting",
     description: "DDoS Protection & Traffic Control",
     category: "Network",
-    icon: Shield,
+    icon: "shield",
   },
   "Service Binding": {
     name: "Service Binding",
-    description: "Zero-Latency Worker-to-Worker Comm",
+    description: "Low-Latency Worker-to-Worker Comm",
     category: "Network",
-    icon: Cable,
+    icon: "network",
   },
   "Browser Rendering": {
     name: "Browser Rendering",
     description: "Headless Browser Automation",
     category: "Rendering",
-    icon: AppWindow,
+    icon: "eye",
   },
 };
 
@@ -129,7 +117,6 @@ export function CFServiceBadge({
 }: CFServiceBadgeProps) {
   const def = CF_SERVICES[service];
   if (!def) return null;
-  const Icon = def.icon;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -146,9 +133,10 @@ export function CFServiceBadge({
                 : "h-6 gap-1.5 px-2 text-[11px] font-normal"
             )}
           >
-            <Icon
-              strokeWidth={1.5}
-              className={cn(mini ? "size-3" : "size-3.5")}
+            <HooxIcon
+              name={def.icon}
+              size={mini ? "xs" : "sm"}
+              className="text-current"
             />
             <span className="tracking-tight whitespace-nowrap">{def.name}</span>
           </Badge>

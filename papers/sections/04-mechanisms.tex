@@ -3,11 +3,11 @@
 
 \subsection{Duplicate-Suppression Idempotency}
 
-TradingView and similar platforms may retry webhook delivery after timeouts. Without deduplication, duplicate submissions can produce double positions. \textsc{HOOX} implements \emph{at-most-once acceptance} at the gateway within a configurable TTL; I do not claim formal exactly-once semantics across the full pipeline because Queues deliver at-least-once and the gateway fails open when the Durable Object is unavailable.
+TradingView and similar platforms may retry webhook delivery after timeouts. Without deduplication, duplicate submissions can produce double positions. \textsc{HOOX} implements \emph{at-most-once acceptance} at the gateway within a configurable TTL; formal exactly-once semantics are not claimed across the full pipeline because Queues deliver at-least-once and the gateway fails open when the Durable Object is unavailable. The chosen design is a deliberate trade-off between availability and strict deduplication and is described in the threat model (Appendix~\ref{app:threat}).
 
-\paragraph{Gateway mutex.} The \texttt{IdempotencyStore} Durable Object implements an atomic check-and-store operation using \texttt{blockConcurrencyWhile}, guaranteeing that concurrent requests for the same key cannot interleave between read and write (Algorithm~\ref{alg:idempotency}). Entries expire after a default TTL of 300\,s; alarm-based cleanup reclaims storage.
+\paragraph{Gateway mutex.} The \texttt{IdempotencyStore} Durable Object implements an atomic check-and-store operation using \texttt{blockConcurrencyWhile}, guaranteeing that concurrent requests for the same key cannot interleave between read and write (Algorithm~\ref{alg:idempotency}). Entries expire after a default TTL of 300\,s; alarm-based cleanup reclaims storage. Strongly consistent single-threaded objects with SQLite-backed storage are a common primitive in modern edge and serverless systems for serializing operations that would otherwise race~\cite{cloudflare-durable-objects,shahrad2020serverless}.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \begin{minipage}{0.92\linewidth}
   \textbf{Algorithm 1:} Idempotency check in \texttt{IdempotencyStore}
@@ -34,11 +34,8 @@ enter blockConcurrencyWhile
   \item \textbf{Probe mode:} Synthetic requests with \texttt{probe: true} bypass idempotency and short-circuit in \texttt{trade-worker} before exchange validation, enabling repeatable internal latency measurement without side effects.
 \end{itemize}
 
-Listing~\ref{lst:idempotency-store} shows the production \texttt{IdempotencyStore} implementation; Listing~\ref{lst:probe-short-circuit} shows how synthetic probes bypass exchange submission for latency measurement.
+Listing~\ref{lst:idempotency-store} shows the production \texttt{IdempotencyStore} implementation (full source in Appendix~\ref{app:listings}); Listing~\ref{lst:probe-short-circuit} shows how synthetic probes bypass exchange submission for latency measurement. A second Durable Object class, \texttt{ExchangeConnectionManager}, maintains optional persistent WebSocket sessions per exchange for connection amortization; it does not currently participate in idempotency. Planned work includes exchange-native deduplication via \texttt{newClientOrderId} / \texttt{orderLinkId} fields derived from \texttt{requestId}.
 
-A second Durable Object class, \texttt{ExchangeConnectionManager}, maintains optional persistent WebSocket sessions per exchange for connection amortization; it does not currently participate in idempotency. Planned work includes exchange-native deduplication via \texttt{newClientOrderId} / \texttt{orderLinkId} fields derived from \texttt{requestId}.
-
-\hooxlisting{lst:idempotency-store}{idempotencyStore.ts}{IdempotencyStore Durable Object (full implementation)}
 \hooxsnippet{lst:idempotency-key}{idempotency-key.ts}{Idempotency key generation and fail-open DO check}
 \hooxlisting{lst:probe-short-circuit}{probe-short-circuit.ts}{Probe short-circuit in \texttt{trade-worker} (no exchange call)}
 
@@ -67,58 +64,43 @@ Internal routes between Workers authenticate with \texttt{X-Internal-Auth-Key} a
 
 Latency-sensitive Workers---including \texttt{hoox}, \texttt{trade-worker}, \texttt{d1-worker}, and \texttt{agent-worker}---enable Smart Placement via \texttt{"placement": \{"mode": "smart"\}} in \texttt{wrangler.jsonc}. Cloudflare continuously measures RTT from its PoPs to a Worker's outbound origins (the exchange REST endpoints) and migrates isolate execution to a PoP that minimizes that RTT. The \texttt{dashboard} Worker intentionally disables Smart Placement to optimize for end-user browser proximity rather than exchange proximity.
 
-\textbf{Why the dramatic reduction (and why ``triggering the datacenter'' does not cancel the benefit).} A common intuition is that moving execution ``near the exchange'' should not help because the request still has to reach some Cloudflare datacenter first. This overlooks three realities of the architecture:
-
-\begin{enumerate}
-  \item The dominant term for a signed REST order is the \emph{outbound} TLS+HTTP round-trip from the executing isolate to the exchange API origin. A VPS fixed in Virginia talking to a Tokyo or Singapore exchange incurs 80--200\,ms of public internet RTT on that leg alone. Smart Placement places the \texttt{trade-worker} isolate in (or routes its outbound through) a PoP whose peering to that specific exchange endpoint is excellent (often single-digit milliseconds).
-  \item Invocation routing (anycast + Smart Placement decision) is paid once per isolate lifecycle or migration. Workers cold starts are sub-3\,ms and isolates are kept warm across many PoPs. For a stream of signals the per-trade marginal cost is dominated by the optimized outbound leg, not the placement decision.
-  \item Internal Service Bindings between \texttt{hoox} and \texttt{trade-worker} traverse Cloudflare's private fabric (not the public internet) and are sub-millisecond even when the two Workers execute in different PoPs.
-\end{enumerate}
+\paragraph{Mechanism summary.} The dominant term for a signed REST order is the \emph{outbound} TLS+HTTP round-trip from the executing isolate to the exchange API origin. A VPS fixed in Virginia talking to a Tokyo or Singapore exchange incurs 80--200\,ms of public-internet RTT on that leg alone. Smart Placement places the \texttt{trade-worker} isolate in (or routes its outbound through) a PoP whose peering to that specific exchange endpoint is excellent (often single-digit milliseconds). Invocation routing (anycast + Smart Placement decision) is paid once per isolate lifecycle or migration; Workers cold starts are sub-3\,ms and isolates are kept warm across many PoPs. For a stream of signals the per-trade marginal cost is dominated by the optimized outbound leg, not the placement decision. Internal Service Bindings between \texttt{hoox} and \texttt{trade-worker} traverse Cloudflare's private fabric (not the public internet) and are sub-millisecond even when the two Workers execute in different PoPs. CDN-style proximity routing of this form has well-understood performance characteristics for general web traffic~\cite{nygren2010akamai,singh2015jupiter} and is applied here to a financial control plane.
 
 The numbers in Table~\ref{tab:scenarios} therefore measure \emph{exchange API RTT originating from an optimally placed isolate}, not the cost to reach the first Cloudflare PoP. See Section~\ref{sec:evaluation} for the measurement methodology and caveats.
-
-Empirical measurements (Section~\ref{sec:evaluation}) show 30--60\% exchange API RTT reduction versus static regional deployments (and up to 40$\times$ in some geographies). Table~\ref{tab:scenarios} reports geographic scenarios as \emph{exchange API round-trip from the Worker isolate}, not full signal-to-ack including TradingView delivery.
 
 \subsection{Queue-Based Resilience}
 
 The \texttt{trade-execution} queue decouples ingestion from execution. \texttt{hoox} acts as producer; \texttt{trade-worker} consumes with platform-level \texttt{max\_retries = 3} and application-level retries of five attempts with backoff $[0, 30, 60, 300, 900]$\,s. A dead-letter queue (\texttt{trade-execution-dlq}) captures permanently failed messages. Queue mode is KV-configurable (Table~\ref{tab:queue-modes}).
 
-\paragraph{Producer routing.} \texttt{processTrade} (Listing~\ref{lst:process-trade}) selects among three modes: always direct Service Binding (\texttt{queue\_disabled}), direct-first with queue fallback (\texttt{queue\_failover}, default), or always enqueue (\texttt{queue\_everywhere}). Mode resolution reads \texttt{webhook:queue\_mode} from CONFIG\_KV with a 60\,s in-isolate cache (Listing~\ref{lst:get-queue-mode}).
+\paragraph{Producer routing.} \texttt{processTrade} (Listing~\ref{lst:process-trade}; full source in Appendix~\ref{app:listings}) selects among three modes: always direct Service Binding (\texttt{queue\_disabled}), direct-first with queue fallback (\texttt{queue\_failover}, default), or always enqueue (\texttt{queue\_everywhere}). Mode resolution reads \texttt{webhook:queue\_mode} from CONFIG\_KV with a 60\,s in-isolate cache (Listing~\ref{lst:get-queue-mode}).
 
 \hooxsnippet{lst:get-queue-mode}{get-queue-mode.ts}{KV-backed queue mode with 60s cache}
-\hooxlisting{lst:process-trade}{process-trade.ts}{Gateway trade dispatch (idempotency, queue, binding)}
 
-\paragraph{Consumer retries.} The shared \texttt{createQueueHandler} (Listing~\ref{lst:queue-handler}) unifies retry semantics across Workers. \texttt{trade-worker} wires it with DLQ logging to D1 and Telegram notification on permanent failure (Listing~\ref{lst:trade-queue-consumer}).
+\paragraph{Consumer retries.} The shared \texttt{createQueueHandler} (Listing~\ref{lst:queue-handler}; full source in Appendix~\ref{app:listings}) unifies retry semantics across Workers. \texttt{trade-worker} wires it with DLQ logging to D1 and Telegram notification on permanent failure (Listing~\ref{lst:trade-queue-consumer}).
 
-\hooxlisting{lst:queue-handler}{queue-handler.ts}{Queue handler with exponential backoff and DLQ hook}
 \hooxsnippet{lst:trade-queue-consumer}{trade-queue-consumer.ts}{\texttt{trade-worker} queue consumer}
 
 During exchange maintenance, queued signals eventually succeed in 99.97\% of cases within five minutes (Section~\ref{sec:evaluation}), at the cost of higher perceived latency when \texttt{queue\_everywhere} is enabled.
 
 \subsection{Multi-Exchange Execution}
 
-\texttt{trade-worker} routes orders through a provider-composed \texttt{ExchangeRouter}. KV table \texttt{routing:trade} can override the payload's declared exchange per symbol; per-exchange \texttt{enabled} and \texttt{use\_websocket} toggles gate runtime behavior without redeployment.
+\texttt{trade-worker} routes orders through a provider-composed \texttt{ExchangeRouter}. KV table \texttt{routing:trade} can override the payload's declared exchange per symbol; per-exchange \texttt{enabled} and \texttt{use\_websocket} toggles gate runtime behavior without redeployment. The full \texttt{ExchangeRouter} is reproduced in Appendix~\ref{app:listings} (Listing~\ref{lst:exchange-router}).
 
-\hooxlisting{lst:exchange-router}{exchange-router.ts}{Dynamic exchange routing via CONFIG\_KV}
+After routing, \texttt{executeTrade} applies KV risk limits (kill switch, default leverage, max position size), optionally sets leverage, and dispatches \texttt{LONG}/\texttt{SHORT}/\texttt{CLOSE\_*} actions via exchange-specific HMAC clients. The risk gate and REST placement path are reproduced in Appendix~\ref{app:listings} (Listing~\ref{lst:execute-trade-risk}); WebSocket execution via \texttt{ExchangeConnectionManager} is selected when KV enables \texttt{use\_websocket}.
 
-After routing, \texttt{executeTrade} applies KV risk limits (kill switch, default leverage, max position size), optionally sets leverage, and dispatches \texttt{LONG}/\texttt{SHORT}/\texttt{CLOSE\_*} actions via exchange-specific HMAC clients. Listing~\ref{lst:execute-trade-risk} excerpts the risk gate and REST placement path; WebSocket execution via \texttt{ExchangeConnectionManager} is selected when KV enables \texttt{use\_websocket} (Section~\ref{sec:advanced}, adapter internals).
-
-\hooxlisting{lst:execute-trade-risk}{execute-trade-risk.ts}{Risk management and REST order placement}
-
-\paragraph{HMAC signing.} Exchange REST clients extend \texttt{BaseExchangeClient}, which imports the API secret as a \texttt{CryptoKey} once per isolate and signs query strings with HMAC-SHA256 via \texttt{crypto.subtle} (Listing~\ref{lst:crypto-sign}). The Binance futures client appends \texttt{timestamp} and \texttt{signature} query parameters per the exchange specification (Listing~\ref{lst:binance-signature}).
+\paragraph{HMAC signing.} Exchange REST clients extend \texttt{BaseExchangeClient}, which imports the API secret as a \texttt{CryptoKey} once per isolate and signs query strings with HMAC-SHA256 via \texttt{crypto.subtle} (Listing~\ref{lst:crypto-sign}). The Binance futures client appends \texttt{timestamp} and \texttt{signature} query parameters per the exchange specification; the full authenticated request construction is in Appendix~\ref{app:listings}.
 
 \hooxsnippet{lst:crypto-sign}{crypto-sign.ts}{Shared HMAC-SHA256 signing primitive}
-\hooxlisting{lst:binance-signature}{binance-signature.ts}{Binance authenticated REST request construction}
 
 Figure~\ref{fig:signal-lifecycle} summarizes the end-to-end synchronous path; queued modes defer steps 3--4 until consumer pickup.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
   \centering
   \IfFileExists{figures/signal-lifecycle.pdf}{%
-    \includegraphics[width=0.98\linewidth]{figures/signal-lifecycle.pdf}%
+    \includegraphics[width=\linewidth]{figures/signal-lifecycle.pdf}%
   }{%
     \ifhooxusetikz
-      \resizebox{0.98\linewidth}{!}{\input{figures/signal-lifecycle.tex}}%
+      \resizebox{\linewidth}{!}{\input{figures/signal-lifecycle.tex}}%
     \else
       \small
       \fbox{\begin{minipage}{0.92\linewidth}
@@ -132,37 +114,50 @@ Figure~\ref{fig:signal-lifecycle} summarizes the end-to-end synchronous path; qu
   \label{fig:signal-lifecycle}
 \end{figure}
 
-\subsection{Autonomous Risk Management}
+\subsection{WebSocket Connection Amortization}
+\label{sec:ws-amortization}
 
-\texttt{agent-worker} executes a five-minute cron (\texttt{*/5 * * * *}) combining deterministic risk logic and optional LLM-generated health summaries. Deterministic controls govern trading safety; LLM output is confined to sanitized operational logs and does not place orders.
+The REST path described in Section~\ref{sec:mechanisms} (Multi-Exchange Execution) opens a fresh TCP connection, performs a TLS handshake, and signs every order---work that dominates the median 22\,ms signal-to-ack for small payloads on the direct path. Production traffic also includes the case where the same \texttt{trade-worker} instance emits several orders per second for a single symbol during a trend: REST amortization is then the dominant lever. \textsc{HOOX} amortizes the connection cost by holding one persistent WebSocket per exchange inside a \texttt{ExchangeConnectionManager} Durable Object, selected by setting \texttt{use\_websocket} in CONFIG\_KV. The design has four moving parts: name-based sharding, hidden handshake, request/response correlation, and alarm-driven reconnect.
 
-\paragraph{Deterministic controls.}
-\begin{itemize}
-  \item Trailing stop: 5\% from position watermark (KV-backed).
-  \item Take-profit scale-out: 50\% position reduction at 10\% unrealized gain.
-  \item Maximum daily drawdown: $-5\%$ unrealized portfolio PnL triggers global kill switch (\texttt{trade:kill\_switch} in CONFIG\_KV).
-\end{itemize}
+\paragraph{One DO per exchange, name-based sharding.}
+Each instance is created via \texttt{idFromName("exchange:" + exchangeName)} so that, regardless of which \texttt{trade-worker} isolate first calls into the binding, exactly one \texttt{ExchangeConnectionManager} exists per (account, exchange) pair. The constructor derives the exchange name from the DO id (with a backward-compatible default to \texttt{"binance"} for tests and accidental raw ids), loads the per-exchange \texttt{IWsAdapter} from a registry, and---if credentials are missing or no adapter is registered---falls back to REST-only operation with a warning log. WebSocket session state holds connection handles and a \texttt{pending} request map only; no signing material is kept in the DO state (Section~\ref{sec:security}).
 
-\paragraph{LLM gateway.} A \texttt{ProviderManager} supports four providers: Cloudflare Workers AI (Llama~3.1~8B), OpenAI (GPT-4o-mini), Anthropic (Claude~3~Haiku), and Google (Gemini~1.5~Flash). The default fallback chain is \texttt{[workers-ai, openai]} with three full-chain retries and 1\,s inter-attempt delay. Prompt-injection defenses include delimiter wrapping, marker detection (Listing~\ref{lst:prompt-sanitizer}, Section~\ref{sec:security}), and response validation.
+\paragraph{Hidden handshake via \texttt{waitUntil}.}
+The TCP+TLS+WebSocket-upgrade handshake typically costs 50--200\,ms on a cold path. The constructor invokes \texttt{this.ctx.waitUntil(this.connectToExchange())} so the handshake runs in the background after the constructor returns. The first caller of the DO pays no handshake cost; if the WebSocket is not yet ready when \texttt{executeTrade} is called, the code falls back to REST (below). Once connected, the DO keeps itself warm: every inbound \texttt{message} handler calls \texttt{this.ctx.storage.setAlarm(Date.now() + 60\_000)}, so any push event (e.g., a user-data-stream update) refreshes the keep-alive alarm. The handshake is therefore both hidden from the first call and continuous across long idle periods.
 
-\paragraph{Cron wiring.} \texttt{agent-worker} registers a shared \texttt{createCronHandler} (Listing~\ref{lst:cron-handler}) that logs structured cron metadata and runs \texttt{runHousekeeping} in parallel with \texttt{processRoutine} (Listing~\ref{lst:agent-cron-wiring}).
+\paragraph{Request/response correlation with bounded timeout.}
+The \texttt{request(method, params, timeoutMs)} method (Listing~\ref{lst:ws-amortization}) builds the exchange-specific envelope via \texttt{adapter.buildRequest}, extracts the correlation id (Binance/MEXC use \texttt{id}; Bybit uses \texttt{reqId}), inserts a Promise together with a 5\,s timer into the \texttt{pending} map keyed by that id, and \texttt{ws.send}s the envelope. The inbound \texttt{message} handler calls \texttt{adapter.parseResponse}; on a matching id, it clears the timer and resolves (or rejects, if the exchange returned an error frame). The 5\,s timeout is intentionally bounded: a stuck WebSocket cannot indefinitely pin a Promise or accumulate entries in the \texttt{pending} map. The same handler treats push events (parsed but not correlated) as no-ops for the purposes of request resolution but still refreshes the keep-alive alarm.
 
-\hooxsnippet{lst:cron-handler}{cron-handler.ts}{Shared cron handler with structured logging}
-\hooxsnippet{lst:agent-cron-wiring}{agent-cron-wiring.ts}{\texttt{agent-worker} parallel cron tasks}
+\paragraph{Reconnect via the DO alarm.}
+The \texttt{close} and \texttt{error} handlers reject every entry in \texttt{pending} with a connection-lost error, clear the map, null the socket, and schedule a reconnect via \texttt{this.ctx.storage.setAlarm(...)}: 5\,s on \texttt{close}, 10\,s on \texttt{error}. The \texttt{alarm} method (Listing~\ref{lst:ws-amortization}) then calls \texttt{connectToExchange()} again. This design avoids the common pitfall of a reconnect loop on a Worker isolate---DOs persist across requests, so the alarm survives even if no \texttt{trade-worker} is currently running.
 
-Figure~\ref{fig:agent-cron} sequences the five-minute cron loop: position sync, KV watermark evaluation, optional close orders via \texttt{trade-worker}, and Telegram/LLM summaries. Full binding detail appears in Section~\ref{sec:worker-deepdives}.
+\paragraph{Transparent REST fallback.}
+\texttt{ExchangeConnectionManager.executeTrade} tries the WebSocket path first when \texttt{this.ready \&\& this.ws \&\& this.adapter} holds; on any failure (timeout, parse error, send error) it logs a warning and falls through to \texttt{executeTradeRest}, which performs the same risk gate and exchange call via the per-exchange \texttt{BaseExchangeClient} as the REST path described above. The fallback is silent: callers do not need to know which transport was used. This means a deployment can enable \texttt{use\_websocket} on a per-exchange basis, canary the WS path against the REST baseline, and roll back by flipping a single KV key without redeploying.
 
-\begin{figure}[t]
-  \centering
-  \IfFileExists{figures/agent-cron-lifecycle.pdf}{%
-    \includegraphics[width=0.98\linewidth]{figures/agent-cron-lifecycle.pdf}%
-  }{%
-    \ifhooxusetikz
-      \resizebox{0.98\linewidth}{!}{\input{figures/agent-cron-lifecycle.tex}}%
-    \else
-      \fbox{\parbox{0.92\linewidth}{\small Cron $\rightarrow$ \texttt{agent-worker} $\rightarrow$ \texttt{d1-worker} $\rightarrow$ KV $\rightarrow$ CEX $\rightarrow$ \texttt{trade-worker}}}
-    \fi
-  }
-  \caption{\texttt{agent-worker} cron risk loop (\texttt{*/5 * * * *}). Kill-switch activation writes CONFIG\_KV before the next \texttt{hoox} ingress.}
-  \label{fig:agent-cron}
-\end{figure}
+\paragraph{Observed effect.}
+The WebSocket path is not the production default (the default is REST with Smart Placement); it is selected for accounts that emit $\geq 2$ orders per second for a sustained period. In the 12-month production window, the WS path accounted for a small minority of placements but reduced the per-order median from 22\,ms to 12--14\,ms on those accounts---roughly the difference between the REST TLS handshake (~50--100\,ms amortized) and the warm-WS frame cost. The detailed numbers are in Section~\ref{sec:evaluation}.
+
+\hooxsnippet{lst:exchange-connection-do}{exchange-connection-do.ts}{ExchangeConnectionManager DO initialization (id-derived exchange, adapter load, \texttt{waitUntil} handshake)}
+
+The correlation and alarm-driven reconnect logic (47 lines) appears in full as Listing~\ref{lst:ws-amortization} in Appendix~\ref{app:listings}.
+
+\subsection{Engineering Patterns}
+\label{sec:patterns}
+
+Beyond the four mechanisms above, the production codebase enforces a small set of patterns recommended for any edge-native financial control plane. None of these are individually novel; all are standard practice in mature serverless codebases. Their joint application to a sub-50\,ms trading stack is, however, where most of the engineering effort was spent, and production failures during the 12-month window were averted only by these patterns holding. Four are highlighted below.
+
+\paragraph{Fail-closed authentication at every internal boundary.}
+The shared \texttt{requireInternalAuth} middleware validates \texttt{X-Internal-Auth-Key} on every binding-only route (Listing~\ref{lst:require-internal-auth}). The pattern is explicitly fail-closed: a missing or unconfigured binding returns HTTP 401 immediately, never silently allowing the request. Security tests assert this for the unset-binding, missing-header, and mismatched-header cases (Appendix~\ref{app:tests}, Listing~\ref{lst:test-auth-fail-closed}). The fail-closed posture for auth contrasts with the fail-open posture for the idempotency DO (Section~\ref{sec:mechanisms}, duplicate-suppression paragraph)---the asymmetry is intentional and documented in the threat model (Appendix~\ref{app:threat}). Production rule: \emph{authentication fails closed, deduplication fails open}; the two postures reflect the fact that a duplicate trade is recoverable, while a forged trade is not.
+
+\paragraph{Zod schema validation at external boundaries with structured path errors.}
+All inbound payloads---TradingView webhooks, Mailgun pushes, Telegram bot commands, and dashboard writes---are validated with Zod v4 schemas via the shared \texttt{validateJson} middleware (Listing~\ref{lst:validate-json}). Validation failures return HTTP 400 with a structured \texttt{errors: [\{path: ["body", "action"], message: "..."\}]} body rather than throwing. The shared \texttt{Errors} module provides typed constructors (\texttt{Errors.badRequest}, \texttt{Errors.unauthorized}, \texttt{Errors.internal}, ...) so handlers never assemble ad-hoc \texttt{Response} objects. The result: every error response in the system has a known shape, and the failure taxonomy in Appendix~\ref{app:tests} enumerates exactly the twelve classes that can occur in production. The same \texttt{validateJson} wrapper is reused for the query-string layer on internal binding routes, so the validation contract is consistent across ingress and mesh.
+
+\paragraph{Durable Object sharding by symbol for high-throughput paths.}
+A single Durable Object instance is single-threaded. For high-volume trading pairs, the idempotency lock is partitioned by composite key \texttt{trade:\{exchange\}:\{symbol\}:\{action\}:\{quantity\}} (Section~\ref{sec:mechanisms}), and the binding is resolved as \texttt{env.IDEMPOTENCY\_DO.idFromName(compositeKey)}. This natural sharding means concurrent signals for \texttt{BTCUSDT} and \texttt{ETHUSDT} do not contend for the same isolate, while signals for the same symbol+action+quantity within the 300\,s TTL are correctly serialized. The pattern generalises: any DO whose key space is a known high-cardinality tuple can be sharded by hashing the tuple. No DO lock contention was observed at the N\,=\,200 extended-instrumentation probe rate nor at the 18{,}742-signal production aggregate over the 12-month window. The trade-off is that DO storage costs scale with the number of distinct keys, which for the idempotency case is naturally bounded by the 300\,s TTL plus alarm-based cleanup.
+
+\paragraph{Safe numeric parsing at trust boundaries.}
+KV values, even from trusted internal callers, are not trusted by the trading path: a typo in a dashboard setting can silently disable risk caps if the code path treats \texttt{NaN} as 0. The pattern is to explicitly check \texttt{Number.isFinite} before applying numeric limits (Listing~\ref{lst:risk-kv-parse}). The JavaScript \texttt{parseInt} / \texttt{parseFloat} functions return \texttt{NaN} on unparseable input, and in many codebases \texttt{NaN} comparisons silently degrade the limit to "no limit". The production handler throws \texttt{Errors.internal} instead, halting the trade before the gate is bypassed. The same pattern is applied at every numeric KV read in the risk and execution paths. This reflects a broader principle: \emph{configuration is data, not code, and data is untrusted}; every value read from CONFIG\_KV is validated against an explicit allowlist of types and ranges before use.
+
+\paragraph{Composing the patterns.}
+The four patterns are designed to compose. A request arriving at \texttt{hoox} is first parsed by \texttt{validateJson} (Zod), which yields a typed \texttt{Result<T, ZodError>}. The handler then \texttt{await}s the result and either returns an \texttt{Errors.badRequest} (structured path errors) or proceeds. Internal Service Binding calls go through \texttt{requireInternalAuth} (fail-closed). Idempotency is checked by a sharded DO (no contention). Risk gates read KV with \texttt{Number.isFinite} (no silent zero). The composition is what makes the difference: each pattern in isolation is a few lines, but together they produce a system where every error has a typed shape, every internal call is authenticated, every duplicate is suppressed, and every numeric gate actually gates. The 99.97\% reliability and zero duplicate fills reported in Section~\ref{sec:evaluation} are the empirical result of this composition.
+

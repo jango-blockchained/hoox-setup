@@ -5,6 +5,7 @@ import {
   validateDevVars,
   generateWranglerJsonc,
   generateDevVars,
+  validateAll,
 } from "../../src/schemas/validators.js";
 import { WORKER_MANIFESTS } from "../../src/schemas/registry.js";
 
@@ -167,5 +168,72 @@ describe("generateDevVars", () => {
     const manifest = WORKER_MANIFESTS["hoox"]!;
     const output = generateDevVars(manifest);
     expect(output).toContain("Auto-generated from worker manifest schema");
+  });
+});
+
+describe("validateAll and richer generate coverage", () => {
+  it("validateAll aggregates errors from all three sources", () => {
+    const manifest = WORKER_MANIFESTS["d1-worker"]!;
+    const result = validateAll("d1-worker", manifest, {
+      wranglerJsonc: JSON.stringify({ vars: {}, services: [] }),
+      rootWranglerJsonc: JSON.stringify({
+        workers: { "d1-worker": { secrets: [] } },
+      }),
+      devVars: "",
+    });
+    expect(result.worker).toBe("d1-worker");
+    expect(result.passed).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  it("generateWranglerJsonc emits kv / d1 / ai sections (and others when present)", () => {
+    // agent-worker declares kv + d1 + ai
+    const manifest = WORKER_MANIFESTS["agent-worker"]!;
+    const out = generateWranglerJsonc(manifest);
+    expect(out).toContain("kv_namespaces");
+    expect(out).toContain("d1_databases");
+    expect(out).toContain('"ai"');
+    expect(out).toContain('"name"');
+  });
+
+  it("generateWranglerJsonc handles empty infrastructure", () => {
+    const manifest =
+      WORKER_MANIFESTS["pine-worker"] || WORKER_MANIFESTS["d1-worker"]!;
+    const out = generateWranglerJsonc(manifest);
+    expect(typeof out).toBe("string");
+    expect(out.length).toBeGreaterThan(10);
+  });
+
+  it("validateWranglerJsonc detects non-object parse result", () => {
+    const manifest = WORKER_MANIFESTS["d1-worker"]!;
+    const errors = validateWranglerJsonc("d1-worker", manifest, "[]");
+    expect(errors.some((e) => e.message.includes("not a valid object"))).toBe(
+      true
+    );
+  });
+
+  it("triggers secret naming warning for non-suffixed secret var", () => {
+    // Use a secret var name that does not end in allowed suffixes and is not in exception list
+    const customManifest = {
+      name: "test-warn",
+      vars: {
+        MY_TOKEN: { type: "secret" as const, description: "badly named" },
+      },
+      services: [],
+      infrastructure: {},
+    };
+    const jsonc = JSON.stringify({
+      vars: { MY_TOKEN: "__SECRET__" },
+      services: [],
+    });
+    const errors = validateWranglerJsonc(
+      "test-warn",
+      customManifest as any,
+      jsonc
+    );
+    const warns = errors.filter((e) => e.severity === "warning");
+    expect(warns.some((w) => w.message.includes("does not end with"))).toBe(
+      true
+    );
   });
 });

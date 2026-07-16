@@ -1,18 +1,23 @@
 % TikZ latency measurement taxonomy (included by hoox-arxiv-paper.tex)
+% Layout: top row = signal path boxes; row 2 = k6 / production labels above;
+%         two braces below group (a) probe and (b) production.
 \begin{tikzpicture}[
-  node distance=0.5cm and 0.6cm,
+  x=1cm, y=1cm,
   pathbox/.style={draw=black!45, rounded corners=2pt, fill=#1,
-    minimum width=2.5cm, minimum height=0.7cm, font=\footnotesize, align=center},
-  note/.style={font=\scriptsize, text=black!65, align=center},
+    minimum width=2.0cm, minimum height=0.6cm, font=\footnotesize, align=center, inner sep=2pt},
+  notegreen/.style={font=\scriptsize, text=green!50!black, align=center},
+  noteblue/.style={font=\scriptsize, text=blue!60!black, align=center},
   arrow/.style={-{Stealth[length=1.6mm]}, semithick, draw=black!60},
-  bracket/.style={decorate, decoration={brace, amplitude=4pt}, thick, draw=black!50}
+  bracket/.style={decorate, decoration={brace, amplitude=4pt, mirror}, thick}
 ]
-  \node[pathbox=green!10] (t0) {TradingView\\alert};
-  \node[pathbox=orange!10, right=of t0] (t1) {WAF + \texttt{hoox}};
-  \node[pathbox=purple!8, right=of t1] (t2) {DO mutex};
-  \node[pathbox=green!10, right=of t2] (t3) {\texttt{trade-worker}};
-  \node[pathbox=blue!8, right=of t3] (t4) {Exchange\\REST ack};
-  \node[pathbox=gray!12, right=of t4] (t5) {D1 / notify\\(async)};
+
+  % ── Top row: signal path boxes ──
+  \node[pathbox=green!10]  (t0) at (0.0, 0.0) {TradingView\\alert};
+  \node[pathbox=orange!10] (t1) at (2.5, 0.0) {WAF + \texttt{hoox}};
+  \node[pathbox=purple!8]  (t2) at (5.0, 0.0) {DO mutex};
+  \node[pathbox=green!10]  (t3) at (7.5, 0.0) {\texttt{trade-worker}};
+  \node[pathbox=blue!8]    (t4) at (10.0, 0.0) {Exchange\\REST ack};
+  \node[pathbox=gray!12]   (t5) at (12.5, 0.0) {D1 / notify\\(async)};
 
   \draw[arrow] (t0) -- (t1);
   \draw[arrow] (t1) -- (t2);
@@ -20,17 +25,23 @@
   \draw[arrow] (t3) -- (t4);
   \draw[arrow, dashed] (t4) -- (t5);
 
-  \node[note, below=0.55cm of t1] (n1) {k6 \texttt{webhook-flow}};
-  \node[note, below=0.55cm of t2] (n2) {IdempotencyStore};
-  \node[note, below=0.55cm of t3] (n3) {\texttt{hoox perf fastpath}\\(short-circuit)};
-  \node[note, below=0.55cm of t4] (n4) {Production\\signal-to-ack};
+  % ── Row 2: short labels directly below each box (in the gap) ──
+  \node[notegreen, below=0.20cm of t1.south, anchor=north] {k6};
+  \node[notegreen, below=0.20cm of t2.south, anchor=north] {fast-path};
+  \node[notegreen, below=0.20cm of t3.south, anchor=north] {probe};
+  \node[noteblue,  below=0.20cm of t4.south, anchor=north] {production};
 
-  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, draw=green!50!black]
-    ([yshift=-0.15cm]t1.south west) -- ([yshift=-0.15cm]t3.south east)
-    node[midway, below=0.45cm, font=\scriptsize\bfseries] {Measured by synthetic probes (no exchange)};
+  % ── Brace 1: synthetic-probe scope (boxes t1..t3) ──
+  % Brace sits below the labels, label sits below the brace
+  \draw[bracket, draw=green!50!black]
+    ([yshift=-0.85cm]t1.south west) -- ([yshift=-0.85cm]t3.south east)
+    node[midway, below=0.20cm, font=\scriptsize\bfseries, text=green!50!black]
+    {Measured by synthetic probes (no exchange)};
 
-  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, draw=blue!60!black]
-    ([yshift=-1.35cm]t1.south west) -- ([yshift=-1.35cm]t4.south east)
-    node[midway, below=0.45cm, font=\scriptsize\bfseries] {Production signal-to-ack path};
+  % ── Brace 2: production scope (boxes t1..t4) ──
+  \draw[bracket, draw=blue!60!black]
+    ([yshift=-1.70cm]t1.south west) -- ([yshift=-1.70cm]t4.south east)
+    node[midway, below=0.20cm, font=\scriptsize\bfseries, text=blue!60!black]
+    {Production signal-to-ack path};
 
 \end{tikzpicture}

@@ -1,14 +1,18 @@
 \section{Limitations and Future Work}
 \label{sec:limitations}
 
-\paragraph{Platform portability.} The architecture depends on Cloudflare-specific primitives (Service Bindings, Durable Objects, Smart Placement). Portability to other edge platforms (e.g., Fastly Compute, Deno Deploy) would require substantial redesign.
+\paragraph{Platform portability.} The architecture depends on Cloudflare-specific primitives (Service Bindings, Durable Objects, Smart Placement). Portability to other edge platforms (e.g., Fastly Compute, Deno Deploy) would require substantial redesign; the binding graph and DO-mutex pattern are not directly portable to platforms without strongly consistent single-threaded storage or in-fabric RPC.
 
-\paragraph{Ultra-low-latency strategies.} Strategies requiring sub-10\,ms execution---common in colocated high-frequency trading~\cite{arnold2010latency}---are out of scope. Exchange co-location and kernel-bypass networking remain necessary for that regime.
+\paragraph{Ultra-low-latency strategies.} Strategies requiring sub-10\,ms execution---common in colocated high-frequency trading~\cite{arnold2010latency,budish2015hft}---are out of scope. Exchange co-location and kernel-bypass networking remain necessary for that regime, as established in the microstructure literature~\cite{hasbrouck2013lowlatency}.
 
 \paragraph{Event-driven risk management.} The risk manager operates on a fixed five-minute cron rather than event-driven triggers (e.g., on fill notifications or volatility spikes). Future work includes WebSocket-driven position updates via \texttt{ExchangeConnectionManager}.
 
-\paragraph{Evaluation reproducibility.} Raw production latency logs are not archived in the public repository for privacy reasons. I provide open-source probe and load-test tooling (Appendix~\ref{app:repro}) to enable independent verification on deployers' own stacks.
+\paragraph{Evaluation reproducibility.} Raw production latency logs are not archived in the public repository for privacy reasons. Open-source probe and load-test tooling (Appendix~\ref{app:repro}) is provided to enable independent verification on deployers' own stacks. Sample sizes (N) for the headline 22\,ms production figure are reported in Section~\ref{sec:evaluation}.
+
+\paragraph{VPS baseline fairness.} The VPS baseline is an unoptimized single-region deployment and does not represent a tuned co-located baseline. A more conservative comparison would tune the VPS to the dominant exchange's geographic locality; that experiment is left to future work.
 
 \paragraph{Idempotency completeness.} Exchange-native \texttt{clientOrderId} deduplication and fail-closed gateway behavior under Durable Object outage remain planned hardening steps.
+
+\paragraph{LLM gateway (out of core scope).} An earlier revision of this paper included a multi-provider LLM gateway for operational summaries. After review, that section was removed from the core paper: the gateway is not load-bearing for the trading control plane, deterministic risk rules own trading decisions, and the LLM surface was not empirically evaluated. The gateway is described in the extended monograph (Section~12) for readers who want the full surface; evaluation of LLM-driven operational summaries, including prompt-injection detection precision/recall and provider-fallback latency under load, is left to future work.
 
 Planned extensions include additional exchange venues, on-chain data feed integration into the risk engine, and a decentralized strategy marketplace leveraging the existing Vectorize RAG infrastructure.

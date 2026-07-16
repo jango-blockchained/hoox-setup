@@ -1,20 +1,28 @@
 % TikZ: code-graph community clusters (from graph-metadata.json)
+% Layout:
+%   - top-left: Signal pipeline cluster (hoox, trade-worker, d1-worker top row;
+%               telegram-worker, analytics-worker bottom row)
+%   - top-right: AI & risk cluster (agent-worker + telegram-worker/RAG)
+%   - bottom-left: Packages cluster (hoox-shared, hoox CLI)
+%   - bottom-right: Ingress & ops cluster (email-worker, report-worker, dashboard)
 \begin{tikzpicture}[
-  cluster/.style={draw=black!45, rounded corners=4pt, inner sep=0.45cm},
+  x=1cm, y=1cm,
+  cluster/.style={draw=black!45, rounded corners=4pt, inner sep=0.40cm},
   clabel/.style={font=\footnotesize\bfseries, anchor=north west},
-  worker/.style={font=\footnotesize\ttfamily, align=center},
-  infra/.style={font=\scriptsize\ttfamily, align=center, text=black!65},
+  worker/.style={font=\footnotesize\ttfamily, align=center, inner sep=2pt},
+  infra/.style={font=\scriptsize\ttfamily, align=center, text=black!65, inner sep=2pt},
   flow/.style={-{Stealth[length=1.8mm]}, semithick, draw=blue!55!black},
   auxflow/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!45}
 ]
 
-  % ── Signal pipeline cluster (primary) ──
-  \node[worker] (hoox) at (0,0) {hoox};
-  \node[worker, right=0.55cm of hoox] (tw) {trade-worker};
-  \node[worker, right=0.55cm of tw] (d1) {d1-worker};
-  \node[worker, below=0.45cm of hoox] (tg) {telegram-worker};
-  \node[worker, below=0.45cm of tw] (anw) {analytics-worker};
-  \node[infra, below=0.35cm of d1] (spinfra) {Queue, Idempotency DO, D1};
+  % ── Signal pipeline cluster (top-left) ──
+  % 2.4cm horizontal spacing so worker labels don't collide
+  \node[worker] (hoox) at (0.0, 0.0)  {hoox};
+  \node[worker] (tw)   at (2.4, 0.0)  {trade-worker};
+  \node[worker] (d1)   at (4.8, 0.0)  {d1-worker};
+  \node[worker] (tg)   at (0.0,-1.4)  {telegram-worker};
+  \node[worker] (anw)  at (2.4,-1.4)  {analytics-worker};
+  \node[infra]  (spinfra) at (4.8,-1.4) {Queue, Idempotency\\DO, D1};
 
   \begin{scope}[on background layer]
     \node[cluster, fit=(hoox)(tw)(d1)(tg)(anw)(spinfra),
@@ -22,14 +30,14 @@
   \end{scope}
 
   \draw[flow] (hoox) -- (tw);
-  \draw[flow] (tw) -- (d1);
-  \draw[flow] (tw) -- (tg);
-  \draw[flow] (tw) -- (anw);
+  \draw[flow] (tw)   -- (d1);
+  \draw[flow] (tw)   -- (tg);
+  \draw[flow] (tw)   -- (anw);
 
-  % ── AI & risk cluster ──
-  \node[worker] (aw) at (7.2,0.6) {agent-worker};
-  \node[worker, below=0.5cm of aw] (tgrag) {telegram-worker};
-  \node[infra, below=0.35cm of tgrag] (aiinfra) {Workers AI, Vectorize};
+  % ── AI & risk cluster (top-right) ──
+  \node[worker] (aw)     at (8.5, 0.0)  {agent-worker};
+  \node[worker] (tgrag)  at (8.5,-1.0)  {telegram-worker};
+  \node[infra]  (aiinfra) at (8.5,-1.85) {Workers AI, Vectorize};
 
   \begin{scope}[on background layer]
     \node[cluster, fit=(aw)(tgrag)(aiinfra),
@@ -39,19 +47,19 @@
   \draw[auxflow] (aw) -- node[font=\tiny, fill=white, inner sep=1pt] {cron} (tw);
   \draw[auxflow] (aw) -- (d1);
 
-  % ── Shared packages ──
-  \node[worker] (shared) at (0,-3.0) {hoox-shared};
-  \node[worker, right=0.5cm of shared] (cli) {hoox CLI};
+  % ── Shared packages (bottom-left) ──
+  \node[worker] (shared) at (0.0, -3.6) {hoox-shared};
+  \node[worker] (cli)    at (2.4, -3.6) {hoox CLI};
   \begin{scope}[on background layer]
     \node[cluster, fit=(shared)(cli),
       fill=green!6, label={[clabel, text=green!50!black]north west:Packages}] (pkgbox) {};
   \end{scope}
 
-  % ── Infrastructure + auxiliary workers ──
-  \node[worker] (email) at (4.2,-3.0) {email-worker};
-  \node[worker, right=0.45cm of email] (report) {report-worker};
-  \node[worker, right=0.45cm of report] (dash) {dashboard};
-  \node[infra, below=0.35cm of report] (infrow) {R2, KV, Browser Rendering, Analytics Engine};
+  % ── Infrastructure + auxiliary workers (bottom-right) ──
+  \node[worker] (email)  at (6.0, -3.6) {email-worker};
+  \node[worker] (report) at (8.5, -3.6) {report-worker};
+  \node[worker] (dash)   at (11.0,-3.6) {dashboard};
+  \node[infra]  (infrow) at (8.5,-4.5)  {R2, KV, Browser\\Rendering, Analytics Engine};
   \begin{scope}[on background layer]
     \node[cluster, fit=(email)(report)(dash)(infrow),
       fill=orange!6, label={[clabel, text=orange!60!black]north west:Ingress \& ops}] (opsbox) {};

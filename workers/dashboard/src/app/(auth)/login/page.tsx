@@ -4,15 +4,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Key,
-  Loader2,
-  Lock,
-  Shield,
-  Terminal,
-  User,
-} from "lucide-react";
+import { ArrowRight, Loader2, Terminal } from "lucide-react";
+import { Key, Lock, Shield, User } from "reicon-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

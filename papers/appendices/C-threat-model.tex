@@ -8,7 +8,7 @@ Table~\ref{tab:threats} maps threats to mitigations.
   \caption{Threat model.}
   \label{tab:threats}
   \small
-  \begin{tabular}{@{}lp{6.5cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lp{7cm}@{}}
     \toprule
     \textbf{Threat} & \textbf{Mitigation} \\
     \midrule
@@ -17,11 +17,11 @@ Table~\ref{tab:threats} maps threats to mitigations.
     Credential brute force & \texttt{timingSafeEqual} (Listing~\ref{lst:timing-safe-equal}) \\
     Internal privilege escalation & Service Binding isolation + INTERNAL\_KEY \\
     Session abuse & Per-session rate limit (Listing~\ref{lst:rate-limit-gateway}) \\
-    Prompt injection (LLM) & Marker detection (Listing~\ref{lst:prompt-sanitizer}) \\
+    Prompt injection (LLM) & Out of core scope; prompt-injection defenses described in the extended monograph \\
     Spoofed email signals & Mailgun HMAC (Listing~\ref{lst:mailgun-signature}) \\
     Exchange API outage & Queues with exponential backoff + DLQ \\
     Runaway losses & Drawdown kill switch + rate limiting \\
     DO unavailability & Fail-open gateway (documented limitation) \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}

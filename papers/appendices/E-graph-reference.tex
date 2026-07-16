@@ -6,10 +6,10 @@ The monorepo maintains a machine-readable architecture graph in \texttt{graph-me
 \begin{figure}[t]
   \centering
   \IfFileExists{figures/graph-overview.pdf}{%
-    \includegraphics[width=0.98\linewidth]{figures/graph-overview.pdf}%
+    \includegraphics[width=\linewidth]{figures/graph-overview.pdf}%
   }{%
     \ifhooxusetikz
-      \resizebox{0.98\linewidth}{!}{\input{figures/graph-overview.tex}}%
+      \resizebox{\linewidth}{!}{\input{figures/graph-overview.tex}}%
     \else
       \fbox{\parbox{0.92\linewidth}{\small Signal pipeline, AI/risk, packages, and ingress/ops clusters from \texttt{graph-metadata.json}}}
     \fi

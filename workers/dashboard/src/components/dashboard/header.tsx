@@ -6,11 +6,11 @@ import {
   Activity,
   ExternalLink,
   Code2,
-  Zap,
   Wifi,
   WifiOff,
   Clock,
 } from "lucide-react";
+import { Bolt } from "reicon-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -68,7 +68,7 @@ export function DashboardHeader() {
                 className="flex size-8 items-center justify-center rounded-md bg-primary transition-transform group-hover:scale-105"
                 whileHover={{ rotate: 5 }}
               >
-                <Zap className="size-5 text-primary-foreground" />
+                <Bolt className="size-5 text-primary-foreground" />
               </motion.div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">

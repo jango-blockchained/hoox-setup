@@ -1,6 +1,6 @@
 "use client";
 
-import { Database } from "lucide-react";
+import { Database } from "reicon-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { DatabaseTableBrowser } from "@/components/dashboard/database-table-browser";
 

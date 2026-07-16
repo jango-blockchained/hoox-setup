@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell } from "reicon-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { NotificationTester } from "@/components/dashboard/notification-tester";
 

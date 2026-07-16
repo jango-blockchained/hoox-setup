@@ -1,85 +1,102 @@
 % TikZ architecture diagram for HOOX (included by hoox-arxiv-paper.tex)
+% Layout: 4 horizontal rows
+%   row 1 (y=4.0): public ingress sources (TradingView / Email / Telegram)
+%   row 2 (y=2.6): Cloudflare WAF
+%   row 3 (y=1.4): hoox gateway with Idempotency DO and Queue flanking it
+%   row 4 (y=-0.4): private compute mesh (5 workers, 2.6cm spacing)
+%   row 5 (y=-1.8): storage + external exchange APIs
 \begin{tikzpicture}[
-  node distance=0.6cm and 0.7cm,
+  x=1cm, y=1cm,
   ext/.style={draw=black!50, rounded corners=2pt, fill=gray!8,
-    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize, align=center},
+    minimum width=1.9cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
   waf/.style={draw=orange!70!black, rounded corners=2pt, fill=orange!8,
-    minimum width=2.5cm, minimum height=0.55cm, font=\footnotesize, align=center},
+    minimum width=2.2cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
   worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
-    minimum width=2.2cm, minimum height=0.55cm, font=\footnotesize\ttfamily, align=center},
-  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
-    fill=blue!6, minimum height=0.5cm, minimum width=1.5cm,
-    font=\footnotesize, align=center},
-  compute/.style={draw=purple!60!black, diamond, aspect=1.8, fill=purple!6,
-    inner sep=1pt, font=\footnotesize, align=center},
+    minimum width=2.2cm, minimum height=0.55cm, font=\footnotesize\ttfamily, align=center, inner sep=2pt},
+  store/.style={draw=blue!60!black, rounded corners=2pt, fill=blue!6,
+    minimum width=1.9cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
+  coord/.style={draw=purple!60!black, rounded corners=2pt, fill=purple!6,
+    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
   exchange/.style={draw=red!60!black, rounded corners=2pt, fill=red!6,
-    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize, align=center},
-  layer/.style={draw=black!35, dashed, rounded corners=3pt, inner sep=0.4cm},
+    minimum width=2.6cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
+  layer/.style={draw=black!35, dashed, rounded corners=3pt, inner sep=0.35cm},
+  layerlabel/.style={font=\scriptsize\bfseries},
   arrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=black!65},
-  darrow/.style={-{Stealth[length=1.8mm]}, semithick, dashed, draw=black!45},
   extarrow/.style={-{Stealth[length=1.8mm]}, semithick, draw=red!55!black},
   sb/.style={font=\scriptsize, fill=white, inner sep=1pt}
 ]
 
-  % ── Ingress layer ──
-  \node[ext] (tv) {TradingView};
-  \node[ext, right=of tv] (em) {Email};
-  \node[ext, right=of em] (tg) {Telegram};
-  \node[waf, below=0.55cm of em] (waf) {Cloudflare WAF};
-  \node[worker, below=0.45cm of waf] (gw) {hoox};
+  % ── Row 1: external ingress sources (3 sources spread horizontally) ──
+  \node[ext] (tv) at ( 3.0, 4.0) {TradingView};
+  \node[ext] (em) at ( 6.0, 4.0) {Email};
+  \node[ext] (tg) at ( 9.0, 4.0) {Telegram};
 
-  % ── Side primitives at gateway ──
-  \node[compute, left=1.0cm of gw] (ido) {Idempotency\\DO};
-  \node[compute, right=1.0cm of gw] (queue) {Queue};
+  % ── Row 2: Cloudflare WAF (centered under sources) ──
+  \node[waf] (waf) at ( 6.0, 2.6) {Cloudflare WAF};
 
-  % ── Compute layer ──
-  \node[worker, below left=1.0cm and 0.1cm of gw] (tw) {trade-worker};
-  \node[worker, below=1.0cm of gw] (d1w) {d1-worker};
-  \node[worker, below right=1.0cm and 0.1cm of gw] (tgw) {telegram-worker};
-  \node[worker, left=1.1cm of tw] (aw) {agent-worker};
-  \node[worker, right=1.1cm of tgw] (anw) {analytics-worker};
-  \node[worker, below=0.55cm of tw] (w3w) {web3-wallet};
+  % ── Row 3: hoox gateway + coordination primitives ──
+  \node[worker] (gw)    at ( 6.0, 1.4) {\texttt{hoox}};
+  \node[coord]  (ido)   at ( 3.0, 1.4) {Idempotency\\DO};
+  \node[coord]  (queue) at ( 9.0, 1.4) {Queue};
 
-  % ── External exchanges (Smart Placement targets outbound RTT) ──
-  \node[exchange, below=0.75cm of tw] (cex) {Binance / Bybit / MEXC\\REST APIs};
+  % ── Row 4: private compute mesh (5 workers, 2.6cm spacing) ──
+  \node[worker] (tw)  at ( 0.0, -0.4) {\texttt{trade-worker}};
+  \node[worker] (d1w) at ( 2.6, -0.4) {\texttt{d1-worker}};
+  \node[worker] (tgw) at ( 5.2, -0.4) {\texttt{telegram-worker}};
+  \node[worker] (aw)  at ( 7.8, -0.4) {\texttt{agent-worker}};
+  \node[worker] (anw) at (10.4, -0.4) {\texttt{analytics-worker}};
 
-  % ── Storage ──
-  \node[store, below=0.55cm of d1w] (db) {D1 SQLite};
-  \node[store, below=0.55cm of anw] (ae) {Analytics\\Engine};
+  % ── Row 5: storage + exchange ──
+  \node[store]    (db)  at ( 2.6, -1.8) {D1 SQLite};
+  \node[store]    (w3w) at ( 7.8, -1.8) {web3-wallet};
+  \node[store]    (ae)  at (10.4, -1.8) {Analytics\\Engine};
+  \node[exchange] (cex) at ( 0.0, -1.8) {Binance / Bybit\\REST APIs};
 
-  % ── Edges: ingress ──
-  \draw[arrow] (tv.south) -- ++(0,-0.15) -| (waf.north);
-  \draw[darrow] (em.south) -- ++(0,-0.12) -| ([xshift=-0.4cm]waf.north);
-  \draw[arrow] (waf) -- (gw);
-  \draw[darrow] (tg.south) -- ++(0,-1.55) -| (tgw.north);
+  % ── Edges: ingress (3 sources → WAF, separately so the arrows don't merge) ──
+  \draw[arrow] (tv.south) -- ++(0,-0.15) -| (waf.north west);
+  \draw[arrow] (em.south) -- (waf.north);
+  \draw[arrow] (tg.south) -- ++(0,-0.15) -| (waf.north east);
 
-  % ── Edges: gateway ──
-  \draw[arrow] (gw) -- node[sb, left] {SB} (tw);
-  \draw[arrow] (gw) -- (ido);
-  \draw[arrow] (gw) -- (queue);
+  % ── Edges: WAF → gateway ──
+  \draw[arrow] (waf.south) -- (gw.north);
+
+  % ── Edges: gateway ↔ coordination ──
+  \draw[arrow] (gw.west)  -- (ido.east);
+  \draw[arrow] (gw.east)  -- (queue.west);
+
+  % ── Edges: gateway → compute mesh (single trunk then split) ──
+  \draw[arrow] (gw.south) -- ++(0,-0.2) coordinate(gwbus);
+  \draw[arrow] (gwbus) -| (tw.north);
+  \draw[arrow] (gwbus) -| (d1w.north);
+  \draw[arrow] (gwbus) -| (tgw.north);
   \draw[arrow] (queue.south) |- (tw.north);
 
-  % ── Edges: trade-worker fan-out ──
-  \draw[arrow] (tw) -- node[sb, left] {SB} (d1w);
-  \draw[arrow] (tw) -- (tgw);
-  \draw[arrow] (tw) -- (anw);
-  \draw[arrow] (tw) -- (w3w);
-  \draw[extarrow] (tw) -- node[sb, right, font=\tiny] {HTTPS} (cex);
+  % ── Edges: compute mesh fan-out ──
+  \draw[arrow] (tw)  -- (d1w);
+  \draw[arrow] (tw)  -- (tgw);
+  \draw[arrow] (tw)  -- (anw);
+  \draw[arrow] (tw)  -- (w3w);
+  \draw[arrow] (aw)  -- (d1w);
+  \draw[arrow] (aw)  -- (tgw);
+  \draw[arrow] (anw) -- (tgw);
 
-  % ── Edges: agent cron ──
-  \draw[arrow] (aw) -- node[sb, above, font=\tiny] {cron} (tw);
-  \draw[arrow] (aw.east) -| (d1w.west);
+  % ── Edges: to storage and exchanges ──
+  \draw[extarrow] (tw.south) -- (cex.north);
+  \draw[arrow] (d1w.south) -- (db.north);
+  \draw[arrow] (anw.south) -- (ae.north);
 
-  % ── Edges: storage ──
-  \draw[arrow] (d1w) -- (db);
-  \draw[arrow] (anw) -- (ae);
+  % ── Edge label (HTTPS to exchange) — placed where it cannot overlap any box ──
+  \node[sb, font=\tiny, text=red!60!black] at (0.9, -1.10) {HTTPS};
 
-  % ── Layer boxes ──
+  % ── Layer boxes (background) ──
   \begin{scope}[on background layer]
-    \node[layer, fit=(tv)(em)(tg)(waf)(gw), label={[font=\scriptsize\bfseries]above:Public ingress}] {};
-    \node[layer, fit=(tw)(d1w)(tgw)(aw)(anw)(w3w), label={[font=\scriptsize\bfseries]above right:Private compute (Service Bindings)}] {};
-    \node[layer, fit=(db)(ae)(ido)(queue), label={[font=\scriptsize\bfseries]below right:Edge storage \& coordination}] {};
-    \node[layer, draw=red!35, fit=(cex), label={[font=\scriptsize\bfseries, text=red!60!black]below:External exchange APIs}] {};
+    \node[layer, fit=(tv)(em)(tg)(waf), label={[layerlabel]above:Public ingress}] {};
+    \node[layer, fit=(gw)(tw)(d1w)(tgw)(aw)(anw),
+      label={[layerlabel]above:Private compute (Service Bindings)}] {};
+    \node[layer, fit=(db)(ae)(w3w)(ido)(queue),
+      label={[layerlabel]below:Edge storage \& coordination}] {};
+    \node[layer, draw=red!35, fit=(cex),
+      label={[layerlabel, text=red!60!black]below:External exchange APIs}] {};
   \end{scope}
 
 \end{tikzpicture}

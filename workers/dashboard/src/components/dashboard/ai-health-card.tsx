@@ -2,14 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Brain,
-  RefreshCw,
-  Sparkles,
-  Shield,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -71,11 +64,11 @@ export function AiHealthCard() {
   const getIcon = (type: string) => {
     switch (type) {
       case "success":
-        return <CheckCircle2 className="size-4 text-success" />;
+        return <HooxIcon name="check" size="sm" className="text-success" />;
       case "warning":
-        return <AlertCircle className="size-4 text-warning" />;
+        return <HooxIcon name="alert" size="sm" className="text-warning" />;
       default:
-        return <Sparkles className="size-4 text-primary" />;
+        return <HooxIcon name="bolt" size="sm" className="text-primary" />;
     }
   };
 
@@ -84,7 +77,7 @@ export function AiHealthCard() {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <div className="relative">
-            <Brain className="size-4 text-primary" />
+            <HooxIcon name="agent" size="sm" className="text-primary" />
             <motion.div
               className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-success"
               animate={{ scale: [1, 1.2, 1] }}
@@ -95,7 +88,7 @@ export function AiHealthCard() {
         </CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="gap-1 text-xs">
-            <Shield className="size-3" />
+            <HooxIcon name="shield" size="xs" className="text-current" />
             Active
           </Badge>
           <Button
@@ -105,8 +98,10 @@ export function AiHealthCard() {
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw
-              className={`size-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`}
+            <HooxIcon
+              name="refresh"
+              size="sm"
+              className={`text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`}
             />
           </Button>
         </div>

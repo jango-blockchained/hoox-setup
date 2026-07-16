@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/collapsible";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 import {
   primaryNavItems,
   monitoringNavItems,
@@ -45,7 +46,7 @@ function renderNavItem(item: NavItem, pathname: string | null) {
               isActive={active && pathname === item.href}
               className="transition-colors"
             >
-              <item.icon />
+              <HooxIcon name={item.icon} size="sm" />
               <span>{item.title}</span>
               <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
             </SidebarMenuButton>
@@ -77,7 +78,7 @@ function renderNavItem(item: NavItem, pathname: string | null) {
         className="transition-colors"
       >
         <Link href={item.href}>
-          <item.icon />
+          <HooxIcon name={item.icon} size="sm" />
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
@@ -127,7 +128,7 @@ export function SidebarNav() {
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noopener noreferrer" : undefined}
                   >
-                    <item.icon />
+                    <HooxIcon name={item.icon} size="sm" />
                     <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>

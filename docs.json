@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Hoox",
-  "description": "Zero-Latency Algorithmic Trading Ecosystem on the Cloudflare Edge. Free, open-source framework for trade signal ingestion, risk management, and execution at the edge.",
+  "description": "Edge-Native Algorithmic Trading on the Cloudflare Edge. Free, open-source framework for trade signal ingestion, risk management, and execution at the edge.",
   "colors": {
     "primary": "#F97316",
     "light": "#FB923C",
@@ -24,7 +24,7 @@
     "indexing": "navigable",
     "metatags": {
       "og:site_name": "Hoox Documentation",
-      "og:title": "Hoox — Zero-Latency Algorithmic Trading on the Cloudflare Edge",
+      "og:title": "Hoox — Edge-Native Algorithmic Trading on the Cloudflare Edge",
       "og:description": "Free, open-source algorithmic trading framework deployed natively to the Cloudflare Edge Network. Trade signals, risk management, and execution in milliseconds.",
       "og:type": "website",
       "og:locale": "en_US",
@@ -32,7 +32,7 @@
       "twitter:card": "summary_large_image",
       "twitter:site": "@hoox",
       "twitter:title": "Hoox Documentation",
-      "twitter:description": "Zero-Latency Algorithmic Trading Ecosystem on the Cloudflare Edge.",
+      "twitter:description": "Edge-Native Algorithmic Trading on the Cloudflare Edge. Free, open-source framework for trade signal ingestion, risk management, and execution at the edge.",
       "twitter:image": "/og-image.png",
       "canonical": "https://docs.hoox.sh",
       "robots": "index, follow"

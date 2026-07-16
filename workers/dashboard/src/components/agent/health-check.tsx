@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RefreshCw } from "lucide-react";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -79,8 +79,10 @@ export function HealthCheck() {
           onClick={() => fetchHealth()}
           disabled={checking}
         >
-          <RefreshCw
-            className={`h-4 w-4 ${checking ? "animate-spin" : ""}`}
+          <HooxIcon
+            name="refresh"
+            size="sm"
+            className={checking ? "animate-spin" : ""}
             data-icon="inline-end"
           />
         </Button>

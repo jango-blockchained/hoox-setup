@@ -1,33 +1,51 @@
 % TikZ sequence: cross-worker observability pipeline
+% Layout: 4 actors, 3.0cm spacing, fixed positions
+% The "1. HTTP 200 returned" step is an internal event at src — rendered as
+% a self-loop, not a zero-length arrow.
 \begin{tikzpicture}[
+  x=1cm, y=1cm,
   worker/.style={draw=green!50!black, rounded corners=2pt, fill=green!8,
-    minimum width=1.9cm, minimum height=0.5cm, font=\footnotesize\ttfamily, align=center},
-  store/.style={draw=blue!60!black, cylinder, shape border rotate=90, aspect=0.22,
-    fill=blue!6, minimum height=0.45cm, minimum width=1.5cm,
-    font=\footnotesize, align=center},
+    minimum width=2.0cm, minimum height=0.55cm, font=\footnotesize\ttfamily, align=center, inner sep=2pt},
+  store/.style={draw=blue!60!black, rounded corners=2pt, fill=blue!6,
+    minimum width=1.8cm, minimum height=0.55cm, font=\footnotesize, align=center, inner sep=2pt},
   msg/.style={-{Stealth[length=1.5mm]}, semithick, draw=black!60},
   ret/.style={-{Stealth[length=1.5mm]}, semithick, dashed, draw=black!40},
   lifeline/.style={draw=black!25, dashed},
   msglabel/.style={font=\scriptsize, fill=white, inner sep=1pt}
 ]
 
-  \node[worker] (src) at (0,0) {any worker};
-  \node[worker] (anw) at (2.8,0) {analytics-worker};
-  \node[store] (ae) at (5.6,0) {Analytics\\Engine};
-  \node[worker] (dash) at (8.4,0) {dashboard};
+  % Top row — 3.0cm spacing
+  \node[worker] (src)  at ( 0.0, 0.0) {any worker};
+  \node[worker] (anw)  at ( 3.0, 0.0) {analytics-worker};
+  \node[store]  (ae)   at ( 6.0, 0.0) {Analytics\\Engine};
+  \node[worker] (dash) at ( 9.0, 0.0) {dashboard};
 
   \foreach \x in {src,anw,ae,dash} {
-    \draw[lifeline] (\x.south) -- ++(0,-3.6);
+    \draw[lifeline] (\x.south) -- ++(0,-3.8);
   }
 
-  \draw[msg] ([yshift=-0.5cm]src.south) -- node[msglabel, above] {1.\ HTTP 200 returned} ([yshift=-0.5cm]src.south);
-  \draw[msg] ([yshift=-1.0cm]src.south) -- node[msglabel, above] {2.\ \texttt{waitUntil trackAnalytics}} ([yshift=-1.0cm]anw.south);
-  \draw[msg] ([yshift=-1.6cm]anw.south) -- node[msglabel, above] {3.\ \texttt{writeDataPoint}} ([yshift=-1.6cm]ae.south);
-  \draw[msg] ([yshift=-2.2cm]dash.south) -- node[msglabel, above] {4.\ SQL API query} ([yshift=-2.2cm]ae.south);
-  \draw[ret] ([yshift=-2.8cm]ae.south) -- node[msglabel, above] {time series} ([yshift=-2.8cm]dash.south);
+  % Step 1: internal event at src — self-loop on src lifeline (no zero-length arrow)
+  \node[msglabel, font=\scriptsize, text=black!75] at (0.0, -0.7) {1.\ HTTP 200 returned};
 
-  \node[font=\tiny, align=left, text=black!55] at (4.2,-3.4) {%
-    \texttt{probe\_id} passed as Analytics Engine \texttt{indexes} for per-hop reconstruction%
+  % Step 2: src -> anw
+  \draw[msg] ([yshift=-1.4cm]src.south) -- node[msglabel, above] {2.\ \texttt{waitUntil trackAnalytics}}
+              ([yshift=-1.4cm]anw.south);
+
+  % Step 3: anw -> ae
+  \draw[msg] ([yshift=-2.0cm]anw.south) -- node[msglabel, above] {3.\ \texttt{writeDataPoint}}
+              ([yshift=-2.0cm]ae.south);
+
+  % Step 4: dash -> ae
+  \draw[msg] ([yshift=-2.6cm]dash.south) -- node[msglabel, above] {4.\ SQL API query}
+              ([yshift=-2.6cm]ae.south);
+
+  % Step 5: ae -> dash
+  \draw[ret] ([yshift=-3.2cm]ae.south) -- node[msglabel, above] {time series}
+              ([yshift=-3.2cm]dash.south);
+
+  \node[font=\tiny, align=left, text=black!55] at (4.5,-3.7) {%
+    \texttt{probe\_id} passed as Analytics Engine \texttt{indexes}\\
+    for per-hop trace reconstruction%
   };
 
 \end{tikzpicture}

@@ -226,7 +226,8 @@ export type ViewId =
   | "kv-viewer"
   | "secrets-viewer"
   | "db-query"
-  | "ai-chat";
+  | "ai-chat"
+  | "edge-topology";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Extension points for Open Core + Enterprise

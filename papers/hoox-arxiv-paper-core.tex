@@ -1,9 +1,9 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
-\geometry{margin=1in}
+\geometry{margin=0.9in}
 
 \usepackage{booktabs}
 \usepackage{graphicx}
@@ -34,7 +34,8 @@
 % =============================================================================
 % HOOX arXiv paper -- CORE VERSION (recommended for submission)
 % =============================================================================
-% Focused paper (~15-20 pages) containing:
+% Focused paper (~20-30 pages with listings/figures; actual build ~45+ p depending
+% on excerpt density) containing:
 %   - Abstract + keywords
 %   - Sections 1-10 (Introduction through Conclusion)
 %   - Selected supporting appendices (reproducibility, threat model, tests)
@@ -46,8 +47,12 @@
 % advanced mechanisms, complete listings index, additional appendices) is
 % available in hoox-arxiv-paper.tex and in the source repository.
 %
-% Author perspective: first-person singular ("I"), reflecting single-developer
-% authorship and operation of the system.
+% Design note: Short focused code excerpts live in the body for illustration.
+% Longer and complete implementations are in Appendix G (and the repo).
+%
+% Author perspective: impersonal voice throughout, reflecting single-developer
+% authorship and operation of the system. Single-author attribution is given
+% in the title block and the CC~BY~4.0 license footer.
 %
 % Build (see Makefile):
 %   make pdf-core
@@ -55,12 +60,12 @@
 %   make arxiv-tarball-core
 % =============================================================================
 
-\title{\textbf{HOOX: Edge-Native Low-Latency Algorithmic Trading\\at the Cloudflare Edge}}
+\title{\textbf{HOOX: An Edge-Native Algorithmic Trading Framework on Cloudflare Workers}}
 
 \author{
-  jango\_blockchained\\
-  \textit{Independent Researcher}\\
-  \texttt{https://github.com/jango-blockchained/hoox-setup}
+  jango\_blockchained \\
+  \small\textit{Independent Researcher} \\
+  \small\texttt{https://github.com/jango-blockchained/hoox-setup}
 }
 
 \date{July 2026}
@@ -100,5 +105,6 @@ This paper is released under Creative Commons Attribution 4.0 International (CC~
 \input{appendices/A-reproducibility}
 \input{appendices/C-threat-model}
 \input{appendices/F-test-excerpts}
+\input{appendices/G-implementation-listings}
 
 \end{document}

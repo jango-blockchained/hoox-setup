@@ -6,7 +6,7 @@ import { AiHealthCard } from "@/components/dashboard/ai-health-card";
 import { WorkersOverview } from "@/components/dashboard/workers-overview";
 import { DistributionChart } from "@/components/dashboard/distribution-chart";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Activity } from "lucide-react";
+import { Activity2 } from "reicon-react";
 import { Suspense } from "react";
 
 // Mock data for distribution charts
@@ -25,7 +25,7 @@ export default function DashboardClient() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        icon={<Activity className="h-8 w-8 text-primary" />}
+        icon={<Activity2 className="h-8 w-8 text-primary" />}
         title="Command Center"
         description="Monitor your trading system in real-time"
       />

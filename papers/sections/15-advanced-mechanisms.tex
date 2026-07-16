@@ -29,7 +29,7 @@ The DO remains exchange-agnostic: it calls \texttt{adapter.buildRequest}, sends 
   \caption{WebSocket adapter comparison (production registry).}
   \label{tab:ws-adapters}
   \small
-  \begin{tabular}{@{}lllp{4.5cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lllp{4.8cm}@{}}
     \toprule
     \textbf{Exchange} & \textbf{Endpoint} & \textbf{Correlation key} & \textbf{Auth model} \\
     \midrule
@@ -37,7 +37,7 @@ The DO remains exchange-agnostic: it calls \texttt{adapter.buildRequest}, sends 
     Bybit & \texttt{wss://api.bybit.com/v5/private} & \texttt{reqId} & Session auth at connect; \texttt{op} envelope \\
     MEXC & Contract WS API & \texttt{id} & Exchange-specific signed envelope \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \paragraph{Binance signing example.} The Binance adapter sorts parameters alphabetically, builds a canonical query string, signs with HMAC-SHA256 via \texttt{crypto.subtle}, and embeds \texttt{apiKey}, \texttt{timestamp}, and \texttt{signature} in the JSON envelope (Listing~\ref{lst:ws-adapter-binance}). This mirrors REST signing (Listing~\ref{lst:binance-signature}) but avoids per-order TCP setup.

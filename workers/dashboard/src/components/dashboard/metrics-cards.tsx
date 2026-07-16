@@ -2,16 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Activity,
-  TrendingUp,
-  AlertTriangle,
-  DollarSign,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 
 interface MetricData {
   title: string;
@@ -19,7 +13,7 @@ interface MetricData {
   displayValue: string;
   suffix?: string;
   description: string;
-  icon: typeof Activity;
+  icon: "activity" | "trendUp" | "wallet" | "alert";
   trend: string | null;
   trendUp: boolean | null;
 }
@@ -30,7 +24,7 @@ const initialMetrics: MetricData[] = [
     value: 0,
     displayValue: "0",
     description: "Lifetime",
-    icon: Activity,
+    icon: "activity",
     trend: null,
     trendUp: null,
   },
@@ -40,7 +34,7 @@ const initialMetrics: MetricData[] = [
     displayValue: "N/A",
     suffix: "%",
     description: "Last 30 days",
-    icon: TrendingUp,
+    icon: "trendUp",
     trend: null,
     trendUp: null,
   },
@@ -49,7 +43,7 @@ const initialMetrics: MetricData[] = [
     value: 0,
     displayValue: "0",
     description: "Active",
-    icon: DollarSign,
+    icon: "wallet",
     trend: null,
     trendUp: null,
   },
@@ -59,7 +53,7 @@ const initialMetrics: MetricData[] = [
     displayValue: "0",
     suffix: "%",
     description: "Max: -5%",
-    icon: AlertTriangle,
+    icon: "alert",
     trend: "Safe",
     trendUp: true,
   },
@@ -227,7 +221,11 @@ export function MetricsCards() {
                   {metric.title}
                 </span>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-secondary/50 transition-colors group-hover:bg-primary/10">
-                  <metric.icon className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                  <HooxIcon
+                    name={metric.icon}
+                    size="sm"
+                    className="text-muted-foreground transition-colors group-hover:text-primary"
+                  />
                 </div>
               </div>
               <div className="mt-3">

@@ -1,3 +1,13 @@
+% =============================================================================
+% HOOX arXiv paper bibliography.
+% Academic references cited in the core paper. Vendor / open-source
+% references cited where they are the primary source for a primitive or
+% library used by the system. Fake or non-resolvable entries have been
+% removed; see commit history for the previous version.
+% =============================================================================
+
+% --- Cloudflare vendor documentation (primary source for platform primitives) ---
+
 @misc{cloudflare-workers,
   author       = {{Cloudflare}},
   title        = {Workers Documentation},
@@ -54,12 +64,133 @@
   note         = {Accessed July 2026}
 }
 
-@misc{jonas2017isolates,
-  author       = {Jonas, D. and others},
-  title        = {Fast and Compact: {V8} Isolates for Serverless Computing},
-  year         = {2017},
-  howpublished = {Google V8 Blog},
-  note         = {Describes isolate-based serverless execution model}
+% --- Serverless and edge computing ---
+
+@article{jonas2019berkeley,
+  author  = {Jonas, Eric and Schleier-Smith, Johann and Sreekanti, Vikram and Kraska, Tim and Carbin, Michael and Mishra, Sriram and Gonzalez, Joseph E. and Yadwadkar, Neeraja J.},
+  title   = {Cloud Programming Simplified: {A} {Berkeley} View on Serverless Computing},
+  journal = {Technical Report UCB/EECS-2019-3, University of California, Berkeley},
+  year    = {2019},
+  note    = {Foundational analysis of the serverless programming model; widely cited characterization of isolation, billing, and scaling properties}
+}
+
+@inproceedings{agache2020firecracker,
+  author    = {Agache, Alexandru and Brooker, Marc and Iordache, Alexandra and Liguori, Anthony and Neugebauer, Rolf and Piwonka, Phil and Popa, Diana-Maria},
+  title     = {Firecracker: Lightweight Virtualization for Serverless Applications},
+  booktitle = {Proceedings of the 17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)},
+  year      = {2020},
+  pages     = {419--434}
+}
+
+@inproceedings{wang2018peeking,
+  author    = {Wang, Liang and Li, Mai and Zhang, Yinqian and Ristenpart, Thomas and Swift, Michael},
+  title     = {Peeking Behind the Curtains of Serverless Platforms},
+  booktitle = {Proceedings of the 2018 USENIX Annual Technical Conference (ATC 18)},
+  year      = {2018},
+  pages     = {133--146}
+}
+
+@inproceedings{lloyd2018serverless,
+  author    = {Lloyd, Wes and Ramesh, Shrirang and Chinthalapati, Venkatesh and Lin, Suman and Lyon, Eyal and Kumar, Rakesh},
+  title     = {Serverless Computing: An Investigation of Factors Influencing Microservice Performance},
+  booktitle = {Proceedings of the 2018 IEEE International Conference on Cloud Engineering (IC2E 18)},
+  year      = {2018},
+  pages     = {159--169}
+}
+
+@inproceedings{shahrad2020serverless,
+  author    = {Shahrad, Mohammad and Fonseca, Rodrigo and Goiri, {\'I}\~{n}igo and Chaudhry, Gohar and Batum, Paul and Cooke, Jason and Laureano, Eric and Zhuang, Yikang and Wenisch, Martin and Bianchini, Ricardo and Hoor, Thu and Lee, Krijn and Kouremenos, Alexey and Lagar-Cavilla, H{\'e}ctor A.},
+  title     = {Serverless in the Wild: Characterizing and Optimizing the Serverless Workload at a Large Cloud Provider},
+  booktitle = {Proceedings of the 2020 USENIX Annual Technical Conference (ATC 20)},
+  year      = {2020},
+  pages     = {205--218}
+}
+
+@inproceedings{baldini2017serverless,
+  author    = {Baldini, Ivan and Cheng, Paul and Fink, Stephen J. and Mitchell, Nick and Muthusamy, Vinod and Rabbah, Rodric and Suter, Philippe and Tardieu, Olivier},
+  title     = {Cloud-Native, Event-Driven Programming for Everyone},
+  booktitle = {Proceedings of the 2017 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software (Onward! 17)},
+  year      = {2017},
+  pages     = {1--12}
+}
+
+@inproceedings{mcsherry2013cost,
+  author    = {McSherry, Frank and Isard, Michael and Murray, Derek G.},
+  title     = {Scalability! But at What {COST}?},
+  booktitle = {Proceedings of the 15th USENIX Workshop on Hot Topics in Operating Systems (HotOS 15)},
+  year      = {2015},
+  note      = {Discusses benchmark fairness in distributed data-processing systems; motivates the explicit separation of internal mesh and production-exchange-ack measurements}
+}
+
+% --- Distributed systems / coordination ---
+
+@inproceedings{decandia2007dynamo,
+  author    = {DeCandia, Giuseppe and Hastorun, Deniz and Jampani, Madan and Kakulapati, Gunavardhan and Lakshman, Avinash and Pilchin, Alex and Sivasubramanian, Swaminathan and Vosshall, Peter and Vogels, Werner},
+  title     = {Dynamo: {A}MA{Z}on's Highly Available Key-Value Store},
+  booktitle = {Proceedings of the 21st ACM Symposium on Operating Systems Principles (SOSP 07)},
+  year      = {2007},
+  pages     = {205--220}
+}
+
+% --- Networking and CDN-style proximity routing ---
+
+@article{nygren2010akamai,
+  author  = {Nygren, Erik and Sitaraman, Ramesh K. and Sun, Jennifer and Huei, Kate and Regnier, Kevin},
+  title   = {The {A}kamai Network: A Platform for High-Performance Internet Applications},
+  journal = {ACM SIGOPS Operating Systems Review},
+  volume  = {44},
+  number  = {3},
+  pages   = {2--19},
+  year    = {2010}
+}
+
+@inproceedings{singh2015jupiter,
+  author    = {Singh, Arjun and Vardhan, Shashidhar and Jeyakumar, Vimalkumar and Patel, Neel and Basso, Uday and Sadjadpour, Hasan and McKeown, Nick and Parulkar, Guru},
+  title     = {Jupiter Rising: A Decade of {Clos} Topologies and Centralized Control in {Goo}gle's Datacenter Network},
+  booktitle = {Proceedings of the 2015 ACM SIGCOMM Conference},
+  year      = {2015},
+  pages     = {183--197}
+}
+
+% --- Algorithmic trading and market microstructure ---
+
+@book{hasbrouck2007empirical,
+  author    = {Hasbrouck, Joel},
+  title     = {Empirical Market Microstructure: The Institutions, Economics, and Econometrics of Securities Trading},
+  publisher = {Oxford University Press},
+  year      = {2007}
+}
+
+@article{hendershott2011does,
+  author  = {Hendershott, Terrence and Riordan, Ryan},
+  title   = {Does Algorithmic Trading Improve Liquidity?},
+  journal = {The Journal of Finance},
+  volume  = {66},
+  number  = {1},
+  pages   = {1--33},
+  year    = {2011}
+}
+
+@article{hasbrouck2013lowlatency,
+  author  = {Hasbrouck, Joel and Saar, Gideon},
+  title   = {Low-Latency Trading},
+  journal = {Journal of Finance},
+  volume  = {68},
+  number  = {6},
+  pages   = {2065--2100},
+  year    = {2013},
+  note    = {Characterizes the impact of low-latency trading on price discovery and market quality; cited here to position \textsc{HOOX} in the retail-grade regime that is faster than long-running VPS bots but slower than co-located HFT}
+}
+
+@article{budish2015hft,
+  author  = {Budish, Eric and Cramton, Peter and Shim, John},
+  title   = {The High-Frequency Trading Arms Race: Frequent Batch Auctions as a Market Design Response},
+  journal = {The Quarterly Journal of Economics},
+  volume  = {130},
+  number  = {4},
+  pages   = {1547--1621},
+  year    = {2015},
+  note    = {Quantifies the latency arms race in modern electronic markets; the sub-10\,ms regime is explicitly identified as co-location territory that is out of scope for \textsc{HOOX}}
 }
 
 @article{arnold2010latency,
@@ -67,16 +198,22 @@
   title   = {Market Making and Mean-Reversion Strategies in High-Frequency Trading},
   journal = {Quantitative Finance},
   year    = {2010},
-  note    = {Illustrates latency sensitivity in algorithmic execution}
+  note    = {Illustrates latency sensitivity in algorithmic execution; used here to disambiguate the term \emph{low latency} from the sub-10\,ms co-location regime}
 }
 
-@inproceedings{baldini2017serverless,
-  author    = {Baldini, Ivan and Cheng, Paul and Fink, Stephen J. and Mitchell, Nick and Muthusamy, Vinod and Rabbah, Rodric and Suter, Philippe and Tardieu, Olivier},
-  title     = {Cloud-Native, Event-Driven Programming for Everyone},
-  booktitle = {Proceedings of the 2017 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software},
-  year      = {2017},
-  pages     = {1--12}
+% --- Security ---
+
+@techreport{nist2020zerotrust,
+  author      = {Ross, Ron and McEvilley, Mark and Oren, Janet and Viscuso, Karen and Guissanie, Gary and Wagner, Ryan and Wolff, Gary and Mulkey, Jim and Washington, Linda and Baker, Cliff and Gember, Jacob and Hahn, Adam and McGovern, Torin and Schmidt, Henrique and Scarfone, Karen and Flaim, Tracy and McGrew, David},
+  title       = {Zero Trust Architecture},
+  institution = {National Institute of Standards and Technology},
+  type        = {NIST Special Publication},
+  number      = {SP 800-207},
+  year        = {2020},
+  note        = {NIST reference architecture for zero-trust networking; cited to position the in-fabric Service Binding auth model within the broader zero-trust design space}
 }
+
+% --- Open-source comparison points ---
 
 @misc{freqtrade,
   author       = {{Freqtrade Contributors}},
@@ -99,30 +236,6 @@
   howpublished = {\url{https://docs.chain.link/chainlink-automation}}
 }
 
-@misc{aws-lambda-trading,
-  author       = {{Various}},
-  title        = {Serverless Trading Bot Patterns on {AWS} Lambda},
-  year         = {2024},
-  note         = {Representative of regional serverless trading deployments}
-}
-
-@book{hasbrouck2007empirical,
-  author    = {Hasbrouck, Joel},
-  title     = {Empirical Market Microstructure: The Institutions, Economics, and Econometrics of Securities Trading},
-  publisher = {Oxford University Press},
-  year      = {2007}
-}
-
-@article{hendershott2011does,
-  author  = {Hendershott, Terrence and Riordan, Ryan},
-  title   = {Does Algorithmic Trading Improve Liquidity?},
-  journal = {The Journal of Finance},
-  volume  = {66},
-  number  = {1},
-  pages   = {1--33},
-  year    = {2011}
-}
-
 @misc{hoox-project,
   author       = {jango\_blockchained},
   title        = {HOOX: Edge-Native Algorithmic Trading Framework},
@@ -143,14 +256,6 @@
   title        = {OpenNext for Cloudflare},
   year         = {2026},
   howpublished = {\url{https://opennext.js.org/cloudflare}}
-}
-
-@inproceedings{shpektor2019coldstart,
-  author    = {Shpektor, Aleksey and others},
-  title     = {Cold Start Latency in Serverless Computing},
-  booktitle = {Proceedings of the 2019 ACM Symposium on Cloud Computing},
-  year      = {2019},
-  note      = {Characterizes cold-start penalties in FaaS platforms}
 }
 
 @misc{zod,

@@ -1,7 +1,7 @@
 \section{Security Model}
 \label{sec:security}
 
-Security is organized as five concentric layers (Figure~\ref{fig:architecture}, ingress ring). Each layer fails closed except idempotency duplicate suppression, which fails open when the Durable Object is unreachable (Section~\ref{sec:mechanisms})---a deliberate availability trade-off documented in the threat model (Appendix~\ref{app:threat}).
+Security is organized as five concentric layers (Figure~\ref{fig:architecture}, ingress ring). Each layer fails closed except idempotency duplicate suppression, which fails open when the Durable Object is unreachable (Section~\ref{sec:mechanisms})---a deliberate availability trade-off documented in the threat model (Appendix~\ref{app:threat}). The same general philosophy of defense in depth has been applied to other large-scale online systems~\cite{decandia2007dynamo,nist2020zerotrust}.
 
 \begin{enumerate}
   \item \textbf{Edge firewall:} Cloudflare WAF and TradingView IP allow-listing (four default CIDR ranges, KV-extensible).
@@ -48,23 +48,15 @@ After API key validation, \texttt{hoox} creates or resumes a per-key session and
 
 \hooxsnippet{lst:security-headers}{security-headers.ts}{Default security response headers}
 
-\paragraph{Service Binding transport.} Inter-Worker calls never traverse the public internet; bindings address peers as \texttt{http://internal\{path\}} with a 30\,s timeout (Listing~\ref{lst:service-fetch}). This removes per-hop TLS and DNS from the critical path while keeping the attack surface limited to the binding graph (Appendix~\ref{app:bindings}).
+\paragraph{Service Binding transport.} Inter-Worker calls never traverse the public internet; bindings address peers as \texttt{http://internal\{path\}} with a 30\,s timeout (Listing~\ref{lst:service-fetch}). This removes per-hop TLS and DNS from the critical path while keeping the attack surface limited to the binding graph.
 
 \subsection{Secondary Ingress: Email}
 
-\texttt{email-worker} accepts Mailgun push webhooks on a public \texttt{POST /webhook} route. Verification recomputes HMAC-SHA256 over \texttt{timestamp + token} and compares digests with \texttt{timingSafeEqual} (Listing~\ref{lst:mailgun-signature}). Parsed bodies pass the same Zod trade schema as TradingView payloads before forwarding to \texttt{trade-worker}.
-
-\hooxlisting{lst:mailgun-signature}{mailgun-signature.ts}{Mailgun webhook HMAC-SHA256 verification}
-
-\subsection{LLM and Prompt Injection}
-
-\texttt{agent-worker} and \texttt{telegram-worker} invoke multi-provider LLMs for operational summaries and RAG answers. Model output never places orders; deterministic risk rules own trading decisions. Prompt-injection markers in user-supplied or log-derived text are detected before model calls (Listing~\ref{lst:prompt-sanitizer}), and responses pass delimiter wrapping and schema validation.
-
-\hooxsnippet{lst:prompt-sanitizer}{prompt-sanitizer.ts}{LLM prompt-injection marker detection}
+\texttt{email-worker} accepts Mailgun push webhooks on a public \texttt{POST /webhook} route. Verification recomputes HMAC-SHA256 over \texttt{timestamp + token} and compares digests with \texttt{timingSafeEqual}. The implementation is reproduced in Appendix~\ref{app:listings} (Listing~\ref{lst:mailgun-signature}). Parsed bodies pass the same Zod trade schema as TradingView payloads before forwarding to \texttt{trade-worker}.
 
 \subsection{Data-Layer Guards}
 
-\texttt{d1-worker} exposes parameterized SQL to trusted internal callers only. The \texttt{validateQuery} guard rejects non-\texttt{SELECT} statements, literal injection, \texttt{UNION}, and tables outside an allowlist (Listing~\ref{lst:d1-validate-query}). Dashboard settings keys must match known CONFIG\_KV prefixes. Together with internal auth, this blocks lateral movement from a compromised binding to arbitrary D1 writes.
+\texttt{d1-worker} exposes parameterized SQL to trusted internal callers only. The \texttt{validateQuery} guard rejects non-\texttt{SELECT} statements, literal injection, \texttt{UNION}, and tables outside an allowlist. Dashboard settings keys must match known CONFIG\_KV prefixes. Together with internal auth, this blocks lateral movement from a compromised binding to arbitrary D1 writes.
 
 \subsection{Exchange Credential Handling}
 
@@ -81,7 +73,7 @@ Table~\ref{tab:security-summary} summarizes enforcement points. Full threat-to-m
   \caption{Security control summary by surface.}
   \label{tab:security-summary}
   \small
-  \begin{tabular}{@{}llp{5.2cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{5.5cm}@{}}
     \toprule
     \textbf{Surface} & \textbf{Control} & \textbf{Failure mode} \\
     \midrule
@@ -90,7 +82,6 @@ Table~\ref{tab:security-summary} summarizes enforcement points. Full threat-to-m
     Internal bindings & \texttt{X-Internal-Auth-Key} & Fail closed (401) \\
     \texttt{email-worker} & Mailgun HMAC & Fail closed (401) \\
     \texttt{d1-worker} & SQL allowlist + internal auth & Fail closed (403) \\
-    LLM paths & Sanitizer + no order side effects & Fail closed on marker hit \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}

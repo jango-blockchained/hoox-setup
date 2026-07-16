@@ -16,24 +16,25 @@ import {
   BarChart3,
   Bell,
   Bot,
-  Brain,
-  Cpu,
-  Database,
   Eye,
   FileText,
-  GitBranch,
   Home,
-  LayoutDashboard,
   MessageSquare,
-  Radio,
   ScrollText,
   Search,
-  Settings,
   ShieldAlert,
   SunMoon,
-  TrendingUp,
-  Wrench,
 } from "lucide-react";
+import {
+  Cpu,
+  Database,
+  BranchUp,
+  Monitor,
+  Radio,
+  Setting2,
+  Chart,
+  Setting2 as WrenchIcon,
+} from "reicon-react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +43,7 @@ import { toast } from "sonner";
 type CommandGroupName = "Navigation" | "Agent" | "Actions";
 
 interface CommandPaletteItem {
-  icon: typeof LayoutDashboard;
+  icon: React.ComponentType<any>;
   label: string;
   shortcut?: string;
   action: () => void;
@@ -107,7 +108,7 @@ export function CommandPalette() {
       group: "Navigation",
     },
     {
-      icon: LayoutDashboard,
+      icon: Monitor,
       label: "Dashboard",
       shortcut: "⌘D",
       action: navigate("/dashboard"),
@@ -127,7 +128,7 @@ export function CommandPalette() {
       group: "Navigation",
     },
     {
-      icon: TrendingUp,
+      icon: Chart,
       label: "Positions",
       shortcut: "⌘P",
       action: navigate("/dashboard/positions"),
@@ -140,21 +141,21 @@ export function CommandPalette() {
       group: "Navigation",
     },
     {
-      icon: Settings,
+      icon: Setting2,
       label: "Settings",
       shortcut: "⌘,",
       action: navigate("/dashboard/settings"),
       group: "Navigation",
     },
     {
-      icon: Wrench,
+      icon: WrenchIcon,
       label: "Setup",
       shortcut: "⌘S",
       action: navigate("/dashboard/setup"),
       group: "Navigation",
     },
     {
-      icon: GitBranch,
+      icon: BranchUp,
       label: "Signal Flow",
       action: navigate("/dashboard/signal-flow"),
       group: "Navigation",
@@ -174,7 +175,7 @@ export function CommandPalette() {
 
     // Agent group — overview + sub-routes
     {
-      icon: Brain,
+      icon: Cpu,
       label: "Agent Overview",
       action: navigate("/dashboard/agent"),
       group: "Agent",

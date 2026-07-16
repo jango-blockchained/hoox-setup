@@ -40,12 +40,23 @@ const INCLUDE_PATHS = [
   "scripts/package-arxiv.ts",
 ];
 
-const INCLUDE_GLOBS_EXT = [".tex", ".bib", ".ts", ".yaml", ".jsonc", ".sql", ".js", ".md", ".pdf"];
+const INCLUDE_GLOBS_EXT = [
+  ".tex",
+  ".bib",
+  ".ts",
+  ".yaml",
+  ".jsonc",
+  ".sql",
+  ".js",
+  ".md",
+  ".pdf",
+];
 
 function shouldCopyFile(name: string): boolean {
   if (name.endsWith(".aux") || name.endsWith(".log") || name.endsWith(".blg")) {
     return false;
   }
+  if (name === "Makefile") return true;
   return INCLUDE_GLOBS_EXT.some((ext) => name.endsWith(ext));
 }
 
@@ -68,7 +79,9 @@ async function main(): Promise<void> {
   const pdfName = `${paperName}.pdf`;
   const pdfPath = join(PAPERS_DIR, pdfName);
   if (!existsSync(pdfPath)) {
-    console.error(`Missing ${pdfName} — run: cd papers && make pdf-tikz (or pdf-tikz-core)`);
+    console.error(
+      `Missing ${pdfName} — run: cd papers && make pdf-tikz (or pdf-tikz-core)`
+    );
     process.exit(1);
   }
 
@@ -96,7 +109,9 @@ async function main(): Promise<void> {
   await $`tar -czf ${ARCHIVE} -C ${DIST_DIR} ${tarDirName}`.quiet();
 
   const size = statSync(ARCHIVE).size;
-  console.log(`\nCreated ${relative(PAPERS_DIR, ARCHIVE)} (${(size / 1024).toFixed(0)} KiB)`);
+  console.log(
+    `\nCreated ${relative(PAPERS_DIR, ARCHIVE)} (${(size / 1024).toFixed(0)} KiB)`
+  );
   console.log(`Upload ${paperName}.pdf + the tarball to arXiv.`);
 }
 

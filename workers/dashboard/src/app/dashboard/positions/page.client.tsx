@@ -3,7 +3,7 @@
 import { PositionsTable } from "@/components/dashboard/positions-table";
 import { CandlestickChart } from "@/components/dashboard/candlestick-chart";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { TrendingUp } from "lucide-react";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -25,10 +25,17 @@ export default function PositionsClient() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          icon={<TrendingUp className="h-8 w-8 text-primary" />}
+          icon={<HooxIcon name="chart" size="lg" className="text-primary" />}
           title="Positions"
           description="Manage your active trading positions"
         />
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <HooxIcon name="bitcoin" size="sm" />
+          <HooxIcon name="wallet" size="sm" />
+          <HooxIcon name="rocket" size="sm" />
+          <HooxIcon name="target" size="sm" />
+          <span className="text-xs">Trading</span>
+        </div>
         <button
           onClick={() => setShowChart(!showChart)}
           className="text-sm text-muted-foreground hover:text-foreground"

@@ -123,7 +123,9 @@ $(CORE_PAPER).pdf: $(CORE_PAPER).tex front-matter.tex macros.tex references.bib 
 		sections/03-architecture.tex sections/04-mechanisms.tex sections/05-security.tex \
 		sections/06-implementation.tex sections/07-evaluation.tex sections/08-related.tex \
 		sections/09-limitations.tex sections/10-conclusion.tex \
-		generated/graph-tables.tex \
+		appendices/A-reproducibility.tex appendices/C-threat-model.tex \
+		appendices/F-test-excerpts.tex appendices/G-implementation-listings.tex \
+		generated/graph-tables.tex $(LISTING_SRCS) \
 		figures/architecture.pdf
 	pdflatex -interaction=nonstopmode $(CORE_PAPER).tex
 	bibtex $(CORE_PAPER)

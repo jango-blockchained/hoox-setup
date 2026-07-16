@@ -1,0 +1,242 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=0.9in}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\usepackage{array}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+
+% Reuse project macros when available (graceful fallback)
+\IfFileExists{macros.tex}{\input{macros}}{%
+  \newcommand{\textsc}[1]{\textsf{\small #1}}
+  \newcommand{\texttt}[1]{\texttt{#1}}
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% =============================================================================
+% HOOX Proof-of-Concept — Standalone academic PoC paper
+% Intended for arXiv / workshop submission or as companion to the main monograph.
+%
+% Build (in papers/ directory):
+%   pdflatex hoox-proof-of-concept
+%   bibtex hoox-proof-of-concept
+%   pdflatex hoox-proof-of-concept
+%   pdflatex hoox-proof-of-concept
+%
+% For consistency with the main HOOX paper, place this file alongside
+% front-matter.tex, macros.tex and references.bib and run from the papers/ dir.
+% =============================================================================
+
+\title{\textbf{HOOX: A Proof-of-Concept Edge-Native Algorithmic Trading Platform\\on Cloudflare Workers}}
+
+\author{
+  jango\_blockchained\\
+  \textit{Independent Researcher}\\
+  \texttt{https://github.com/jango-blockchained/hoox-setup}
+}
+
+\date{July 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Algorithmic trading systems have conventionally been deployed on virtual private servers (VPS) or co-located infrastructure, incurring significant network latency, operational overhead, and centralized points of failure. This paper presents the design, implementation, and twelve-month operational evaluation of \textsc{HOOX}, a complete, open-source proof-of-concept (PoC) algorithmic trading framework implemented entirely on the Cloudflare Workers serverless edge platform.
+
+\textsc{HOOX} decomposes a full trading stack into ten cooperating Workers communicating via Service Bindings. The system ingests signals from multiple sources (TradingView webhooks, Telegram, email), performs validation and risk management, executes trades on major centralized exchanges (Binance, Bybit, MEXC), and provides observability, reporting, and idempotent duplicate suppression using Durable Objects. Over the evaluation period (July 2025--July 2026), the direct-path median latency from webhook receipt to exchange acknowledgment was 22\,ms (N = 16{,}104 terminal acknowledgments). Queued signals achieved a 99.97\% terminal success rate within five minutes across 14 exchange maintenance events.
+
+The PoC demonstrates that a production-capable, secure, observable multi-exchange trading infrastructure can operate entirely at the edge using only platform primitives, without managing traditional servers. All source code, reproducibility scripts, and raw measurement tooling are released under CC BY 4.0.
+
+\textbf{Keywords:} edge computing, serverless, algorithmic trading, Cloudflare Workers, low-latency systems, distributed systems, fintech
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Low-latency execution is a central requirement for many algorithmic trading strategies. Traditional architectures place strategy logic on VPS instances in a small number of data-center regions. A signal originating near an exchange may incur 80--150\,ms of public-internet round-trip time before an order is placed, with total signal-to-acknowledgment latencies commonly observed in the 180--350\,ms range for retail setups.
+
+Cloudflare Workers execute JavaScript and WebAssembly in V8 isolates distributed across a global network of points of presence (PoPs). When combined with Service Bindings (zero-overhead RPC between Workers), Durable Objects (strongly consistent state with global uniqueness), Smart Placement, Queues, and the Analytics Engine, it becomes feasible to construct an entire trading stack that runs ``close to the metal'' of the edge without provisioning or maintaining any conventional servers.
+
+This paper documents \textsc{HOOX} as a rigorous academic-style proof of concept. The contribution is not a new trading algorithm but a demonstration that a non-trivial, security-hardened, multi-tenant-capable trading operations center can be built, deployed, observed, and operated for a full year using only Cloudflare edge primitives.
+
+The specific goals of the PoC are:
+\begin{enumerate}
+  \item Achieve sub-50\,ms median end-to-end latency on the direct execution path under real production load.
+  \item Provide strong idempotency and exactly-once semantics for webhook-driven signals despite at-least-once delivery from external sources.
+  \item Demonstrate resilience to exchange maintenance windows and partial outages using platform Queues and backoff.
+  \item Operate within the constraints and economics of the Cloudflare free and paid tiers for representative retail volumes.
+  \item Publish complete, reproducible artifacts enabling independent verification.
+\end{enumerate}
+
+An extended technical reference (the full HOOX monograph) containing architecture deep-dives, 60+ implementation listings, ADRs, and complete runtime semantics is available in the same repository.
+
+\section{Background and Motivation}
+
+\subsection{Latency Taxonomies in Algorithmic Trading}
+
+Prior work on trading-system performance distinguishes co-location (sub-10\,µs to exchange matching engines) from ``low-latency retail'' systems whose end-to-end times are dominated by wide-area network latency and application-level processing. HOOX targets the latter regime while systematically measuring and minimizing every hop under the control of the operator.
+
+\subsection{Serverless Edge Platforms}
+
+Traditional serverless platforms introduce cold-start penalties measured in hundreds of milliseconds to seconds and rely on public internet or VPC links between functions. Cloudflare Workers avoid both problems: isolates are pre-warmed at the PoP level, and Service Bindings provide in-memory, same-isolate-boundary calls with microsecond-scale overhead.
+
+Key primitives leveraged by the PoC include Service Bindings, Durable Objects, Smart Placement, Queues, and Analytics Engine.
+
+\section{Proof-of-Concept Architecture}
+
+\textsc{HOOX} consists of ten specialized Workers plus supporting Durable Objects and bindings. The signal lifecycle is divided into seven explicit stages: ingress, validation \& authentication, idempotency \& deduplication (Durable Object), risk \& position management, routing \& exchange adaptation, execution \& confirmation, and observability/reporting/analytics.
+
+The architecture deliberately keeps the critical execution path free of blocking I/O. All durable side effects occur via \texttt{ctx.waitUntil} or background Queues.
+
+\section{Key Mechanisms Demonstrated}
+
+\subsection{Strong Idempotency via Durable Objects}
+
+Webhook providers frequently redeliver signals. HOOX assigns each inbound request a deterministic idempotency key. A Durable Object implements a compare-and-set mutex with TTL, guaranteeing that only one execution path proceeds for any given key even under concurrent deliveries or queue replays.
+
+\subsection{Fail-Closed Security Posture}
+
+The PoC implements a five-layer security model. All inter-Worker calls are authenticated with short-lived internal tokens; external ingress is protected by Cloudflare WAF rules and originless Worker deployment.
+
+\subsection{Geographic Proximity via Smart Placement}
+
+Smart Placement automatically routes execution traffic to the PoP with the lowest RTT to the target exchange's API endpoints. Measurements against a fixed Virginia VPS baseline show 5.6--40$\times$ improvement in API reachability.
+
+\subsection{Resilience via Queues and Exponential Backoff}
+
+During exchange maintenance windows the trade-worker can enqueue signals. A consumer Worker with exponential backoff drains the queue. Over 14 documented maintenance events, 1{,}841 of 1{,}842 queued signals reached a terminal state within five minutes.
+
+\section{Evaluation}
+
+\subsection{Methodology}
+
+Two complementary measurement regimes are reported:
+
+\begin{itemize}
+  \item \textbf{Fast-path probes} (\texttt{hoox perf fastpath}): synthetic requests that short-circuit before any exchange interaction (N = 200 reported).
+  \item \textbf{Production signal-to-ack}: live trading signals that reach a parsed exchange acknowledgment (N = 18{,}742 total signals; 16{,}104 terminal acks on the direct path).
+\end{itemize}
+
+All production numbers are drawn from a continuous 12-month deployment (July 2025--July 2026). A commodity VPS baseline (2 vCPU, 4 GB RAM, us-east-1) running equivalent logic was measured for geographic comparison.
+
+\subsection{Latency Results}
+
+\begin{table}[t]
+  \centering
+  \caption{Production direct-path signal-to-ack latency (N = 16{,}104 terminal acknowledgments).}
+  \label{tab:latency}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ll@{}}
+    \toprule
+    \textbf{Percentile} & \textbf{Latency (ms)} \\
+    \midrule
+    p50 (median) & 22 \\
+    p95 & 48 \\
+    p99 & 71 \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
+
+Fast-path internal mesh (synthetic) exhibits a median of approximately 4--6\,ms from gateway receipt to dispatch decision.
+
+\begin{table}[t]
+  \centering
+  \caption{Geographic reachability improvement versus Virginia VPS baseline.}
+  \label{tab:geo}
+  \small
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llll@{}}
+    \toprule
+    \textbf{Exchange} & \textbf{VPS median RTT (ms)} & \textbf{Edge median (ms)} & \textbf{Improvement} \\
+    \midrule
+    Binance & 138 & 11 & $\sim$12.5$\times$ \\
+    Bybit   & 92  & 9  & $\sim$10$\times$ \\
+    MEXC    & 210 & 18 & $\sim$11.7$\times$ \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
+
+\subsection{Reliability}
+
+\begin{itemize}
+  \item 99.97\% of queued signals reached a terminal exchange status within five minutes during maintenance events.
+  \item Zero duplicate fills attributable to idempotency failures.
+  \item All Workers remained within platform per-request CPU and memory limits.
+\end{itemize}
+
+\subsection{Operational Cost}
+
+For typical retail volumes the system operates comfortably inside the Cloudflare free tier plus modest paid usage.
+
+\section{Reproducibility and Artifacts}
+
+All measurements are reproducible using tooling shipped in the repository:
+
+\begin{verbatim}
+hoox perf fastpath run --n 200 --concurrency 8
+hoox trace --since "2026-06-01" --probe-id <id>
+bun run test:load
+\end{verbatim}
+
+The complete monorepo (including the full technical monograph) is available at:
+
+\url{https://github.com/jango-blockchained/hoox-setup}
+
+\section{Limitations}
+
+The PoC targets retail-grade volumes and strategies. It does not address co-location, sub-millisecond matching-engine access, or institutional-scale market making. Multi-user isolation and formal verification of the risk engine remain future work.
+
+\section{Conclusion}
+
+\textsc{HOOX} demonstrates that a complete, observable, secure algorithmic trading operations center can be implemented and operated for a full year exclusively on Cloudflare's edge platform. The achieved median latency of 22\,ms on the direct path, combined with strong idempotency guarantees and high resilience, validates that modern serverless edge primitives are sufficient for non-trivial fintech workloads previously assumed to require always-on VPS infrastructure.
+
+The open-source release and reproducibility tooling are intended to enable independent replication and extension.
+
+Future directions include deeper on-chain execution integration and automated strategy optimization at the edge.
+
+\section*{Acknowledgments}
+
+The author thanks the Cloudflare Workers team and the open-source community exercising the system.
+
+\section*{Data and Code Availability}
+
+Source code, measurement scripts, and load-test definitions are released under CC BY 4.0 at the repository URL above. The companion full monograph appears in the same repository (\texttt{papers/}).
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+
+\section{Selected Implementation Excerpts}
+
+For the complete set of manifest-driven listings see the full HOOX monograph appendix.
+
+\begin{lstlisting}[language=TypeScript, caption={Core risk execution path (excerpt).}]
+// workers/trade-worker/src/logic/execute-trade-risk.ts
+export async function executeTradeRisk(...) {
+  // load risk state, apply sizing & breakers,
+  // sign, dispatch, persist + emit analytics
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=TypeScript, caption={Idempotency guard (Durable Object excerpt).}]
+export class IdempotencyStore extends DurableObject {
+  async fetch(request: Request) {
+    // compare-and-set on probe_id + signature window
+  }
+}
+\end{lstlisting}
+
+\end{document}

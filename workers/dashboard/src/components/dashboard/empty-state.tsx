@@ -2,15 +2,15 @@
 
 import { motion } from "framer-motion";
 import {
-  TrendingUp,
-  ScrollText,
-  Settings,
-  Wrench,
-  GitBranch,
+  Chart,
+  DocText,
+  Setting2,
+  Setting2 as WrenchIcon, // approx for wrench/setup
+  BranchUp,
   Inbox,
   Plus,
-  RefreshCw,
-} from "lucide-react";
+  Refresh,
+} from "reicon-react";
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
@@ -25,17 +25,17 @@ interface EmptyStateProps {
 }
 
 const iconMap = {
-  positions: TrendingUp,
-  logs: ScrollText,
-  settings: Settings,
-  setup: Wrench,
-  signal: GitBranch,
+  positions: Chart,
+  logs: DocText,
+  settings: Setting2,
+  setup: WrenchIcon,
+  signal: BranchUp,
   inbox: Inbox,
 };
 
 const actionIconMap = {
   plus: Plus,
-  refresh: RefreshCw,
+  refresh: Refresh,
 };
 
 export function EmptyState({

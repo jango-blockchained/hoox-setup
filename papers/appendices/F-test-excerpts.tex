@@ -8,7 +8,7 @@
   \caption{Test pyramid and primary verification targets.}
   \label{tab:test-pyramid}
   \small
-  \begin{tabular}{@{}llp{5.8cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llp{6cm}@{}}
     \toprule
     \textbf{Tier} & \textbf{Location} & \textbf{What it proves} \\
     \midrule
@@ -18,7 +18,7 @@
     Load & \texttt{tests/load/} & Deployed edge p95 under k6 thresholds \\
     Live / E2E & \texttt{tests/live/}, \texttt{tests/e2e/} & Binding graph, secrets, signal flow \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Representative Unit Tests}
@@ -27,7 +27,7 @@
 
 \hooxlisting{lst:test-idempotency-ttl}{test-idempotency-ttl.ts}{Duplicate key rejected within TTL}
 
-\paragraph{D1 SQL guard.} Listing~\ref{lst:test-d1-sql-guard} asserts HTTP\,403 when a dashboard query references a table outside the allowlist---matching the production validator in Listing~\ref{lst:d1-validate-query}.
+\paragraph{D1 SQL guard.} The test in Listing~\ref{lst:test-d1-sql-guard} asserts HTTP\,403 when a dashboard query references a table outside the allowlist---matching the production validator described in Section~\ref{sec:security} (Data-Layer Guards).
 
 \hooxlisting{lst:test-d1-sql-guard}{test-d1-sql-guard.ts}{Unauthorized table rejected with 403}
 
@@ -66,7 +66,7 @@ Table~\ref{tab:failure-taxonomy} classifies production failure modes, detection 
   \caption{Failure taxonomy: detection and system response.}
   \label{tab:failure-taxonomy}
   \small
-  \begin{tabular}{@{}p{2.4cm}p{3.2cm}p{2.8cm}p{4.2cm}@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}p{2.8cm}p{3.6cm}p{3.2cm}p{4.8cm}@{}}
     \toprule
     \textbf{Failure class} & \textbf{Detection} & \textbf{HTTP / queue} & \textbf{System response} \\
     \midrule
@@ -83,7 +83,7 @@ Table~\ref{tab:failure-taxonomy} classifies production failure modes, detection 
     SQL injection attempt & \texttt{validateQuery} & 400 / 403 & Table allowlist; no literals in SELECT \\
     Probe misuse & \texttt{probe: true} & 200 probed & No exchange call; no D1 trade row \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
-\paragraph{Reproducibility.} Run unit tests with \texttt{bun test} from the monorepo root; integration tests require \texttt{docker compose --profile workers up}. Load tests: \texttt{HOOX\_API\_KEY=<key> k6 run tests/load/fastpath-audit.js}. Full commands appear in Appendix~\ref{app:repro}.
+\paragraph{Reproducibility.} Unit tests are run with \texttt{bun test} from the monorepo root; integration tests require \texttt{docker compose --profile workers up}. Load tests: \texttt{HOOX\_API\_KEY=<key> k6 run tests/load/fastpath-audit.js}. Full commands appear in Appendix~\ref{app:repro}.

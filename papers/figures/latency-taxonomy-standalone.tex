@@ -1,10 +1,13 @@
-% Standalone build: pdflatex latency-taxonomy-standalone.tex
-% Requires: texlive-pictures (provides tikz.sty / pgf)
-\documentclass[11pt]{article}
-\usepackage[margin=0.5in]{geometry}
+% Standalone build for tight figure PDF (not a full page / not appended)
+% pdflatex latency-taxonomy-standalone.tex
+\documentclass{article}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing,backgrounds}
 \pagestyle{empty}
 \begin{document}
-\noindent\input{latency-taxonomy.tex}
+  \newsavebox{\figbox}
+  \sbox{\figbox}{\input{latency-taxonomy.tex}}
+  \pdfpagewidth=\dimexpr\wd\figbox + 3bp\relax
+  \pdfpageheight=\dimexpr\ht\figbox + \dp\figbox + 3bp\relax
+  \noindent\usebox{\figbox}
 \end{document}

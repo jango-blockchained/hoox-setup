@@ -4,6 +4,7 @@ import {
   type CFServiceDef,
   type CFServiceType,
 } from "@/components/ui/cf-service-badge";
+import { HooxIcon } from "@/components/ui/hoox-icon";
 
 const CATEGORY_ORDER: CFServiceCategory[] = [
   "Data",
@@ -56,15 +57,15 @@ export function InfrastructureLegend() {
             </h4>
             <ul className="flex flex-col gap-1.5">
               {services.map(({ type, def }) => {
-                const Icon = def.icon;
                 return (
                   <li
                     key={type}
                     className="flex items-baseline gap-2.5 text-xs"
                   >
-                    <Icon
-                      strokeWidth={1.5}
-                      className="text-muted-foreground size-3.5 translate-y-0.5 shrink-0"
+                    <HooxIcon
+                      name={def.icon}
+                      size="sm"
+                      className="text-muted-foreground"
                     />
                     <span className="text-foreground w-14 shrink-0 font-medium tracking-tight">
                       {def.name}

@@ -8,7 +8,7 @@ Table~\ref{tab:worker-index} indexes all ten production Workers. Listings for la
   \caption{Production Worker index (core mesh). \texttt{pine-worker} and \texttt{pyne-worker} are tooling isolates outside this table.}
   \label{tab:worker-index}
   \small
-  \begin{tabular}{@{}llll@{}}
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llll@{}}
     \toprule
     \textbf{Worker} & \textbf{Public?} & \textbf{Trigger} & \textbf{Primary role} \\
     \midrule
@@ -23,7 +23,7 @@ Table~\ref{tab:worker-index} indexes all ten production Workers. Listings for la
     \texttt{report-worker} & No & Cron 06:00, 18:00 UTC & PDF reports via Browser Rendering \\
     \texttt{dashboard} & Yes & Browser & Next.js/OpenNext portfolio UI \\
     \bottomrule
-  \end{tabular}
+  \end{tabular*}
 \end{table}
 
 \subsection{Gateway Worker (\texttt{hoox})}
@@ -62,7 +62,25 @@ Cron-driven (\texttt{*/5 * * * *}) risk manager. Uses \texttt{createCronHandler}
 
 \paragraph{Bindings.} \texttt{D1\_SERVICE}, \texttt{TRADE\_SERVICE}, \texttt{TELEGRAM\_SERVICE}, \texttt{CONFIG\_KV}, Workers AI binding.
 
-\paragraph{Cron sequence.} Figure~\ref{fig:agent-cron} (Section~\ref{sec:mechanisms}) shows the seven-step observation loop implemented in \texttt{processRoutine}.
+\paragraph{Cron sequence.} Figure~\ref{fig:agent-cron} shows the seven-step observation loop implemented in \texttt{processRoutine}.
+
+\begin{figure}[!htbp]
+  \centering
+  \IfFileExists{figures/agent-cron-lifecycle.pdf}{%
+    \includegraphics[width=\linewidth]{figures/agent-cron-lifecycle.pdf}%
+  }{%
+    \ifhooxusetikz
+      \resizebox{\linewidth}{!}{\input{figures/agent-cron-lifecycle.tex}}%
+    \else
+      \fbox{\parbox{0.92\linewidth}{\small
+      Cron $\rightarrow$ \texttt{agent-worker} $\rightarrow$ \texttt{d1-worker} / KV / exchanges $\rightarrow$ \texttt{trade-worker}\\
+      \vspace{2pt}
+      }}
+    \fi
+  }
+  \caption{Five-minute agent cron risk loop (observation, KV watermarks, optional LLM summary, close dispatch).}
+  \label{fig:agent-cron}
+\end{figure}
 
 \subsection{Telegram Worker (\texttt{telegram-worker})}
 
@@ -132,10 +150,10 @@ Scheduled PDF compiler. Cron triggers at 06:00 and 18:00 UTC pull dashboard stat
 \begin{figure}[t]
   \centering
   \IfFileExists{figures/report-cron-lifecycle.pdf}{%
-    \includegraphics[width=0.98\linewidth]{figures/report-cron-lifecycle.pdf}%
+    \includegraphics[width=\linewidth]{figures/report-cron-lifecycle.pdf}%
   }{%
     \ifhooxusetikz
-      \resizebox{0.98\linewidth}{!}{\input{figures/report-cron-lifecycle.tex}}%
+      \resizebox{\linewidth}{!}{\input{figures/report-cron-lifecycle.tex}}%
     \else
       \fbox{\parbox{0.92\linewidth}{\small Cron $\rightarrow$ \texttt{report-worker} $\rightarrow$ \texttt{d1-worker} $\rightarrow$ Browser Rendering $\rightarrow$ R2 $\rightarrow$ Telegram}}
     \fi

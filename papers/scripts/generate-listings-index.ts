@@ -47,16 +47,29 @@ function category(source: string, id: string): string {
   if (source.includes("web3-wallet-worker")) return "Web3 / DeFi";
   if (source.includes("trade-worker")) return "Execution";
   if (source.includes("agent-worker")) return "Agent / AI";
-  if (source.includes("d1-worker") || source.includes("schema.sql") || source.includes("d1/"))
+  if (
+    source.includes("d1-worker") ||
+    source.includes("schema.sql") ||
+    source.includes("d1/")
+  )
     return "Data layer";
   if (source.includes("analytics")) return "Observability";
   if (source.includes("email-worker")) return "Email ingress";
-  if (source.includes("middleware") || source.includes("queue-handler") || source.includes("cron-handler"))
+  if (
+    source.includes("middleware") ||
+    source.includes("queue-handler") ||
+    source.includes("cron-handler")
+  )
     return "Shared middleware";
-  if (source.includes("wsAdapters") || source.includes("exchange-connection-manager"))
+  if (
+    source.includes("wsAdapters") ||
+    source.includes("exchange-connection-manager")
+  )
     return "WebSocket adapters";
-  if (source.includes("exchanges") || source.includes("-client")) return "Exchange clients";
-  if (source.endsWith(".jsonc") || source.includes("wrangler")) return "Configuration";
+  if (source.includes("exchanges") || source.includes("-client"))
+    return "Exchange clients";
+  if (source.endsWith(".jsonc") || source.includes("wrangler"))
+    return "Configuration";
   return "Shared packages";
 }
 
@@ -102,15 +115,49 @@ function main(): void {
     lines.push(`\\subsection{${esc(cat)}}`, "");
     lines.push("\\begin{table}[h]", "\\centering", "\\small");
     lines.push(`\\caption{Code listings: ${esc(cat).toLowerCase()}.}`);
-    lines.push("\\begin{tabular}{@{}llp{6.2cm}@{}}", "\\toprule");
-    lines.push("\\textbf{Label} & \\textbf{File} & \\textbf{Description} \\\\", "\\midrule");
+    lines.push(
+      "\\begin{tabular*}{\\linewidth}{@{\\extracolsep{\\fill}}llp{6.2cm}@{}}",
+      "\\toprule"
+    );
+    lines.push(
+      "\\textbf{Label} & \\textbf{File} & \\textbf{Description} \\\\",
+      "\\midrule"
+    );
     for (const e of group) {
       const label = `lst:${e.id}`;
       lines.push(
         `Listing~\\ref{${label}} & \\texttt{${esc(e.output)}} & ${esc(e.caption)} \\\\`
       );
     }
-    lines.push("\\bottomrule", "\\end{tabular}", "\\end{table}", "");
+    lines.push("\\bottomrule", "\\end{tabular*}", "\\end{table}", "");
+  }
+
+  lines.push(
+    "\\clearpage",
+    "\\subsection{Full Listings}",
+    "",
+    "% Auto-included listing bodies so \\ref{lst:*} resolves in the monograph.",
+    ""
+  );
+
+  for (const cat of order) {
+    const group = byCat.get(cat);
+    if (!group?.length) continue;
+    lines.push(`\\subsubsection{${esc(cat)}}`, "");
+    for (const e of group) {
+      const label = `lst:${e.id}`;
+      const caption = esc(e.caption);
+      const file = esc(e.output);
+      if (e.output.endsWith(".sql")) {
+        lines.push(`\\hooxsql{${label}}{${file}}{${caption}}`, "");
+      } else if (e.output.endsWith(".jsonc")) {
+        lines.push(`\\hooxjson{${label}}{${file}}{${caption}}`, "");
+      } else if (e.output.endsWith(".js")) {
+        lines.push(`\\hooxsnippet{${label}}{${file}}{${caption}}`, "");
+      } else {
+        lines.push(`\\hooxlisting{${label}}{${file}}{${caption}}`, "");
+      }
+    }
   }
 
   mkdirSync(join(PAPERS_DIR, "generated"), { recursive: true });
