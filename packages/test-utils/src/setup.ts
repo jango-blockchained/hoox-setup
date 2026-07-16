@@ -191,7 +191,18 @@ mock.module("cloudflare:workers", () => ({
   },
 }));
 
-// ── 4. Ensure the JUnit output directory exists ─────────────────────────────
+// ── 4. Reset process.exitCode after every test ──────────────────────────────
+//
+// CLI command handlers intentionally set `process.exitCode` on failure paths.
+// Unit tests exercise those paths and often leave a non-zero exitCode behind.
+// Bun's test runner treats a leftover non-zero `process.exitCode` as a failed
+// process exit even when every assertion passed ("0 fail" but exit 1/2).
+// Clear it after each test so suite exit codes reflect real test failures only.
+afterEach(() => {
+  process.exitCode = 0;
+});
+
+// ── 5. Ensure the JUnit output directory exists ─────────────────────────────
 //
 // `bunfig.toml` configures Bun's JUnit reporter to write to
 // `./reports/junit.xml`. The reporter does not auto-create the directory,

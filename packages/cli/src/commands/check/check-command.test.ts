@@ -463,8 +463,8 @@ describe("registerCheckCommand", () => {
       const program = await createProgram();
       await program.parseAsync(["check", "health"], { from: "user" });
 
-      // Should exit cleanly — the handler outputs success message
-      expect(process.exitCode).toBe(1);
+      // Early-return success path: formatSuccess, no exitCode mutation
+      expect(process.exitCode ?? 0).toBe(0);
     });
   });
 

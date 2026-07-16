@@ -41,10 +41,29 @@ const hasPreload = args.some(
 if (!hasPreload) {
   bunArgs.push("--preload", PRELOAD);
 }
-// Enforce coverage thresholds (values from bunfig.toml)
-bunArgs.push(
-  "--coverage-threshold=lines=80,statements=80,functions=80,branches=75"
+
+// Detect package-/path-scoped runs (e.g. packages/cli/, workers/, tests/e2e/).
+// Aggregate coverage thresholds are only meaningful for the full monorepo
+// suite: scoped runs pull in lightly-covered cross-package deps and would
+// fail an 80% gate even when every test passed.
+const isScopedRun = args.some(
+  (a) =>
+    !a.startsWith("-") &&
+    (a.startsWith("packages/") ||
+      a.startsWith("workers/") ||
+      a.startsWith("tests/") ||
+      a.startsWith("pages/") ||
+      a.includes(".test.") ||
+      a.endsWith("/"))
 );
+
+if (!isScopedRun) {
+  // Full-suite gate (aligned with historical bunfig targets).
+  bunArgs.push(
+    "--coverage-threshold=lines=80,statements=80,functions=80,branches=75"
+  );
+}
+
 bunArgs.push(...args);
 
 const proc = Bun.spawn(bunArgs, {
