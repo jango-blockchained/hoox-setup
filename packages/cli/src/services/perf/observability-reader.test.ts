@@ -9,7 +9,7 @@ const ALL_EVENTS = [
       timestamp: "2026-06-21T10:00:00.000Z",
       message: JSON.stringify({
         probe_id: "p-1",
-        hop: "hoox",
+        hop: "hoox-gateway",
         duration_ms: 18,
       }),
     },
@@ -20,7 +20,7 @@ const ALL_EVENTS = [
       timestamp: "2026-06-21T10:00:00.050Z",
       message: JSON.stringify({
         probe_id: "p-1",
-        hop: "hoox",
+        hop: "hoox-gateway",
         duration_ms: 22,
       }),
     },
@@ -31,7 +31,7 @@ const ALL_EVENTS = [
       timestamp: "2026-06-21T10:00:00.020Z",
       message: JSON.stringify({
         probe_id: "p-1",
-        hop: "trade-worker",
+        hop: "trade-worker-receive",
         duration_ms: 21,
       }),
     },
@@ -49,7 +49,7 @@ const filteredQuery = mock((req: TraceQueryRequest) => {
 });
 
 describe("ObservabilityReader.readProbeEvents", () => {
-  it("groups events by service and parses probe_id log lines", async () => {
+  it("groups events by service:hop and parses probe_id log lines", async () => {
     filteredQuery.mockClear();
     const reader = new ObservabilityReader({
       query: filteredQuery,
@@ -64,13 +64,46 @@ describe("ObservabilityReader.readProbeEvents", () => {
     expect(result.degraded).toBe(false);
     expect(result.hops).toHaveLength(2);
 
-    const hoox = result.hops.find((h) => h.service === "hoox");
+    const hoox = result.hops.find((h) => h.service === "hoox:hoox-gateway");
     expect(hoox).toBeDefined();
     expect(hoox?.samples).toEqual([18, 22]);
     expect(hoox?.count).toBe(2);
 
-    const tw = result.hops.find((h) => h.service === "trade-worker");
+    const tw = result.hops.find(
+      (h) => h.service === "trade-worker:trade-worker-receive"
+    );
     expect(tw?.samples).toEqual([21]);
+  });
+
+  it("falls back to bare service name when hop is absent (legacy)", async () => {
+    const legacyEvents = [
+      {
+        $metadata: {
+          service: "hoox",
+          message: JSON.stringify({
+            probe_id: "p-1",
+            duration_ms: 15,
+          }),
+        },
+      },
+    ];
+    const legacyQuery = mock((req: TraceQueryRequest) => {
+      const serviceFilter = req.parameters?.filters?.find((f) => f.value)
+        ?.value as string | undefined;
+      const events = serviceFilter
+        ? legacyEvents.filter((e) => e.$metadata.service === serviceFilter)
+        : legacyEvents;
+      return Promise.resolve({ success: true, events });
+    });
+    const reader = new ObservabilityReader({ query: legacyQuery });
+    const result = await reader.readProbeEvents({
+      probeIds: ["p-1"],
+      from: 0,
+      to: Date.now(),
+    });
+    const hoox = result.hops.find((h) => h.service === "hoox");
+    expect(hoox).toBeDefined();
+    expect(hoox?.samples).toEqual([15]);
   });
 
   it("returns degraded when no matching events found", async () => {
@@ -101,7 +134,7 @@ describe("ObservabilityReader.readProbeEvents", () => {
           service: "hoox",
           message: JSON.stringify({
             probe_id: "p-1",
-            hop: "hoox",
+            hop: "hoox-gateway",
             duration_ms: 12,
           }),
         },
@@ -121,7 +154,7 @@ describe("ObservabilityReader.readProbeEvents", () => {
       from: 0,
       to: Date.now(),
     });
-    const hoox = result.hops.find((h) => h.service === "hoox");
+    const hoox = result.hops.find((h) => h.service === "hoox:hoox-gateway");
     expect(hoox?.samples).toEqual([12]);
   });
 });
