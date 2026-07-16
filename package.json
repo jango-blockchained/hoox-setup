@@ -15,6 +15,7 @@
     "test:tui": "bun run scripts/test-with-table.ts --preload ./packages/tui/src/test-setup.ts packages/tui/",
     "test:shared": "bun run scripts/test-with-table.ts --isolate packages/shared/",
     "test:workers": "bun run scripts/test-with-table.ts --isolate workers/",
+    "test:trade-worker": "bun test workers/trade-worker",
     "test:integration": "bun run scripts/test-with-table.ts --isolate tests/integration/",
     "test:e2e": "bun run scripts/test-with-table.ts --isolate tests/e2e/",
     "test:load": "k6 run tests/load/webhook-flow.js && k6 run tests/load/d1-query-load.js && k6 run tests/load/system-mixed.js && k6 run tests/load/agent-cron-sim.js",

@@ -115,7 +115,8 @@ jobs:
 
       - name: Run worker unit tests
         run: |
-          for dir in workers/hoox workers/trade-worker workers/d1-worker workers/telegram-worker workers/agent-worker workers/web3-wallet-worker workers/email-worker workers/analytics-worker workers/report-worker; do
+          bun run test:trade-worker || true
+          for dir in workers/hoox workers/d1-worker workers/telegram-worker workers/agent-worker workers/web3-wallet-worker workers/email-worker workers/analytics-worker workers/report-worker; do
             if [ -f "$dir/package.json" ] && grep -q '"test"' "$dir/package.json"; then
               bun test --cwd "$dir" || true
             fi
