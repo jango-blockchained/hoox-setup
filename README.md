@@ -7,112 +7,261 @@
 [![Language](https://shieldcn.dev/badge/Language-TypeScript-3178c6.png?size=sm&logo=typescript)](https://www.typescriptlang.org/)
 [![Runtime](https://shieldcn.dev/badge/Runtime-Bun-000000.png?size=sm&logo=bun)](https://bun.sh)
 [![Platform](https://shieldcn.dev/badge/Platform-Cloudflare_Workers-f38020.png?size=sm&logo=cloudflare)](https://workers.cloudflare.com/)
+[![CLI](https://shieldcn.dev/badge/CLI-@jango--blockchained/hoox--cli-F97316.png?size=sm)](https://www.npmjs.com/package/@jango-blockchained/hoox-cli)
 [![Coverage](https://shieldcn.dev/badge/Coverage-80%25-22c55e.png?size=sm)](docs/devops/development/testing.md)
-[![License](https://shieldcn.dev/badge/License-CC_BY_4.0-6b7280.png?size=sm)](https://creativecommons.org/licenses/by/4.0/)
-[![Main Repo](https://shieldcn.dev/badge/Main_Repo-hoox--setup-3b82f6.png?size=sm&logo=github)](https://github.com/jango-blockchained/hoox-setup)
+[![License](https://shieldcn.dev/badge/License-Apache_2.0-6b7280.png?size=sm)](LICENSE-CODE)
 [![CI](https://shieldcn.dev/github/ci/jango-blockchained/hoox-setup.png?size=sm)](https://github.com/jango-blockchained/hoox-setup/actions/workflows/ci.yml)
 
-**Docs:** [docs.hoox.sh](https://docs.hoox.sh) · [Paper (arXiv)](papers/hoox-arxiv-paper-core.pdf) · [GitHub](https://github.com/jango-blockchained/hoox-setup)
+**Site:** [hoox.sh](https://hoox.sh) · **Install:** [hoox.sh/install](https://hoox.sh/install) · **Docs:** [docs.hoox.sh](https://docs.hoox.sh) · **Paper:** [papers/hoox-arxiv-paper-core.pdf](papers/hoox-arxiv-paper-core.pdf)
 
 </div>
 
-> **Edge-native algorithmic trading.** HOOX is a free, open-source trading and automation framework built entirely on Cloudflare Workers. Ten specialized V8 isolates communicate via Service Bindings to deliver a median production signal-to-ack latency of **22 ms** across 330+ global points of presence (N = 16,104 terminal acknowledgments, 2025–2026). No servers. $0 on the free tier.
+> **Edge-native algorithmic trading.** Free, open-source framework on Cloudflare Workers. Ten V8 isolates over Service Bindings — median production signal-to-ack **~22 ms**, 330+ PoPs. No servers. Typical retail load fits the free tier.
+
+Install paths and commands below match **[hoox.sh/install](https://hoox.sh/install)** (CLI first).
 
 ---
 
-## The Edge Advantage
+## Install
 
-An edge-native architecture that collapses the traditional signal-to-execution path. All inter-component communication occurs through Cloudflare Service Bindings with sub-millisecond overhead—no public internet, no TLS handshakes, no DNS between microservices.
+Every path to a live deployment: install the CLI, clone when you need the full mesh, run locally with Docker, ship to Cloudflare’s edge, operate via CLI, TUI, or dashboard.
 
-**Key production metrics**
+### Prerequisites
 
-| Metric                  | Value                |
-| ----------------------- | -------------------- |
-| Median signal-to-ack    | ~22 ms (direct path) |
-| Edge locations          | 330+                 |
-| Cooperating V8 isolates | 10                   |
-| Internal call latency   | <1 ms                |
-| Smart Placement gain    | 30–60% RTT reduction |
-| Monthly infrastructure  | $0 (free tier)       |
+- **[Bun](https://bun.sh) ≥ 1.2** (required — CLI is a Bun bundle; it will **not** run under Node)
+- **[Cloudflare account](https://dash.cloudflare.com/)** (free tier is enough for typical retail volume)
+- **Git** (workspace / submodules)
+- **Docker + Compose** (optional — local mesh / self-host)
 
-### Execution
-
-- **Edge-Native Trading**: Workers are Smart Placed at the Cloudflare PoP nearest major exchange APIs (Binance, Bybit, MEXC).
-- **Microsecond Bindings**: Direct V8-to-V8 calls replace HTTP entirely.
-- **Durable Object Deduplication**: SQLite-backed IdempotencyStore with TTL + alarm cleanup. Duplicate webhooks are dropped even across cold starts. Trace IDs provide end-to-end visibility.
-- **Guaranteed Delivery**: Cloudflare Queues with 30 s → 15 min exponential backoff as automatic failover.
-
-### Intelligence & Risk
-
-- **Autonomous AI Risk Manager** (`agent-worker`): 5-minute cron. Maintains portfolio state, manages trailing stops, enforces drawdown kill-switches, and routes through a 5-provider LLM gateway with Vectorize RAG over trade history.
-- **Multi-Provider AI Gateway**: Workers AI (primary), OpenAI, Anthropic, Google AI, Azure OpenAI with automatic health-checked failover, SSE streaming, vision, and reasoning support.
-
-### Security & Resilience
-
-- **Zero Trust Mesh**: `trade-worker` and `d1-worker` have no public endpoints. They are reachable exclusively via Service Bindings from the gateway.
-- **KV-Persisted Rate Limiting**: 10 trades/min survives cold starts with in-memory fallback.
-- **WAF + Secret Injection**: IP allow-listing and hardware-bound secrets at the edge. API keys never leave the V8 isolate.
+```bash
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
+```
 
 ---
 
-## Real-World Latency (The Latency Race)
+### 1. Via Bun — global CLI (recommended)
 
-A reproducible, hop-level decomposition contrasting the edge-native path with a conventional single-region VPS deployment.
+Install [`@jango-blockchained/hoox-cli`](https://www.npmjs.com/package/@jango-blockchained/hoox-cli). Global install gives you the `hoox` command; you still need a cloned workspace for deploy and dev.
 
-**HOOX (nearest Cloudflare PoP)**
+```bash
+bun add -g @jango-blockchained/hoox-cli
+hoox --version
 
-1. Webhook → nearest PoP +4 ms
-2. Gateway (WAF + validate) +3 ms
-3. Service Binding (direct isolate) +1 ms
-4. Exchange order submission +14 ms
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git && cd hoox-setup
+hoox onboard
+```
 
-**Total: ~22 ms**
-
-**Traditional single-region VPS**
-
-1. Public internet transit +82 ms
-2. TLS + ingress proxy +38 ms
-3. App / container hop +27 ms
-4. Regional return to exchange +93 ms
-
-**Total: ~240 ms** (≈11× slower to order submission)
-
-_Illustrative benchmark: nearest Cloudflare PoP to Binance EU API vs. a fixed Frankfurt VPS. Full methodology and tooling (`hoox perf fastpath`) are in the repository and paper. Fast-path synthetic probes measure internal mesh; production metrics capture the complete signed path to exchange acknowledgment._
+- Run `hoox update` to self-update the CLI and check wrangler versions.
+- Alias: `hx`
 
 ---
 
-## Core Principles
+### 2. Via npm (still requires Bun)
 
-Five architectural principles that directly address well-documented failure modes of traditional VPS trading stacks:
+Published on npm as `@jango-blockchained/hoox-cli`, but **`npm install -g` alone will not produce a working binary**. Shebang and bundle target are Bun-only.
 
-1. **Ultra Low Latency** — Milliseconds decide outcomes. Smart Placement + colocated V8 isolates deliver sub-50 ms global median latency.
-2. **Service Bindings** — Direct function calls inside the isolate. <1 ms, zero public surface between services.
-3. **Autonomous AI** — Risk management that runs itself on a deterministic 5-minute cron with multi-LLM fallback.
-4. **Zero Trust** — Internal workers have literally zero public HTTP endpoints. Secrets live only in the V8 runtime.
-5. **Fault Tolerance** — Failure is local. Queues, idempotency, and circuit breakers keep trading alive when individual components are unavailable.
+```bash
+curl -fsSL https://bun.sh/install | bash
+bun add -g @jango-blockchained/hoox-cli
+
+# Alternative (downloads package; still need Bun to execute):
+# npm install -g @jango-blockchained/hoox-cli
+
+hoox onboard
+```
 
 ---
 
-## Architecture & Services
+### 3. From source (full monorepo)
 
-HOOX decomposes a complete trading stack into ten cooperating Workers forming a zero-trust microservice mesh. The gateway is the only public ingress for TradingView webhooks. All downstream work uses Service Bindings.
+Canonical path for contributors and operators who need the full worker mesh. Workers are **Git submodules** — without `--recursive` they are empty directories.
 
-| Worker               | Role                       | Key Responsibilities                                        | Trigger         |
-| -------------------- | -------------------------- | ----------------------------------------------------------- | --------------- |
-| `hoox`               | Gateway & Firewall         | Validation, WAF, rate limit, idempotency, routing           | Webhook         |
-| `trade-worker`       | Execution Engine           | Multi-exchange (Binance/Bybit/MEXC) order placement, sizing | Binding / Queue |
-| `agent-worker`       | AI Risk Manager            | 5-min cron: trailing stops, kill-switch, LLM summaries      | Cron            |
-| `telegram-worker`    | Notifications & AI Copilot | Alerts, RAG-powered `/search`, `/ask`, `/latest`            | Binding         |
-| `d1-worker`          | Data Layer                 | All D1 SQLite access, history, aggregates                   | Binding         |
-| `email-worker`       | Email Ingress              | Mailgun / direct JSON signal parsing                        | Webhook         |
-| `web3-wallet-worker` | DeFi Execution             | ethers.js swaps and contract calls                          | Binding         |
-| `analytics-worker`   | Observability              | Analytics Engine time-series events                         | Binding         |
-| `report-worker`      | Compliance Reports         | Twice-daily PDF via Browser Rendering                       | Cron            |
-| `dashboard`          | Command Center             | Next.js 16 real-time UI (OpenNext)                          | Public          |
+```bash
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
+cd hoox-trading
+bun install
+hoox onboard
+hoox check health
+```
 
-Only `hoox` and `dashboard` expose public endpoints. State is durably maintained in globally replicated D1, KV, R2, and Vectorize. Idempotency is enforced at the Durable Object layer.
+If you already cloned without submodules:
 
-A formal seven-stage signal lifecycle is described in the paper.
+```bash
+git submodule update --init --recursive
+# or: hoox clone --all
+```
+
+---
+
+### 4. Docker — local dev
+
+Mirrors production service-binding topology. Only `hoox` (gateway) and `dashboard` expose host ports.
+
+```bash
+docker compose --profile workers up      # workers only
+docker compose --profile dashboard up    # dashboard + deps
+docker compose --profile full up         # full stack
+
+# Via CLI
+hoox dev start --runtime docker
+```
+
+| Service   | URL                   |
+| --------- | --------------------- |
+| Gateway   | http://localhost:8787 |
+| Dashboard | http://localhost:8794 |
+
+- Profiles: `workers` · `dashboard` · `full`
+- Optional: `.env.local` for exchange keys and Telegram token
+- Native alternative: `hoox dev start --runtime native`
+
+---
+
+### 5. Docker — production / self-hosted
+
+For demos, local testing, or air-gapped runs. **Not** a full substitute for Cloudflare edge — Durable Objects, Vectorize, and Workers AI are unavailable self-hosted.
+
+```bash
+bun run docker:prod
+
+# Manual
+docker build -f Dockerfile.prod . --tag hoox:prod
+docker run -p 8080:8080 -e HOOX_SERVER_API_KEY=your-key hoox:prod
+
+# Native multi-worker server (from monorepo)
+bun run server.js
+```
+
+- Self-hosted gateway requires `HOOX_SERVER_API_KEY` for authenticated requests.
+- Production recommendation on edge: `hoox deploy all --auto`
+
+---
+
+### 6. Deploy to Cloudflare (production)
+
+Onboard provisions D1, KV, secrets, and deploys in dependency order. Dashboard goes to **Workers via OpenNext** (not Pages).
+
+```bash
+hoox onboard
+hoox deploy all --auto
+hoox deploy telegram-webhook
+hoox deploy update-internal-urls
+hoox deploy kv-config
+hoox check health
+```
+
+Non-interactive:
+
+```bash
+hoox onboard --token cfut_xxx --account xxx --preset full
+```
+
+Guides: [Installation](https://docs.hoox.sh/docs/enduser/getting-started/installation) · [Deploy](https://docs.hoox.sh/docs/devops/setup-and-operations)
+
+---
+
+### 7. Init & setup (step-by-step)
+
+Split onboarding when you need granular control: `init` writes `wrangler.jsonc` and collects secrets; `setup` generates keys, applies D1 schema, pushes secrets, deploys dashboard.
+
+```bash
+hoox init
+hoox setup
+hoox check setup
+hoox deploy all --auto
+```
+
+- `hoox init --self-hosted` configures a VPS deployment without Cloudflare dependency.
+- Resume interrupted wizard: `hoox onboard --resume`
+- Aliases for one-shot: `hoox bootstrap` · `hoox quickstart`
+
+---
+
+## Quick path (edge)
+
+```text
+hoox onboard  →  hoox deploy all --auto  →  live on edge
+```
+
+Or, after global CLI install + recursive clone of this repo:
+
+```bash
+bun add -g @jango-blockchained/hoox-cli
+git clone --recursive https://github.com/jango-blockchained/hoox-setup.git && cd hoox-setup
+hoox onboard
+hoox deploy all --auto
+hoox check health
+```
+
+---
+
+## Interfaces — CLI · TUI · Dashboard
+
+Same stack, three surfaces. CLI for automation/CI, TUI for terminal ops, dashboard for visual monitoring and risk.
+
+### CLI
+
+Primary operator interface. Running `hoox` with no arguments launches the TUI when a workspace exists.
+
+| Command                         | Purpose                              |
+| ------------------------------- | ------------------------------------ |
+| `hoox onboard`                  | Recommended bootstrap (init + setup) |
+| `hoox deploy all --auto`        | Workers + dashboard + wiring         |
+| `hoox dev start`                | Local native or Docker               |
+| `hoox check health`             | Post-deploy verification             |
+| `hoox monitor trades`           | Live trade stream                    |
+| `hoox perf fastpath run --n 50` | Latency probes                       |
+| `hoox trace events`             | Workers Observability                |
+| `hoox repair check`             | Diagnose & fix                       |
+| `hoox update`                   | Self-update CLI                      |
+| `hoox completion`               | bash / zsh / fish                    |
+
+Full reference: [docs CLI](https://docs.hoox.sh/docs/enduser/reference/cli-commands) · [packages/cli/README.md](packages/cli/README.md) · [hoox.sh/cli](https://hoox.sh/cli)
+
+### TUI
+
+```bash
+hoox tui
+# repo root: ./hoox-tui
+# packages/tui: bun run dev | bun run build && bun run start
+```
+
+### Dashboard
+
+```bash
+hoox dev dashboard          # or: hoox dashboard dev  → localhost:3000
+hoox deploy dashboard       # or: hoox dashboard deploy
+docker compose --profile dashboard up   # localhost:8794
+```
+
+Production URL: `https://<your-subdomain>.workers.dev` (set during onboard). Needs `hoox`, `d1-worker`, and `agent-worker` for full functionality.
+
+---
+
+## Architecture (brief)
+
+| Metric               | Value                     |
+| -------------------- | ------------------------- |
+| Median signal-to-ack | ~22 ms                    |
+| Edge locations       | 330+                      |
+| Isolates             | 10                        |
+| Internal calls       | &lt;1 ms Service Bindings |
+
+| Worker               | Role                   |
+| -------------------- | ---------------------- |
+| `hoox`               | Gateway & WAF          |
+| `trade-worker`       | Exchange execution     |
+| `agent-worker`       | AI risk (cron)         |
+| `telegram-worker`    | Alerts & copilot       |
+| `d1-worker`          | Data layer             |
+| `email-worker`       | Email signals          |
+| `web3-wallet-worker` | DeFi                   |
+| `analytics-worker`   | Analytics Engine       |
+| `report-worker`      | PDF reports            |
+| `dashboard`          | Next.js command center |
+
+Only gateway and dashboard are public. Everything else is binding-only.
 
 ```mermaid
 graph LR
@@ -120,147 +269,33 @@ graph LR
   GW -->|Binding| TW[trade-worker]
   GW -->|Queue failover| Q[Queues]
   TW -->|Signed REST| EX[Exchanges]
-  AW[agent-worker] -->|Risk actions| TW
+  AW[agent-worker] -->|Risk| TW
   TW -->|Notify| TGW[telegram-worker]
 ```
 
-Full topology, figures, and listings: see `papers/figures/` and the arXiv paper.
+---
+
+## Docs & research
+
+|              |                                                                                 |
+| ------------ | ------------------------------------------------------------------------------- |
+| Install UI   | [hoox.sh/install](https://hoox.sh/install)                                      |
+| Product docs | [docs.hoox.sh](https://docs.hoox.sh)                                            |
+| Quick start  | [5-minute guide](https://docs.hoox.sh/docs/enduser/getting-started/quick-start) |
+| Paper        | [`papers/hoox-arxiv-paper-core.pdf`](papers/hoox-arxiv-paper-core.pdf)          |
+| Essays       | [`.paragraph/`](.paragraph/)                                                    |
+| Brand        | [`brand/`](brand/)                                                              |
+| Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md)                                            |
 
 ---
 
-## HOOX vs Traditional Deployments
+## Security, cost & disclaimer
 
-| Dimension           | HOOX (Edge)                         | Traditional VPS        |
-| ------------------- | ----------------------------------- | ---------------------- |
-| Median latency      | ~22 ms (Smart Placement)            | 180–300+ ms            |
-| Cold start          | <5 ms (V8 isolate)                  | 30–60 s                |
-| Internal calls      | <1 ms Service Bindings              | HTTP + TLS + DNS       |
-| Public endpoints    | Gateway only (zero-trust mesh)      | Multiple open services |
-| Infrastructure cost | $0 (free tier sufficient)           | $10–100+/mo + ops      |
-| Scaling             | 330+ PoPs automatically             | Manual region choice   |
-| AI fallback         | 5 providers, automatic              | Single provider        |
-| Idempotency         | SQLite DO + TTL (cold-start safe)   | Custom / none          |
-| Retry               | Built-in Queues (30s–15min backoff) | Manual or fragile      |
-| Observability       | Analytics Engine (free, per-event)  | Custom logging         |
+Zero-trust mesh: internal workers have no public HTTP. Secrets inject into V8 isolates. Free-tier capable for typical retail volume.
 
----
+**Disclaimer.** Educational and research use. Trading involves substantial risk of loss. Not financial advice. See [DISCLAIMER.md](DISCLAIMER.md) and [LICENSE](LICENSE).
 
-## Data Primitives
-
-The data layer is built from six Cloudflare edge primitives chosen for complementary latency, durability, and cost characteristics.
-
-- **D1 (Global SQLite)** — Primary store for trades, positions, and audit data. R2 offloads verbose logs to protect write quotas.
-- **KV** — Sub-millisecond runtime config, kill-switch, rate-limiter state, and live routing tables. Global propagation without redeploy.
-- **R2** — Zero-egress object storage for PDF reports, system logs, and archives.
-- **Vectorize** — 384-dimensional embeddings for semantic retrieval powering the Telegram AI copilot.
-- **Analytics Engine** — Unlimited time-series writes for latency, errors, and trade metrics.
-- **Queues** — At-least-once delivery with exponential backoff.
-
-All are available within the Workers free tier. Typical retail volumes (<100 k requests/day) run at zero marginal cost.
-
----
-
-## AI Gateway
-
-A hardened multi-provider LLM gateway with automatic failover:
-
-1. Workers AI (Llama 3.1 / Mistral) — primary
-2. OpenAI (GPT-4o family)
-3. Anthropic (Claude 3.5 Sonnet)
-4. Google AI (Gemini 1.5)
-5. Azure OpenAI
-
-**Capabilities**: SSE streaming, vision (URL/base64), extended reasoning, Vectorize RAG (384-d), usage tracking, pre-built prompt templates.
-
-**Agent endpoints** (via gateway or direct when bound):
-
-- `POST /agent/chat`
-- `POST /agent/vision`
-- `POST /agent/reasoning`
-- `GET /agent/usage`
-- `GET /agent/prompts`
-
----
-
-## Tooling & Developer Experience
-
-- **CLI** — 16 command groups, 50+ subcommands (`hoox onboard`, `hoox deploy`, `hoox infra`, `hoox db`, `hoox monitor`, `hoox repair`, `hoox perf`, `hoox trace`...).
-- **TUI** — Interactive terminal (`hoox` with no arguments) with hot-reload for all workers.
-- **Testing** — 124+ test files, ~4,500 assertions (Bun native). Includes 10 live tests against real Cloudflare resources.
-- **Local dev** — `hoox dev start` (native wrangler or Docker Compose).
-
----
-
-## Quick Start
-
-```bash
-# 1. Clone with submodules (required)
-git clone --recursive https://github.com/jango-blockchained/hoox-setup.git hoox-trading
-cd hoox-trading
-
-# 2. Install + bootstrap
-bun install
-hoox onboard
-```
-
-### Deploy
-
-```bash
-# Deploy in correct order
-hoox deploy all --auto
-
-# Post-deploy wiring
-hoox deploy telegram-webhook
-hoox deploy update-internal-urls
-hoox deploy kv-config
-```
-
-See the [5-Minute Quick Start](https://docs.hoox.sh/docs/enduser/getting-started/quick-start) and [Installation Guide](https://docs.hoox.sh/docs/enduser/getting-started/installation) for credential setup, secret injection, and first signal testing.
-
-**Local development** (optional): `hoox dev start` or `./hoox-tui`.
-
----
-
-## Worker Submodules
-
-This repository uses Git submodules. Clone recursively or run:
-
-```bash
-git submodule update --init --recursive
-```
-
-| Worker                                                                                | Repository                         |
-| ------------------------------------------------------------------------------------- | ---------------------------------- |
-| hoox (gateway)                                                                        | jango-blockchained/hoox            |
-| trade-worker                                                                          | jango-blockchained/trade-worker    |
-| agent-worker                                                                          | jango-blockchained/agent-worker    |
-| telegram-worker                                                                       | jango-blockchained/telegram-worker |
-| d1-worker                                                                             | jango-blockchained/d1-worker       |
-| email-worker, web3-wallet-worker, analytics-worker, report-worker, pyne-worker (exp.) | —                                  |
-
----
-
-## Research & Reproducibility
-
-HOOX is engineered as a single-author research artifact with full accompanying academic material:
-
-- Core paper: `papers/hoox-arxiv-paper-core.pdf` (abstract, architecture, 12-month evaluation, latency taxonomy, threat model)
-- Extended listings, ADRs, and per-worker deep dives in `papers/`
-- Reproducible tooling: `hoox perf fastpath`, k6 load tests, live test suite
-
-> “A modular, production-ready algorithmic trading framework for Cloudflare Workers. Open source. Free forever.”
-
----
-
-## Security, Costs & Disclaimer
-
-**Zero Trust by construction.** Internal workers have no public surface. Secrets are injected at the V8 isolate level. All responses carry strict security headers.
-
-**Free tier capable.** The entire system (10 Workers + storage + AI + Browser Rendering) runs inside Cloudflare's free allowances for typical retail volumes. See the paper and docs for exact quotas and observed usage.
-
-**Disclaimer.** HOOX is provided for educational and research purposes only. Algorithmic trading involves substantial risk of loss. Nothing herein is financial advice. Users are solely responsible for compliance and all trading decisions. See [DISCLAIMER.md](DISCLAIMER.md) and [LICENSE](LICENSE).
-
-Open core under CC BY 4.0 (docs/papers) and Apache-2.0 (code). Enterprise features exist outside this repository.
+Open core: **Apache-2.0** (code) · **CC BY 4.0** (docs/papers). Enterprise features live outside this repository.
 
 ---
 
@@ -268,8 +303,10 @@ Open core under CC BY 4.0 (docs/papers) and Apache-2.0 (code). Enterprise featur
 
 **Trade at the speed of light.**
 
+`bun add -g @jango-blockchained/hoox-cli` · [hoox.sh/install](https://hoox.sh/install)
+
 </div>
 
 ---
 
-_Cloudflare® and the Cloudflare logo are trademarks of Cloudflare, Inc. TradingView® and Pine Script™ are trademarks of TradingView, Inc. This project is independent and not affiliated with or endorsed by either company._
+_Cloudflare® is a trademark of Cloudflare, Inc. TradingView® and Pine Script™ are trademarks of TradingView, Inc. This project is independent and not affiliated with or endorsed by either company._
