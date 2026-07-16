@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { secureHeaders } from "@jango-blockchained/hoox-shared/middleware";
 import { timingSafeEqual } from "@jango-blockchained/hoox-shared/middleware/auth";
+import { assertProductionAuthConfigured } from "./lib/config";
+
+let productionAuthChecked = false;
+function ensureProductionAuth(): void {
+  if (productionAuthChecked) return;
+  assertProductionAuthConfigured();
+  productionAuthChecked = true;
+}
 
 /**
  * CSP relaxed for Next.js client-side hydration.
@@ -42,6 +50,7 @@ function getRedirectUrl(request: NextRequest): string {
 
 export function middleware(request: NextRequest) {
   try {
+    ensureProductionAuth();
     const { pathname } = request.nextUrl;
 
     // Skip auth for static files, login, and auth API

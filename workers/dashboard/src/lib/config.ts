@@ -106,6 +106,23 @@ export function validateRequiredEnv(keys: readonly string[]): ConfigError[] {
  * session tokens (middleware, login route). In dev (`NODE_ENV=development`)
  * the insecure default is allowed with a console warning.
  */
+/**
+ * Rejects AUTH_TYPE=none outside development.
+ * Call from middleware so production never runs an open dashboard.
+ */
+export function assertProductionAuthConfigured(): void {
+  if (getAuthType() !== "none") {
+    return;
+  }
+  if (process.env.NODE_ENV === "development") {
+    console.warn("[config] AUTH_TYPE=none is acceptable in development only.");
+    return;
+  }
+  throw new Error(
+    "AUTH_TYPE=none is not permitted in production. Set AUTH_TYPE=basic or cf-access."
+  );
+}
+
 export function requireSafeSessionSecret(): string {
   const secret = getEnvVar(ENV_KEYS.auth.sessionSecret);
   if (!secret) {
