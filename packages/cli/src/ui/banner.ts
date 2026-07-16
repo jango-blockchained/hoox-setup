@@ -53,45 +53,66 @@ const VERSION: string = findCliVersion();
 export const DISCLAIMER =
   "DISCLAIMER: Trading cryptocurrencies involves substantial risk of loss. Use at your own risk.";
 
-// ── Geometric HOOX mark (from logo/*.svg) ──────────────────────────
+// ── Geometric HOOX mark (logo/*.svg + brand mark) ─────────────────
 //
-// Four corner blocks + thick diagonal X (the HOOX mark).
+// Four diamond tiles arranged as an X (matches the official mark):
+//   • Top + bottom diamonds  → solid fill
+//   • Left + right diamonds  → outline only
+//   • Center waist           → solid (where the X crosses)
+//
+// Encoding (per character):
+//   #  solid fill
+//   / \ _ outline strokes
+//   (space) empty
 
-/** Raw monochrome logo lines (no color). */
-const LOGO_RAW = [
-  "██                ██",
-  "██                ██",
-  "  ╲╲            ╱╱  ",
-  "   ╲╲          ╱╱   ",
-  "    ╲╲        ╱╱    ",
-  "     ╲╲      ╱╱     ",
-  "      ╲╲    ╱╱      ",
-  "       ╲╲  ╱╱       ",
-  "        ╲╲╱╱        ",
-  "        ╱╱╲╲        ",
-  "       ╱╱  ╲╲       ",
-  "      ╱╱    ╲╲      ",
-  "     ╱╱      ╲╲     ",
-  "    ╱╱        ╲╲    ",
-  "   ╱╱          ╲╲   ",
-  "  ╱╱            ╲╲  ",
-  "██                ██",
-  "██                ██",
+/**
+ * Pixel grid for the mark. Each string is one row; all rows equal width.
+ *
+ * Brand mark (logo/*.svg / official icon): four diamond tiles in an X —
+ *   N/S solid, E/W hollow outline, solid center waist.
+ * Proportions tuned to match the square diamond-cross silhouette.
+ */
+const LOGO_GRID = [
+  //          1         2
+  // 123456789012345678901234
+  "          /\\          ",
+  "         /##\\         ",
+  "        /####\\        ",
+  "       // ## \\\\       ",
+  "      // #### \\\\      ",
+  "     //        \\\\     ",
+  "    //-  ####  -\\\\    ",
+  "    \\\\-  ####  -//    ",
+  "     \\\\        //     ",
+  "      \\\\ #### //      ",
+  "       \\\\ ## //       ",
+  "        \\####/        ",
+  "         \\##/         ",
+  "          \\/          ",
 ] as const;
 
-const LOGO_W = LOGO_RAW[0]!.length;
+const LOGO_W = LOGO_GRID[0]!.length;
+const LOGO_H = LOGO_GRID.length;
 
-type CellRole = "corner" | "x" | "empty";
+type CellRole = "solid" | "outline" | "empty";
 
-function cellRole(ch: string, _row: number, _col: number): CellRole {
+function cellRole(ch: string): CellRole {
+  if (ch === "#" || ch === "█") return "solid";
   if (ch === " " || ch === "") return "empty";
-  // Corners are block chars in the four corners of the mark
-  if (ch === "█") return "corner";
-  // Diagonals form the X
-  return "x";
+  // / \ _ and any other stroke
+  return "outline";
 }
 
-/** Color a single logo line for a given animation phase (0–1 settle, >1 shimmer). */
+/** Map encoding → display glyph (blocks for fill, strokes for outline). */
+function displayChar(ch: string): string {
+  if (ch === "#") return "█";
+  if (ch === "/") return "╱";
+  if (ch === "\\") return "╲";
+  if (ch === "-" || ch === "_") return "─";
+  return ch;
+}
+
+/** Color a single logo line for a given animation phase. */
 function colorLogoLine(
   raw: string,
   row: number,
@@ -100,46 +121,55 @@ function colorLogoLine(
 ): string {
   let out = "";
   for (let col = 0; col < raw.length; col++) {
-    const ch = raw[col]!;
-    const role = cellRole(ch, row, col);
+    const enc = raw[col]!;
+    const role = cellRole(enc);
     if (role === "empty") {
       out += " ";
       continue;
     }
+    const ch = displayChar(enc);
 
     if (mode === "assemble") {
-      // Reveal: corners first (phase 0–0.45), then X (0.45–1)
-      const cornerReady = phase >= 0.2;
-      const xReady = phase >= 0.55;
-      if (role === "corner" && !cornerReady) {
+      // Solid tiles first (top/bottom/center), then outline left/right
+      const solidReady = phase >= 0.15;
+      const outlineReady = phase >= 0.5;
+      if (role === "solid" && !solidReady) {
         out += ZINC_FAINT("·");
         continue;
       }
-      if (role === "x" && !xReady) {
+      if (role === "outline" && !outlineReady) {
         out += " ";
         continue;
       }
-      if (role === "corner" && phase < 0.45) {
+      if (role === "solid" && phase < 0.45) {
         out += ZINC(ch);
+        continue;
+      }
+      if (role === "outline" && phase < 0.75) {
+        out += ZINC_FAINT(ch);
         continue;
       }
     }
 
     if (mode === "shimmer") {
-      // Diagonal sweep — cells light up as a traveling band
-      const t = (phase * 1.4 + (col + row) * 0.08) % 1;
-      if (t < 0.15) {
-        out += (role === "corner" ? AMBER : INDIGO_SOFT)(ch);
-      } else if (t < 0.35) {
-        out += (role === "corner" ? ORANGE : INDIGO)(ch);
+      // Sweep along the X diagonal
+      const t = (phase * 1.5 + (col + row) * 0.07) % 1;
+      if (t < 0.12) {
+        out += (role === "solid" ? AMBER : INDIGO_SOFT)(ch);
+      } else if (t < 0.3) {
+        out += (role === "solid" ? ORANGE : INDIGO)(ch);
       } else {
-        out += (role === "corner" ? ORANGE.dim : INDIGO.dim)(ch);
+        out +=
+          role === "solid"
+            ? ansis.hex("#e4e4e7")(ch) // zinc-200 — solid like the white mark
+            : INDIGO.dim(ch);
       }
       continue;
     }
 
-    // Static / settled: corners orange (logo brand), X indigo (CLI theme)
-    out += role === "corner" ? ORANGE(ch) : INDIGO(ch);
+    // Static: solid tiles bright (logo white), outlines indigo accent
+    out +=
+      role === "solid" ? ansis.hex("#fafafa")(ch) : ansis.hex("#a1a1aa")(ch);
   }
   return out;
 }
@@ -148,7 +178,7 @@ function renderLogoBlock(
   phase: number,
   mode: "assemble" | "shimmer" | "static"
 ): string[] {
-  return LOGO_RAW.map((line, row) => colorLogoLine(line, row, phase, mode));
+  return LOGO_GRID.map((line, row) => colorLogoLine(line, row, phase, mode));
 }
 
 // ── Wordmark ──────────────────────────────────────────────────────
