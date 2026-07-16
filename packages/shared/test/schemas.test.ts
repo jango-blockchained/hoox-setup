@@ -7,6 +7,7 @@ import { describe, test, expect } from "bun:test";
 import {
   TradeActionSchema,
   WebhookPayloadSchema,
+  TradeQueueMessageSchema,
   TradeSignalSchema,
   PositionSchema,
   BalanceSchema,
@@ -131,6 +132,37 @@ describe("WebhookPayloadSchema", () => {
     expect(WebhookPayloadSchema.safeParse(123).success).toBe(false);
     expect(WebhookPayloadSchema.safeParse(null).success).toBe(false);
     expect(WebhookPayloadSchema.safeParse(undefined).success).toBe(false);
+  });
+});
+
+describe("TradeQueueMessageSchema", () => {
+  const validMessage = {
+    requestId: "req-1",
+    exchange: "binance",
+    action: "LONG",
+    symbol: "BTCUSDT",
+    quantity: 0.01,
+    queuedAt: new Date().toISOString(),
+  };
+
+  test("accepts valid queue message", () => {
+    expect(TradeQueueMessageSchema.safeParse(validMessage).success).toBe(true);
+  });
+
+  test("rejects invalid action", () => {
+    const result = TradeQueueMessageSchema.safeParse({
+      ...validMessage,
+      action: "BUY",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects extra fields (strict)", () => {
+    const result = TradeQueueMessageSchema.safeParse({
+      ...validMessage,
+      probe: true,
+    });
+    expect(result.success).toBe(false);
   });
 });
 

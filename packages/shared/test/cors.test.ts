@@ -10,9 +10,9 @@ import {
 } from "../src/middleware/cors.js";
 
 describe("corsHeaders", () => {
-  test("returns default headers with origin", () => {
+  test("does not set Allow-Origin by default (fail-closed)", () => {
     const headers = corsHeaders();
-    expect(headers["Access-Control-Allow-Origin"]).toBe("*");
+    expect(headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 
   test("allows custom origin", () => {
@@ -70,7 +70,7 @@ describe("handleCorsPreflightRequest", () => {
     const response = handleCorsPreflightRequest(request);
 
     expect(response).toBeInstanceOf(Response);
-    expect(response!.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    expect(response!.headers.get("Access-Control-Allow-Origin")).toBeNull();
     expect(response!.headers.get("Access-Control-Allow-Methods")).toBe(
       "GET, POST, OPTIONS, PUT, DELETE"
     );

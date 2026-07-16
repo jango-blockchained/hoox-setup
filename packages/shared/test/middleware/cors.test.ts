@@ -8,6 +8,7 @@ import {
   corsHeaders,
   publicCorsHeaders,
   internalCorsHeaders,
+  resolveCorsOptions,
   handleCorsPreflightRequest,
 } from "../../src/middleware/cors";
 
@@ -136,5 +137,39 @@ describe("handleCorsPreflightRequest", () => {
     const result = handleCorsPreflightRequest(request);
     const body = await result?.text();
     expect(body).toBe("");
+  });
+});
+
+describe("resolveCorsOptions", () => {
+  it("returns empty options when CORS_ALLOW_ORIGIN is unset", () => {
+    const request = new Request("https://api.example.com", {
+      headers: { Origin: "https://dashboard.hoox.sh" },
+    });
+    expect(resolveCorsOptions(request)).toEqual({});
+  });
+
+  it("echoes matching Origin from allowlist", () => {
+    const request = new Request("https://api.example.com", {
+      headers: { Origin: "https://dashboard.hoox.sh" },
+    });
+    expect(
+      resolveCorsOptions(request, {
+        CORS_ALLOW_ORIGIN: "https://dashboard.hoox.sh,https://app.hoox.sh",
+      })
+    ).toEqual({
+      allowOrigin: "https://dashboard.hoox.sh",
+      allowCredentials: true,
+    });
+  });
+
+  it("returns empty options for unknown Origin", () => {
+    const request = new Request("https://api.example.com", {
+      headers: { Origin: "https://evil.example" },
+    });
+    expect(
+      resolveCorsOptions(request, {
+        CORS_ALLOW_ORIGIN: "https://dashboard.hoox.sh",
+      })
+    ).toEqual({});
   });
 });

@@ -86,9 +86,18 @@ export function internalCorsHeaders(): Record<string, string> {
  */
 export function resolveCorsOptions(
   request: Request,
-  env?: CorsEnv
+  // Accept any wrangler Env / bag without requiring CORS_ALLOW_ORIGIN
+  // on every worker interface (avoids "no common properties" TS2559).
+  env?: unknown
 ): CorsOptions {
-  const configured = env?.CORS_ALLOW_ORIGIN?.trim();
+  const raw =
+    env &&
+    typeof env === "object" &&
+    "CORS_ALLOW_ORIGIN" in env &&
+    typeof (env as CorsEnv).CORS_ALLOW_ORIGIN === "string"
+      ? (env as CorsEnv).CORS_ALLOW_ORIGIN
+      : undefined;
+  const configured = raw?.trim();
   if (!configured) {
     return {};
   }
