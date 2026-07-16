@@ -4,5 +4,10 @@
  * @module
  */
 
-export { renderBanner } from "./banner.js";
+export {
+  renderBanner,
+  renderBannerLogo,
+  animateBanner,
+  renderCompactBanner,
+} from "./banner.js";
 export { runInteractiveTUI } from "./menu.js";

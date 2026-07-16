@@ -17,7 +17,7 @@ import {
   isCancel,
   cancel,
 } from "@clack/prompts";
-import { renderBanner, DISCLAIMER } from "./banner.js";
+import { animateBanner, DISCLAIMER } from "./banner.js";
 import { CLIError } from "../utils/errors.js";
 import { theme } from "../utils/theme.js";
 
@@ -27,15 +27,16 @@ import { theme } from "../utils/theme.js";
 
 /**
  * Run the interactive TUI loop.
- * - Shows the banner once
+ * - Shows the (animated when TTY) banner once
  * - Shows a category-selection menu
  * - Each category leads to sub-actions
  * - After each action, returns to the menu
  * - Exit or Ctrl+C to quit
  */
 export async function runInteractiveTUI(program: Command): Promise<void> {
-  // Print banner directly, then start clack prompt session
-  process.stdout.write(renderBanner() + "\n");
+  // Geometric HOOX logo + wordmark; animates on TTY, static otherwise
+  await animateBanner();
+  process.stdout.write("\n");
   intro("hoox");
 
   while (true) {

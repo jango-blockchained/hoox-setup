@@ -1,27 +1,31 @@
 /**
- * Hoox ASCII banner — variants for the interactive TUI.
+ * Hoox CLI banner — geometric logo mark + wordmark, with optional TTY animation.
  *
- * Each variant provides a different visual style while maintaining
- * consistent branding and theme coloring. The default variant is now
- * `minimal` (the cleanest of the four); legacy and horizon are
- * available as opt-ins.
- *
- * Version is read at module init from `package.json` to avoid drift.
+ * The logo is a terminal rendering of `logo/*.svg`: four corner blocks and a
+ * diagonal X cross (the HOOX mark). When stdout is a TTY and color is allowed,
+ * `animateBanner()` plays a short assemble + shimmer sequence, then settles on
+ * the final frame. Non-TTY / NO_COLOR / tests use the static final frame.
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import ansis from "ansis";
 import { theme, stripAnsi } from "../utils/theme.js";
 
 const TAGLINE = "Cloudflare Workers Platform";
 
+/** Brand orange from light.svg fill / accent stroke. */
+const ORANGE = ansis.hex("#ff7f2a");
+const AMBER = ansis.hex("#ffb722");
+const INDIGO = ansis.hex("#818cf8");
+const INDIGO_SOFT = ansis.hex("#a5b4fc");
+const ZINC = ansis.hex("#a1a1aa");
+const ZINC_FAINT = ansis.hex("#52525b");
+
 /**
  * Walk up from this file's directory looking for the hoox-cli
- * `package.json`. This works in both source (`src/ui/banner.ts`,
- * `../../package.json`) and bundled (`dist/index.js`, `../package.json`)
- * contexts, and survives the layout mismatch between dev and a
- * globally-installed package.
+ * `package.json`. Works in source and bundled layouts.
  */
 function findCliVersion(): string {
   const PKG_NAME = "@jango-blockchained/hoox-cli";
@@ -49,7 +53,201 @@ const VERSION: string = findCliVersion();
 export const DISCLAIMER =
   "DISCLAIMER: Trading cryptocurrencies involves substantial risk of loss. Use at your own risk.";
 
-// ── Variant 0 — Legacy (block ASCII) ───────────────────────────────
+// ── Geometric HOOX mark (from logo/*.svg) ──────────────────────────
+//
+// Four corner blocks + thick diagonal X (the HOOX mark).
+
+/** Raw monochrome logo lines (no color). */
+const LOGO_RAW = [
+  "██                ██",
+  "██                ██",
+  "  ╲╲            ╱╱  ",
+  "   ╲╲          ╱╱   ",
+  "    ╲╲        ╱╱    ",
+  "     ╲╲      ╱╱     ",
+  "      ╲╲    ╱╱      ",
+  "       ╲╲  ╱╱       ",
+  "        ╲╲╱╱        ",
+  "        ╱╱╲╲        ",
+  "       ╱╱  ╲╲       ",
+  "      ╱╱    ╲╲      ",
+  "     ╱╱      ╲╲     ",
+  "    ╱╱        ╲╲    ",
+  "   ╱╱          ╲╲   ",
+  "  ╱╱            ╲╲  ",
+  "██                ██",
+  "██                ██",
+] as const;
+
+const LOGO_W = LOGO_RAW[0]!.length;
+const LOGO_H = LOGO_RAW.length;
+
+type CellRole = "corner" | "x" | "empty";
+
+function cellRole(ch: string, row: number, col: number): CellRole {
+  if (ch === " " || ch === "") return "empty";
+  // Corners are block chars in the four corners of the mark
+  if (ch === "█") return "corner";
+  // Diagonals form the X
+  return "x";
+}
+
+/** Color a single logo line for a given animation phase (0–1 settle, >1 shimmer). */
+function colorLogoLine(
+  raw: string,
+  row: number,
+  phase: number,
+  mode: "assemble" | "shimmer" | "static"
+): string {
+  let out = "";
+  for (let col = 0; col < raw.length; col++) {
+    const ch = raw[col]!;
+    const role = cellRole(ch, row, col);
+    if (role === "empty") {
+      out += " ";
+      continue;
+    }
+
+    if (mode === "assemble") {
+      // Reveal: corners first (phase 0–0.45), then X (0.45–1)
+      const cornerReady = phase >= 0.2;
+      const xReady = phase >= 0.55;
+      if (role === "corner" && !cornerReady) {
+        out += ZINC_FAINT("·");
+        continue;
+      }
+      if (role === "x" && !xReady) {
+        out += " ";
+        continue;
+      }
+      if (role === "corner" && phase < 0.45) {
+        out += ZINC(ch);
+        continue;
+      }
+    }
+
+    if (mode === "shimmer") {
+      // Diagonal sweep — cells light up as a traveling band
+      const t = (phase * 1.4 + (col + row) * 0.08) % 1;
+      if (t < 0.15) {
+        out += (role === "corner" ? AMBER : INDIGO_SOFT)(ch);
+      } else if (t < 0.35) {
+        out += (role === "corner" ? ORANGE : INDIGO)(ch);
+      } else {
+        out += (role === "corner" ? ORANGE.dim : INDIGO.dim)(ch);
+      }
+      continue;
+    }
+
+    // Static / settled: corners orange (logo brand), X indigo (CLI theme)
+    out += role === "corner" ? ORANGE(ch) : INDIGO(ch);
+  }
+  return out;
+}
+
+function renderLogoBlock(
+  phase: number,
+  mode: "assemble" | "shimmer" | "static"
+): string[] {
+  return LOGO_RAW.map((line, row) => colorLogoLine(line, row, phase, mode));
+}
+
+// ── Wordmark ──────────────────────────────────────────────────────
+
+const WORDMARK = [
+  "██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗",
+  "██║  ██║██╔═══██╗██╔═══██╗╚██╗██╔╝",
+  "███████║██║   ██║██║   ██║ ╚███╔╝ ",
+  "██╔══██║██║   ██║██║   ██║ ██╔██╗ ",
+  "██║  ██║╚██████╔╝╚██████╔╝██╔╝ ██╗",
+  "╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
+] as const;
+
+function colorWordmark(
+  phase: number,
+  mode: "assemble" | "shimmer" | "static"
+): string[] {
+  return WORDMARK.map((line, row) => {
+    if (mode === "assemble" && phase < 0.7) {
+      // Fade in from faint → full after logo mostly built
+      const reveal = Math.max(0, (phase - 0.5) / 0.35);
+      if (reveal <= 0) return ZINC_FAINT(line.replace(/[^\s]/g, "·"));
+      if (reveal < 1) return ZINC(line);
+    }
+    if (mode === "shimmer") {
+      let out = "";
+      for (let col = 0; col < line.length; col++) {
+        const ch = line[col]!;
+        if (ch === " ") {
+          out += " ";
+          continue;
+        }
+        const t = (phase * 1.2 + col * 0.04 + row * 0.05) % 1;
+        out += t < 0.2 ? INDIGO_SOFT(ch) : INDIGO.bold(ch);
+      }
+      return out;
+    }
+    return theme.heading(line);
+  });
+}
+
+// ── Compose full banner frame ─────────────────────────────────────
+
+const BANNER_PAD = " ";
+
+function composeFrame(
+  phase: number,
+  mode: "assemble" | "shimmer" | "static"
+): string {
+  const logo = renderLogoBlock(phase, mode);
+  const word = colorWordmark(phase, mode);
+
+  // Side-by-side: logo left, wordmark vertically centered on the right
+  const gap = "   ";
+  const wordH = word.length;
+  const logoH = logo.length;
+  const topPad = Math.floor((logoH - wordH) / 2);
+  const contentW = LOGO_W + gap.length + (WORDMARK[0]?.length ?? 0);
+
+  const lines: string[] = [];
+  for (let i = 0; i < logoH; i++) {
+    const left = logo[i]!;
+    const wi = i - topPad;
+    const right =
+      wi >= 0 && wi < wordH ? word[wi]! : " ".repeat(WORDMARK[0]!.length);
+    lines.push(BANNER_PAD + left + gap + right);
+  }
+
+  const rule = ZINC_FAINT("─".repeat(contentW + 2));
+  const meta =
+    BANNER_PAD +
+    ZINC(TAGLINE) +
+    "  " +
+    ZINC_FAINT("·") +
+    "  " +
+    INDIGO_SOFT(`v${VERSION}`);
+
+  // Center meta under content (use visible width)
+  const metaVis = stripAnsi(meta).length;
+  const metaPad = Math.max(0, Math.floor((contentW + 2 - metaVis) / 2));
+  const metaLine = " ".repeat(metaPad) + meta.trimStart();
+
+  return [BANNER_PAD + rule, ...lines, BANNER_PAD + rule, metaLine].join("\n");
+}
+
+// ── Public static API ─────────────────────────────────────────────
+
+/** Default static banner — logo mark + wordmark (final frame). */
+export function renderBannerLogo(): string {
+  return composeFrame(1, "static");
+}
+
+/** @deprecated Prefer renderBannerLogo — kept as alias for callers. */
+export function renderBannerMinimal(): string {
+  return renderBannerLogo();
+}
+
+// ── Legacy variants (still available) ─────────────────────────────
 
 const LEGACY_LINES = [
   "██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗",
@@ -71,8 +269,6 @@ export function renderLegacy(): string {
   return [top, ...ascii, line, tag, bottom].join("\n");
 }
 
-// ── Variant 1 — Horizon (architectural) ──────────────────────────
-
 const HORIZON_LINES = [
   "╔═══╗ ╔═══╗ ╔═══╗ ╔═══╗",
   "║ ║ ║ ║   ║ ║   ║ ║ ║ ║",
@@ -85,9 +281,6 @@ const HORIZON_LINES = [
 export function renderBannerHorizon(): string {
   const bw = 56;
   const inner = theme.box.horizontal.repeat(bw - 2);
-  // Horizon uses rounded corners (╭╮╰╯) — these aren't in theme.box
-  // (which holds square corners for the legacy/minimal styles). Inline
-  // with theme.textFaint for consistency.
   const topLeft = theme.textFaint("╭");
   const topRight = theme.textFaint("╮");
   const bottomLeft = theme.textFaint("╰");
@@ -97,8 +290,6 @@ export function renderBannerHorizon(): string {
   const ascii = HORIZON_LINES.map((l) => ` ${theme.accent(l)}`);
   const gap = Math.floor((bw - TAGLINE.length - VERSION.length - 4) / 2);
   const tag = ` ${" ".repeat(gap)}${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
-  // Leading space keeps the middle rule on-column with the other lines and
-  // ensures the line does not start with a raw ANSI escape (`\x1b`).
   return [
     top,
     ...ascii,
@@ -107,8 +298,6 @@ export function renderBannerHorizon(): string {
     bottom,
   ].join("\n");
 }
-
-// ── Variant 2 — Signal (data / waveform) ──────────────────────────
 
 const SIGNAL_LINES = [
   "  _   _           _   _   ",
@@ -130,8 +319,6 @@ export function renderBannerSignal(): string {
 
   const wave = ` ${theme.accent("~~")}${theme.textFaint("~")}${theme.accent("_")}${theme.textFaint(".")}${theme.accent("/\\")}${theme.textFaint("~")}${theme.accent("\\/")}${theme.textFaint("..")}${theme.accent("/~~\\")}${theme.textFaint("~")}  ${theme.textMuted(TAGLINE)} ${theme.textMuted(`v${VERSION}`)}`;
 
-  // Leading space keeps the middle rule on-column with the other lines and
-  // ensures the line does not start with a raw ANSI escape (`\x1b`).
   return [
     top,
     ...wordmark,
@@ -141,38 +328,9 @@ export function renderBannerSignal(): string {
   ].join("\n");
 }
 
-// ── Variant 3 — Minimal (default, clean badge) ───────────────────
-
-export function renderBannerMinimal(): string {
-  const bw = 50;
-  const rule = theme.textFaint("━").repeat(bw);
-
-  const leftPad = Math.floor((bw - TAGLINE.length - VERSION.length - 8) / 2);
-  const titleLine =
-    " ".repeat(leftPad) +
-    theme.heading("H O O X") +
-    "  " +
-    theme.textMuted(TAGLINE) +
-    "  " +
-    theme.textMuted(`v${VERSION}`);
-
-  return [
-    ` ${rule}`,
-    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
-    // Leading space keeps the title line on-column with the rest of the box
-    // and ensures the line does not start with a raw ANSI escape (`\x1b`).
-    // Pad to the visible (ANSI-stripped) title length, not the raw string
-    // length, so the right border sits in the correct column.
-    ` ${theme.box.vertical}${titleLine}${" ".repeat(Math.max(0, bw - stripAnsi(titleLine).length - 2))}${theme.box.vertical}`,
-    ` ${theme.box.vertical}${" ".repeat(bw - 2)}${theme.box.vertical}`,
-    ` ${rule}`,
-  ].join("\n");
-}
-
-// ── Exports ───────────────────────────────────────────────────────
-
 export const BANNER_VARIANTS = {
-  minimal: renderBannerMinimal,
+  logo: renderBannerLogo,
+  minimal: renderBannerLogo,
   legacy: renderLegacy,
   horizon: renderBannerHorizon,
   signal: renderBannerSignal,
@@ -180,14 +338,96 @@ export const BANNER_VARIANTS = {
 
 export type BannerVariant = keyof typeof BANNER_VARIANTS;
 
-/** Default banner — minimal (clean badge). */
+/** Default banner — geometric logo + wordmark (static final frame). */
 export function renderBanner(variant?: BannerVariant): string {
-  return variant ? BANNER_VARIANTS[variant]() : renderBannerMinimal();
+  return variant ? BANNER_VARIANTS[variant]() : renderBannerLogo();
+}
+
+/** Compact one-line banner for inline display. */
+export function renderCompactBanner(): string {
+  return `${ORANGE("◆")} ${theme.heading("Hoox CLI")} ${theme.textMuted(`v${VERSION}`)}`;
+}
+
+// ── Animation ─────────────────────────────────────────────────────
+
+function canAnimate(): boolean {
+  if (!process.stdout.isTTY) return false;
+  if (process.env.NO_COLOR) return false;
+  if (process.env.TERM === "dumb") return false;
+  if (process.env.CI === "true" || process.env.CI === "1") return false;
+  return true;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 /**
- * Render a compact one-line banner for inline display.
+ * Play the banner animation on a TTY (assemble logo → shimmer → settle).
+ * Falls back to a single static print when animation is not available.
+ *
+ * @returns number of lines written (useful for tests / cursor math)
  */
-export function renderCompactBanner(): string {
-  return `${theme.heading("Hoox CLI")} ${theme.textMuted(`v${VERSION}`)}`;
+export async function animateBanner(options?: {
+  /** Total animation budget in ms (default ~900). */
+  durationMs?: number;
+  /** Force static even on TTY. */
+  static?: boolean;
+}): Promise<number> {
+  const staticOnly = options?.static === true || !canAnimate();
+  const finalFrame = composeFrame(1, "static");
+  const lineCount = finalFrame.split("\n").length;
+
+  if (staticOnly) {
+    process.stdout.write(finalFrame + "\n");
+    return lineCount;
+  }
+
+  const durationMs = options?.durationMs ?? 900;
+  const assembleMs = Math.floor(durationMs * 0.55);
+  const shimmerMs = durationMs - assembleMs;
+  const fps = 24;
+  const assembleFrames = Math.max(6, Math.round((assembleMs / 1000) * fps));
+  const shimmerFrames = Math.max(4, Math.round((shimmerMs / 1000) * fps));
+
+  let wroteLines = 0;
+  const writeFrame = (frame: string) => {
+    const lines = frame.split("\n");
+    if (wroteLines > 0) {
+      // Move cursor up to overwrite previous frame
+      process.stdout.write(`\x1b[${wroteLines}A`);
+    }
+    // Clear each line as we rewrite (avoid leftover glyphs on shorter lines)
+    for (let i = 0; i < lines.length; i++) {
+      process.stdout.write(`\x1b[2K${lines[i]}\n`);
+    }
+    // If previous frame was taller, clear remaining lines
+    for (let i = lines.length; i < wroteLines; i++) {
+      process.stdout.write(`\x1b[2K\n`);
+    }
+    if (wroteLines > lines.length) {
+      process.stdout.write(`\x1b[${wroteLines - lines.length}A`);
+    }
+    wroteLines = lines.length;
+  };
+
+  // Hide cursor during animation
+  process.stdout.write("\x1b[?25l");
+  try {
+    for (let i = 0; i < assembleFrames; i++) {
+      const phase = i / (assembleFrames - 1);
+      writeFrame(composeFrame(phase, "assemble"));
+      await sleep(assembleMs / assembleFrames);
+    }
+    for (let i = 0; i < shimmerFrames; i++) {
+      const phase = i / Math.max(1, shimmerFrames - 1);
+      writeFrame(composeFrame(phase, "shimmer"));
+      await sleep(shimmerMs / shimmerFrames);
+    }
+    writeFrame(finalFrame);
+  } finally {
+    process.stdout.write("\x1b[?25h");
+  }
+
+  return wroteLines;
 }

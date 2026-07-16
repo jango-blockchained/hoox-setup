@@ -2,24 +2,45 @@ import { describe, it, expect } from "bun:test";
 import {
   renderBanner,
   renderBannerMinimal,
+  renderBannerLogo,
   renderLegacy,
   renderCompactBanner,
+  animateBanner,
   BANNER_VARIANTS,
   DISCLAIMER,
 } from "./banner.js";
 import { stripAnsi } from "../utils/theme.js";
 
 describe("renderBanner", () => {
-  it("renders the minimal variant by default (refined default)", () => {
+  it("renders the logo variant by default", () => {
     const defaultBanner = renderBanner();
-    const minimalBanner = renderBannerMinimal();
-    expect(stripAnsi(defaultBanner)).toBe(stripAnsi(minimalBanner));
+    const logoBanner = renderBannerLogo();
+    expect(stripAnsi(defaultBanner)).toBe(stripAnsi(logoBanner));
+  });
+
+  it("minimal is an alias of logo", () => {
+    expect(stripAnsi(renderBannerMinimal())).toBe(
+      stripAnsi(renderBannerLogo())
+    );
   });
 
   it("renders the explicitly-requested variant", () => {
     const horizon = renderBanner("horizon");
-    const minimal = renderBanner("minimal");
-    expect(stripAnsi(horizon)).not.toBe(stripAnsi(minimal));
+    const logo = renderBanner("logo");
+    expect(stripAnsi(horizon)).not.toBe(stripAnsi(logo));
+  });
+
+  it("includes the geometric logo corner blocks and X diagonals", () => {
+    const plain = stripAnsi(renderBannerLogo());
+    expect(plain).toContain("██");
+    expect(plain).toMatch(/[╱╲]/);
+  });
+
+  it("includes the HOOX wordmark", () => {
+    const plain = stripAnsi(renderBannerLogo());
+    // Block letters for H appear in the wordmark
+    expect(plain).toContain("██╗");
+    expect(plain).toContain("Cloudflare Workers Platform");
   });
 
   it("strips cleanly (no ansi codes leftover after visible text)", () => {
@@ -46,19 +67,16 @@ describe("banner version (bug fix)", () => {
   });
 
   it("resolves the version from package.json in any layout (source or bundle)", async () => {
-    // Import the file fresh — the version is captured at module init
-    // by walking up from import.meta.url. We re-import to confirm the
-    // walk-up works regardless of where the file lives in the file tree.
-    // (This test runs from `packages/cli/src/ui/banner.test.ts`, which
-    // is exactly the source layout — if the walk-up works here, it
-    // works in the bundled `dist/index.js` layout too because both
-    // resolve to the same `packages/cli/package.json`.)
     const mod = await import("./banner.js");
     expect(mod).toBeDefined();
     const out = mod.renderCompactBanner();
-    // The version must be a real semver, not the "unknown" fallback.
     expect(out).not.toContain("unknown");
     expect(out).toMatch(/v\d+\.\d+\.\d+/);
+  });
+
+  it("static logo banner includes the package version", () => {
+    const plain = stripAnsi(renderBannerLogo());
+    expect(plain).toMatch(/v\d+\.\d+\.\d+/);
   });
 });
 
@@ -66,6 +84,30 @@ describe("renderCompactBanner", () => {
   it("returns a single line", () => {
     const out = renderCompactBanner();
     expect(out.split("\n").length).toBe(1);
+  });
+});
+
+describe("animateBanner", () => {
+  it("writes a static frame when forced static (non-TTY path)", async () => {
+    const chunks: string[] = [];
+    const origWrite = process.stdout.write.bind(process.stdout);
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      chunks.push(typeof chunk === "string" ? chunk : chunk.toString());
+      return true;
+    }) as typeof process.stdout.write;
+
+    try {
+      const lines = await animateBanner({ static: true });
+      expect(lines).toBeGreaterThan(5);
+      const out = chunks.join("");
+      expect(stripAnsi(out)).toContain("Cloudflare Workers Platform");
+      // Static path must not use cursor hide / line-clear animation sequences
+      expect(out).not.toContain("\x1b[?25l");
+      expect(out).not.toContain("\x1b[2K");
+      expect(out).not.toMatch(/\x1b\[\d+A/);
+    } finally {
+      process.stdout.write = origWrite;
+    }
   });
 });
 
