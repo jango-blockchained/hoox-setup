@@ -106,7 +106,8 @@
     "url": "https://github.com/jango-blockchained/hoox-setup/issues"
   },
   "overrides": {
-    "@radix-ui/react-slot": "^1.2.4"
+    "@radix-ui/react-slot": "^1.2.4",
+    "@cloudflare/workers-types": "^5.20260708.1"
   },
   "homepage": "https://github.com/jango-blockchained/hoox-setup#readme"
 }
