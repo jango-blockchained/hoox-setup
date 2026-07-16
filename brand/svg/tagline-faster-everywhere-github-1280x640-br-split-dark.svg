@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" version="1.1">
+  <defs>
+    <pattern id="micro" width="5" height="5" patternUnits="userSpaceOnUse">
+      <path d="M 5 0 L 0 0 0 5" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="0.52"/>
+    </pattern>
+    <pattern id="major" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#FFFFFF" stroke-opacity="0.095" stroke-width="0.6"/>
+    </pattern>
+    <filter id="monoNoise" x="0" y="0" width="100%" height="100%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.25" numOctaves="2" seed="17" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 1
+                0 0 0 0 1
+                0 0 0 0 1
+                0 0 0 0.06 0"/>
+    </filter>
+    <filter id="edgeGlow" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b0"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="b2"/>
+      <feMerge>
+        <feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="b0"/><feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1280" height="640" fill="#050505"/>
+  <rect width="1280" height="640" fill="url(#micro)"/>
+  <rect width="1280" height="640" fill="url(#major)"/>
+  <rect width="1280" height="640" filter="url(#monoNoise)"/>
+  <g stroke="#FFFFFF" stroke-width="1" opacity="0.2" fill="none" stroke-linecap="square">
+    <path d="M 14 34 V 14 H 34"/>
+    <path d="M 1266 606 V 626 H 1246"/>
+  </g>
+  <g transform="translate(1132.8000000000002,480.0) scale(0.08228571428571428) translate(-752.68055,-665.3929)">
+    <g transform="matrix(2.2062294,0,0,2.2117592,-1506.9584,-1032.9513)">
+    <g filter="url(#edgeGlow)" opacity="0.9">
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.75" stroke-opacity="1" stroke-linejoin="round" stroke-linecap="round" d="m 1024.04,675.876 c 9.61,8.797 21.53,21.439 30.93,30.842 l 60.92,60.911 64.67,-64.663 119.79,-0.021 65.02,64.909 -65.07,65.008 -119.48,0.035 c -21.7,-21.207 -43.47,-43.36 -64.98,-64.832 l -91.24,91.236 c -5.86,-2.803 -80.868,-79.926 -92.266,-91.298 l -64.893,64.883 -119.277,-0.045 -65.117,-65.099 64.831,-64.765 119.814,-0.031 64.627,64.595 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.75" stroke-opacity="1" stroke-linejoin="round" stroke-linecap="round" d="m 1232.94,467.045 92.02,10e-4 v 91.811 c -26.49,27.819 -56.93,57.065 -84.22,84.402 -24.41,1.422 -66.03,0.153 -92.08,0.169 l -0.01,-92.172 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.75" stroke-opacity="1" stroke-linejoin="round" stroke-linecap="round" d="m 807.882,892.19 91.983,-0.005 -0.021,91.784 c -27.549,28.221 -56.511,56.651 -84.537,84.501 -29.899,0.53 -61.821,0.03 -91.855,0.03 l -0.006,-92.147 c 27.99,-28.21 56.136,-56.265 84.436,-84.163 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.75" stroke-opacity="1" stroke-linejoin="round" stroke-linecap="round" d="m 723.569,467.027 91.556,0.002 c 28.133,26.948 57.059,56.938 84.669,84.614 l 0.052,91.703 -92.108,0.075 -84.298,-84.317 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3.75" stroke-opacity="1" stroke-linejoin="round" stroke-linecap="round" d="m 1148.68,892.158 91.71,-0.025 84.61,84.679 -0.01,91.668 c -30.37,0.36 -61.52,0.06 -91.94,0.09 l -84.38,-84.377 z"/>
+    </g>
+    <g>
+      <path fill="#F5F5F5" d="m 1024.04,675.876 c 9.61,8.797 21.53,21.439 30.93,30.842 l 60.92,60.911 64.67,-64.663 119.79,-0.021 65.02,64.909 -65.07,65.008 -119.48,0.035 c -21.7,-21.207 -43.47,-43.36 -64.98,-64.832 l -91.24,91.236 c -5.86,-2.803 -80.868,-79.926 -92.266,-91.298 l -64.893,64.883 -119.277,-0.045 -65.117,-65.099 64.831,-64.765 119.814,-0.031 64.627,64.595 z"/>
+      <path fill="#F5F5F5" d="m 1232.94,467.045 92.02,10e-4 v 91.811 c -26.49,27.819 -56.93,57.065 -84.22,84.402 -24.41,1.422 -66.03,0.153 -92.08,0.169 l -0.01,-92.172 z"/>
+      <path fill="#F5F5F5" d="m 807.882,892.19 91.983,-0.005 -0.021,91.784 c -27.549,28.221 -56.511,56.651 -84.537,84.501 -29.899,0.53 -61.821,0.03 -91.855,0.03 l -0.006,-92.147 c 27.99,-28.21 56.136,-56.265 84.436,-84.163 z"/>
+      <path fill="#F5F5F5" d="m 723.569,467.027 91.556,0.002 c 28.133,26.948 57.059,56.938 84.669,84.614 l 0.052,91.703 -92.108,0.075 -84.298,-84.317 z"/>
+      <path fill="#F5F5F5" d="m 1148.68,892.158 91.71,-0.025 84.61,84.679 -0.01,91.668 c -30.37,0.36 -61.52,0.06 -91.94,0.09 l -84.38,-84.377 z"/>
+    </g>
+    <g>
+      <path fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.9" stroke-linejoin="round" stroke-linecap="round" d="m 1024.04,675.876 c 9.61,8.797 21.53,21.439 30.93,30.842 l 60.92,60.911 64.67,-64.663 119.79,-0.021 65.02,64.909 -65.07,65.008 -119.48,0.035 c -21.7,-21.207 -43.47,-43.36 -64.98,-64.832 l -91.24,91.236 c -5.86,-2.803 -80.868,-79.926 -92.266,-91.298 l -64.893,64.883 -119.277,-0.045 -65.117,-65.099 64.831,-64.765 119.814,-0.031 64.627,64.595 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.9" stroke-linejoin="round" stroke-linecap="round" d="m 1232.94,467.045 92.02,10e-4 v 91.811 c -26.49,27.819 -56.93,57.065 -84.22,84.402 -24.41,1.422 -66.03,0.153 -92.08,0.169 l -0.01,-92.172 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.9" stroke-linejoin="round" stroke-linecap="round" d="m 807.882,892.19 91.983,-0.005 -0.021,91.784 c -27.549,28.221 -56.511,56.651 -84.537,84.501 -29.899,0.53 -61.821,0.03 -91.855,0.03 l -0.006,-92.147 c 27.99,-28.21 56.136,-56.265 84.436,-84.163 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.9" stroke-linejoin="round" stroke-linecap="round" d="m 723.569,467.027 91.556,0.002 c 28.133,26.948 57.059,56.938 84.669,84.614 l 0.052,91.703 -92.108,0.075 -84.298,-84.317 z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.9" stroke-linejoin="round" stroke-linecap="round" d="m 1148.68,892.158 91.71,-0.025 84.61,84.679 -0.01,91.668 c -30.37,0.36 -61.52,0.06 -91.94,0.09 l -84.38,-84.377 z"/>
+    </g>
+    </g>
+  </g>
+  <text x="89.60000000000001" y="102.4" fill="rgba(245,245,245,0.92)" font-family='"IBM Plex Mono", "IBM Plex Mono Medium", "JetBrains Mono", ui-monospace, monospace' font-size="26" font-weight="500"
+        letter-spacing="3.12" text-anchor="start" dominant-baseline="hanging"><tspan x="89.60000000000001" dy="0">FASTER.</tspan><tspan x="89.60000000000001" dy="1.35em">EVERYWHERE.</tspan></text>
+</svg>

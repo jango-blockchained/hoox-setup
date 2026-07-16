@@ -1,8 +1,14 @@
 # Dependencies and build outputs
 node_modules
+**/node_modules
+packages/*/node_modules
+workers/*/node_modules
 .next
 **/.next
 **/.next/**
+.open-next
+**/.open-next
+**/.open-next/**
 .git
 **/.git
 **/.git/**
@@ -13,33 +19,85 @@ build
 **/dist
 **/dist/**
 .bun
+*.tsbuildinfo
 
-# Local secrets (defense in depth, also gitignored)
+# Local secrets (defense in depth; also gitignored)
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 **/.dev.vars
+.keys
+**/.keys
 
-# Test and CI artifacts
+# Test / CI / coverage artifacts
 coverage
 reports
-*.tsbuildinfo
+tests
 
-# Logs
-*.log
+# Docs, papers, assets not needed to build workers
+docs
+papers
+logo
+*.md
+!packages/*/README.md
+!workers/*/README.md
+LICENSE*
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+SECURITY.md
+OPEN_CORE*
+graph.*
+graph-metadata.json
+favicon.svg
+custom.css
+docs.json
 
-# Docker meta — not needed in build context
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-
-# AI agent / IDE artifacts — not needed in build context
+# AI agent / IDE / tooling
 .opencode
 .claude
 .vscode
 .idea
+.husky
+.github
+.agents
+.grok
+*.log
 
-# Per-worker / per-package node_modules (belt-and-braces with `node_modules`)
-**/node_modules
-packages/*/node_modules
-workers/*/node_modules
+# Docker meta — bake/compose still read these from the host filesystem
+Dockerfile*
+docker-compose*.yml
+docker-bake*
+.dockerignore
 
+# Heavy private-worker side trees (keep package.json workspace graph intact
+# by not excluding the whole worker directory).
+workers/pine-worker/.opencode
+workers/pine-worker/node_modules
+workers/pyne-worker/**/__pycache__
+
+# Root-only tooling not required in images
+eslint.config.js
+lint-staged.config.js
+prettier*
+tsconfig*.json
+bunfig.toml
+opencode.jsonc
+skills-lock.json
+wrangler.jsonc
+wrangler.jsonc.example
+examples
+scripts/migrate*
+scripts/extract-graph.ts
+scripts/check-coverage.ts
+scripts/check-script-paths.ts
+scripts/check-worker-submodules.ts
+scripts/prepare-publish.ts
+scripts/render-test-table.ts
+scripts/test-with-table.ts
+scripts/typecheck-all.ts
+scripts/sync-dashboard-configs.ts
+scripts/migrate-to-mintlify.ts
+scripts/install.sh
+scripts/helpers.sh

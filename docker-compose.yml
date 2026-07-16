@@ -6,6 +6,10 @@
 # bridge network — exactly as in production (Cloudflare Workers Service
 # Bindings). Publishing internal worker ports to the host would defeat this
 # and leak internal endpoints to anything bound to the host.
+#
+# Profiles: workers | dashboard | full
+# Build image: docker buildx bake dev --load
+#              docker compose --profile workers build
 # ---------------------------------------------------------------------------
 
 # YAML anchors — applied to all worker services to avoid 9× duplication.
@@ -13,6 +17,12 @@ x-worker-base: &worker-base
   build:
     context: .
     dockerfile: Dockerfile.dev
+    # Prefer the bake-built local tag when present; otherwise compose builds.
+    tags:
+      - hoox:dev
+    args:
+      BUN_VERSION: ${BUN_VERSION:-1.3.14}
+  image: hoox:dev
   init: true # PID 1 reaper (M-07): clean signal handling
   mem_limit: 512m # (M-11) cap runaway workers
   cpus: "1.0"
@@ -38,6 +48,18 @@ services:
       - "8787:8787" # public gateway
     volumes:
       - ./workers/hoox:/app/workers/hoox
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://127.0.0.1:8787/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     # hoox is required by the dashboard (depends_on: [hoox, d1-worker,
     # agent-worker]), so it must be part of the `dashboard` profile in
     # addition to `workers`/`full`.
