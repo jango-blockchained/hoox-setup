@@ -6,10 +6,15 @@
 #   docker buildx bake dev --load
 #
 # Publish to GHCR (requires `docker login ghcr.io`):
-#   VERSION=0.9.3 REVISION=$(git rev-parse HEAD) docker buildx bake prod --push
+#   VERSION=0.9.3 REVISION=$(git rev-parse HEAD) PUBLISH_LATEST=true \
+#     docker buildx bake prod --push
 #
 # Multi-arch release:
-#   PLATFORMS=linux/amd64,linux/arm64 VERSION=0.9.3 docker buildx bake prod --push
+#   PLATFORMS=linux/amd64,linux/arm64 VERSION=0.9.3 PUBLISH_LATEST=true \
+#     docker buildx bake prod --push
+#
+# CI main tip (no :latest):
+#   VERSION=main REVISION=$SHA PUBLISH_LATEST=false docker buildx bake prod --push
 # =============================================================================
 
 variable "BUN_VERSION" {
@@ -34,6 +39,12 @@ variable "PLATFORMS" {
   default = "linux/amd64"
 }
 
+variable "PUBLISH_LATEST" {
+  # "true" on release tags / workflow_dispatch; "false" on main continuous builds
+  # so :latest stays a release pointer, not the tip of main.
+  default = "false"
+}
+
 group "default" {
   targets = ["prod"]
 }
@@ -50,7 +61,7 @@ target "prod" {
     "hoox:prod",
     "${REGISTRY}:${VERSION}",
     notequal(REVISION, "unknown") ? "${REGISTRY}:sha-${substr(REVISION, 0, 7)}" : "",
-    and(notequal(VERSION, "dev"), notequal(VERSION, "")) ? "${REGISTRY}:latest" : "",
+    and(equal(PUBLISH_LATEST, "true"), notequal(VERSION, "dev"), notequal(VERSION, "")) ? "${REGISTRY}:latest" : "",
   ])
   args = {
     BUN_VERSION = BUN_VERSION
