@@ -17,18 +17,20 @@ export class ServiceAuthError extends Error {
  * serviceFetch with fail-closed internal auth.
  * Injects X-Internal-Auth-Key from env.INTERNAL_KEY_BINDING.
  */
-export function authenticatedServiceFetch(
+export function authenticatedServiceFetch<E extends AuthenticatedServiceEnv>(
   binding: ServiceBinding,
-  env: AuthenticatedServiceEnv,
+  env: E,
   path: string,
   body?: unknown,
   options?: {
     method?: string;
     headers?: Record<string, string>;
     timeout?: number;
+    /** Override env key (e.g. TELEGRAM_INTERNAL_KEY_BINDING, AGENT_INTERNAL_KEY) */
+    internalKey?: string;
   }
 ): Promise<Response> {
-  const key = env.INTERNAL_KEY_BINDING;
+  const key = options?.internalKey ?? env.INTERNAL_KEY_BINDING;
   if (!key) {
     return Promise.reject(
       new ServiceAuthError("INTERNAL_KEY_BINDING not configured")

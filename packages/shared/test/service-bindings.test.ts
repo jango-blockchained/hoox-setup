@@ -36,6 +36,28 @@ describe("authenticatedServiceFetch", () => {
     ).rejects.toBeInstanceOf(ServiceAuthError);
   });
 
+  test("accepts internalKey override", async () => {
+    let capturedHeaders: Headers | undefined;
+    const binding = {
+      fetch: async (_url: string, init?: RequestInit) => {
+        capturedHeaders = new Headers(init?.headers);
+        return new Response(null, { status: 200 });
+      },
+    };
+
+    await authenticatedServiceFetch(
+      binding,
+      {},
+      "/alert",
+      { message: "hi" },
+      { internalKey: "telegram-specific-key" }
+    );
+
+    expect(capturedHeaders?.get("X-Internal-Auth-Key")).toBe(
+      "telegram-specific-key"
+    );
+  });
+
   test("merges custom headers", async () => {
     let capturedHeaders: Headers | undefined;
     const binding = {
