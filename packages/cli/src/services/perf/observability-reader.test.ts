@@ -1,6 +1,8 @@
 import { describe, it, expect, mock } from "bun:test";
-import { ObservabilityReader } from "./observability-reader.js";
-import type { TraceQueryRequest } from "../../commands/trace/types.js";
+import {
+  ObservabilityReader,
+  type ObservabilityQueryRequest,
+} from "./observability-reader.js";
 
 const ALL_EVENTS = [
   {
@@ -38,7 +40,7 @@ const ALL_EVENTS = [
   },
 ];
 
-const filteredQuery = mock((req: TraceQueryRequest) => {
+const filteredQuery = mock((req: ObservabilityQueryRequest) => {
   const serviceFilter = req.parameters?.filters?.find((f) => f.value)?.value as
     | string
     | undefined;
@@ -87,7 +89,7 @@ describe("ObservabilityReader.readProbeEvents", () => {
         },
       },
     ];
-    const legacyQuery = mock((req: TraceQueryRequest) => {
+    const legacyQuery = mock((req: ObservabilityQueryRequest) => {
       const serviceFilter = req.parameters?.filters?.find((f) => f.value)
         ?.value as string | undefined;
       const events = serviceFilter
@@ -140,7 +142,7 @@ describe("ObservabilityReader.readProbeEvents", () => {
         },
       },
     ];
-    const noisyQuery = mock((req: TraceQueryRequest) => {
+    const noisyQuery = mock((req: ObservabilityQueryRequest) => {
       const serviceFilter = req.parameters?.filters?.find((f) => f.value)
         ?.value as string | undefined;
       const events = serviceFilter

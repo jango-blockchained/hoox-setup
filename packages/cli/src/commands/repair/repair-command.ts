@@ -13,10 +13,17 @@ import {
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 
-async function handleCheck(fmt: FormatOptions): Promise<void> {
+async function handleCheck(
+  fmt: FormatOptions,
+  options: { installDeps?: boolean; typecheck?: boolean } = {}
+): Promise<void> {
   try {
     const svc = new RepairService();
-    const result = await svc.runSystemCheck();
+    const result = await svc.runSystemCheck({
+      installDeps: Boolean(options.installDeps),
+      // default true unless --no-typecheck
+      typecheck: options.typecheck !== false,
+    });
     if (result.allPassed) {
       formatSuccess("All checks passed", fmt);
     } else {
@@ -173,13 +180,18 @@ export function registerRepairCommand(program: Command): void {
   repairCmd
     .command("check")
     .description(
-      "Run system diagnostics (workers, deps, types, infra, secrets)"
+      "Run system diagnostics (workers, types, infra, secrets). Does not run bun install unless --install-deps."
     )
+    .option(
+      "--install-deps",
+      "Also run `bun install` as a check step (side-effectful; off by default)"
+    )
+    .option("--no-typecheck", "Skip the TypeScript typecheck step")
     .action(
       withErrorHandling(
-        async () => {
+        async (options: { installDeps?: boolean; typecheck?: boolean }) => {
           const fmt = getFormatOptions(repairCmd);
-          await handleCheck(fmt);
+          await handleCheck(fmt, options);
         },
         { service: "repair" }
       )

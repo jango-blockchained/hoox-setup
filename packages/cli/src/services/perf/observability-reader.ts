@@ -2,13 +2,38 @@
  * Reads per-hop probe timings + extended traces from Cloudflare Workers Observability.
  * Supports both legacy per-service and new explicit `hop` names emitted by
  * the extended instrumentation (e.g. "hoox:hoox-gateway", "trade-worker:trade-worker-receive").
+ *
+ * Depends only on a query function — the default wires TraceService lazily so
+ * this service layer does not import from the commands/ package at module load.
  */
 
-import { TraceService } from "../../commands/trace/trace-service.js";
-import type {
-  TraceQueryRequest,
-  TraceQueryResponse,
-} from "../../commands/trace/types.js";
+/** Minimal query request shape used by probe event reads. */
+export interface ObservabilityQueryRequest {
+  view: "events" | "calculations" | "invocations";
+  queryId: string;
+  limit?: number;
+  parameters?: {
+    filters?: Array<{
+      key: string;
+      operation: string;
+      type: string;
+      value: string | number | boolean;
+    }>;
+  };
+  timeframe?: { from?: number; to?: number };
+}
+
+/** Minimal query response shape used by probe event reads. */
+export interface ObservabilityQueryResponse {
+  success?: boolean;
+  events?: Array<{
+    $metadata?: {
+      service?: string;
+      timestamp?: string | number;
+      message?: string;
+    };
+  }>;
+}
 
 export interface ReadProbeOptions {
   probeIds: readonly string[];
@@ -34,7 +59,9 @@ interface LogPayload {
 }
 
 export interface ObservabilityReaderDeps {
-  query: (request: TraceQueryRequest) => Promise<TraceQueryResponse>;
+  query: (
+    request: ObservabilityQueryRequest
+  ) => Promise<ObservabilityQueryResponse>;
 }
 
 export class ObservabilityReader {
@@ -44,9 +71,17 @@ export class ObservabilityReader {
     if (deps?.query) {
       this.deps = { query: deps.query };
     } else {
-      const traceService = new TraceService();
+      // Lazy import keeps services/ free of a static dependency on commands/
       this.deps = {
-        query: (req) => traceService.query(req),
+        query: async (req) => {
+          const { TraceService } =
+            await import("../../commands/trace/trace-service.js");
+          type TraceQueryRequest =
+            import("../../commands/trace/types.js").TraceQueryRequest;
+          return new TraceService().query(
+            req as TraceQueryRequest
+          ) as Promise<ObservabilityQueryResponse>;
+        },
       };
     }
   }
@@ -82,7 +117,11 @@ export class ObservabilityReader {
         allEvents.push({
           service: md.service,
           timestamp:
-            typeof md.timestamp === "string" ? Date.parse(md.timestamp) : 0,
+            typeof md.timestamp === "string"
+              ? Date.parse(md.timestamp)
+              : typeof md.timestamp === "number"
+                ? md.timestamp
+                : 0,
           message: md.message,
         });
       }
@@ -97,7 +136,11 @@ export class ObservabilityReader {
       } catch {
         continue;
       }
-      if (!payload.probe_id || (probeIdSet.size > 0 && !probeIdSet.has(payload.probe_id))) continue;
+      if (
+        !payload.probe_id ||
+        (probeIdSet.size > 0 && !probeIdSet.has(payload.probe_id))
+      )
+        continue;
       if (typeof payload.duration_ms !== "number") continue;
 
       // Support both legacy "service" grouping and new explicit hop names

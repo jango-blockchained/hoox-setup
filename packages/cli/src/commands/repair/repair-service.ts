@@ -2,70 +2,112 @@ import { CloudflareService } from "../../services/cloudflare/index.js";
 import { SecretsService } from "../../services/secrets/index.js";
 import type { RepairStepResult, RepairCheckResult } from "./types.js";
 
+export interface RepairSystemCheckOptions {
+  /**
+   * When true, runs `bun install` as a check step.
+   * Default false — install is side-effectful and slow for a diagnose command.
+   */
+  installDeps?: boolean;
+  /**
+   * When true, runs `bun run typecheck` as a check step.
+   * Default true.
+   */
+  typecheck?: boolean;
+}
+
+export interface RepairServiceDeps {
+  spawn?: typeof Bun.spawn;
+  cloudflare?: CloudflareService;
+  createSecrets?: () => Promise<SecretsService>;
+  validateSchema?: () => Promise<
+    {
+      errors: Array<{ severity: string }>;
+    }[]
+  >;
+}
+
+type SpawnFn = typeof Bun.spawn;
+
 export class RepairService {
-  async runSystemCheck(): Promise<RepairCheckResult> {
+  private readonly spawn: SpawnFn;
+  private readonly cloudflare: CloudflareService;
+  private readonly createSecrets: () => Promise<SecretsService>;
+  private readonly validateSchema: () => Promise<
+    { errors: Array<{ severity: string }> }[]
+  >;
+
+  constructor(deps: RepairServiceDeps = {}) {
+    this.spawn = deps.spawn ?? Bun.spawn.bind(Bun);
+    this.cloudflare = deps.cloudflare ?? new CloudflareService();
+    this.createSecrets = deps.createSecrets ?? (() => SecretsService.create());
+    this.validateSchema =
+      deps.validateSchema ??
+      (async () => {
+        const { SchemaService } =
+          await import("../../services/schema/schema-service.js");
+        return new SchemaService().validateAll();
+      });
+  }
+
+  async runSystemCheck(
+    options: RepairSystemCheckOptions = {}
+  ): Promise<RepairCheckResult> {
+    const installDeps = options.installDeps === true;
+    const runTypecheck = options.typecheck !== false;
     const steps: RepairStepResult[] = [];
 
     // Step 1: Repository integrity (worker submodules)
-    try {
-      const proc = Bun.spawn(["bun", "run", "check:worker-submodules"], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
-      const exit = await proc.exited;
-      steps.push({
-        step: "Worker submodules",
-        success: exit === 0,
-        message: exit === 0 ? "All submodules present" : "Missing submodules",
-      });
-    } catch (err) {
-      steps.push({
-        step: "Worker submodules",
-        success: false,
-        error: String(err),
-      });
-    }
+    steps.push(
+      await this.runSpawnStep(
+        "Worker submodules",
+        ["bun", "run", "check:worker-submodules"],
+        "All submodules present",
+        "Missing submodules"
+      )
+    );
 
-    // Step 2: Dependencies
-    try {
-      const proc = Bun.spawn(["bun", "install"], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
-      const exit = await proc.exited;
+    // Step 2: Dependencies (opt-in — side-effectful)
+    if (installDeps) {
+      steps.push(
+        await this.runSpawnStep(
+          "Dependencies",
+          ["bun", "install"],
+          "All dependencies installed",
+          "bun install failed"
+        )
+      );
+    } else {
       steps.push({
         step: "Dependencies",
-        success: exit === 0,
-        message:
-          exit === 0 ? "All dependencies installed" : "bun install failed",
+        success: true,
+        message: "Skipped (pass installDeps to run bun install)",
       });
-    } catch (err) {
-      steps.push({ step: "Dependencies", success: false, error: String(err) });
     }
 
     // Step 3: TypeScript
-    try {
-      const proc = Bun.spawn(["bun", "run", "typecheck"], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
-      const exit = await proc.exited;
+    if (runTypecheck) {
+      steps.push(
+        await this.runSpawnStep(
+          "TypeScript",
+          ["bun", "run", "typecheck"],
+          "No type errors",
+          "TypeScript errors found"
+        )
+      );
+    } else {
       steps.push({
         step: "TypeScript",
-        success: exit === 0,
-        message: exit === 0 ? "No type errors" : "TypeScript errors found",
+        success: true,
+        message: "Skipped",
       });
-    } catch (err) {
-      steps.push({ step: "TypeScript", success: false, error: String(err) });
     }
 
     // Step 4: Infrastructure
     try {
-      const cf = new CloudflareService();
-      const d1Result = await cf.d1List();
-      const kvResult = await cf.kvList();
-      const r2Result = await cf.r2List();
-      const queueResult = await cf.queueList();
+      const d1Result = await this.cloudflare.d1List();
+      const kvResult = await this.cloudflare.kvList();
+      const r2Result = await this.cloudflare.r2List();
+      const queueResult = await this.cloudflare.queueList();
 
       let infraOk = true;
       const details: string[] = [];
@@ -105,7 +147,7 @@ export class RepairService {
 
     // Step 5: Secrets
     try {
-      const secrets = await SecretsService.create();
+      const secrets = await this.createSecrets();
       const allSecrets = secrets.listAllSecrets();
       let missingCount = 0;
       let totalSecrets = 0;
@@ -128,10 +170,7 @@ export class RepairService {
 
     // Step 6: Worker config schema validation
     try {
-      const { SchemaService } =
-        await import("../../services/schema/schema-service.js");
-      const svc = new SchemaService();
-      const results = svc.validateAll();
+      const results = await this.validateSchema();
       const totalErrors = results.reduce(
         (sum, r) => sum + r.errors.filter((e) => e.severity === "error").length,
         0
@@ -160,5 +199,31 @@ export class RepairService {
       passedCount: passed,
       failedCount: failed,
     };
+  }
+
+  private async runSpawnStep(
+    step: string,
+    args: string[],
+    okMessage: string,
+    failMessage: string
+  ): Promise<RepairStepResult> {
+    try {
+      const proc = this.spawn(args, {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const exit = await proc.exited;
+      return {
+        step,
+        success: exit === 0,
+        message: exit === 0 ? okMessage : failMessage,
+      };
+    } catch (err) {
+      return {
+        step,
+        success: false,
+        error: String(err),
+      };
+    }
   }
 }
