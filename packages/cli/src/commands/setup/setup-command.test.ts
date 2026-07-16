@@ -88,7 +88,9 @@ describe("registerSetupCommand", () => {
       );
 
       expect(runAll).toHaveBeenCalled();
-      const opts = runAll.mock.calls[0]?.[0] as Record<string, unknown>;
+      const opts = (
+        runAll.mock.calls as unknown as Array<[Record<string, unknown>]>
+      )[0][0];
       expect(opts.skipKeys).toBe(true);
       expect(opts.skipDb).toBe(true);
       expect(opts.skipSecrets).toBe(true);

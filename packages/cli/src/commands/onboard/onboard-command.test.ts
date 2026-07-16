@@ -88,7 +88,9 @@ describe("registerOnboardCommand", () => {
       expect(opts.token).toBe("cfut_test");
       expect(opts.account).toBe("acct_test");
       expect(runAll).toHaveBeenCalledTimes(1);
-      const setupOpts = runAll.mock.calls[0]?.[0] as Record<string, unknown>;
+      const setupOpts = (
+        runAll.mock.calls as unknown as Array<[Record<string, unknown>]>
+      )[0][0];
       expect(setupOpts.skipDashboard).toBe(true);
       expect(setupOpts.skipDb).toBe(true);
     } finally {

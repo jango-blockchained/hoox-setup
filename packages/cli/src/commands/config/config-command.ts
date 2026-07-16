@@ -20,13 +20,12 @@ import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
 import {
   formatSuccess,
-  formatError,
   formatTable,
   formatKeyValue,
   formatJson,
   getFormatOptions,
 } from "../../utils/formatters.js";
-import { theme, icons } from "../../utils/theme.js";
+import { theme } from "../../utils/theme.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
