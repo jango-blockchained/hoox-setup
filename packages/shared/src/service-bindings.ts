@@ -10,6 +10,15 @@ export const InternalAuthKeyFields = {
   DEFAULT: "INTERNAL_KEY_BINDING",
   D1_READ: "D1_READ_KEY_BINDING",
   D1_WRITE: "D1_WRITE_KEY_BINDING",
+  TRADE_EXECUTE: "TRADE_EXECUTE_KEY_BINDING",
+  TRADE_READ: "TRADE_READ_KEY_BINDING",
+  TELEGRAM_ALERT: "TELEGRAM_INTERNAL_KEY_BINDING",
+  WALLET_EXECUTE: "WALLET_EXECUTE_KEY_BINDING",
+  AGENT: "AGENT_INTERNAL_KEY",
+  /** Dashboard Pages secret aliases (legacy naming). */
+  D1_INTERNAL_ALIAS: "D1_INTERNAL_KEY",
+  TRADE_INTERNAL_ALIAS: "TRADE_INTERNAL_KEY",
+  TELEGRAM_INTERNAL_ALIAS: "TELEGRAM_INTERNAL_KEY",
 } as const;
 
 /** d1-worker read routes: prefer read-only key, fall back to legacy full key. */
@@ -21,6 +30,52 @@ export const D1_READ_AUTH_KEY_FIELDS = [
 /** d1-worker write/RPC routes: prefer write key, fall back to legacy full key. */
 export const D1_WRITE_AUTH_KEY_FIELDS = [
   InternalAuthKeyFields.D1_WRITE,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** trade-worker execute routes (/webhook, /process, POST /api/signals). */
+export const TRADE_EXECUTE_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.TRADE_EXECUTE,
+  InternalAuthKeyFields.DEFAULT,
+  InternalAuthKeyFields.AGENT,
+] as const;
+
+/** trade-worker read routes (GET /api/signals, GET /report). */
+export const TRADE_READ_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.TRADE_READ,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** telegram-worker /alert notification endpoint. */
+export const TELEGRAM_ALERT_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.TELEGRAM_ALERT,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** web3-wallet-worker privileged routes. */
+export const WALLET_EXECUTE_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.WALLET_EXECUTE,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** Dashboard → d1-worker read calls (includes Pages secret aliases). */
+export const DASHBOARD_D1_READ_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.D1_READ,
+  InternalAuthKeyFields.D1_INTERNAL_ALIAS,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** Dashboard → trade-worker execute calls. */
+export const DASHBOARD_TRADE_EXECUTE_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.TRADE_EXECUTE,
+  InternalAuthKeyFields.TRADE_INTERNAL_ALIAS,
+  InternalAuthKeyFields.DEFAULT,
+] as const;
+
+/** Dashboard → telegram-worker /alert calls. */
+export const DASHBOARD_TELEGRAM_ALERT_AUTH_KEY_FIELDS = [
+  InternalAuthKeyFields.TELEGRAM_ALERT,
+  InternalAuthKeyFields.TELEGRAM_INTERNAL_ALIAS,
   InternalAuthKeyFields.DEFAULT,
 ] as const;
 
@@ -36,6 +91,14 @@ export interface AuthenticatedServiceEnv {
   INTERNAL_KEY_BINDING?: string;
   D1_READ_KEY_BINDING?: string;
   D1_WRITE_KEY_BINDING?: string;
+  TRADE_EXECUTE_KEY_BINDING?: string;
+  TRADE_READ_KEY_BINDING?: string;
+  TELEGRAM_INTERNAL_KEY_BINDING?: string;
+  WALLET_EXECUTE_KEY_BINDING?: string;
+  AGENT_INTERNAL_KEY?: string;
+  D1_INTERNAL_KEY?: string;
+  TRADE_INTERNAL_KEY?: string;
+  TELEGRAM_INTERNAL_KEY?: string;
 }
 
 export class ServiceAuthError extends Error {

@@ -1,6 +1,7 @@
 import { toError } from "@jango-blockchained/hoox-shared/errors";
 import type { HousekeepingPayload } from "@jango-blockchained/hoox-shared/types";
 import { z } from "zod";
+import { getInternalAuthKeys } from "./config";
 
 function getApiUrl(key: string): string {
   const envKey = `${key}_URL`;
@@ -79,25 +80,37 @@ export interface WorkerStatus {
 }
 
 class ApiClient {
-  private internalKey: string | undefined;
+  private d1ReadKey: string | undefined;
+  private tradeExecuteKey: string | undefined;
 
   setInternalKey(key: string) {
-    this.internalKey = key;
+    this.d1ReadKey = key;
+  }
+
+  setTradeExecuteKey(key: string) {
+    this.tradeExecuteKey = key;
+  }
+
+  private authHeaders(key?: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (key) {
+      headers["X-Internal-Auth-Key"] = key;
+    }
+    return headers;
   }
 
   private async fetchWithAuth<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    authKey?: string
   ): Promise<T> {
+    const key = authKey ?? this.d1ReadKey;
     const headers: HeadersInit = {
-      "Content-Type": "application/json",
+      ...this.authHeaders(key),
       ...options.headers,
     };
-
-    if (this.internalKey) {
-      (headers as Record<string, string>)["X-Internal-Auth-Key"] =
-        this.internalKey;
-    }
 
     const response = await fetch(endpoint, {
       ...options,
@@ -155,7 +168,8 @@ class ApiClient {
           action: side === "LONG" ? "CLOSE_LONG" : "CLOSE_SHORT",
           quantity: size,
         }),
-      }
+      },
+      this.tradeExecuteKey
     );
   }
 
@@ -401,7 +415,7 @@ class ApiClient {
    * Run a paginated read against d1-worker's /query endpoint.
    *
    * The endpoint requires the `X-Internal-Auth-Key` header. The internal
-   * key is only available server-side (via `INTERNAL_KEY_BINDING`),
+   * key is only available server-side (via scoped D1 read auth env vars),
    * so this method works when invoked from a Next.js Route Handler or
    * Server Component. In the browser, the request goes out without
    * the header and d1-worker returns 401 — the caller is expected to
@@ -423,12 +437,7 @@ class ApiClient {
     const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 1000);
 
     const endpoint = `${getApiUrl("d1Service")}/query`;
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (this.internalKey) {
-      headers["X-Internal-Auth-Key"] = this.internalKey;
-    }
+    const headers = this.authHeaders(this.d1ReadKey);
 
     const [countRes, rowsRes] = await Promise.all([
       fetch(endpoint, {
@@ -485,3 +494,11 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+const resolvedKeys = getInternalAuthKeys();
+if (resolvedKeys.d1Read) {
+  api.setInternalKey(resolvedKeys.d1Read);
+}
+if (resolvedKeys.tradeExecute) {
+  api.setTradeExecuteKey(resolvedKeys.tradeExecute);
+}

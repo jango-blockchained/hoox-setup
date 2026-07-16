@@ -1,3 +1,10 @@
+import {
+  DASHBOARD_D1_READ_AUTH_KEY_FIELDS,
+  DASHBOARD_TELEGRAM_ALERT_AUTH_KEY_FIELDS,
+  DASHBOARD_TRADE_EXECUTE_AUTH_KEY_FIELDS,
+  resolveInternalAuthKey,
+} from "@jango-blockchained/hoox-shared/service-bindings";
+
 export type AuthType = "basic" | "cf-access" | "none";
 
 const DEFAULT_SERVICE_URLS = {
@@ -20,9 +27,14 @@ export const ENV_KEYS = {
     agent: "AGENT_SERVICE_URL",
   },
   internalAuth: {
-    d1: "INTERNAL_KEY_BINDING",
+    d1Read: "D1_READ_KEY_BINDING",
+    d1Legacy: "D1_INTERNAL_KEY",
+    tradeExecute: "TRADE_EXECUTE_KEY_BINDING",
+    tradeLegacy: "TRADE_INTERNAL_KEY",
     agent: "AGENT_INTERNAL_KEY",
     telegram: "TELEGRAM_INTERNAL_KEY_BINDING",
+    telegramLegacy: "TELEGRAM_INTERNAL_KEY",
+    legacy: "INTERNAL_KEY_BINDING",
     api: "API_SERVICE_KEY_BINDING",
   },
   cloudflare: {
@@ -66,9 +78,19 @@ export function getConfig() {
         DEFAULT_SERVICE_URLS.AGENT_SERVICE_URL,
     },
     internalAuth: {
-      d1: getEnvVar(ENV_KEYS.internalAuth.d1),
+      d1Read: resolveInternalAuthKey(
+        process.env,
+        DASHBOARD_D1_READ_AUTH_KEY_FIELDS
+      ),
+      tradeExecute: resolveInternalAuthKey(
+        process.env,
+        DASHBOARD_TRADE_EXECUTE_AUTH_KEY_FIELDS
+      ),
       agent: getEnvVar(ENV_KEYS.internalAuth.agent),
-      telegram: getEnvVar(ENV_KEYS.internalAuth.telegram),
+      telegram: resolveInternalAuthKey(
+        process.env,
+        DASHBOARD_TELEGRAM_ALERT_AUTH_KEY_FIELDS
+      ),
       api: getEnvVar(ENV_KEYS.internalAuth.api),
     },
     auth: {
@@ -90,6 +112,11 @@ export type ConfigError = {
   key: string;
   message: string;
 };
+
+/** Resolved internal auth keys for server-side worker calls. */
+export function getInternalAuthKeys() {
+  return getConfig().internalAuth;
+}
 
 export function validateRequiredEnv(keys: readonly string[]): ConfigError[] {
   return keys

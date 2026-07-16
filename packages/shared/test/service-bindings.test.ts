@@ -2,6 +2,9 @@ import { describe, expect, test } from "bun:test";
 import {
   authenticatedServiceFetch,
   D1_READ_AUTH_KEY_FIELDS,
+  DASHBOARD_D1_READ_AUTH_KEY_FIELDS,
+  TELEGRAM_ALERT_AUTH_KEY_FIELDS,
+  TRADE_EXECUTE_AUTH_KEY_FIELDS,
   resolveInternalAuthKey,
   ServiceAuthError,
   serviceFetch,
@@ -99,6 +102,36 @@ describe("resolveInternalAuthKey", () => {
         D1_READ_AUTH_KEY_FIELDS
       )
     ).toBe("full-key");
+  });
+
+  test("resolves dashboard D1 alias env vars", () => {
+    expect(
+      resolveInternalAuthKey(
+        { D1_INTERNAL_KEY: "pages-d1-key" },
+        DASHBOARD_D1_READ_AUTH_KEY_FIELDS
+      )
+    ).toBe("pages-d1-key");
+  });
+
+  test("prefers scoped trade execute key", () => {
+    expect(
+      resolveInternalAuthKey(
+        {
+          TRADE_EXECUTE_KEY_BINDING: "execute-key",
+          INTERNAL_KEY_BINDING: "legacy",
+        },
+        TRADE_EXECUTE_AUTH_KEY_FIELDS
+      )
+    ).toBe("execute-key");
+  });
+
+  test("resolves telegram alert key from TELEGRAM_INTERNAL_KEY_BINDING", () => {
+    expect(
+      resolveInternalAuthKey(
+        { TELEGRAM_INTERNAL_KEY_BINDING: "tg-key" },
+        TELEGRAM_ALERT_AUTH_KEY_FIELDS
+      )
+    ).toBe("tg-key");
   });
 });
 

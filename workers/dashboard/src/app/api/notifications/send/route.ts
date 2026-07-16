@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Errors } from "@jango-blockchained/hoox-shared/errors";
-import { getEnvVar } from "@/lib/config";
+import { getEnvVar, getInternalAuthKeys } from "@/lib/config";
 
 // nodejs runtime: dashboard routes consistently use `nodejs` because
 // OpenNext's build output omits edge chunk files. See test-coverage.md.
@@ -52,9 +52,7 @@ function getTelegramWorkerUrl(): string {
  * telegram-worker hop. Matches the pattern in lib/config.ts.
  */
 function getInternalKey(): string | undefined {
-  // The dashboard uses TELEGRAM_INTERNAL_KEY_BINDING for the telegram-worker
-  // hand-off (see .env.example and the secrets API in /api/secrets).
-  return getEnvVar("TELEGRAM_INTERNAL_KEY_BINDING");
+  return getInternalAuthKeys().telegram;
 }
 
 /**

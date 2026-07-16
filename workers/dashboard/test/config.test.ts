@@ -33,6 +33,18 @@ describe("dashboard config", () => {
     }
   });
 
+  test("resolves scoped internal auth keys with dashboard aliases", async () => {
+    process.env.D1_INTERNAL_KEY = "d1-read-alias";
+    process.env.TRADE_INTERNAL_KEY = "trade-exec-alias";
+    process.env.TELEGRAM_INTERNAL_KEY = "telegram-alias";
+
+    const { getInternalAuthKeys } = await import("../src/lib/config");
+    const keys = getInternalAuthKeys();
+    expect(keys.d1Read).toBe("d1-read-alias");
+    expect(keys.tradeExecute).toBe("trade-exec-alias");
+    expect(keys.telegram).toBe("telegram-alias");
+  });
+
   test("rejects AUTH_TYPE=none in production", async () => {
     process.env.AUTH_TYPE = "none";
     const env = process.env as Record<string, string | undefined>;

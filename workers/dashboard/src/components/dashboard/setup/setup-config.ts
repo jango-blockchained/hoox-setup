@@ -64,8 +64,14 @@ export const REQUIRED_SECRETS: RequiredSecret[] = [
   {
     group: "Internal Auth Keys",
     worker: "d1-worker",
-    secret: "D1_INTERNAL_KEY",
-    desc: "Internal Auth Key",
+    secret: "D1_READ_KEY_BINDING",
+    desc: "D1 read-only internal key (fallback: D1_INTERNAL_KEY, INTERNAL_KEY_BINDING)",
+  },
+  {
+    group: "Internal Auth Keys",
+    worker: "trade-worker",
+    secret: "TRADE_EXECUTE_KEY_BINDING",
+    desc: "Trade execute internal key (fallback: TRADE_INTERNAL_KEY, INTERNAL_KEY_BINDING)",
   },
   {
     group: "Internal Auth Keys",
