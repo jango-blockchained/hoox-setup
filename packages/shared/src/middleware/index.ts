@@ -14,7 +14,9 @@ export {
   createInternalAuthMiddleware,
   checkInternalAuth,
   timingSafeEqual,
+  collectInternalAuthKeys,
   type InternalAuthEnv,
+  type InternalAuthKeyName,
 } from "./auth";
 export {
   createRateLimiter,

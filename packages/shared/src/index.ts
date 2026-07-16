@@ -92,6 +92,10 @@ export {
   serviceFetch,
   authenticatedServiceFetch,
   ServiceAuthError,
+  InternalAuthKeyFields,
+  D1_READ_AUTH_KEY_FIELDS,
+  D1_WRITE_AUTH_KEY_FIELDS,
+  resolveInternalAuthKey,
 } from "./service-bindings";
 export type { AuthenticatedServiceEnv } from "./service-bindings";
 export type {

@@ -71,6 +71,55 @@ export interface InternalAuthEnv {
   [key: string]: unknown;
 }
 
+export type InternalAuthKeyName = string | readonly string[];
+
+function normalizeKeyNames(keyName: InternalAuthKeyName): string[] {
+  if (typeof keyName === "string") {
+    return [keyName];
+  }
+  return [...keyName];
+}
+
+/** Collect configured secrets for one or more env binding names (first wins for callers). */
+export function collectInternalAuthKeys(
+  env: InternalAuthEnv,
+  keyNames: InternalAuthKeyName
+): string[] {
+  const keys: string[] = [];
+  for (const name of normalizeKeyNames(keyNames)) {
+    const value = env[name];
+    if (typeof value === "string" && value.length > 0) {
+      keys.push(value);
+    }
+  }
+  return keys;
+}
+
+function matchesAnyInternalAuthKey(
+  providedKey: string,
+  expectedKeys: string[]
+): boolean {
+  for (const expected of expectedKeys) {
+    if (timingSafeEqual(providedKey, expected)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function internalAuthNotConfiguredResponse(
+  keyNames: InternalAuthKeyName
+): Response {
+  const label = normalizeKeyNames(keyNames).join(" | ");
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: `Internal auth key(s) not configured: ${label}`,
+    }),
+    { status: 401, headers: { "Content-Type": "application/json" } }
+  );
+}
+
 /**
  * Require internal service-to-service authentication via X-Internal-Auth-Key header.
  * Use for endpoints called by other workers via Service Bindings.
@@ -86,22 +135,15 @@ export interface InternalAuthEnv {
 export function requireInternalAuth(
   request: Request,
   env: InternalAuthEnv,
-  keyName: string = "INTERNAL_KEY_BINDING"
+  keyName: InternalAuthKeyName = "INTERNAL_KEY_BINDING"
 ): Response | null {
-  const expectedKey = env[keyName] as string | undefined;
-  // Fail closed: if no key is configured, reject the request
-  if (!expectedKey) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: `Internal auth key ${keyName} not configured`,
-      }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
-    );
+  const expectedKeys = collectInternalAuthKeys(env, keyName);
+  if (expectedKeys.length === 0) {
+    return internalAuthNotConfiguredResponse(keyName);
   }
 
   const providedKey = request.headers.get("X-Internal-Auth-Key");
-  if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
+  if (!providedKey || !matchesAnyInternalAuthKey(providedKey, expectedKeys)) {
     return new Response(
       JSON.stringify({ success: false, error: "Unauthorized" }),
       { status: 401, headers: { "Content-Type": "application/json" } }
@@ -119,26 +161,20 @@ export function requireInternalAuth(
  * @param keyName - The env binding name for the internal key (default: 'INTERNAL_KEY_BINDING')
  */
 export function createInternalAuthMiddleware(
-  keyName: string = "INTERNAL_KEY_BINDING"
+  keyName: InternalAuthKeyName = "INTERNAL_KEY_BINDING"
 ): MiddlewareHandler<InternalAuthEnv> {
   return async (
     request: Request,
     env: InternalAuthEnv,
     _ctx: ExecutionContext
   ): Promise<Response | void> => {
-    const expectedKey = env[keyName] as string | undefined;
-    if (!expectedKey) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Internal auth key ${keyName} not configured`,
-        }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+    const expectedKeys = collectInternalAuthKeys(env, keyName);
+    if (expectedKeys.length === 0) {
+      return internalAuthNotConfiguredResponse(keyName);
     }
 
     const providedKey = request.headers.get("X-Internal-Auth-Key");
-    if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
+    if (!providedKey || !matchesAnyInternalAuthKey(providedKey, expectedKeys)) {
       return new Response(
         JSON.stringify({ success: false, error: "Unauthorized" }),
         { status: 401, headers: { "Content-Type": "application/json" } }
@@ -160,15 +196,18 @@ export function createInternalAuthMiddleware(
 export function checkInternalAuth(
   request: Request,
   env: InternalAuthEnv,
-  keyName: string = "INTERNAL_KEY_BINDING"
+  keyName: InternalAuthKeyName = "INTERNAL_KEY_BINDING"
 ): { authorized: boolean; error?: string } {
-  const expectedKey = env[keyName] as string | undefined;
-  if (!expectedKey) {
-    return { authorized: false, error: `${keyName} not configured` };
+  const expectedKeys = collectInternalAuthKeys(env, keyName);
+  if (expectedKeys.length === 0) {
+    return {
+      authorized: false,
+      error: `${normalizeKeyNames(keyName).join(" | ")} not configured`,
+    };
   }
 
   const providedKey = request.headers.get("X-Internal-Auth-Key");
-  if (!providedKey || !timingSafeEqual(providedKey, expectedKey)) {
+  if (!providedKey || !matchesAnyInternalAuthKey(providedKey, expectedKeys)) {
     return { authorized: false, error: "Unauthorized" };
   }
 

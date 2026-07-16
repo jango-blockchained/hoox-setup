@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   authenticatedServiceFetch,
+  D1_READ_AUTH_KEY_FIELDS,
+  resolveInternalAuthKey,
   ServiceAuthError,
   serviceFetch,
 } from "../src/service-bindings";
@@ -77,6 +79,26 @@ describe("authenticatedServiceFetch", () => {
 
     expect(capturedHeaders?.get("X-Request-ID")).toBe("req-1");
     expect(capturedHeaders?.get("X-Internal-Auth-Key")).toBe("k");
+  });
+});
+
+describe("resolveInternalAuthKey", () => {
+  test("returns first configured key from fallback list", () => {
+    expect(
+      resolveInternalAuthKey(
+        { D1_READ_KEY_BINDING: "read-key", INTERNAL_KEY_BINDING: "full-key" },
+        D1_READ_AUTH_KEY_FIELDS
+      )
+    ).toBe("read-key");
+  });
+
+  test("falls back to legacy INTERNAL_KEY_BINDING", () => {
+    expect(
+      resolveInternalAuthKey(
+        { INTERNAL_KEY_BINDING: "full-key" },
+        D1_READ_AUTH_KEY_FIELDS
+      )
+    ).toBe("full-key");
   });
 });
 

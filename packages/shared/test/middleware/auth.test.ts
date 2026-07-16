@@ -286,6 +286,53 @@ describe("requireInternalAuth", () => {
     expect(result1?.status).toBe(401);
     expect(result2?.status).toBe(401);
   });
+
+  it("accepts any configured key from a fallback list", () => {
+    const env = {
+      D1_READ_KEY_BINDING: "read-key",
+      INTERNAL_KEY_BINDING: "legacy-key",
+    } as unknown as InternalAuthEnv;
+
+    const readRequest = new Request("https://example.com", {
+      headers: { "X-Internal-Auth-Key": "read-key" },
+    });
+    const legacyRequest = new Request("https://example.com", {
+      headers: { "X-Internal-Auth-Key": "legacy-key" },
+    });
+
+    expect(
+      requireInternalAuth(readRequest, env, [
+        "D1_READ_KEY_BINDING",
+        "INTERNAL_KEY_BINDING",
+      ])
+    ).toBeNull();
+    expect(
+      requireInternalAuth(legacyRequest, env, [
+        "D1_READ_KEY_BINDING",
+        "INTERNAL_KEY_BINDING",
+      ])
+    ).toBeNull();
+  });
+
+  it("rejects when none of the fallback keys are configured (fail closed)", async () => {
+    const env = {} as unknown as InternalAuthEnv;
+    const request = new Request("https://example.com", {
+      headers: { "X-Internal-Auth-Key": "any-key" },
+    });
+
+    const result = requireInternalAuth(request, env, [
+      "D1_READ_KEY_BINDING",
+      "INTERNAL_KEY_BINDING",
+    ]);
+    expect(result).toBeInstanceOf(Response);
+    expect(result?.status).toBe(401);
+    const body = await result?.json();
+    expect(body).toEqual({
+      success: false,
+      error:
+        "Internal auth key(s) not configured: D1_READ_KEY_BINDING | INTERNAL_KEY_BINDING",
+    });
+  });
 });
 
 describe("checkInternalAuth", () => {
@@ -398,5 +445,46 @@ describe("checkInternalAuth", () => {
     const result = checkInternalAuth(request, env);
     expect(result.error).toBeUndefined();
     expect(Object.keys(result)).toEqual(["authorized"]);
+  });
+
+  it("accepts any configured key from a fallback list", () => {
+    const env = {
+      D1_WRITE_KEY_BINDING: "write-key",
+      INTERNAL_KEY_BINDING: "legacy-key",
+    } as unknown as InternalAuthEnv;
+
+    const writeRequest = new Request("https://example.com", {
+      headers: { "X-Internal-Auth-Key": "write-key" },
+    });
+    const legacyRequest = new Request("https://example.com", {
+      headers: { "X-Internal-Auth-Key": "legacy-key" },
+    });
+
+    expect(
+      checkInternalAuth(writeRequest, env, [
+        "D1_WRITE_KEY_BINDING",
+        "INTERNAL_KEY_BINDING",
+      ])
+    ).toEqual({ authorized: true });
+    expect(
+      checkInternalAuth(legacyRequest, env, [
+        "D1_WRITE_KEY_BINDING",
+        "INTERNAL_KEY_BINDING",
+      ])
+    ).toEqual({ authorized: true });
+  });
+
+  it("returns error listing all fallback fields when none configured", () => {
+    const env = {} as unknown as InternalAuthEnv;
+    const request = new Request("https://example.com");
+
+    const result = checkInternalAuth(request, env, [
+      "D1_WRITE_KEY_BINDING",
+      "INTERNAL_KEY_BINDING",
+    ]);
+    expect(result).toEqual({
+      authorized: false,
+      error: "D1_WRITE_KEY_BINDING | INTERNAL_KEY_BINDING not configured",
+    });
   });
 });
