@@ -6,7 +6,7 @@ export const hooxIcons = {
   overview: Reicon.Monitor,
   positions: Reicon.Chart,
   signalFlow: Reicon.BranchUp,
-  analytics: Reicon.Activity2,
+  analytics: Reicon.Activity,
   logs: Reicon.DocText,
   signals: Reicon.Radio,
   notifications: Reicon.Bell,
@@ -23,8 +23,8 @@ export const hooxIcons = {
   wallet: Reicon.Wallet,
   target: Reicon.Bullseye,
   rocket: Reicon.Rocket,
-  trendUp: Reicon.TrendUp2,
-  trendDown: Reicon.TrendDown2,
+  trendUp: Reicon.TrendUp,
+  trendDown: Reicon.TrendDown,
   shield: Reicon.Shield,
   lock: Reicon.Lock,
   bolt: Reicon.Bolt,
@@ -44,7 +44,7 @@ export const hooxIcons = {
   eye: Reicon.Eye,
   zap: Reicon.Bolt,
   pulse: Reicon.Pulse,
-  activity: Reicon.Activity2,
+  activity: Reicon.Activity,
 
   // Misc
   user: Reicon.User,
