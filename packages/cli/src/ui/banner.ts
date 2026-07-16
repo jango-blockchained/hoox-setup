@@ -80,11 +80,10 @@ const LOGO_RAW = [
 ] as const;
 
 const LOGO_W = LOGO_RAW[0]!.length;
-const LOGO_H = LOGO_RAW.length;
 
 type CellRole = "corner" | "x" | "empty";
 
-function cellRole(ch: string, row: number, col: number): CellRole {
+function cellRole(ch: string, _row: number, _col: number): CellRole {
   if (ch === " " || ch === "") return "empty";
   // Corners are block chars in the four corners of the mark
   if (ch === "█") return "corner";
