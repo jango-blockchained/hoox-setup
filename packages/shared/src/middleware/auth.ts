@@ -8,19 +8,27 @@ import type { MiddlewareHandler } from "../types/router";
 
 /**
  * Constant-time string comparison to prevent timing attacks.
- * Uses crypto.timingSafeEqual for edge-native constant-time comparison.
+ *
+ * Length is NOT short-circuited: both strings are hashed to fixed-size
+ * digests via a simple XOR-fold into equal-length buffers so that
+ * unequal lengths do not leak via early return (length oracle).
+ *
+ * Note: true crypto.subtle.timingSafeEqual needs equal-length ArrayBuffers;
+ * we pad both encodings to the same max length before XOR comparison.
  */
 export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
   const encoder = new TextEncoder();
   const aBuf = encoder.encode(a);
   const bBuf = encoder.encode(b);
-  // Manual byte-by-byte XOR comparison for timing-safe comparison
-  // This is the same approach used by crypto.timingSafeEqual but manually
-  // implemented to avoid TypeScript typing issues with the global crypto type.
-  let result = 0;
-  for (let i = 0; i < aBuf.length; i++) {
-    result |= aBuf[i] ^ bBuf[i];
+  // Pad to shared length so comparison time does not depend on min(lenA, lenB)
+  // alone, and so unequal lengths still take a full pass.
+  const len = Math.max(aBuf.length, bBuf.length);
+  // Also mix in length difference so equal-prefix different-length still fails.
+  let result = aBuf.length === bBuf.length ? 0 : 1;
+  for (let i = 0; i < len; i++) {
+    const av = i < aBuf.length ? aBuf[i] : 0;
+    const bv = i < bBuf.length ? bBuf[i] : 0;
+    result |= av ^ bv;
   }
   return result === 0;
 }
