@@ -130,6 +130,8 @@ test-models.ts
 .wizard-state.json
 
 docs/.obsidian
+.obsidian/
+.paragraph/
 AGENTS.md
 DEISGN.md
 SKILL.md
