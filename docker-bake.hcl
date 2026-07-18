@@ -58,7 +58,6 @@ target "prod" {
   dockerfile = "Dockerfile.prod"
   platforms  = split(",", PLATFORMS)
   tags = compact([
-    "hoox:prod",
     "${REGISTRY}:${VERSION}",
     notequal(REVISION, "unknown") ? "${REGISTRY}:sha-${substr(REVISION, 0, 7)}" : "",
     and(equal(PUBLISH_LATEST, "true"), and(notequal(VERSION, "dev"), notequal(VERSION, ""))) ? "${REGISTRY}:latest" : "",
