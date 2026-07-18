@@ -27,7 +27,7 @@ jobs:
             workers/email-worker \
             workers/analytics-worker \
             workers/report-worker \
-            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
+            || echo "::warning::Some submodules could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -84,7 +84,7 @@ jobs:
             workers/email-worker \
             workers/analytics-worker \
             workers/report-worker \
-            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
+            || echo "::warning::Some submodules could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -155,7 +155,7 @@ jobs:
             workers/email-worker \
             workers/analytics-worker \
             workers/report-worker \
-            || echo "::warning::Some submodules (e.g. private pine-worker) could not be initialized due to token permissions. Continuing."
+            || echo "::warning::Some submodules could not be initialized due to token permissions. Continuing."
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

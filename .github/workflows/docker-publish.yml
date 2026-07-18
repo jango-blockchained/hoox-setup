@@ -54,7 +54,7 @@ jobs:
 
       - name: Initialize git submodules (core workers for Docker)
         # workers/ are git submodules — Dockerfile.prod bundles each one.
-        # Private pine-worker/pyne-worker intentionally omitted.
+        # pine-worker/pyne-worker were removed from the repo and are not bundled.
         run: |
           git submodule update --init --recursive \
             workers/hoox \
