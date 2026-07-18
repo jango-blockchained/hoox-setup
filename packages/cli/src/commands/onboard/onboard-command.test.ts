@@ -14,6 +14,8 @@ const runInitMock = mock(
 mock.module("../init/init-command.js", () => ({
   runInitCommand: runInitMock,
   registerInitCommand: () => {},
+  // Stub the repo-root guard so onboard tests focus on setup/init flow.
+  verifyRepoRoot: async () => {},
 }));
 
 const { registerOnboardCommand } = await import("./onboard-command.js");

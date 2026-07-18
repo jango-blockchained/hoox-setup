@@ -116,29 +116,32 @@ function EdgeMap() {
         paddingY={0}
       >
         {Array.from({ length: MAP_HEIGHT }, (_, row) => (
-          <box flexDirection="row" gap={0}>
-            <text fg={Colors.dim}>
-              {Array.from({ length: MAP_WIDTH }, (_, col) => {
-                const loc = locationByCell.get(`${row},${col}`);
-                if (loc) {
-                  const isSelected = selectedCode === loc.code;
-                  return (
-                    <text
-                      fg={isSelected ? Colors.accent : Colors.info}
-                      bold={isSelected}
-                      onMouseUp={() =>
-                        setSelectedCode(
-                          selectedCode === loc.code ? null : loc.code
-                        )
-                      }
-                    >
-                      ●
-                    </text>
-                  );
-                }
-                return " ";
-              })}
-            </text>
+          <box key={`map-row-${row}`} flexDirection="row" gap={0}>
+            {Array.from({ length: MAP_WIDTH }, (_, col) => {
+              const loc = locationByCell.get(`${row},${col}`);
+              if (loc) {
+                const isSelected = selectedCode === loc.code;
+                return (
+                  <text
+                    key={loc.code}
+                    fg={isSelected ? Colors.accent : Colors.info}
+                    bold={isSelected}
+                    onMouseUp={() =>
+                      setSelectedCode(
+                        selectedCode === loc.code ? null : loc.code
+                      )
+                    }
+                  >
+                    ●
+                  </text>
+                );
+              }
+              return (
+                <text key={`empty-${row}-${col}`} fg={Colors.dim}>
+                  {" "}
+                </text>
+              );
+            })}
           </box>
         ))}
       </box>

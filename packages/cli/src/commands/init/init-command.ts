@@ -33,6 +33,58 @@ import type { InitOptions } from "./types.js";
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Verify the current working directory is the root of a cloned Hoox repo.
+ *
+ * `hoox init` / `hoox onboard` write `wrangler.jsonc` and per-worker
+ * `.dev.vars` into the current directory (and its `workers/*` subdirs).
+ * If run from the wrong folder (e.g. a home dir, an empty temp dir, or a
+ * non-Hoox project) they would silently scatter files and then fail later
+ * with confusing "Worker not found in wrangler.jsonc" / auth errors.
+ *
+ * We treat a directory as the Hoox repo root when it contains BOTH the
+ * root `wrangler.jsonc` AND the `packages/cli` workspace (the CLI
+ * package that ships this command). This is a strong, cheap signal that
+ * the user cloned `hoox-setup` (or a checkout of it) rather than a
+ * random folder.
+ *
+ * @throws CLIError (INVALID_USAGE) with an actionable hint when not in
+ *         a Hoox repo root.
+ */
+export async function verifyRepoRoot(): Promise<void> {
+  const rootConfig = Bun.file("wrangler.jsonc");
+  const cliPackage = Bun.file("packages/cli/package.json");
+
+  const [rootConfigExists, cliPackageExists] = await Promise.all([
+    rootConfig.exists(),
+    cliPackage.exists(),
+  ]);
+
+  if (rootConfigExists && cliPackageExists) return;
+
+  const reasons: string[] = [];
+  if (!rootConfigExists) {
+    reasons.push("no root `wrangler.jsonc` found in the current directory");
+  }
+  if (!cliPackageExists) {
+    reasons.push(
+      "no `packages/cli` workspace found (this is not the hoox-setup repo)"
+    );
+  }
+
+  const cloneHint =
+    "  Clone first: git clone --recursive " +
+    "https://github.com/jango-blockchained/hoox-setup.git";
+  throw new CLIError(
+    "Not inside a Hoox repository root.\n  " +
+      reasons.join("\n  ") +
+      "\n  Run `hoox init` / `hoox onboard` from the root of your cloned " +
+      "hoox-setup repo.\n  " +
+      cloneHint,
+    ExitCode.INVALID_USAGE
+  );
+}
+
 async function getExistingAccountId(): Promise<string | undefined> {
   try {
     const file = Bun.file("wrangler.jsonc");
@@ -241,7 +293,11 @@ export async function runInitCommand(
   globalOpts: { json?: boolean; quiet?: boolean },
   isNonInteractive: boolean
 ): Promise<void> {
-  // ── Non-interactive mode ───────────────────────────────────────────────
+  // Guard: must run from the root of a cloned Hoox repo, otherwise we
+  // would scatter wrangler.jsonc / .dev.vars into the wrong directory.
+  await verifyRepoRoot();
+
+  // ── Non-interactive mode ─────────────────────────────────────────────
   if (isNonInteractive) {
     if (!globalOpts.quiet) {
       p.intro("Hoox Setup Wizard");

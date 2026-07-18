@@ -214,11 +214,13 @@ function DetailPane({
           <text fg={Colors.warning} bold>
             ⚠ This key may contain a secret value (API key, password, etc.).
           </text>
-          <text fg={Colors.muted}>
-            The value will be displayed as plain text. Press
-            <text fg={Colors.accent}> [REVEAL] </text>
-            to view it.
-          </text>
+          <box flexDirection="row" gap={1}>
+            <text fg={Colors.muted}>
+              The value will be displayed as plain text. Press
+            </text>
+            <text fg={Colors.accent}>[REVEAL]</text>
+            <text fg={Colors.muted}>to view it.</text>
+          </box>
         </box>
       )}
 
@@ -488,13 +490,11 @@ export function KvViewer() {
               KV VIEWER
             </text>
             <text fg={Colors.muted} dim>
-              {allKeys.length} key{allKeys.length === 1 ? "" : "s"} ·{" "}
-              {secretCount} secret
+              {`${allKeys.length} key${allKeys.length === 1 ? "" : "s"} · ${secretCount} secret`}
             </text>
             {search.length > 0 && (
               <text fg={Colors.info} dim>
-                ({filteredKeys.length} match
-                {filteredKeys.length === 1 ? "" : "es"})
+                {`(${filteredKeys.length} match${filteredKeys.length === 1 ? "" : "es"})`}
               </text>
             )}
           </box>
@@ -503,7 +503,7 @@ export function KvViewer() {
               ⚠ read-only
             </text>
             <text fg={Colors.info} dim>
-              ◉ {REFRESH_INTERVAL_MS / 1000}s auto
+              {`◉ ${REFRESH_INTERVAL_MS / 1000}s auto`}
             </text>
           </box>
         </box>
@@ -646,10 +646,15 @@ export function KvViewer() {
               </text>
             )}
           </box>
-          <text fg={Colors.muted} dim>
-            Use <text fg={Colors.accent}>hoox config kv get|set|delete</text> in
-            CLI for writes
-          </text>
+          <box flexDirection="row" gap={1}>
+            <text fg={Colors.muted} dim>
+              Use
+            </text>
+            <text fg={Colors.accent}>hoox config kv get|set|delete</text>
+            <text fg={Colors.muted} dim>
+              in CLI for writes
+            </text>
+          </box>
         </box>
       </box>
     </ErrorBoundary>

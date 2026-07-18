@@ -8,6 +8,7 @@ import {
   formatJson,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 export async function runPrerequisitesCheck(
@@ -90,8 +91,13 @@ EXAMPLES:
   hoox check prerequisites --json`
     )
     .option("--tool <name>", "Only check a specific tool")
-    .action(async (options: { tool?: string }, cmd: Command) => {
-      const opts = getFormatOptions(cmd);
-      await handlePrerequisites(opts, options.tool);
-    });
+    .action(
+      withErrorHandling(
+        async (options: { tool?: string }, cmd: Command) => {
+          const opts = getFormatOptions(cmd);
+          await handlePrerequisites(opts, options.tool);
+        },
+        { service: "check" }
+      )
+    );
 }

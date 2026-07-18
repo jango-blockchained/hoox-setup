@@ -63,15 +63,14 @@ describe("withErrorHandling — [code] badge in output", () => {
     expect(out).toContain("network down");
   });
 
-  it("sets exitCode = CommandFailed (truncated to 255 by Node) for non-Error throw values", async () => {
+  it("sets exitCode = CommandFailed (4) for non-Error throw values", async () => {
     const handler = withErrorHandling(async () => {
       throw "raw string";
     });
     await handler();
-    // Note: ExitCode.CommandFailed is -1 in source, but Node's process.exitCode
-    // is a uint8 — assigning -1 stores 255. The exit-code -1 is lost at
-    // the Node boundary. (Pre-existing behaviour; out of scope for this audit.)
-    expect(process.exitCode).toBe(255);
+    // ExitCode.CommandFailed is 4 (valid POSIX exit code; was historically
+    // -1 which wrapped to 255 at the Node boundary — now fixed).
+    expect(process.exitCode).toBe(4);
     const out = chunks.join("");
     expect(out).toContain("Unknown error");
   });

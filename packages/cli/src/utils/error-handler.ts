@@ -43,16 +43,27 @@ function collectCommandNames(
 /**
  * Given an unknown command arg, return the closest registered command
  * name within the Levenshtein threshold, or undefined if none.
+ *
+ * Tolerates common user typos:
+ *  - short commands (e.g. `dpl`, `inf`) — minimum length lowered to 2
+ *  - accidental plurals (e.g. `deploys` → `deploy`) — a trailing "s"
+ *    is stripped before comparison
  */
 export function suggestForCommand(
   program: Command,
   unknown: string
 ): string | undefined {
-  if (unknown.length < 3) return undefined; // too short to suggest reliably
+  if (unknown.length < 2) return undefined; // too short to suggest reliably
+  const normalized = unknown.replace(/s$/, "");
   const candidates = collectCommandNames(program);
   let best: { name: string; dist: number } | undefined;
   for (const candidate of candidates) {
-    const d = levenshtein(unknown, candidate);
+    // Compare against both the raw input and the de-pluralized form so
+    // `deploys` (dist 1 from `deploy` after stripping) still matches.
+    const d = Math.min(
+      levenshtein(unknown, candidate),
+      levenshtein(normalized, candidate)
+    );
     if (d > SUGGESTION_THRESHOLD) continue;
     if (!best || d < best.dist) {
       best = { name: candidate, dist: d };

@@ -78,22 +78,26 @@ function ModelHealthRow({
       {isExpanded && (
         <box flexDirection="column" gap={0} paddingLeft={6}>
           {/* Latency */}
-          <text fg={Colors.muted} dim>
-            {"  latency: "}
+          <box flexDirection="row" gap={1} paddingLeft={2}>
+            <text fg={Colors.muted} dim>
+              latency:
+            </text>
             <text fg={color}>
               {model.latencyMs !== null ? `${model.latencyMs}ms` : "-"}
             </text>
-          </text>
+          </box>
 
           {/* Daily requests */}
-          <text fg={Colors.muted} dim>
-            {"  daily requests: "}
+          <box flexDirection="row" gap={1} paddingLeft={2}>
+            <text fg={Colors.muted} dim>
+              daily requests:
+            </text>
             <text fg={Colors.info}>
               {model.dailyRequests !== null
                 ? model.dailyRequests.toLocaleString()
                 : "-"}
             </text>
-          </text>
+          </box>
 
           {/* Error message (if any) */}
           {model.error && (

@@ -145,7 +145,7 @@ function TradeMonitorHeader({
 
       {/* Trade count */}
       <text fg={Colors.muted} dim>
-        {tradeCount} trades
+        {`${tradeCount} trades`}
       </text>
 
       {/* Pause hint */}

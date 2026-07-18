@@ -415,13 +415,13 @@ describe("TradeMonitor", () => {
 
   // ── Ring Buffer Cap ─────────────────────────────────────────────────────
 
-  // TODO: Re-enable after @opentui/core@0.4.1 beforeEach act() hang is resolved.
-  it.skip(
+  it(
     "trade feed references stored trade count (ring buffer)",
     async () => {
-      // The store manages the ring buffer (max 500), the component just displays it
+      // Keep the fixture small — large lists thrash OpenTUI test renderers.
+      // The store still owns the real 500-cap ring buffer.
       useServiceStore.setState({
-        tradeStream: Array.from({ length: 100 }, (_, i) =>
+        tradeStream: Array.from({ length: 12 }, (_, i) =>
           makeTrade({
             id: `rb${i}`,
             symbol: `T${i}`,
@@ -432,17 +432,14 @@ describe("TradeMonitor", () => {
 
       const output = await renderTradeMonitor();
       // Should show the trade count
-      expect(output).toContain("100 trades");
+      expect(output).toContain("12 trades");
     },
     { timeout: 20000 }
   );
 
   // ── Error Boundary ──────────────────────────────────────────────────────
 
-  // TODO: Re-enable after @opentui/core@0.4.1 beforeEach act() hang is resolved.
-  // The beforeEach hook times out because React state updates from
-  // useServiceStore.setState() trigger pending re-renders that act() cannot flush.
-  it.skip(
+  it(
     "renders within an error boundary wrapper",
     async () => {
       useServiceStore.setState({
@@ -466,8 +463,7 @@ describe("TradeMonitor", () => {
 
   // ── 7-Day / 30-Day P&L ─────────────────────────────────────────────────
 
-  // TODO: Re-enable after @opentui/core@0.4.1 beforeEach act() hang is resolved.
-  it.skip("calculates 7-day and 30-day P&L from historical trades", async () => {
+  it("calculates 7-day and 30-day P&L from historical trades", async () => {
     // Within 7 days
     const recent7 = makeTrade({
       id: "r7",

@@ -9,6 +9,8 @@
  */
 
 import type { Command } from "commander";
+import { withErrorHandling } from "../../utils/error-handler.js";
+import { CLIError, ExitCode } from "../../utils/errors.js";
 
 const BASH_SCRIPT = `_hoox_completion() {
   local cur prev opts
@@ -72,26 +74,27 @@ export function registerCompletionCommand(program: Command): void {
     .command("completion")
     .description("Generate shell completion script")
     .argument("[shell]", "Shell type (bash, zsh, fish)")
-    .action(async (shell?: string) => {
-      if (!shell) {
-        process.stdout.write(
-          `Usage: hoox completion <${SUPPORTED_SHELLS.join("|")}>\n`
-        );
-        return;
-      }
+    .action(
+      withErrorHandling(async (shell?: string) => {
+        if (!shell) {
+          process.stdout.write(
+            `Usage: hoox completion <${SUPPORTED_SHELLS.join("|")}>\n`
+          );
+          return;
+        }
 
-      if (!isSupportedShell(shell)) {
-        process.stderr.write(
-          `Unsupported shell "${shell}". Supported: ${SUPPORTED_SHELLS.join(", ")}.\n`
-        );
-        process.exitCode = 1;
-        return;
-      }
+        if (!isSupportedShell(shell)) {
+          throw new CLIError(
+            `Unsupported shell "${shell}". Supported: ${SUPPORTED_SHELLS.join(", ")}.`,
+            ExitCode.INVALID_USAGE
+          );
+        }
 
-      if (shell === "bash") {
-        process.stdout.write(BASH_SCRIPT);
-      } else if (shell === "zsh") {
-        process.stdout.write(ZSH_SCRIPT);
-      }
-    });
+        if (shell === "bash") {
+          process.stdout.write(BASH_SCRIPT);
+        } else if (shell === "zsh") {
+          process.stdout.write(ZSH_SCRIPT);
+        }
+      })
+    );
 }

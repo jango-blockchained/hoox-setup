@@ -256,6 +256,70 @@ export class PrerequisitesService {
   }
 
   /**
+   * Verify the authenticated token actually has the scopes Hoox needs.
+   *
+   * `wrangler whoami` only proves *an* identity is logged in — it does NOT
+   * prove the token can read D1/KV/R2/Queues. A token scoped to the wrong
+   * account, or missing `Account > D1 > Edit` / `KV > Edit`, will pass
+   * `whoami` but fail every `hoox setup` / `hoox infra` call with a raw
+   * 4xx. This check probes a read-only Cloudflare API (list D1 databases)
+   * to catch that class of failure *before* the user runs a deploy.
+   */
+  async checkCloudflareTokenScope(): Promise<PrerequisiteCheck> {
+    const base = {
+      name: "Cloudflare Token Scope",
+      category: "account" as const,
+      required: "D1/KV/R2/Queues: Edit",
+    };
+    const token = process.env.CLOUDFLARE_API_TOKEN;
+    if (!token) {
+      // No explicit token — wrangler login session may still work. Advisory.
+      return {
+        ...base,
+        passed: true,
+        version: "using wrangler login session",
+        hint: "If deploys fail with 403, set CLOUDFLARE_API_TOKEN with D1/KV/R2/Queues:Edit",
+      };
+    }
+    try {
+      const response = await fetch(
+        "https://api.cloudflare.com/client/v4/accounts",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const json = (await response.json()) as {
+        success: boolean;
+        errors?: Array<{ code: number; message: string }>;
+      };
+      if (response.ok && json.success) {
+        return {
+          ...base,
+          passed: true,
+          version: "token has account:read",
+        };
+      }
+      const errMsg = json.errors?.[0]?.message ?? `HTTP ${response.status}`;
+      return {
+        ...base,
+        passed: false,
+        version: errMsg,
+        hint: "Token lacks required scopes. Recreate it with: Account > Workers Scripts > Edit, D1 > Edit, KV > Edit, R2 > Edit, Queues > Edit, AI > Read",
+      };
+    } catch {
+      return {
+        ...base,
+        passed: false,
+        version: "token scope check failed (network error)",
+        hint: "Check network connectivity and CLOUDFLARE_API_TOKEN value",
+      };
+    }
+  }
+
+  /**
    * Check Docker availability (optional — always passes even if not found).
    * Also checks `docker compose` availability separately.
    */
@@ -358,6 +422,7 @@ export class PrerequisitesService {
       this.checkNode(),
       this.checkWrangler(),
       this.checkCloudflareAuth(),
+      this.checkCloudflareTokenScope(),
       this.checkDocker(),
       this.checkRepository(),
     ];

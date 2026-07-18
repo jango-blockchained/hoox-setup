@@ -24,6 +24,7 @@ import {
   formatJson,
 } from "../../utils/formatters.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import { theme } from "../../utils/theme.js";
 import type { InfraOptions, ProvisionItem, ProvisionResult } from "./types.js";
 import type { WranglerResult } from "../../services/cloudflare/types.js";
@@ -745,15 +746,20 @@ EXAMPLES:
       "--dry-run",
       "Preview what resources would be created without creating them"
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      const globalOpts = cmd.optsWithGlobals();
-      if (globalOpts.dryRun) {
-        await doProvisionDryRun(opts);
-      } else {
-        await doProvision(opts);
-      }
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          const globalOpts = cmd.optsWithGlobals();
+          if (globalOpts.dryRun) {
+            await doProvisionDryRun(opts);
+          } else {
+            await doProvision(opts);
+          }
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- d1 -----------------------------------------------------------------
 
@@ -778,10 +784,15 @@ EXAMPLES:
 EXAMPLES:
   hoox infra d1 list`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doD1List(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doD1List(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   d1Cmd
     .command("create <name>")
@@ -795,10 +806,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra d1 create trade-data-db`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doD1Create(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doD1Create(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   d1Cmd
     .command("delete <name>")
@@ -812,10 +828,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra d1 delete trade-data-db`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doD1Delete(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doD1Delete(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- kv -----------------------------------------------------------------
 
@@ -840,10 +861,15 @@ EXAMPLES:
 EXAMPLES:
   hoox infra kv list`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doKvList(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doKvList(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   kvCmd
     .command("create <name>")
@@ -857,10 +883,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra kv create CONFIG_KV`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doKvCreate(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doKvCreate(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   kvCmd
     .command("delete <id>")
@@ -874,10 +905,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra kv delete c5917667a21745e390ff969f32b1847d`
     )
-    .action(async (id: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doKvDelete(id, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (id: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doKvDelete(id, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- r2 -----------------------------------------------------------------
 
@@ -902,10 +938,15 @@ EXAMPLES:
 EXAMPLES:
   hoox infra r2 list`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doR2List(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doR2List(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   r2Cmd
     .command("create <name>")
@@ -919,10 +960,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra r2 create trade-reports`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doR2Create(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doR2Create(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   r2Cmd
     .command("delete <name>")
@@ -936,10 +982,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra r2 delete trade-reports`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doR2Delete(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doR2Delete(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- queues -------------------------------------------------------------
 
@@ -964,10 +1015,15 @@ EXAMPLES:
 EXAMPLES:
   hoox infra queues list`
     )
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doQueueList(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doQueueList(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   queuesCmd
     .command("create <name>")
@@ -981,10 +1037,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra queues create trade-execution`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doQueueCreate(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doQueueCreate(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   queuesCmd
     .command("delete <name>")
@@ -998,10 +1059,15 @@ ARGUMENTS:
 EXAMPLES:
   hoox infra queues delete trade-execution`
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doQueueDelete(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doQueueDelete(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- vectorize ---------------------------------------------------------
 
@@ -1021,10 +1087,15 @@ EXAMPLES:
     .command("list")
     .summary("List all Vectorize indexes")
     .description("List all Vectorize indexes in your Cloudflare account.")
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doVectorizeList(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doVectorizeList(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   vectorizeCmd
     .command("create <name>")
@@ -1032,19 +1103,29 @@ EXAMPLES:
     .description(
       "Create a new Vectorize index with default dimensions (768) and cosine metric."
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doVectorizeCreate(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doVectorizeCreate(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   vectorizeCmd
     .command("delete <name>")
     .summary("Delete a Vectorize index")
     .description("Delete a Vectorize index (WARNING: destructive operation).")
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doVectorizeDelete(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doVectorizeDelete(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   // -- analytics ---------------------------------------------------------
 
@@ -1066,10 +1147,15 @@ EXAMPLES:
     .command("list")
     .summary("List all Analytics Engine datasets")
     .description("List all Analytics Engine datasets in your account.")
-    .action(async (_, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doAnalyticsList(opts);
-    });
+    .action(
+      withErrorHandling(
+        async (_, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doAnalyticsList(opts);
+        },
+        { service: "infra" }
+      )
+    );
 
   analyticsCmd
     .command("create <name>")
@@ -1077,10 +1163,15 @@ EXAMPLES:
     .description(
       "Analytics Engine datasets must be created via Cloudflare Dashboard."
     )
-    .action(async (name: string, _, cmd: Command) => {
-      const opts = getOptions(cmd);
-      await doAnalyticsCreate(name, opts);
-    });
+    .action(
+      withErrorHandling(
+        async (name: string, _, cmd: Command) => {
+          const opts = getOptions(cmd);
+          await doAnalyticsCreate(name, opts);
+        },
+        { service: "infra" }
+      )
+    );
 }
 
 // ---------------------------------------------------------------------------

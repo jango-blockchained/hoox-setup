@@ -14,12 +14,28 @@ import { saveSession } from "@jango-blockchained/hoox-shared";
 import { setRendererRef } from "./hooks";
 import { ensureTuiStateDir } from "./services/hoox-path-service";
 
+/** CLI `hoox tui --fps N` → env TUI_FPS; clamp to a sane range. */
+function resolveTargetFps(): number {
+  const raw = Number(process.env.TUI_FPS ?? 30);
+  if (!Number.isFinite(raw)) return 30;
+  return Math.min(120, Math.max(5, Math.round(raw)));
+}
+
+/** CLI `hoox tui --no-mouse` → env TUI_MOUSE=0. */
+function resolveUseMouse(): boolean {
+  const v = process.env.TUI_MOUSE;
+  if (v === "0" || v === "false" || v === "off") return false;
+  return true;
+}
+
+const targetFps = resolveTargetFps();
+
 const RENDERER_CONFIG = {
   screenMode: "alternate-screen" as const,
   exitOnCtrlC: false,
-  targetFps: 30,
-  maxFps: 60,
-  useMouse: true,
+  targetFps,
+  maxFps: Math.max(60, targetFps),
+  useMouse: resolveUseMouse(),
   backgroundColor: "#0D1117",
   useKittyKeyboard: {
     disambiguate: true,

@@ -22,7 +22,7 @@
  */
 
 import type { Command } from "commander";
-import { runInitCommand } from "../init/init-command.js";
+import { runInitCommand, verifyRepoRoot } from "../init/init-command.js";
 import { SetupService } from "../../services/setup/index.js";
 import {
   getFormatOptions,
@@ -147,6 +147,11 @@ async function runOnboard(
 ): Promise<void> {
   const quiet = fmt.quiet ?? false;
   const isNonInteractive = Boolean(options.token && options.account);
+
+  // Guard: must run from the root of a cloned Hoox repo. `hoox init`
+  // (called below) also checks, but we fail fast here with a clear message
+  // before printing the Step 1 banner.
+  await verifyRepoRoot();
 
   // ── Step 1: init ──────────────────────────────────────────────────────
   if (!quiet) {

@@ -17,7 +17,7 @@ import {
   mock,
   spyOn,
 } from "bun:test";
-import { runInitCommand } from "./init-command.js";
+import { runInitCommand, verifyRepoRoot } from "./init-command.js";
 import type { InitOptions } from "./types.js";
 import { ExitCode } from "../../utils/errors.js";
 import { CloudflareService } from "../../services/cloudflare/cloudflare-service.js";
@@ -67,6 +67,9 @@ function makeCapture(): CapturedCalls {
 }
 
 let captured: CapturedCalls;
+
+/** Paths reported as existing by the Bun.file mock (see beforeEach). */
+const fileExists = new Set<string>();
 
 /** Configurable responses for each prompt type. */
 interface PromptResponses {
@@ -301,12 +304,18 @@ beforeEach(() => {
     }
   );
 
-  // Mock Bun.file to simulate filesystem (no existing wrangler.jsonc by default)
+  // Mock Bun.file to simulate filesystem. Paths listed in `fileExists`
+  // are reported as present; everything else is absent. Defaults to the
+  // two repo-root markers so the command's own verifyRepoRoot() guard
+  // passes in the normal-flow tests.
+  fileExists.clear();
+  fileExists.add("wrangler.jsonc");
+  fileExists.add("packages/cli/package.json");
 
   spyOn(Bun, "file" as any).mockImplementation(
     (_path: string | URL) =>
       ({
-        exists: async () => false,
+        exists: async () => fileExists.has(String(_path)),
         text: async () => "",
         arrayBuffer: async () => new ArrayBuffer(0),
         json: async () => ({}),
@@ -427,7 +436,7 @@ describe("init command", () => {
             } as unknown as Bun.BunFile;
           }
           return {
-            exists: async () => false,
+            exists: async () => path === "packages/cli/package.json",
             text: async () => "",
             arrayBuffer: async () => new ArrayBuffer(0),
             json: async () => ({}),
@@ -849,6 +858,38 @@ describe("init command", () => {
       // In quiet mode, formatSuccess/formatter functions respect quiet mode.
       // The flow should complete without throwing.
       expect(captured.writes["wrangler.jsonc"]).toBeDefined();
+    });
+  });
+
+  describe("verifyRepoRoot", () => {
+    it("passes when both repo-root markers exist", async () => {
+      fileExists.add("wrangler.jsonc");
+      fileExists.add("packages/cli/package.json");
+      // Should not throw.
+      await expect(verifyRepoRoot()).resolves.toBeUndefined();
+    });
+
+    it("throws INVALID_USAGE when wrangler.jsonc is missing", async () => {
+      fileExists.clear();
+      fileExists.add("packages/cli/package.json"); // only one marker
+      await expect(verifyRepoRoot()).rejects.toThrowError(
+        /Not inside a Hoox repository root/
+      );
+    });
+
+    it("throws INVALID_USAGE when packages/cli is missing", async () => {
+      fileExists.clear();
+      fileExists.add("wrangler.jsonc"); // only one marker
+      await expect(verifyRepoRoot()).rejects.toThrowError(
+        /this is not the hoox-setup repo/
+      );
+    });
+
+    it("throws INVALID_USAGE when run from an empty directory", async () => {
+      fileExists.clear(); // neither marker
+      await expect(verifyRepoRoot()).rejects.toThrowError(
+        /git clone --recursive/
+      );
     });
   });
 });

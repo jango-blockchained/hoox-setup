@@ -5,6 +5,19 @@
  * Global options --json and --quiet are available to all commands via program.opts().
  */
 
+// Runtime guard: the CLI is a Bun bundle. If it somehow runs under Node
+// (e.g. a user symlinked the bin or ran `node bin/hoox.js`), surface a
+// clear, actionable error instead of a cryptic "Bun is not defined" crash.
+if (typeof Bun === "undefined") {
+  process.stderr.write(
+    "Error: the Hoox CLI requires Bun >= 1.2 to run.\n" +
+      "  Install Bun:  curl -fsSL https://bun.sh | bash\n" +
+      "  Then run:    bunx hoox <command>\n" +
+      "  (npm install -g will not produce a working binary.)\n"
+  );
+  process.exit(1);
+}
+
 import { readFileSync } from "node:fs";
 import { Command } from "commander";
 import { toError } from "@jango-blockchained/hoox-shared";
@@ -117,6 +130,15 @@ program.hook("postAction", (thisCmd) => {
 // ---------------------------------------------------------------------------
 
 program.exitOverride((err) => {
+  // Global --json / --quiet flags must be honored on the error path too,
+  // so scripting users get machine-parseable JSON instead of a human card.
+  const globalOpts = program.opts();
+  const errFmtOpts = {
+    json: Boolean(globalOpts.json),
+    quiet: Boolean(globalOpts.quiet),
+    noColor: Boolean(globalOpts.noColor),
+  };
+
   // Commander's own informational exits — success
   if (
     err.code === "commander.helpDisplayed" ||
@@ -143,7 +165,7 @@ program.exitOverride((err) => {
     const suggestion = suggestForCommand(program, badArg);
     formatError(
       new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
-      suggestion ? { suggestions: [suggestion] } : undefined
+      suggestion ? { ...errFmtOpts, suggestions: [suggestion] } : errFmtOpts
     );
     process.exitCode = ExitCode.INVALID_USAGE;
     return;
@@ -151,7 +173,8 @@ program.exitOverride((err) => {
 
   if (err.code === "commander.unknownOption") {
     formatError(
-      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false)
+      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
+      errFmtOpts
     );
     process.exitCode = ExitCode.INVALID_USAGE;
     return;
@@ -162,20 +185,24 @@ program.exitOverride((err) => {
     err.code === "commander.missingArgument"
   ) {
     formatError(
-      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false)
+      new CLIError(err.message, ExitCode.INVALID_USAGE, undefined, false),
+      errFmtOpts
     );
     process.exitCode = ExitCode.INVALID_USAGE;
     return;
   }
 
   if (err instanceof CLIError) {
-    formatError(err);
+    formatError(err, errFmtOpts);
     process.exitCode = (err as CLIError).code;
     return;
   }
 
   // Generic fallback
-  formatError(new CLIError(err.message, ExitCode.ERROR, undefined, false));
+  formatError(
+    new CLIError(err.message, ExitCode.ERROR, undefined, false),
+    errFmtOpts
+  );
   process.exitCode = ExitCode.ERROR;
 });
 

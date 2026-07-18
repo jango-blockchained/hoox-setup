@@ -114,10 +114,25 @@ describe("SetupService", () => {
 
   describe("checkAuth", () => {
     it("returns a boolean", async () => {
-      const svc = new SetupService();
-      // Real call — may succeed or fail depending on env, but must return boolean
+      // Inject a stub CloudflareService so no real `wrangler whoami`
+      // (network/auth) call is made during the test.
+      const cf = {
+        whoami: () => Promise.resolve({ ok: true, value: "user@example.com" }),
+      } as any;
+      const svc = new SetupService(undefined, cf);
       const result = await svc.checkAuth();
       expect(typeof result).toBe("boolean");
+      expect(result).toBe(true);
+    });
+
+    it("returns false when whoami fails", async () => {
+      const cf = {
+        whoami: () =>
+          Promise.resolve({ ok: false, error: "not authenticated" }),
+      } as any;
+      const svc = new SetupService(undefined, cf);
+      const result = await svc.checkAuth();
+      expect(result).toBe(false);
     });
   });
 

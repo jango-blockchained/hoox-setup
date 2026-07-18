@@ -6,7 +6,7 @@
  *   - The component is a function component (renders without throwing)
  *   - The view respects the `useUIStore.activeView` "is active" semantics
  *   - SQL validation rejects forbidden keywords and allows SELECT/WITH/EXPLAIN
- *   - Query history is persisted in localStorage (up to 20 entries)
+ *   - Query history is persisted under .tui-state/ (up to 20 entries)
  *   - Execution time is captured from results
  *   - Empty / error states render without crashing
  */
@@ -155,10 +155,6 @@ describe("DbQueryView", () => {
       commandPaletteOpen: false,
       previousView: null,
     });
-    // Clear localStorage history before each test.
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("hoox:db-query:history");
-    }
   });
 
   afterEach(() => {
@@ -341,14 +337,14 @@ describe("DbQueryView", () => {
 
   // ── History contract ────────────────────────────────────────────────────
 
-  it("persists query history in localStorage under hoox:db-query:history", () => {
+  it("persists query history under .tui-state/db-query-history.json", () => {
     // The MAX_HISTORY constant is 20 — document it so a refactor
     // that changes the limit trips the test.
     const MAX_HISTORY = 20;
     expect(MAX_HISTORY).toBe(20);
 
-    // Verify the storage key follows the convention
-    const HISTORY_KEY = "hoox:db-query:history";
-    expect(HISTORY_KEY).toBe("hoox:db-query:history");
+    // Verify the state file name follows the TUI state convention
+    const HISTORY_FILE = "db-query-history.json";
+    expect(HISTORY_FILE).toBe("db-query-history.json");
   });
 });

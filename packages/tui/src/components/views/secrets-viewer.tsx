@@ -257,12 +257,11 @@ export function SecretsViewer() {
               SECRETS VIEWER
             </text>
             <text fg={Colors.muted} dim>
-              {allSecrets.length} secret{allSecrets.length === 1 ? "" : "s"}
+              {`${allSecrets.length} secret${allSecrets.length === 1 ? "" : "s"}`}
             </text>
             {search.length > 0 && (
               <text fg={Colors.info} dim>
-                ({filteredSecrets.length} match
-                {filteredSecrets.length === 1 ? "" : "es"})
+                {`(${filteredSecrets.length} match${filteredSecrets.length === 1 ? "" : "es"})`}
               </text>
             )}
           </box>
@@ -271,7 +270,7 @@ export function SecretsViewer() {
               ⚠ READ-ONLY
             </text>
             <text fg={Colors.info} dim>
-              ◉ {REFRESH_INTERVAL_MS / 1000}s auto
+              {`◉ ${REFRESH_INTERVAL_MS / 1000}s auto`}
             </text>
           </box>
         </box>
@@ -289,11 +288,15 @@ export function SecretsViewer() {
           <text fg={Colors.warning} bold>
             ⚠ SECURITY: Values are hidden for security reasons.
           </text>
-          <text fg={Colors.muted} dim>
-            This view is strictly read-only. Use{" "}
-            <text fg={Colors.accent}>hoox config secrets set</text> in CLI to
-            manage secrets.
-          </text>
+          <box flexDirection="row" gap={1}>
+            <text fg={Colors.muted} dim>
+              This view is strictly read-only. Use
+            </text>
+            <text fg={Colors.accent}>hoox config secrets set</text>
+            <text fg={Colors.muted} dim>
+              in CLI to manage secrets.
+            </text>
+          </box>
         </box>
 
         {/* Search + last sampled row */}
@@ -355,19 +358,23 @@ export function SecretsViewer() {
                 </text>
               </box>
             ) : allSecrets.length === 0 ? (
-              <box padding={1}>
+              <box padding={1} flexDirection="column" gap={0}>
                 <text fg={Colors.muted} dim>
-                  No secrets declared. Add secrets to{" "}
-                  <text fg={Colors.accent}>wrangler.jsonc</text> and use{" "}
-                  <text fg={Colors.accent}>hoox config secrets set</text> to
-                  manage them.
+                  No secrets declared. Add secrets to wrangler.jsonc and use
+                </text>
+                <text fg={Colors.accent}>hoox config secrets set</text>
+                <text fg={Colors.muted} dim>
+                  to manage them.
                 </text>
               </box>
             ) : filteredSecrets.length === 0 ? (
-              <box padding={1}>
+              <box padding={1} flexDirection="row" gap={1}>
                 <text fg={Colors.muted} dim>
-                  No secrets match "{search}". Press{" "}
-                  <text fg={Colors.accent}>/</text> to clear.
+                  {`No secrets match "${search}". Press`}
+                </text>
+                <text fg={Colors.accent}>/</text>
+                <text fg={Colors.muted} dim>
+                  to clear.
                 </text>
               </box>
             ) : (
@@ -401,16 +408,16 @@ export function SecretsViewer() {
                   {"─".repeat(40)}
                 </text>
                 <box flexDirection="column" gap={0}>
-                  <text fg={Colors.muted}>
-                    Type:{" "}
+                  <box flexDirection="row" gap={1}>
+                    <text fg={Colors.muted}>Type:</text>
                     <text fg={Colors.foreground}>{selectedSecret.type}</text>
-                  </text>
-                  <text fg={Colors.muted}>
-                    Source:{" "}
+                  </box>
+                  <box flexDirection="row" gap={1}>
+                    <text fg={Colors.muted}>Source:</text>
                     <text fg={sourceColor(selectedSecret.source)}>
                       {selectedSecret.source}
                     </text>
-                  </text>
+                  </box>
                 </box>
                 <text fg={Colors.muted} dim>
                   Values are not available for viewing.
@@ -452,10 +459,15 @@ export function SecretsViewer() {
               </text>
             )}
           </box>
-          <text fg={Colors.muted} dim>
-            Use <text fg={Colors.accent}>hoox config secrets set|delete</text>{" "}
-            in CLI for writes
-          </text>
+          <box flexDirection="row" gap={1}>
+            <text fg={Colors.muted} dim>
+              Use
+            </text>
+            <text fg={Colors.accent}>hoox config secrets set|delete</text>
+            <text fg={Colors.muted} dim>
+              in CLI for writes
+            </text>
+          </box>
         </box>
       </box>
     </ErrorBoundary>

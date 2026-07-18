@@ -87,10 +87,10 @@ describe("PrerequisitesService", () => {
   });
 
   describe("runAll", () => {
-    it("returns all 7 checks", async () => {
+    it("returns all 8 checks", async () => {
       const svc = new PrerequisitesService();
       const report = await svc.runAll();
-      expect(report.checks.length).toBe(7);
+      expect(report.checks.length).toBe(8);
     }, 30000);
 
     it("filters by tool name (case-insensitive exact match)", async () => {

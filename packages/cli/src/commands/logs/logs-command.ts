@@ -18,6 +18,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { theme } from "../../utils/theme.js";
+import { withErrorHandling } from "../../utils/error-handler.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 // ---------------------------------------------------------------------------
@@ -395,26 +396,29 @@ export function registerLogsCommand(program: Command): void {
     .option("--no-follow", "Show recent logs and exit after 5 seconds")
     .option("--json", "Output logs in JSON format")
     .action(
-      async (
-        name: string,
-        options: { level?: string; follow?: boolean; json?: boolean },
-        cmd: Command
-      ) => {
-        const fmt = getFormatOptions(cmd);
-        const workerOpts: WorkerLogOptions = {
-          level: normalizeLevel(options.level ?? "all"),
-          follow: options.follow !== false, // --no-follow sets follow to false
-          json: Boolean(options.json),
-        };
+      withErrorHandling(
+        async (
+          name: string,
+          options: { level?: string; follow?: boolean; json?: boolean },
+          cmd: Command
+        ) => {
+          const fmt = getFormatOptions(cmd);
+          const workerOpts: WorkerLogOptions = {
+            level: normalizeLevel(options.level ?? "all"),
+            follow: options.follow !== false, // --no-follow sets follow to false
+            json: Boolean(options.json),
+          };
 
-        try {
-          await tailWorker(name, workerOpts, fmt);
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(message, fmt);
-          process.exitCode = ExitCode.ERROR;
-        }
-      }
+          try {
+            await tailWorker(name, workerOpts, fmt);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            formatError(message, fmt);
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "logs" }
+      )
     );
 
   // -- logs all -------------------------------------------------------------
@@ -430,24 +434,27 @@ export function registerLogsCommand(program: Command): void {
     .option("--no-follow", "Show recent logs and exit after 5 seconds")
     .option("--json", "Output logs in JSON format")
     .action(
-      async (
-        options: { level?: string; follow?: boolean; json?: boolean },
-        cmd: Command
-      ) => {
-        const fmt = getFormatOptions(cmd);
-        const workerOpts: WorkerLogOptions = {
-          level: normalizeLevel(options.level ?? "all"),
-          follow: options.follow !== false,
-          json: Boolean(options.json),
-        };
+      withErrorHandling(
+        async (
+          options: { level?: string; follow?: boolean; json?: boolean },
+          cmd: Command
+        ) => {
+          const fmt = getFormatOptions(cmd);
+          const workerOpts: WorkerLogOptions = {
+            level: normalizeLevel(options.level ?? "all"),
+            follow: options.follow !== false,
+            json: Boolean(options.json),
+          };
 
-        try {
-          await tailAllWorkers(workerOpts, fmt);
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          formatError(message, fmt);
-          process.exitCode = ExitCode.ERROR;
-        }
-      }
+          try {
+            await tailAllWorkers(workerOpts, fmt);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            formatError(message, fmt);
+            process.exitCode = ExitCode.ERROR;
+          }
+        },
+        { service: "logs" }
+      )
     );
 }

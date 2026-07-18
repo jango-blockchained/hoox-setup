@@ -141,9 +141,9 @@ export class SetupService {
   private onProgress: ProgressCallback;
   private cf: CloudflareService;
 
-  constructor(onProgress?: ProgressCallback) {
+  constructor(onProgress?: ProgressCallback, cf?: CloudflareService) {
     this.onProgress = onProgress ?? (() => {});
-    this.cf = new CloudflareService();
+    this.cf = cf ?? new CloudflareService();
   }
 
   // ── Key Generation ─────────────────────────────────────────────────────

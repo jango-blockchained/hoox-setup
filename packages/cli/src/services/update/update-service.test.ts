@@ -41,12 +41,22 @@ describe("UpdateService", () => {
         outdated: true,
         current: "3.87.0",
       });
-      const svc = new UpdateService(undefined, mockPrereqs as any);
+      // Stub the update runner so no real `bun update wrangler` (network)
+      // install is performed during the test.
+      const updateRunner = mock(() =>
+        Promise.resolve({ exitCode: 0, stderr: "" })
+      );
+      const svc = new UpdateService(
+        undefined,
+        mockPrereqs as any,
+        updateRunner
+      );
 
       const result = await svc.checkAndPromptUpdate({ yes: true });
 
       expect(typeof result.updated).toBe("boolean");
-    }, 30000);
+      expect(updateRunner).toHaveBeenCalled();
+    });
   });
 
   describe("updateWrangler", () => {
@@ -55,12 +65,20 @@ describe("UpdateService", () => {
         outdated: false,
         current: "4.0.0",
       });
-      const svc = new UpdateService(undefined, mockPrereqs as any);
+      const updateRunner = mock(() =>
+        Promise.resolve({ exitCode: 0, stderr: "" })
+      );
+      const svc = new UpdateService(
+        undefined,
+        mockPrereqs as any,
+        updateRunner
+      );
 
       const result = await svc.updateWrangler();
 
       expect(typeof result.updated).toBe("boolean");
-    }, 30000);
+      expect(updateRunner).toHaveBeenCalled();
+    });
   });
 
   describe("checkLatestVersion", () => {

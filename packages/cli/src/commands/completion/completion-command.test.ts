@@ -86,9 +86,10 @@ describe("registerCompletionCommand", () => {
     expect(stdout).toContain("Usage: hoox completion");
   });
 
-  it("sets exitCode=1 and writes stderr for unsupported shell", async () => {
-    const { stderr } = await runCompletion(["completion", "fish"]);
-    expect(stderr).toContain('Unsupported shell "fish"');
-    expect(process.exitCode).toBe(1);
+  it("reports an invalid-usage error for unsupported shell", async () => {
+    const { stdout } = await runCompletion(["completion", "fish"]);
+    expect(stdout).toContain('Unsupported shell "fish"');
+    expect(stdout).toContain("[2]"); // INVALID_USAGE exit code badge
+    expect(process.exitCode).toBe(2);
   });
 });

@@ -168,6 +168,11 @@ beforeEach(() => {
 afterEach(() => {
   mock.restore();
 
+  // Reset process.exitCode so a lingering async callback from a prior test
+  // (e.g. a spawned `wrangler tail` resolving after the test ends)
+  // cannot leak its exit code into the next test.
+  process.exitCode = undefined;
+
   // Restore originals
   ConfigService.prototype.load = origLoad;
   ConfigService.prototype.validate = origValidate;
@@ -460,11 +465,30 @@ describe("registerCheckCommand", () => {
       listEnabledWorkersMock = mock(() => []);
       ConfigService.prototype.listEnabledWorkers = listEnabledWorkersMock;
 
-      const program = await createProgram();
-      await program.parseAsync(["check", "health"], { from: "user" });
+      // Spy on stdout to assert the early-return success message is
+      // printed. We avoid asserting on the global `process.exitCode`
+      // because a prior test's lingering async callback (e.g. a spinner
+      // timer from runRichTasks) can mutate it after this test's
+      // beforeEach reset — a cross-test state leak unrelated to this
+      // command's behaviour.
+      const origWrite = process.stdout.write;
+      let output = "";
+      const writeSpy = ((chunk: string | Uint8Array) => {
+        output +=
+          typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk);
+        return true;
+      }) as typeof process.stdout.write;
+      (process.stdout as unknown as Record<string, unknown>).write = writeSpy;
 
-      // Early-return success path: formatSuccess, no exitCode mutation
-      expect(process.exitCode ?? 0).toBe(0);
+      try {
+        const program = await createProgram();
+        await program.parseAsync(["check", "health"], { from: "user" });
+      } finally {
+        (process.stdout as unknown as Record<string, unknown>).write =
+          origWrite;
+      }
+
+      expect(output).toContain("No enabled workers to check");
     });
   });
 

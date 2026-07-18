@@ -23,7 +23,7 @@
  *   - Subscribes to useUIStore (so SSE can disconnect when not active)
  *   - Uses agentChatStream() for SSE streaming
  *   - Wraps content in <ErrorBoundary viewName="AI Chat">
- *   - Chat history persisted in localStorage (last 100 messages)
+ *   - Chat history persisted under $HOME/.hoox/.tui-state/ (last 100 messages)
  *   - Loading states and error handling for SSE failures
  *   - Keyboard: Enter to send, Shift+Enter for newline
  */
@@ -36,10 +36,14 @@ import {
   AI_MODEL_OPTIONS,
   type AiModelOption,
 } from "../../services/cli-bridge";
+import {
+  readJsonState,
+  removeJsonState,
+  TuiStateFiles,
+  writeJsonState,
+} from "../../services/tui-storage";
 
-/** localStorage key for chat history. */
-const CHAT_STORAGE_KEY = "hoox:chat:history";
-/** Maximum messages to retain in localStorage. */
+/** Maximum messages to retain on disk. */
 const MAX_STORED_MESSAGES = 100;
 /** Sentinel displayed while awaiting first token. */
 const STREAMING_INDICATOR = "…";
@@ -165,7 +169,7 @@ function ModelSelector({ selected, onChange }: ModelSelectorProps) {
  *   2. Subscribes to `useUIStore.activeView` to disconnect SSE when not active
  *   3. Uses `agentChatStream()` for SSE streaming
  *   4. Wraps in <ErrorBoundary viewName="AI Chat">
- *   5. Chat history persisted in localStorage (last 100 messages)
+ *   5. Chat history persisted under $HOME/.hoox/.tui-state/ (last 100 messages)
  *   6. Explicit empty/error states instead of throwing
  */
 export function AiChatView() {
@@ -174,6 +178,7 @@ export function AiChatView() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [historyReady, setHistoryReady] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedModel, setSelectedModel] = useState<AiModelOption>(
     AI_MODEL_OPTIONS[0]
@@ -189,30 +194,31 @@ export function AiChatView() {
   const currentStreamRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Load chat history from localStorage on mount ───────────────────────────
+  // ── Load chat history from disk on mount ───────────────────────────────────
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(CHAT_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as ChatMessage[];
-        if (Array.isArray(parsed)) {
-          setMessages(parsed.slice(-MAX_STORED_MESSAGES));
-        }
+    let cancelled = false;
+    void (async () => {
+      const stored = await readJsonState<ChatMessage[]>(
+        TuiStateFiles.chatHistory,
+        []
+      );
+      if (cancelled) return;
+      if (Array.isArray(stored)) {
+        setMessages(stored.slice(-MAX_STORED_MESSAGES));
       }
-    } catch {
-      // Corrupt localStorage — start fresh
-    }
+      setHistoryReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // ── Persist messages to localStorage whenever they change ─────────────────
+  // ── Persist messages to disk whenever they change (after initial load) ────
   useEffect(() => {
-    try {
-      const trimmed = messages.slice(-MAX_STORED_MESSAGES);
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(trimmed));
-    } catch {
-      // localStorage write failed — non-fatal
-    }
-  }, [messages]);
+    if (!historyReady) return;
+    const trimmed = messages.slice(-MAX_STORED_MESSAGES);
+    void writeJsonState(TuiStateFiles.chatHistory, trimmed);
+  }, [messages, historyReady]);
 
   // ── SSE disconnect when view is not active ────────────────────────────────
   useEffect(() => {
@@ -488,7 +494,7 @@ export function AiChatView() {
             dim
             onMouseUp={() => {
               setMessages([]);
-              localStorage.removeItem(CHAT_STORAGE_KEY);
+              void removeJsonState(TuiStateFiles.chatHistory);
             }}
           >
             [CLEAR HISTORY]

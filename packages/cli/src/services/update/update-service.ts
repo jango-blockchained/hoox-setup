@@ -20,10 +20,35 @@ export interface UpdateResult {
 export class UpdateService {
   private readonly prereqs: PrerequisitesService;
   private readonly cwd: string;
+  /**
+   * Injectable update runner. Defaults to spawning `bun update wrangler`
+   * in {@link runUpdate}. Tests pass a stub so no real network install
+   * is performed.
+   */
+  private readonly updateRunner: () => Promise<{
+    exitCode: number;
+    stderr: string;
+  }>;
 
-  constructor(cwd?: string, prereqs?: PrerequisitesService) {
+  constructor(
+    cwd?: string,
+    prereqs?: PrerequisitesService,
+    updateRunner?: () => Promise<{ exitCode: number; stderr: string }>
+  ) {
     this.prereqs = prereqs ?? new PrerequisitesService();
     this.cwd = cwd ?? process.cwd();
+    this.updateRunner =
+      updateRunner ??
+      (async () => {
+        const proc = Bun.spawn(["bun", "update", "wrangler"], {
+          cwd: this.cwd,
+          stdout: "ignore",
+          stderr: "pipe",
+        });
+        const stderr = await new Response(proc.stderr).text();
+        const exitCode = await proc.exited;
+        return { exitCode, stderr };
+      });
   }
 
   /**
@@ -144,14 +169,7 @@ export class UpdateService {
     process.stdout.write(`  ${theme.info("i")} Updating wrangler...\n`);
 
     try {
-      const proc = Bun.spawn(["bun", "update", "wrangler"], {
-        cwd: this.cwd,
-        stdout: "ignore",
-        stderr: "pipe",
-      });
-
-      const stderr = await new Response(proc.stderr).text();
-      const exitCode = await proc.exited;
+      const { exitCode, stderr } = await this.updateRunner();
 
       if (exitCode !== 0) {
         const errorMsg = stderr.split("\n")[0] || "bun update wrangler failed";

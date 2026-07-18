@@ -472,18 +472,18 @@ export function WorkersOverview() {
           {connectionStatus !== "connected" && cliFallbackError && (
             <box flexDirection="column" gap={0} marginTop={1}>
               <text fg={Colors.muted}>Suggestions:</text>
-              <text fg={Colors.muted}>
-                • Start the dev server:{" "}
+              <box flexDirection="row" gap={1}>
+                <text fg={Colors.muted}>• Start the dev server:</text>
                 <text fg={Colors.accent}>hoox dev start</text>
-              </text>
-              <text fg={Colors.muted}>
-                • Deploy workers to Cloudflare:{" "}
+              </box>
+              <box flexDirection="row" gap={1}>
+                <text fg={Colors.muted}>• Deploy workers to Cloudflare:</text>
                 <text fg={Colors.accent}>hoox workers deploy</text>
-              </text>
-              <text fg={Colors.muted}>
-                • Check worker health:{" "}
+              </box>
+              <box flexDirection="row" gap={1}>
+                <text fg={Colors.muted}>• Check worker health:</text>
                 <text fg={Colors.accent}>hoox monitor status</text>
-              </text>
+              </box>
             </box>
           )}
         </box>

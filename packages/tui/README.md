@@ -11,23 +11,28 @@ A full-screen terminal dashboard built with [OpenTUI](https://github.com/anomaly
 # Install dependencies (from repo root)
 bun install
 
-# Launch the TUI in dev mode
+# Launch via CLI (recommended)
+hoox tui
+
+# Or launch from package
 cd packages/tui
 bun run dev
 
-# Build standalone binary
+# Build bundle
 bun run build
 
-# Run the built binary
+# Run the built bundle
 bun run start
 ```
 
 **Prerequisites:**
 
-- [Bun](https://bun.sh) >= 1.1.0
+- [Bun](https://bun.sh) >= 1.2
 - Terminal with 256-color support (xterm-256color, kitty, iTerm2, Windows Terminal)
 - Minimum terminal size: 80 columns × 24 rows
 - OpenTUI packages (`@opentui/core`, `@opentui/react`) — installed via `bun install`
+
+Persistent UI state lives under `$HOME/.hoox/.tui-state/` (session, crash log, chat history, DB query history).
 
 ---
 
@@ -44,6 +49,12 @@ bun run start
 | `Ctrl+7`            | Config Editor                            |
 | `Ctrl+8`            | Setup Wizard                             |
 | `Ctrl+9`            | Settings                                 |
+| `Ctrl+0`            | Queue Depth                              |
+| `Ctrl+Alt+K`        | KV Viewer                                |
+| `Ctrl+Alt+S`        | Secrets Viewer                           |
+| `Ctrl+Alt+C`        | AI Chat                                  |
+| `Ctrl+Alt+Q`        | DB Query                                 |
+| `Ctrl+Alt+E`        | Edge Topology                            |
 | `Ctrl+P`            | Open Command Palette                     |
 | `Ctrl+B`            | Toggle Sidebar                           |
 | `Ctrl+R`            | Refresh all data                         |
@@ -70,6 +81,12 @@ bun run start
 | **Config Editor**    | Edit Hoox configuration — exchange credentials, strategy parameters, risk limits.                 |
 | **Setup Wizard**     | Step-by-step guided setup for new Hoox installations (API keys, exchanges, wallet).               |
 | **Settings**         | Display preferences, theme, notification toggles, and keyboard shortcut customization.            |
+| **Queue Depth**      | Queue backlog visualization across workers.                                                       |
+| **KV Viewer**        | Read-only Cloudflare KV key browser.                                                              |
+| **Secrets Viewer**   | Read-only secret names/metadata (values never shown).                                             |
+| **AI Chat**          | Streaming chat with the agent worker.                                                             |
+| **DB Query**         | Read-only D1 SQL panel (`SELECT` / `WITH` / `EXPLAIN` only).                                      |
+| **Edge Topology**    | Worker mesh / service-binding graph.                                                              |
 
 ---
 
@@ -82,7 +99,7 @@ bun run start
 | **State Management** | [Zustand](https://zustand.docs.pmnd.rs/) with Immer middleware                          |
 | **Language**         | TypeScript (strict mode)                                                                |
 | **Testing**          | Bun test runner (`bun test`)                                                            |
-| **Build**            | `bun build` — compiles to single executable                                             |
+| **Build**            | `bun build` — bundles entry to `dist/main.js` (OpenTUI packages external)               |
 | **Shared Module**    | `@jango-blockchained/hoox-shared` — API client, SSE streaming, color tokens, formatters |
 
 ---
@@ -90,17 +107,18 @@ bun run start
 ## Running Tests
 
 ```bash
-# Run all tests
+# From package
+cd packages/tui
 bun test
 
-# Run only E2E smoke tests (requires OpenTUI installed)
+# From monorepo root (recommended)
+bun run test:tui
+
+# Typecheck
+bun run typecheck
+
+# E2E smoke (requires interactive TTY + OpenTUI)
 bun test test/e2e/
-
-# Run store tests
-bun test test/stores/
-
-# Run component tests
-bun test test/components/
 ```
 
 ---
@@ -114,10 +132,10 @@ If the packages are in a local path, verify the workspace configuration in the r
 
 ### API unreachable (OFFLINE in status bar)
 
-The TUI polls the Hoox API backend. Check:
+The TUI tries HTTP first, then falls back to the `hoox` CLI. Check:
 
-1. Is the Hoox API server running? (`bun run packages/api/src/index.ts`)
-2. Is the `HOOX_API_URL` environment variable set correctly?
+1. Is a local dev mesh / API reachable? (`HOOX_API_URL`, default `http://localhost:8787`)
+2. Is the `hoox` CLI on `PATH`? (`bun add -g @jango-blockchained/hoox-cli`)
 3. Are you on the correct network / VPN?
 
 ### Terminal too small
@@ -132,11 +150,12 @@ If the alternate screen buffer isn't cleaned up, run: `reset` or `tput reset`
 ### Ctrl+Q not working
 
 Some terminal emulators intercept Ctrl+Q for flow control (XON/XOFF).  
-Disable flow control in your terminal settings, or use `stty -ixon` before launching.
+Disable flow control in your terminal settings, or use `stty -ixon` before launching.  
+You can also open the command palette (`Ctrl+P`) and run **QUIT HOOX**.
 
 ### Build fails with missing dependencies
 
-The `bun build` command bundles all TypeScript sources. If dependencies aren't resolved:
+The `bun build` command bundles TypeScript sources with OpenTUI marked external. If dependencies aren't resolved:
 
 ```bash
 bun install
@@ -160,46 +179,22 @@ The TUI uses 256-color ANSI escape sequences. Ensure:
 ```
 packages/tui/
 ├── src/
-│   ├── main.ts                    # Entry point — OpenTUI renderer setup
+│   ├── main.tsx                   # Entry point — OpenTUI renderer setup
 │   ├── app.tsx                    # Root component — layout, keyboard, crash recovery
 │   ├── components/
-│   │   ├── views/                 # 9 view components
-│   │   │   ├── dashboard.tsx
-│   │   │   ├── workers-overview.tsx
-│   │   │   ├── worker-detail.tsx
-│   │   │   ├── trade-monitor.tsx
-│   │   │   ├── logs-viewer.tsx
-│   │   │   ├── service-manager.tsx
-│   │   │   ├── config-editor.tsx
-│   │   │   ├── setup-wizard.tsx
-│   │   │   └── settings.tsx
-│   │   ├── shared/                # Reusable UI components
-│   │   │   ├── animated-border.tsx
-│   │   │   ├── command-palette.tsx
-│   │   │   ├── crash-screen.tsx
-│   │   │   ├── error-boundary.tsx
-│   │   │   ├── keybinding-hint.tsx
-│   │   │   └── status-dot.tsx
-│   │   └── ui/                    # OpenTUI-UI wrappers
-│   │       ├── connection-toasts.ts
-│   │       ├── dialog.tsx
-│   │       ├── select.tsx
-│   │       └── toast.tsx
+│   │   ├── views/                 # Dashboard, workers, trades, logs, queues, …
+│   │   ├── layout/                # Sidebar + status bar
+│   │   ├── shared/                # Palette, crash screen, error boundary, …
+│   │   └── ui/                    # Dialog / toast wrappers
+│   ├── services/
+│   │   ├── cli-bridge/            # Spawns `hoox` CLI with typed results
+│   │   ├── hoox-path-service.ts   # $HOME/.hoox path helpers
+│   │   └── tui-storage.ts         # File-backed JSON state (no localStorage)
+│   ├── hooks/                     # Keyboard, polling, renderer ref
+│   └── stores/                    # Store unit tests (stores live in hoox-shared)
 ├── test/
-│   ├── e2e/
-│   │   └── smoke.test.ts          # E2E smoke test
-│   ├── integration/
-│   │   └── navigation.test.tsx    # Navigation integration tests
-│   ├── components/
-│   │   ├── layout.test.tsx        # Layout structure tests
-│   │   └── shared.test.tsx        # Shared component tests
-│   ├── stores/
-│   │   ├── ui-store.test.ts       # UI store tests
-│   │   ├── service-store.test.ts  # Service store tests
-│   │   └── config-store.test.ts   # Config store tests
-│   └── utils/
-│       ├── colors.test.ts         # Color token tests
-│       └── formatters.test.ts     # Formatter tests
+│   ├── e2e/smoke.test.ts
+│   └── integration/navigation.test.tsx
 ├── package.json
 └── README.md
 ```
@@ -209,4 +204,4 @@ packages/tui/
 ## Design
 
 Dark background (`#0D1117`), orange accent (`#E8780A`), squared edges.  
-Follows the Hoox landing page design DNA. No CSS, no DOM, no browser APIs — pure terminal rendering via OpenTUI's JSX intrinsics (`<box>`, `<text>`, `<input>`, `<scrollbox>`).
+Follows the Hoox landing page design DNA. No CSS, no DOM — pure terminal rendering via OpenTUI's JSX intrinsics (`<box>`, `<text>`, `<input>`, `<scrollbox>`). UI persistence uses the filesystem under `$HOME/.hoox/.tui-state/` (Bun has no `localStorage`).

@@ -23,7 +23,7 @@
  *     ever spawning the CLI. INSERT/UPDATE/DELETE/DROP/CREATE/ALTER
  *     and multi-statement payloads are rejected with actionable feedback.
  *   - The CLI also enforces read-only; defence in depth.
- *   - History is stored client-side in localStorage — no server exposure.
+ *   - History is stored under $HOME/.hoox/.tui-state/ — no server exposure.
  *
  * Pattern established for the TUI feature-parity batch:
  *   - Pure function component, no props required
@@ -43,14 +43,16 @@ import {
   type DbQueryResult,
   type SqlValidationResult,
 } from "../../services/cli-bridge";
+import {
+  readJsonState,
+  TuiStateFiles,
+  writeJsonState,
+} from "../../services/tui-storage";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Maximum number of history entries to persist. */
 const MAX_HISTORY = 20;
-
-/** localStorage key for query history. */
-const HISTORY_KEY = "hoox:db-query:history";
 
 /** Column width strategy: auto-computed from data. */
 const COLUMN_WIDTH_STRATEGY: {
@@ -417,19 +419,8 @@ export function DbQueryView() {
   const [queryError, setQueryError] = useState<string | null>(null);
 
   // ── History state ──────────────────────────────────────────────────────────
-  const [history, setHistory] = useState<string[]>(() => {
-    if (typeof localStorage !== "undefined") {
-      try {
-        const stored = localStorage.getItem(HISTORY_KEY);
-        if (stored && Array.isArray(JSON.parse(stored))) {
-          return JSON.parse(stored) as string[];
-        }
-      } catch {
-        /* corrupt storage — ignore */
-      }
-    }
-    return [];
-  });
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyReady, setHistoryReady] = useState(false);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -438,16 +429,30 @@ export function DbQueryView() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [selectedRow, setSelectedRow] = useState(0);
 
-  // Persist history to localStorage whenever it changes.
+  // Load query history from disk on mount.
   useEffect(() => {
-    if (typeof localStorage !== "undefined") {
-      try {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-      } catch {
-        /* storage full or unavailable — ignore */
+    let cancelled = false;
+    void (async () => {
+      const stored = await readJsonState<string[]>(
+        TuiStateFiles.dbQueryHistory,
+        []
+      );
+      if (cancelled) return;
+      if (Array.isArray(stored)) {
+        setHistory(stored.slice(0, MAX_HISTORY));
       }
-    }
-  }, [history]);
+      setHistoryReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist history to disk whenever it changes (after initial load).
+  useEffect(() => {
+    if (!historyReady) return;
+    void writeJsonState(TuiStateFiles.dbQueryHistory, history);
+  }, [history, historyReady]);
 
   // ── Execute query ──────────────────────────────────────────────────────────
   const executeQuery = useCallback(async (query: string) => {

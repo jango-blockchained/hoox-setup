@@ -4,6 +4,7 @@ import { Colors } from "@jango-blockchained/hoox-shared";
 import { useKeyboard } from "@opentui/react";
 import * as fs from "fs";
 import * as path from "path";
+import { ErrorBoundary } from "../shared/error-boundary";
 
 // Define types for the graph metadata
 interface GraphMetadata {
@@ -41,7 +42,43 @@ interface GraphMetadata {
   }>;
 }
 
+/**
+ * Resolve graph-metadata.json regardless of launch CWD.
+ * Candidates: cwd, walk-up from cwd, and relative to this source file
+ * (packages/tui/src/components/views → monorepo root).
+ */
+function resolveGraphMetadataPath(): string | null {
+  const fileName = "graph-metadata.json";
+  const candidates: string[] = [
+    path.resolve(process.cwd(), fileName),
+    // This file lives at packages/tui/src/components/views/
+    path.resolve(import.meta.dir, "../../../../../", fileName),
+  ];
+
+  // Walk up from CWD looking for the monorepo marker
+  let dir = process.cwd();
+  for (let i = 0; i < 8; i++) {
+    candidates.push(path.join(dir, fileName));
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return null;
+}
+
 export function EdgeTopology() {
+  return (
+    <ErrorBoundary viewName="Edge Topology">
+      <EdgeTopologyInner />
+    </ErrorBoundary>
+  );
+}
+
+function EdgeTopologyInner() {
   const [metadata, setMetadata] = useState<GraphMetadata | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -50,9 +87,13 @@ export function EdgeTopology() {
 
   useEffect(() => {
     try {
-      // In a real app, this might be fetched via an API or imported directly if bundled.
-      // For this TUI running locally, we can read it from the filesystem.
-      const graphPath = path.resolve(process.cwd(), "graph-metadata.json");
+      const graphPath = resolveGraphMetadataPath();
+      if (!graphPath) {
+        setError(
+          "graph-metadata.json not found. Run `bun run graph` from the monorepo root, or launch the TUI from the repo."
+        );
+        return;
+      }
       const data = fs.readFileSync(graphPath, "utf-8");
       setMetadata(JSON.parse(data));
     } catch (err) {
@@ -191,7 +232,7 @@ export function EdgeTopology() {
           </box>
 
           <text bold fg={Colors.muted} marginTop={1}>
-            INBOUND FLOWS ({inboundFlows.length})
+            {`INBOUND FLOWS (${inboundFlows.length})`}
           </text>
           {inboundFlows.map((f, i) => (
             <text key={i} fg={Colors.foreground} dim>
@@ -200,7 +241,7 @@ export function EdgeTopology() {
           ))}
 
           <text bold fg={Colors.muted} marginTop={1}>
-            OUTBOUND FLOWS ({outboundFlows.length})
+            {`OUTBOUND FLOWS (${outboundFlows.length})`}
           </text>
           {outboundFlows.map((f, i) => (
             <text key={i} fg={Colors.foreground} dim>
@@ -285,8 +326,7 @@ export function EdgeTopology() {
           EDGE TOPOLOGY
         </text>
         <text fg={Colors.muted} dim marginLeft={2}>
-          {workers.length} Workers • {infra.length} Infrastructure Nodes •{" "}
-          {metadata.dataFlows.length} Data Flows
+          {`${workers.length} Workers • ${infra.length} Infrastructure Nodes • ${metadata.dataFlows.length} Data Flows`}
         </text>
       </box>
 

@@ -26,6 +26,7 @@ import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 import { cliBridge } from "./services/cli-bridge";
 import { resolveTuiStatePath } from "./services/hoox-path-service";
+import { getRendererRef } from "./hooks";
 
 // ─── View imports ────────────────────────────────────────────────────────────
 
@@ -237,6 +238,17 @@ const PALETTE_COMMANDS: CommandEntry[] = [
  *   2. On unmount (cleanup): save session to $HOME/.hoox/.tui-state/session.json
  *   3. Crash: CrashScreen rendered with [Restart] [Safe Mode] [Report Bug]
  */
+/** Cleanly shut down the TUI: destroy renderer (session save runs on destroy) then exit. */
+function quitApp(): void {
+  try {
+    const renderer = getRendererRef();
+    renderer?.destroy();
+  } catch {
+    // destroy may throw if already torn down
+  }
+  process.exit(0);
+}
+
 export function AppRoot({
   safeMode: _safeMode = false,
 }: {
@@ -246,10 +258,24 @@ export function AppRoot({
   const activeView = useUIStore((s) => s.activeView);
   const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
   const commandPaletteOpen = useUIStore((s) => s.commandPaletteOpen);
+  const modal = useUIStore((s) => s.modal);
   const setView = useUIStore((s) => s.setView);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const openPalette = useUIStore((s) => s.openPalette);
   const closePalette = useUIStore((s) => s.closePalette);
+  const showModal = useUIStore((s) => s.showModal);
+  const dismissModal = useUIStore((s) => s.dismissModal);
+
+  const requestQuit = useCallback(() => {
+    closePalette();
+    showModal({
+      type: "confirm",
+      title: "Quit HOOX?",
+      message: "Exit the terminal operations center.",
+      onConfirm: quitApp,
+      onCancel: () => dismissModal(),
+    });
+  }, [closePalette, showModal, dismissModal]);
 
   // ── Session restore on mount ────────────────────────────────────────────
   useEffect(() => {
@@ -274,6 +300,8 @@ export function AppRoot({
   // ── Startup data load: HTTP → CLI fallback ─────────────────────────────
   // After session restore, try to fetch worker data. HTTP is tried first;
   // if the dev server is unreachable, fall back to the `hoox` CLI.
+  // Also kick off SSE trade/log streams so Trade Monitor + Logs Viewer
+  // receive live data when the API is available (failures are silent).
   useEffect(() => {
     if (restoring) return;
     let cancelled = false;
@@ -347,6 +375,12 @@ export function AppRoot({
       } catch {
         // Both HTTP and CLI unavailable — stay offline
       }
+
+      if (cancelled) return;
+
+      // Long-lived SSE streams (no-op when API offline; store handles errors)
+      void store.streamTrades();
+      void store.streamLogs();
     })();
 
     return () => {
@@ -385,7 +419,22 @@ export function AppRoot({
 
   // ── Global keyboard shortcuts ───────────────────────────────────────────
   useKeyboard((key) => {
-    // Ctrl+1-9: switch views
+    // Quit confirmation modal takes priority over other shortcuts
+    if (modal?.type === "confirm" && modal.title === "Quit HOOX?") {
+      const name = String(key.name ?? "").toLowerCase();
+      if (name === "return" || name === "enter" || name === "y") {
+        dismissModal();
+        quitApp();
+        return;
+      }
+      if (name === "escape" || name === "n") {
+        dismissModal();
+        return;
+      }
+      return; // swallow other keys while confirming quit
+    }
+
+    // Ctrl+1-9 / Ctrl+0: switch views (not while alt is held)
     if (key.ctrl && !key.alt && VIEW_SHORTCUTS[key.name]) {
       setView(VIEW_SHORTCUTS[key.name]);
       return;
@@ -423,19 +472,35 @@ export function AppRoot({
     }
 
     // Ctrl+B: toggle sidebar
-    if (key.ctrl && key.name === "b") {
+    if (key.ctrl && !key.alt && key.name === "b") {
       toggleSidebar();
       return;
     }
 
     // Ctrl+P: command palette
-    if (key.ctrl && key.name === "p") {
+    if (key.ctrl && !key.alt && key.name === "p") {
       openPalette();
       return;
     }
 
-    // Escape: close palette
+    // Ctrl+R: refresh worker data
+    if (key.ctrl && !key.alt && key.name === "r") {
+      void useServiceStore.getState().fetchWorkers();
+      return;
+    }
+
+    // Ctrl+Q: quit with confirmation (Ctrl+Alt+Q is db-query above)
+    if (key.ctrl && !key.alt && key.name === "q") {
+      requestQuit();
+      return;
+    }
+
+    // Escape: dismiss modal, then palette
     if (key.name === "escape") {
+      if (modal) {
+        dismissModal();
+        return;
+      }
       closePalette();
       return;
     }
@@ -495,14 +560,70 @@ export function AppRoot({
             if (selection.action === "setView" && selection.command.id) {
               setView(selection.command.id as ViewId);
             } else if (selection.command.id === "refresh") {
-              useServiceStore.getState().fetchWorkers();
+              void useServiceStore.getState().fetchWorkers();
             } else if (selection.command.id === "toggle-sidebar") {
               toggleSidebar();
+            } else if (selection.command.id === "quit") {
+              closePalette();
+              requestQuit();
+              return;
             }
             closePalette();
           }}
           onDismiss={() => closePalette()}
         />
+      )}
+
+      {/* Quit confirmation overlay */}
+      {modal?.type === "confirm" && modal.title === "Quit HOOX?" && (
+        <box
+          position="absolute"
+          left={0}
+          top={0}
+          width="100%"
+          height="100%"
+          justifyContent="center"
+          alignItems="center"
+          backgroundColor={Colors.background}
+        >
+          <box
+            flexDirection="column"
+            gap={1}
+            padding={2}
+            border={true}
+            borderStyle="double"
+            borderColor={Colors.accent}
+            backgroundColor={Colors.card}
+            minWidth={40}
+          >
+            <text fg={Colors.accent} bold>
+              {modal.title}
+            </text>
+            <text fg={Colors.foreground}>
+              {modal.message ?? "Exit the terminal operations center."}
+            </text>
+            <box flexDirection="row" gap={2} paddingTop={1}>
+              <text
+                fg={Colors.error}
+                bold
+                onMouseUp={() => {
+                  dismissModal();
+                  quitApp();
+                }}
+              >
+                [Y/Enter] Quit
+              </text>
+              <text
+                fg={Colors.muted}
+                onMouseUp={() => {
+                  dismissModal();
+                }}
+              >
+                [N/Esc] Cancel
+              </text>
+            </box>
+          </box>
+        </box>
       )}
     </box>
   );

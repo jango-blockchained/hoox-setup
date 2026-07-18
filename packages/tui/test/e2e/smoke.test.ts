@@ -24,8 +24,18 @@
  */
 import { describe, it, expect, beforeAll } from "bun:test";
 import { spawn, type Subprocess } from "bun";
+import { join } from "path";
 
 // ─── Configuration ────────────────────────────────────────────────────────────
+
+/**
+ * Absolute package root for packages/tui.
+ * import.meta.dir is test/e2e when this file runs, so walk up two levels.
+ * Using an absolute root keeps canLaunch + spawn working whether the suite
+ * is invoked from the monorepo root or packages/tui.
+ */
+const PACKAGE_ROOT = join(import.meta.dir, "../..");
+const MAIN_ENTRY = join(PACKAGE_ROOT, "src/main.tsx");
 
 /** Time to wait for TUI output in ms */
 const CAPTURE_DURATION_MS = 3_000;
@@ -100,32 +110,45 @@ async function captureOutput(
  * Check if the TUI can be launched by attempting a dry-run.
  * Returns true if bun can resolve the main entry point.
  */
-async function canLaunch(): Promise<boolean> {
+async function canLaunch(): Promise<{ ok: boolean; reason?: string }> {
   try {
-    // Check if the entry file exists
-    const file = Bun.file("src/main.tsx");
-    const exists = await file.exists();
-    if (!exists) return false;
+    // Check if the entry file exists (absolute path — cwd-independent)
+    const file = Bun.file(MAIN_ENTRY);
+    if (!(await file.exists())) {
+      return { ok: false, reason: `main entry not found: ${MAIN_ENTRY}` };
+    }
 
-    // Check if @opentui packages are resolvable (lightweight check)
-    // We don't import to avoid side effects — just check node_modules
-    const tuiCheck = Bun.file("node_modules/@opentui/core/package.json");
-    const depsOk = await tuiCheck.exists();
-    if (!depsOk) return false;
+    // Check if @opentui packages are resolvable (package-local or monorepo root)
+    const localCore = Bun.file(
+      join(PACKAGE_ROOT, "node_modules/@opentui/core/package.json")
+    );
+    const rootCore = Bun.file(
+      join(PACKAGE_ROOT, "../../node_modules/@opentui/core/package.json")
+    );
+    const depsOk = (await localCore.exists()) || (await rootCore.exists());
+    if (!depsOk) {
+      return {
+        ok: false,
+        reason: "@opentui/core not installed (run bun install)",
+      };
+    }
 
     // E2E tests require a real pseudo-terminal (PTY) for TUI rendering.
     // Skip in headless or CI environments where stdout has no TTY.
     if (!process.stdout.isTTY) {
-      console.warn(
-        "  ⚠ E2E smoke test requires a TTY (pseudo-terminal).\n" +
-          "    Run in an interactive terminal to execute these tests."
-      );
-      return false;
+      return {
+        ok: false,
+        reason:
+          "E2E smoke test requires a TTY (pseudo-terminal). Run in an interactive terminal.",
+      };
     }
 
-    return true;
-  } catch {
-    return false;
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      reason: err instanceof Error ? err.message : String(err),
+    };
   }
 }
 
@@ -133,14 +156,17 @@ async function canLaunch(): Promise<boolean> {
 
 describe("Hoox TUI E2E Smoke Test", () => {
   let canRun = false;
+  let skipReason = "unknown";
 
   beforeAll(async () => {
-    canRun = await canLaunch();
+    const result = await canLaunch();
+    canRun = result.ok;
+    skipReason = result.reason ?? "";
     if (!canRun) {
       console.warn(
-        "⚠ SKIPPING E2E smoke test: OpenTUI packages not installed or main.ts not found.\n" +
+        `⚠ SKIPPING E2E smoke test: ${skipReason}\n` +
           "  Install dependencies with: bun install\n" +
-          "  Then run: bun test test/e2e/smoke.test.ts"
+          "  Then run from an interactive TTY: bun test packages/tui/test/e2e/"
       );
     }
   });
@@ -149,7 +175,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
   it("launches the TUI and renders key sections", async () => {
     if (!canRun) {
-      console.warn("  Skipped — dependencies not available");
+      console.warn(`  Skipped — ${skipReason}`);
       return;
     }
 
@@ -158,9 +184,10 @@ describe("Hoox TUI E2E Smoke Test", () => {
     let output = "";
 
     try {
-      // Spawn the TUI process
+      // Spawn the TUI process from the package root with absolute entry
       proc = spawn({
-        cmd: ["bun", "run", "src/main.tsx"],
+        cmd: ["bun", "run", MAIN_ENTRY],
+        cwd: PACKAGE_ROOT,
         stdout: "pipe",
         stderr: "pipe",
         stdin: "pipe",
@@ -212,7 +239,7 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
   it("exits cleanly when Ctrl+Q is sent", async () => {
     if (!canRun) {
-      console.warn("  Skipped — dependencies not available");
+      console.warn(`  Skipped — ${skipReason}`);
       return;
     }
 
@@ -222,7 +249,8 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
     try {
       proc = spawn({
-        cmd: ["bun", "run", "src/main.tsx"],
+        cmd: ["bun", "run", MAIN_ENTRY],
+        cwd: PACKAGE_ROOT,
         stdout: "pipe",
         stderr: "pipe",
         stdin: "pipe",
@@ -238,8 +266,9 @@ describe("Hoox TUI E2E Smoke Test", () => {
       // Wait briefly for the TUI to initialize
       await new Promise((resolve) => setTimeout(resolve, 1_500));
 
-      // Send Ctrl+Q (ASCII 0x11) to trigger quit
+      // Send Ctrl+Q (ASCII 0x11) to open quit confirmation, then Enter to confirm
       proc.stdin.write(new Uint8Array([0x11])); // Ctrl+Q
+      await new Promise((resolve) => setTimeout(resolve, 300));
       proc.stdin.write(new Uint8Array([0x0d])); // Enter (confirm dialog)
 
       // Wait for the process to exit naturally
@@ -295,12 +324,13 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
   it("process does not crash on startup (no non-zero exit before Ctrl+Q)", async () => {
     if (!canRun) {
-      console.warn("  Skipped — dependencies not available");
+      console.warn(`  Skipped — ${skipReason}`);
       return;
     }
 
     const proc = spawn({
-      cmd: ["bun", "run", "src/main.tsx"],
+      cmd: ["bun", "run", MAIN_ENTRY],
+      cwd: PACKAGE_ROOT,
       stdout: "pipe",
       stderr: "pipe",
       stdin: "pipe",
@@ -353,12 +383,13 @@ describe("Hoox TUI E2E Smoke Test", () => {
 
   it("responds to Ctrl+B (sidebar toggle) without crashing", async () => {
     if (!canRun) {
-      console.warn("  Skipped — dependencies not available");
+      console.warn(`  Skipped — ${skipReason}`);
       return;
     }
 
     const proc = spawn({
-      cmd: ["bun", "run", "src/main.tsx"],
+      cmd: ["bun", "run", MAIN_ENTRY],
+      cwd: PACKAGE_ROOT,
       stdout: "pipe",
       stderr: "pipe",
       stdin: "pipe",
