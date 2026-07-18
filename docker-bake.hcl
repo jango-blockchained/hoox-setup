@@ -61,7 +61,7 @@ target "prod" {
     "hoox:prod",
     "${REGISTRY}:${VERSION}",
     notequal(REVISION, "unknown") ? "${REGISTRY}:sha-${substr(REVISION, 0, 7)}" : "",
-    and(equal(PUBLISH_LATEST, "true"), notequal(VERSION, "dev"), notequal(VERSION, "")) ? "${REGISTRY}:latest" : "",
+    and(equal(PUBLISH_LATEST, "true"), and(notequal(VERSION, "dev"), notequal(VERSION, ""))) ? "${REGISTRY}:latest" : "",
   ])
   args = {
     BUN_VERSION = BUN_VERSION
