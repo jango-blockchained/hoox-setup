@@ -70,6 +70,16 @@ afterEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
+describe("stripWranglerStdoutNoise", () => {
+  it("removes version banners and keeps the payload", async () => {
+    const { stripWranglerStdoutNoise } = await import("./kv-sync-service.js");
+    const raw =
+      "There is a newer version of Wrangler available (current: 4.98.0, latest: 4.112.0). Try upgrading.\n" +
+      "false\n";
+    expect(stripWranglerStdoutNoise(raw)).toBe("false");
+  });
+});
+
 describe("KvSyncService", () => {
   // -- resolveNamespaceId ---------------------------------------------------
 
@@ -94,6 +104,22 @@ describe("KvSyncService", () => {
 
       expect(result).toBe("ns-2");
       expect(lastSpawnCmd).toEqual(["wrangler", "kv", "namespace", "list"]);
+    });
+
+    it("strips wrangler version banners before parsing JSON", async () => {
+      const namespaces = JSON.stringify([
+        { id: "ns-1", title: "OTHER_KV" },
+        { id: "ns-cfg", title: "CONFIG_KV" },
+      ]);
+      const noisy =
+        "There is a newer version of Wrangler available (current: 4.98.0, latest: 4.112.0). Try upgrading, as it might support this configuration option.\n" +
+        namespaces;
+      mockSpawnWithCapture(successSpawn(noisy));
+
+      const service = new KvSyncService();
+      const result = await service.resolveNamespaceId();
+
+      expect(result).toBe("ns-cfg");
     });
 
     it("throws when CONFIG_KV not found in namespace list", async () => {
@@ -213,6 +239,19 @@ describe("KvSyncService", () => {
         "ns-123",
         "my-key",
       ]);
+    });
+
+    it("strips wrangler version banners from the key value", async () => {
+      mockSpawnWithCapture(
+        successSpawn(
+          "There is a newer version of Wrangler available (current: 4.98.0, latest: 4.112.0). Try upgrading, as it might support this configuration option.\nfalse\n"
+        )
+      );
+
+      const service = new KvSyncService();
+      const result = await service.get("ns-123", "trade:kill_switch");
+
+      expect(result).toBe("false");
     });
 
     it("returns null when key is not found", async () => {

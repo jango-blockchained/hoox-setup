@@ -67,4 +67,30 @@ describe("registerPineCommand", () => {
     expect(flags).toContain("--all");
     expect(flags).toContain("--symbol");
   });
+
+  it("bundle fails with a clear message when pine-worker is missing", async () => {
+    const pine = program.commands.find((c) => c.name() === "pine")!;
+    const bundle = pine.commands.find((s) => s.name() === "bundle")!;
+    // Action may set process.exitCode rather than throw depending on
+    // withErrorHandling — capture stderr/stdout via exitOverride error path.
+    let thrown: Error | undefined;
+    try {
+      await bundle.parseAsync([], { from: "user" });
+    } catch (err) {
+      thrown = err instanceof Error ? err : new Error(String(err));
+    }
+    // Either a thrown commander error or exitCode set by withErrorHandling
+    const msg = thrown?.message ?? "";
+    // When workers/pine-worker is absent the spawn helper throws a clear path error.
+    // When present, bundle may run or fail for other reasons — only assert when missing.
+    const { existsSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const dir = resolve(process.cwd(), "workers/pine-worker");
+    if (!existsSync(dir)) {
+      // formatError path: exit code non-zero is enough; message may go to stderr
+      expect(process.exitCode === 1 || /pine-worker|not found/i.test(msg)).toBe(
+        true
+      );
+    }
+  });
 });

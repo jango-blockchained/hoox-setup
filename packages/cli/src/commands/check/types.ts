@@ -57,10 +57,12 @@ export interface HealthCheckResult {
   worker: string;
   /** Categorised health status. */
   status: "healthy" | "degraded" | "down";
-  /** Whether `wrangler tail` successfully connected to the worker. */
+  /** Whether the worker's HTTP /health endpoint was reachable. */
   connectivity: boolean;
-  /** Approximate tail response time in ms (if measurable). */
+  /** HTTP probe round-trip time in ms (if measurable). */
   responseTime?: number;
+  /** URL that was probed (when available). */
+  url?: string;
   /** Human-readable error when status is "degraded" or "down". */
   error?: string;
 }

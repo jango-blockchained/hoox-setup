@@ -532,6 +532,110 @@ async function handleSetup(opts: FormatOptions): Promise<void> {
 // Subcommand: check health
 // ---------------------------------------------------------------------------
 
+/** Default HTTP probe timeout per worker (ms). */
+const HEALTH_PROBE_TIMEOUT_MS = 8_000;
+
+/**
+ * Resolve the public base URL for a deployed worker.
+ *
+ * Prefers `global.subdomain_prefix` (e.g. cryptolinx →
+ * `https://{worker}.cryptolinx.workers.dev`). Falls back to account-id
+ * style URLs, and allows `HOOX_GATEWAY_URL` to override the `hoox`
+ * gateway only.
+ */
+export function resolveWorkerBaseUrl(
+  workerName: string,
+  global: { subdomain_prefix?: string; cloudflare_account_id?: string }
+): string {
+  if (workerName === "hoox") {
+    const envUrl = process.env.HOOX_GATEWAY_URL;
+    if (envUrl && envUrl.length > 0) {
+      return envUrl.replace(/\/+$/, "");
+    }
+  }
+
+  const prefix = global.subdomain_prefix;
+  if (prefix && prefix.length > 0) {
+    return `https://${workerName}.${prefix}.workers.dev`;
+  }
+
+  const accountId =
+    global.cloudflare_account_id || process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (accountId && accountId.length > 0) {
+    return `https://${workerName}.${accountId}.workers.dev`;
+  }
+
+  throw new Error(
+    `Cannot resolve URL for worker "${workerName}". Set global.subdomain_prefix or cloudflare_account_id in wrangler.jsonc (or HOOX_GATEWAY_URL for the gateway).`
+  );
+}
+
+/**
+ * HTTP GET `/health` with a hard timeout. Does **not** use `wrangler tail`
+ * (which is a long-lived log stream and hangs for tens of seconds per worker).
+ */
+export async function probeWorkerHealth(
+  workerName: string,
+  baseUrl: string,
+  timeoutMs: number = HEALTH_PROBE_TIMEOUT_MS
+): Promise<HealthCheckResult> {
+  const url = `${baseUrl.replace(/\/+$/, "")}/health`;
+  const started = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    });
+    const responseTime = Date.now() - started;
+
+    if (res.ok) {
+      return {
+        worker: workerName,
+        status: "healthy",
+        connectivity: true,
+        responseTime,
+        url,
+      };
+    }
+
+    return {
+      worker: workerName,
+      status: res.status >= 500 ? "down" : "degraded",
+      connectivity: true,
+      responseTime,
+      url,
+      error: `HTTP ${res.status}`,
+    };
+  } catch (err) {
+    const responseTime = Date.now() - started;
+    const aborted =
+      (err instanceof Error && err.name === "AbortError") ||
+      (typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name: string }).name === "AbortError");
+    const message = aborted
+      ? `Timeout after ${timeoutMs}ms`
+      : err instanceof Error
+        ? err.message
+        : String(err);
+    return {
+      worker: workerName,
+      status: "down",
+      connectivity: false,
+      responseTime,
+      url,
+      error: message,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function handleHealth(
   opts: FormatOptions,
   autoFix: boolean
@@ -541,7 +645,7 @@ async function handleHealth(
   try {
     const configService = new ConfigService();
     await configService.load();
-    const cf = new CloudflareService();
+    const global = configService.getGlobal();
 
     const enabledWorkers = configService.listEnabledWorkers();
 
@@ -554,16 +658,8 @@ async function handleHealth(
       title: `Probe ${workerName}`,
       run: async (): Promise<HealthCheckResult> => {
         try {
-          const tailResult = await cf.tail(workerName);
-          const healthy = tailResult.ok;
-          return {
-            worker: workerName,
-            status: healthy ? "healthy" : "degraded",
-            connectivity: healthy,
-            error: tailResult.ok
-              ? undefined
-              : (tailResult.error ?? "Unknown error"),
-          };
+          const baseUrl = resolveWorkerBaseUrl(workerName, global);
+          return await probeWorkerHealth(workerName, baseUrl);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           return {
@@ -590,6 +686,7 @@ async function handleHealth(
       const rows = results.map((r) => ({
         Worker: r.worker,
         Status: r.status,
+        Latency: r.responseTime != null ? `${r.responseTime}ms` : "-",
         Connectivity: r.connectivity ? "connected" : "failed",
         Error: r.error ?? "-",
       }));
@@ -1061,10 +1158,11 @@ EXAMPLES:
     .description(
       `Run health checks on all enabled workers to verify they are running and responsive.
 
-Each worker is probed to verify:
-  - Worker is deployed to Cloudflare
-  - Worker is responding to requests
-  - No critical errors in recent logs
+Each worker is probed with a short HTTP GET to /health (default timeout 8s):
+  - Worker URL from global.subdomain_prefix (or account id)
+  - healthy  → HTTP 2xx from /health
+  - degraded → reachable but non-2xx (e.g. 4xx)
+  - down     → timeout, DNS, or network error
 
 OPTIONS:
   --fix    Attempt automatic repair for detected issues (informational)

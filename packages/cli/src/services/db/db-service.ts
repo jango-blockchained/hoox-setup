@@ -1,18 +1,38 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ConfigService } from "../config/index.js";
+import { extractJsonArray } from "../cloudflare/cloudflare-service.js";
 
 export interface QueryResult {
   columns: string[];
   rows: Record<string, unknown>[];
 }
 
+/**
+ * Candidate wrangler configs that declare the D1 database binding.
+ * Root monorepo `wrangler.jsonc` is a Hoox meta-config (global/workers)
+ * and is rejected by wrangler for local D1 ops.
+ */
+const D1_WRANGLER_CONFIG_CANDIDATES = [
+  "workers/d1-worker/wrangler.jsonc",
+  "workers/trade-worker/wrangler.jsonc",
+] as const;
+
 export class DbService {
   private configService: ConfigService;
   private readonly homeDir: string | undefined;
+  /** Optional override for wrangler `-c` (tests / HOOX_WRANGLER_CONFIG). */
+  private readonly wranglerConfigPath: string | undefined;
 
-  constructor(configService?: ConfigService, homeDir?: string) {
+  constructor(
+    configService?: ConfigService,
+    homeDir?: string,
+    wranglerConfigPath?: string
+  ) {
     this.configService = configService ?? new ConfigService();
     this.homeDir = homeDir;
+    this.wranglerConfigPath =
+      wranglerConfigPath ?? process.env.HOOX_WRANGLER_CONFIG;
   }
 
   /**
@@ -114,7 +134,9 @@ export class DbService {
 
   static parseTableNames(output: string): string[] {
     try {
-      const parsed = JSON.parse(output);
+      // wrangler may prefix version banners before the JSON array
+      const jsonText = extractJsonArray(output) ?? output;
+      const parsed = JSON.parse(jsonText);
       if (Array.isArray(parsed) && parsed.length > 0) {
         const first = parsed[0];
         if (first.results && Array.isArray(first.results)) {
@@ -132,8 +154,29 @@ export class DbService {
       .filter(Boolean);
   }
 
+  /**
+   * Resolve a wrangler config that declares D1 bindings.
+   * Prefer the d1-worker config over the monorepo root meta-config.
+   */
+  resolveWranglerConfigPath(): string | undefined {
+    if (this.wranglerConfigPath) return this.wranglerConfigPath;
+    for (const candidate of D1_WRANGLER_CONFIG_CANDIDATES) {
+      if (existsSync(candidate)) return candidate;
+    }
+    return undefined;
+  }
+
   private async runWrangler(args: string[]): Promise<string> {
-    const proc = Bun.spawn(["wrangler", ...args], {
+    const configPath = this.resolveWranglerConfigPath();
+    // Always pass -c when we know a valid worker config — root wrangler.jsonc
+    // uses Hoox-only fields (global/workers/dev.runtime) that make local D1
+    // fail with "Couldn't find a D1 DB" / unexpected-field errors.
+    const fullArgs =
+      configPath && !args.includes("-c") && !args.includes("--config")
+        ? [...args, "-c", configPath]
+        : args;
+
+    const proc = Bun.spawn(["wrangler", ...fullArgs], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -142,7 +185,12 @@ export class DbService {
     const exitCode = await proc.exited;
 
     if (exitCode !== 0) {
-      throw new Error(stderr.trim() || `wrangler exited with code ${exitCode}`);
+      // Prefer stderr; fall back to stdout (wrangler sometimes puts errors there)
+      const detail =
+        stderr.trim() ||
+        stdout.trim() ||
+        `wrangler exited with code ${exitCode}`;
+      throw new Error(detail);
     }
 
     return stdout.trim();

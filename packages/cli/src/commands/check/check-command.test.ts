@@ -31,8 +31,9 @@ let d1ExecuteMock: ReturnType<typeof mock>;
 let kvListMock: ReturnType<typeof mock>;
 let r2ListMock: ReturnType<typeof mock>;
 let queueListMock: ReturnType<typeof mock>;
-let tailMock: ReturnType<typeof mock>;
 let secretListMock: ReturnType<typeof mock>;
+let fetchMock: ReturnType<typeof mock>;
+const origFetch = globalThis.fetch;
 
 let secretsCreateMock: ReturnType<typeof mock>;
 
@@ -49,7 +50,6 @@ const origD1Execute = CloudflareService.prototype.d1Execute;
 const origKvList = CloudflareService.prototype.kvList;
 const origR2List = CloudflareService.prototype.r2List;
 const origQueueList = CloudflareService.prototype.queueList;
-const origTail = CloudflareService.prototype.tail;
 const origSecretList = CloudflareService.prototype.secretList;
 
 const origCreate = SecretsService.create;
@@ -75,14 +75,15 @@ beforeEach(() => {
   CloudflareService.prototype.kvList = origKvList;
   CloudflareService.prototype.r2List = origR2List;
   CloudflareService.prototype.queueList = origQueueList;
-  CloudflareService.prototype.tail = origTail;
   CloudflareService.prototype.secretList = origSecretList;
+  globalThis.fetch = origFetch;
 
   // Fresh mocks
   loadMock = mock(async () => ({}));
   validateMock = mock(() => ({ valid: true, errors: [] }));
   getGlobalMock = mock(() => ({
     cloudflare_account_id: "abc123",
+    subdomain_prefix: "cryptolinx",
   }));
   listWorkersMock = mock(() => ["d1-worker", "hoox", "trade-worker"]);
   listEnabledWorkersMock = mock(() => ["d1-worker", "hoox", "trade-worker"]);
@@ -126,14 +127,21 @@ beforeEach(() => {
     ok: true as const,
     value: "queue-1\nqueue-2",
   }));
-  tailMock = mock(async () => ({
-    ok: true as const,
-    value: "Connected to worker",
-  }));
   secretListMock = mock(async () => ({
     ok: true as const,
     value: "Secret names: API_KEY, DB_PASSWORD",
   }));
+  fetchMock = mock(
+    async () =>
+      new Response(
+        JSON.stringify({ success: true, result: { status: "ok" } }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+  );
+  globalThis.fetch = fetchMock as unknown as typeof fetch;
 
   secretsCreateMock = mock(async () =>
     Object.create(SecretsService.prototype, {
@@ -157,7 +165,6 @@ beforeEach(() => {
   CloudflareService.prototype.kvList = kvListMock;
   CloudflareService.prototype.r2List = r2ListMock;
   CloudflareService.prototype.queueList = queueListMock;
-  CloudflareService.prototype.tail = tailMock;
   CloudflareService.prototype.secretList = secretListMock;
 
   // Replace static create on SecretsService
@@ -169,7 +176,6 @@ afterEach(() => {
   mock.restore();
 
   // Reset process.exitCode so a lingering async callback from a prior test
-  // (e.g. a spawned `wrangler tail` resolving after the test ends)
   // cannot leak its exit code into the next test.
   process.exitCode = undefined;
 
@@ -186,8 +192,8 @@ afterEach(() => {
   CloudflareService.prototype.kvList = origKvList;
   CloudflareService.prototype.r2List = origR2List;
   CloudflareService.prototype.queueList = origQueueList;
-  CloudflareService.prototype.tail = origTail;
   CloudflareService.prototype.secretList = origSecretList;
+  globalThis.fetch = origFetch;
 
   (SecretsService as unknown as Record<string, unknown>).create = origCreate;
   SecretsService.prototype.checkLocalSecrets = origCheckLocal;
@@ -410,13 +416,22 @@ describe("registerCheckCommand", () => {
   // -- check health ---------------------------------------------------------
 
   describe("check health", () => {
-    it("checks connectivity for all enabled workers", async () => {
+    it("checks connectivity for all enabled workers via HTTP /health", async () => {
       const program = await createProgram();
       await program.parseAsync(["check", "health"], { from: "user" });
 
       expect(loadMock).toHaveBeenCalled();
-      // tailMock should have been called for each enabled worker
-      expect(tailMock).toHaveBeenCalled();
+      expect(getGlobalMock).toHaveBeenCalled();
+      // fetch should have been called for each enabled worker
+      expect(fetchMock).toHaveBeenCalled();
+      expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3);
+      const urls = fetchMock.mock.calls.map((c) => String(c[0]));
+      expect(urls.some((u) => u.includes("/health"))).toBe(true);
+      expect(
+        urls.some((u) =>
+          u.includes("https://hoox.cryptolinx.workers.dev/health")
+        )
+      ).toBe(true);
     });
 
     it("outputs JSON when --json flag is set", async () => {
@@ -449,11 +464,14 @@ describe("registerCheckCommand", () => {
     });
 
     it("sets exitCode to ERROR when any worker is unhealthy", async () => {
-      tailMock = mock(async () => ({
-        ok: false as const,
-        error: "Worker not reachable",
-      }));
-      CloudflareService.prototype.tail = tailMock;
+      fetchMock = mock(
+        async () =>
+          new Response("error", {
+            status: 503,
+            headers: { "Content-Type": "text/plain" },
+          })
+      );
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
 
       const program = await createProgram();
       await program.parseAsync(["check", "health"], { from: "user" });

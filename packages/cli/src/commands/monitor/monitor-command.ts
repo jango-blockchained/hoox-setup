@@ -116,12 +116,24 @@ interface WranglerQueueInfo {
   created_on?: string;
 }
 
-/** Normalize wrangler's `queues list --json` output (either a bare array or a
- *  Cloudflare-API envelope with a `result` field) into a plain array. */
-function parseWranglerQueuesJson(raw: string): WranglerQueueInfo[] {
+/**
+ * Normalize wrangler/CF queue JSON (bare array or `{ result: [...] }` envelope).
+ * Kept for callers that already have structured JSON (tests, future API path).
+ */
+export function parseWranglerQueuesJson(raw: string): WranglerQueueInfo[] {
   const cleaned = raw.trim();
   if (!cleaned) return [];
-  const parsed: unknown = JSON.parse(cleaned);
+  // Wrangler often prefixes version banners before the JSON payload.
+  const firstBracket = cleaned.indexOf("[");
+  const firstBrace = cleaned.indexOf("{");
+  const start =
+    firstBracket === -1
+      ? firstBrace
+      : firstBrace === -1
+        ? firstBracket
+        : Math.min(firstBracket, firstBrace);
+  const payload = start >= 0 ? cleaned.slice(start) : cleaned;
+  const parsed: unknown = JSON.parse(payload);
   if (Array.isArray(parsed)) {
     return parsed as WranglerQueueInfo[];
   }
@@ -136,10 +148,48 @@ function parseWranglerQueuesJson(raw: string): WranglerQueueInfo[] {
   return [];
 }
 
+/**
+ * Parse `wrangler queues list` human table output into structured rows.
+ *
+ * wrangler ≥4.x removed `queues list --json`, so structured consumers must
+ * parse the ASCII table (or call the CF API directly).
+ */
+export function parseWranglerQueuesTable(raw: string): WranglerQueueInfo[] {
+  const queues: WranglerQueueInfo[] = [];
+  for (const line of raw.split("\n")) {
+    if (!line.includes("│")) continue;
+    // Skip box-drawing border / separator rows
+    if (/[┌└├─┬┴┼]/.test(line)) continue;
+    const cells = line
+      .split("│")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    if (cells.length < 2) continue;
+    // Skip header
+    if (cells[0] === "id" || cells[0] === "name") continue;
+    // Data rows start with a queue id (UUID / hex)
+    if (!/^[0-9a-f-]{16,}$/i.test(cells[0])) continue;
+    const producers =
+      cells[4] !== undefined && cells[4] !== "" ? Number(cells[4]) : undefined;
+    const consumers =
+      cells[5] !== undefined && cells[5] !== "" ? Number(cells[5]) : undefined;
+    queues.push({
+      queue_id: cells[0],
+      queue_name: cells[1],
+      created_on: cells[2],
+      modified_on: cells[3],
+      producers_total_count: Number.isFinite(producers) ? producers : undefined,
+      consumers_total_count: Number.isFinite(consumers) ? consumers : undefined,
+    });
+  }
+  return queues;
+}
+
 async function doMonitorQueueDepth(fmt: FormatOptions): Promise<void> {
   try {
-    // Use --json for structured output that the TUI can parse reliably.
-    const proc = Bun.spawn(["wrangler", "queues", "list", "--json"], {
+    // wrangler ≥4.x does not support `queues list --json` (Unknown argument: json).
+    // Always use the table form and parse it when --json is requested.
+    const proc = Bun.spawn(["wrangler", "queues", "list"], {
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -152,28 +202,21 @@ async function doMonitorQueueDepth(fmt: FormatOptions): Promise<void> {
     }
 
     if (fmt.json) {
-      // Re-emit parsed queue info so the TUI can consume it directly.
-      const queues = parseWranglerQueuesJson(stdout);
+      // Prefer JSON parse if wrangler ever emits JSON again; otherwise table.
+      let queues: WranglerQueueInfo[];
+      try {
+        queues = parseWranglerQueuesJson(stdout);
+        if (queues.length === 0) {
+          queues = parseWranglerQueuesTable(stdout);
+        }
+      } catch {
+        queues = parseWranglerQueuesTable(stdout);
+      }
       process.stdout.write(JSON.stringify({ queues }, null, 2) + "\n");
       return;
     }
 
-    // In human mode, fall back to wrangler's raw output (which is already
-    // a nicely formatted table). We re-run without --json for the table
-    // because the JSON shape isn't human-friendly.
-    const procHuman = Bun.spawn(["wrangler", "queues", "list"], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    const stdoutHuman = await new Response(procHuman.stdout).text();
-    const stderrHuman = await new Response(procHuman.stderr).text();
-    const exitHuman = await procHuman.exited;
-    if (exitHuman !== 0) {
-      throw new Error(
-        stderrHuman.trim() || `wrangler exited with code ${exitHuman}`
-      );
-    }
-    process.stdout.write(stdoutHuman + "\n");
+    process.stdout.write(stdout + "\n");
   } catch (err) {
     formatError(err instanceof Error ? err.message : String(err), fmt);
     process.exitCode = ExitCode.ERROR;

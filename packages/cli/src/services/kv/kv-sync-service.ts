@@ -1,3 +1,5 @@
+import { extractJsonArray } from "../cloudflare/cloudflare-service.js";
+
 export interface KvManifestKey {
   key: string;
   type: "boolean" | "number" | "string";
@@ -9,6 +11,26 @@ export interface KvManifestKey {
 export interface KvManifest {
   namespace: string;
   keys: KvManifestKey[];
+}
+
+/**
+ * Strip wrangler version banners / box-drawing noise that often lands on
+ * stdout before the real payload (JSON arrays or KV values).
+ */
+export function stripWranglerStdoutNoise(raw: string): string {
+  const lines = raw.split("\n");
+  const cleaned = lines.filter((line) => {
+    const t = line.trim();
+    if (!t) return false;
+    if (t.startsWith("There is a newer version of Wrangler")) return false;
+    if (t.includes("update available")) return false;
+    if (t.startsWith("⛅")) return false;
+    // Horizontal rule / separator lines from wrangler chrome
+    if (/^[─\-═]{3,}$/.test(t)) return false;
+    if (t.startsWith("▲ [WARNING]") || t.startsWith("✘ [ERROR]")) return false;
+    return true;
+  });
+  return cleaned.join("\n").trim();
 }
 
 export class KvSyncService {
@@ -25,7 +47,11 @@ export class KvSyncService {
 
       if (exitCode === 0) {
         try {
-          const namespaces = JSON.parse(stdout) as Array<{
+          // wrangler prints version banners / config warnings on stdout
+          // before the JSON array — extract the array first.
+          const jsonText =
+            extractJsonArray(stdout) ?? stripWranglerStdoutNoise(stdout);
+          const namespaces = JSON.parse(jsonText) as Array<{
             id: string;
             title: string;
           }>;
@@ -85,7 +111,10 @@ export class KvSyncService {
       );
     }
 
-    return stdout.trim() || null;
+    // wrangler may prefix version banners on stdout; take the cleaned payload.
+    // For multi-line values after noise strip, join remaining lines.
+    const cleaned = stripWranglerStdoutNoise(stdout);
+    return cleaned.length > 0 ? cleaned : null;
   }
 
   async set(namespaceId: string, key: string, value: string): Promise<void> {

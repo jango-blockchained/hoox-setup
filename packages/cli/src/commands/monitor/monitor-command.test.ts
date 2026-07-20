@@ -218,3 +218,41 @@ describe("registerMonitorCommand", () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Pure helpers (queue table / JSON parsing)
+// ---------------------------------------------------------------------------
+
+describe("parseWranglerQueuesTable / parseWranglerQueuesJson", () => {
+  it("parses wrangler queues list ASCII table", async () => {
+    const { parseWranglerQueuesTable } = await import("./monitor-command.js");
+    const table = `
+There is a newer version of Wrangler available
+┌──────────────────────────────────┬─────────────────────┬───────────┐
+│ id                               │ name                │ producers │
+├──────────────────────────────────┼─────────────────────┼───────────┤
+│ c5fa5eb90a624821a0e600e1e9e063a5 │ trade-execution     │ 1         │
+├──────────────────────────────────┼─────────────────────┼───────────┤
+│ 0e2c2e84eac3498092081765be74d679 │ trade-execution-dlq │ 0         │
+└──────────────────────────────────┴─────────────────────┴───────────┘
+`;
+    const queues = parseWranglerQueuesTable(table);
+    expect(queues.length).toBe(2);
+    expect(queues[0]?.queue_name).toBe("trade-execution");
+    expect(queues[0]?.queue_id).toBe("c5fa5eb90a624821a0e600e1e9e063a5");
+    expect(queues[1]?.queue_name).toBe("trade-execution-dlq");
+  });
+
+  it("parses JSON with wrangler banner prefix", async () => {
+    const { parseWranglerQueuesJson } = await import("./monitor-command.js");
+    const raw =
+      "There is a newer version of Wrangler available\n" +
+      JSON.stringify([
+        { queue_id: "abc", queue_name: "trade-execution" },
+        { queue_id: "def", queue_name: "other" },
+      ]);
+    const queues = parseWranglerQueuesJson(raw);
+    expect(queues.length).toBe(2);
+    expect(queues[0]?.queue_name).toBe("trade-execution");
+  });
+});

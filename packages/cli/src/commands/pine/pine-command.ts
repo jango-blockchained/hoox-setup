@@ -8,9 +8,11 @@
  *   bundle          — Bundle built-in Pine libraries for deployment
  */
 
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { Command } from "commander";
 import { withErrorHandling } from "../../utils/error-handler.js";
+import { resolveBunExecutable } from "../../utils/bun-path.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -21,12 +23,26 @@ const PINE_WORKER_DIR = resolve(process.cwd(), "workers/pine-worker");
 /**
  * Spawn a pine-worker script with inherited stdio.
  * Returns the exit code so callers can set `process.exitCode`.
+ *
+ * Uses `resolveBunExecutable()` so child spawns do not depend on PATH
+ * (bare `"bun"` → ENOENT in minimal environments). Validates that
+ * `workers/pine-worker` exists before spawn — Bun reports a missing cwd
+ * as `ENOENT: posix_spawn 'bun'`, which is misleading.
  */
 async function spawnPineScript(
   script: string,
   args: string[] = []
 ): Promise<number> {
-  const proc = Bun.spawn(["bun", "run", script, ...args], {
+  if (!existsSync(PINE_WORKER_DIR)) {
+    throw new Error(
+      `Pine worker directory not found: ${PINE_WORKER_DIR}\n` +
+        `  Clone it with: hoox clone pine-worker\n` +
+        `  Or ensure you are running from the monorepo root.`
+    );
+  }
+
+  const bunBin = resolveBunExecutable();
+  const proc = Bun.spawn([bunBin, "run", script, ...args], {
     cwd: PINE_WORKER_DIR,
     stdio: ["inherit", "inherit", "inherit"],
   });

@@ -83,6 +83,21 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("DbService", () => {
+  // -- resolveWranglerConfigPath --------------------------------------------
+
+  describe("resolveWranglerConfigPath", () => {
+    it("returns explicit constructor override", () => {
+      const service = new DbService(
+        undefined,
+        undefined,
+        "/tmp/custom-wrangler.jsonc"
+      );
+      expect(service.resolveWranglerConfigPath()).toBe(
+        "/tmp/custom-wrangler.jsonc"
+      );
+    });
+  });
+
   // -- resolveDbName --------------------------------------------------------
 
   describe("resolveDbName", () => {
@@ -242,7 +257,7 @@ describe("DbService", () => {
       const result = await service.apply("hoox-db", false);
 
       expect(result).toBe("Executed SQL successfully");
-      expect(lastSpawnCmd).toEqual([
+      expect(lastSpawnCmd.slice(0, 6)).toEqual([
         "wrangler",
         "d1",
         "execute",
@@ -426,7 +441,7 @@ describe("DbService", () => {
       );
 
       expect(result).toBe('[{"results":[{"name":"test"}]}]');
-      expect(lastSpawnCmd).toEqual([
+      expect(lastSpawnCmd.slice(0, 7)).toEqual([
         "wrangler",
         "d1",
         "execute",
@@ -444,6 +459,20 @@ describe("DbService", () => {
       await service.query("hoox-db", "SELECT 1", true);
 
       expect(lastSpawnCmd).toContain("--remote");
+    });
+
+    it("passes -c when an explicit wrangler config path is provided", async () => {
+      mockSpawnWithCapture(successSpawn("[]"));
+
+      const service = new DbService(
+        undefined,
+        undefined,
+        "workers/d1-worker/wrangler.jsonc"
+      );
+      await service.query("hoox-db", "SELECT 1", false);
+
+      expect(lastSpawnCmd).toContain("-c");
+      expect(lastSpawnCmd).toContain("workers/d1-worker/wrangler.jsonc");
     });
   });
 
@@ -484,7 +513,7 @@ describe("DbService", () => {
       const result = await service.export("hoox-db", "my-backup.sql");
 
       expect(result).toBe("my-backup.sql");
-      expect(lastSpawnCmd).toEqual([
+      expect(lastSpawnCmd.slice(0, 7)).toEqual([
         "wrangler",
         "d1",
         "export",
