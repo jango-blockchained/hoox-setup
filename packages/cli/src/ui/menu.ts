@@ -34,7 +34,7 @@ import { theme } from "../utils/theme.js";
  * - Exit or Ctrl+C to quit
  */
 export async function runInteractiveTUI(program: Command): Promise<void> {
-  // Geometric HOOX logo + wordmark; animates on TTY, static otherwise
+  // Compact HOOX wordmark (animates on TTY, static otherwise)
   await animateBanner();
   process.stdout.write("\n");
   intro("hoox");

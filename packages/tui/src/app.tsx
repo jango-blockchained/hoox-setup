@@ -15,6 +15,7 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
+import { DialogProvider, useDialog } from "@opentui-ui/dialog/react";
 import {
   useServiceStore,
   useUIStore,
@@ -27,6 +28,7 @@ import type { ViewId } from "@jango-blockchained/hoox-shared";
 import { cliBridge } from "./services/cli-bridge";
 import { resolveTuiStatePath } from "./services/hoox-path-service";
 import { getRendererRef } from "./hooks";
+import type { DialogHandle } from "./components/ui/dialog";
 
 // ─── View imports ────────────────────────────────────────────────────────────
 
@@ -55,23 +57,26 @@ import { StatusBar } from "./components/layout/statusbar";
 import { Sidebar } from "./components/layout/sidebar";
 
 // ─── View registry ───────────────────────────────────────────────────────────
+// Destructive views receive the DialogProvider handle so confirmations work.
 
-const VIEWS: Record<ViewId, () => React.ReactNode> = {
-  dashboard: DashboardView,
-  workers: WorkersOverview,
-  "worker-detail": WorkerDetail,
-  "trade-monitor": TradeMonitor,
-  "logs-viewer": LogsViewer,
-  "service-manager": () => <ServiceManager />,
-  "config-editor": ConfigEditor,
-  "setup-wizard": () => <SetupWizard />,
-  settings: SettingsView,
-  "queue-depth": QueueDepthView,
-  "kv-viewer": KvViewer,
-  "secrets-viewer": SecretsViewer,
-  "db-query": DbQueryView,
-  "ai-chat": AiChatView,
-  "edge-topology": EdgeTopology,
+type ViewFactory = (dialog: DialogHandle) => React.ReactNode;
+
+const VIEWS: Record<ViewId, ViewFactory> = {
+  dashboard: (dialog) => <DashboardView dialog={dialog} />,
+  workers: (dialog) => <WorkersOverview dialog={dialog} />,
+  "worker-detail": () => <WorkerDetail />,
+  "trade-monitor": () => <TradeMonitor />,
+  "logs-viewer": () => <LogsViewer />,
+  "service-manager": (dialog) => <ServiceManager dialog={dialog} />,
+  "config-editor": () => <ConfigEditor />,
+  "setup-wizard": (dialog) => <SetupWizard dialog={dialog} />,
+  settings: (dialog) => <SettingsView dialog={dialog} />,
+  "queue-depth": () => <QueueDepthView />,
+  "kv-viewer": () => <KvViewer />,
+  "secrets-viewer": () => <SecretsViewer />,
+  "db-query": () => <DbQueryView />,
+  "ai-chat": () => <AiChatView />,
+  "edge-topology": () => <EdgeTopology />,
 };
 
 // ─── View keyboard shortcuts ─────────────────────────────────────────────────
@@ -249,11 +254,25 @@ function quitApp(): void {
   process.exit(0);
 }
 
-export function AppRoot({
-  safeMode: _safeMode = false,
-}: {
-  safeMode?: boolean;
-}) {
+/**
+ * AppRoot — wraps the shell in DialogProvider so views can call
+ * `showConfirm` / `useDialog` for destructive actions.
+ */
+export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
+  return (
+    <DialogProvider
+      size="medium"
+      backdropColor="#000000"
+      backdropOpacity={0.35}
+    >
+      <AppRootInner safeMode={safeMode} />
+    </DialogProvider>
+  );
+}
+
+function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
+  // DialogProvider is required for useDialog; cast to our thin DialogHandle.
+  const dialog = useDialog() as unknown as DialogHandle;
   const [restoring, setRestoring] = useState(true);
   const activeView = useUIStore((s) => s.activeView);
   const sidebarExpanded = useUIStore((s) => s.sidebarExpanded);
@@ -528,7 +547,7 @@ export function AppRoot({
   }
 
   // ── Active view component ───────────────────────────────────────────────
-  const ActiveView = VIEWS[activeView] ?? VIEWS.dashboard;
+  const renderView = VIEWS[activeView] ?? VIEWS.dashboard;
 
   return (
     <box
@@ -544,7 +563,7 @@ export function AppRoot({
 
         {/* Content area: View (fills remaining space) */}
         <box flexDirection="column" flexGrow={1} padding={1}>
-          <ActiveView />
+          {renderView(dialog)}
         </box>
       </box>
 

@@ -340,8 +340,37 @@ function maskSecret(value: string): string {
 // ─── Session Persistence Helpers ─────────────────────────────────────────────
 
 /**
+ * Strip secrets / tokens from wizard form data before any disk write.
+ * Session resume keeps step + non-secret preferences only.
+ *
+ * Cleared fields: exchange API keys/secrets, AI apiKey, Telegram bot token,
+ * Discord webhook URL. Non-secret toggles, emails, chat IDs, and strategy
+ * choices are preserved.
+ */
+export function redactWizardSecrets(data: WizardFormData): WizardFormData {
+  const next = structuredClone(data);
+  for (const exchange of Object.keys(next.apiKeys)) {
+    next.apiKeys[exchange] = { key: "", secret: "" };
+  }
+  next.ai = { ...next.ai, apiKey: "" };
+  next.notifications = {
+    email: { ...next.notifications.email },
+    telegram: {
+      ...next.notifications.telegram,
+      botToken: "",
+    },
+    discord: {
+      ...next.notifications.discord,
+      webhookUrl: "",
+    },
+  };
+  return next;
+}
+
+/**
  * Persist wizard step + form data + validation state to disk.
  * Fire-and-forget; failures are non-fatal.
+ * Secrets are never written to disk (see {@link redactWizardSecrets}).
  */
 function persistSession(
   step: number,
@@ -350,7 +379,11 @@ function persistSession(
 ) {
   Bun.write(
     WIZARD_SESSION_PATH,
-    JSON.stringify({ step, data, validation })
+    JSON.stringify({
+      step,
+      data: redactWizardSecrets(data),
+      validation,
+    })
   ).catch(() => {});
 }
 
@@ -383,6 +416,8 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
 
   const updateConfig = useConfigStore((s) => s.updateConfig);
   const setView = useUIStore((s) => s.setView);
+  const activeView = useUIStore((s) => s.activeView);
+  const isActive = activeView === "setup-wizard";
   const addAlert = useServiceStore((s) => s.addAlert);
   const loadedRef = useRef(false);
 
@@ -457,8 +492,12 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
           },
         };
         setStep(session.step);
-        setData(merged);
+        // Drop any secrets that older sessions may have written cleartext.
+        const safe = redactWizardSecrets(merged);
+        setData(safe);
         if (session.validation) setValidation(session.validation);
+        // Rewrite session without secrets so disk is cleaned on resume.
+        persistSession(session.step, safe, session.validation ?? {});
       } catch {
         /* no saved session or corrupt file */
       }
@@ -596,15 +635,26 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
 
       updateConfig({ activeExchanges });
 
-      if (dialog) {
-        const confirmed = await showConfirm(dialog, {
-          title: "Deploy Configuration",
-          message: "Save setup and apply configuration?",
-          confirmLabel: "Deploy",
-          cancelLabel: "Cancel",
+      // Fail closed: never deploy without an interactive confirm surface.
+      if (!dialog) {
+        addAlert({
+          id: `deploy-noconfirm-${Date.now()}`,
+          type: "deploy",
+          severity: "warning",
+          message: "Deploy blocked: confirmation dialog unavailable",
+          timestamp: Date.now(),
+          acknowledged: false,
+          source: "SetupWizard",
         });
-        if (!confirmed) return;
+        return;
       }
+      const confirmed = await showConfirm(dialog, {
+        title: "Deploy Configuration",
+        message: "Save setup and apply configuration to Cloudflare?",
+        confirmLabel: "Deploy",
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
 
       setDeploying(true);
       setDeployLog("");
@@ -640,8 +690,9 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
     }
   };
 
-  // ── Keyboard navigation ─────────────────────────────────────────────────
+  // ── Keyboard navigation (only when Setup Wizard is active) ──────────────
   useKeyboard((key) => {
+    if (!isActive) return;
     if (key.name === "right" || (key.ctrl && key.name === "n")) handleNext();
     if (key.name === "left" || (key.ctrl && key.name === "p")) handleBack();
     if (key.name === "escape") handleBack();

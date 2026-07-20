@@ -37,9 +37,11 @@
  *   - No ability to reveal or copy secret values
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useKeyboard } from "@opentui/react";
 import { Colors } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { Spinner } from "../shared/spinner";
 import { cliBridge } from "../../services/cli-bridge";
 import type {
   SecretMetadata,
@@ -116,13 +118,30 @@ interface SearchBoxProps {
 
 function SearchBox({
   query,
-  onChange: _onChange,
+  onChange,
   active,
   onActivate,
-  onDeactivate: _onDeactivate,
+  onDeactivate,
 }: SearchBoxProps) {
-  // Note: keyboard handling for search is delegated to global handler below
-  // to avoid conflicts with the main view's keyboard handling.
+  // When active, capture printable keys for filtering (same pattern as KV Viewer).
+  useKeyboard((key) => {
+    if (!active) return;
+    if (key.name === "escape") {
+      onDeactivate();
+      return;
+    }
+    if (key.name === "backspace" || key.name === "delete") {
+      onChange(query.slice(0, -1));
+      return;
+    }
+    if (key.name === "return") {
+      onDeactivate();
+      return;
+    }
+    if (key.sequence && key.sequence.length === 1 && key.sequence >= " ") {
+      onChange(query + key.sequence);
+    }
+  });
 
   return (
     <box
@@ -241,10 +260,37 @@ export function SecretsViewer() {
     return allSecrets.find((s) => s.name === selectedSecretName) ?? null;
   }, [allSecrets, selectedSecretName]);
 
-  // ── Global keyboard handling (active only when this view is on top) ───────
-  // Note: Search keyboard handling is managed by the parent view's handler
-  // since we can't use useKeyboard inside a sub-component with conflicting shortcuts.
-  // The global shortcuts here are independent of the search box.
+  // ── Keyboard: list nav + open search (inactive while search is active) ───
+  useKeyboard((key) => {
+    if (!isActive) return;
+    if (searchActive) return; // SearchBox owns keys while active
+    if (key.name === "slash" || (key.ctrl && key.name === "f")) {
+      setSearchActive(true);
+      return;
+    }
+    if (key.name === "escape") {
+      if (selectedSecretName) setSelectedSecretName(null);
+      return;
+    }
+    if (key.name === "up") {
+      if (filteredSecrets.length === 0) return;
+      const idx = selectedSecretName
+        ? filteredSecrets.findIndex((s) => s.name === selectedSecretName)
+        : -1;
+      const next = Math.max(0, idx - 1);
+      setSelectedSecretName(filteredSecrets[next]?.name ?? null);
+      return;
+    }
+    if (key.name === "down") {
+      if (filteredSecrets.length === 0) return;
+      const idx = selectedSecretName
+        ? filteredSecrets.findIndex((s) => s.name === selectedSecretName)
+        : -1;
+      const next = Math.min(filteredSecrets.length - 1, idx + 1);
+      setSelectedSecretName(filteredSecrets[next]?.name ?? null);
+      return;
+    }
+  });
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -343,10 +389,8 @@ export function SecretsViewer() {
 
             {/* Body */}
             {loading && allSecrets.length === 0 ? (
-              <box padding={1}>
-                <text fg={Colors.muted} dim>
-                  Loading secrets…
-                </text>
+              <box padding={1} flexGrow={1} justifyContent="center">
+                <Spinner label="Loading secrets…" />
               </box>
             ) : error && allSecrets.length === 0 ? (
               <box padding={1} flexDirection="column" gap={0}>

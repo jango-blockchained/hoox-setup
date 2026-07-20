@@ -102,7 +102,10 @@ function EdgeMap() {
         <text fg={Colors.accent} bold>
           <b>EDGE NETWORK</b>
         </text>
-        <text fg={Colors.muted}>{EDGE_LOCATIONS.length} major PoPs</text>
+        <text fg={Colors.warning} dim>
+          schematic · not live CF
+        </text>
+        <text fg={Colors.muted}>{EDGE_LOCATIONS.length} sample PoPs</text>
       </box>
 
       {/* Map grid with border */}
@@ -163,7 +166,7 @@ function EdgeMap() {
           </box>
         ) : (
           <text fg={Colors.muted} dim>
-            Click a ● to see location details
+            Click a ● for sample city · map is illustrative only
           </text>
         )}
       </box>
@@ -603,10 +606,10 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
   const [deployingWorker, setDeployingWorker] = useState<string | null>(null);
   const [deployProgress, setDeployProgress] = useState("");
 
-  // Edge count: sum of all workers' edgeCount + a base fallback
+  // Edge count from worker telemetry only — never invent a marketing "275+".
   const totalEdgeCount = workers.reduce((sum, w) => sum + w.edgeCount, 0);
-  const displayEdgeCount = totalEdgeCount > 0 ? totalEdgeCount : 275;
-  const showPlus = totalEdgeCount === 0;
+  const displayEdgeCount = totalEdgeCount;
+  const showPlus = false;
 
   /** Shared progress callback */
   const onProgress = useCallback((chunk: string) => {
@@ -786,9 +789,9 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
             <b>SERVICE MANAGER</b>
           </text>
           <box flexDirection="row" gap={1}>
-            <text fg={Colors.info}>Edge:</text>
+            <text fg={Colors.info}>Edges:</text>
             <text fg={Colors.accent} bold>
-              {displayEdgeCount}
+              {displayEdgeCount > 0 ? String(displayEdgeCount) : "—"}
               {showPlus ? "+" : ""}
             </text>
             <text

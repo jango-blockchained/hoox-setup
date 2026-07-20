@@ -2,15 +2,18 @@
 /**
  * Logs Viewer — Split-layout view with filter controls on left (20 cols) and
  * scrolling color-coded log stream on right. Filters combine with AND logic.
- * Keyboard: Space toggles pause, / focuses search, Tab switches zones.
+ * Keyboard: Space toggles pause, / focuses the search field.
  *
  * Uses service store logs (ring buffer) and workers list for filter checkboxes.
  * Color-coded by level using Hoox design tokens. Wrapped in ErrorBoundary.
  */
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  useServiceStore,
+  useUIStore,
+} from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 import type {
@@ -283,12 +286,15 @@ export function LogsViewer() {
     new Set()
   );
   const [searchText, setSearchText] = useState("");
-  const [, setFocusZone] = useState<"filters" | "stream">("filters");
+  /** When true, printable keys append to searchText instead of being ignored. */
+  const [searchActive, setSearchActive] = useState(false);
 
   // ── Store subscriptions (selectors only) ────────────────────────────────
   const allLogs = useServiceStore((s) => s.logs);
   const workers = useServiceStore((s) => s.workers);
   const connectionStatus = useServiceStore((s) => s.connectionStatus);
+  const activeView = useUIStore((s) => s.activeView);
+  const isActive = activeView === "logs-viewer";
 
   // Derive unique worker names for checkboxes
   const workerNames = useMemo(() => workers.map((w) => w.name), [workers]);
@@ -359,6 +365,8 @@ export function LogsViewer() {
   }, []);
 
   const handleClear = useCallback(() => {
+    // Soft confirm via status alert path — clearing is local buffer only.
+    // (No dialog prop on this view; keep non-destructive.)
     const ts = Date.now();
     useServiceStore.setState((state) => {
       state.logs = [];
@@ -450,18 +458,33 @@ export function LogsViewer() {
     }
   }, [paused, frozen, displayed]);
 
-  // ── Keyboard ────────────────────────────────────────────────────────────
-  useKeyboard((key: { name: string }) => {
-    switch (key.name) {
-      case "space":
-        setPaused((p) => !p);
-        break;
-      case "/":
-        setFocusZone("filters");
-        break;
-      case "tab":
-        setFocusZone((z) => (z === "filters" ? "stream" : "filters"));
-        break;
+  // ── Keyboard (active view only) ─────────────────────────────────────────
+  useKeyboard((key: { name: string; sequence?: string; ctrl?: boolean }) => {
+    if (!isActive) return;
+
+    // Search mode: type to filter, Esc / Enter to leave
+    if (searchActive) {
+      if (key.name === "escape" || key.name === "return") {
+        setSearchActive(false);
+        return;
+      }
+      if (key.name === "backspace" || key.name === "delete") {
+        setSearchText((t) => t.slice(0, -1));
+        return;
+      }
+      if (key.sequence && key.sequence.length === 1 && key.sequence >= " ") {
+        setSearchText((t) => t + key.sequence);
+      }
+      return;
+    }
+
+    if (key.name === "space") {
+      setPaused((p) => !p);
+      return;
+    }
+    if (key.name === "slash" || key.name === "/") {
+      setSearchActive(true);
+      return;
     }
   });
 
@@ -481,6 +504,8 @@ export function LogsViewer() {
           <text dim fg={Colors.muted}>
             {filteredLogs.length}/{allLogs.length} entries
             {paused ? " [PAUSED]" : ""}
+            {searchActive ? " [SEARCH]" : ""}
+            {" · Space pause · / search"}
           </text>
         </box>
 

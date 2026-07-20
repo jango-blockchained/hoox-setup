@@ -14,10 +14,33 @@ import {
   formatContent,
   flattenTree,
   CONFIG_TREE_BLUEPRINT,
+  resolveConfigDir,
+  resolveConfigFilePath,
+  resetResolvedConfigDir,
 } from "./config-editor";
 import type { FileNode } from "./config-editor";
 
 describe("ConfigEditor", () => {
+  // ─── Path resolution (no double config/config) ─────────────────────────
+
+  describe("resolveConfigFilePath", () => {
+    it("does not double-prefix config/ under a project root", () => {
+      resetResolvedConfigDir();
+      const root = resolveConfigDir();
+      const full = resolveConfigFilePath("config/wrangler.toml");
+      expect(full).not.toContain("config/config/");
+      expect(
+        full.endsWith("config/wrangler.toml") ||
+          full.endsWith("config\\wrangler.toml")
+      ).toBe(true);
+      // Root should not itself be the config directory when blueprint uses config/…
+      if (root.endsWith("/config") || root.endsWith("\\config")) {
+        // If root is config dir, relative paths must strip config/ — covered above
+        expect(full.includes(`${root}/config/`)).toBe(false);
+      }
+    });
+  });
+
   // ─── Tree Structure Tests ──────────────────────────────────────────────
 
   describe("CONFIG_TREE_BLUEPRINT", () => {

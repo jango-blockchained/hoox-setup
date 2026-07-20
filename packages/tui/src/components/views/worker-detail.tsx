@@ -98,31 +98,31 @@ function BreadcrumbHeader({ worker }: { worker: Worker }) {
  * Metrics pane — key health and performance indicators.
  */
 function MetricsPane({ worker }: { worker: Worker }) {
-  // Use WorkerInfo fields (cpu, memory, requests) for metrics display
-  const cpuAvg = worker.cpu.toFixed(1);
-  const cpuP99 = worker.cpu.toFixed(1);
-  const memMB = worker.memory;
-  const memLimitMB = worker.memory;
-  const requests = worker.requests;
+  // WorkerInfo.cpu is a percentage (0–100), memory is MB used (no hard limit
+  // is exposed by the API — do not invent a denominator or P99).
+  const cpuPct = Number.isFinite(worker.cpu) ? worker.cpu : 0;
+  const memMB = Number.isFinite(worker.memory) ? worker.memory : 0;
+  const requests = Number.isFinite(worker.requests) ? worker.requests : 0;
 
   const rows: [string, string, string][] = [
     ["Uptime", formatUptime(worker.uptime), Colors.success],
     [
-      "CPU Avg",
-      `${cpuAvg}ms`,
-      Number(cpuAvg) > 80
+      "CPU",
+      `${cpuPct.toFixed(1)}%`,
+      cpuPct > 80
         ? Colors.error
-        : Number(cpuAvg) > 60
+        : cpuPct > 60
           ? Colors.warning
           : Colors.success,
     ],
-    ["CPU P99", `${cpuP99}ms`, Colors.muted],
     [
       "Memory",
-      `${memMB} MB / ${memLimitMB} MB`,
+      `${memMB.toFixed(0)} MB`,
       memMB > 100 ? Colors.warning : Colors.success,
     ],
     ["Requests (24h)", requests.toLocaleString(), Colors.info],
+    ["DO count", String(worker.durableObjectCount ?? 0), Colors.muted],
+    ["Edges", String(worker.edgeCount ?? 0), Colors.muted],
   ];
 
   return (
@@ -255,25 +255,20 @@ function LogLine({ log }: { log: Log }) {
 }
 
 /**
- * Durable Objects pane — list of DOs with name and status.
+ * Durable Objects pane — count + honesty when names are unavailable.
  *
- * NOTE: Accurate DO names require a DO namespace API endpoint
- * that isn't currently exposed by the Workers API. Names here
- * are inferred from the worker name as a best-effort display.
+ * The Workers API currently exposes only `durableObjectCount`, not DO
+ * names. We refuse to invent names (older UI fabricated
+ * `{worker}-state|cache|queue`).
  */
 function DurableObjectsPane({ worker }: { worker: Worker }) {
-  // Derive DO display from real count and worker name
-  const dos = useMemo(() => {
-    // WorkerInfo tells us how many DOs exist but not their names
-    const count = Math.max(0, worker.durableObjectCount);
-    const names = worker.name
-      ? [`${worker.name}-state`, `${worker.name}-cache`, `${worker.name}-queue`]
-      : [];
-    return names.slice(0, Math.max(1, count)).map((name) => ({
-      name,
-      status: worker.status === "down" ? ("ERROR" as const) : ("OK" as const),
-    }));
-  }, [worker]);
+  const count = Math.max(0, worker.durableObjectCount ?? 0);
+  const statusLabel =
+    worker.status === "down"
+      ? "worker down"
+      : worker.status === "degraded"
+        ? "degraded"
+        : "operational";
 
   return (
     <box
@@ -288,37 +283,44 @@ function DurableObjectsPane({ worker }: { worker: Worker }) {
       <text fg={Colors.accent} bold>
         Durable Objects
       </text>
-      <scrollbox width="100%" flexGrow={1} border={false}>
-        {dos.length === 0 ? (
+      <box flexDirection="column" paddingTop={1} gap={0}>
+        <box flexDirection="row" gap={1}>
           <text fg={Colors.muted} dim>
-            No Durable Objects
+            Count
           </text>
-        ) : (
-          dos.map((dobj) => (
-            <box key={dobj.name} flexDirection="row" gap={1}>
-              <text
-                fg={dobj.status === "OK" ? Colors.success : Colors.error}
-                bold={dobj.status === "OK"}
-              >
-                {dobj.status === "OK" ? "█" : "░"}
-              </text>
-              <text
-                fg={dobj.status === "OK" ? Colors.foreground : Colors.error}
-              >
-                {dobj.name}
-              </text>
-            </box>
-          ))
-        )}
-      </scrollbox>
+          <text fg={Colors.foreground} bold>
+            {count}
+          </text>
+        </box>
+        <box flexDirection="row" gap={1}>
+          <text fg={Colors.muted} dim>
+            Worker
+          </text>
+          <text
+            fg={
+              worker.status === "down"
+                ? Colors.error
+                : worker.status === "degraded"
+                  ? Colors.warning
+                  : Colors.success
+            }
+          >
+            {statusLabel}
+          </text>
+        </box>
+        <text fg={Colors.muted} dim>
+          {count === 0
+            ? "No Durable Objects reported for this worker."
+            : "Names unavailable — API exposes count only."}
+        </text>
+      </box>
     </box>
   );
 }
 
 /**
- * Config Preview pane — read-only key:value pairs.
- * Shows live data from cliBridge.configShow() when available,
- * falls back to worker-derived defaults.
+ * Config Preview pane — read-only key:value pairs from CLI only.
+ * Never invents demo exchanges/symbols when configShow is empty.
  */
 function ConfigPreviewPane({
   worker,
@@ -329,21 +331,17 @@ function ConfigPreviewPane({
   entries?: DemoConfigEntry[];
   loading?: boolean;
 }) {
-  // Live entries from CLI or fallback to worker-derived demo data
+  // Only show CLI-sourced entries — plus a short identity row from the worker.
   const displayEntries: DemoConfigEntry[] = useMemo(() => {
     if (entries && entries.length > 0) return entries;
     return [
-      {
-        key: "active",
-        value: worker.status === "operational" ? "true" : "false",
-      },
-      { key: "exchanges", value: "binance, mexc, bybit" },
-      { key: "maxSpread", value: "0.5" },
-      { key: "symbol", value: "BTCUSDT, ETHUSDT, SOLUSDT" },
-      { key: "version", value: worker.version || "0.1.0" },
-      { key: "edges", value: worker.edgeCount.toString() },
+      { key: "name", value: worker.name },
+      { key: "status", value: worker.status },
+      { key: "version", value: worker.version || "—" },
     ];
   }, [entries, worker]);
+
+  const showingIdentityOnly = !entries || entries.length === 0;
 
   return (
     <box
@@ -365,6 +363,11 @@ function ConfigPreviewPane({
           </text>
         )}
       </box>
+      {showingIdentityOnly && !loading && (
+        <text fg={Colors.muted} dim>
+          Live config unavailable · identity only
+        </text>
+      )}
       <box flexDirection="column" paddingTop={1} gap={0}>
         {displayEntries.map((entry) => (
           <box key={entry.key} flexDirection="row" gap={1}>
@@ -511,8 +514,12 @@ export function WorkerDetail() {
     }
   }, [fetchConfig, fetchLogs, connectionStatus]);
 
-  // View-local keyboard handling
+  const activeView = useUIStore((s) => s.activeView);
+  const isActive = activeView === "worker-detail";
+
+  // View-local keyboard handling (only when this view is active)
   useKeyboard((key) => {
+    if (!isActive) return;
     switch (key.name) {
       case "tab":
         // Cycle focus forward between panes

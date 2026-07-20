@@ -204,15 +204,13 @@ describe("ServiceManager", () => {
 
   // ── Edge Count Header ───────────────────────────────────────────────────
 
-  test("edge count header shows 275+ when no workers have edge counts", () => {
-    // This is validated by the component's internal logic:
-    // totalEdgeCount = sum(workers[].edgeCount) = 0 -> displayEdgeCount = 275, showPlus = true
+  test("edge count header shows no invented marketing total when edges are zero", () => {
+    // totalEdgeCount = sum(workers[].edgeCount) = 0 -> UI shows "—" (not 275+)
     const workersWithNoEdges: WorkerInfo[] = [
       makeWorker({ id: "w1", name: "alpha", edgeCount: 0 }),
     ];
     const total = workersWithNoEdges.reduce((sum, w) => sum + w.edgeCount, 0);
     expect(total).toBe(0);
-    // The component would display "275+"
   });
 
   test("edge count header matches actual count from workers", () => {

@@ -380,20 +380,28 @@ export function DashboardView({ dialog }: DashboardViewProps = {}) {
   };
 
   const handleRunAutoRepair = useCallback(async () => {
-    // Show confirmation dialog before running repair
-    // When dialog is not available, repair runs without confirmation (dev mode)
-    if (dialog) {
-      const confirmed = await showConfirm(dialog, {
-        title: "Run Auto-Repair?",
-        message:
-          "Auto-repair will apply non-destructive fixes to your configuration. " +
-          "This creates placeholder .dev.vars files, adds compatibility flags, " +
-          "and ensures worker configs are valid.",
-        confirmLabel: "Run Repair",
-        cancelLabel: "Cancel",
+    // Fail closed: never mutate config without an interactive confirm surface.
+    if (!dialog) {
+      useServiceStore.getState().addAlert({
+        id: `repair-noconfirm-${Date.now()}`,
+        type: "config",
+        severity: "warning",
+        message: "Auto-repair blocked: confirmation dialog unavailable",
+        timestamp: Date.now(),
+        acknowledged: false,
       });
-      if (!confirmed) return;
+      return;
     }
+    const confirmed = await showConfirm(dialog, {
+      title: "Run Auto-Repair?",
+      message:
+        "Auto-repair will apply non-destructive fixes to your configuration. " +
+        "This creates placeholder .dev.vars files, adds compatibility flags, " +
+        "and ensures worker configs are valid.",
+      confirmLabel: "Run Repair",
+      cancelLabel: "Cancel",
+    });
+    if (!confirmed) return;
 
     setRepairState({ kind: "running" });
     try {

@@ -31,7 +31,75 @@ mock.module("@jango-blockchained/hoox-shared/stores/ui-store", () => ({
 }));
 
 // ─── Import component under test ─────────────────────────────────────────────
-import { SetupWizard } from "./setup-wizard";
+import { SetupWizard, redactWizardSecrets } from "./setup-wizard";
+
+// ─── Secret redaction (session persistence) ─────────────────────────────────
+
+describe("redactWizardSecrets", () => {
+  it("clears exchange keys, AI key, telegram token, and discord webhook", () => {
+    const redacted = redactWizardSecrets({
+      apiKeys: {
+        binance: { key: "binance-key-secret-value", secret: "binance-sec" },
+        bybit: { key: "bybit-key", secret: "bybit-sec" },
+        mexc: { key: "mexc-key", secret: "mexc-sec" },
+      },
+      exchanges: { binance: true, bybit: false, mexc: false },
+      ai: {
+        providerUrl: "https://api.example.com",
+        apiKey: "sk-live-secret",
+        model: "gpt-4",
+      },
+      strategy: { type: "grid", params: { spacing: "1" } },
+      notifications: {
+        email: { enabled: true, address: "ops@example.com" },
+        telegram: {
+          enabled: true,
+          botToken: "123:ABC-secret",
+          chatId: "999",
+        },
+        discord: {
+          enabled: true,
+          webhookUrl: "https://discord.com/api/webhooks/secret",
+        },
+      },
+    });
+
+    expect(redacted.apiKeys.binance).toEqual({ key: "", secret: "" });
+    expect(redacted.apiKeys.bybit).toEqual({ key: "", secret: "" });
+    expect(redacted.apiKeys.mexc).toEqual({ key: "", secret: "" });
+    expect(redacted.ai.apiKey).toBe("");
+    expect(redacted.ai.providerUrl).toBe("https://api.example.com");
+    expect(redacted.ai.model).toBe("gpt-4");
+    expect(redacted.notifications.telegram.botToken).toBe("");
+    expect(redacted.notifications.telegram.chatId).toBe("999");
+    expect(redacted.notifications.discord.webhookUrl).toBe("");
+    expect(redacted.notifications.email.address).toBe("ops@example.com");
+    expect(redacted.exchanges.binance).toBe(true);
+    expect(redacted.strategy.type).toBe("grid");
+  });
+
+  it("does not mutate the input object", () => {
+    const original = {
+      apiKeys: {
+        binance: { key: "keep-me", secret: "keep-me-too" },
+        bybit: { key: "", secret: "" },
+        mexc: { key: "", secret: "" },
+      },
+      exchanges: { binance: true, bybit: false, mexc: false },
+      ai: { providerUrl: "", apiKey: "secret", model: "default" },
+      strategy: { type: "grid" as const, params: {} },
+      notifications: {
+        email: { enabled: false, address: "" },
+        telegram: { enabled: false, botToken: "tok", chatId: "" },
+        discord: { enabled: false, webhookUrl: "hook" },
+      },
+    };
+    redactWizardSecrets(original);
+    expect(original.apiKeys.binance.key).toBe("keep-me");
+    expect(original.ai.apiKey).toBe("secret");
+    expect(original.notifications.telegram.botToken).toBe("tok");
+  });
+});
 
 // ─── Validation unit tests ───────────────────────────────────────────────────
 

@@ -16,4 +16,17 @@ describe("SecretsViewer", () => {
     // Bun has no localStorage; SecretsViewer must never touch it
     expect("localStorage" in globalThis).toBe(false);
   });
+
+  it("documents keyboard search (/) and list navigation (↑↓)", async () => {
+    // Contract: SecretsViewer wires useKeyboard for / and ↑↓ (parity with KV Viewer).
+    // Regression guard against the previous dead SearchBox (onChange discarded).
+    const src = await Bun.file(
+      new URL("./secrets-viewer.tsx", import.meta.url)
+    ).text();
+    expect(src).toContain("useKeyboard");
+    expect(src).toContain('key.name === "slash"');
+    expect(src).toContain("setSearchActive(true)");
+    expect(src).toContain("filteredSecrets");
+    expect(src).toContain("onChange={setSearch}");
+  });
 });

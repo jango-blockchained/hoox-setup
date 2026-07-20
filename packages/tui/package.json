@@ -4,6 +4,19 @@
   "description": "Hoox algorithmic trading terminal operations center — OpenTUI dashboard",
   "type": "module",
   "main": "src/main.tsx",
+  "exports": {
+    ".": "./src/main.tsx",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "hoox-tui": "src/main.tsx"
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "package.json"
+  ],
   "scripts": {
     "dev": "bun run src/main.tsx",
     "build": "bun build src/main.tsx --outdir dist --target bun --packages external",
@@ -31,6 +44,9 @@
   "license": "Apache-2.0",
   "peerDependencies": {
     "@jango-blockchained/hoox-shared": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "author": "jango-blockchained"
 }

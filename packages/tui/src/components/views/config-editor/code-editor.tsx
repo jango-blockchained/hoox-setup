@@ -479,10 +479,10 @@ export function CodeEditor({
       paddingX={1}
       paddingY={0}
     >
-      {/* Header — file name */}
+      {/* Header — file name (view-first: free typing not supported) */}
       <box paddingLeft={1} paddingRight={1} paddingTop={0} paddingBottom={0}>
         <text fg={Colors.foreground}>
-          {fileName ? `Editing: ${fileName}` : "No file selected"}
+          {fileName ? `Viewing: ${fileName}` : "No file selected"}
         </text>
       </box>
 
@@ -539,7 +539,7 @@ export function CodeEditor({
       ) : (
         <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
           <text fg={Colors.muted} dim>
-            Select a file from the tree to begin editing
+            Select a file from the tree to view (Format / Save available)
           </text>
           <text fg={Colors.dim} dim>
             ↑↓ navigate · Enter select · Tab switch pane

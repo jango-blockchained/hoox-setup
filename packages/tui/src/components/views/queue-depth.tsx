@@ -258,9 +258,14 @@ export function QueueDepthView() {
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* Header row */}
         <box flexDirection="row" justifyContent="space-between">
-          <text fg={Colors.accent} bold>
-            <b>QUEUE DEPTH</b>
-          </text>
+          <box flexDirection="row" gap={2} alignItems="center">
+            <text fg={Colors.accent} bold>
+              <b>QUEUE DEPTH</b>
+            </text>
+            <text fg={Colors.warning} dim>
+              estimate · not live backlog
+            </text>
+          </box>
           <box flexDirection="row" gap={2} alignItems="center">
             <text fg={Colors.muted} dim>
               {queues.length} queue{queues.length === 1 ? "" : "s"}
@@ -270,6 +275,11 @@ export function QueueDepthView() {
             </text>
           </box>
         </box>
+
+        <text fg={Colors.muted} dim>
+          Depth is a producer-count heuristic (Cloudflare Queues do not expose
+          real-time backlog). Treat green/yellow/red as pressure guidance only.
+        </text>
 
         {/* Summary bar */}
         <SummaryBar queues={queues} />

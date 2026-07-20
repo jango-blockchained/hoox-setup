@@ -25,9 +25,10 @@
  * 5 (Color Token Usage), 8 (ScrollBox).
  * Colors from @jango-blockchained/hoox-shared design tokens. No CSS, no DOM.
  */
+import { existsSync } from "node:fs";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 
@@ -66,8 +67,13 @@ export {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Default config directory paths to try (first existing wins). */
-const CONFIG_DIR_CANDIDATES = ["./config", "config", "./packages/tui/config"];
+/**
+ * Project-root candidates that may contain a `config/` directory.
+ * Blueprint paths are always relative to the *project root* (e.g.
+ * `config/wrangler.toml`), never to the config dir itself — that
+ * avoids the double-prefix bug (`…/config/config/…`).
+ */
+const PROJECT_ROOT_CANDIDATES = [".", "..", "../..", "packages/tui"];
 
 /** Known config files — used as the tree blueprint. Content is lazy-loaded. */
 export const CONFIG_TREE_BLUEPRINT: FileNode[] = [
@@ -116,36 +122,84 @@ export const CONFIG_TREE_BLUEPRINT: FileNode[] = [
 
 // ─── Helpers — File I/O (Bun native) ──────────────────────────────────────────
 
-/** Cache of resolved config base directory (lazy, memoized). */
-let _resolvedConfigDir: string | null = null;
+/** Cache of resolved project root (lazy, memoized). */
+let _resolvedProjectRoot: string | null = null;
 
-/** Resolve the first existing config directory from candidates. */
+/**
+ * Resolve the monorepo/project root that contains a `config/` folder.
+ * Blueprint file paths are joined under this root.
+ *
+ * @internal Exported for tests; call {@link resetResolvedConfigDir} between tests.
+ */
 export function resolveConfigDir(): string {
-  if (_resolvedConfigDir) return _resolvedConfigDir;
-  // Try each candidate relative to cwd; Bun's file ops will fail gracefully
-  // if the directory doesn't exist — we just need a base to construct paths.
+  if (_resolvedProjectRoot) return _resolvedProjectRoot;
   const cwd =
     typeof process !== "undefined" && process.cwd ? process.cwd() : ".";
-  for (const cand of CONFIG_DIR_CANDIDATES) {
-    _resolvedConfigDir = `${cwd}/${cand}`
-      .replace(/\/\.\//, "/")
-      .replace(/\/\//g, "/");
-    return _resolvedConfigDir;
+
+  for (const cand of PROJECT_ROOT_CANDIDATES) {
+    const base = normalizePath(`${cwd}/${cand}`);
+    if (configDirExists(base)) {
+      _resolvedProjectRoot = base;
+      return base;
+    }
   }
-  return `${cwd}/config`;
+
+  // Fallback: cwd (blueprint paths still start with config/…)
+  _resolvedProjectRoot = normalizePath(cwd);
+  return _resolvedProjectRoot;
+}
+
+/** Reset memoized project root (tests only). */
+export function resetResolvedConfigDir(): void {
+  _resolvedProjectRoot = null;
+}
+
+function normalizePath(p: string): string {
+  return (
+    p
+      .replace(/\/\.\//g, "/")
+      .replace(/\/+/g, "/")
+      .replace(/\/$/, "") || "."
+  );
+}
+
+function configDirExists(projectRoot: string): boolean {
+  try {
+    if (existsSync(`${projectRoot}/config`)) return true;
+    // Monorepo root without a top-level config/ still needs project root so
+    // blueprint paths (`config/…`) never double-prefix under …/config/config.
+    if (
+      existsSync(`${projectRoot}/package.json`) &&
+      (existsSync(`${projectRoot}/packages`) ||
+        existsSync(`${projectRoot}/wrangler.jsonc`))
+    ) {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+/** Join a blueprint-relative path onto the resolved project root. */
+export function resolveConfigFilePath(relativePath: string): string {
+  const root = resolveConfigDir();
+  // Strip a leading `./` and collapse accidental double `config/config`
+  let rel = relativePath.replace(/^\.\//, "");
+  if (root.endsWith("/config") && rel.startsWith("config/")) {
+    rel = rel.slice("config/".length);
+  }
+  return normalizePath(`${root}/${rel}`);
 }
 
 /** Read a config file from disk. Returns empty string if the file doesn't exist. */
 async function loadFileContent(relativePath: string): Promise<string> {
-  const dir = resolveConfigDir();
-  const fullPath = `${dir}/${relativePath}`;
+  const fullPath = resolveConfigFilePath(relativePath);
   try {
-    // Use Bun.file to check existence and read
     const f = Bun.file(fullPath);
     const exists = await f.exists();
     return exists ? await f.text() : "";
   } catch {
-    // File doesn't exist or can't be read — return a placeholder
     return `# ${relativePath}\n# File not found at ${fullPath}\n`;
   }
 }
@@ -155,14 +209,16 @@ async function saveFileContent(
   relativePath: string,
   content: string
 ): Promise<void> {
-  const dir = resolveConfigDir();
-  const fullPath = `${dir}/${relativePath}`;
+  const fullPath = resolveConfigFilePath(relativePath);
   await Bun.write(fullPath, content);
 }
 
 // ─── Main ConfigEditor View ──────────────────────────────────────────────────
 
 export function ConfigEditor() {
+  const activeView = useUIStore((s) => s.activeView);
+  const isActive = activeView === "config-editor";
+
   // ── State ──────────────────────────────────────────────────────────────
   const [fileContents, setFileContents] = useState<Map<string, string>>(
     new Map()
@@ -361,9 +417,10 @@ export function ConfigEditor() {
     }
   }, [findMode]);
 
-  // ── Keyboard ───────────────────────────────────────────────────────────
+  // ── Keyboard (only when this view is active) ───────────────────────────
 
   useKeyboard((key) => {
+    if (!isActive) return;
     if (key.ctrl && key.name === "z") {
       handleUndo();
       return;
@@ -437,13 +494,16 @@ export function ConfigEditor() {
     <ErrorBoundary viewName="Config Editor">
       <box flexDirection="column" flexGrow={1} padding={1} gap={0}>
         {/* Header */}
-        <box flexDirection="row" gap={2} paddingBottom={0}>
+        <box flexDirection="row" gap={2} paddingBottom={0} alignItems="center">
           <text fg={Colors.accent} bold>
-            Config Editor
+            Config Viewer
+          </text>
+          <text fg={Colors.muted} dim>
+            format/save only · free-text edit via external editor
           </text>
           {statusMessage && (
-            <text fg={Colors.muted} dim>
-              {statusMessage}
+            <text fg={Colors.info} dim>
+              · {statusMessage}
             </text>
           )}
         </box>

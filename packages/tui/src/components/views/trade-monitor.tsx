@@ -102,7 +102,8 @@ function startOfDaysAgo(days: number): number {
 }
 
 /**
- * Calculate latency in ms: current time minus trade timestamp.
+ * Age of the trade event in ms (now − trade timestamp).
+ * This is feed staleness, not exchange round-trip latency.
  * Returns null if trade is in the future (clock skew).
  */
 function calcLatency(tradeTs: number): number | null {
@@ -230,7 +231,7 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
           EXCHANGE
         </text>
         <text fg={Colors.muted} dim>
-          LATENCY
+          AGE
         </text>
       </box>
 
@@ -331,15 +332,15 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
 }
 
 /**
- * OpenPositions — derived positions table from trade P&L data.
+ * SymbolPnlSummary — per-symbol P&L rolled up from the live trade stream.
  *
- * Groups trades by symbol, sums pnl per symbol, and displays each position
- * with color-coded P&L (green positive, red negative). Total P&L in header.
+ * This is NOT exchange inventory / open-position state. It groups stream
+ * trades by symbol and sums reported pnl. Labels in the UI say so explicitly.
  */
 function OpenPositions() {
   const tradeStream = useServiceStore((s) => s.tradeStream);
 
-  // Derive positions: group by symbol, sum pnl where available
+  // Derive per-symbol P&L from stream (not real open positions)
   const positions = useMemo(() => {
     const map = new Map<
       string,
@@ -376,10 +377,13 @@ function OpenPositions() {
 
   return (
     <box flexDirection="column">
-      {/* Section label + total P&L */}
-      <box flexDirection="row" gap={2}>
+      {/* Section label + total P&L (stream rollup, not exchange inventory) */}
+      <box flexDirection="row" gap={2} alignItems="center">
         <text fg={Colors.foreground} bold dim>
-          OPEN POSITIONS
+          SYMBOL P&L
+        </text>
+        <text fg={Colors.muted} dim>
+          (stream)
         </text>
         <text fg={totalPnl >= 0 ? Colors.success : Colors.error} bold>
           {formatPnL(totalPnl)}
@@ -401,7 +405,7 @@ function OpenPositions() {
 
       {positions.length === 0 ? (
         <box paddingTop={1} flexGrow={1}>
-          <EmptyState message="No open positions" icon="📊" />
+          <EmptyState message="No stream P&L yet" icon="📊" />
         </box>
       ) : (
         <scrollbox

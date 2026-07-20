@@ -29,6 +29,15 @@ import { StatusDot } from "../shared/status-dot";
 import { Spinner, EmptyState } from "../shared/spinner";
 import { cliBridge } from "../../services/cli-bridge";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared";
+import { showConfirm } from "../ui/dialog";
+import type { DialogHandle } from "../ui/dialog";
+
+// ── Props ─────────────────────────────────────────────────────────────────────
+
+export interface WorkersOverviewProps {
+  /** Dialog handle for deploy/restart confirmation (from DialogProvider). */
+  dialog?: DialogHandle;
+}
 
 // ── Grid Constants ────────────────────────────────────────────────────────────
 
@@ -188,7 +197,7 @@ function WorkerCard({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function WorkersOverview() {
+export function WorkersOverview({ dialog }: WorkersOverviewProps = {}) {
   // ── 2D grid focus state ─────────────────────────────────────────────────
   const [focusedIndex, setFocusedIndex] = useState(0);
 
@@ -375,6 +384,26 @@ export function WorkersOverview() {
   const handleDeploy = useCallback(
     async (worker: WorkerInfo) => {
       if (deployingWorker) return;
+      // Fail closed: never deploy without an interactive confirm surface.
+      if (!dialog) {
+        useServiceStore.getState().addAlert({
+          id: `deploy-noconfirm-${Date.now()}`,
+          type: "deploy",
+          severity: "warning",
+          message: `Deploy blocked: confirmation dialog unavailable for ${worker.name}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+      const confirmed = await showConfirm(dialog, {
+        title: `Deploy ${worker.name}`,
+        message: `Publish the latest code for ${worker.name} to Cloudflare? This replaces the current deployment.`,
+        confirmLabel: "Deploy",
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+
       setDeployingWorker(worker.name);
       setDeployProgress("");
       try {
@@ -404,12 +433,31 @@ export function WorkersOverview() {
         setDeployingWorker(null);
       }
     },
-    [deployingWorker, onProgress]
+    [deployingWorker, onProgress, dialog]
   );
 
   const handleRestart = useCallback(
     async (worker: WorkerInfo) => {
       if (deployingWorker) return;
+      if (!dialog) {
+        useServiceStore.getState().addAlert({
+          id: `restart-noconfirm-${Date.now()}`,
+          type: "restart",
+          severity: "warning",
+          message: `Restart blocked: confirmation dialog unavailable for ${worker.name}`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return;
+      }
+      const confirmed = await showConfirm(dialog, {
+        title: `Restart ${worker.name}`,
+        message: `Restart ${worker.name}? Running tasks will be drained before the worker is repaired/restarted.`,
+        confirmLabel: "Restart",
+        cancelLabel: "Cancel",
+      });
+      if (!confirmed) return;
+
       setDeployingWorker(worker.name);
       setDeployProgress("");
       try {
@@ -439,7 +487,7 @@ export function WorkersOverview() {
         setDeployingWorker(null);
       }
     },
-    [deployingWorker, onProgress]
+    [deployingWorker, onProgress, dialog]
   );
 
   // ── Escape hatch: empty state ───────────────────────────────────────────

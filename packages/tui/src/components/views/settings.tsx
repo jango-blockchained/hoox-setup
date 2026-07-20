@@ -16,9 +16,15 @@
  */
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
-import { useConfigStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  useServiceStore,
+  useUIStore,
+  useConfigStore,
+} from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { showConfirm } from "../ui/dialog";
+import type { DialogHandle } from "../ui/dialog";
 import { cliBridge } from "../../services/cli-bridge";
 import * as path from "path";
 import * as os from "os";
@@ -26,6 +32,11 @@ import type {
   ViewId,
   NotificationPreferences,
 } from "@jango-blockchained/hoox-shared";
+
+export interface SettingsViewProps {
+  /** Dialog handle for destructive action confirmation. */
+  dialog?: DialogHandle;
+}
 
 // ─── Check Setup Types ────────────────────────────────────────────────────────
 
@@ -302,15 +313,16 @@ const THEME_ITEM_COUNT = 5;
 function ThemePanel({
   active,
   activeItem,
+  onResetDefaults,
 }: {
   active: boolean;
   activeItem: number;
+  onResetDefaults: () => void;
 }) {
   const theme = useConfigStore((s) => s.theme);
   const refreshIntervalMs = useConfigStore((s) => s.refreshIntervalMs);
   const defaultView = useConfigStore((s) => s.defaultView);
   const updateConfig = useConfigStore((s) => s.updateConfig);
-  const resetDefaults = useConfigStore((s) => s.resetDefaults);
 
   const isDark = theme === "dark";
 
@@ -381,7 +393,7 @@ function ThemePanel({
           fg={Colors.warning}
           bg={active && activeItem === 4 ? Colors.background : undefined}
           bold
-          onMouseUp={resetDefaults}
+          onMouseUp={onResetDefaults}
         >
           {"[ RESET TO DEFAULTS ]"}
         </text>
@@ -833,7 +845,10 @@ function CheckSetupResultsPanel({
  *
  * Wrapped in ErrorBoundary for crash recovery.
  */
-export function SettingsView() {
+export function SettingsView({ dialog }: SettingsViewProps = {}) {
+  const activeView = useUIStore((s) => s.activeView);
+  const isActive = activeView === "settings";
+
   const [activePanel, setActivePanel] = useState(0);
   const [activeItem, setActiveItem] = useState(0);
   const [importing, setImporting] = useState(false);
@@ -849,9 +864,39 @@ export function SettingsView() {
   const toggleNotification = useConfigStore((s) => s.toggleNotification);
   const soundEnabled = useConfigStore((s) => s.soundEnabled);
 
+  /** Fail-closed confirm helper for destructive settings actions. */
+  const confirmAction = useCallback(
+    async (title: string, message: string, confirmLabel: string) => {
+      if (!dialog) {
+        useServiceStore.getState().addAlert({
+          id: `settings-noconfirm-${Date.now()}`,
+          type: "config",
+          severity: "warning",
+          message: `${title} blocked: confirmation dialog unavailable`,
+          timestamp: Date.now(),
+          acknowledged: false,
+        });
+        return false;
+      }
+      return showConfirm(dialog, {
+        title,
+        message,
+        confirmLabel,
+        cancelLabel: "Cancel",
+      });
+    },
+    [dialog]
+  );
+
   // ── Data panel handlers ────────────────────────────────────────────────────
 
   const handleClearCache = useCallback(async () => {
+    const ok = await confirmAction(
+      "Clear Cache?",
+      "Delete ~/.hoox/cache? This cannot be undone.",
+      "Clear Cache"
+    );
+    if (!ok) return;
     try {
       const cachePath = path.join(os.homedir(), ".hoox", "cache");
       const proc = Bun.spawn(["rm", "-rf", cachePath]);
@@ -874,7 +919,7 @@ export function SettingsView() {
         acknowledged: false,
       });
     }
-  }, []);
+  }, [confirmAction]);
 
   const handleExportData = useCallback(async () => {
     try {
@@ -1073,6 +1118,12 @@ export function SettingsView() {
 
   /** Run auto-repair via `hoox check fix`. */
   const handleRunAutoRepair = useCallback(async () => {
+    const ok = await confirmAction(
+      "Run Auto-Repair?",
+      "Apply non-destructive config fixes (placeholders, flags, worker configs). Continue?",
+      "Run Repair"
+    );
+    if (!ok) return;
     try {
       const result = await cliBridge.checkFix();
       if (!result.success) {
@@ -1140,7 +1191,25 @@ export function SettingsView() {
         acknowledged: false,
       });
     }
-  }, []);
+  }, [confirmAction]);
+
+  const handleResetDefaults = useCallback(async () => {
+    const ok = await confirmAction(
+      "Reset Defaults?",
+      "Reset theme, refresh rate, default view, and notification preferences to factory defaults?",
+      "Reset"
+    );
+    if (!ok) return;
+    resetDefaults();
+    useServiceStore.getState().addAlert({
+      id: `reset-${Date.now()}`,
+      type: "config",
+      severity: "info",
+      message: "Settings reset to defaults",
+      timestamp: Date.now(),
+      acknowledged: false,
+    });
+  }, [confirmAction, resetDefaults]);
 
   /**
    * Test hook: when `globalThis.__hooxTestAutoCheckSetup` is set, the
@@ -1169,9 +1238,10 @@ export function SettingsView() {
     };
   }, []);
 
-  // ── Keyboard handling ───────────────────────────────────────────────────────
+  // ── Keyboard handling (only when Settings is the active view) ───────────────
 
   useKeyboard((key) => {
+    if (!isActive) return;
     // Import mode overrides
     if (importing) {
       if (key.name === "return" || key.name === "enter") {
@@ -1253,7 +1323,8 @@ export function SettingsView() {
             break;
           }
           case 4: // Reset defaults
-            if (key.name === "space" || key.name === "return") resetDefaults();
+            if (key.name === "space" || key.name === "return")
+              void handleResetDefaults();
             break;
         }
         break;
@@ -1328,7 +1399,11 @@ export function SettingsView() {
         {/* 4-column layout */}
         <box flexDirection="row" flexGrow={1} gap={1}>
           <PanelBox title="THEME" active={activePanel === 0} width={28}>
-            <ThemePanel active={activePanel === 0} activeItem={activeItem} />
+            <ThemePanel
+              active={activePanel === 0}
+              activeItem={activeItem}
+              onResetDefaults={() => void handleResetDefaults()}
+            />
           </PanelBox>
 
           <PanelBox title="NOTIFICATIONS" active={activePanel === 1} width={28}>

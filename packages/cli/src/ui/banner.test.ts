@@ -30,16 +30,19 @@ describe("renderBanner", () => {
     expect(stripAnsi(horizon)).not.toBe(stripAnsi(logo));
   });
 
-  it("includes the geometric logo corner blocks and X diagonals", () => {
+  it("is wordmark-only (no geometric side mark)", () => {
     const plain = stripAnsi(renderBannerLogo());
-    expect(plain).toContain("██");
-    expect(plain).toMatch(/[╱╲]/);
+    // No brand-mark diagonal hooks
+    expect(plain).not.toContain("██╲");
+    expect(plain).not.toContain("╱██");
+    // Compact small-font HOOX glyphs
+    expect(plain).toContain("_   _");
+    expect(plain).toContain("| | | |");
   });
 
-  it("includes the HOOX wordmark", () => {
+  it("includes the HOOX wordmark and tagline", () => {
     const plain = stripAnsi(renderBannerLogo());
-    // Block letters for H appear in the wordmark
-    expect(plain).toContain("██╗");
+    expect(plain).toMatch(/_\/\\_|_\/\\_/); // bottom of O/X style
     expect(plain).toContain("Cloudflare Workers Platform");
   });
 
@@ -98,7 +101,8 @@ describe("animateBanner", () => {
 
     try {
       const lines = await animateBanner({ static: true });
-      expect(lines).toBeGreaterThan(5);
+      // Compact wordmark: rule + 4 lines + rule + meta = 7
+      expect(lines).toBeGreaterThan(4);
       const out = chunks.join("");
       expect(stripAnsi(out)).toContain("Cloudflare Workers Platform");
       // Static path must not use cursor hide / line-clear animation sequences
