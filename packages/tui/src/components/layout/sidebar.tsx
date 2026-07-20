@@ -1,7 +1,7 @@
 /** @jsxImportSource @opentui/react */
 
 import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
-import type { ViewId } from "@jango-blockchained/hoox-shared";
+import { getSidebarItems } from "../../view-registry";
 
 /**
  * Sidebar — left navigation panel with view links.
@@ -17,23 +17,7 @@ export function Sidebar() {
 
   if (!sidebarExpanded) return null;
 
-  const items: { id: ViewId; label: string; shortcut: string }[] = [
-    { id: "dashboard", label: "DASHBOARD", shortcut: "1" },
-    { id: "workers", label: "WORKERS", shortcut: "2" },
-    { id: "worker-detail", label: "DETAIL", shortcut: "3" },
-    { id: "trade-monitor", label: "TRADES", shortcut: "4" },
-    { id: "logs-viewer", label: "LOGS", shortcut: "5" },
-    { id: "service-manager", label: "SERVICES", shortcut: "6" },
-    { id: "config-editor", label: "CONFIG", shortcut: "7" },
-    { id: "setup-wizard", label: "SETUP", shortcut: "8" },
-    { id: "settings", label: "SETTINGS", shortcut: "9" },
-    { id: "queue-depth", label: "QUEUES", shortcut: "0" },
-    { id: "kv-viewer", label: "KV", shortcut: "^K" },
-    { id: "secrets-viewer", label: "SECRETS", shortcut: "^S" },
-    { id: "ai-chat", label: "AI CHAT", shortcut: "^C" },
-    { id: "db-query", label: "DB QUERY", shortcut: "^Q" },
-    { id: "edge-topology", label: "TOPOLOGY", shortcut: "^E" },
-  ];
+  const items = getSidebarItems();
 
   return (
     <box
@@ -76,7 +60,7 @@ export function Sidebar() {
       {/* Shortcut hints */}
       <box flexGrow={1} />
       <text fg={Colors.dim} dim>
-        Ctrl+0-9 to switch
+        Ctrl+0-9 · Ctrl+Alt+K/S/C/Q/E
       </text>
     </box>
   );

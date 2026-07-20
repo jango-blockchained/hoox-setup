@@ -29,205 +29,24 @@ import { cliBridge } from "./services/cli-bridge";
 import { resolveTuiStatePath } from "./services/hoox-path-service";
 import { getRendererRef } from "./hooks";
 import type { DialogHandle } from "./components/ui/dialog";
-
-// ─── View imports ────────────────────────────────────────────────────────────
-
-import { DashboardView } from "./components/views/dashboard";
-import { WorkersOverview } from "./components/views/workers-overview";
-import { WorkerDetail } from "./components/views/worker-detail";
-import { TradeMonitor } from "./components/views/trade-monitor";
-import { LogsViewer } from "./components/views/logs-viewer";
-import { ServiceManager } from "./components/views/service-manager";
-import { ConfigEditor } from "./components/views/config-editor";
-import { SetupWizard } from "./components/views/setup-wizard";
-import { SettingsView } from "./components/views/settings";
-import { QueueDepthView } from "./components/views/queue-depth";
-import { KvViewer } from "./components/views/kv-viewer";
-import { SecretsViewer } from "./components/views/secrets-viewer";
-import { AiChatView } from "./components/views/ai-chat";
-import { DbQueryView } from "./components/views/db-query";
-import { EdgeTopology } from "./components/views/edge-topology";
+import {
+  getViewFactory,
+  getViewShortcutMap,
+  getCtrlAltViewMap,
+  ALL_PALETTE_COMMANDS,
+} from "./view-registry";
 import {
   CrashScreen,
   type CrashAction,
 } from "./components/shared/crash-screen";
 import { CommandPalette } from "./components/shared/command-palette";
-import type { CommandEntry } from "./components/shared/command-palette";
 import { StatusBar } from "./components/layout/statusbar";
 import { Sidebar } from "./components/layout/sidebar";
 
-// ─── View registry ───────────────────────────────────────────────────────────
-// Destructive views receive the DialogProvider handle so confirmations work.
+// ─── View keyboard shortcuts (derived from view-registry) ────────────────────
 
-type ViewFactory = (dialog: DialogHandle) => React.ReactNode;
-
-const VIEWS: Record<ViewId, ViewFactory> = {
-  dashboard: (dialog) => <DashboardView dialog={dialog} />,
-  workers: (dialog) => <WorkersOverview dialog={dialog} />,
-  "worker-detail": () => <WorkerDetail />,
-  "trade-monitor": () => <TradeMonitor />,
-  "logs-viewer": () => <LogsViewer />,
-  "service-manager": (dialog) => <ServiceManager dialog={dialog} />,
-  "config-editor": () => <ConfigEditor />,
-  "setup-wizard": (dialog) => <SetupWizard dialog={dialog} />,
-  settings: (dialog) => <SettingsView dialog={dialog} />,
-  "queue-depth": () => <QueueDepthView />,
-  "kv-viewer": () => <KvViewer />,
-  "secrets-viewer": () => <SecretsViewer />,
-  "db-query": () => <DbQueryView />,
-  "ai-chat": () => <AiChatView />,
-  "edge-topology": () => <EdgeTopology />,
-};
-
-// ─── View keyboard shortcuts ─────────────────────────────────────────────────
-
-const VIEW_SHORTCUTS: Record<string, ViewId> = {
-  "1": "dashboard",
-  "2": "workers",
-  "3": "worker-detail",
-  "4": "trade-monitor",
-  "5": "logs-viewer",
-  "6": "service-manager",
-  "7": "config-editor",
-  "8": "setup-wizard",
-  "9": "settings",
-  "0": "queue-depth",
-  "^<s>": "secrets-viewer", // Ctrl+Alt+S
-  "^<c>": "ai-chat", // Ctrl+Alt+C
-  "^<q>": "db-query", // Ctrl+Alt+Q
-  "^<e>": "edge-topology", // Ctrl+Alt+E
-};
-
-// ─── Command palette registry ────────────────────────────────────────────────
-
-const PALETTE_COMMANDS: CommandEntry[] = [
-  {
-    id: "dashboard",
-    name: "DASHBOARD",
-    category: "view",
-    shortcut: "^1",
-    aliases: ["home", "overview"],
-  },
-  {
-    id: "workers",
-    name: "WORKERS OVERVIEW",
-    category: "view",
-    shortcut: "^2",
-    aliases: ["services"],
-  },
-  {
-    id: "worker-detail",
-    name: "WORKER DETAIL",
-    category: "view",
-    shortcut: "^3",
-    aliases: ["detail"],
-  },
-  {
-    id: "trade-monitor",
-    name: "TRADE MONITOR",
-    category: "view",
-    shortcut: "^4",
-    aliases: ["trades", "positions"],
-  },
-  {
-    id: "logs-viewer",
-    name: "LOGS VIEWER",
-    category: "view",
-    shortcut: "^5",
-    aliases: ["logs"],
-  },
-  {
-    id: "service-manager",
-    name: "SERVICE MANAGER",
-    category: "view",
-    shortcut: "^6",
-    aliases: ["deploy", "restart"],
-  },
-  {
-    id: "config-editor",
-    name: "CONFIG EDITOR",
-    category: "view",
-    shortcut: "^7",
-    aliases: ["edit", "settings"],
-  },
-  {
-    id: "setup-wizard",
-    name: "SETUP WIZARD",
-    category: "view",
-    shortcut: "^8",
-    aliases: ["onboarding", "first-run"],
-  },
-  {
-    id: "settings",
-    name: "SETTINGS",
-    category: "view",
-    shortcut: "^9",
-    aliases: ["preferences"],
-  },
-  {
-    id: "queue-depth",
-    name: "QUEUE DEPTH",
-    category: "view",
-    shortcut: "^0",
-    aliases: ["queues", "backlog"],
-  },
-  {
-    id: "kv-viewer",
-    name: "KV VIEWER",
-    category: "view",
-    shortcut: "^#k",
-    aliases: ["kv", "config-kv", "config-kv-list"],
-  },
-  {
-    id: "secrets-viewer",
-    name: "SECRETS VIEWER",
-    category: "view",
-    shortcut: "^#s",
-    aliases: ["secrets", "config-secrets", "config-secrets-list"],
-  },
-  {
-    id: "ai-chat",
-    name: "AI CHAT",
-    category: "view",
-    shortcut: "^#c",
-    aliases: ["chat", "ai", "agent"],
-  },
-  {
-    id: "db-query",
-    name: "DB QUERY",
-    category: "view",
-    shortcut: "^#q",
-    aliases: ["sql", "d1", "database", "db"],
-  },
-  {
-    id: "edge-topology",
-    name: "EDGE TOPOLOGY",
-    category: "view",
-    shortcut: "^#e",
-    aliases: ["topology", "graph", "architecture", "map"],
-  },
-  {
-    id: "refresh",
-    name: "REFRESH DATA",
-    category: "action",
-    shortcut: "^R",
-    aliases: ["reload"],
-  },
-  {
-    id: "toggle-sidebar",
-    name: "TOGGLE SIDEBAR",
-    category: "action",
-    shortcut: "^B",
-    aliases: ["collapse"],
-  },
-  {
-    id: "quit",
-    name: "QUIT HOOX",
-    category: "action",
-    shortcut: "^Q",
-    aliases: ["exit", "close"],
-  },
-];
+const VIEW_SHORTCUTS = getViewShortcutMap();
+const CTRL_ALT_VIEWS = getCtrlAltViewMap();
 
 // ─── Main App ────────────────────────────────────────────────────────────────
 
@@ -458,34 +277,9 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
       return;
     }
 
-    // Ctrl+Alt+K: switch to the KV viewer (all digit shortcuts 0-9 are
-    // taken, so the 11th view is reached via a chord).
-    if (key.ctrl && key.alt && key.name === "k") {
-      setView("kv-viewer");
-      return;
-    }
-
-    // Ctrl+Alt+C: switch to AI Chat
-    if (key.ctrl && key.alt && key.name === "c") {
-      setView("ai-chat");
-      return;
-    }
-
-    // Ctrl+Alt+S: switch to Secrets Viewer
-    if (key.ctrl && key.alt && key.name === "s") {
-      setView("secrets-viewer");
-      return;
-    }
-
-    // Ctrl+Alt+Q: switch to DB Query
-    if (key.ctrl && key.alt && key.name === "q") {
-      setView("db-query");
-      return;
-    }
-
-    // Ctrl+Alt+E: switch to Edge Topology
-    if (key.ctrl && key.alt && key.name === "e") {
-      setView("edge-topology");
+    // Ctrl+Alt+letter: switch to letter-chord views (kv, secrets, etc.)
+    if (key.ctrl && key.alt && CTRL_ALT_VIEWS[key.name]) {
+      setView(CTRL_ALT_VIEWS[key.name]);
       return;
     }
 
@@ -546,7 +340,7 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
   }
 
   // ── Active view component ───────────────────────────────────────────────
-  const renderView = VIEWS[activeView] ?? VIEWS.dashboard;
+  const renderView = getViewFactory(activeView);
 
   return (
     <box
@@ -573,7 +367,7 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
       {commandPaletteOpen && (
         <CommandPalette
           visible={commandPaletteOpen}
-          commands={PALETTE_COMMANDS}
+          commands={ALL_PALETTE_COMMANDS}
           onSelect={(selection) => {
             if (selection.action === "setView" && selection.command.id) {
               setView(selection.command.id as ViewId);
