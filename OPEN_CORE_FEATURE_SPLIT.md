@@ -15,102 +15,102 @@ This document defines the clear boundary between the **Open Core** (public, open
 
 ### Core Architecture & Infrastructure
 
-| Feature / Component                        | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| 10-worker mesh + Service Bindings         | Yes                | Uses + extends           | Core model stays open |
-| Durable Objects (idempotency, basic)      | Yes                | Enhanced                 | Basic SQLite DO patterns are open |
-| Smart Placement                           | Yes                | Yes                      | Cloudflare primitive |
-| Queues (basic failover)                   | Yes                | Advanced usage + higher limits | |
-| D1, R2, KV, Vectorize (basic usage)       | Yes                | Scale + advanced patterns | |
-| Browser Rendering (PDF reports)           | Yes                | Advanced compliance reports | |
-| Workers AI + basic RAG                    | Yes                | AI Gateway + proprietary models | |
+| Feature / Component                  | Open Core | Enterprise (Commercial)         | Notes                             |
+| ------------------------------------ | --------- | ------------------------------- | --------------------------------- |
+| 10-worker mesh + Service Bindings    | Yes       | Uses + extends                  | Core model stays open             |
+| Durable Objects (idempotency, basic) | Yes       | Enhanced                        | Basic SQLite DO patterns are open |
+| Smart Placement                      | Yes       | Yes                             | Cloudflare primitive              |
+| Queues (basic failover)              | Yes       | Advanced usage + higher limits  |                                   |
+| D1, R2, KV, Vectorize (basic usage)  | Yes       | Scale + advanced patterns       |                                   |
+| Browser Rendering (PDF reports)      | Yes       | Advanced compliance reports     |                                   |
+| Workers AI + basic RAG               | Yes       | AI Gateway + proprietary models |                                   |
 
 ### Workers
 
-| Worker / Component                        | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| `hoox` (gateway)                          | Yes (basic)        | Multi-tenant dispatch    | Basic auth + rate limiting open |
-| `trade-worker`                            | Yes (basic)        | Advanced execution       | Core order placement open |
-| `agent-worker` (basic risk)               | Yes                | Proprietary risk models  | Simple trailing stops etc. open |
-| `telegram-worker`, `email-worker`         | Yes                | Enhanced                 | |
-| `d1-worker`, `analytics-worker`           | Yes                | Tenant-isolated + scale  | |
-| `report-worker`                           | Yes                | Compliance-grade         | |
-| `web3-wallet-worker`                      | Yes                | Advanced DeFi            | |
-| `pine-worker` / `pyne-worker`             | Yes                | Enterprise backtesting   | |
-| **Dispatch Worker (WfP)**                 | Basic example      | Full multi-tenant platform | Core WfP concepts open, full platform commercial |
-| **User Workers**                          | Examples only      | Full customer strategy execution | |
+| Worker / Component                | Open Core     | Enterprise (Commercial)          | Notes                                            |
+| --------------------------------- | ------------- | -------------------------------- | ------------------------------------------------ |
+| `hoox` (gateway)                  | Yes (basic)   | Multi-tenant dispatch            | Basic auth + rate limiting open                  |
+| `trade-worker`                    | Yes (basic)   | Advanced execution               | Core order placement open                        |
+| `agent-worker` (basic risk)       | Yes           | Proprietary risk models          | Simple trailing stops etc. open                  |
+| `telegram-worker`, `email-worker` | Yes           | Enhanced                         |                                                  |
+| `d1-worker`, `analytics-worker`   | Yes           | Tenant-isolated + scale          |                                                  |
+| `report-worker`                   | Yes           | Compliance-grade                 |                                                  |
+| `web3-wallet-worker`              | Yes           | Advanced DeFi                    |                                                  |
+| ~~`pine-worker` / `pyne-worker`~~ | Removed       | —                                |                                                  |
+| **Dispatch Worker (WfP)**         | Basic example | Full multi-tenant platform       | Core WfP concepts open, full platform commercial |
+| **User Workers**                  | Examples only | Full customer strategy execution |                                                  |
 
 ### Multi-Tenancy & Platform
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Single-tenant / self-hosted               | Yes                | Yes                      | Fully supported in open core |
-| Basic tenant context (`TenantContext`)    | Yes (lightweight)  | Full implementation      | Basic types open for extension |
-| Workers for Platforms (basic dispatch)    | Examples + docs    | Full SaaS hosting platform | |
-| Per-tenant isolation (DOs, queues, DBs)   | Patterns + docs    | Production implementation + billing | |
-| Tenant billing / metering / quotas        | No                 | Yes                      | Fully commercial |
-| Customer onboarding & self-service        | No                 | Yes                      | |
+| Feature                                 | Open Core         | Enterprise (Commercial)             | Notes                          |
+| --------------------------------------- | ----------------- | ----------------------------------- | ------------------------------ |
+| Single-tenant / self-hosted             | Yes               | Yes                                 | Fully supported in open core   |
+| Basic tenant context (`TenantContext`)  | Yes (lightweight) | Full implementation                 | Basic types open for extension |
+| Workers for Platforms (basic dispatch)  | Examples + docs   | Full SaaS hosting platform          |                                |
+| Per-tenant isolation (DOs, queues, DBs) | Patterns + docs   | Production implementation + billing |                                |
+| Tenant billing / metering / quotas      | No                | Yes                                 | Fully commercial               |
+| Customer onboarding & self-service      | No                | Yes                                 |                                |
 
 ### Workflows & Durability
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Basic Workflow examples                   | Yes                | —                        | Educational |
-| Trade lifecycle as Workflow               | Basic skeleton     | Full production versions | |
-| Reconciliation & compliance workflows     | Simple             | Advanced + human gates   | |
-| Long-running durable processes            | Patterns           | Full implementation      | |
-| Workflow + Agent integration              | Docs + examples    | Production orchestration | |
+| Feature                               | Open Core       | Enterprise (Commercial)  | Notes       |
+| ------------------------------------- | --------------- | ------------------------ | ----------- |
+| Basic Workflow examples               | Yes             | —                        | Educational |
+| Trade lifecycle as Workflow           | Basic skeleton  | Full production versions |             |
+| Reconciliation & compliance workflows | Simple          | Advanced + human gates   |             |
+| Long-running durable processes        | Patterns        | Full implementation      |             |
+| Workflow + Agent integration          | Docs + examples | Production orchestration |             |
 
 ### Observability & Audit
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Analytics Engine (basic)                  | Yes                | Tenant-tagged + scale    | |
-| Workers Logs + Traces                     | Yes                | Full + sampling          | |
-| Basic Logpush to R2                       | Examples + docs    | Production + SIEM integration | |
-| Tail Workers                              | Examples           | Production audit pipeline | |
-| Immutable audit trail                     | Concepts           | Full compliance stack    | |
-| SIEM export (Splunk, SentinelOne, etc.)   | No                 | Yes                      | |
+| Feature                                 | Open Core       | Enterprise (Commercial)       | Notes |
+| --------------------------------------- | --------------- | ----------------------------- | ----- |
+| Analytics Engine (basic)                | Yes             | Tenant-tagged + scale         |       |
+| Workers Logs + Traces                   | Yes             | Full + sampling               |       |
+| Basic Logpush to R2                     | Examples + docs | Production + SIEM integration |       |
+| Tail Workers                            | Examples        | Production audit pipeline     |       |
+| Immutable audit trail                   | Concepts        | Full compliance stack         |       |
+| SIEM export (Splunk, SentinelOne, etc.) | No              | Yes                           |       |
 
 ### Security
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Existing 5-layer model                    | Yes                | Extended                 | |
-| Bot Management                            | Docs + basic rules | Full Enterprise features | |
-| API Shield (basic schema validation)      | Yes                | Advanced + mTLS          | |
-| Zero Trust / Access (for dashboard)       | Examples           | Full policies + SCIM     | |
-| AI Guardrails (basic)                     | Yes                | AI Gateway at scale      | |
-| mTLS between services                     | Patterns           | Production               | |
+| Feature                              | Open Core          | Enterprise (Commercial)  | Notes |
+| ------------------------------------ | ------------------ | ------------------------ | ----- |
+| Existing 5-layer model               | Yes                | Extended                 |       |
+| Bot Management                       | Docs + basic rules | Full Enterprise features |       |
+| API Shield (basic schema validation) | Yes                | Advanced + mTLS          |       |
+| Zero Trust / Access (for dashboard)  | Examples           | Full policies + SCIM     |       |
+| AI Guardrails (basic)                | Yes                | AI Gateway at scale      |       |
+| mTLS between services                | Patterns           | Production               |       |
 
 ### AI & Advanced Features
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Basic Workers AI + Vectorize RAG          | Yes                | —                        | |
-| AI Gateway usage                          | Examples           | Full production + cost control | |
-| Proprietary risk models                   | No                 | Yes                      | |
-| Natural language strategy configuration   | Basic              | Advanced                 | |
-| Anomaly detection at scale                | No                 | Yes                      | |
+| Feature                                 | Open Core | Enterprise (Commercial)        | Notes |
+| --------------------------------------- | --------- | ------------------------------ | ----- |
+| Basic Workers AI + Vectorize RAG        | Yes       | —                              |       |
+| AI Gateway usage                        | Examples  | Full production + cost control |       |
+| Proprietary risk models                 | No        | Yes                            |       |
+| Natural language strategy configuration | Basic     | Advanced                       |       |
+| Anomaly detection at scale              | No        | Yes                            |       |
 
 ### Operations & Support
 
-| Feature                                   | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Self-hosted on Free / Paid tiers          | Yes                | Yes                      | |
-| Self-hosted on Enterprise Cloudflare account | Docs + templates | Recommended              | |
-| Hosted SaaS offering                      | No                 | Yes                      | |
-| Commercial support & SLAs                 | No                 | Yes                      | |
-| On-call runbooks & operational playbooks  | Basic              | Full Enterprise versions | |
+| Feature                                      | Open Core        | Enterprise (Commercial)  | Notes |
+| -------------------------------------------- | ---------------- | ------------------------ | ----- |
+| Self-hosted on Free / Paid tiers             | Yes              | Yes                      |       |
+| Self-hosted on Enterprise Cloudflare account | Docs + templates | Recommended              |       |
+| Hosted SaaS offering                         | No               | Yes                      |       |
+| Commercial support & SLAs                    | No               | Yes                      |       |
+| On-call runbooks & operational playbooks     | Basic            | Full Enterprise versions |       |
 
 ### Licensing & Distribution
 
-| Aspect                                    | Open Core          | Enterprise (Commercial) | Notes |
-|-------------------------------------------|--------------------|--------------------------|-------|
-| Source code                               | Open (Apache 2.0 recommended) | Closed source           | See licensing section |
-| Documentation                             | CC-BY-4.0          | CC-BY-4.0 + commercial extensions | Architecture docs are public |
-| Academic paper                            | Fully open         | References Enterprise layer | |
-| npm packages (`@jango-blockchained/hoox-*`) | Open             | Not published (private)  | |
+| Aspect                                      | Open Core                     | Enterprise (Commercial)           | Notes                        |
+| ------------------------------------------- | ----------------------------- | --------------------------------- | ---------------------------- |
+| Source code                                 | Open (Apache 2.0 recommended) | Closed source                     | See licensing section        |
+| Documentation                               | CC-BY-4.0                     | CC-BY-4.0 + commercial extensions | Architecture docs are public |
+| Academic paper                              | Fully open                    | References Enterprise layer       |                              |
+| npm packages (`@jango-blockchained/hoox-*`) | Open                          | Not published (private)           |                              |
 
 ---
 

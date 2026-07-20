@@ -5,14 +5,16 @@ This project adheres loosely to [Semantic Versioning](https://semver.org/).
 
 ## [0.9.5] — 2026-07-20
 
+### Removed
+
+- **`hoox pine` command group** and all pine-worker / pyne-worker submodule requirements. Pine Script tooling is no longer part of the open-core CLI.
+
 ### Fixed
 
 - **`hoox monitor queue-depth`** — wrangler ≥4.x removed `queues list --json`. The command now runs the human table form and parses it for `--json` output.
 - **`hoox monitor kill-switch` / KV resolve** — wrangler version banners on stdout broke `JSON.parse` and polluted KV values. Namespace list uses `extractJsonArray`; `kv get` strips banners so kill-switch reports `on`/`off` correctly.
 - **`hoox check health`** — no longer uses long-lived `wrangler tail` (hung ~50s+ per worker). Probes each worker with HTTP `GET /health` (8s timeout) and reports latency.
 - **`hoox db list` (local)** — root monorepo `wrangler.jsonc` is a Hoox meta-config without D1 bindings. Local D1 ops now pass `-c workers/d1-worker/wrangler.jsonc` when present (`HOOX_WRANGLER_CONFIG` override supported).
-- **`hoox pine *`** — child spawns use `process.execPath` / known bun install paths instead of bare `"bun"` on PATH. Missing `workers/pine-worker` returns a clear clone hint instead of `ENOENT: posix_spawn 'bun'`.
-
 - **`hoox repair check`** — prints a per-step status table (and full JSON with `--json`) instead of only `"N check(s) failed"`.
 
 - **`hoox trace destinations`** — defaults to listing destinations when no subcommand is given (was help + exit 1).

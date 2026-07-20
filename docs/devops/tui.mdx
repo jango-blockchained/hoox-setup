@@ -131,7 +131,7 @@ E2E smoke (`test/e2e/smoke.test.ts`) requires an interactive TTY; otherwise it s
 - **Runtime topology view** reads `graph-metadata.json` (repo root), resolved from CWD walk-up or package-relative path.  
 - **Code graph** (`graph.json` / `graph.dot`) is produced by `bun run graph` (`scripts/extract-graph.ts`).  
 - All 15 view exports are present as function nodes under `packages/tui:…/views/…`.  
-- Regenerate after large refactors: `bun run graph` (~25s). Metadata should include every worker under `workers/*` (including `pine-worker`).
+- Regenerate after large refactors: `bun run graph` (~25s). Metadata should include every worker under `workers/*`.
 
 ---
 

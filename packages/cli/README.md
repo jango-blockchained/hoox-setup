@@ -75,36 +75,35 @@ hoox perf fastpath run --n 50
 
 ## Available Commands
 
-| Command           | Description                                                                   |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `hoox onboard`    | **Recommended entry point.** One-shot full bootstrap (init + setup)           |
-| `hoox init`       | Interactive setup wizard (writes `wrangler.jsonc`, collects secrets)          |
-| `hoox setup`      | Auto-bootstrap infrastructure (auth, keys, D1, secrets, dashboard)            |
-| `hoox clone`      | Clone worker repositories as git submodules                                   |
-| `hoox dev`        | Start local development environment for all workers                           |
-| `hoox deploy`     | Deploy workers, dashboard, telegram webhook, and KV config                    |
-| `hoox infra`      | Manage infrastructure (D1, KV, R2, Queues, Vectorize, Analytics)              |
-| `hoox config`     | Manage `wrangler.jsonc` configuration                                         |
-| `hoox secrets`    | Manage Cloudflare Worker secrets                                              |
-| `hoox keys`       | Manage internal auth keys                                                     |
-| `hoox check`      | Validate setup, prerequisites, and worker health                              |
-| `hoox db`         | Manage D1 databases (apply, migrate, query, export, reset)                    |
-| `hoox monitor`    | Monitor trades, logs, kill switch, queue, backup                              |
-| `hoox workers`    | Per-worker operations (list, dev, logs)                                       |
-| `hoox repair`     | Diagnose and repair the system (check, rebuild, per-component)                |
-| `hoox schema`     | Manage D1 schema and migrations                                               |
-| `hoox update`     | Self-update the CLI and check wrangler versions                               |
-| `hoox logs`       | Stream and filter Cloudflare Worker logs                                      |
-| `hoox test`       | Run tests and CI pipeline                                                     |
-| `hoox waf`        | Manage Cloudflare WAF rules and policies                                      |
-| `hoox dashboard`  | Dashboard operations (`dev`, `deploy`)                                        |
-| `hoox tui`        | Launch the OpenTUI terminal dashboard                                         |
-| `hoox agent`      | AI agent operations (health probe)                                            |
-| `hoox trace`      | Query Cloudflare Workers Observability (events, metrics, traces)              |
-| `hoox perf`       | Performance measurement tools (`fastpath` probe-based latency)                |
-| `hoox pine`       | Pine Script tooling (download data, backtest, export chart data, bundle libs) |
-| `hoox disclaimer` | Display legal disclaimer                                                      |
-| `hoox completion` | Generate shell completion script (bash, zsh, fish)                            |
+| Command           | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| `hoox onboard`    | **Recommended entry point.** One-shot full bootstrap (init + setup)  |
+| `hoox init`       | Interactive setup wizard (writes `wrangler.jsonc`, collects secrets) |
+| `hoox setup`      | Auto-bootstrap infrastructure (auth, keys, D1, secrets, dashboard)   |
+| `hoox clone`      | Clone worker repositories as git submodules                          |
+| `hoox dev`        | Start local development environment for all workers                  |
+| `hoox deploy`     | Deploy workers, dashboard, telegram webhook, and KV config           |
+| `hoox infra`      | Manage infrastructure (D1, KV, R2, Queues, Vectorize, Analytics)     |
+| `hoox config`     | Manage `wrangler.jsonc` configuration                                |
+| `hoox secrets`    | Manage Cloudflare Worker secrets                                     |
+| `hoox keys`       | Manage internal auth keys                                            |
+| `hoox check`      | Validate setup, prerequisites, and worker health                     |
+| `hoox db`         | Manage D1 databases (apply, migrate, query, export, reset)           |
+| `hoox monitor`    | Monitor trades, logs, kill switch, queue, backup                     |
+| `hoox workers`    | Per-worker operations (list, dev, logs)                              |
+| `hoox repair`     | Diagnose and repair the system (check, rebuild, per-component)       |
+| `hoox schema`     | Manage D1 schema and migrations                                      |
+| `hoox update`     | Self-update the CLI and check wrangler versions                      |
+| `hoox logs`       | Stream and filter Cloudflare Worker logs                             |
+| `hoox test`       | Run tests and CI pipeline                                            |
+| `hoox waf`        | Manage Cloudflare WAF rules and policies                             |
+| `hoox dashboard`  | Dashboard operations (`dev`, `deploy`)                               |
+| `hoox tui`        | Launch the OpenTUI terminal dashboard                                |
+| `hoox agent`      | AI agent operations (health probe)                                   |
+| `hoox trace`      | Query Cloudflare Workers Observability (events, metrics, traces)     |
+| `hoox perf`       | Performance measurement tools (`fastpath` probe-based latency)       |
+| `hoox disclaimer` | Display legal disclaimer                                             |
+| `hoox completion` | Generate shell completion script (bash, zsh, fish)                   |
 
 ### Global Options
 

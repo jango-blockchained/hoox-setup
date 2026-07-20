@@ -231,7 +231,6 @@
                   "docs/devops/workers/email-worker",
                   "docs/devops/workers/analytics-worker",
                   "docs/devops/workers/report-worker",
-                  "docs/devops/workers/pine-worker",
                   "docs/devops/workers/dashboard"
                 ]
               },

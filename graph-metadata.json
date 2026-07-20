@@ -244,16 +244,6 @@
         "/api/* (API routes)",
         "/auth/* (auth pages)"
       ]
-    },
-    "workers/pine-worker": {
-      "description": "Pine Script runtime worker — parses/compiles Pine strategies and runs them at the edge for signal generation.",
-      "category": "strategy",
-      "tags": ["pine", "strategy", "parser", "signals"],
-      "llmContext": "Pine Script worker for strategy parsing and signal generation. Lazy-loads parser bundles for cold-start performance.",
-      "cron": null,
-      "isPublic": false,
-      "smartPlacement": false,
-      "entryPoints": ["GET /health", "POST /pine/*"]
     }
   },
   "infrastructure": {
@@ -587,8 +577,7 @@
         "workspace:workers/email-worker",
         "workspace:workers/analytics-worker",
         "workspace:workers/report-worker",
-        "workspace:workers/dashboard",
-        "workspace:workers/pine-worker"
+        "workspace:workers/dashboard"
       ]
     },
     {

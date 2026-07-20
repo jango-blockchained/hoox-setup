@@ -197,8 +197,7 @@ describe("validateAll and richer generate coverage", () => {
   });
 
   it("generateWranglerJsonc handles empty infrastructure", () => {
-    const manifest =
-      WORKER_MANIFESTS["pine-worker"] || WORKER_MANIFESTS["d1-worker"]!;
+    const manifest = WORKER_MANIFESTS["d1-worker"]!;
     const out = generateWranglerJsonc(manifest);
     expect(typeof out).toBe("string");
     expect(out.length).toBeGreaterThan(10);
