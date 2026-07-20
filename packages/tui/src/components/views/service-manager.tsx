@@ -21,10 +21,11 @@
  */
 import { useState, useCallback, useEffect } from "react";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { Colors, ConnectionStatusColor } from "@jango-blockchained/hoox-shared";
 import { StatusDot } from "../shared/status-dot";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { EmptyState } from "../shared/spinner";
+import { ViewHeader } from "../shared/view-header";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared/types";
@@ -784,35 +785,34 @@ export function ServiceManager({ dialog }: ServiceManagerProps) {
     <ErrorBoundary viewName="Service Manager">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* Header row */}
-        <box flexDirection="row" justifyContent="space-between">
-          <text fg={Colors.accent} bold>
-            <b>SERVICE MANAGER</b>
-          </text>
-          <box flexDirection="row" gap={1}>
-            <text fg={Colors.info}>Edges:</text>
-            <text fg={Colors.accent} bold>
-              {displayEdgeCount > 0 ? String(displayEdgeCount) : "—"}
-              {showPlus ? "+" : ""}
-            </text>
-            <text
-              fg={
-                connectionStatus === "connected"
-                  ? Colors.success
+        <ViewHeader
+          title="SERVICE MANAGER"
+          showDivider={false}
+          meta={
+            <box flexDirection="row" gap={1}>
+              <text fg={Colors.info}>Edges:</text>
+              <text fg={Colors.accent} bold>
+                {displayEdgeCount > 0 ? String(displayEdgeCount) : "—"}
+                {showPlus ? "+" : ""}
+              </text>
+              <text
+                fg={
+                  ConnectionStatusColor[
+                    connectionStatus as keyof typeof ConnectionStatusColor
+                  ] ?? Colors.muted
+                }
+              >
+                {connectionStatus === "connected"
+                  ? "█"
                   : connectionStatus === "reconnecting"
-                    ? Colors.warning
-                    : Colors.error
-              }
-            >
-              {connectionStatus === "connected"
-                ? "█"
-                : connectionStatus === "reconnecting"
-                  ? "▌"
-                  : connectionStatus === "polling"
                     ? "▌"
-                    : "░"}
-            </text>
-          </box>
-        </box>
+                    : connectionStatus === "polling"
+                      ? "▌"
+                      : "░"}
+              </text>
+            </box>
+          }
+        />
 
         {/* Main content: workers (left) + edge map (right) */}
         <box flexDirection="row" flexGrow={1} gap={1}>

@@ -1,15 +1,11 @@
 import { useState, useMemo } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  AlertSeverityColor,
+  useServiceStore,
+} from "@jango-blockchained/hoox-shared";
 import type { AlertSeverity } from "@jango-blockchained/hoox-shared";
-
-/** Severity-based color keys for alert text */
-const SEVERITY_COLOR: Record<AlertSeverity, string> = {
-  info: Colors.info,
-  warning: Colors.warning,
-  error: Colors.error,
-  critical: Colors.error, // critical gets same red as error, but bold
-};
 
 /** Severity label prefix */
 const SEVERITY_LABEL: Record<AlertSeverity, string> = {
@@ -87,7 +83,7 @@ function AlertsPanel() {
           paddingY={0}
         >
           {sortedAlerts.map((alert, i) => {
-            const color = SEVERITY_COLOR[alert.severity];
+            const color = AlertSeverityColor[alert.severity];
             const label = SEVERITY_LABEL[alert.severity];
             const isCritical = alert.severity === "critical";
             const isSelected = i === scrollOffset;

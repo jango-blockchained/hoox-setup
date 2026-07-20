@@ -15,13 +15,14 @@ import {
   useServiceStore,
   useUIStore,
 } from "@jango-blockchained/hoox-shared";
-import { ErrorBoundary } from "../shared/error-boundary";
-import { cliBridge } from "../../services/cli-bridge";
 import type {
   LogEntry,
   LogLevel,
   Alert,
 } from "@jango-blockchained/hoox-shared";
+import { ErrorBoundary } from "../shared/error-boundary";
+import { cliBridge } from "../../services/cli-bridge";
+import { ViewHeader } from "../shared/view-header";
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 
@@ -488,22 +489,18 @@ export function LogsViewer() {
     <ErrorBoundary viewName="Logs Viewer">
       <box flexDirection="column" flexGrow={1} padding={0} gap={1}>
         {/* ── Title bar ────────────────────────────────────────────────────── */}
-        <box
-          flexDirection="row"
-          justifyContent="space-between"
-          paddingLeft={1}
-          paddingRight={1}
-        >
-          <text bold fg={Colors.accent}>
-            LOGS VIEWER
-          </text>
-          <text dim fg={Colors.muted}>
-            {filteredLogs.length}/{allLogs.length} entries
-            {paused ? " [PAUSED]" : ""}
-            {searchActive ? " [SEARCH]" : ""}
-            {" · Space pause · / search"}
-          </text>
-        </box>
+        <ViewHeader
+          title="LOGS VIEWER"
+          showDivider={false}
+          meta={
+            <text dim fg={Colors.muted}>
+              {filteredLogs.length}/{allLogs.length} entries
+              {paused ? " [PAUSED]" : ""}
+              {searchActive ? " [SEARCH]" : ""}
+              {" · Space pause · / search"}
+            </text>
+          }
+        />
 
         {/* ── Split: Filters | Stream ──────────────────────────────────────── */}
         <box flexDirection="row" flexGrow={1} gap={1}>

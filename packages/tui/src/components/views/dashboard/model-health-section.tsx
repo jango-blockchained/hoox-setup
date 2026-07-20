@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/react */
 import { useState, useCallback, useEffect } from "react";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { Colors, WorkerStatusColor } from "@jango-blockchained/hoox-shared";
 import { StatusDot } from "../../shared/status-dot";
 import { cliBridge } from "../../../services/cli-bridge";
 import type { ModelHealth } from "../../../services/cli-bridge";
@@ -9,17 +9,8 @@ import type { ModelHealth } from "../../../services/cli-bridge";
 const MODEL_HEALTH_POLL_MS = 30_000;
 
 /**
- * Map model status to a color for the status indicator.
- * online → green, degraded → yellow/warning, offline → red/error
- */
-function modelStatusColor(status: ModelHealth["status"]): string {
-  if (status === "online") return Colors.success;
-  if (status === "degraded") return Colors.warning;
-  return Colors.error;
-}
-
-/**
  * Map model status to a StatusDot-compatible status string.
+ * online → operational, degraded → degraded, offline → down
  */
 function modelStatusToDot(
   status: ModelHealth["status"]
@@ -27,6 +18,11 @@ function modelStatusToDot(
   if (status === "online") return "operational";
   if (status === "degraded") return "degraded";
   return "down";
+}
+
+/** Model status color via shared worker status map. */
+function modelStatusColor(status: ModelHealth["status"]): string {
+  return WorkerStatusColor[modelStatusToDot(status)];
 }
 
 /**

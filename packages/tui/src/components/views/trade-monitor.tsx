@@ -18,11 +18,11 @@
  */
 import { useState, useMemo, useRef } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useServiceStore } from "@jango-blockchained/hoox-shared";
+import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
+import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { Spinner, EmptyState } from "../shared/spinner";
-import type { Trade, TradeSide } from "@jango-blockchained/hoox-shared";
+import { ViewHeader } from "../shared/view-header";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -125,35 +125,32 @@ function TradeMonitorHeader({
   tradeCount: number;
 }) {
   return (
-    <box flexDirection="row" gap={2} paddingBottom={1}>
-      <text fg={Colors.accent} bold>
-        TRADE MONITOR
-      </text>
-
-      {/* Pause/Live indicator */}
-      <box flexDirection="row" gap={1}>
-        <text
-          fg={paused ? Colors.warning : Colors.success}
-          bold
-          blink={!paused}
-        >
-          {paused ? "▌" : "█"}
-        </text>
-        <text fg={paused ? Colors.warning : Colors.success}>
-          {paused ? "PAUSED" : "LIVE"}
-        </text>
-      </box>
-
-      {/* Trade count */}
-      <text fg={Colors.muted} dim>
-        {`${tradeCount} trades`}
-      </text>
-
-      {/* Pause hint */}
-      <text fg={Colors.dim} dim>
-        Space to {paused ? "resume" : "pause"}
-      </text>
-    </box>
+    <ViewHeader
+      title="TRADE MONITOR"
+      showDivider={false}
+      meta={
+        <box flexDirection="row" gap={2}>
+          <box flexDirection="row" gap={1}>
+            <text
+              fg={paused ? Colors.warning : Colors.success}
+              bold
+              blink={!paused}
+            >
+              {paused ? "▌" : "█"}
+            </text>
+            <text fg={paused ? Colors.warning : Colors.success}>
+              {paused ? "PAUSED" : "LIVE"}
+            </text>
+          </box>
+          <text fg={Colors.muted} dim>
+            {`${tradeCount} trades`}
+          </text>
+          <text fg={Colors.dim} dim>
+            Space to {paused ? "resume" : "pause"}
+          </text>
+        </box>
+      }
+    />
   );
 }
 

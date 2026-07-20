@@ -44,7 +44,7 @@
 - Modify: `packages/shared/src/index.ts`
 - Test: `packages/tui/src/utils/colors.test.ts` (updated in Task 2; shared has no dedicated colors unit file — DNA tests live under TUI)
 
-- [ ] **Step 1: Extend `packages/shared/src/colors.ts`**
+- [x] **Step 1: Extend `packages/shared/src/colors.ts`**
 
 Replace/extend the file so it contains tokens + maps:
 
@@ -134,7 +134,7 @@ export const AlertSeverityColor = {
 export type AlertSeverityColorKey = keyof typeof AlertSeverityColor;
 ```
 
-- [ ] **Step 2: Export from `packages/shared/src/index.ts`**
+- [x] **Step 2: Export from `packages/shared/src/index.ts`**
 
 Find:
 
@@ -162,7 +162,7 @@ export type {
 } from "./colors";
 ```
 
-- [ ] **Step 3: Build / typecheck shared surface**
+- [x] **Step 3: Build / typecheck shared surface**
 
 Run:
 
@@ -178,7 +178,7 @@ cd /home/jango/Git/hoox-setup/packages/shared && bunx tsc --noEmit 2>&1 | tail -
 
 If shared package lacks a standalone typecheck script, run root `scripts/typecheck-all` or `bun run typecheck` and confirm colors-related files clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add packages/shared/src/colors.ts packages/shared/src/index.ts
@@ -194,7 +194,7 @@ git commit -m "feat(shared): add semantic status color maps and backdrop token"
 - Modify: `packages/tui/src/utils/colors.test.ts`
 - Modify: `packages/tui/src/components/shared/shared.test.tsx` (hex assertions only if needed)
 
-- [ ] **Step 1: Rewrite colors.test.ts to import shared Colors + maps**
+- [x] **Step 1: Rewrite colors.test.ts to import shared Colors + maps**
 
 Key structure (keep helpers `hexToRgb`, `relativeLuminance`, `contrastRatio`; remove local `Colors` object):
 
@@ -251,7 +251,7 @@ Update token completeness:
 - Required set includes `"backdrop"`.
 - Do not hard-require length `13` if new keys were added — assert `Object.keys(Colors).length >= 14` or list required keys including aliases still present.
 
-- [ ] **Step 2: Run colors tests**
+- [x] **Step 2: Run colors tests**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts src/utils/colors.test.ts
@@ -259,7 +259,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setu
 
 Expected: all pass. If import path fails, confirm workspace links `@jango-blockchained/hoox-shared` (package name in monorepo).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add packages/tui/src/utils/colors.test.ts
@@ -279,7 +279,7 @@ git commit -m "test(tui): bind color tests to shared tokens and status maps"
 - Modify: `packages/tui/src/components/views/logs-viewer.tsx`
 - Grep sweep for other local status maps
 
-- [ ] **Step 1: main.tsx**
+- [x] **Step 1: main.tsx**
 
 ```ts
 import { Colors } from "@jango-blockchained/hoox-shared";
@@ -291,7 +291,7 @@ const RENDERER_CONFIG = {
 };
 ```
 
-- [ ] **Step 2: app.tsx DialogProvider backdrop**
+- [x] **Step 2: app.tsx DialogProvider backdrop**
 
 ```ts
 import { Colors, ... } from "@jango-blockchained/hoox-shared";
@@ -303,7 +303,7 @@ import { Colors, ... } from "@jango-blockchained/hoox-shared";
 >
 ```
 
-- [ ] **Step 3: statusbar.tsx**
+- [x] **Step 3: statusbar.tsx**
 
 Import `ConnectionStatusColor`. Replace local `statusColor` object with:
 
@@ -316,7 +316,7 @@ statusColor[connectionStatus as keyof typeof ConnectionStatusColor] ??
 
 (Or a small helper that narrows `connectionStatus`.)
 
-- [ ] **Step 4: status-dot.tsx**
+- [x] **Step 4: status-dot.tsx**
 
 ```ts
 import { Colors, WorkerStatusColor } from "@jango-blockchained/hoox-shared";
@@ -327,7 +327,7 @@ const DOT_COLOR = WorkerStatusColor;
 
 Ensure `StatusDotStatus` remains assignable to `WorkerStatusKey`.
 
-- [ ] **Step 5: logs-viewer.tsx**
+- [x] **Step 5: logs-viewer.tsx**
 
 ```ts
 import { Colors, LogLevelColor, ... } from "@jango-blockchained/hoox-shared";
@@ -335,7 +335,7 @@ import { Colors, LogLevelColor, ... } from "@jango-blockchained/hoox-shared";
 // remove local LEVEL_FG; use LogLevelColor everywhere LEVEL_FG was used
 ```
 
-- [ ] **Step 6: Grep for remaining local maps / brand hex**
+- [x] **Step 6: Grep for remaining local maps / brand hex**
 
 ```bash
 cd /home/jango/Git/hoox-setup && rg -n 'LEVEL_FG|statusColor\s*[:=]|#0D1117|#E8780A|#00FF88|#FF4444|#FFAA00|#4488FF|#000000' packages/tui/src --glob '!**/*.test.*'
@@ -343,7 +343,7 @@ cd /home/jango/Git/hoox-setup && rg -n 'LEVEL_FG|statusColor\s*[:=]|#0D1117|#E87
 
 Fix any production hits to use shared tokens/maps. Tests may still mention hex when asserting DNA values.
 
-- [ ] **Step 7: Run focused tests**
+- [x] **Step 7: Run focused tests**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts \
@@ -355,7 +355,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setu
 
 Expected: pass (update shared.test hex for debug if it still expects `#3B3B3D` for debug).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/tui/src/main.tsx packages/tui/src/app.tsx \
@@ -377,7 +377,7 @@ git commit -m "refactor(tui): consume shared status colors and token backgrounds
 - Modify: `packages/tui/src/app.tsx`
 - Modify: `packages/tui/src/components/layout/sidebar.tsx`
 
-- [ ] **Step 1: Write failing registry tests**
+- [x] **Step 1: Write failing registry tests**
 
 Create `packages/tui/src/view-registry.test.ts`:
 
@@ -471,7 +471,7 @@ describe("view-registry", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — expect fail**
+- [x] **Step 2: Run tests — expect fail**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts src/view-registry.test.ts
@@ -479,7 +479,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setu
 
 Expected: fail (module not found).
 
-- [ ] **Step 3: Implement `packages/tui/src/view-registry.ts`**
+- [x] **Step 3: Implement `packages/tui/src/view-registry.ts`**
 
 Move view imports and factories from `app.tsx`. Shape:
 
@@ -641,13 +641,13 @@ export const ALL_PALETTE_COMMANDS: CommandEntry[] = [
 
 Fill every entry from current `app.tsx` `VIEWS` / `PALETTE_COMMANDS` / `sidebar` labels. Palette `name` for workers stays `"WORKERS OVERVIEW"` etc. (use `label` field for palette, `shortLabel` for sidebar).
 
-- [ ] **Step 4: Run registry tests — expect pass**
+- [x] **Step 4: Run registry tests — expect pass**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts src/view-registry.test.ts
 ```
 
-- [ ] **Step 5: Wire `sidebar.tsx`**
+- [x] **Step 5: Wire `sidebar.tsx`**
 
 ```ts
 import { getSidebarItems } from "../../view-registry";
@@ -660,7 +660,7 @@ export function Sidebar() {
 }
 ```
 
-- [ ] **Step 6: Wire `app.tsx`**
+- [x] **Step 6: Wire `app.tsx`**
 
 Remove local `VIEWS`, `VIEW_SHORTCUTS`, view portion of `PALETTE_COMMANDS`, and view component imports that only the registry needs.
 
@@ -694,7 +694,7 @@ commands = { ALL_PALETTE_COMMANDS };
 
 Delete the five separate Ctrl+Alt if-blocks once the map handles them.
 
-- [ ] **Step 7: Run navigation + layout tests**
+- [x] **Step 7: Run navigation + layout tests**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts \
@@ -705,7 +705,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setu
 
 Expected: pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/tui/src/view-registry.ts packages/tui/src/view-registry.test.ts \
@@ -725,7 +725,7 @@ git commit -m "refactor(tui): single view registry for nav, shortcuts, and facto
 - Modify: `packages/tui/src/components/views/dashboard.tsx`
 - Modify: `packages/tui/src/components/views/workers-overview.tsx` (header / card panel)
 
-- [ ] **Step 1: Implement ViewHeader**
+- [x] **Step 1: Implement ViewHeader**
 
 ```tsx
 /** @jsxImportSource @opentui/react */
@@ -766,7 +766,7 @@ export function ViewHeader({
 }
 ```
 
-- [ ] **Step 2: Implement Panel**
+- [x] **Step 2: Implement Panel**
 
 ```tsx
 /** @jsxImportSource @opentui/react */
@@ -810,7 +810,7 @@ export function Panel({
 }
 ```
 
-- [ ] **Step 3: Minimal chrome tests**
+- [x] **Step 3: Minimal chrome tests**
 
 ```ts
 import { describe, it, expect } from "bun:test";
@@ -825,7 +825,7 @@ describe("chrome", () => {
 });
 ```
 
-- [ ] **Step 4: Adopt in dashboard**
+- [x] **Step 4: Adopt in dashboard**
 
 In `dashboard.tsx`, replace the ad-hoc title row inside `DashboardHeader` (or wrap the header section) with `ViewHeader title="DASHBOARD" meta={...}`. Keep existing actions (refresh / auto-repair) as `meta` or as siblings under the header — do not remove keyboard handlers.
 
@@ -845,11 +845,11 @@ import { ViewHeader } from "../shared/view-header";
 
 If OpenTUI forbids fragments with nested text incorrectly, use a row `box` of sibling `text` nodes only.
 
-- [ ] **Step 5: Adopt Panel in workers-overview**
+- [x] **Step 5: Adopt Panel in workers-overview**
 
 Where worker cards already use border + focused accent, wrap content in `<Panel focused={focused} title={...}>` **or** replace the outer `box` props to match `Panel` defaults without double borders. Goal: same visual DNA, one shared component.
 
-- [ ] **Step 6: Run dashboard + workers tests**
+- [x] **Step 6: Run dashboard + workers tests**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setup.ts \
@@ -860,7 +860,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun test --preload ./src/test-setu
 
 Expected: pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/tui/src/components/shared/view-header.tsx \
@@ -882,7 +882,7 @@ git commit -m "feat(tui): add ViewHeader/Panel chrome and adopt in core views"
 - Modify: `docs/devops/tui.mdx` (short note on registry + status colors)
 - Grep residual hex
 
-- [ ] **Step 1: Extract QuitModal**
+- [x] **Step 1: Extract QuitModal**
 
 ```tsx
 /** @jsxImportSource @opentui/react */
@@ -940,7 +940,7 @@ export function QuitModal({
 }
 ```
 
-- [ ] **Step 2: Use in app.tsx**
+- [x] **Step 2: Use in app.tsx**
 
 ```tsx
 import { QuitModal } from "./components/shared/quit-modal";
@@ -960,7 +960,7 @@ import { QuitModal } from "./components/shared/quit-modal";
 }
 ```
 
-- [ ] **Step 3: Docs note in `docs/devops/tui.mdx`**
+- [x] **Step 3: Docs note in `docs/devops/tui.mdx`**
 
 After directory map section, add:
 
@@ -971,7 +971,7 @@ After directory map section, add:
 - Semantic status colors (`ConnectionStatusColor`, `WorkerStatusColor`, `LogLevelColor`, `AlertSeverityColor`) live in `@jango-blockchained/hoox-shared` (`packages/shared/src/colors.ts`). Do not invent local status→hex maps in views.
 ```
 
-- [ ] **Step 4: Final hex sweep (production)**
+- [x] **Step 4: Final hex sweep (production)**
 
 ```bash
 cd /home/jango/Git/hoox-setup && rg -n '#[0-9A-Fa-f]{6}' packages/tui/src --glob '!**/*.{test.ts,test.tsx}' --glob '!**/colors.test.ts'
@@ -979,7 +979,7 @@ cd /home/jango/Git/hoox-setup && rg -n '#[0-9A-Fa-f]{6}' packages/tui/src --glob
 
 Expected: no brand hex outside comments; any remaining must be justified and moved to `Colors`.
 
-- [ ] **Step 5: Full TUI verification**
+- [x] **Step 5: Full TUI verification**
 
 ```bash
 cd /home/jango/Git/hoox-setup/packages/tui && bun run typecheck && bun test --preload ./src/test-setup.ts
@@ -987,7 +987,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun run typecheck && bun test --pr
 
 Expected: typecheck exit 0; all tests pass (skip e2e if no TTY — existing smoke behavior).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/tui/src/components/shared/quit-modal.tsx packages/tui/src/app.tsx \
@@ -999,7 +999,7 @@ git commit -m "refactor(tui): extract quit modal and document registry/color map
 
 ### Task 7: Final acceptance gate
 
-- [ ] **Step 1: Acceptance checklist (from spec)**
+- [x] **Step 1: Acceptance checklist (from spec)**
 
 Verify each:
 
@@ -1011,7 +1011,7 @@ Verify each:
 6. `bun run typecheck` + `bun test --preload ./src/test-setup.ts` in `packages/tui` pass.
 7. Light theme not partially implemented.
 
-- [ ] **Step 2: Optional smoke**
+- [x] **Step 2: Optional smoke**
 
 If interactive TTY available:
 
@@ -1021,7 +1021,7 @@ cd /home/jango/Git/hoox-setup/packages/tui && bun run dev
 
 Manually: Ctrl+1, Ctrl+B, Ctrl+P, Ctrl+Alt+K, status bar colors offline vs connected if possible.
 
-- [ ] **Step 3: Done**
+- [x] **Step 3: Done**
 
 No further code unless checklist fails.
 

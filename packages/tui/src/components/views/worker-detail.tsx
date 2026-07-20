@@ -17,12 +17,16 @@
  */
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useServiceStore } from "@jango-blockchained/hoox-shared";
-import { useUIStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  LogLevelColor,
+  useServiceStore,
+  useUIStore,
+} from "@jango-blockchained/hoox-shared";
 import { cliBridge } from "../../services/cli-bridge";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot, type StatusDotStatus } from "../shared/status-dot";
+import { ViewHeader } from "../shared/view-header";
 
 // ── Local type aliases (inferred from store return types) ──────────────────
 
@@ -47,14 +51,6 @@ const PANE_NAMES = [
   "Config Preview",
 ] as const;
 
-/** Log-level color mapping */
-const LOG_COLORS: Record<Level, string> = {
-  debug: Colors.muted,
-  info: Colors.info,
-  warn: Colors.warning,
-  error: Colors.error,
-};
-
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface DemoConfigEntry {
@@ -69,28 +65,22 @@ interface DemoConfigEntry {
  */
 function BreadcrumbHeader({ worker }: { worker: Worker }) {
   return (
-    <box flexDirection="row" paddingBottom={1} gap={2}>
-      {/* Back button */}
-      <text fg={Colors.muted} dim>
-        ← BACK
-      </text>
-      <text fg={Colors.muted} dim>
-        |
-      </text>
-      {/* Worker name */}
-      <text fg={Colors.foreground} bold>
-        {worker.name}
-      </text>
-      <text fg={Colors.muted} dim>
-        |
-      </text>
-      {/* Status dot + label */}
-      <StatusDot
-        status={worker.status as StatusDotStatus}
-        pulse={worker.status === "operational"}
-      />
-      <text fg={Colors.foreground}>{worker.status.toUpperCase()}</text>
-    </box>
+    <ViewHeader
+      title={worker.name}
+      showDivider={false}
+      meta={
+        <box flexDirection="row" gap={2}>
+          <text fg={Colors.muted} dim>
+            ← BACK
+          </text>
+          <StatusDot
+            status={worker.status as StatusDotStatus}
+            pulse={worker.status === "operational"}
+          />
+          <text fg={Colors.foreground}>{worker.status.toUpperCase()}</text>
+        </box>
+      }
+    />
   );
 }
 
@@ -239,7 +229,7 @@ function LogsPane({
 
 /** A single log line, color-coded by level */
 function LogLine({ log }: { log: Log }) {
-  const color = LOG_COLORS[log.level];
+  const color = LogLevelColor[log.level as Level] ?? Colors.foreground;
   const time = new Date(log.timestamp).toLocaleTimeString("en-US", {
     hour12: false,
     hour: "2-digit",

@@ -237,22 +237,12 @@ describe("WorkerDetail", () => {
     expect(formatUptime(172800)).toBe("2d 0h");
   });
 
-  test("log level colors match expected tokens", () => {
-    // Verify the color mapping structure exists
-    const LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
-
-    // Each level should map to a defined color string
-    // (Actual color values come from @jango-blockchained/hoox-shared at runtime)
-    const colorMap: Record<string, string> = {
-      debug: "muted",
-      info: "info",
-      warn: "warning",
-      error: "error",
-    };
-
-    for (const level of LOG_LEVELS) {
-      expect(colorMap[level]).toBeDefined();
-      expect(typeof colorMap[level]).toBe("string");
-    }
+  test("log level colors match expected tokens", async () => {
+    const { LogLevelColor, Colors } =
+      await import("@jango-blockchained/hoox-shared");
+    expect(LogLevelColor.debug).toBe(Colors.muted);
+    expect(LogLevelColor.info).toBe(Colors.foreground);
+    expect(LogLevelColor.warn).toBe(Colors.warning);
+    expect(LogLevelColor.error).toBe(Colors.error);
   });
 });
