@@ -328,7 +328,7 @@ describe("ExpandedErrorPanel", () => {
       const output = await renderPanel(details);
       // Each error type has a unique recovery hint — verify it's present
       const hints: Record<typeof errorType, string> = {
-        "binary-not-found": "bun install",
+        "binary-not-found": "HOOX_CLI",
         timeout: "timeout",
         aborted: "cancelled",
         "non-zero-exit": "Inspect stderr",

@@ -39,12 +39,12 @@ const ERROR_TYPE_LABELS: Record<CliErrorType, string> = {
  */
 const RECOVERY_HINTS: Record<CliErrorType, string> = {
   "binary-not-found":
-    "Install the CLI with `bun install` from the monorepo root.",
+    "Install the CLI (`bun install -g ./packages/cli`) or set HOOX_CLI=/path/to/hoox.",
   timeout: "The command exceeded its timeout. Retry or raise the limit.",
   aborted: "The command was cancelled. Retry to run it again.",
   "non-zero-exit": "Inspect stderr below for the underlying cause, then retry.",
   "spawn-error":
-    "Bun.spawn failed (permission or path issue). Check the binary path.",
+    "Bun.spawn failed (permission or path issue). Check HOOX_CLI / PATH (hx, hoox).",
 };
 
 /** Count non-empty lines in a string for the section header badge. */
@@ -157,7 +157,7 @@ export const ExpandedErrorPanel = memo(function ExpandedErrorPanel({
 
       {/* Footer — copy affordance + dismiss hint */}
       <text fg={Colors["muted-foreground"]}>
-        Drag-select text to copy · click header to collapse
+        Drag-select text to auto-copy · click header to collapse
       </text>
     </box>
   );

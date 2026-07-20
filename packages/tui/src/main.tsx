@@ -10,8 +10,9 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { CrashRecoveryApp } from "./app";
-import { saveSession } from "@jango-blockchained/hoox-shared";
+import { Colors, saveSession } from "@jango-blockchained/hoox-shared";
 import { setRendererRef } from "./hooks";
+import { enableAutoCopyOnSelection } from "./services/clipboard";
 import { ensureTuiStateDir } from "./services/hoox-path-service";
 
 /** CLI `hoox tui --fps N` → env TUI_FPS; clamp to a sane range. */
@@ -36,7 +37,7 @@ const RENDERER_CONFIG = {
   targetFps,
   maxFps: Math.max(60, targetFps),
   useMouse: resolveUseMouse(),
-  backgroundColor: "#0D1117",
+  backgroundColor: Colors.background,
   useKittyKeyboard: {
     disambiguate: true,
     alternateKeys: true,
@@ -64,6 +65,11 @@ async function main() {
 
   // Set renderer ref so hooks + components can access it via getRendererRef()
   setRendererRef(renderer);
+
+  // Mouse drag-select → clipboard (OSC 52 + system tools)
+  enableAutoCopyOnSelection(
+    renderer as unknown as import("./services/clipboard").ClipboardRenderer
+  );
 
   createRoot(renderer).render(<CrashRecoveryApp />);
   renderer.start();

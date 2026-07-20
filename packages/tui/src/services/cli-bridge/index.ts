@@ -16,6 +16,10 @@
  * for any CLI failure, regardless of which view triggered it.
  */
 import * as path from "path";
+import {
+  getHooxRepoPath,
+  resolveHooxRuntimeRoot,
+} from "@jango-blockchained/hoox-shared";
 import type { CliResult, CliErrorType, CliErrorDetails } from "../../types";
 import type {
   ExecOptions,
@@ -543,10 +547,20 @@ class CliBridgeImpl {
   async resolveBinary(): Promise<string> {
     if (this.binaryPath) return this.binaryPath;
 
-    const fromPath = Bun.which("hoox");
-    if (fromPath) {
-      this.binaryPath = fromPath;
-      return fromPath;
+    // Prefer explicit env, then PATH (`hx` is the short alias; `hoox` may be
+    // a shell alias that Bun.which still resolves via ~/.bun/bin).
+    const envBin = process.env.HOOX_CLI?.trim();
+    if (envBin) {
+      this.binaryPath = envBin;
+      return envBin;
+    }
+
+    for (const name of ["hx", "hoox"] as const) {
+      const fromPath = Bun.which(name);
+      if (fromPath) {
+        this.binaryPath = fromPath;
+        return fromPath;
+      }
     }
 
     const root = await this.findMonorepoRoot();
@@ -563,7 +577,9 @@ class CliBridgeImpl {
       return cliBin;
     }
 
-    throw new Error("hoox binary not found — is the CLI installed?");
+    throw new Error(
+      "hoox binary not found — install the CLI (`bun install -g ./packages/cli`) or set HOOX_CLI"
+    );
   }
 
   /** Track a new command under a tag. Returns a cleanup function. */
@@ -632,7 +648,15 @@ class CliBridgeImpl {
     }
   }
 
+  /**
+   * Locate the hoox-setup monorepo (local checkout or $HOME/.hoox/repo).
+   * Prefers resolveHooxRuntimeRoot so the TUI works outside the checkout.
+   */
   private async findMonorepoRoot(): Promise<string> {
+    const runtime = resolveHooxRuntimeRoot();
+    if (runtime.root) return runtime.root;
+
+    // Fallback: walk-up for any package.json with workspaces
     let dir = process.cwd();
     while (true) {
       try {
@@ -645,7 +669,16 @@ class CliBridgeImpl {
         /* not found or invalid JSON */
       }
       const parent = path.dirname(dir);
-      if (parent === dir) throw new Error("Monorepo root not found");
+      if (parent === dir) {
+        // Last resort: global managed clone path even if markers incomplete
+        const globalRepo = getHooxRepoPath();
+        if (await Bun.file(path.join(globalRepo, "package.json")).exists()) {
+          return globalRepo;
+        }
+        throw new Error(
+          "Monorepo root not found — run `hoox doctor --fix-runtime` or set HOOX_REPO"
+        );
+      }
       dir = parent;
     }
   }

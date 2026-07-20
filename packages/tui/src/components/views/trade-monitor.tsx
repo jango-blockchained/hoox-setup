@@ -275,12 +275,12 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
                 backgroundColor={isSelected ? Colors.card : undefined}
               >
                 {/* Timestamp */}
-                <text fg={Colors.muted} dim>
+                <text fg={Colors.muted} dim selectable>
                   {formatTime(trade.timestamp)}
                 </text>
 
                 {/* Side — color-coded */}
-                <text fg={color} bold>
+                <text fg={color} bold selectable>
                   {label}
                 </text>
 
@@ -288,17 +288,18 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
                 <text
                   fg={isSelected ? Colors.accent : Colors.foreground}
                   bold={isSelected}
+                  selectable
                 >
                   {trade.symbol.padEnd(6)}
                 </text>
 
                 {/* Quantity @ Price */}
-                <text fg={Colors.foreground}>
+                <text fg={Colors.foreground} selectable>
                   {trade.quantity} @ ${formatNum(trade.price, 2)}
                 </text>
 
                 {/* Exchange */}
-                <text fg={Colors.muted} dim>
+                <text fg={Colors.muted} dim selectable>
                   {trade.exchange}
                 </text>
 
@@ -312,6 +313,7 @@ function LiveTradeFeed({ paused }: { paused: boolean }) {
                         : Colors.muted
                   }
                   dim={latency === null || latency >= 500}
+                  selectable
                 >
                   · {latencyStr}
                 </text>

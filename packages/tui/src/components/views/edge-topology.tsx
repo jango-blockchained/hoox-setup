@@ -1,6 +1,10 @@
 /** @jsxImportSource @opentui/react */
 import { useState, useEffect, useMemo } from "react";
-import { Colors } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  getHooxRepoPath,
+  resolveHooxRuntimeRoot,
+} from "@jango-blockchained/hoox-shared";
 import { useKeyboard } from "@opentui/react";
 import * as fs from "fs";
 import * as path from "path";
@@ -44,8 +48,8 @@ interface GraphMetadata {
 
 /**
  * Resolve graph-metadata.json regardless of launch CWD.
- * Candidates: cwd, walk-up from cwd, and relative to this source file
- * (packages/tui/src/components/views → monorepo root).
+ * Candidates: runtime root (HOOX_REPO / cwd / ~/.hoox/repo), walk-up from
+ * cwd, and relative to this source file (packages/tui/… → monorepo root).
  */
 function resolveGraphMetadataPath(): string | null {
   const fileName = "graph-metadata.json";
@@ -54,6 +58,12 @@ function resolveGraphMetadataPath(): string | null {
     // This file lives at packages/tui/src/components/views/
     path.resolve(import.meta.dir, "../../../../../", fileName),
   ];
+
+  const runtime = resolveHooxRuntimeRoot();
+  if (runtime.root) {
+    candidates.push(path.join(runtime.root, fileName));
+  }
+  candidates.push(path.join(getHooxRepoPath(), fileName));
 
   // Walk up from CWD looking for the monorepo marker
   let dir = process.cwd();
@@ -90,7 +100,7 @@ function EdgeTopologyInner() {
       const graphPath = resolveGraphMetadataPath();
       if (!graphPath) {
         setError(
-          "graph-metadata.json not found. Run `bun run graph` from the monorepo root, or launch the TUI from the repo."
+          "graph-metadata.json not found. Run `bun run graph` from the monorepo root, set HOOX_REPO, or `hoox doctor --fix-runtime`."
         );
         return;
       }

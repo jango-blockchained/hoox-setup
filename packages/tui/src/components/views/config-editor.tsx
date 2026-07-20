@@ -28,7 +28,12 @@
 import { existsSync } from "node:fs";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  getHooxRepoPath,
+  resolveHooxRuntimeRoot,
+  useUIStore,
+} from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 
@@ -135,6 +140,17 @@ export function resolveConfigDir(): string {
   if (_resolvedProjectRoot) return _resolvedProjectRoot;
   const cwd =
     typeof process !== "undefined" && process.cwd ? process.cwd() : ".";
+
+  // Prefer resolved runtime monorepo (cwd / HOOX_REPO / ~/.hoox/repo)
+  const runtime = resolveHooxRuntimeRoot({ cwd });
+  for (const base of [runtime.root, getHooxRepoPath()].filter(
+    Boolean
+  ) as string[]) {
+    if (configDirExists(base)) {
+      _resolvedProjectRoot = normalizePath(base);
+      return _resolvedProjectRoot;
+    }
+  }
 
   for (const cand of PROJECT_ROOT_CANDIDATES) {
     const base = normalizePath(`${cwd}/${cand}`);

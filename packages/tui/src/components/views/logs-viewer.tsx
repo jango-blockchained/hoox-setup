@@ -202,17 +202,19 @@ function LogStream({ entries, paused }: LogStreamProps) {
 
         return (
           <box flexDirection="row" gap={1} key={entry.id}>
-            <text dim fg={Colors.muted}>
+            <text dim fg={Colors.muted} selectable>
               {time}
             </text>
-            <text fg={fg} bold={entry.level === "error"} dim={dim}>
+            <text fg={fg} bold={entry.level === "error"} dim={dim} selectable>
               {label}
             </text>
-            <text dim fg={Colors.muted}>
+            <text dim fg={Colors.muted} selectable>
               {src}
               {workerTag}
             </text>
-            <text fg={dim ? Colors.dim : fg}>{entry.message}</text>
+            <text fg={dim ? Colors.dim : fg} selectable>
+              {entry.message}
+            </text>
           </box>
         );
       })}
