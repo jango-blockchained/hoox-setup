@@ -35,6 +35,7 @@ import {
   useUIStore,
 } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { ViewHeader } from "../shared/view-header";
 import { cliBridge } from "../../services/cli-bridge";
 
 // ─── Extracted submodules ─────────────────────────────────────────────────────
@@ -509,24 +510,21 @@ export function ConfigEditor() {
   return (
     <ErrorBoundary viewName="Config Editor">
       <box flexDirection="column" flexGrow={1} padding={1} gap={0}>
-        {/* Header */}
-        <box flexDirection="row" gap={2} paddingBottom={0} alignItems="center">
-          <text fg={Colors.accent} bold>
-            Config Viewer
-          </text>
-          <text fg={Colors.muted} dim>
-            format/save only · free-text edit via external editor
-          </text>
-          {statusMessage && (
-            <text fg={Colors.info} dim>
-              · {statusMessage}
-            </text>
-          )}
-        </box>
-
-        <text fg={Colors.border} dim>
-          {"─".repeat(80)}
-        </text>
+        <ViewHeader
+          title="CONFIG VIEWER"
+          meta={
+            <box flexDirection="row" gap={1} alignItems="center">
+              <text fg={Colors.muted} dim>
+                format/save only · free-text edit via external editor
+              </text>
+              {statusMessage ? (
+                <text fg={Colors.info} dim>
+                  · {statusMessage}
+                </text>
+              ) : null}
+            </box>
+          }
+        />
 
         {/* Main split pane: FileTree | CodeEditor */}
         <box flexDirection="row" flexGrow={1} gap={1}>

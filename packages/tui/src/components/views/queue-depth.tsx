@@ -30,10 +30,10 @@
  *   - unknown   → Colors.muted    (gray)
  */
 import { useCallback, useEffect, useState } from "react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { Spinner, EmptyState } from "../shared/spinner";
+import { ViewHeader } from "../shared/view-header";
 import { cliBridge } from "../../services/cli-bridge";
 import type { QueueDepth, QueueDepthStatus } from "../../services/cli-bridge";
 
@@ -256,25 +256,23 @@ export function QueueDepthView() {
   return (
     <ErrorBoundary viewName="Queue Depth">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
-        {/* Header row */}
-        <box flexDirection="row" justifyContent="space-between">
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.accent} bold>
-              <b>QUEUE DEPTH</b>
-            </text>
-            <text fg={Colors.warning} dim>
-              estimate · not live backlog
-            </text>
-          </box>
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.muted} dim>
-              {queues.length} queue{queues.length === 1 ? "" : "s"}
-            </text>
-            <text fg={Colors.info} dim>
-              ◉ {REFRESH_INTERVAL_MS / 1000}s auto
-            </text>
-          </box>
-        </box>
+        <ViewHeader
+          title="QUEUE DEPTH"
+          showDivider={false}
+          meta={
+            <box flexDirection="row" gap={2} alignItems="center">
+              <text fg={Colors.warning} dim>
+                estimate · not live backlog
+              </text>
+              <text fg={Colors.muted} dim>
+                {queues.length} queue{queues.length === 1 ? "" : "s"}
+              </text>
+              <text fg={Colors.info} dim>
+                ◉ {REFRESH_INTERVAL_MS / 1000}s auto
+              </text>
+            </box>
+          }
+        />
 
         <text fg={Colors.muted} dim>
           Depth is a producer-count heuristic (Cloudflare Queues do not expose

@@ -14,6 +14,7 @@ import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { useConfigStore } from "@jango-blockchained/hoox-shared";
 import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { ViewHeader } from "../shared/view-header";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import { cliBridge } from "../../services/cli-bridge";
@@ -1221,10 +1222,15 @@ export function SetupWizard({ dialog }: SetupWizardProps) {
   return (
     <ErrorBoundary viewName="Setup Wizard">
       <box flexDirection="column" flexGrow={1} padding={2} gap={1}>
-        {/* Title */}
-        <text bold fg={Colors.foreground}>
-          SETUP — STEP {step + 1}/{TOTAL_SETUP_STEPS}: {SETUP_STEPS[step]}
-        </text>
+        <ViewHeader
+          title={`SETUP — STEP ${step + 1}/${TOTAL_SETUP_STEPS}`}
+          showDivider={false}
+          meta={
+            <text fg={Colors.muted} dim>
+              {SETUP_STEPS[step]}
+            </text>
+          }
+        />
 
         {/* Progress Indicator */}
         <box flexDirection="row" gap={0} paddingBottom={1}>

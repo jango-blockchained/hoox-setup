@@ -33,10 +33,10 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { Spinner, EmptyState } from "../shared/spinner";
+import { ViewHeader } from "../shared/view-header";
 import {
   cliBridge,
   validateReadOnlySql,
@@ -631,24 +631,22 @@ export function DbQueryView() {
   return (
     <ErrorBoundary viewName="DB Query">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
-        {/* Header */}
-        <box flexDirection="row" justifyContent="space-between">
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.accent} bold>
-              DB QUERY
-            </text>
-            {result && (
-              <text fg={Colors.muted} dim>
-                {result.rowCount} row{result.rowCount === 1 ? "" : "s"}
+        <ViewHeader
+          title="DB QUERY"
+          showDivider={false}
+          meta={
+            <box flexDirection="row" gap={2} alignItems="center">
+              {result ? (
+                <text fg={Colors.muted} dim>
+                  {result.rowCount} row{result.rowCount === 1 ? "" : "s"}
+                </text>
+              ) : null}
+              <text fg={Colors.success} dim>
+                ◉ read-only
               </text>
-            )}
-          </box>
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.success} dim>
-              ◉ read-only
-            </text>
-          </box>
-        </box>
+            </box>
+          }
+        />
 
         {/* SQL input row */}
         <SqlInputRow

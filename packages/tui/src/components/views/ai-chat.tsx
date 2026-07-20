@@ -28,8 +28,13 @@
  *   - Keyboard: Enter to send, Shift+Enter for newline
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
+import {
+  Colors,
+  ConnectionStatusColor,
+  useUIStore,
+} from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { ViewHeader } from "../shared/view-header";
 import {
   agentChatStream,
   type ChatMessage,
@@ -343,11 +348,11 @@ export function AiChatView() {
   // ── Derived state ───────────────────────────────────────────────────────────
   const statusColor =
     streamStatus === "connected"
-      ? Colors.success
+      ? ConnectionStatusColor.connected
       : streamStatus === "reconnecting"
-        ? Colors.warning
+        ? ConnectionStatusColor.reconnecting
         : streamStatus === "disconnected"
-          ? Colors.error
+          ? ConnectionStatusColor.offline
           : Colors.muted;
 
   const statusLabel =
@@ -363,24 +368,23 @@ export function AiChatView() {
   return (
     <ErrorBoundary viewName="AI Chat">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
-        {/* Header */}
-        <box
-          flexDirection="row"
-          justifyContent="space-between"
-          alignItems="flex-start"
-        >
-          <text fg={Colors.accent} bold>
-            <b>AI CHAT</b>
-          </text>
-          <ModelSelector selected={selectedModel} onChange={setSelectedModel} />
-        </box>
-
-        {/* Status indicator */}
-        {statusLabel && (
-          <text fg={statusColor} dim>
-            {statusLabel}
-          </text>
-        )}
+        <ViewHeader
+          title="AI CHAT"
+          showDivider={false}
+          meta={
+            <box flexDirection="row" gap={2} alignItems="center">
+              {statusLabel ? (
+                <text fg={statusColor} dim>
+                  {statusLabel}
+                </text>
+              ) : null}
+              <ModelSelector
+                selected={selectedModel}
+                onChange={setSelectedModel}
+              />
+            </box>
+          }
+        />
 
         {/* Error banner */}
         {error && (

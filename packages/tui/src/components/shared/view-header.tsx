@@ -22,23 +22,22 @@ export function ViewHeader({
   meta,
   showDivider = true,
 }: ViewHeaderProps) {
+  // Simple title row. Prefer borderBottom for the rule — a sibling <text>
+  // of "─" can paint on the same terminal row as the title in some Yoga
+  // layouts and wipe the accent title from captureCharFrame / narrow UIs.
   return (
-    <box flexDirection="column" width="100%">
-      <box flexDirection="row" justifyContent="space-between" width="100%">
-        <text fg={Colors.accent} bold>
-          {title}
-        </text>
-        {meta ? (
-          <box flexDirection="row" gap={1}>
-            {meta}
-          </box>
-        ) : null}
-      </box>
-      {showDivider ? (
-        <text fg={Colors.border} dim>
-          {"─".repeat(40)}
-        </text>
-      ) : null}
+    <box
+      flexDirection="row"
+      gap={2}
+      paddingBottom={showDivider ? 1 : 0}
+      borderBottom={showDivider}
+      borderStyle={showDivider ? "single" : undefined}
+      borderColor={showDivider ? Colors.border : undefined}
+    >
+      <text fg={Colors.accent} bold>
+        {title}
+      </text>
+      {meta ?? null}
     </box>
   );
 }

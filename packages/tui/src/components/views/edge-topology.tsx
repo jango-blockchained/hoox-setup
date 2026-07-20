@@ -9,6 +9,7 @@ import { useKeyboard } from "@opentui/react";
 import * as fs from "fs";
 import * as path from "path";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { ViewHeader } from "../shared/view-header";
 
 // Define types for the graph metadata
 interface GraphMetadata {
@@ -324,21 +325,14 @@ function EdgeTopologyInner() {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      {/* Header */}
-      <box
-        flexDirection="row"
-        paddingBottom={1}
-        borderBottom
-        borderStyle="single"
-        borderColor={Colors.border}
-      >
-        <text bold fg={Colors.accent}>
-          EDGE TOPOLOGY
-        </text>
-        <text fg={Colors.muted} dim marginLeft={2}>
-          {`${workers.length} Workers • ${infra.length} Infrastructure Nodes • ${metadata.dataFlows.length} Data Flows`}
-        </text>
-      </box>
+      <ViewHeader
+        title="EDGE TOPOLOGY"
+        meta={
+          <text fg={Colors.muted} dim>
+            {`${workers.length} Workers • ${infra.length} Infrastructure Nodes • ${metadata.dataFlows.length} Data Flows`}
+          </text>
+        }
+      />
 
       {/* Main Content */}
       <box flexDirection="row" flexGrow={1} paddingTop={1}>

@@ -44,10 +44,10 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useKeyboard } from "@opentui/react";
-import { Colors } from "@jango-blockchained/hoox-shared";
-import { useUIStore } from "@jango-blockchained/hoox-shared";
+import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { Spinner, EmptyState } from "../shared/spinner";
+import { ViewHeader } from "../shared/view-header";
 import { cliBridge } from "../../services/cli-bridge";
 import type { KvKey, KvKeySnapshot } from "../../services/cli-bridge";
 
@@ -483,30 +483,28 @@ export function KvViewer() {
   return (
     <ErrorBoundary viewName="KV Viewer">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
-        {/* Header row */}
-        <box flexDirection="row" justifyContent="space-between">
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.accent} bold>
-              KV VIEWER
-            </text>
-            <text fg={Colors.muted} dim>
-              {`${allKeys.length} key${allKeys.length === 1 ? "" : "s"} · ${secretCount} secret`}
-            </text>
-            {search.length > 0 && (
-              <text fg={Colors.info} dim>
-                {`(${filteredKeys.length} match${filteredKeys.length === 1 ? "" : "es"})`}
+        <ViewHeader
+          title="KV VIEWER"
+          showDivider={false}
+          meta={
+            <box flexDirection="row" gap={2} alignItems="center">
+              <text fg={Colors.muted} dim>
+                {`${allKeys.length} key${allKeys.length === 1 ? "" : "s"} · ${secretCount} secret`}
               </text>
-            )}
-          </box>
-          <box flexDirection="row" gap={2} alignItems="center">
-            <text fg={Colors.warning} bold>
-              ⚠ read-only
-            </text>
-            <text fg={Colors.info} dim>
-              {`◉ ${REFRESH_INTERVAL_MS / 1000}s auto`}
-            </text>
-          </box>
-        </box>
+              {search.length > 0 ? (
+                <text fg={Colors.info} dim>
+                  {`(${filteredKeys.length} match${filteredKeys.length === 1 ? "" : "es"})`}
+                </text>
+              ) : null}
+              <text fg={Colors.warning} bold>
+                ⚠ read-only
+              </text>
+              <text fg={Colors.info} dim>
+                {`◉ ${REFRESH_INTERVAL_MS / 1000}s auto`}
+              </text>
+            </box>
+          }
+        />
 
         {/* Search + last sampled row */}
         <box flexDirection="row" gap={1} alignItems="center">

@@ -23,6 +23,7 @@ import {
   useConfigStore,
 } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
+import { ViewHeader } from "../shared/view-header";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
 import { cliBridge } from "../../services/cli-bridge";
@@ -1380,21 +1381,15 @@ export function SettingsView({ dialog }: SettingsViewProps = {}) {
   return (
     <ErrorBoundary viewName="Settings">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
-        {/* Header */}
-        <box flexDirection="row" gap={2} paddingBottom={0}>
-          <text fg={Colors.accent} bold>
-            SETTINGS
-          </text>
-          <text fg={Colors.muted} dim>
-            Tab to switch panels · ↑↓ to navigate · ←→ to change · Space to
-            toggle
-          </text>
-        </box>
-
-        {/* Divider */}
-        <text fg={Colors.border} dim>
-          {"─".repeat(80)}
-        </text>
+        <ViewHeader
+          title="SETTINGS"
+          meta={
+            <text fg={Colors.muted} dim>
+              Tab to switch panels · ↑↓ to navigate · ←→ to change · Space to
+              toggle
+            </text>
+          }
+        />
 
         {/* 4-column layout */}
         <box flexDirection="row" flexGrow={1} gap={1}>
