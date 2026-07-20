@@ -6,32 +6,14 @@
  *         navigation, skip logic, validation, and config store integration.
  */
 import { describe, it, expect, mock, beforeEach } from "bun:test";
-import { useState } from "react";
 
-// ─── Mock only the specific store imports SetupWizard needs ────────────────
-// SetupWizard does `import { useConfigStore, useUIStore } from "hoox-shared"`.
-// The barrel re-exports these from sub-module paths. We mock only those
-// sub-modules so the rest of hoox-shared (Colors, useServiceStore, types, etc.)
-// stays real for other test files.
+// Do NOT mock.module shared stores here — Bun's mock.module is process-wide and
+// strips Zustand setState/getState, which breaks later suites (workers, worker-detail).
+// These tests only exercise pure helpers + local mock functions; no store wiring.
 const mockUpdateConfig = mock((_config: Record<string, unknown>) => {});
 const mockSetView = mock((_view: string) => {});
 
-mock.module("@jango-blockchained/hoox-shared/stores/config-store", () => ({
-  useConfigStore: (selector: (s: unknown) => unknown) =>
-    selector({ updateConfig: mockUpdateConfig }),
-}));
-
-mock.module("@jango-blockchained/hoox-shared/stores/ui-store", () => ({
-  useUIStore: (selector: (s: unknown) => unknown) =>
-    selector({
-      setView: mockSetView,
-      activeView: "setup-wizard",
-      modalState: null,
-    }),
-}));
-
-// ─── Import component under test ─────────────────────────────────────────────
-import { SetupWizard, redactWizardSecrets } from "./setup-wizard";
+import { redactWizardSecrets } from "./setup-wizard";
 
 // ─── Secret redaction (session persistence) ─────────────────────────────────
 
