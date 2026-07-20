@@ -5,16 +5,45 @@
  * and constructing type-safe paths within it.
  *
  * Supports macOS, Linux, and Windows with proper fallback handling.
+ *
+ * Runtime layout:
+ *   $HOME/.hoox/              — getHooxHome() (override with HOOX_HOME)
+ *   $HOME/.hoox/repo/         — managed clone of hoox-setup (getHooxRepoPath)
+ *   $HOME/.hoox/config/       — user config
+ *   $HOME/.hoox/data/         — persistent state
+ *
+ * Tool/runtime resolution (resolveHooxRuntimeRoot):
+ *   1. HOOX_REPO env (explicit monorepo path)
+ *   2. Walk up from cwd for a local hoox-setup checkout
+ *   3. $HOME/.hoox/repo (global managed clone)
  */
 
+import { existsSync } from "fs";
 import { homedir } from "os";
-import { join, resolve } from "path";
+import { dirname, join, resolve } from "path";
 
 /**
  * Branded type for Hoox paths to prevent accidental string usage.
  * This ensures type safety when working with paths.
  */
 export type HooxPath = string & { readonly __brand: "HooxPath" };
+
+/** Where resolveHooxRuntimeRoot found (or failed to find) a setup monorepo. */
+export type RuntimeRootSource = "env" | "cwd" | "global" | "none";
+
+/** Result of resolveHooxRuntimeRoot(). */
+export interface RuntimeRootResult {
+  /** Absolute monorepo root, or null if none found. */
+  root: string | null;
+  /** Which resolution step produced the result. */
+  source: RuntimeRootSource;
+  /** Paths inspected (for doctor / error messages). */
+  checked: {
+    env?: string;
+    cwd: string | null;
+    global: string;
+  };
+}
 
 /**
  * Creates a branded HooxPath from a string.
@@ -28,7 +57,8 @@ function createHooxPath(path: string): HooxPath {
  * Gets the Hoox home directory location: $HOME/.hoox
  *
  * Behavior:
- * - Returns $HOME/.hoox on macOS, Linux, Windows
+ * - HOOX_HOME env wins when set (absolute or relative, then resolved)
+ * - Else $HOME/.hoox on macOS, Linux, Windows
  * - Falls back to current working directory if HOME is not available
  * - Resolves to absolute path
  *
@@ -45,6 +75,10 @@ function createHooxPath(path: string): HooxPath {
  */
 export function getHooxHome(): HooxPath {
   try {
+    const override = process.env.HOOX_HOME?.trim();
+    if (override) {
+      return createHooxPath(resolve(override));
+    }
     const home = homedir();
     if (!home || home.length === 0) {
       // Fallback: use current working directory
@@ -55,6 +89,121 @@ export function getHooxHome(): HooxPath {
     // Fallback: use current working directory if homedir() throws
     return createHooxPath(resolve(process.cwd(), ".hoox"));
   }
+}
+
+/**
+ * True when `dir` looks like a hoox-setup monorepo root.
+ *
+ * Markers match CLI verifyRepoRoot: root wrangler.jsonc + packages/cli package.
+ */
+export function isHooxSetupRoot(dir: string): boolean {
+  if (!dir) return false;
+  try {
+    const root = resolve(dir);
+    return (
+      existsSync(join(root, "wrangler.jsonc")) &&
+      existsSync(join(root, "packages", "cli", "package.json"))
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Walk up from `startDir` looking for a hoox-setup monorepo root.
+ *
+ * @returns Absolute root path, or null if not found
+ */
+export function findHooxSetupRoot(
+  startDir: string = process.cwd()
+): string | null {
+  let dir = resolve(startDir);
+  for (;;) {
+    if (isHooxSetupRoot(dir)) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
+}
+
+/**
+ * Resolve the Hoox tool/runtime monorepo root (local checkout or global clone).
+ *
+ * Order:
+ *   1. HOOX_REPO — must pass isHooxSetupRoot or result is source "env" with root null
+ *   2. Walk up from cwd
+ *   3. getHooxRepoPath() ($HOME/.hoox/repo or $HOOX_HOME/repo)
+ *
+ * Project cwd and tool root are intentionally separate: a random project
+ * directory can still use the global runtime for TUI / templates.
+ */
+export function resolveHooxRuntimeRoot(options?: {
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+}): RuntimeRootResult {
+  const env = options?.env ?? process.env;
+  const cwd = resolve(options?.cwd ?? process.cwd());
+  const globalRepo = getHooxRepoPath();
+
+  const envRepo = env.HOOX_REPO?.trim();
+  if (envRepo) {
+    const resolved = resolve(envRepo);
+    if (isHooxSetupRoot(resolved)) {
+      return {
+        root: resolved,
+        source: "env",
+        checked: {
+          env: resolved,
+          cwd: findHooxSetupRoot(cwd),
+          global: globalRepo,
+        },
+      };
+    }
+    return {
+      root: null,
+      source: "env",
+      checked: {
+        env: resolved,
+        cwd: findHooxSetupRoot(cwd),
+        global: globalRepo,
+      },
+    };
+  }
+
+  const local = findHooxSetupRoot(cwd);
+  if (local) {
+    return {
+      root: local,
+      source: "cwd",
+      checked: { cwd: local, global: globalRepo },
+    };
+  }
+
+  if (isHooxSetupRoot(globalRepo)) {
+    return {
+      root: globalRepo,
+      source: "global",
+      checked: { cwd: null, global: globalRepo },
+    };
+  }
+
+  return {
+    root: null,
+    source: "none",
+    checked: { cwd: null, global: globalRepo },
+  };
+}
+
+/**
+ * Candidate TUI entry files under a monorepo root (source first, then dist).
+ */
+export function getTuiEntryCandidates(runtimeRoot: string): string[] {
+  const root = resolve(runtimeRoot);
+  return [
+    join(root, "packages", "tui", "src", "main.tsx"),
+    join(root, "packages", "tui", "dist", "main.js"),
+    join(root, "packages", "tui", "src", "main.ts"),
+  ];
 }
 
 /**

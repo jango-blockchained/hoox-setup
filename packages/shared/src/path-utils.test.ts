@@ -4,7 +4,10 @@
  * Tests cross-OS path resolution, type safety, and edge cases.
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, afterEach } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 import {
   getHooxHome,
   resolveHooxPath,
@@ -15,8 +18,25 @@ import {
   getHooxDataDir,
   getHooxWranglerPath,
   getHooxStatePath,
+  isHooxSetupRoot,
+  findHooxSetupRoot,
+  resolveHooxRuntimeRoot,
+  getTuiEntryCandidates,
   type HooxPath,
 } from "./path-utils";
+
+function makeFakeSetupRoot(): string {
+  const root = mkdtempSync(join(tmpdir(), "hoox-setup-"));
+  writeFileSync(join(root, "wrangler.jsonc"), "{}\n");
+  mkdirSync(join(root, "packages", "cli"), { recursive: true });
+  writeFileSync(
+    join(root, "packages", "cli", "package.json"),
+    JSON.stringify({ name: "@jango-blockchained/hoox-cli" })
+  );
+  mkdirSync(join(root, "packages", "tui", "src"), { recursive: true });
+  writeFileSync(join(root, "packages", "tui", "src", "main.tsx"), "// tui\n");
+  return root;
+}
 
 describe("path-utils - Path Resolution Service", () => {
   describe("getHooxHome", () => {
@@ -44,13 +64,166 @@ describe("path-utils - Path Resolution Service", () => {
     it("should handle missing HOME gracefully", () => {
       // Temporarily unset HOME so os.homedir() triggers its fallback
       const origHome = process.env.HOME;
+      const origHooxHome = process.env.HOOX_HOME;
       try {
         delete process.env.HOME;
+        delete process.env.HOOX_HOME;
         // Should not throw and return a fallback path
         expect(() => getHooxHome()).not.toThrow();
       } finally {
-        process.env.HOME = origHome;
+        if (origHome !== undefined) process.env.HOME = origHome;
+        else delete process.env.HOME;
+        if (origHooxHome !== undefined) process.env.HOOX_HOME = origHooxHome;
+        else delete process.env.HOOX_HOME;
       }
+    });
+
+    it("should prefer HOOX_HOME when set", () => {
+      const orig = process.env.HOOX_HOME;
+      const custom = join(tmpdir(), "custom-hoox-home");
+      try {
+        process.env.HOOX_HOME = custom;
+        expect(getHooxHome()).toBe(join(custom));
+      } finally {
+        if (orig !== undefined) process.env.HOOX_HOME = orig;
+        else delete process.env.HOOX_HOME;
+      }
+    });
+  });
+
+  describe("isHooxSetupRoot / findHooxSetupRoot", () => {
+    const temps: string[] = [];
+    afterEach(() => {
+      for (const t of temps) {
+        try {
+          rmSync(t, { recursive: true, force: true });
+        } catch {
+          /* ignore */
+        }
+      }
+      temps.length = 0;
+    });
+
+    it("returns false for empty or random dirs", () => {
+      expect(isHooxSetupRoot("")).toBe(false);
+      const d = mkdtempSync(join(tmpdir(), "not-hoox-"));
+      temps.push(d);
+      expect(isHooxSetupRoot(d)).toBe(false);
+    });
+
+    it("detects a fake setup root and walks up from nested cwd", () => {
+      const root = makeFakeSetupRoot();
+      temps.push(root);
+      expect(isHooxSetupRoot(root)).toBe(true);
+      const nested = join(root, "packages", "tui", "src");
+      expect(findHooxSetupRoot(nested)).toBe(root);
+    });
+
+    it("returns null when walking from a non-repo path", () => {
+      const d = mkdtempSync(join(tmpdir(), "outside-"));
+      temps.push(d);
+      expect(findHooxSetupRoot(d)).toBeNull();
+    });
+  });
+
+  describe("resolveHooxRuntimeRoot", () => {
+    const temps: string[] = [];
+    const origRepo = process.env.HOOX_REPO;
+    const origHome = process.env.HOOX_HOME;
+    afterEach(() => {
+      if (origRepo !== undefined) process.env.HOOX_REPO = origRepo;
+      else delete process.env.HOOX_REPO;
+      if (origHome !== undefined) process.env.HOOX_HOME = origHome;
+      else delete process.env.HOOX_HOME;
+      for (const t of temps) {
+        try {
+          rmSync(t, { recursive: true, force: true });
+        } catch {
+          /* ignore */
+        }
+      }
+      temps.length = 0;
+    });
+
+    it("prefers HOOX_REPO when it is a valid setup root", () => {
+      const root = makeFakeSetupRoot();
+      temps.push(root);
+      const outside = mkdtempSync(join(tmpdir(), "outside-"));
+      temps.push(outside);
+      const result = resolveHooxRuntimeRoot({
+        cwd: outside,
+        env: { HOOX_REPO: root },
+      });
+      expect(result.source).toBe("env");
+      expect(result.root).toBe(root);
+    });
+
+    it("returns source env with null root when HOOX_REPO is invalid", () => {
+      const outside = mkdtempSync(join(tmpdir(), "outside-"));
+      temps.push(outside);
+      const bad = join(outside, "missing");
+      const result = resolveHooxRuntimeRoot({
+        cwd: outside,
+        env: { HOOX_REPO: bad },
+      });
+      expect(result.source).toBe("env");
+      expect(result.root).toBeNull();
+      expect(result.checked.env).toBe(join(bad));
+    });
+
+    it("finds monorepo from cwd when HOOX_REPO is unset", () => {
+      const root = makeFakeSetupRoot();
+      temps.push(root);
+      const result = resolveHooxRuntimeRoot({
+        cwd: join(root, "packages"),
+        env: {},
+      });
+      expect(result.source).toBe("cwd");
+      expect(result.root).toBe(root);
+    });
+
+    it("uses global ~/.hoox/repo when cwd is not a setup repo", () => {
+      const base = mkdtempSync(join(tmpdir(), "hoox-home-"));
+      temps.push(base);
+      const repo = join(base, "repo");
+      mkdirSync(join(repo, "packages", "cli"), { recursive: true });
+      writeFileSync(join(repo, "wrangler.jsonc"), "{}\n");
+      writeFileSync(
+        join(repo, "packages", "cli", "package.json"),
+        JSON.stringify({ name: "cli" })
+      );
+
+      const outside = mkdtempSync(join(tmpdir(), "outside-"));
+      temps.push(outside);
+
+      process.env.HOOX_HOME = base;
+      delete process.env.HOOX_REPO;
+
+      const result = resolveHooxRuntimeRoot({ cwd: outside, env: {} });
+      // env arg empty doesn't include HOOX_HOME — getHooxRepoPath reads process.env
+      expect(result.source).toBe("global");
+      expect(result.root).toBe(repo);
+    });
+
+    it("returns none when nothing matches", () => {
+      const base = mkdtempSync(join(tmpdir(), "empty-hoox-"));
+      temps.push(base);
+      const outside = mkdtempSync(join(tmpdir(), "outside-"));
+      temps.push(outside);
+      process.env.HOOX_HOME = base;
+      delete process.env.HOOX_REPO;
+      const result = resolveHooxRuntimeRoot({ cwd: outside, env: {} });
+      expect(result.source).toBe("none");
+      expect(result.root).toBeNull();
+      expect(result.checked.global).toBe(join(base, "repo"));
+    });
+  });
+
+  describe("getTuiEntryCandidates", () => {
+    it("lists source and dist main under packages/tui", () => {
+      const candidates = getTuiEntryCandidates("/tmp/hoox-setup");
+      expect(candidates[0]).toMatch(/packages[/\\]tui[/\\]src[/\\]main\.tsx$/);
+      expect(candidates[1]).toMatch(/packages[/\\]tui[/\\]dist[/\\]main\.js$/);
     });
   });
 

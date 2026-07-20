@@ -5,9 +5,11 @@
  * with alternate screen mode. When the TUI exits, control returns to the CLI.
  *
  * Entry resolution order:
- *   1. Monorepo paths (source + dist)
- *   2. Installed `@jango-blockchained/hoox-tui` package (node_modules)
- *   3. CWD-relative node_modules lookup
+ *   1. HOOX_TUI_ENTRY env (explicit file)
+ *   2. Runtime monorepo (HOOX_REPO → cwd walk-up → ~/.hoox/repo)
+ *   3. Paths relative to this CLI module (linked monorepo / workspace)
+ *   4. Installed `@jango-blockchained/hoox-tui` package (node_modules)
+ *   5. CWD-relative node_modules lookup
  */
 import { Command } from "commander";
 import { spawn } from "node:child_process";
@@ -15,6 +17,11 @@ import { createRequire } from "node:module";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
+import {
+  getHooxRepoPath,
+  getTuiEntryCandidates,
+  resolveHooxRuntimeRoot,
+} from "@jango-blockchained/hoox-shared";
 import { theme } from "../../utils/theme.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
@@ -29,19 +36,32 @@ const TUI_PKG = "@jango-blockchained/hoox-tui";
  * Prefers source (dev) then dist (built package).
  */
 function collectTuiCandidates(): string[] {
-  const candidates: string[] = [
-    // Monorepo (CLI source: packages/cli/src/commands/tui → packages/tui)
+  const candidates: string[] = [];
+
+  const explicit = process.env.HOOX_TUI_ENTRY?.trim();
+  if (explicit) {
+    candidates.push(resolve(explicit));
+  }
+
+  const runtime = resolveHooxRuntimeRoot();
+  if (runtime.root) {
+    candidates.push(...getTuiEntryCandidates(runtime.root));
+  }
+
+  // Always consider global repo even if markers failed (partial checkout)
+  candidates.push(...getTuiEntryCandidates(getHooxRepoPath()));
+
+  // Monorepo layouts relative to this CLI module
+  candidates.push(
     resolve(__dirname, "../../../../tui/src/main.tsx"),
     resolve(__dirname, "../../../../tui/dist/main.js"),
-    // Monorepo (CLI dist: packages/cli/dist → packages/tui)
     resolve(__dirname, "../../../tui/src/main.tsx"),
     resolve(__dirname, "../../../tui/dist/main.js"),
-    // CWD layouts
     resolve(process.cwd(), "packages/tui/src/main.tsx"),
     resolve(process.cwd(), "packages/tui/dist/main.js"),
     resolve(process.cwd(), "../tui/src/main.tsx"),
-    resolve(process.cwd(), "../tui/dist/main.js"),
-  ];
+    resolve(process.cwd(), "../tui/dist/main.js")
+  );
 
   // Resolve installed package from this module's resolution paths
   pushPackageEntries(candidates, require);
@@ -54,7 +74,8 @@ function collectTuiCandidates(): string[] {
     // no package.json in cwd — skip
   }
 
-  return candidates;
+  // Deduplicate while preserving order
+  return [...new Set(candidates)];
 }
 
 function pushPackageEntries(candidates: string[], req: NodeRequire): void {
@@ -78,14 +99,22 @@ export function resolveTUIEntry(): string {
     if (existsSync(path)) return path;
   }
 
+  const runtime = resolveHooxRuntimeRoot();
+  const globalRepo = getHooxRepoPath();
+
   throw new CLIError(
     [
       "Could not find the Hoox TUI entry point.",
       "",
+      `  Runtime root: ${runtime.root ?? "(none)"} [${runtime.source}]`,
+      `  Global repo:  ${globalRepo}`,
+      "",
       "Fix options:",
-      "  • From the monorepo: ensure packages/tui/src/main.tsx exists",
-      `  • Or install the package: bun add -g ${TUI_PKG}`,
-      "  • Or from a project: bun add -d " + TUI_PKG,
+      "  • Bootstrap the global runtime:",
+      "      hoox doctor --fix-runtime",
+      "  • Or run from a hoox-setup checkout (packages/tui/src/main.tsx)",
+      "  • Or set HOOX_REPO=/path/to/hoox-setup",
+      "  • Or set HOOX_TUI_ENTRY=/path/to/main.tsx",
       "",
       "Then re-run: hoox tui",
     ].join("\n"),

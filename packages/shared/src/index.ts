@@ -188,8 +188,16 @@ export {
   getHooxDataDir,
   getHooxWranglerPath,
   getHooxStatePath,
+  isHooxSetupRoot,
+  findHooxSetupRoot,
+  resolveHooxRuntimeRoot,
+  getTuiEntryCandidates,
 } from "./path-utils";
-export type { HooxPath } from "./path-utils";
+export type {
+  HooxPath,
+  RuntimeRootSource,
+  RuntimeRootResult,
+} from "./path-utils";
 
 // ── Wizard engine ──────────────────────────────────────────────────────
 
