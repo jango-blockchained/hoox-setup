@@ -83,7 +83,7 @@ describe("path-utils - Path Resolution Service", () => {
       const custom = join(tmpdir(), "custom-hoox-home");
       try {
         process.env.HOOX_HOME = custom;
-        expect(getHooxHome()).toBe(join(custom));
+        expect(getHooxHome() as string).toBe(join(custom));
       } finally {
         if (orig !== undefined) process.env.HOOX_HOME = orig;
         else delete process.env.HOOX_HOME;
