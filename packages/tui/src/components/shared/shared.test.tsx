@@ -10,6 +10,7 @@
  * for components where possible with OpenTUI React mock.
  */
 import { describe, it, expect, beforeEach } from "bun:test";
+import { Colors, WorkerStatusColor } from "@jango-blockchained/hoox-shared";
 
 // ─── Import shared component logic for direct testing ────────────────────────
 
@@ -22,11 +23,7 @@ const DOT_CHAR: Record<StatusDotStatus, string> = {
   down: "\u2591", // ░
 };
 
-const DOT_COLOR: Record<StatusDotStatus, string> = {
-  operational: "#00FF88", // success
-  degraded: "#FFAA00", // warning
-  down: "#FF4444", // error
-};
+const DOT_COLOR = WorkerStatusColor;
 
 // ─── CommandPalette fuzzy filter logic (extracted from command-palette.tsx) ───
 
@@ -204,15 +201,15 @@ describe("Shared Components", () => {
     });
 
     it("operational uses success color (green)", () => {
-      expect(DOT_COLOR.operational).toBe("#00FF88");
+      expect(DOT_COLOR.operational).toBe(Colors.success);
     });
 
     it("degraded uses warning color (amber)", () => {
-      expect(DOT_COLOR.degraded).toBe("#FFAA00");
+      expect(DOT_COLOR.degraded).toBe(Colors.warning);
     });
 
     it("down uses error color (red)", () => {
-      expect(DOT_COLOR.down).toBe("#FF4444");
+      expect(DOT_COLOR.down).toBe(Colors.error);
     });
 
     it("all three status values have distinct characters", () => {

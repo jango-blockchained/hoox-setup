@@ -18,6 +18,7 @@
 import { useState, useCallback, memo } from "react";
 import {
   Colors,
+  ConnectionStatusColor,
   useServiceStore,
   formatRelativeTimeFromTime as formatRelativeTime,
   type CliErrorType,
@@ -216,13 +217,6 @@ export function StatusBar() {
     offline: "OFFLINE",
   };
 
-  const statusColor: Record<string, string> = {
-    connected: Colors.success,
-    polling: Colors.accent,
-    reconnecting: Colors.warning,
-    offline: Colors.error,
-  };
-
   const relativeTime = lastUpdated > 0 ? formatRelativeTime(lastUpdated) : "—";
 
   // The status pill is clickable when there are error details to show —
@@ -275,7 +269,11 @@ export function StatusBar() {
             ┌
           </text>
           <SummaryLine
-            statusColor={statusColor[connectionStatus] ?? Colors.muted}
+            statusColor={
+              ConnectionStatusColor[
+                connectionStatus as keyof typeof ConnectionStatusColor
+              ] ?? Colors.muted
+            }
             pillInteractive={pillInteractive}
             onClick={toggleError}
             expandHint={expandHint}

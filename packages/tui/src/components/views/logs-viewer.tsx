@@ -11,6 +11,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import {
   Colors,
+  LogLevelColor,
   useServiceStore,
   useUIStore,
 } from "@jango-blockchained/hoox-shared";
@@ -23,13 +24,6 @@ import type {
 } from "@jango-blockchained/hoox-shared";
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
-
-const LEVEL_FG: Record<LogLevel, string> = {
-  error: Colors.error,
-  warn: Colors.warning,
-  info: Colors.foreground,
-  debug: Colors.muted,
-};
 
 const LEVEL_LABEL: Record<LogLevel, string> = {
   error: "ERR",
@@ -110,7 +104,7 @@ function FilterPanel({
           >
             {levels.has(lvl) ? "[x]" : "[ ]"}
           </text>
-          <text fg={LEVEL_FG[lvl]} dim={lvl === "debug"}>
+          <text fg={LogLevelColor[lvl]} dim={lvl === "debug"}>
             {LEVEL_LABEL[lvl]}
           </text>
         </box>
@@ -191,7 +185,7 @@ function LogStream({ entries, paused }: LogStreamProps) {
   return (
     <scrollbox flexGrow={1} border={false}>
       {entries.map((entry) => {
-        const fg = LEVEL_FG[entry.level];
+        const fg = LogLevelColor[entry.level];
         const dim = entry.level === "debug";
         const label = LEVEL_LABEL[entry.level];
         const time = formatTimestamp(entry.timestamp);

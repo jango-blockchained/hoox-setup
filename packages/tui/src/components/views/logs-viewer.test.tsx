@@ -9,6 +9,7 @@
  *   - Empty state rendering
  */
 import { describe, it, expect } from "bun:test";
+import { Colors, LogLevelColor } from "@jango-blockchained/hoox-shared";
 import {
   makeLog,
   makeWorker,
@@ -50,15 +51,6 @@ function applyFilters(
     return true;
   });
 }
-
-// ─── Level Colors ────────────────────────────────────────────────────────────
-
-const LEVEL_FG: Record<LogLevel, string> = {
-  error: "#FF4444",
-  warn: "#FFAA00",
-  info: "#EEEEEE",
-  debug: "#555555",
-};
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
@@ -209,27 +201,27 @@ describe("LogsViewer filter logic", () => {
 
 describe("LogsViewer level colors", () => {
   it("maps error to red", () => {
-    expect(LEVEL_FG.error).toBe("#FF4444");
+    expect(LogLevelColor.error).toBe(Colors.error);
   });
 
   it("maps warn to amber/yellow", () => {
-    expect(LEVEL_FG.warn).toBe("#FFAA00");
+    expect(LogLevelColor.warn).toBe(Colors.warning);
   });
 
-  it("maps info to white", () => {
-    expect(LEVEL_FG.info).toBe("#EEEEEE");
+  it("maps info to foreground", () => {
+    expect(LogLevelColor.info).toBe(Colors.foreground);
   });
 
-  it("maps debug to dim", () => {
-    expect(LEVEL_FG.debug).toBe("#555555");
+  it("maps debug to muted (readable, not dim)", () => {
+    expect(LogLevelColor.debug).toBe(Colors.muted);
   });
 
   it("has entries for all LogLevel values", () => {
     const allLevels: LogLevel[] = ["error", "warn", "info", "debug"];
     for (const lvl of allLevels) {
-      expect(LEVEL_FG[lvl]).toBeDefined();
-      expect(typeof LEVEL_FG[lvl]).toBe("string");
-      expect(LEVEL_FG[lvl]).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(LogLevelColor[lvl]).toBeDefined();
+      expect(typeof LogLevelColor[lvl]).toBe("string");
+      expect(LogLevelColor[lvl]).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });
 });

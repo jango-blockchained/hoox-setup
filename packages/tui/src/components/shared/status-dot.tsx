@@ -3,14 +3,14 @@
  * StatusDot — a compact color-coded indicator for operational state.
  *
  * Renders a distinct terminal character per status:
- *   - operational → "█" green  (#00FF88)
- *   - degraded    → "▌" amber  (#FFAA00)
- *   - down        → "░" red    (#FF4444), dimmed
+ *   - operational → "█" green  (WorkerStatusColor.operational)
+ *   - degraded    → "▌" amber  (WorkerStatusColor.degraded)
+ *   - down        → "░" red    (WorkerStatusColor.down), dimmed
  *
  * Optional `pulse` blinks the character for operational status
  * (uses the Text `blink` attribute to pulse).
  */
-import { Colors } from "@jango-blockchained/hoox-shared";
+import { WorkerStatusColor } from "@jango-blockchained/hoox-shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,11 +31,7 @@ const DOT_CHAR: Record<StatusDotStatus, string> = {
   down: "░",
 };
 
-const DOT_COLOR: Record<StatusDotStatus, string> = {
-  operational: Colors.success,
-  degraded: Colors.warning,
-  down: Colors.error,
-};
+const DOT_COLOR = WorkerStatusColor;
 
 // ── Component ──────────────────────────────────────────────────────────────
 

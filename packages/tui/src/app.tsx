@@ -262,7 +262,7 @@ export function AppRoot({ safeMode = false }: { safeMode?: boolean }) {
   return (
     <DialogProvider
       size="medium"
-      backdropColor="#000000"
+      backdropColor={Colors.backdrop}
       backdropOpacity={0.35}
     >
       <AppRootInner safeMode={safeMode} />
@@ -343,8 +343,7 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
         if (result.success && result.data) {
           const raw = result.data as Record<string, unknown>;
           const rawWorkers = (raw.workers ?? raw.status ?? raw) as
-            | unknown[]
-            | Record<string, unknown>;
+            unknown[] | Record<string, unknown>;
           const parsed = Array.isArray(rawWorkers)
             ? rawWorkers
             : typeof rawWorkers === "object" && rawWorkers !== null
