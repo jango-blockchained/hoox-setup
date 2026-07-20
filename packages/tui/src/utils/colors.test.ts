@@ -5,45 +5,17 @@
  * follow the landing page DNA (dark bg #0D1117, orange accent #E8780A),
  * and provide adequate contrast ratios for TUI readability.
  *
+ * Source of truth: @jango-blockchained/hoox-shared (Colors + status maps).
  * Uses Bun test runner.
  */
 import { describe, it, expect } from "bun:test";
-
-// ─── Hoox Design System Colors (mirrored from @jango-blockchained/hoox-shared) ──────────────────
-
-/**
- * These color tokens form the Hoox design system based on the
- * landing page DNA. They are used throughout the TUI via @jango-blockchained/hoox-shared.
- *
- * Palette:
- *   - Dark background:   #0D1117 (oklch 0.08 0 0)
- *   - Orange accent:     #E8780A (oklch 0.7 0.2 45)
- *   - Cards:             #1C1C1F (oklch 0.12 0 0)
- *   - Border:            #484848 (oklch 0.3 0 0)
- *   - Text foreground:   #EEEEEE (oklch 0.95 0 0)
- *   - Text muted:        #A0A0A0 (oklch 0.68 0 0)
- *   - Muted foreground:  #6E6E6E (oklch 0.55 0 0)
- *   - Text dim:          #3B3B3D (oklch 0.25 0 0)
- *   - Success:           #00FF88 (green, operational)
- *   - Error:             #FF4444 (red, failure)
- *   - Warning:           #FFAA00 (amber, degraded)
- *   - Info:              #4488FF (blue, informational)
- */
-export const Colors = {
-  background: "#0D1117",
-  foreground: "#EEEEEE",
-  card: "#1C1C1F",
-  accent: "#E8780A",
-  border: "#484848",
-  muted: "#A0A0A0",
-  "muted-foreground": "#6E6E6E",
-  dim: "#3B3B3D",
-  success: "#00FF88",
-  error: "#FF4444",
-  warning: "#FFAA00",
-  info: "#4488FF",
-  highlight: "#E8780A",
-} as const;
+import {
+  Colors,
+  ConnectionStatusColor,
+  WorkerStatusColor,
+  LogLevelColor,
+  AlertSeverityColor,
+} from "@jango-blockchained/hoox-shared";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -225,10 +197,6 @@ describe("Colors Design System", () => {
   // ── Token completeness ──────────────────────────────────────────────────
 
   describe("token completeness", () => {
-    it("has exactly 13 color tokens", () => {
-      expect(Object.keys(Colors).length).toBe(13); // 12 unique + highlight duplicate
-    });
-
     it("all required semantic tokens exist", () => {
       const required = [
         "background",
@@ -237,18 +205,21 @@ describe("Colors Design System", () => {
         "accent",
         "border",
         "muted",
+        "muted-foreground",
         "dim",
         "success",
         "error",
         "warning",
         "info",
-      ];
+        "highlight",
+        "backdrop",
+      ] as const;
       for (const key of required) {
-        expect(Colors[key as keyof typeof Colors]).toBeDefined();
+        expect(Colors[key]).toBeDefined();
       }
     });
 
-    it("no two semantic colors share the same hex value", () => {
+    it("no two core semantic colors share the same hex value", () => {
       const semanticKeys = [
         "background",
         "foreground",
@@ -262,9 +233,10 @@ describe("Colors Design System", () => {
         "error",
         "warning",
         "info",
+        "backdrop",
       ] as const;
       const hexes = semanticKeys.map((k) => Colors[k]);
-      // All must be unique (except accent already equals highlight)
+      // Core tokens must be unique (aliases like highlight/text may duplicate)
       const uniqueHexes = new Set(hexes);
       expect(uniqueHexes.size).toBe(semanticKeys.length);
     });
@@ -304,52 +276,29 @@ describe("Colors Design System", () => {
 
 describe("status color mappings", () => {
   it("connection status maps to correct colors", () => {
-    const statusColors: Record<string, string> = {
-      connected: Colors.success,
-      polling: Colors.accent,
-      reconnecting: Colors.warning,
-      offline: Colors.error,
-    };
-    expect(statusColors.connected).toBe("#00FF88");
-    expect(statusColors.polling).toBe("#E8780A");
-    expect(statusColors.reconnecting).toBe("#FFAA00");
-    expect(statusColors.offline).toBe("#FF4444");
+    expect(ConnectionStatusColor.connected).toBe(Colors.success);
+    expect(ConnectionStatusColor.polling).toBe(Colors.accent);
+    expect(ConnectionStatusColor.reconnecting).toBe(Colors.warning);
+    expect(ConnectionStatusColor.offline).toBe(Colors.error);
   });
 
   it("alert severity maps to correct colors", () => {
-    const severityColors: Record<string, string> = {
-      info: Colors.info,
-      warning: Colors.warning,
-      error: Colors.error,
-      critical: Colors.error,
-    };
-    expect(severityColors.info).toBe("#4488FF");
-    expect(severityColors.warning).toBe("#FFAA00");
-    expect(severityColors.error).toBe("#FF4444");
-    expect(severityColors.critical).toBe("#FF4444");
+    expect(AlertSeverityColor.info).toBe(Colors.info);
+    expect(AlertSeverityColor.warning).toBe(Colors.warning);
+    expect(AlertSeverityColor.error).toBe(Colors.error);
+    expect(AlertSeverityColor.critical).toBe(Colors.error);
   });
 
   it("worker status maps to correct colors", () => {
-    const workerColors: Record<string, string> = {
-      operational: Colors.success,
-      degraded: Colors.warning,
-      down: Colors.error,
-    };
-    expect(workerColors.operational).toBe("#00FF88");
-    expect(workerColors.degraded).toBe("#FFAA00");
-    expect(workerColors.down).toBe("#FF4444");
+    expect(WorkerStatusColor.operational).toBe(Colors.success);
+    expect(WorkerStatusColor.degraded).toBe(Colors.warning);
+    expect(WorkerStatusColor.down).toBe(Colors.error);
   });
 
   it("log level maps to correct colors", () => {
-    const logColors: Record<string, string> = {
-      debug: Colors.dim,
-      info: Colors.foreground,
-      warn: Colors.warning,
-      error: Colors.error,
-    };
-    expect(logColors.debug).toBe("#3B3B3D");
-    expect(logColors.info).toBe("#EEEEEE");
-    expect(logColors.warn).toBe("#FFAA00");
-    expect(logColors.error).toBe("#FF4444");
+    expect(LogLevelColor.debug).toBe(Colors.muted);
+    expect(LogLevelColor.info).toBe(Colors.foreground);
+    expect(LogLevelColor.warn).toBe(Colors.warning);
+    expect(LogLevelColor.error).toBe(Colors.error);
   });
 });
