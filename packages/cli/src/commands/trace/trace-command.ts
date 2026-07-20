@@ -808,9 +808,33 @@ EXAMPLES:
     );
 
   // -- trace destinations ---------------------------------------------------
+  // Parent action defaults to `list` when no subcommand is given
+  // (previously printed help and exited 1).
   const destinationsCmd = traceCmd
     .command("destinations")
-    .summary("Manage OTLP export destinations");
+    .summary("Manage OTLP export destinations")
+    .description(
+      `List and manage OTLP export destinations.
+
+SUBCOMMANDS:
+  list              List destinations (default when no subcommand given)
+  add <name> <url>  Add a destination
+  remove <slug>     Remove a destination
+
+EXAMPLES:
+  hoox trace destinations                      List (default)
+  hoox trace destinations list
+  hoox trace destinations add honeycomb https://api.honeycomb.io/1/traces`
+    )
+    .action(
+      withErrorHandling(
+        async (_options: unknown, cmd: Command) => {
+          const fmt = getFormatOptions(cmd);
+          await handleDestinationsList(fmt);
+        },
+        { service: "trace" }
+      )
+    );
 
   destinationsCmd
     .command("list")

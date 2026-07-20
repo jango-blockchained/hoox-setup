@@ -7,6 +7,7 @@ import { SecretsService } from "../../services/secrets/index.js";
 import {
   formatError,
   formatSuccess,
+  formatTable,
   type FormatOptions,
   getFormatOptions,
 } from "../../utils/formatters.js";
@@ -24,13 +25,33 @@ async function handleCheck(
       // default true unless --no-typecheck
       typecheck: options.typecheck !== false,
     });
-    if (result.allPassed) {
-      formatSuccess("All checks passed", fmt);
+
+    if (fmt.json) {
+      process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     } else {
-      formatError(
-        new CLIError(`${result.failedCount} check(s) failed`, ExitCode.ERROR),
-        fmt
-      );
+      // Always show the per-step table so failures are actionable
+      // (previously only printed "N check(s) failed" with no detail).
+      const rows = result.steps.map((s) => ({
+        Step: s.step,
+        Status: s.success ? "ok" : "fail",
+        Detail: s.message ?? s.error ?? "-",
+      }));
+      formatTable(rows, fmt);
+
+      if (result.allPassed) {
+        formatSuccess(`All ${result.passedCount} check(s) passed`, fmt);
+      } else {
+        formatError(
+          new CLIError(
+            `${result.failedCount} of ${result.steps.length} check(s) failed`,
+            ExitCode.ERROR
+          ),
+          fmt
+        );
+      }
+    }
+
+    if (!result.allPassed) {
       process.exitCode = ExitCode.ERROR;
     }
   } catch (err) {

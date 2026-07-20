@@ -13,6 +13,10 @@ This project adheres loosely to [Semantic Versioning](https://semver.org/).
 - **`hoox db list` (local)** — root monorepo `wrangler.jsonc` is a Hoox meta-config without D1 bindings. Local D1 ops now pass `-c workers/d1-worker/wrangler.jsonc` when present (`HOOX_WRANGLER_CONFIG` override supported).
 - **`hoox pine *`** — child spawns use `process.execPath` / known bun install paths instead of bare `"bun"` on PATH. Missing `workers/pine-worker` returns a clear clone hint instead of `ENOENT: posix_spawn 'bun'`.
 
+- **`hoox repair check`** — prints a per-step status table (and full JSON with `--json`) instead of only `"N check(s) failed"`.
+
+- **`hoox trace destinations`** — defaults to listing destinations when no subcommand is given (was help + exit 1).
+
 ## [0.9.3] — 2026-07-11
 
 ### Added

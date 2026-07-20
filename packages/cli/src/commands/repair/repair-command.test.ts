@@ -134,7 +134,12 @@ async function importRepairCommand(): Promise<{
 
 async function createProgram(): Promise<Command> {
   const { registerRepairCommand } = await importRepairCommand();
-  const program = new Command().name("hoox-test").exitOverride(() => {});
+  const program = new Command()
+    .name("hoox-test")
+    .exitOverride(() => {})
+    // Mirror global CLI flags so getFormatOptions(cmd) sees --json
+    .option("--json", "Output in JSON format")
+    .option("--quiet", "Minimal output");
   registerRepairCommand(program);
   return program;
 }
@@ -224,6 +229,88 @@ describe("registerRepairCommand", () => {
       const program = await createProgram();
       await program.parseAsync(["repair", "check"], { from: "user" });
       expect(process.exitCode).toBe(1);
+    });
+
+    it("prints step details and exits 1 when checks fail", async () => {
+      runSystemCheckMock = mock(async () => ({
+        steps: [
+          {
+            step: "Worker submodules",
+            success: false,
+            message: "Missing submodules",
+          },
+          { step: "Dependencies", success: true, message: "Skipped" },
+          { step: "TypeScript", success: true, message: "No errors" },
+          {
+            step: "Secrets",
+            success: false,
+            message: "3/10 missing",
+          },
+        ],
+        allPassed: false,
+        passedCount: 2,
+        failedCount: 2,
+      }));
+      (
+        RepairService.prototype as unknown as Record<string, unknown>
+      ).runSystemCheck = runSystemCheckMock;
+
+      const writes: string[] = [];
+      const origWrite = process.stdout.write.bind(process.stdout);
+      (
+        process.stdout as unknown as { write: typeof process.stdout.write }
+      ).write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
+        writes.push(
+          typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk)
+        );
+        return origWrite(chunk as never, ...(rest as never[]));
+      }) as typeof process.stdout.write;
+
+      try {
+        const program = await createProgram();
+        await program.parseAsync(["repair", "check"], { from: "user" });
+        const out = writes.join("");
+        expect(out).toContain("Worker submodules");
+        expect(out).toContain("Missing submodules");
+        expect(out).toContain("Secrets");
+        expect(process.exitCode).toBe(1);
+      } finally {
+        process.stdout.write = origWrite;
+      }
+    });
+
+    it("emits full JSON result when --json is set", async () => {
+      const writes: string[] = [];
+      const origWrite = process.stdout.write.bind(process.stdout);
+      (
+        process.stdout as unknown as { write: typeof process.stdout.write }
+      ).write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
+        writes.push(
+          typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk)
+        );
+        return origWrite(chunk as never, ...(rest as never[]));
+      }) as typeof process.stdout.write;
+
+      try {
+        const program = await createProgram();
+        await program.parseAsync(["--json", "repair", "check"], {
+          from: "user",
+        });
+        const jsonLine = writes.find((w) => {
+          try {
+            const p = JSON.parse(w);
+            return p && Array.isArray(p.steps);
+          } catch {
+            return false;
+          }
+        });
+        expect(jsonLine).toBeDefined();
+        const parsed = JSON.parse(jsonLine!);
+        expect(parsed.allPassed).toBe(true);
+        expect(parsed.steps.length).toBeGreaterThan(0);
+      } finally {
+        process.stdout.write = origWrite;
+      }
     });
   });
 

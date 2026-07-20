@@ -556,6 +556,18 @@ describe("trace command", () => {
       expect(stdout).toContain("No OTLP destinations");
     });
 
+    it("defaults to list when no subcommand is given", async () => {
+      mockCfFetch({
+        "/observability/destinations": [],
+      });
+
+      // Parent action should list instead of printing help / exiting 1
+      const { stdout, exitCode } = await runCommand("trace destinations");
+
+      expect(stdout).toContain("No OTLP destinations");
+      expect(exitCode === 0 || exitCode === undefined).toBe(true);
+    });
+
     it("adds a new destination", async () => {
       mockCfFetch({
         "/observability/destinations": {
