@@ -49,7 +49,7 @@ Purpose: concise, actionable guidance for future Copilot CLI sessions working in
 - Communication: workers use Cloudflare Service Bindings (internal RPC); only `workers/hoox` (gateway) and dashboard are public.
 - Infra used: D1 (edge SQLite), R2, KV, Queues, Workers AI providers, Vectorize (RAG). Smart Placement enabled for latency-sensitive workers.
 - Constraints: workers run on Edge runtime (no Node built-ins). Secrets managed via wrangler/hoox secrets and per-worker `.dev.vars` (gitignored).
-- graph.json (2.5MB) is query-only; use graph-metadata.json for metadata.
+- graph-metadata.json is the tracked semantic graph; regenerate full graph.json/graph.dot with `bun run graph` (not committed).
 
 ---
 

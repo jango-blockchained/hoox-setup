@@ -36,7 +36,6 @@ This document defines the clear boundary between the **Open Core** (public, open
 | `d1-worker`, `analytics-worker`   | Yes           | Tenant-isolated + scale          |                                                  |
 | `report-worker`                   | Yes           | Compliance-grade                 |                                                  |
 | `web3-wallet-worker`              | Yes           | Advanced DeFi                    |                                                  |
-| ~~`pine-worker` / `pyne-worker`~~ | Removed       | —                                |                                                  |
 | **Dispatch Worker (WfP)**         | Basic example | Full multi-tenant platform       | Core WfP concepts open, full platform commercial |
 | **User Workers**                  | Examples only | Full customer strategy execution |                                                  |
 

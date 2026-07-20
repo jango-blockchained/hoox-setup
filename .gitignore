@@ -88,7 +88,10 @@ pages.jsonc
 
 .worktrees/
 *.tgz
+# Generated code graph (regenerate: bun run graph)
 graph.svg
+graph.dot
+graph.json
 
 # Superpowers
 .superpowers/

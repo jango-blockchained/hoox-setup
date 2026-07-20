@@ -38,9 +38,7 @@
     "src/**/*",
     "scripts/**/*",
     "test/**/*",
-    "packages/test-setup-global.ts",
-    "test-runner.ts",
-    ".test-runner.js"
+    "packages/test-setup-global.ts"
   ],
   "exclude": ["node_modules", "**/node_modules/*", "dist"]
 }

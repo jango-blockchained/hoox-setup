@@ -182,10 +182,11 @@ During extraction, an **8-phase live progress bar** reports each stage with timi
 ⏱  Total time: 22.0s
 ```
 
-| File         | Size   | Format                       | Purpose                                                     |
-| ------------ | ------ | ---------------------------- | ----------------------------------------------------------- |
-| `graph.json` | 2.5 MB | JSON (997 nodes, 5536 edges) | Machine-readable — AI context, programmatic queries         |
-| `graph.dot`  | 1.3 MB | Graphviz DOT (14 clusters)   | Visual rendering — workspace-clustered architecture diagram |
+| File                  | Size   | Format                       | Purpose                                                                  |
+| --------------------- | ------ | ---------------------------- | ------------------------------------------------------------------------ |
+| `graph-metadata.json` | ~45 KB | JSON                         | Human-authored semantics (tracked in git)                                |
+| `graph.json`          | ~2.5 MB | JSON (nodes + edges)        | Machine-readable graph — **generated** via `bun run graph`, not committed |
+| `graph.dot`           | ~1.3 MB | Graphviz DOT                | Visual rendering — **generated**, not committed                          |
 
 ### Node Types & Color Coding (DOT)
 
