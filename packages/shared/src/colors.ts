@@ -6,7 +6,7 @@
  *   - Orange accent: oklch(0.7 0.2 45) → #E8780A
  *   - Squared edges (no rounding — editorial aesthetic)
  *
- * Usage: import { Colors } from "@hoox/shared"
+ * Usage: import { Colors, ConnectionStatusColor } from "@jango-blockchained/hoox-shared"
  *        <text fg={Colors.accent}>Important</text>
  */
 
@@ -14,13 +14,13 @@ export const Colors = {
   // Base
   background: "#0D1117",
   foreground: "#EEEEEE",
-  card: "#1C1C1F", // oklch(0.12 0 0)
-  border: "#484848", // oklch(0.3 0 0)
-  muted: "#A0A0A0", // oklch(0.68 0 0)
-  "muted-foreground": "#6E6E6E", // oklch(0.55 0 0)
-  dim: "#3B3B3D", // oklch(0.25 0 0)
+  card: "#1C1C1F",
+  border: "#484848",
+  muted: "#A0A0A0",
+  "muted-foreground": "#6E6E6E",
+  dim: "#3B3B3D",
 
-  // Accent (the orange — from oklch(0.7 0.2 45))
+  // Accent
   accent: "#E8780A",
   "accent-dim": "#B85E08",
 
@@ -36,6 +36,48 @@ export const Colors = {
   panel: "#1C1C1F",
   divider: "#484848",
   highlight: "#E8780A",
+
+  /** Dialog / overlay dim only — not a surface color */
+  backdrop: "#000000",
 } as const;
 
 export type ColorKey = keyof typeof Colors;
+
+/** Connection pill colors (status bar). */
+export const ConnectionStatusColor = {
+  connected: Colors.success,
+  polling: Colors.accent,
+  reconnecting: Colors.warning,
+  offline: Colors.error,
+} as const;
+
+export type ConnectionStatusKey = keyof typeof ConnectionStatusColor;
+
+/** Worker / service health colors. */
+export const WorkerStatusColor = {
+  operational: Colors.success,
+  degraded: Colors.warning,
+  down: Colors.error,
+} as const;
+
+export type WorkerStatusKey = keyof typeof WorkerStatusColor;
+
+/** Log stream level colors. `debug` uses muted (readable), not dim. */
+export const LogLevelColor = {
+  error: Colors.error,
+  warn: Colors.warning,
+  info: Colors.foreground,
+  debug: Colors.muted,
+} as const;
+
+export type LogLevelColorKey = keyof typeof LogLevelColor;
+
+/** Alert severity colors. */
+export const AlertSeverityColor = {
+  info: Colors.info,
+  warning: Colors.warning,
+  error: Colors.error,
+  critical: Colors.error,
+} as const;
+
+export type AlertSeverityColorKey = keyof typeof AlertSeverityColor;

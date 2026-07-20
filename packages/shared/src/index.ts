@@ -121,8 +121,20 @@ export * from "./test-utils";
 
 // ── New TUI shared exports ────────────────────────────────────────────────
 
-export { Colors } from "./colors";
-export type { ColorKey } from "./colors";
+export {
+  Colors,
+  ConnectionStatusColor,
+  WorkerStatusColor,
+  LogLevelColor,
+  AlertSeverityColor,
+} from "./colors";
+export type {
+  ColorKey,
+  ConnectionStatusKey,
+  WorkerStatusKey,
+  LogLevelColorKey,
+  AlertSeverityColorKey,
+} from "./colors";
 
 export {
   formatNumber,
