@@ -7,7 +7,7 @@
  *     installs a process-wide mock.module for cli-bridge that stubs
  *     validateReadOnlySql. Real SQL validator coverage lives in
  *     services/cli-bridge.test.ts.
- *   - Source-level checks against app.tsx / sidebar.tsx / db-query.tsx.
+ *   - Source-level checks against view-registry.tsx / app.tsx / db-query.tsx.
  */
 import { describe, it, expect } from "bun:test";
 import { join } from "node:path";
@@ -36,30 +36,38 @@ describe("DbQueryView", () => {
     expect(formatCell(42)).toBe("42");
   });
 
-  it("is registered as ViewId db-query in app.tsx view factory", async () => {
-    const app = await Bun.file(join(TUI_SRC, "app.tsx")).text();
-    expect(app).toContain('"db-query"');
-    expect(app).toContain("DbQueryView");
+  it("is registered as ViewId db-query in view-registry factory", async () => {
+    const registry = await Bun.file(join(TUI_SRC, "view-registry.tsx")).text();
+    expect(registry).toContain('id: "db-query"');
+    expect(registry).toContain("DbQueryView");
   });
 
-  it("is registered in the command palette (app.tsx)", async () => {
-    const app = await Bun.file(join(TUI_SRC, "app.tsx")).text();
-    expect(app).toContain('id: "db-query"');
-    expect(app).toMatch(/db-query[\s\S]{0,80}shortcut:\s*"\^#q"/);
+  it("is registered in the command palette (view-registry)", async () => {
+    const registry = await Bun.file(join(TUI_SRC, "view-registry.tsx")).text();
+    expect(registry).toContain('id: "db-query"');
+    expect(registry).toMatch(/db-query[\s\S]{0,160}paletteShortcut:\s*"\^#q"/);
   });
 
-  it("has a sidebar nav item (sidebar.tsx)", async () => {
+  it("has a sidebar nav item via view-registry short labels", async () => {
+    const registry = await Bun.file(join(TUI_SRC, "view-registry.tsx")).text();
+    expect(registry).toContain('id: "db-query"');
+    expect(registry).toContain("DB QUERY");
     const sidebar = await Bun.file(
       join(TUI_SRC, "components/layout/sidebar.tsx")
     ).text();
-    expect(sidebar).toContain('id: "db-query"');
-    expect(sidebar).toContain("DB QUERY");
+    expect(sidebar).toContain("getSidebarItems");
   });
 
-  it("uses Ctrl+Alt+Q chord in app keyboard handler", async () => {
+  it("uses Ctrl+Alt+Q chord via registry map in app keyboard handler", async () => {
+    const registry = await Bun.file(join(TUI_SRC, "view-registry.tsx")).text();
+    expect(registry).toMatch(
+      /id:\s*"db-query"[\s\S]{0,200}key:\s*"q"[\s\S]{0,80}keyMod:\s*"ctrl-alt"/
+    );
     const app = await Bun.file(join(TUI_SRC, "app.tsx")).text();
+    expect(app).toContain("getCtrlAltViewMap");
+    expect(app).toContain("CTRL_ALT_VIEWS");
     expect(app).toMatch(
-      /key\.ctrl\s*&&\s*key\.alt\s*&&\s*key\.name\s*===\s*"q"[\s\S]{0,80}db-query/
+      /key\.ctrl\s*&&\s*key\.alt\s*&&\s*CTRL_ALT_VIEWS\[key\.name\]/
     );
   });
 

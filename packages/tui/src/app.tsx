@@ -40,6 +40,7 @@ import {
   type CrashAction,
 } from "./components/shared/crash-screen";
 import { CommandPalette } from "./components/shared/command-palette";
+import { QuitModal } from "./components/shared/quit-modal";
 import { StatusBar } from "./components/layout/statusbar";
 import { Sidebar } from "./components/layout/sidebar";
 
@@ -388,54 +389,15 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
 
       {/* Quit confirmation overlay */}
       {modal?.type === "confirm" && modal.title === "Quit HOOX?" && (
-        <box
-          position="absolute"
-          left={0}
-          top={0}
-          width="100%"
-          height="100%"
-          justifyContent="center"
-          alignItems="center"
-          backgroundColor={Colors.background}
-        >
-          <box
-            flexDirection="column"
-            gap={1}
-            padding={2}
-            border={true}
-            borderStyle="double"
-            borderColor={Colors.accent}
-            backgroundColor={Colors.card}
-            minWidth={40}
-          >
-            <text fg={Colors.accent} bold>
-              {modal.title}
-            </text>
-            <text fg={Colors.foreground}>
-              {modal.message ?? "Exit the terminal operations center."}
-            </text>
-            <box flexDirection="row" gap={2} paddingTop={1}>
-              <text
-                fg={Colors.error}
-                bold
-                onMouseUp={() => {
-                  dismissModal();
-                  quitApp();
-                }}
-              >
-                [Y/Enter] Quit
-              </text>
-              <text
-                fg={Colors.muted}
-                onMouseUp={() => {
-                  dismissModal();
-                }}
-              >
-                [N/Esc] Cancel
-              </text>
-            </box>
-          </box>
-        </box>
+        <QuitModal
+          title={modal.title}
+          message={modal.message ?? "Exit the terminal operations center."}
+          onConfirm={() => {
+            dismissModal();
+            quitApp();
+          }}
+          onCancel={() => dismissModal()}
+        />
       )}
     </box>
   );

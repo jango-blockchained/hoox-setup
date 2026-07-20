@@ -52,6 +52,11 @@ Stores are **not** under `packages/tui/src/stores` for production code — they 
 
 Session persistence: `$HOME/.hoox/.tui-state/session.json` via shared `restoreSession` / `saveSession`.
 
+### Navigation registry & colors
+
+- View factories, sidebar labels, keyboard shortcuts, and palette **view** commands are defined in `packages/tui/src/view-registry.tsx`.
+- Semantic status colors (`ConnectionStatusColor`, `WorkerStatusColor`, `LogLevelColor`, `AlertSeverityColor`) live in `@jango-blockchained/hoox-shared` (`packages/shared/src/colors.ts`). Do not invent local status→hex maps in views.
+
 ---
 
 ## 🗺️ View registry (15)
