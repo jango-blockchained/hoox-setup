@@ -17,6 +17,7 @@ import { useKeyboard } from "@opentui/react";
 import { Colors, useServiceStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
+import { ViewHeader } from "../shared/view-header";
 import { cliBridge } from "../../services/cli-bridge";
 import { showConfirm } from "../ui/dialog";
 import type { DialogHandle } from "../ui/dialog";
@@ -119,7 +120,7 @@ function KillSwitchStatusBadge() {
 
 /**
  * DashboardHeader — view title with animated connection status
- * and auto-repair button.
+ * and auto-repair button, via shared ViewHeader chrome.
  */
 function DashboardHeader({
   onRefresh,
@@ -139,45 +140,49 @@ function DashboardHeader({
     offline: "OFFLINE",
   };
 
+  // Divider lives below the kill-switch badge in the main layout —
+  // avoid a second rule under the title alone.
+  // Meta: sibling text nodes in a row box (no <text> nesting; no fragments).
   return (
-    <box flexDirection="row" gap={2} paddingBottom={1}>
-      <text fg={Colors.accent} bold>
-        DASHBOARD
-      </text>
-      <box flexDirection="row" gap={1}>
-        <StatusDot
-          status={
-            connectionStatus === "connected"
-              ? "operational"
-              : connectionStatus === "polling"
-                ? "degraded"
-                : "down"
-          }
-          pulse={connectionStatus === "connected"}
-        />
-        <text dim fg={Colors.muted}>
-          {statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}
-        </text>
-        <text fg={Colors.muted} onMouseUp={onRefresh}>
-          [REFRESH]
-        </text>
-        <text
-          fg={Colors.accent}
-          bold
-          onMouseUp={() => useUIStore.getState().setView("edge-topology")}
-        >
-          [TOPOLOGY]
-        </text>
-        <text
-          fg={autoRepairRunning ? Colors.warning : Colors.accent}
-          bold={!autoRepairRunning}
-          dim={autoRepairRunning}
-          onMouseUp={autoRepairRunning ? undefined : onRunAutoRepair}
-        >
-          {autoRepairRunning ? "[REPAIRING...]" : "[AUTO-REPAIR]"}
-        </text>
-      </box>
-    </box>
+    <ViewHeader
+      title="DASHBOARD"
+      showDivider={false}
+      meta={
+        <box flexDirection="row" gap={1}>
+          <StatusDot
+            status={
+              connectionStatus === "connected"
+                ? "operational"
+                : connectionStatus === "polling"
+                  ? "degraded"
+                  : "down"
+            }
+            pulse={connectionStatus === "connected"}
+          />
+          <text dim fg={Colors.muted}>
+            {statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}
+          </text>
+          <text fg={Colors.muted} onMouseUp={onRefresh}>
+            [REFRESH]
+          </text>
+          <text
+            fg={Colors.accent}
+            bold
+            onMouseUp={() => useUIStore.getState().setView("edge-topology")}
+          >
+            [TOPOLOGY]
+          </text>
+          <text
+            fg={autoRepairRunning ? Colors.warning : Colors.accent}
+            bold={!autoRepairRunning}
+            dim={autoRepairRunning}
+            onMouseUp={autoRepairRunning ? undefined : onRunAutoRepair}
+          >
+            {autoRepairRunning ? "[REPAIRING...]" : "[AUTO-REPAIR]"}
+          </text>
+        </box>
+      }
+    />
   );
 }
 

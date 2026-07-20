@@ -67,7 +67,9 @@ import { DashboardView } from "./dashboard";
 async function renderDashboard(): Promise<string> {
   const { captureCharFrame, renderOnce } = await testRender(<DashboardView />, {
     width: 80,
-    height: 24,
+    // Tall enough for service grid + alerts + stats without mid-line overwrite
+    // when ViewHeader chrome + async kill-switch/model health settle.
+    height: 32,
     exitOnCtrlC: false,
   });
   await renderOnce();
@@ -129,7 +131,7 @@ describe("DashboardView", () => {
   it("renders 10 worker status cards when workers are present", async () => {
     useServiceStore.setState({
       workers: Array.from({ length: 10 }, (_, i) =>
-        makeWorker({ name: `worker-${i + 1}` })
+        makeWorker({ id: `worker-card-${i + 1}`, name: `worker-${i + 1}` })
       ),
     });
     const output = await renderDashboard();

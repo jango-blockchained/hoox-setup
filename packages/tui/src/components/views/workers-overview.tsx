@@ -27,6 +27,8 @@ import { useUIStore } from "@jango-blockchained/hoox-shared";
 import { ErrorBoundary } from "../shared/error-boundary";
 import { StatusDot } from "../shared/status-dot";
 import { Spinner, EmptyState } from "../shared/spinner";
+import { Panel } from "../shared/panel";
+import { ViewHeader } from "../shared/view-header";
 import { cliBridge } from "../../services/cli-bridge";
 import type { WorkerInfo } from "@jango-blockchained/hoox-shared";
 import { showConfirm } from "../ui/dialog";
@@ -101,19 +103,12 @@ function WorkerCard({
   onLogs,
   isDeploying,
 }: WorkerCardProps) {
+  // elevated=false: card bg only when focused (matches prior DNA).
+  // compact: avoid double padding with inner metric layout.
   return (
-    <box
-      flexDirection="column"
-      flexGrow={1}
-      border={true}
-      borderStyle="single"
-      borderColor={focused ? Colors.accent : Colors.border}
-      backgroundColor={focused ? Colors.card : undefined}
-      paddingX={1}
-      paddingY={0}
-    >
+    <Panel focused={focused} elevated={false} compact flexGrow={1}>
       {/* Header row: No.XX + name + StatusDot */}
-      <box flexDirection="row" gap={1}>
+      <box flexDirection="row" gap={1} paddingX={1}>
         <text fg={Colors.accent} bold>
           No.{String(index + 1).padStart(2, "0")}
         </text>
@@ -155,7 +150,7 @@ function WorkerCard({
       </box>
 
       {/* Action buttons */}
-      <box flexDirection="row" gap={1} paddingTop={1}>
+      <box flexDirection="row" gap={1} paddingTop={1} paddingX={1}>
         <text
           fg={focused ? Colors.accent : Colors.muted}
           bg={focused ? Colors.card : undefined}
@@ -191,7 +186,7 @@ function WorkerCard({
           [LOGS]
         </text>
       </box>
-    </box>
+    </Panel>
   );
 }
 
@@ -234,8 +229,7 @@ export function WorkersOverview({ dialog }: WorkersOverviewProps = {}) {
           const raw = result.data as Record<string, unknown>;
           // CLI may return workers array, health object, or similar
           const rawWorkers = (raw.workers ?? raw.status ?? raw) as
-            | unknown[]
-            | Record<string, unknown>;
+            unknown[] | Record<string, unknown>;
           const parsed = Array.isArray(rawWorkers)
             ? rawWorkers
             : typeof rawWorkers === "object" && rawWorkers !== null
@@ -544,12 +538,11 @@ export function WorkersOverview({ dialog }: WorkersOverviewProps = {}) {
     <ErrorBoundary viewName="Workers Overview">
       <box flexDirection="column" flexGrow={1} padding={1} gap={1}>
         {/* Header */}
-        <box flexDirection="row" gap={2}>
-          <text fg={Colors.accent} bold>
-            Workers
-          </text>
-          <text fg={Colors.muted}>{workers.length} total</text>
-        </box>
+        <ViewHeader
+          title="Workers"
+          showDivider={false}
+          meta={<text fg={Colors.muted}>{workers.length} total</text>}
+        />
 
         {/* Deploy progress */}
         {deployingWorker && (
