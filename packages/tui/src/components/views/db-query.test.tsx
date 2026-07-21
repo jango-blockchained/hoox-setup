@@ -2,11 +2,9 @@
  * Tests for DbQueryView — registration + source contracts.
  *
  * Isolation strategy:
- *   - No OpenTUI renderer (flakes under full-suite + mock pollution).
- *   - No import of cli-bridge / validateReadOnlySql here: settings.test
- *     installs a process-wide mock.module for cli-bridge that stubs
- *     validateReadOnlySql. Real SQL validator coverage lives in
- *     services/cli-bridge.test.ts.
+ *   - No OpenTUI renderer (keeps this suite lightweight).
+ *   - CLI is the process-wide test double from test-setup; real SQL
+ *     validator coverage lives in services/cli-bridge.test.ts.
  *   - Source-level checks against view-registry.tsx / app.tsx / db-query.tsx.
  */
 import { describe, it, expect } from "bun:test";

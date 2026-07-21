@@ -143,3 +143,48 @@ function shareTestingExports(): Record<string, any> {
 // HOOX_TEST_ALLOW_WRANGLER=1 to allow the real spawn during live testing.
 import { installSpawnShim } from "@hoox/test-utils/spawn-shim";
 installSpawnShim();
+
+// ── Shared CLI bridge test double (process-wide, full surface) ───────────────
+//
+// Install ONE complete mock of `cli-bridge` here so individual test files do
+// not each call mock.module with partial stubs (which strip methods other
+// suites need under Bun's process-wide module mock).
+//
+// Per-test overrides: import { cliBridgeDouble, resetCliBridgeDouble } from
+// "./cli-bridge-test-double" and use mockResolvedValue / mockImplementation.
+import {
+  cliBridgeDouble,
+  createCliBridgeModuleMock,
+} from "./cli-bridge-test-double";
+
+const cliBridgeModule = await createCliBridgeModuleMock();
+
+/** Register under every import specifier used across the suite. */
+function installCliBridgeDouble(): void {
+  const paths = [
+    // Absolute file URL (Bun resolves relative imports to this)
+    new URL("./services/cli-bridge/index.ts", import.meta.url).href,
+    new URL("./services/cli-bridge/", import.meta.url).href,
+    // Relative from this preload file
+    "./services/cli-bridge",
+    "./services/cli-bridge/index.ts",
+    // Relative paths used by view tests under components/views/
+    "../../services/cli-bridge",
+    // Relative paths used by store tests
+    "../services/cli-bridge",
+  ];
+  for (const p of paths) {
+    try {
+      mock.module(p, () => cliBridgeModule);
+    } catch {
+      // Specifier may be invalid in some environments — ignore
+    }
+  }
+}
+
+installCliBridgeDouble();
+
+// Expose for tests that need the double without importing the helper path
+(
+  globalThis as unknown as { __hooxCliBridgeDouble?: typeof cliBridgeDouble }
+).__hooxCliBridgeDouble = cliBridgeDouble;

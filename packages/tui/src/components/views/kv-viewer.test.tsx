@@ -10,20 +10,18 @@
  *   - The view is reachable via the Ctrl+Alt+K shortcut
  *   - The CLI bridge method exists and is callable
  */
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-  vi,
-} from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { createRoot } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
 import { KvViewer } from "./kv-viewer";
 import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
 import type { ViewId } from "@jango-blockchained/hoox-shared";
+import {
+  cliBridgeDouble,
+  resetCliBridgeDouble,
+  failCliResult,
+  okCliResult,
+} from "../../test-utils";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -42,49 +40,13 @@ function destroyRenderer(
   renderer.destroy();
 }
 
-// ─── Test mocks ─────────────────────────────────────────────────────────────
-
-// Mock cli-bridge so the view doesn't try to spawn a real process.
-// Tests below override `configKvList.mockResolvedValue` per case.
-vi.mock("../../services/cli-bridge", () => ({
-  cliBridge: {
-    configKvList: vi.fn().mockResolvedValue({
-      success: true,
-      exitCode: 0,
-      stdout: "",
-      stderr: "",
-      data: {
-        keys: [],
-        timestamp: new Date().toISOString(),
-        namespaceId: null,
-      },
-      duration: 0,
-      command: "hoox config kv list",
-      errorType: null,
-    }),
-    configKvGet: vi.fn().mockResolvedValue({
-      success: true,
-      exitCode: 0,
-      stdout: "",
-      stderr: "",
-      data: null,
-      duration: 0,
-      command: "hoox config kv get test",
-      errorType: null,
-    }),
-    abort: vi.fn(),
-    dispose: vi.fn(),
-  },
-}));
-
-import { cliBridge } from "../../services/cli-bridge";
-
 // ─── Test suite ─────────────────────────────────────────────────────────────
 
 describe("KvViewer", () => {
   let renderer: Awaited<ReturnType<typeof createTestRenderer>>;
 
   beforeEach(async () => {
+    resetCliBridgeDouble();
     renderer = await createTestRenderer();
     useUIStore.setState({
       activeView: "kv-viewer",
@@ -113,50 +75,37 @@ describe("KvViewer", () => {
   });
 
   it("renders without throwing when the cliBridge returns an error", () => {
-    (cliBridge.configKvList as ReturnType<typeof mock>).mockResolvedValue({
-      success: false,
-      exitCode: 1,
-      stdout: "",
-      stderr: "wrangler not authenticated",
-      data: null,
-      duration: 0,
-      command: "hoox config kv list",
-      errorType: "non-zero-exit",
-    });
+    cliBridgeDouble.configKvList.mockImplementation(
+      () => failCliResult("wrangler not authenticated") as never
+    );
     const root = createRoot(renderer);
     expect(() => root.render(<KvViewer />)).not.toThrow();
   });
 
   it("renders without throwing when the cliBridge returns populated keys", () => {
-    (cliBridge.configKvList as ReturnType<typeof mock>).mockResolvedValue({
-      success: true,
-      exitCode: 0,
-      stdout: "",
-      stderr: "",
-      data: {
-        keys: [
-          {
-            name: "trade:kill_switch",
-            valueSize: 4,
-            lastModified: null,
-            isSecret: false,
-            manifestType: "boolean",
-          },
-          {
-            name: "agent:openai_key",
-            valueSize: 51,
-            lastModified: null,
-            isSecret: true,
-            manifestType: "string",
-          },
-        ],
-        timestamp: new Date().toISOString(),
-        namespaceId: null,
-      },
-      duration: 0,
-      command: "hoox config kv list",
-      errorType: null,
-    });
+    cliBridgeDouble.configKvList.mockImplementation(
+      () =>
+        okCliResult({
+          keys: [
+            {
+              name: "trade:kill_switch",
+              valueSize: 4,
+              lastModified: null,
+              isSecret: false,
+              manifestType: "boolean",
+            },
+            {
+              name: "agent:openai_key",
+              valueSize: 51,
+              lastModified: null,
+              isSecret: true,
+              manifestType: "string",
+            },
+          ],
+          timestamp: new Date().toISOString(),
+          namespaceId: null,
+        }) as never
+    );
     const root = createRoot(renderer);
     expect(() => root.render(<KvViewer />)).not.toThrow();
   });

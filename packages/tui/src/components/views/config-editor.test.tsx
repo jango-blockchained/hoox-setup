@@ -1,11 +1,5 @@
 /** @jsxImportSource @opentui/react */
-import { describe, it, expect, mock } from "bun:test";
-import { MockErrorBoundary } from "../../test-utils";
-
-mock.module("../shared/error-boundary", () => ({
-  ErrorBoundary: MockErrorBoundary,
-}));
-
+import { describe, it, expect } from "bun:test";
 import {
   tokenizeTomlLine,
   tokenizeJsonLine,

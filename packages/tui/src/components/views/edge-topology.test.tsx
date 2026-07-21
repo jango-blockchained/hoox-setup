@@ -48,7 +48,9 @@ const mockMetadata = {
 
 let shouldFailRead = false;
 
-// Mock fs so resolveGraphMetadataPath finds a path and readFileSync returns fixture data
+// Fixture fs mock for graph-metadata only. Bun's mock.module is process-wide;
+// keep the surface minimal (existsSync + readFileSync) so we do not wrap the
+// real module (spreading realFs can recurse when the mock is re-entered).
 mock.module("fs", () => ({
   existsSync: (p: string) =>
     typeof p === "string" && p.endsWith("graph-metadata.json"),

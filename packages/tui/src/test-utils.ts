@@ -5,12 +5,23 @@
  *   - Type aliases matching TUI test expectations
  *   - Factory functions (makeWorker, makeLog, makeTrade)
  *   - Mock ErrorBoundary pass-through
+ *   - Re-exports of the shared CLI bridge test double
  *
  * Centralises duplicated type definitions + factory functions
  * that were previously copy-pasted across test files.
+ *
+ * Process-wide `cli-bridge` mocking is installed once in `test-setup.ts`.
+ * Do **not** call `mock.module` for cli-bridge or shared stores in view tests.
  */
 
 import type { ReactNode } from "react";
+
+export {
+  cliBridgeDouble,
+  resetCliBridgeDouble,
+  okCliResult,
+  failCliResult,
+} from "./cli-bridge-test-double";
 
 // ── Type Aliases ─────────────────────────────────────────────────────────────
 

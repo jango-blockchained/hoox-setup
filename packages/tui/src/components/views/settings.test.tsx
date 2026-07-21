@@ -1,119 +1,23 @@
 /** @jsxImportSource @opentui/react */
 /**
  * Tests for SettingsView — validates all 4 panels render correctly,
- * config store subscription, checkboxes toggle, theme changes,
- * reset to defaults, and keyboard navigation.
+ * config store subscription, theme/notification display, and Check Setup panel.
  *
- * Also covers the Check Setup results panel: a results panel must appear
- * after the check runs, show each category with pass/fail/warn status,
- * and surface the "what it means / suggested fix" block for failed checks.
- *
- * Uses Bun's mock.module to override the config-store and cli-bridge
- * imports so SettingsView renders against controlled test data.
+ * Uses the real config store (setState) and the process-wide CLI bridge test
+ * double from test-setup.ts. No mock.module for stores or cli-bridge.
  */
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import type {
   ViewId,
   NotificationPreferences,
 } from "@jango-blockchained/hoox-shared";
+import { useConfigStore } from "@jango-blockchained/hoox-shared/stores/config-store";
+import { cliBridgeDouble, resetCliBridgeDouble } from "../../test-utils";
+import { SettingsView } from "./settings";
 
-// ─── Mock infrastructure ─────────────────────────────────────────────────────
+// ─── Check Setup fixtures ────────────────────────────────────────────────────
 
-/** Controllable config state that SettingsView reads via selectors */
-const mockState: {
-  theme: "dark" | "light";
-  refreshIntervalMs: number;
-  defaultView: ViewId;
-  notifications: NotificationPreferences;
-  soundEnabled: boolean;
-} = {
-  theme: "dark",
-  refreshIntervalMs: 500,
-  defaultView: "dashboard" as ViewId,
-  notifications: {
-    alerts: true,
-    trades: false,
-    debug: false,
-    system: true,
-  } as NotificationPreferences,
-  soundEnabled: false,
-};
-
-/** Track which actions were called and with what arguments */
-const actionCalls: {
-  updateConfig: Array<Partial<typeof mockState>>;
-  resetDefaults: number;
-  toggleNotification: Array<keyof NotificationPreferences>;
-} = {
-  updateConfig: [],
-  resetDefaults: 0,
-  toggleNotification: [],
-};
-
-/** Zustand-compatible subscribe → [getSnapshot, subscribe] tuple */
-const listeners = new Set<() => void>();
-
-function useConfigStore(
-  selector: ((s: typeof mockState) => unknown) | "getActions"
-): unknown {
-  // Also attach action methods for the view to consume
-  if (selector === "getActions") return undefined;
-  // The view actually calls useConfigStore(s => s.field) or useConfigStore(s => s.action)
-  // We need to handle both. The action methods need to be available as if they're on the store.
-  const allFields = {
-    ...mockState,
-    updateConfig: (partial: Partial<typeof mockState>) => {
-      actionCalls.updateConfig.push(partial);
-      Object.assign(mockState, partial);
-      listeners.forEach((l) => l());
-    },
-    resetDefaults: () => {
-      actionCalls.resetDefaults++;
-      Object.assign(mockState, {
-        theme: "dark",
-        refreshIntervalMs: 500,
-        defaultView: "dashboard",
-        notifications: {
-          alerts: true,
-          trades: false,
-          debug: false,
-          system: true,
-        },
-        soundEnabled: false,
-      });
-      listeners.forEach((l) => l());
-    },
-    toggleNotification: (channel: keyof NotificationPreferences) => {
-      actionCalls.toggleNotification.push(channel);
-      mockState.notifications[channel] = !mockState.notifications[channel];
-      listeners.forEach((l) => l());
-    },
-    setShortcut: () => {},
-  };
-  return selector(allFields);
-}
-
-// Attach subscribe to support zustand-style subscriptions
-(useConfigStore as unknown as Record<string, unknown>).subscribe = (
-  _selector: unknown,
-  listener: () => void
-) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-// ─── Mock the config-store module ────────────────────────────────────────────
-
-mock.module("@jango-blockchained/hoox-shared/stores/config-store", () => ({
-  useConfigStore,
-}));
-
-// ─── Mock the cli-bridge module ──────────────────────────────────────────────
-
-/** A representative CheckReport used by default. Tests can override per-case. */
 const defaultCheckReport = {
   success: false,
   categories: [
@@ -206,122 +110,46 @@ const defaultCheckReport = {
   },
 };
 
-/** Per-test override for the next checkSetup() response. */
-let nextCheckSetupResult: unknown = defaultCheckReport;
-let nextCheckSetupSuccess = true;
-let nextCheckSetupStderr = "";
+function configureCheckSetup(opts?: {
+  success?: boolean;
+  data?: unknown;
+  stderr?: string;
+  duration?: number;
+}): void {
+  const success = opts?.success ?? true;
+  const data = opts?.data === undefined ? defaultCheckReport : opts.data;
+  const stderr = opts?.stderr ?? "";
+  const duration = opts?.duration ?? 1234;
+  cliBridgeDouble.checkSetup.mockImplementation(
+    () =>
+      Promise.resolve({
+        success,
+        exitCode: success ? 0 : 1,
+        stdout: success && data ? JSON.stringify(data) : "",
+        stderr,
+        data,
+        duration,
+        command: "hoox check setup (test double)",
+        errorType: success ? null : "non-zero-exit",
+      }) as never
+  );
+}
 
-// ─── cli-bridge mock ─────────────────────────────────────────────────────────
-//
-// Bun's mock.module() is global — this mock replaces cli-bridge for EVERY test
-// file. To prevent "undefined is not a function" crashes in other test files
-// (KvViewer, DbQueryView, QueueDepthView, DashboardView, WorkersOverview), we
-// provide no-op stubs for EVERY public method. Only checkSetup and configShow
-// (used by SettingsView itself) get controlled implementations.
-
-const noop = () =>
-  Promise.resolve({
-    success: true,
-    exitCode: 0,
-    stdout: "",
-    stderr: "",
-    data: null,
-    duration: 0,
-    command: "hoox (noop)",
-    errorType: null as string | null,
+function resetConfigStore(): void {
+  useConfigStore.setState({
+    theme: "dark",
+    refreshIntervalMs: 500,
+    defaultView: "dashboard" as ViewId,
+    activeExchanges: [],
+    notifications: {
+      alerts: true,
+      trades: false,
+      debug: false,
+      system: true,
+    } as NotificationPreferences,
+    soundEnabled: false,
   });
-
-const noopDbQuery = () =>
-  Promise.resolve({
-    success: true,
-    exitCode: 0,
-    stdout: "",
-    stderr: "",
-    data: {
-      columns: [],
-      rows: [],
-      rowCount: 0,
-      executionTimeMs: null,
-      meta: null,
-    },
-    duration: 0,
-    command: "hoox db query (noop)",
-    errorType: null,
-  });
-
-mock.module("../../services/cli-bridge", () => ({
-  cliBridge: {
-    // ── Controlled by SettingsView tests ─────────────────────────────────
-    checkSetup: () =>
-      Promise.resolve({
-        success: nextCheckSetupSuccess,
-        exitCode: nextCheckSetupSuccess ? 0 : 1,
-        stdout: nextCheckSetupSuccess
-          ? JSON.stringify(nextCheckSetupResult)
-          : "",
-        stderr: nextCheckSetupStderr,
-        data: nextCheckSetupResult,
-        duration: 1234,
-      }),
-    configShow: () =>
-      Promise.resolve({
-        success: true,
-        data: {},
-        stdout: "",
-        stderr: "",
-        exitCode: 0,
-        duration: 0,
-      }),
-
-    // ── No-op stubs for methods used by OTHER components ────────────────
-    // Worker views
-    monitorStatus: noop,
-    deployWorker: noop,
-    workerLogs: noop,
-    // Dashboard
-    checkHealth: noop,
-    checkHealthFix: noop,
-    checkFix: noop,
-    monitorKillSwitch: () =>
-      Promise.resolve({
-        success: true,
-        exitCode: 0,
-        stdout: "",
-        stderr: "",
-        data: { engaged: false },
-        duration: 0,
-        command: "hoox killswitch show (noop)",
-        errorType: null,
-      }),
-    agentHealthCheck: noop,
-    // DbQueryView
-    dbQuery: noopDbQuery,
-    // KvViewer
-    configKvList: noop,
-    configKvGet: noop,
-    // QueueDepthView
-    monitorQueueDepth: noop,
-    // Other
-    configValidate: noop,
-    configSecretsList: noop,
-    deployAll: noop,
-    rebuild: noop,
-    // Internal (called indirectly)
-    resolveBinary: () => Promise.resolve("/usr/local/bin/hoox"),
-    invalidateCache: () => {},
-    onError: () => () => {},
-    abort: () => {},
-    dispose: () => {},
-  },
-  // Standalone exports used by other test-file components
-  validateReadOnlySql: () => ({
-    valid: true,
-    errors: [],
-  }),
-}));
-
-// Now import SettingsView AFTER the mocks are registered
-import { SettingsView } from "./settings";
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -382,20 +210,9 @@ async function renderSettingsWithCheck(
 
 describe("SettingsView", () => {
   beforeEach(() => {
-    mockState.theme = "dark";
-    mockState.refreshIntervalMs = 500;
-    mockState.defaultView = "dashboard";
-    mockState.notifications = {
-      alerts: true,
-      trades: false,
-      debug: false,
-      system: true,
-    };
-    mockState.soundEnabled = false;
-    actionCalls.updateConfig = [];
-    actionCalls.resetDefaults = 0;
-    actionCalls.toggleNotification = [];
-    listeners.clear();
+    resetCliBridgeDouble();
+    configureCheckSetup();
+    resetConfigStore();
   });
 
   // ── Rendering basics ─────────────────────────────────────────────────────
@@ -423,33 +240,33 @@ describe("SettingsView", () => {
   // ── Theme Panel ──────────────────────────────────────────────────────────
 
   it("shows Dark selected when theme is dark", async () => {
-    mockState.theme = "dark";
+    useConfigStore.setState({ theme: "dark" });
     const output = await renderSettings();
     expect(output).toContain("(•) DARK");
     expect(output).toContain("( ) LIGHT");
   });
 
   it("shows Light selected when theme is light", async () => {
-    mockState.theme = "light";
+    useConfigStore.setState({ theme: "light" });
     const output = await renderSettings();
     expect(output).toContain("( ) DARK");
     expect(output).toContain("(•) LIGHT");
   });
 
   it("shows current refresh rate with 500ms default", async () => {
-    mockState.refreshIntervalMs = 500;
+    useConfigStore.setState({ refreshIntervalMs: 500 });
     const output = await renderSettings();
     expect(output).toContain("500ms");
   });
 
   it("shows refresh rate in seconds for 1s+ values", async () => {
-    mockState.refreshIntervalMs = 2000;
+    useConfigStore.setState({ refreshIntervalMs: 2000 });
     const output = await renderSettings();
     expect(output).toContain("2s");
   });
 
   it("shows current default view label", async () => {
-    mockState.defaultView = "trade-monitor";
+    useConfigStore.setState({ defaultView: "trade-monitor" });
     const output = await renderSettings();
     expect(output).toContain("Trade Monitor");
   });
@@ -470,12 +287,14 @@ describe("SettingsView", () => {
   });
 
   it("shows checked [x] for enabled notifications", async () => {
-    mockState.notifications = {
-      alerts: true,
-      trades: false,
-      debug: false,
-      system: true,
-    };
+    useConfigStore.setState({
+      notifications: {
+        alerts: true,
+        trades: false,
+        debug: false,
+        system: true,
+      },
+    });
     const output = await renderSettings();
     // The output should contain [x] for alerts and system
     expect(output).toContain("[x] ALERTS");
@@ -483,12 +302,14 @@ describe("SettingsView", () => {
   });
 
   it("shows unchecked [ ] for disabled notifications", async () => {
-    mockState.notifications = {
-      alerts: true,
-      trades: false,
-      debug: false,
-      system: true,
-    };
+    useConfigStore.setState({
+      notifications: {
+        alerts: true,
+        trades: false,
+        debug: false,
+        system: true,
+      },
+    });
     const output = await renderSettings();
     expect(output).toContain("[ ] TRADES");
     expect(output).toContain("[ ] DEBUG");
@@ -571,7 +392,7 @@ describe("SettingsView", () => {
 
   it("updates config store when dark theme is selected via mouseUp trigger text", async () => {
     // Verify the dark theme label has the onMouseUp handler
-    mockState.theme = "light";
+    useConfigStore.setState({ theme: "light" });
     const output = await renderSettings();
     // The dark option should be present with ( ) showing it's not selected
     expect(output).toContain("DARK");
@@ -579,7 +400,7 @@ describe("SettingsView", () => {
   });
 
   it("shows refresh rate as 500ms when config defaults to 500", async () => {
-    mockState.refreshIntervalMs = 500;
+    useConfigStore.setState({ refreshIntervalMs: 500 });
     const output = await renderSettings();
     expect(output).toContain("500ms");
   });
@@ -596,9 +417,7 @@ describe("SettingsView", () => {
   describe("Check Setup results panel", () => {
     /** Restore default report between cases. */
     afterEach(() => {
-      nextCheckSetupResult = defaultCheckReport;
-      nextCheckSetupSuccess = true;
-      nextCheckSetupStderr = "";
+      configureCheckSetup();
     });
 
     it("renders the CHECK SETUP button in the data panel", async () => {
@@ -707,38 +526,43 @@ describe("SettingsView", () => {
     });
 
     it("shows an error state when the CLI process fails", async () => {
-      nextCheckSetupSuccess = false;
-      nextCheckSetupStderr = "hoox binary not found";
+      configureCheckSetup({
+        success: false,
+        stderr: "hoox binary not found",
+        data: null,
+      });
       const output = await renderSettingsWithCheck();
       expect(output).toContain("SETUP CHECK RESULTS");
       expect(output).toContain("hoox binary not found");
     });
 
     it("shows a graceful error when CLI returns invalid data shape", async () => {
-      nextCheckSetupResult = { not: "a report" };
+      configureCheckSetup({ data: { not: "a report" } });
       const output = await renderSettingsWithCheck();
       expect(output).toContain("SETUP CHECK RESULTS");
       expect(output).toContain("did not return a valid CheckReport");
     });
 
     it("shows a generic 'what it means' for unknown failed check names", async () => {
-      nextCheckSetupResult = {
-        success: false,
-        categories: [
-          {
-            name: "Custom",
-            checks: [
-              {
-                name: "Mystery check",
-                success: false,
-                errors: ["something broke"],
-                warnings: [],
-              },
-            ],
-          },
-        ],
-        summary: { total: 1, passed: 0, failed: 1, warnings: 0 },
-      };
+      configureCheckSetup({
+        data: {
+          success: false,
+          categories: [
+            {
+              name: "Custom",
+              checks: [
+                {
+                  name: "Mystery check",
+                  success: false,
+                  errors: ["something broke"],
+                  warnings: [],
+                },
+              ],
+            },
+          ],
+          summary: { total: 1, passed: 0, failed: 1, warnings: 0 },
+        },
+      });
       const output = await renderSettingsWithCheck();
       expect(output).toContain("Mystery check");
       // The generic fallback message
@@ -761,29 +585,31 @@ describe("SettingsView", () => {
     });
 
     it("renders correctly with an all-pass report", async () => {
-      nextCheckSetupResult = {
-        success: true,
-        categories: [
-          {
-            name: "Config",
-            checks: [
-              {
-                name: "wrangler.jsonc validation",
-                success: true,
-                errors: [],
-                warnings: [],
-              },
-              {
-                name: "Global config",
-                success: true,
-                errors: [],
-                warnings: [],
-              },
-            ],
-          },
-        ],
-        summary: { total: 2, passed: 2, failed: 0, warnings: 0 },
-      };
+      configureCheckSetup({
+        data: {
+          success: true,
+          categories: [
+            {
+              name: "Config",
+              checks: [
+                {
+                  name: "wrangler.jsonc validation",
+                  success: true,
+                  errors: [],
+                  warnings: [],
+                },
+                {
+                  name: "Global config",
+                  success: true,
+                  errors: [],
+                  warnings: [],
+                },
+              ],
+            },
+          ],
+          summary: { total: 2, passed: 2, failed: 0, warnings: 0 },
+        },
+      });
       const output = await renderSettingsWithCheck();
       expect(output).toContain("2 passed");
       expect(output).toContain("0 failed");

@@ -1,8 +1,12 @@
 /** @jsxImportSource @opentui/react */
-import { describe, it, expect, beforeEach, vi } from "bun:test";
+import { describe, it, expect, beforeEach } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import { WorkersOverview } from "./workers-overview";
-import { makeWorker, type TestWorkerInfo } from "../../test-utils";
+import {
+  makeWorker,
+  resetCliBridgeDouble,
+  type TestWorkerInfo,
+} from "../../test-utils";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
 
@@ -40,19 +44,6 @@ function outputContains(output: string, ...substrings: string[]): boolean {
   return substrings.every((s) => output.includes(s));
 }
 
-vi.mock("../../services/cli-bridge", () => ({
-  cliBridge: {
-    monitorStatus: vi.fn().mockResolvedValue({
-      success: false,
-      stdout: "",
-      stderr: "CLI not available in test",
-      duration: 0,
-    }),
-    abort: vi.fn(),
-    dispose: vi.fn(),
-  },
-}));
-
 function resetStores() {
   useServiceStore.setState({
     workers: [],
@@ -75,6 +66,7 @@ function resetStores() {
 
 describe("WorkersOverview", () => {
   beforeEach(() => {
+    resetCliBridgeDouble();
     resetStores();
   });
 

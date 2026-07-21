@@ -9,19 +9,16 @@
  *   - Status labels (OK / BACKLOG / CRITICAL / PAUSED) are present
  *   - Empty / error states render without crashing
  */
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-  vi,
-} from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { createRoot } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
 import { QueueDepthView } from "./queue-depth";
 import { useUIStore } from "@jango-blockchained/hoox-shared/stores/ui-store";
+import {
+  cliBridgeDouble,
+  resetCliBridgeDouble,
+  failCliResult,
+} from "../../test-utils";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -40,35 +37,13 @@ function destroyRenderer(
   renderer.destroy();
 }
 
-// ─── Test mocks ─────────────────────────────────────────────────────────────
-
-// Mock cli-bridge so the view doesn't try to spawn a real process.
-// Tests below override `monitorQueueDepth.mockResolvedValue` per case.
-vi.mock("../../services/cli-bridge", () => ({
-  cliBridge: {
-    monitorQueueDepth: vi.fn().mockResolvedValue({
-      success: true,
-      exitCode: 0,
-      stdout: "",
-      stderr: "",
-      data: [],
-      duration: 0,
-      command: "hoox monitor queue-depth",
-      errorType: null,
-    }),
-    abort: vi.fn(),
-    dispose: vi.fn(),
-  },
-}));
-
-import { cliBridge } from "../../services/cli-bridge";
-
 // ─── Test suite ─────────────────────────────────────────────────────────────
 
 describe("QueueDepthView", () => {
   let renderer: Awaited<ReturnType<typeof createTestRenderer>>;
 
   beforeEach(async () => {
+    resetCliBridgeDouble();
     renderer = await createTestRenderer();
     useUIStore.setState({
       activeView: "queue-depth",
@@ -97,16 +72,9 @@ describe("QueueDepthView", () => {
   });
 
   it("renders without throwing when the cliBridge returns an error", () => {
-    (cliBridge.monitorQueueDepth as ReturnType<typeof mock>).mockResolvedValue({
-      success: false,
-      exitCode: 1,
-      stdout: "",
-      stderr: "wrangler not authenticated",
-      data: null,
-      duration: 0,
-      command: "hoox monitor queue-depth",
-      errorType: "non-zero-exit",
-    });
+    cliBridgeDouble.monitorQueueDepth.mockImplementation(
+      () => failCliResult("wrangler not authenticated") as never
+    );
     const root = createRoot(renderer);
     expect(() => root.render(<QueueDepthView />)).not.toThrow();
   });
