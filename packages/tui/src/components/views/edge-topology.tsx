@@ -52,7 +52,21 @@ interface GraphMetadata {
  * Candidates: runtime root (HOOX_REPO / cwd / ~/.hoox/repo), walk-up from
  * cwd, and relative to this source file (packages/tui/… → monorepo root).
  */
-function resolveGraphMetadataPath(): string | null {
+/**
+ * Resolve path to graph-metadata.json.
+ *
+ * Override with `HOOX_GRAPH_METADATA_PATH` (absolute or relative) for tests
+ * and non-standard layouts — avoids process-wide `fs` mocks in the suite.
+ */
+export function resolveGraphMetadataPath(): string | null {
+  const override = process.env.HOOX_GRAPH_METADATA_PATH?.trim();
+  if (override) {
+    const resolved = path.isAbsolute(override)
+      ? override
+      : path.resolve(process.cwd(), override);
+    return fs.existsSync(resolved) ? resolved : null;
+  }
+
   const fileName = "graph-metadata.json";
   const candidates: string[] = [
     path.resolve(process.cwd(), fileName),

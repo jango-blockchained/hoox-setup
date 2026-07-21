@@ -23,6 +23,17 @@ export {
   failCliResult,
 } from "./cli-bridge-test-double";
 
+export {
+  hooxFetchMock,
+  subscribeSSEMock,
+  resetNetworkDoubles,
+  setMockApiData,
+  setMockApiFailure,
+  emitSseEvent,
+  mockApiData,
+  sseCallbacks,
+} from "./network-test-double";
+
 // ── Type Aliases ─────────────────────────────────────────────────────────────
 
 export type WorkerStatus = "operational" | "degraded" | "down";

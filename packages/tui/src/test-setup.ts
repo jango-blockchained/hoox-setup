@@ -188,3 +188,74 @@ installCliBridgeDouble();
 (
   globalThis as unknown as { __hooxCliBridgeDouble?: typeof cliBridgeDouble }
 ).__hooxCliBridgeDouble = cliBridgeDouble;
+
+// ── Shared network doubles (api-client + SSE) ────────────────────────────────
+//
+// service-store (and views that call fetchWorkers / stream*) must not hit a
+// real HTTP API in unit tests. One full mock here replaces per-file
+// mock.module of api-client / sse.
+import {
+  hooxFetchMock,
+  subscribeSSEMock,
+  resetNetworkDoubles,
+} from "./network-test-double";
+
+resetNetworkDoubles();
+
+async function installNetworkDoubles(): Promise<void> {
+  let realApi: Record<string, unknown> = {};
+  try {
+    realApi =
+      (await import("@jango-blockchained/hoox-shared/api-client")) as Record<
+        string,
+        unknown
+      >;
+  } catch {
+    realApi = {};
+  }
+
+  const apiFactory = () => ({
+    ...realApi,
+    hooxFetch: hooxFetchMock,
+  });
+
+  const sseFactory = () => ({
+    subscribeSSE: subscribeSSEMock,
+  });
+
+  // From packages/tui/src → ../../shared/src (sibling package)
+  const apiPaths = [
+    new URL("../../shared/src/api-client.ts", import.meta.url).href,
+    new URL("../../shared/src/api-client.ts", import.meta.url).pathname,
+    "@jango-blockchained/hoox-shared/api-client",
+    // Relative as resolved from packages/shared/src/stores/service-store.ts
+    "../api-client",
+    "../api-client.ts",
+    "../../../../packages/shared/src/api-client",
+  ];
+  const ssePaths = [
+    new URL("../../shared/src/sse.ts", import.meta.url).href,
+    new URL("../../shared/src/sse.ts", import.meta.url).pathname,
+    "@jango-blockchained/hoox-shared/sse",
+    "../sse",
+    "../sse.ts",
+    "../../../../packages/shared/src/sse",
+  ];
+
+  for (const p of apiPaths) {
+    try {
+      mock.module(p, apiFactory);
+    } catch {
+      // ignore bad specifier
+    }
+  }
+  for (const p of ssePaths) {
+    try {
+      mock.module(p, sseFactory);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+await installNetworkDoubles();

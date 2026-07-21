@@ -23,6 +23,7 @@ import type {
 import { ErrorBoundary } from "../shared/error-boundary";
 import { cliBridge } from "../../services/cli-bridge";
 import { ViewHeader } from "../shared/view-header";
+import { Panel } from "../shared/panel";
 
 // ─── Color Tokens ────────────────────────────────────────────────────────────
 
@@ -76,15 +77,7 @@ function FilterPanel({
   onSearchChange,
 }: FilterPanelProps) {
   return (
-    <box
-      flexDirection="column"
-      width={20}
-      padding={1}
-      gap={0}
-      border={true}
-      borderStyle="single"
-      title="FILTERS"
-    >
+    <Panel title="FILTERS" width={20} elevated={false}>
       {/* ── Level Section ───────────────────────────────────────────────── */}
       <text bold fg={Colors.muted}>
         LEVEL
@@ -150,7 +143,7 @@ function FilterPanel({
         onInput={(v: string) => onSearchChange(v)}
         value={searchText}
       />
-    </box>
+    </Panel>
   );
 }
 
@@ -164,22 +157,20 @@ interface LogStreamProps {
 function LogStream({ entries, paused }: LogStreamProps) {
   if (entries.length === 0) {
     return (
-      <box
-        flexDirection="column"
-        flexGrow={1}
-        padding={1}
-        justifyContent="center"
-        alignItems="center"
-        border={true}
-        borderStyle="single"
-        title="LOG STREAM"
-      >
-        <text dim fg={Colors.muted}>
-          {paused
-            ? "Paused — press Space to resume"
-            : "No matching log entries"}
-        </text>
-      </box>
+      <Panel title="LOG STREAM" flexGrow={1} elevated={false}>
+        <box
+          flexGrow={1}
+          justifyContent="center"
+          alignItems="center"
+          flexDirection="column"
+        >
+          <text dim fg={Colors.muted}>
+            {paused
+              ? "Paused — press Space to resume"
+              : "No matching log entries"}
+          </text>
+        </box>
+      </Panel>
     );
   }
 

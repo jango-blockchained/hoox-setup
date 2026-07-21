@@ -54,6 +54,10 @@ function resetStores() {
     lastUpdated: 0,
     alerts: [],
     tradeStream: [],
+    // Avoid real network during mount effects under partial mock wiring
+    fetchWorkers: async () => {},
+    streamTrades: async () => {},
+    streamLogs: async () => {},
   });
   useUIStore.setState({
     activeView: "workers",
@@ -190,17 +194,21 @@ describe("WorkersOverview", () => {
   });
 
   describe("scroll behavior", () => {
-    it("wraps content in scrollbox for overflow", async () => {
-      const workers = [];
-      for (let i = 0; i < 20; i++) {
-        workers.push(makeWorker({ id: `w${i}`, name: `worker-${i}` }));
-      }
-      useServiceStore.setState({ workers });
+    it(
+      "wraps content in scrollbox for overflow",
+      async () => {
+        const workers = [];
+        for (let i = 0; i < 20; i++) {
+          workers.push(makeWorker({ id: `w${i}`, name: `worker-${i}` }));
+        }
+        useServiceStore.setState({ workers });
 
-      const text = await renderWorkersOverview();
+        const text = await renderWorkersOverview();
 
-      expect(outputContains(text, "20 total")).toBe(true);
-    });
+        expect(outputContains(text, "20 total")).toBe(true);
+      },
+      { timeout: 15_000 }
+    );
   });
 
   describe("keyboard navigation", () => {

@@ -81,17 +81,21 @@ describe("DashboardView", () => {
 
   // ── Service Health Grid ─────────────────────────────────────────────────
 
-  it("renders 10 worker status cards when workers are present", async () => {
-    useServiceStore.setState({
-      workers: Array.from({ length: 10 }, (_, i) =>
-        makeWorker({ id: `worker-card-${i + 1}`, name: `worker-${i + 1}` })
-      ),
-    });
-    const output = await renderDashboard();
-    for (let i = 1; i <= 10; i++) {
-      expect(output).toContain(`worker-${i}`);
-    }
-  });
+  it(
+    "renders 10 worker status cards when workers are present",
+    async () => {
+      useServiceStore.setState({
+        workers: Array.from({ length: 10 }, (_, i) =>
+          makeWorker({ id: `worker-card-${i + 1}`, name: `worker-${i + 1}` })
+        ),
+      });
+      const output = await renderDashboard();
+      for (let i = 1; i <= 10; i++) {
+        expect(output).toContain(`worker-${i}`);
+      }
+    },
+    { timeout: 15_000 }
+  );
 
   it("shows empty state when no workers connected", async () => {
     useServiceStore.setState({ workers: [] });

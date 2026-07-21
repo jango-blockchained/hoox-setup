@@ -2,15 +2,15 @@
  * Service Store Tests — Worker data, trades, alerts, logs, connection state.
  *
  * Tests Zustand store actions including:
- *   - fetchWorkers (mocked API via hooxFetch)
+ *   - fetchWorkers (mocked API via shared hooxFetch double)
  *   - streamTrades (mocked SSE subscription)
  *   - Connection state machine transitions
  *   - Ring buffer limits (MAX_TRADES=500, MAX_ALERTS=100, MAX_LOGS=1000)
  *   - addAlert, pushTrade, pushLog, setMetrics
  *
- * Uses Bun test runner. Mocks the lazy imports for api-client and sse.
+ * Network doubles are process-wide from test-setup.ts (no per-file mock.module).
  */
-import { describe, it, expect, beforeEach, afterAll, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterAll } from "bun:test";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type {
   WorkerInfo,
@@ -22,47 +22,13 @@ import type {
   CliErrorDetails,
   CliErrorType,
 } from "@jango-blockchained/hoox-shared";
-
-// ─── Mock API client ──────────────────────────────────────────────────────────
-
-let mockApiData: WorkerInfo[] = [];
-let mockApiShouldFail = false;
-let mockApiErrorMessage = "Network error";
-
-const hooxFetchMock = mock(async (_path: string) => {
-  if (mockApiShouldFail) {
-    throw new Error(mockApiErrorMessage);
-  }
-  return mockApiData as WorkerInfo[];
-});
-
-// Import the real api-client module BEFORE mocking preserving all real exports.
-// Uses the workspace alias so TypeScript does not complain about rootDir.
-// Bun normalises this to the same file as the relative path below, so the
-// mock.module applys correctly.
-const realApiClient =
-  await import("@jango-blockchained/hoox-shared/api-client");
-
-// Mock only hooxFetch; preserve all real exports via spread.
-mock.module("../../../../packages/shared/src/api-client", () => ({
-  ...realApiClient,
-  hooxFetch: hooxFetchMock,
-}));
-
-// ─── Mock SSE ─────────────────────────────────────────────────────────────────
-
-let sseCallbacks: Array<(data: unknown) => void> = [];
-const subscribeSSEMock = mock(
-  async <T>(_path: string, callback: (data: T) => void) => {
-    sseCallbacks.push(callback as (data: unknown) => void);
-  }
-);
-
-// bun test resolves mock.module() relative to test file location.
-// From packages/tui/src/stores/ → up 4 levels to project root → packages/shared/src/sse
-mock.module("../../../../packages/shared/src/sse", () => ({
-  subscribeSSE: subscribeSSEMock,
-}));
+import {
+  hooxFetchMock,
+  subscribeSSEMock,
+  resetNetworkDoubles,
+  setMockApiData,
+  setMockApiFailure,
+} from "../network-test-double";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -83,12 +49,7 @@ function resetStore() {
     reconnectDelay: 0,
     disconnectedAt: null,
   });
-  mockApiData = [];
-  mockApiShouldFail = false;
-  mockApiErrorMessage = "Network error";
-  sseCallbacks = [];
-  hooxFetchMock.mockClear();
-  subscribeSSEMock.mockClear();
+  resetNetworkDoubles();
 }
 
 function makeTrade(overrides: Partial<Trade> = {}): Trade {
@@ -156,7 +117,7 @@ describe("useServiceStore", () => {
         makeWorker({ name: "alpha" }),
         makeWorker({ name: "beta" }),
       ];
-      mockApiData = workers;
+      setMockApiData(workers);
 
       await useServiceStore.getState().fetchWorkers();
 
@@ -168,7 +129,7 @@ describe("useServiceStore", () => {
     });
 
     it("transitions from offline to connected on successful fetch", async () => {
-      mockApiData = [makeWorker()];
+      setMockApiData([makeWorker()]);
       useServiceStore.setState({ connectionStatus: "offline" });
 
       await useServiceStore.getState().fetchWorkers();
@@ -177,7 +138,7 @@ describe("useServiceStore", () => {
     });
 
     it("transitions from polling to connected on successful fetch", async () => {
-      mockApiData = [makeWorker()];
+      setMockApiData([makeWorker()]);
       useServiceStore.setState({ connectionStatus: "polling" });
 
       await useServiceStore.getState().fetchWorkers();
@@ -186,7 +147,7 @@ describe("useServiceStore", () => {
     });
 
     it("resets retry state on successful fetch", async () => {
-      mockApiData = [makeWorker()];
+      setMockApiData([makeWorker()]);
       useServiceStore.setState({
         connectionStatus: "reconnecting",
         retryCount: 3,
@@ -203,7 +164,7 @@ describe("useServiceStore", () => {
     });
 
     it("updates lastSuccessfulFetch on success", async () => {
-      mockApiData = [makeWorker()];
+      setMockApiData([makeWorker()]);
       await useServiceStore.getState().fetchWorkers();
       expect(useServiceStore.getState().lastSuccessfulFetch).toBeGreaterThan(0);
     });
@@ -213,8 +174,7 @@ describe("useServiceStore", () => {
 
   describe("fetchWorkers error handling", () => {
     it("transitions from connected to reconnecting on failure", async () => {
-      mockApiShouldFail = true;
-      mockApiErrorMessage = "Connection refused";
+      setMockApiFailure(true, "Connection refused");
       useServiceStore.setState({ connectionStatus: "connected" });
 
       await useServiceStore.getState().fetchWorkers();
@@ -227,7 +187,7 @@ describe("useServiceStore", () => {
     });
 
     it("transitions from polling to reconnecting on failure", async () => {
-      mockApiShouldFail = true;
+      setMockApiFailure(true);
       useServiceStore.setState({ connectionStatus: "polling" });
 
       await useServiceStore.getState().fetchWorkers();
@@ -236,7 +196,7 @@ describe("useServiceStore", () => {
     });
 
     it("tracks retry count incrementally", async () => {
-      mockApiShouldFail = true;
+      setMockApiFailure(true);
       useServiceStore.setState({ connectionStatus: "connected" });
 
       // First failure
@@ -253,7 +213,7 @@ describe("useServiceStore", () => {
     });
 
     it("sets disconnectedAt on first failure", async () => {
-      mockApiShouldFail = true;
+      setMockApiFailure(true);
       useServiceStore.setState({
         connectionStatus: "connected",
         disconnectedAt: null,
@@ -265,7 +225,7 @@ describe("useServiceStore", () => {
     });
 
     it("preserves existing disconnectedAt on repeated failures", async () => {
-      mockApiShouldFail = true;
+      setMockApiFailure(true);
       const before = Date.now();
       useServiceStore.setState({
         connectionStatus: "connected",
@@ -282,7 +242,7 @@ describe("useServiceStore", () => {
     });
 
     it("transitions to offline after 5 retries", async () => {
-      mockApiShouldFail = true;
+      setMockApiFailure(true);
       useServiceStore.setState({
         connectionStatus: "connected",
         retryCount: 4,

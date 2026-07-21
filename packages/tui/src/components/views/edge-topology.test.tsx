@@ -1,6 +1,9 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import * as path from "path";
+import * as fs from "fs";
+import * as os from "os";
+import { EdgeTopology } from "./edge-topology";
 
 const mockMetadata = {
   workers: {
@@ -46,26 +49,60 @@ const mockMetadata = {
   ],
 };
 
-let shouldFailRead = false;
+/** Write fixture metadata and point HOOX_GRAPH_METADATA_PATH at it (no fs mock). */
+function withGraphFixture(content: string | null): {
+  cleanup: () => void;
+  path: string | null;
+} {
+  const prev = process.env.HOOX_GRAPH_METADATA_PATH;
+  if (content === null) {
+    // Point at a path that does not exist so load fails
+    const missing = path.join(
+      os.tmpdir(),
+      `hoox-graph-missing-${Date.now()}.json`
+    );
+    process.env.HOOX_GRAPH_METADATA_PATH = missing;
+    return {
+      path: missing,
+      cleanup: () => {
+        if (prev === undefined) delete process.env.HOOX_GRAPH_METADATA_PATH;
+        else process.env.HOOX_GRAPH_METADATA_PATH = prev;
+      },
+    };
+  }
 
-// Fixture fs mock for graph-metadata only. Bun's mock.module is process-wide;
-// keep the surface minimal (existsSync + readFileSync) so we do not wrap the
-// real module (spreading realFs can recurse when the mock is re-entered).
-mock.module("fs", () => ({
-  existsSync: (p: string) =>
-    typeof p === "string" && p.endsWith("graph-metadata.json"),
-  readFileSync: (_p: string, _enc?: string) => {
-    if (shouldFailRead) throw new Error("File not found");
-    return JSON.stringify(mockMetadata);
-  },
-}));
-
-// Import after mock so the view sees mocked fs
-import { EdgeTopology } from "./edge-topology";
+  const fixturePath = path.join(
+    os.tmpdir(),
+    `hoox-graph-meta-${Date.now()}-${Math.random().toString(36).slice(2)}.json`
+  );
+  fs.writeFileSync(fixturePath, content, "utf-8");
+  process.env.HOOX_GRAPH_METADATA_PATH = fixturePath;
+  return {
+    path: fixturePath,
+    cleanup: () => {
+      try {
+        fs.unlinkSync(fixturePath);
+      } catch {
+        // ignore
+      }
+      if (prev === undefined) delete process.env.HOOX_GRAPH_METADATA_PATH;
+      else process.env.HOOX_GRAPH_METADATA_PATH = prev;
+    },
+  };
+}
 
 describe("EdgeTopology View", () => {
+  let cleanup: (() => void) | null = null;
+
+  afterEach(() => {
+    cleanup?.();
+    cleanup = null;
+  });
+
   it("renders the topology view with workers and infrastructure", async () => {
-    shouldFailRead = false;
+    const fixture = withGraphFixture(JSON.stringify(mockMetadata));
+    cleanup = fixture.cleanup;
+
     const { captureCharFrame, renderOnce } = await testRender(
       <EdgeTopology />,
       {
@@ -86,7 +123,51 @@ describe("EdgeTopology View", () => {
   });
 
   it("handles file read errors gracefully", async () => {
-    shouldFailRead = true;
+    // Point at a path that exists as a directory so existsSync is true... no,
+    // resolveGraphMetadataPath returns null if file missing, which shows a
+    // different message. Force read throw via invalid JSON file permissions
+    // or a path that exists but is unreadable — use a file with valid path
+    // that we delete after setting env, then override with a path that exists
+    // but read fails: write then chmod 0, or use invalid path after exists
+    // check by writing then unlinking and... better: env path to existing
+    // file that is not valid JSON? That's parse error. "File not found" needs
+    // throw from readFileSync.
+    //
+    // Use a path that exists for existsSync via a directory named like the
+    // file is wrong. Simplest: fixture path that exists, then delete before
+    // render so existsSync fails → "graph-metadata.json not found".
+    // For "File not found" string from previous test, update assertion to the
+    // real error branch message.
+    const fixture = withGraphFixture(null);
+    cleanup = fixture.cleanup;
+
+    const { captureCharFrame, renderOnce } = await testRender(
+      <EdgeTopology />,
+      {
+        width: 80,
+        height: 24,
+        exitOnCtrlC: false,
+      }
+    );
+    await renderOnce();
+    const output = captureCharFrame();
+
+    expect(output).toContain("graph-metadata.json not found");
+  });
+
+  it("resolves graph-metadata via path helpers without throwing", () => {
+    const candidates = [
+      path.resolve(process.cwd(), "graph-metadata.json"),
+      path.resolve(process.cwd(), "../../graph-metadata.json"),
+    ];
+    expect(candidates.some((c) => typeof c === "string")).toBe(true);
+  });
+
+  it("surfaces parse/read errors when the override file is invalid", async () => {
+    // Empty path that exists but is not valid JSON → catch branch
+    const fixture = withGraphFixture("{ not valid json");
+    cleanup = fixture.cleanup;
+
     const { captureCharFrame, renderOnce } = await testRender(
       <EdgeTopology />,
       {
@@ -99,16 +180,5 @@ describe("EdgeTopology View", () => {
     const output = captureCharFrame();
 
     expect(output).toContain("Error loading topology data:");
-    expect(output).toContain("File not found");
-    shouldFailRead = false;
-  });
-
-  it("resolves graph-metadata via path helpers without throwing", () => {
-    // Sanity: monorepo root file exists when tests run from packages/tui or root
-    const candidates = [
-      path.resolve(process.cwd(), "graph-metadata.json"),
-      path.resolve(process.cwd(), "../../graph-metadata.json"),
-    ];
-    expect(candidates.some((c) => typeof c === "string")).toBe(true);
   });
 });
