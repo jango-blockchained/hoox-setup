@@ -55,17 +55,25 @@ export class UpdateService {
    * Check if wrangler is outdated. If yes, prompt user (TTY) or
    * auto-update (non-TTY / --yes flag). Never throws — errors are
    * returned in UpdateResult.
+   *
+   * @param options.yes     Auto-update without prompt when outdated
+   * @param options.silent  Suppress “up to date” / skip noise (still
+   *                        reports failures and real updates)
    */
   async checkAndPromptUpdate(options?: {
     yes?: boolean;
+    silent?: boolean;
   }): Promise<UpdateResult> {
+    const silent = options?.silent === true;
     try {
       const versionCheck = await this.prereqs.checkWranglerVersion();
 
       if (!versionCheck.outdated) {
-        process.stdout.write(
-          `  ${theme.success("✓")} Wrangler ${versionCheck.current} is up to date\n`
-        );
+        if (!silent) {
+          process.stdout.write(
+            `  ${theme.success("✓")} Wrangler ${versionCheck.current} is up to date\n`
+          );
+        }
         return { updated: false };
       }
 
@@ -84,18 +92,22 @@ export class UpdateService {
       }
 
       if (!shouldUpdate) {
-        process.stdout.write(
-          `  ${theme.warning("!")} Skipping wrangler update (current: ${current})\n`
-        );
+        if (!silent) {
+          process.stdout.write(
+            `  ${theme.warning("!")} Skipping wrangler update (current: ${current})\n`
+          );
+        }
         return { updated: false };
       }
 
       return await this.runUpdate();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      process.stdout.write(
-        `  ${theme.error("!")} Wrangler update check failed: ${message}\n`
-      );
+      if (!silent) {
+        process.stdout.write(
+          `  ${theme.error("!")} Wrangler update check failed: ${message}\n`
+        );
+      }
       return { updated: false, error: message };
     }
   }

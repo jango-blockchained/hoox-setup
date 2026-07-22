@@ -94,12 +94,39 @@ Must stay aligned with `ViewId` in `packages/shared/src/types.ts`, sidebar items
 
 ---
 
+## 🌐 Local vs remote mode
+
+`hoox tui` resolves an API base URL and forwards it to the child process:
+
+| Launch | Mode | `HOOX_API_URL` | Status bar |
+| ------ | ---- | -------------- | ---------- |
+| `hoox tui` | `local` | `HOOX_API_URL` env or `http://localhost:8787` | `[LOCAL] localhost:8787` |
+| `hoox tui --remote` | `remote` | `resolveGatewayUrl()` (`HOOX_GATEWAY_URL` / CF account + wrangler subdomain) | `[REMOTE] <gateway-host>` |
+| `hoox tui --api-url <url>` | `remote` | explicit URL (strips trailing `/`; overrides `--remote`) | `[REMOTE] <host>` |
+
+Env vars set on the TUI process: `HOOX_API_URL`, `HOOX_TUI_MODE` (`local` \| `remote`).  
+Shared `api-client` / `sse` read `HOOX_API_URL` at import time.
+
+### Dev logging
+
+File-backed only (never stdout — would corrupt the alternate screen):
+
+```bash
+hoox tui --debug
+# or: HOOX_DEBUG=1 / TUI_DEBUG=1
+# → $HOME/.hoox/.tui-state/debug.log  (JSON lines; secret-like keys redacted)
+```
+
+Wired at startup (`main.tsx`), connection path (`app.tsx`), and CLI bridge execs.
+
+---
+
 ## 🛜 Dual-channel + SSE
 
 ### Startup sequence (`AppRoot`)
 
 1. Restore session → set view / sidebar  
-2. `fetchWorkers()` (HTTP) → on failure, `cliBridge.monitorStatus()`  
+2. `fetchWorkers()` (HTTP) → on failure only, `cliBridge.monitorStatus()` (CLI fallback)  
 3. Fire-and-forget `streamTrades()` + `streamLogs()` (SSE; silent if API down)
 
 ### CLI bridge (`src/services/cli-bridge`)

@@ -48,6 +48,15 @@ const RECOVERY_HINTS: Record<CliErrorType, string> = {
     "Bun.spawn failed (permission or path issue). Check HOOX_CLI / PATH (hx, hoox).",
 };
 
+/** Host label for the status bar (no scheme; falls back to raw URL). */
+export function resolveApiHostLabel(apiUrl: string): string {
+  try {
+    return new URL(apiUrl).host || apiUrl;
+  } catch {
+    return apiUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "") || apiUrl;
+  }
+}
+
 /** Count non-empty lines in a string for the section header badge. */
 function countLines(text: string): number {
   if (!text) return 0;
@@ -203,6 +212,9 @@ export function StatusBar() {
   const reconnectDelay = useServiceStore((s) => s.reconnectDelay);
 
   const tuiMode = process.env.HOOX_TUI_MODE ?? "local";
+  const apiHost = resolveApiHostLabel(
+    process.env.HOOX_API_URL || "http://localhost:8787"
+  );
 
   // Local UI state — expansion is purely a presentation concern, so it
   // lives in component state rather than the global store.
@@ -276,6 +288,9 @@ export function StatusBar() {
           </text>
           <text fg={modeColor} bold>
             [{modeLabel}]
+          </text>
+          <text fg={Colors["muted-foreground"]} dim>
+            {apiHost}
           </text>
           <SummaryLine
             statusColor={

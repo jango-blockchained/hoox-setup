@@ -36,6 +36,17 @@ describe("UpdateService", () => {
       expect(result.error).toBeUndefined();
     });
 
+    it("silent mode still reports up-to-date without throwing", async () => {
+      const mockPrereqs = createMockPrereqs({ outdated: false });
+      const svc = new UpdateService(undefined, mockPrereqs as any);
+      const result = await svc.checkAndPromptUpdate({
+        yes: true,
+        silent: true,
+      });
+      expect(result.updated).toBe(false);
+      expect(result.error).toBeUndefined();
+    });
+
     it("auto-updates when wrangler is outdated and --yes is set", async () => {
       const mockPrereqs = createMockPrereqs({
         outdated: true,

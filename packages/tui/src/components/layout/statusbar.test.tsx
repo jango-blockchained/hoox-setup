@@ -21,7 +21,11 @@ import { testRender } from "@opentui/react/test-utils";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type { CliErrorDetails } from "@jango-blockchained/hoox-shared";
 
-import { StatusBar, ExpandedErrorPanel } from "./statusbar";
+import {
+  StatusBar,
+  ExpandedErrorPanel,
+  resolveApiHostLabel,
+} from "./statusbar";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -227,10 +231,13 @@ describe("StatusBar", () => {
 
   describe("mode indicator", () => {
     const originalMode = process.env.HOOX_TUI_MODE;
+    const originalApi = process.env.HOOX_API_URL;
 
     afterEach(() => {
       if (originalMode === undefined) delete process.env.HOOX_TUI_MODE;
       else process.env.HOOX_TUI_MODE = originalMode;
+      if (originalApi === undefined) delete process.env.HOOX_API_URL;
+      else process.env.HOOX_API_URL = originalApi;
     });
 
     it("shows [LOCAL] when HOOX_TUI_MODE is unset", async () => {
@@ -252,6 +259,29 @@ describe("StatusBar", () => {
       expect(output).toContain("[REMOTE]");
       expect(output).not.toContain("[LOCAL]");
     });
+
+    it("shows the API host next to the mode pill", async () => {
+      process.env.HOOX_TUI_MODE = "remote";
+      process.env.HOOX_API_URL = "https://hoox.cryptolinx.workers.dev";
+      const output = await renderStatusBar();
+      expect(output).toContain("hoox.cryptolinx.workers.dev");
+    });
+  });
+});
+
+describe("resolveApiHostLabel", () => {
+  it("extracts host from https URLs", () => {
+    expect(resolveApiHostLabel("https://hoox.example.com/path")).toBe(
+      "hoox.example.com"
+    );
+  });
+
+  it("keeps port for localhost", () => {
+    expect(resolveApiHostLabel("http://localhost:8787")).toBe("localhost:8787");
+  });
+
+  it("tolerates bare hosts", () => {
+    expect(resolveApiHostLabel("not-a-url")).toBe("not-a-url");
   });
 });
 
