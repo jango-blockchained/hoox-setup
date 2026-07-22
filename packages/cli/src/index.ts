@@ -109,6 +109,17 @@ program.hook("preAction", (thisCmd) => {
   commandStartedAt.set(thisCmd, Date.now());
 });
 
+// Auto-update wrangler before every command (silently, no prompts)
+program.hook("preAction", async () => {
+  try {
+    const { UpdateService } = await import("./services/update/index.js");
+    const service = new UpdateService();
+    await service.checkAndPromptUpdate({ yes: true });
+  } catch {
+    // Ignore update errors — don't block the actual command
+  }
+});
+
 program.hook("postAction", (thisCmd) => {
   // postAction does not fire if the action threw, but be defensive
   // about callers that set process.exitCode explicitly.

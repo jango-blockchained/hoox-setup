@@ -25,6 +25,7 @@ import {
 import { theme } from "../../utils/theme.js";
 import { CLIError, ExitCode } from "../../utils/errors.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
+import { resolveGatewayUrl } from "../../services/perf/endpoint-resolver.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -122,25 +123,115 @@ export function resolveTUIEntry(): string {
   );
 }
 
+export type TuiMode = "local" | "remote";
+
+export interface TuiLaunchOptions {
+  /** Explicit API base URL from `--api-url` (highest priority). */
+  apiUrl?: string;
+  /** Connect to the deployed gateway via `resolveGatewayUrl()`. */
+  remote?: boolean;
+}
+
+export interface TuiLaunchConfig {
+  apiBase: string;
+  tuiMode: TuiMode;
+  /** Which resolution branch produced this config (for dev logging). */
+  source: "api-url" | "remote-gateway" | "local-default";
+}
+
+/**
+ * Resolve API base URL + LOCAL/REMOTE mode for `hoox tui`.
+ *
+ * Priority:
+ *   1. `--api-url` → remote mode, use URL as-is (trailing slashes stripped)
+ *   2. `--remote`  → remote mode, `resolveGatewayUrl()` (HOOX_GATEWAY_URL / CF account)
+ *   3. neither     → local mode, `HOOX_API_URL` or `http://localhost:8787`
+ *
+ * @param options Commander option bag (or partial for tests)
+ * @param resolveRemote Injected gateway resolver (default: production `resolveGatewayUrl`)
+ */
+export function resolveTuiLaunchConfig(
+  options: TuiLaunchOptions,
+  resolveRemote: () => string = resolveGatewayUrl
+): TuiLaunchConfig {
+  if (options.apiUrl) {
+    return {
+      apiBase: options.apiUrl.replace(/\/+$/, ""),
+      tuiMode: "remote",
+      source: "api-url",
+    };
+  }
+
+  if (options.remote) {
+    try {
+      return {
+        apiBase: resolveRemote().replace(/\/+$/, ""),
+        tuiMode: "remote",
+        source: "remote-gateway",
+      };
+    } catch {
+      throw new CLIError(
+        [
+          "Cannot resolve hoox gateway URL.",
+          "",
+          "Set one of:",
+          "  • HOOX_GATEWAY_URL=https://your-gateway.workers.dev",
+          "  • CLOUDFLARE_ACCOUNT_ID=<your-account-id>",
+          "",
+          "Or pass an explicit URL: hoox tui --api-url https://...",
+        ].join("\n"),
+        ExitCode.ERROR
+      );
+    }
+  }
+
+  return {
+    apiBase: process.env.HOOX_API_URL || "http://localhost:8787",
+    tuiMode: "local",
+    source: "local-default",
+  };
+}
+
+/** True when HOOX_DEBUG / TUI_DEBUG request verbose launch diagnostics. */
+function isDevLogEnabled(): boolean {
+  const v = process.env.HOOX_DEBUG ?? process.env.TUI_DEBUG ?? "";
+  return v === "1" || v === "true" || v === "yes";
+}
+
 export function registerTUICommand(program: Command): void {
   program
     .command("tui")
     .description("Launch the OpenTUI terminal operations center")
     .option("--fps <number>", "Target frames per second", "30")
     .option("--no-mouse", "Disable mouse support")
+    .option("--remote", "Connect to the deployed Cloudflare gateway")
+    .option("--api-url <url>", "Explicit API base URL (overrides --remote)")
+    .option("--debug", "Enable TUI dev logging (HOOX_DEBUG=1 → debug.log)")
     .action(
       withErrorHandling(
         async (options) => {
           const tuiEntry = resolveTUIEntry();
+          const { apiBase, tuiMode, source } = resolveTuiLaunchConfig(options);
 
+          const modeLabel = tuiMode === "remote" ? "REMOTE" : "LOCAL";
           console.log(
             theme.heading("\nLaunching HOOX Terminal Operations Center...\n")
           );
           console.log(theme.dim(`  Entry: ${tuiEntry}`));
+          console.log(theme.dim(`  Mode:  ${modeLabel}`));
+          console.log(theme.dim(`  API:   ${apiBase}`));
           console.log(theme.dim(`  FPS:   ${options.fps}`));
           console.log(
             theme.dim(`  Mouse: ${options.mouse ? "enabled" : "disabled"}\n`)
           );
+
+          const debugEnabled = Boolean(options.debug) || isDevLogEnabled();
+          if (debugEnabled) {
+            console.log(theme.dim(`  Debug: enabled (source=${source})`));
+            console.log(
+              theme.dim(`         log → $HOME/.hoox/.tui-state/debug.log\n`)
+            );
+          }
 
           // Spawn the TUI as a child process — it takes over the terminal
           const child = spawn("bun", ["run", tuiEntry], {
@@ -149,6 +240,9 @@ export function registerTUICommand(program: Command): void {
               ...process.env,
               TUI_FPS: options.fps,
               TUI_MOUSE: options.mouse ? "1" : "0",
+              HOOX_API_URL: apiBase,
+              HOOX_TUI_MODE: tuiMode,
+              ...(debugEnabled ? { HOOX_DEBUG: "1", TUI_DEBUG: "1" } : {}),
             },
           });
 

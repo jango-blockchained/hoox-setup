@@ -14,6 +14,7 @@ import { Colors, saveSession } from "@jango-blockchained/hoox-shared";
 import { setRendererRef } from "./hooks";
 import { enableAutoCopyOnSelection } from "./services/clipboard";
 import { ensureTuiStateDir } from "./services/hoox-path-service";
+import { getDevLogPath, isDevLogEnabled, tuiDevLog } from "./services/dev-log";
 
 /** CLI `hoox tui --fps N` → env TUI_FPS; clamp to a sane range. */
 function resolveTargetFps(): number {
@@ -48,6 +49,18 @@ const RENDERER_CONFIG = {
 async function main() {
   // Ensure TUI state directory exists ($HOME/.hoox/.tui-state or fallback)
   await ensureTuiStateDir();
+
+  const tuiMode = process.env.HOOX_TUI_MODE ?? "local";
+  const apiUrl = process.env.HOOX_API_URL || "http://localhost:8787";
+  await tuiDevLog.info("startup", "TUI process starting", {
+    mode: tuiMode,
+    apiUrl,
+    fps: targetFps,
+    mouse: resolveUseMouse(),
+    debug: isDevLogEnabled(),
+    debugLogPath: isDevLogEnabled() ? getDevLogPath() : undefined,
+    entry: import.meta.path,
+  });
 
   const renderer = await createCliRenderer(RENDERER_CONFIG);
 

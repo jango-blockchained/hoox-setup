@@ -202,6 +202,8 @@ export function StatusBar() {
   const retryCount = useServiceStore((s) => s.retryCount);
   const reconnectDelay = useServiceStore((s) => s.reconnectDelay);
 
+  const tuiMode = process.env.HOOX_TUI_MODE ?? "local";
+
   // Local UI state — expansion is purely a presentation concern, so it
   // lives in component state rather than the global store.
   const [errorExpanded, setErrorExpanded] = useState<boolean>(false);
@@ -225,6 +227,10 @@ export function StatusBar() {
   const isErrorState =
     connectionStatus === "offline" || connectionStatus === "reconnecting";
   const pillInteractive = hasDetails && isErrorState;
+
+  const modeColor =
+    tuiMode === "remote" ? Colors.info : Colors["muted-foreground"];
+  const modeLabel = tuiMode === "remote" ? "REMOTE" : "LOCAL";
 
   const parts: string[] = [
     `[${statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}]`,
@@ -267,6 +273,9 @@ export function StatusBar() {
         <box flexDirection="row" gap={1}>
           <text fg={Colors["muted-foreground"]} dim>
             ┌
+          </text>
+          <text fg={modeColor} bold>
+            [{modeLabel}]
           </text>
           <SummaryLine
             statusColor={

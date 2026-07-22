@@ -16,7 +16,7 @@
  * Uses the real renderer with a sufficient viewport to capture the
  * expanded panel without truncation.
  */
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import { useServiceStore } from "@jango-blockchained/hoox-shared/stores/service-store";
 import type { CliErrorDetails } from "@jango-blockchained/hoox-shared";
@@ -220,6 +220,37 @@ describe("StatusBar", () => {
       expect(output).toContain("PALETTE");
       expect(output).toContain("SIDEBAR");
       expect(output).toContain("QUIT");
+    });
+  });
+
+  // ── LOCAL / REMOTE mode pill ───────────────────────────────────────────
+
+  describe("mode indicator", () => {
+    const originalMode = process.env.HOOX_TUI_MODE;
+
+    afterEach(() => {
+      if (originalMode === undefined) delete process.env.HOOX_TUI_MODE;
+      else process.env.HOOX_TUI_MODE = originalMode;
+    });
+
+    it("shows [LOCAL] when HOOX_TUI_MODE is unset", async () => {
+      delete process.env.HOOX_TUI_MODE;
+      const output = await renderStatusBar();
+      expect(output).toContain("[LOCAL]");
+      expect(output).not.toContain("[REMOTE]");
+    });
+
+    it("shows [LOCAL] when HOOX_TUI_MODE=local", async () => {
+      process.env.HOOX_TUI_MODE = "local";
+      const output = await renderStatusBar();
+      expect(output).toContain("[LOCAL]");
+    });
+
+    it("shows [REMOTE] when HOOX_TUI_MODE=remote", async () => {
+      process.env.HOOX_TUI_MODE = "remote";
+      const output = await renderStatusBar();
+      expect(output).toContain("[REMOTE]");
+      expect(output).not.toContain("[LOCAL]");
     });
   });
 });

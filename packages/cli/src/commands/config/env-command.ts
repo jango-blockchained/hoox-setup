@@ -19,6 +19,7 @@ import {
   getFormatOptions,
 } from "../../utils/formatters.js";
 import { withErrorHandling } from "../../utils/error-handler.js";
+import { theme } from "../../utils/theme.js";
 import type { FormatOptions } from "../../utils/formatters.js";
 
 // ---------------------------------------------------------------------------
@@ -29,23 +30,29 @@ import type { FormatOptions } from "../../utils/formatters.js";
 // env init — interactive wizard
 // ---------------------------------------------------------------------------
 
-async function handleInit(opts: FormatOptions): Promise<void> {
+async function handleInit(
+  opts: FormatOptions & { yes?: boolean }
+): Promise<void> {
   p.intro("Environment Setup");
 
   // Warn if .env.local already exists
   const existingEnv = Bun.file(".env.local");
   if (await existingEnv.exists()) {
-    const overwrite = await p.confirm({
-      message: ".env.local already exists. Overwrite?",
-      initialValue: false,
-    });
-    if (p.isCancel(overwrite)) {
-      p.cancel("Setup cancelled.");
-      return;
-    }
-    if (!overwrite) {
-      p.outro("Setup cancelled. Existing .env.local preserved.");
-      return;
+    if (!opts.yes) {
+      const overwrite = await p.confirm({
+        message: ".env.local already exists. Overwrite?",
+        initialValue: false,
+      });
+      if (p.isCancel(overwrite)) {
+        p.cancel("Setup cancelled.");
+        return;
+      }
+      if (!overwrite) {
+        p.outro("Setup cancelled. Existing .env.local preserved.");
+        return;
+      }
+    } else {
+      p.log.step("Overwriting existing .env.local (--yes)");
     }
   }
 
@@ -63,7 +70,11 @@ async function handleInit(opts: FormatOptions): Promise<void> {
 
       for (const def of sectionDefs) {
         let value: string | symbol;
-        if (def.secret) {
+        if (def.autoGenerate) {
+          const bytes = def.autoGenerateBytes ?? 32;
+          value = EnvService.generateKey(bytes);
+          p.log.step(`${def.name}: ${theme.success("(auto-generated)")}`);
+        } else if (def.secret) {
           value = await p.password({
             message: `${def.name}:${def.hint ? ` (${def.hint})` : ""}`,
             validate: def.required
@@ -259,11 +270,13 @@ EXAMPLES:
   envCmd
     .command("init")
     .description("Interactive wizard to generate .env.local and .dev.vars")
+    .option("-y, --yes", "Skip overwrite confirmation prompt")
     .action(
       withErrorHandling(
         async (_, cmd: Command) => {
           const opts = getFormatOptions(cmd);
-          await handleInit(opts);
+          const yes = cmd.opts().yes as boolean | undefined;
+          await handleInit({ ...opts, yes });
         },
         { service: "env" }
       )

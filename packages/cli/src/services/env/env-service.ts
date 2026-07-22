@@ -5,6 +5,10 @@ export interface EnvVarDefinition {
   section: string;
   default?: string;
   hint?: string;
+  /** Auto-generate a random hex value instead of prompting during `env init`. */
+  autoGenerate?: boolean;
+  /** Byte length for auto-generated keys (default: 32 → 64 hex chars). */
+  autoGenerateBytes?: number;
 }
 
 /** A .env file with its path and parsed variables. */
@@ -57,6 +61,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "Internal key for trade worker auth",
+        autoGenerate: true,
       },
       {
         name: "AGENT_INTERNAL_KEY",
@@ -64,6 +69,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "Internal key for agent worker auth",
+        autoGenerate: true,
       },
       {
         name: "WEBHOOK_API_KEY_BINDING",
@@ -71,6 +77,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "Webhook auth key for hoox gateway",
+        autoGenerate: true,
       },
       {
         name: "INTERNAL_KEY_BINDING",
@@ -78,6 +85,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "Shared internal auth key for inter-worker communication",
+        autoGenerate: true,
       },
       {
         name: "API_SERVICE_KEY_BINDING",
@@ -85,6 +93,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "API service key for trade-worker",
+        autoGenerate: true,
       },
       {
         name: "TELEGRAM_INTERNAL_KEY_BINDING",
@@ -92,6 +101,7 @@ export class EnvService {
         secret: true,
         section: "Internal Auth",
         hint: "Internal key for telegram worker auth",
+        autoGenerate: true,
       },
       {
         name: "HA_TOKEN_BINDING",
@@ -216,12 +226,21 @@ export class EnvService {
         secret: true,
         section: "Dashboard",
         hint: "32+ char random string for session signing",
+        autoGenerate: true,
+        autoGenerateBytes: 64,
       },
     ];
   }
 
   static getSections(): string[] {
     return [...new Set(EnvService.getDefinitions().map((d) => d.section))];
+  }
+
+  /** Generate a cryptographically random hex string. */
+  static generateKey(bytes = 32): string {
+    const buf = new Uint8Array(bytes);
+    crypto.getRandomValues(buf);
+    return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
   }
 
   static async loadDotEnvAsync(

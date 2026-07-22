@@ -1,10 +1,11 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { existsSync } from "node:fs";
-import { resolveTUIEntry } from "./tui-command.js";
+import { resolveTUIEntry, resolveTuiLaunchConfig } from "./tui-command.js";
 import {
   findHooxSetupRoot,
   getTuiEntryCandidates,
 } from "@jango-blockchained/hoox-shared";
+import { CLIError } from "../../utils/errors.js";
 
 describe("resolveTUIEntry", () => {
   it("finds a monorepo TUI entry that exists on disk", () => {
@@ -30,5 +31,81 @@ describe("resolveTUIEntry", () => {
       candidates.some((c) => entry === c || entry.endsWith("main.tsx"))
     ).toBe(true);
     expect(entry.includes(root) || entry.includes("tui")).toBe(true);
+  });
+});
+
+describe("resolveTuiLaunchConfig", () => {
+  const ORIGINAL_API_URL = process.env.HOOX_API_URL;
+
+  beforeEach(() => {
+    delete process.env.HOOX_API_URL;
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_API_URL === undefined) delete process.env.HOOX_API_URL;
+    else process.env.HOOX_API_URL = ORIGINAL_API_URL;
+  });
+
+  it("defaults to local mode on localhost:8787", () => {
+    const cfg = resolveTuiLaunchConfig({});
+    expect(cfg.tuiMode).toBe("local");
+    expect(cfg.apiBase).toBe("http://localhost:8787");
+    expect(cfg.source).toBe("local-default");
+  });
+
+  it("uses HOOX_API_URL in local mode when set", () => {
+    process.env.HOOX_API_URL = "http://127.0.0.1:9999";
+    const cfg = resolveTuiLaunchConfig({});
+    expect(cfg.tuiMode).toBe("local");
+    expect(cfg.apiBase).toBe("http://127.0.0.1:9999");
+    expect(cfg.source).toBe("local-default");
+  });
+
+  it("uses --api-url as remote mode and strips trailing slashes", () => {
+    const cfg = resolveTuiLaunchConfig({
+      apiUrl: "https://hoox.example.com///",
+    });
+    expect(cfg.tuiMode).toBe("remote");
+    expect(cfg.apiBase).toBe("https://hoox.example.com");
+    expect(cfg.source).toBe("api-url");
+  });
+
+  it("--api-url takes precedence over --remote", () => {
+    const cfg = resolveTuiLaunchConfig(
+      { apiUrl: "https://explicit.example.com", remote: true },
+      () => "https://should-not-be-used.workers.dev"
+    );
+    expect(cfg.tuiMode).toBe("remote");
+    expect(cfg.apiBase).toBe("https://explicit.example.com");
+    expect(cfg.source).toBe("api-url");
+  });
+
+  it("resolves --remote via gateway URL helper", () => {
+    const cfg = resolveTuiLaunchConfig(
+      { remote: true },
+      () => "https://hoox.cryptolinx.workers.dev/"
+    );
+    expect(cfg.tuiMode).toBe("remote");
+    expect(cfg.apiBase).toBe("https://hoox.cryptolinx.workers.dev");
+    expect(cfg.source).toBe("remote-gateway");
+  });
+
+  it("throws CLIError when --remote cannot resolve a gateway", () => {
+    expect(() =>
+      resolveTuiLaunchConfig({ remote: true }, () => {
+        throw new Error("no creds");
+      })
+    ).toThrow(CLIError);
+
+    try {
+      resolveTuiLaunchConfig({ remote: true }, () => {
+        throw new Error("no creds");
+      });
+      expect(true).toBe(false);
+    } catch (err) {
+      expect(err).toBeInstanceOf(CLIError);
+      expect((err as CLIError).message).toContain("HOOX_GATEWAY_URL");
+      expect((err as CLIError).message).toContain("--api-url");
+    }
   });
 });
