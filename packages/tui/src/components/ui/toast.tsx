@@ -45,8 +45,8 @@ const hooxTypeStyles = {
   success: { borderColor: Colors.success },
   error: { borderColor: Colors.error },
   warning: { borderColor: Colors.warning },
-  info: { borderColor: Colors.accent },
-  loading: { borderColor: Colors.muted },
+  info: { borderColor: Colors.highlight },
+  loading: { borderColor: Colors.dim },
 };
 
 // ── Toast helper functions ─────────────────────────────────────────────────

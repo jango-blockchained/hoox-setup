@@ -29,6 +29,7 @@ import {
   hasApiToken,
   resolveTuiConnectionEnv,
 } from "../../services/tui-connection";
+import { CoolGlyph } from "../shared/cool-brackets";
 
 /** Map each CliErrorType to a short, human-readable label. */
 const ERROR_TYPE_LABELS: Record<CliErrorType, string> = {
@@ -297,9 +298,7 @@ export function StatusBar() {
         backgroundColor={Colors.card}
       >
         <box flexDirection="row" gap={1}>
-          <text fg={Colors["muted-foreground"]} dim>
-            ┌
-          </text>
+          <CoolGlyph char="┌" intervalMs={100} phase={0} />
           <text fg={modeColor} bold>
             [{modeLabel}]
           </text>
@@ -318,11 +317,9 @@ export function StatusBar() {
           >
             {parts.join("  ")}
           </SummaryLine>
-          <text fg={Colors["muted-foreground"]} dim>
-            ┐
-          </text>
+          <CoolGlyph char="┐" intervalMs={100} phase={3} />
         </box>
-        <text fg={Colors["muted-foreground"]}>
+        <text fg={Colors.dim} dim>
           ^P PALETTE · ^B SIDEBAR · ^Q QUIT
         </text>
       </box>

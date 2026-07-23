@@ -11,7 +11,7 @@ export interface SpinnerProps {
 
 export function Spinner({
   label = "Loading...",
-  color = Colors.accent,
+  color = Colors.highlight,
 }: SpinnerProps) {
   const [frame, setFrame] = useState(0);
 

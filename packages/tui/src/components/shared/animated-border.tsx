@@ -1,19 +1,14 @@
 /** @jsxImportSource @opentui/react */
 /**
- * AnimatedBorder — a box wrapper that adds an orange accent border
- * when the contained element has focus or is hovered.
+ * AnimatedBorder — box wrapper with cool-spectrum focus border and
+ * animated title brackets (Grok Build–style accent motion).
  *
- * On focus: borderStyle changes from "single" to "double",
- * borderColor transitions from Colors.border to Colors.accent.
- * Without focus: renders with a default single border.
- *
- * Supports optional title — renders an uppercase HUD-style panel header
- * matching the HudPanel pattern from the hoox-landing-page design system.
- *
- * Used to wrap interactive panels, selected rows, and focusable sections.
+ * On focus: border shifts to cool indigo/cyan accent.
+ * Title: CoolBrackets around uppercase HUD label.
  */
 import { type ReactNode } from "react";
 import { Colors } from "@jango-blockchained/hoox-shared";
+import { CoolBrackets, useCoolHue } from "./cool-brackets";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -22,7 +17,7 @@ export interface AnimatedBorderProps {
   children: ReactNode;
   /** Whether the contained element is focused/highlighted */
   focused?: boolean;
-  /** Optional HUD-style panel title (rendered uppercase with bracket decoration) */
+  /** Optional HUD-style panel title (rendered uppercase with cool brackets) */
   title?: string;
 }
 
@@ -33,22 +28,24 @@ export function AnimatedBorder({
   focused = false,
   title,
 }: AnimatedBorderProps) {
+  const { color: coolBorder } = useCoolHue(160, focused);
+
   return (
     <box flexDirection="column" flexGrow={1}>
-      {/* HUD-style title bar (matching HudPanel pattern from hoox-landing-page) */}
       {title && (
         <box flexDirection="row" gap={1} paddingLeft={1} paddingBottom={0}>
-          <text fg={Colors.accent}>┌</text>
-          <text fg={Colors["muted-foreground"]} bold>
-            {title.toUpperCase()}
-          </text>
-          <text fg={Colors.accent}>┐</text>
+          <CoolBrackets open="┌" close="┐" gap={1}>
+            <text fg={Colors["muted-foreground"]} bold>
+              {title.toUpperCase()}
+            </text>
+          </CoolBrackets>
         </box>
       )}
       <box
         border={true}
         borderStyle={focused ? "double" : "single"}
-        borderColor={focused ? Colors.accent : Colors.border}
+        borderColor={focused ? coolBorder : Colors.border}
+        backgroundColor={Colors.card}
         flexGrow={1}
       >
         {children}
