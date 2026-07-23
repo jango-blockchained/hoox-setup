@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { copyToClipboard, copyViaSystemClipboard } from "./clipboard";
+import { messageCopiedToClipboard } from "../components/ui/toast";
 
 describe("clipboard", () => {
   it("treats empty text as success without throwing", async () => {
@@ -23,5 +24,29 @@ describe("clipboard", () => {
     } else {
       expect(result.error).toMatch(/clipboard/i);
     }
+  });
+
+  it("accepts notify option without throwing", async () => {
+    // Toast singleton may no-op without a Toaster in unit tests
+    const result = await copyToClipboard("notify me", null, { notify: true });
+    expect(typeof result.ok).toBe("boolean");
+  });
+});
+
+describe("messageCopiedToClipboard", () => {
+  it("previews short text", () => {
+    expect(messageCopiedToClipboard("hello")).toBe("Copied: “hello”");
+  });
+
+  it("truncates long text", () => {
+    const long = "x".repeat(80);
+    const msg = messageCopiedToClipboard(long);
+    expect(msg.startsWith("Copied: “")).toBe(true);
+    expect(msg.endsWith("…”")).toBe(true);
+    expect(msg.length).toBeLessThan(long.length + 20);
+  });
+
+  it("collapses whitespace", () => {
+    expect(messageCopiedToClipboard("a\n\nb")).toBe("Copied: “a b”");
   });
 });

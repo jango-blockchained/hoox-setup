@@ -147,3 +147,34 @@ export function toastLoading(
 export function dismissToast(id?: ToastId): void {
   toast.dismiss(id as string | number | undefined);
 }
+
+// ── Clipboard copy feedback ────────────────────────────────────────────────
+
+const COPY_PREVIEW_MAX = 48;
+
+/** Pure message for “copied” toast (testable). */
+export function messageCopiedToClipboard(text: string): string {
+  const oneLine = text.replace(/\s+/g, " ").trim();
+  if (!oneLine) return "Copied to clipboard";
+  if (oneLine.length <= COPY_PREVIEW_MAX) {
+    return `Copied: “${oneLine}”`;
+  }
+  return `Copied: “${oneLine.slice(0, COPY_PREVIEW_MAX - 1)}…”`;
+}
+
+/** Toast after successful clipboard write (selection auto-copy, etc.). */
+export function toastCopiedToClipboard(text: string): ToastId {
+  const lines = text.split("\n").filter((l) => l.length > 0).length;
+  return toastSuccess(messageCopiedToClipboard(text), {
+    description: lines > 1 ? `${lines} lines` : undefined,
+    duration: 2500,
+  });
+}
+
+/** Toast when clipboard write fails. */
+export function toastCopyFailed(error: string): ToastId {
+  return toastError("Copy failed", {
+    description: error,
+    duration: 5000,
+  });
+}
