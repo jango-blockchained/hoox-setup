@@ -214,5 +214,6 @@ packages/tui/
 
 ## Design
 
-Dark background (`#0D1117`), orange accent (`#E8780A`), squared edges.  
+Near-black canvas (`#050508`), cool indigo accent (`#818CF8`) + cyan highlight,
+animated cool brackets on chrome (cyan→indigo→violet), squared edges.
 Follows the Hoox landing page design DNA. No CSS, no DOM — pure terminal rendering via OpenTUI's JSX intrinsics (`<box>`, `<text>`, `<input>`, `<scrollbox>`). UI persistence uses the filesystem under `$HOME/.hoox/.tui-state/` (Bun has no `localStorage`).

@@ -2,12 +2,12 @@
 /**
  * ViewHeader — shared title row for high-traffic views.
  *
- * Accent bold title on the left, optional right-side meta (status / actions),
- * optional dim border rule underneath. OpenTUI: never nest <text> inside <text>;
- * pass sibling text nodes (or StatusDot) as `meta`.
+ * Cool-bracketed title on the left, optional right-side meta, dim rule under.
+ * OpenTUI: never nest <text> inside <text>.
  */
 import { Colors } from "@jango-blockchained/hoox-shared";
 import type { ReactNode } from "react";
+import { CoolBrackets } from "./cool-brackets";
 
 export interface ViewHeaderProps {
   title: string;
@@ -22,9 +22,6 @@ export function ViewHeader({
   meta,
   showDivider = true,
 }: ViewHeaderProps) {
-  // Simple title row. Prefer borderBottom for the rule — a sibling <text>
-  // of "─" can paint on the same terminal row as the title in some Yoga
-  // layouts and wipe the accent title from captureCharFrame / narrow UIs.
   return (
     <box
       flexDirection="row"
@@ -33,11 +30,19 @@ export function ViewHeader({
       borderBottom={showDivider}
       borderStyle={showDivider ? "single" : undefined}
       borderColor={showDivider ? Colors.border : undefined}
+      justifyContent="space-between"
+      width="100%"
     >
-      <text fg={Colors.accent} bold>
-        {title}
-      </text>
-      {meta ?? null}
+      <CoolBrackets open="┌" close="┐" gap={1} intervalMs={100}>
+        <text fg={Colors.accent} bold>
+          {title}
+        </text>
+      </CoolBrackets>
+      {meta ? (
+        <box flexDirection="row" gap={1}>
+          {meta}
+        </box>
+      ) : null}
     </box>
   );
 }

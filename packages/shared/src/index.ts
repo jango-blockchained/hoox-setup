@@ -123,6 +123,7 @@ export * from "./test-utils";
 
 export {
   Colors,
+  CoolBracketPalette,
   ConnectionStatusColor,
   WorkerStatusColor,
   LogLevelColor,
@@ -130,6 +131,7 @@ export {
 } from "./colors";
 export type {
   ColorKey,
+  CoolBracketColor,
   ConnectionStatusKey,
   WorkerStatusKey,
   LogLevelColorKey,

@@ -451,8 +451,8 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
         alignItems="center"
         backgroundColor={Colors.background}
       >
-        <text fg={Colors.accent} bold>
-          HOOX
+        <text fg={Colors.highlight} bold>
+          ┌ HOOX ┐
         </text>
         <text fg={Colors.muted} dim>
           Restoring session…

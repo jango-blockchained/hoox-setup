@@ -2,13 +2,11 @@
 
 import { Colors, useUIStore } from "@jango-blockchained/hoox-shared";
 import { getSidebarItems } from "../../view-registry";
+import { CoolBrackets, CoolGlyph } from "../shared/cool-brackets";
 
 /**
  * Sidebar — left navigation panel with view links.
- * Each item is clickable via onMouseUp.
- * Active view is highlighted with the accent color.
- *
- * Extracted from app.tsx to follow TUI 150-line component standard.
+ * Near-black surface, cool animated brand brackets, indigo active state.
  */
 export function Sidebar() {
   const activeView = useUIStore((s) => s.activeView);
@@ -23,31 +21,33 @@ export function Sidebar() {
     <box
       flexDirection="column"
       width={24}
-      padding={2}
+      padding={1}
       gap={0}
       border={true}
       borderStyle="single"
       borderColor={Colors.border}
       backgroundColor={Colors.card}
     >
-      {/* Brand header */}
-      <text fg={Colors.accent} bold>
-        ┌ HOOX ┐
-      </text>
-      <text fg={Colors["muted-foreground"]} dim>
-        ─────────────────
-      </text>
+      {/* Brand header — cool animated brackets */}
+      <CoolBrackets open="┌" close="┐" gap={1} intervalMs={95}>
+        <text fg={Colors.foreground} bold>
+          HOOX
+        </text>
+      </CoolBrackets>
+      <text fg={Colors.dim}>─────────────────</text>
 
       {/* Navigation items */}
-      {items.map((item) => {
+      {items.map((item, i) => {
         const isActive = item.id === activeView;
         return (
           <box flexDirection="row" gap={1} key={item.id}>
-            <text fg={isActive ? Colors.accent : Colors.muted} dim>
-              {isActive ? "▸" : " "}
-            </text>
+            {isActive ? (
+              <CoolGlyph char="▸" phase={i} intervalMs={130} />
+            ) : (
+              <text fg={Colors.dim}> </text>
+            )}
             <text
-              fg={isActive ? Colors.accent : Colors.foreground}
+              fg={isActive ? Colors.accent : Colors.muted}
               bold={isActive}
               onMouseUp={() => setView(item.id)}
             >
@@ -60,7 +60,7 @@ export function Sidebar() {
       {/* Shortcut hints */}
       <box flexGrow={1} />
       <text fg={Colors.dim} dim>
-        Ctrl+0-9 · Ctrl+Alt+K/S/C/Q/E
+        Ctrl+0-9 · Ctrl+Alt+…
       </text>
     </box>
   );

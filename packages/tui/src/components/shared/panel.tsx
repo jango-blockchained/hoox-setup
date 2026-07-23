@@ -2,11 +2,12 @@
 /**
  * Panel — shared bordered card chrome for list/detail sections.
  *
- * Single border; accent when focused. Elevated (default) or focused panels
- * use Colors.card background. compact uses zero padding; otherwise padding 1.
+ * Near-black card surface; cool indigo border when focused.
+ * compact uses zero padding; otherwise padding 1.
  */
 import { Colors } from "@jango-blockchained/hoox-shared";
 import type { ReactNode } from "react";
+import { useCoolHue } from "./cool-brackets";
 
 export interface PanelProps {
   title?: string;
@@ -29,6 +30,8 @@ export function Panel({
   flexGrow,
   children,
 }: PanelProps) {
+  const { color: cool } = useCoolHue(180, focused);
+
   return (
     <box
       flexDirection="column"
@@ -37,8 +40,8 @@ export function Panel({
       padding={compact ? 0 : 1}
       border={true}
       borderStyle="single"
-      borderColor={focused ? Colors.accent : Colors.border}
-      backgroundColor={elevated || focused ? Colors.card : undefined}
+      borderColor={focused ? cool : Colors.border}
+      backgroundColor={elevated || focused ? Colors.card : Colors.background}
       title={title}
     >
       {children}

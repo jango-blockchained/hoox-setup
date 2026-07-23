@@ -1,41 +1,41 @@
 /**
- * Color Tokens — Maps hoox landing page design system to terminal-safe RGBA hex values.
+ * Color Tokens — Hoox TUI / shared design system (terminal-safe hex).
  *
- * Design DNA:
- *   - Dark monochrome background: oklch(0.08 0 0) → #0D1117
- *   - Orange accent: oklch(0.7 0.2 45) → #E8780A
- *   - Squared edges (no rounding — editorial aesthetic)
+ * Design DNA (2026 polish):
+ *   - Near-black canvas (not warm grey)
+ *   - Cool indigo / cyan accent (Grok Build–adjacent; less orange)
+ *   - Squared edges (no rounding — editorial HUD aesthetic)
  *
  * Usage: import { Colors, ConnectionStatusColor } from "@jango-blockchained/hoox-shared"
  *        <text fg={Colors.accent}>Important</text>
  */
 
 export const Colors = {
-  // Base
-  background: "#0D1117",
-  foreground: "#EEEEEE",
-  card: "#1C1C1F",
-  border: "#484848",
-  muted: "#A0A0A0",
-  "muted-foreground": "#6E6E6E",
-  dim: "#3B3B3D",
+  // Base — true black stack
+  background: "#050508",
+  foreground: "#E8E8F0",
+  card: "#0A0A0F",
+  border: "#1A1A24",
+  muted: "#8B8B9E",
+  "muted-foreground": "#5C5C70",
+  dim: "#2A2A36",
 
-  // Accent
-  accent: "#E8780A",
-  "accent-dim": "#B85E08",
+  // Accent — cool indigo (primary) + cyan highlight
+  accent: "#818CF8",
+  "accent-dim": "#6366F1",
 
-  // Status colors
-  success: "#00FF88",
-  warning: "#FFAA00",
-  error: "#FF4444",
-  info: "#4488FF",
+  // Status colors (cool-shifted)
+  success: "#34D399",
+  warning: "#FBBF24",
+  error: "#FB7185",
+  info: "#38BDF8",
 
   // Semantic aliases
-  text: "#EEEEEE",
-  "text-muted": "#A0A0A0",
-  panel: "#1C1C1F",
-  divider: "#484848",
-  highlight: "#E8780A",
+  text: "#E8E8F0",
+  "text-muted": "#8B8B9E",
+  panel: "#0A0A0F",
+  divider: "#1A1A24",
+  highlight: "#22D3EE",
 
   /** Dialog / overlay dim only — not a surface color */
   backdrop: "#000000",
@@ -43,10 +43,29 @@ export const Colors = {
 
 export type ColorKey = keyof typeof Colors;
 
+/**
+ * Cool spectrum for animated brackets (cyan → indigo → violet → magenta → back).
+ * Used by TUI chrome (`CoolBrackets`) similar to Grok Build accent motion.
+ */
+export const CoolBracketPalette = [
+  "#22D3EE", // cyan
+  "#38BDF8", // sky
+  "#60A5FA", // blue
+  "#818CF8", // indigo
+  "#A78BFA", // violet
+  "#C084FC", // purple
+  "#E879F9", // fuchsia
+  "#A78BFA", // violet (ease back)
+  "#818CF8", // indigo
+  "#38BDF8", // sky
+] as const;
+
+export type CoolBracketColor = (typeof CoolBracketPalette)[number];
+
 /** Connection pill colors (status bar). */
 export const ConnectionStatusColor = {
   connected: Colors.success,
-  polling: Colors.accent,
+  polling: Colors.highlight,
   reconnecting: Colors.warning,
   offline: Colors.error,
 } as const;
