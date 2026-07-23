@@ -17,6 +17,20 @@ describe("EnvService", () => {
         expect(def.section).toBeTruthy();
       }
     });
+
+    it("internal auth keys have autoGenerate flag", () => {
+      const defs = EnvService.getDefinitions();
+      const autoGenDefs = defs.filter((d) => d.autoGenerate);
+      expect(autoGenDefs.length).toBeGreaterThanOrEqual(6);
+      const autoGenNames = autoGenDefs.map((d) => d.name);
+      expect(autoGenNames).toContain("TRADE_INTERNAL_KEY");
+      expect(autoGenNames).toContain("AGENT_INTERNAL_KEY");
+      expect(autoGenNames).toContain("WEBHOOK_API_KEY_BINDING");
+      expect(autoGenNames).toContain("INTERNAL_KEY_BINDING");
+      expect(autoGenNames).toContain("API_SERVICE_KEY_BINDING");
+      expect(autoGenNames).toContain("TELEGRAM_INTERNAL_KEY_BINDING");
+      expect(autoGenNames).toContain("SESSION_SECRET");
+    });
   });
 
   describe("getSections", () => {
@@ -194,6 +208,25 @@ describe("EnvService", () => {
       expect(result.warnings).toContain(
         "SESSION_SECRET should be at least 32 characters"
       );
+    });
+  });
+
+  describe("generateKey", () => {
+    it("generates a hex string of the correct length", () => {
+      const key32 = EnvService.generateKey(32);
+      expect(key32.length).toBe(64);
+      expect(/^[0-9a-f]+$/.test(key32)).toBe(true);
+    });
+
+    it("generates different keys each time", () => {
+      const key1 = EnvService.generateKey();
+      const key2 = EnvService.generateKey();
+      expect(key1).not.toBe(key2);
+    });
+
+    it("generates custom byte length", () => {
+      const key16 = EnvService.generateKey(16);
+      expect(key16.length).toBe(32);
     });
   });
 

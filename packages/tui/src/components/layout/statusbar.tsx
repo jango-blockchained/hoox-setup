@@ -24,6 +24,11 @@ import {
   type CliErrorType,
   type CliErrorDetails,
 } from "@jango-blockchained/hoox-shared";
+import {
+  classifyConnectionError,
+  hasApiToken,
+  resolveTuiConnectionEnv,
+} from "../../services/tui-connection";
 
 /** Map each CliErrorType to a short, human-readable label. */
 const ERROR_TYPE_LABELS: Record<CliErrorType, string> = {
@@ -47,6 +52,15 @@ const RECOVERY_HINTS: Record<CliErrorType, string> = {
   "spawn-error":
     "Bun.spawn failed (permission or path issue). Check HOOX_CLI / PATH (hx, hoox).",
 };
+
+/** Host label for the status bar (no scheme; falls back to raw URL). */
+export function resolveApiHostLabel(apiUrl: string): string {
+  try {
+    return new URL(apiUrl).host || apiUrl;
+  } catch {
+    return apiUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "") || apiUrl;
+  }
+}
 
 /** Count non-empty lines in a string for the section header badge. */
 function countLines(text: string): number {
@@ -202,6 +216,18 @@ export function StatusBar() {
   const retryCount = useServiceStore((s) => s.retryCount);
   const reconnectDelay = useServiceStore((s) => s.reconnectDelay);
 
+  const conn = resolveTuiConnectionEnv();
+  const tuiMode = conn.mode;
+  const apiHost = conn.apiHost;
+  const tokenPresent = hasApiToken();
+  const errorKind = classifyConnectionError(lastError);
+  // Compact AUTH cue: missing token (remote) or auth error — keep short for host room
+  const showAuthHint =
+    tuiMode === "remote" &&
+    (!tokenPresent ||
+      errorKind === "auth" ||
+      Boolean(lastError?.includes("401")));
+
   // Local UI state — expansion is purely a presentation concern, so it
   // lives in component state rather than the global store.
   const [errorExpanded, setErrorExpanded] = useState<boolean>(false);
@@ -226,6 +252,10 @@ export function StatusBar() {
     connectionStatus === "offline" || connectionStatus === "reconnecting";
   const pillInteractive = hasDetails && isErrorState;
 
+  const modeColor =
+    tuiMode === "remote" ? Colors.info : Colors["muted-foreground"];
+  const modeLabel = tuiMode === "remote" ? "REMOTE" : "LOCAL";
+
   const parts: string[] = [
     `[${statusLabel[connectionStatus] ?? connectionStatus.toUpperCase()}]`,
   ];
@@ -238,10 +268,12 @@ export function StatusBar() {
     isErrorState ? `Last updated: ${relativeTime}` : `Updated: ${relativeTime}`
   );
 
-  if (lastError && isErrorState) {
-    // Show the full short message (no longer truncated). The status bar
-    // is one line so very long messages may wrap or be cut by the
-    // terminal — the user can click to expand for full detail.
+  if (showAuthHint) {
+    parts.push(!tokenPresent ? "| AUTH?" : "| AUTH!");
+  }
+
+  if (lastError && isErrorState && errorKind !== "auth") {
+    // Full short message (expand panel for diagnostics). Auth errors use AUTH! above.
     parts.push(`| ${lastError}`);
   }
 
@@ -267,6 +299,12 @@ export function StatusBar() {
         <box flexDirection="row" gap={1}>
           <text fg={Colors["muted-foreground"]} dim>
             ┌
+          </text>
+          <text fg={modeColor} bold>
+            [{modeLabel}]
+          </text>
+          <text fg={Colors["muted-foreground"]} dim>
+            {apiHost}
           </text>
           <SummaryLine
             statusColor={

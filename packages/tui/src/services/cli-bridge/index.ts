@@ -36,6 +36,7 @@ import type {
   AgentHealthResult,
 } from "./types";
 import { validateReadOnlySql } from "./standalone";
+import { tuiDevLog } from "../dev-log";
 
 /** Cap stderr/stdout capture per command to keep the store lightweight. */
 const MAX_OUTPUT_CHARS = 4096;
@@ -702,6 +703,19 @@ class CliBridgeImpl {
   async exec<T>(args: string[], options?: ExecOptions): Promise<CliResult<T>> {
     const result = await this.execCore<T>(args, options);
     this.notifyError(result);
+    void tuiDevLog.debug(
+      "cli-bridge",
+      result.success ? "exec ok" : "exec fail",
+      {
+        tag: options?.tag ?? args[0] ?? "unknown",
+        args,
+        success: result.success,
+        exitCode: result.exitCode,
+        durationMs: Math.round(result.duration),
+        errorType: result.errorType ?? null,
+        stderr: result.success ? undefined : result.stderr || undefined,
+      }
+    );
     return result;
   }
 
@@ -932,9 +946,9 @@ class CliBridgeImpl {
   }
 
   workerLogs(name: string): Promise<CliResult<unknown>> {
-    return this.exec(["logs", "worker", name], {
+    return this.exec(["logs", "worker", name, "--no-follow"], {
       json: true,
-      timeout: 15_000,
+      timeout: 30_000,
       tag: `logs:${name}`,
     });
   }
@@ -956,10 +970,10 @@ class CliBridgeImpl {
   }
 
   monitorStatus(): Promise<CliResult<unknown>> {
-    return this.exec(["monitor", "status"], {
+    return this.exec(["check", "health"], {
       json: true,
       timeout: 15_000,
-      tag: "monitor:status",
+      tag: "check:health",
     });
   }
 

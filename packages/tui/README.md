@@ -11,8 +11,19 @@ A full-screen terminal dashboard built with [OpenTUI](https://github.com/anomaly
 # Install dependencies (from repo root)
 bun install
 
-# Launch via CLI (recommended)
+# Launch via CLI (recommended) — LOCAL → http://localhost:8787
 hoox tui
+
+# Connect to the deployed Cloudflare gateway (REMOTE)
+hoox tui --remote
+# or: hoox tui --api-url https://hoox.example.workers.dev
+# Auth for remote APIs (Bearer — never printed):
+export HOOX_API_TOKEN=…
+# or: hoox tui --remote --token "$HOOX_API_TOKEN"
+
+# Dev logging → $HOME/.hoox/.tui-state/debug.log (file-backed; safe for alternate screen)
+hoox tui --debug
+# or: HOOX_DEBUG=1 / TUI_DEBUG=1
 
 # Or launch from package
 cd packages/tui

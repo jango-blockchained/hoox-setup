@@ -109,6 +109,20 @@ program.hook("preAction", (thisCmd) => {
   commandStartedAt.set(thisCmd, Date.now());
 });
 
+// Quiet wrangler refresh before commands (no spam when already current).
+// Skipped in tests / when HOOX_SKIP_WRANGLER_UPDATE=1.
+program.hook("preAction", async () => {
+  if (process.env.HOOX_SKIP_WRANGLER_UPDATE === "1") return;
+  if (process.env.NODE_ENV === "test" || process.env.BUN_TEST === "1") return;
+  try {
+    const { UpdateService } = await import("./services/update/index.js");
+    const service = new UpdateService();
+    await service.checkAndPromptUpdate({ yes: true, silent: true });
+  } catch {
+    // Ignore update errors — don't block the actual command
+  }
+});
+
 program.hook("postAction", (thisCmd) => {
   // postAction does not fire if the action threw, but be defensive
   // about callers that set process.exitCode explicitly.

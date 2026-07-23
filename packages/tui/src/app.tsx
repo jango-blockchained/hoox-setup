@@ -27,6 +27,20 @@ import type { ViewId } from "@jango-blockchained/hoox-shared";
 
 import { cliBridge } from "./services/cli-bridge";
 import { resolveTuiStatePath } from "./services/hoox-path-service";
+import { tuiDevLog } from "./services/dev-log";
+import {
+  classifyConnectionError,
+  resolveTuiConnectionEnv,
+} from "./services/tui-connection";
+import {
+  toastAuthMissingRemote,
+  toastAuthRequiredMode,
+  toastConnectedMode,
+  toastConnectionLostMode,
+  toastOfflineStartup,
+  toastRateLimited,
+  toastReconnectedMode,
+} from "./components/ui/connection-toasts";
 import { getRendererRef } from "./hooks";
 import type { DialogHandle } from "./components/ui/dialog";
 import {
@@ -136,87 +150,158 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
     };
   }, []);
 
-  // ── Startup data load: HTTP → CLI fallback ─────────────────────────────
+  // ── Startup data load: HTTP → (local only) CLI fallback ────────────────
   // After session restore, try to fetch worker data. HTTP is tried first;
-  // if the dev server is unreachable, fall back to the `hoox` CLI.
-  // Also kick off SSE trade/log streams so Trade Monitor + Logs Viewer
-  // receive live data when the API is available (failures are silent).
+  // if the local dev server is unreachable, fall back to the `hoox` CLI.
+  // REMOTE mode never uses CLI fallback — gateway HTTP is the source of truth.
+  // Also kick off SSE trade/log streams when the API is available.
   useEffect(() => {
     if (restoring) return;
     let cancelled = false;
 
     (async () => {
       const store = useServiceStore.getState();
-      try {
-        await store.fetchWorkers();
-        if (cancelled) return;
-        // HTTP succeeded — store already has workers + connected status
-      } catch {
-        // HTTP failed — try CLI fallback
-      }
-      if (cancelled) return;
+      const conn = resolveTuiConnectionEnv();
+      await tuiDevLog.info("connection", "startup data load begin", {
+        mode: conn.mode,
+        apiUrl: conn.apiUrl,
+        hasToken: conn.hasToken,
+        allowCliFallback: conn.allowCliFallback,
+      });
 
-      // CLI fallback: hoox monitor status --json
-      try {
-        const result = await cliBridge.monitorStatus();
-        if (cancelled) return;
-        if (result.success && result.data) {
-          const raw = result.data as Record<string, unknown>;
-          const rawWorkers = (raw.workers ?? raw.status ?? raw) as
-            unknown[] | Record<string, unknown>;
-          const parsed = Array.isArray(rawWorkers)
-            ? rawWorkers
-            : typeof rawWorkers === "object" && rawWorkers !== null
-              ? Object.values(rawWorkers)
-              : [];
-          if (parsed.length > 0) {
-            const workerInfo = (parsed as Record<string, unknown>[]).map(
-              (w, i) => {
-                const cliStatus = String(w.status ?? "healthy");
-                const status =
-                  cliStatus === "healthy"
-                    ? "operational"
-                    : cliStatus === "degraded"
-                      ? "degraded"
-                      : "down";
-                return {
-                  id: String(w.id ?? w.worker ?? `worker-${i}`),
-                  name: String(w.worker ?? `worker-${i}`),
-                  status: status as "operational" | "degraded" | "down",
-                  uptime: Number(w.uptime ?? 0) || 0,
-                  cpu: Number(w.cpu ?? 0) || 0,
-                  memory: Number(w.memory ?? 0) || 0,
-                  requests: Number(w.requests ?? 0) || 0,
-                  durableObjectCount: Number(w.durableObjectCount ?? 0) || 0,
-                  edgeCount: Number(w.edgeCount ?? 0) || 0,
-                  version: String(w.version ?? ""),
-                  lastDeployed: Number(w.lastDeployed ?? 0) || 0,
-                };
-              }
-            );
-            store.setWorkers(workerInfo);
-            store.setMetrics({
-              totalWorkers: workerInfo.length,
-              onlineWorkers: workerInfo.filter(
-                (x) => x.status === "operational"
-              ).length,
-              totalPnl: 0,
-              activeStrategies: 0,
-              dailyTrades: 0,
-              aiCalls: 0,
-              uptime: 0,
-              lastUpdated: Date.now(),
-            });
-            store.handleConnectionSuccess();
-          }
+      if (conn.mode === "remote" && !conn.hasToken) {
+        toastAuthMissingRemote(conn.apiHost);
+        await tuiDevLog.warn("connection", "remote without API token", {
+          host: conn.apiHost,
+        });
+      }
+
+      // fetchWorkers swallows network errors into store state — inspect status.
+      await store.fetchWorkers();
+      if (cancelled) return;
+      const afterHttp = useServiceStore.getState();
+      const httpOk = afterHttp.connectionStatus === "connected";
+      if (httpOk) {
+        toastConnectedMode(conn.mode, conn.apiHost);
+        await tuiDevLog.info("connection", "HTTP fetchWorkers succeeded", {
+          mode: conn.mode,
+          apiUrl: conn.apiUrl,
+          workerCount: afterHttp.workers.length,
+        });
+      } else {
+        const kind = classifyConnectionError(afterHttp.lastError);
+        if (kind === "auth") {
+          toastAuthRequiredMode(conn.mode, conn.apiHost);
+        } else if (kind === "rate-limit") {
+          toastRateLimited();
+        } else {
+          toastOfflineStartup(conn.mode, conn.apiHost, kind);
         }
-      } catch {
-        // Both HTTP and CLI unavailable — stay offline
+        await tuiDevLog.warn("connection", "HTTP fetchWorkers failed", {
+          mode: conn.mode,
+          apiUrl: conn.apiUrl,
+          connectionStatus: afterHttp.connectionStatus,
+          lastError: afterHttp.lastError,
+          errorKind: kind,
+        });
+      }
+
+      // CLI fallback: local only (never mark REMOTE connected via local CLI)
+      if (!httpOk && conn.allowCliFallback) {
+        try {
+          await tuiDevLog.debug("connection", "CLI monitorStatus fallback");
+          const result = await cliBridge.monitorStatus();
+          if (cancelled) return;
+          if (result.success && result.data) {
+            const raw = result.data as Record<string, unknown>;
+            const rawWorkers = (raw.workers ?? raw.status ?? raw) as
+              | unknown[]
+              | Record<string, unknown>;
+            const parsed = Array.isArray(rawWorkers)
+              ? rawWorkers
+              : typeof rawWorkers === "object" && rawWorkers !== null
+                ? Object.values(rawWorkers)
+                : [];
+            if (parsed.length > 0) {
+              const workerInfo = (parsed as Record<string, unknown>[]).map(
+                (w, i) => {
+                  const cliStatus = String(w.status ?? "healthy");
+                  const status =
+                    cliStatus === "healthy"
+                      ? "operational"
+                      : cliStatus === "degraded"
+                        ? "degraded"
+                        : "down";
+                  return {
+                    id: String(w.id ?? w.worker ?? `worker-${i}`),
+                    name: String(w.worker ?? `worker-${i}`),
+                    status: status as "operational" | "degraded" | "down",
+                    uptime: Number(w.uptime ?? 0) || 0,
+                    cpu: Number(w.cpu ?? 0) || 0,
+                    memory: Number(w.memory ?? 0) || 0,
+                    requests: Number(w.requests ?? 0) || 0,
+                    durableObjectCount: Number(w.durableObjectCount ?? 0) || 0,
+                    edgeCount: Number(w.edgeCount ?? 0) || 0,
+                    version: String(w.version ?? ""),
+                    lastDeployed: Number(w.lastDeployed ?? 0) || 0,
+                  };
+                }
+              );
+              store.setWorkers(workerInfo);
+              store.setMetrics({
+                totalWorkers: workerInfo.length,
+                onlineWorkers: workerInfo.filter(
+                  (x) => x.status === "operational"
+                ).length,
+                totalPnl: 0,
+                activeStrategies: 0,
+                dailyTrades: 0,
+                aiCalls: 0,
+                uptime: 0,
+                lastUpdated: Date.now(),
+              });
+              store.handleConnectionSuccess();
+              toastConnectedMode(conn.mode, conn.apiHost);
+              await tuiDevLog.info("connection", "CLI fallback succeeded", {
+                workerCount: workerInfo.length,
+              });
+            } else {
+              await tuiDevLog.warn(
+                "connection",
+                "CLI fallback returned no workers",
+                {
+                  success: result.success,
+                  stderr: result.stderr || null,
+                }
+              );
+            }
+          } else {
+            await tuiDevLog.warn("connection", "CLI fallback failed", {
+              success: result.success,
+              stderr: result.stderr || null,
+              errorType: result.errorType ?? null,
+            });
+          }
+        } catch (err) {
+          await tuiDevLog.error(
+            "connection",
+            "HTTP and CLI unavailable — staying offline",
+            {
+              error: err instanceof Error ? err.message : String(err),
+            }
+          );
+        }
+      } else if (!httpOk && !conn.allowCliFallback) {
+        await tuiDevLog.info(
+          "connection",
+          "skipping CLI fallback in remote mode"
+        );
       }
 
       if (cancelled) return;
 
       // Long-lived SSE streams (no-op when API offline; store handles errors)
+      await tuiDevLog.debug("connection", "starting SSE trade/log streams");
       void store.streamTrades();
       void store.streamLogs();
     })();
@@ -224,6 +309,42 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
     return () => {
       cancelled = true;
     };
+  }, [restoring]);
+
+  // ── Connection status → mode-aware toasts ───────────────────────────────
+  useEffect(() => {
+    if (restoring) return;
+    const conn = resolveTuiConnectionEnv();
+    let prev = useServiceStore.getState().connectionStatus;
+    let prevDisconnectedAt = useServiceStore.getState().disconnectedAt;
+
+    const unsub = useServiceStore.subscribe((state) => {
+      const next = state.connectionStatus;
+      if (next === prev) return;
+
+      if (
+        next === "connected" &&
+        (prev === "reconnecting" || prev === "offline" || prev === "polling")
+      ) {
+        if (prevDisconnectedAt != null && prevDisconnectedAt > 0) {
+          toastReconnectedMode(conn.mode, conn.apiHost, prevDisconnectedAt);
+        }
+      } else if (next === "offline" && prev !== "offline") {
+        const kind = classifyConnectionError(state.lastError);
+        if (kind === "auth") {
+          toastAuthRequiredMode(conn.mode, conn.apiHost);
+        } else if (kind === "rate-limit") {
+          toastRateLimited();
+        } else {
+          toastConnectionLostMode(conn.mode, conn.apiHost);
+        }
+      }
+
+      prev = next;
+      prevDisconnectedAt = state.disconnectedAt;
+    });
+
+    return unsub;
   }, [restoring]);
 
   // ── Session save on unmount ─────────────────────────────────────────────
