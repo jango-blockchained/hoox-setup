@@ -28,6 +28,19 @@ import type { ViewId } from "@jango-blockchained/hoox-shared";
 import { cliBridge } from "./services/cli-bridge";
 import { resolveTuiStatePath } from "./services/hoox-path-service";
 import { tuiDevLog } from "./services/dev-log";
+import {
+  classifyConnectionError,
+  resolveTuiConnectionEnv,
+} from "./services/tui-connection";
+import {
+  toastAuthMissingRemote,
+  toastAuthRequiredMode,
+  toastConnectedMode,
+  toastConnectionLostMode,
+  toastOfflineStartup,
+  toastRateLimited,
+  toastReconnectedMode,
+} from "./components/ui/connection-toasts";
 import { getRendererRef } from "./hooks";
 import type { DialogHandle } from "./components/ui/dialog";
 import {
@@ -137,23 +150,31 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
     };
   }, []);
 
-  // ── Startup data load: HTTP → CLI fallback ─────────────────────────────
+  // ── Startup data load: HTTP → (local only) CLI fallback ────────────────
   // After session restore, try to fetch worker data. HTTP is tried first;
-  // if the dev server is unreachable, fall back to the `hoox` CLI.
-  // Also kick off SSE trade/log streams so Trade Monitor + Logs Viewer
-  // receive live data when the API is available (failures are silent).
+  // if the local dev server is unreachable, fall back to the `hoox` CLI.
+  // REMOTE mode never uses CLI fallback — gateway HTTP is the source of truth.
+  // Also kick off SSE trade/log streams when the API is available.
   useEffect(() => {
     if (restoring) return;
     let cancelled = false;
 
     (async () => {
       const store = useServiceStore.getState();
-      const mode = process.env.HOOX_TUI_MODE ?? "local";
-      const apiUrl = process.env.HOOX_API_URL || "http://localhost:8787";
+      const conn = resolveTuiConnectionEnv();
       await tuiDevLog.info("connection", "startup data load begin", {
-        mode,
-        apiUrl,
+        mode: conn.mode,
+        apiUrl: conn.apiUrl,
+        hasToken: conn.hasToken,
+        allowCliFallback: conn.allowCliFallback,
       });
+
+      if (conn.mode === "remote" && !conn.hasToken) {
+        toastAuthMissingRemote(conn.apiHost);
+        await tuiDevLog.warn("connection", "remote without API token", {
+          host: conn.apiHost,
+        });
+      }
 
       // fetchWorkers swallows network errors into store state — inspect status.
       await store.fetchWorkers();
@@ -161,22 +182,32 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
       const afterHttp = useServiceStore.getState();
       const httpOk = afterHttp.connectionStatus === "connected";
       if (httpOk) {
+        toastConnectedMode(conn.mode, conn.apiHost);
         await tuiDevLog.info("connection", "HTTP fetchWorkers succeeded", {
-          mode,
-          apiUrl,
+          mode: conn.mode,
+          apiUrl: conn.apiUrl,
           workerCount: afterHttp.workers.length,
         });
       } else {
+        const kind = classifyConnectionError(afterHttp.lastError);
+        if (kind === "auth") {
+          toastAuthRequiredMode(conn.mode, conn.apiHost);
+        } else if (kind === "rate-limit") {
+          toastRateLimited();
+        } else {
+          toastOfflineStartup(conn.mode, conn.apiHost, kind);
+        }
         await tuiDevLog.warn("connection", "HTTP fetchWorkers failed", {
-          mode,
-          apiUrl,
+          mode: conn.mode,
+          apiUrl: conn.apiUrl,
           connectionStatus: afterHttp.connectionStatus,
           lastError: afterHttp.lastError,
+          errorKind: kind,
         });
       }
 
-      // CLI fallback only when HTTP failed (local offline or remote unreachable)
-      if (!httpOk) {
+      // CLI fallback: local only (never mark REMOTE connected via local CLI)
+      if (!httpOk && conn.allowCliFallback) {
         try {
           await tuiDevLog.debug("connection", "CLI monitorStatus fallback");
           const result = await cliBridge.monitorStatus();
@@ -230,6 +261,7 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
                 lastUpdated: Date.now(),
               });
               store.handleConnectionSuccess();
+              toastConnectedMode(conn.mode, conn.apiHost);
               await tuiDevLog.info("connection", "CLI fallback succeeded", {
                 workerCount: workerInfo.length,
               });
@@ -259,6 +291,11 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
             }
           );
         }
+      } else if (!httpOk && !conn.allowCliFallback) {
+        await tuiDevLog.info(
+          "connection",
+          "skipping CLI fallback in remote mode"
+        );
       }
 
       if (cancelled) return;
@@ -272,6 +309,42 @@ function AppRootInner({ safeMode: _safeMode = false }: { safeMode?: boolean }) {
     return () => {
       cancelled = true;
     };
+  }, [restoring]);
+
+  // ── Connection status → mode-aware toasts ───────────────────────────────
+  useEffect(() => {
+    if (restoring) return;
+    const conn = resolveTuiConnectionEnv();
+    let prev = useServiceStore.getState().connectionStatus;
+    let prevDisconnectedAt = useServiceStore.getState().disconnectedAt;
+
+    const unsub = useServiceStore.subscribe((state) => {
+      const next = state.connectionStatus;
+      if (next === prev) return;
+
+      if (
+        next === "connected" &&
+        (prev === "reconnecting" || prev === "offline" || prev === "polling")
+      ) {
+        if (prevDisconnectedAt != null && prevDisconnectedAt > 0) {
+          toastReconnectedMode(conn.mode, conn.apiHost, prevDisconnectedAt);
+        }
+      } else if (next === "offline" && prev !== "offline") {
+        const kind = classifyConnectionError(state.lastError);
+        if (kind === "auth") {
+          toastAuthRequiredMode(conn.mode, conn.apiHost);
+        } else if (kind === "rate-limit") {
+          toastRateLimited();
+        } else {
+          toastConnectionLostMode(conn.mode, conn.apiHost);
+        }
+      }
+
+      prev = next;
+      prevDisconnectedAt = state.disconnectedAt;
+    });
+
+    return unsub;
   }, [restoring]);
 
   // ── Session save on unmount ─────────────────────────────────────────────

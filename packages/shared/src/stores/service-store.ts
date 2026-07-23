@@ -228,6 +228,10 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
           acknowledged: false,
         });
         set((state) => {
+          // Always surface the failure reason (incl. auth) for status bar / toasts
+          state.lastError = msg;
+          state.disconnectedAt = state.disconnectedAt ?? Date.now();
+
           // Transition: connected/polling → reconnecting on failure
           if (
             state.connectionStatus === "connected" ||
@@ -235,8 +239,6 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
           ) {
             state.connectionStatus = "reconnecting";
             state.retryCount = state.retryCount + 1;
-            state.lastError = msg;
-            state.disconnectedAt = state.disconnectedAt ?? Date.now();
 
             // Check if backoff exhausted — transition to offline
             if (state.retryCount >= MAX_RETRIES) {
@@ -245,11 +247,17 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
             } else {
               state.reconnectDelay = getBackoffDelay(state.retryCount);
             }
+          } else if (state.connectionStatus === "reconnecting") {
+            state.retryCount = state.retryCount + 1;
+            if (state.retryCount >= MAX_RETRIES) {
+              state.connectionStatus = "offline";
+              state.lastError = `Connection lost after ${MAX_RETRIES} retries`;
+              state.reconnectDelay = 0;
+            } else {
+              state.reconnectDelay = getBackoffDelay(state.retryCount);
+            }
           }
-          // Already offline/reconnecting — just update error info
-          if (state.connectionStatus === "reconnecting") {
-            state.lastError = msg;
-          }
+          // offline: stay offline with lastError set (startup / remote miss)
         });
       }
     },
@@ -378,12 +386,8 @@ export const useServiceStore = create<ServiceState & ServiceActions>()(
         state.lastErrorDetails = null;
         state.reconnectDelay = 0;
         state.disconnectedAt = null;
-        if (
-          state.connectionStatus === "reconnecting" ||
-          state.connectionStatus === "polling"
-        ) {
-          state.connectionStatus = "connected";
-        }
+        // Always mark connected (incl. offline → CLI/HTTP recovery)
+        state.connectionStatus = "connected";
       }),
 
     // ── Connection State Machine: on failure ───────────────────────────────

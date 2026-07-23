@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { existsSync } from "node:fs";
-import { resolveTUIEntry, resolveTuiLaunchConfig } from "./tui-command.js";
+import {
+  resolveTUIEntry,
+  resolveTuiLaunchConfig,
+  resolveTuiAuthStatus,
+  resolveTuiAuthToken,
+  formatTuiAuthBanner,
+} from "./tui-command.js";
 import {
   findHooxSetupRoot,
   getTuiEntryCandidates,
@@ -107,5 +113,49 @@ describe("resolveTuiLaunchConfig", () => {
       expect((err as CLIError).message).toContain("HOOX_GATEWAY_URL");
       expect((err as CLIError).message).toContain("--api-url");
     }
+  });
+});
+
+describe("resolveTuiAuthStatus / token", () => {
+  const ORIGINAL = process.env.HOOX_API_TOKEN;
+
+  afterEach(() => {
+    if (ORIGINAL === undefined) delete process.env.HOOX_API_TOKEN;
+    else process.env.HOOX_API_TOKEN = ORIGINAL;
+  });
+
+  it("prefers --token over env", () => {
+    process.env.HOOX_API_TOKEN = "from-env";
+    const status = resolveTuiAuthStatus({ token: "from-flag" });
+    expect(status).toEqual({ hasToken: true, source: "flag" });
+    expect(resolveTuiAuthToken({ token: "from-flag" })).toBe("from-flag");
+  });
+
+  it("reads env when no flag", () => {
+    process.env.HOOX_API_TOKEN = "from-env";
+    const status = resolveTuiAuthStatus({});
+    expect(status).toEqual({ hasToken: true, source: "env" });
+    expect(resolveTuiAuthToken({})).toBe("from-env");
+  });
+
+  it("reports none when empty", () => {
+    delete process.env.HOOX_API_TOKEN;
+    expect(resolveTuiAuthStatus({})).toEqual({
+      hasToken: false,
+      source: "none",
+    });
+    expect(resolveTuiAuthToken({})).toBe("");
+  });
+
+  it("banner never embeds the secret", () => {
+    const banner = formatTuiAuthBanner(
+      { hasToken: true, source: "env" },
+      "remote"
+    );
+    expect(banner).toContain("set");
+    expect(banner).not.toContain("from-env");
+    expect(
+      formatTuiAuthBanner({ hasToken: false, source: "none" }, "remote")
+    ).toContain("missing");
   });
 });

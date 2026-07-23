@@ -139,6 +139,54 @@ export interface TuiLaunchConfig {
   source: "api-url" | "remote-gateway" | "local-default";
 }
 
+export interface TuiAuthStatus {
+  hasToken: boolean;
+  /** How the token was supplied (never includes the secret). */
+  source: "flag" | "env" | "none";
+}
+
+/**
+ * Resolve bearer token for the TUI child process.
+ * Priority: explicit `--token` → `HOOX_API_TOKEN` env.
+ * Never returns the raw token for display — use `hasToken` / `source` only.
+ */
+export function resolveTuiAuthStatus(options: {
+  token?: string;
+  envToken?: string | undefined;
+}): TuiAuthStatus {
+  const fromFlag = options.token?.trim();
+  if (fromFlag) return { hasToken: true, source: "flag" };
+  const fromEnv =
+    options.envToken?.trim() ?? process.env.HOOX_API_TOKEN?.trim();
+  if (fromEnv) return { hasToken: true, source: "env" };
+  return { hasToken: false, source: "none" };
+}
+
+/** Banner line for auth (never includes the secret). */
+export function formatTuiAuthBanner(
+  status: TuiAuthStatus,
+  mode: TuiMode
+): string {
+  if (status.hasToken) {
+    const via = status.source === "flag" ? "--token" : "HOOX_API_TOKEN";
+    return `set (Bearer via ${via})`;
+  }
+  if (mode === "remote") {
+    return "missing — remote may reject requests (set HOOX_API_TOKEN or --token)";
+  }
+  return "not set (optional for local wrangler dev)";
+}
+
+/** Effective token string to forward to the child (empty if none). */
+export function resolveTuiAuthToken(options: {
+  token?: string;
+  envToken?: string | undefined;
+}): string {
+  const fromFlag = options.token?.trim();
+  if (fromFlag) return fromFlag;
+  return options.envToken?.trim() ?? process.env.HOOX_API_TOKEN?.trim() ?? "";
+}
+
 /**
  * Resolve API base URL + LOCAL/REMOTE mode for `hoox tui`.
  *
@@ -206,12 +254,18 @@ export function registerTUICommand(program: Command): void {
     .option("--no-mouse", "Disable mouse support")
     .option("--remote", "Connect to the deployed Cloudflare gateway")
     .option("--api-url <url>", "Explicit API base URL (overrides --remote)")
+    .option(
+      "--token <token>",
+      "Bearer token for API auth (sets HOOX_API_TOKEN for this session)"
+    )
     .option("--debug", "Enable TUI dev logging (HOOX_DEBUG=1 → debug.log)")
     .action(
       withErrorHandling(
         async (options) => {
           const tuiEntry = resolveTUIEntry();
           const { apiBase, tuiMode, source } = resolveTuiLaunchConfig(options);
+          const authStatus = resolveTuiAuthStatus({ token: options.token });
+          const authToken = resolveTuiAuthToken({ token: options.token });
 
           const modeLabel = tuiMode === "remote" ? "REMOTE" : "LOCAL";
           console.log(
@@ -220,10 +274,28 @@ export function registerTUICommand(program: Command): void {
           console.log(theme.dim(`  Entry: ${tuiEntry}`));
           console.log(theme.dim(`  Mode:  ${modeLabel}`));
           console.log(theme.dim(`  API:   ${apiBase}`));
+          console.log(
+            theme.dim(`  Auth:  ${formatTuiAuthBanner(authStatus, tuiMode)}`)
+          );
           console.log(theme.dim(`  FPS:   ${options.fps}`));
           console.log(
-            theme.dim(`  Mouse: ${options.mouse ? "enabled" : "disabled"}\n`)
+            theme.dim(`  Mouse: ${options.mouse ? "enabled" : "disabled"}`)
           );
+
+          if (tuiMode === "remote" && !authStatus.hasToken) {
+            console.log(
+              theme.warning(
+                "\n  ⚠  Remote mode without HOOX_API_TOKEN — gateway may return 401/403."
+              )
+            );
+            console.log(
+              theme.dim(
+                "     Set HOOX_API_TOKEN or pass --token <value> before connecting.\n"
+              )
+            );
+          } else {
+            console.log("");
+          }
 
           const debugEnabled = Boolean(options.debug) || isDevLogEnabled();
           if (debugEnabled) {
@@ -242,6 +314,7 @@ export function registerTUICommand(program: Command): void {
               TUI_MOUSE: options.mouse ? "1" : "0",
               HOOX_API_URL: apiBase,
               HOOX_TUI_MODE: tuiMode,
+              ...(authToken ? { HOOX_API_TOKEN: authToken } : {}),
               ...(debugEnabled ? { HOOX_DEBUG: "1", TUI_DEBUG: "1" } : {}),
             },
           });

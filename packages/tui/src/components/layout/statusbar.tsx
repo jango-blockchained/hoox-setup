@@ -24,6 +24,11 @@ import {
   type CliErrorType,
   type CliErrorDetails,
 } from "@jango-blockchained/hoox-shared";
+import {
+  classifyConnectionError,
+  hasApiToken,
+  resolveTuiConnectionEnv,
+} from "../../services/tui-connection";
 
 /** Map each CliErrorType to a short, human-readable label. */
 const ERROR_TYPE_LABELS: Record<CliErrorType, string> = {
@@ -211,10 +216,17 @@ export function StatusBar() {
   const retryCount = useServiceStore((s) => s.retryCount);
   const reconnectDelay = useServiceStore((s) => s.reconnectDelay);
 
-  const tuiMode = process.env.HOOX_TUI_MODE ?? "local";
-  const apiHost = resolveApiHostLabel(
-    process.env.HOOX_API_URL || "http://localhost:8787"
-  );
+  const conn = resolveTuiConnectionEnv();
+  const tuiMode = conn.mode;
+  const apiHost = conn.apiHost;
+  const tokenPresent = hasApiToken();
+  const errorKind = classifyConnectionError(lastError);
+  // Compact AUTH cue: missing token (remote) or auth error — keep short for host room
+  const showAuthHint =
+    tuiMode === "remote" &&
+    (!tokenPresent ||
+      errorKind === "auth" ||
+      Boolean(lastError?.includes("401")));
 
   // Local UI state — expansion is purely a presentation concern, so it
   // lives in component state rather than the global store.
@@ -256,10 +268,12 @@ export function StatusBar() {
     isErrorState ? `Last updated: ${relativeTime}` : `Updated: ${relativeTime}`
   );
 
-  if (lastError && isErrorState) {
-    // Show the full short message (no longer truncated). The status bar
-    // is one line so very long messages may wrap or be cut by the
-    // terminal — the user can click to expand for full detail.
+  if (showAuthHint) {
+    parts.push(!tokenPresent ? "| AUTH?" : "| AUTH!");
+  }
+
+  if (lastError && isErrorState && errorKind !== "auth") {
+    // Full short message (expand panel for diagnostics). Auth errors use AUTH! above.
     parts.push(`| ${lastError}`);
   }
 

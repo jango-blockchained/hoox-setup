@@ -17,6 +17,9 @@ hoox tui
 # Connect to the deployed Cloudflare gateway (REMOTE)
 hoox tui --remote
 # or: hoox tui --api-url https://hoox.example.workers.dev
+# Auth for remote APIs (Bearer — never printed):
+export HOOX_API_TOKEN=…
+# or: hoox tui --remote --token "$HOOX_API_TOKEN"
 
 # Dev logging → $HOME/.hoox/.tui-state/debug.log (file-backed; safe for alternate screen)
 hoox tui --debug

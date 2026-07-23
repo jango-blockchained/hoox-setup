@@ -262,9 +262,20 @@ describe("StatusBar", () => {
 
     it("shows the API host next to the mode pill", async () => {
       process.env.HOOX_TUI_MODE = "remote";
-      process.env.HOOX_API_URL = "https://hoox.cryptolinx.workers.dev";
+      process.env.HOOX_API_URL = "https://hoox.example.workers.dev";
+      process.env.HOOX_API_TOKEN = "test-token";
       const output = await renderStatusBar();
-      expect(output).toContain("hoox.cryptolinx.workers.dev");
+      expect(output).toContain("hoox.example.workers.dev");
+      expect(output).not.toContain("AUTH?");
+    });
+
+    it("shows AUTH? when remote without token", async () => {
+      process.env.HOOX_TUI_MODE = "remote";
+      process.env.HOOX_API_URL = "https://gw.test";
+      delete process.env.HOOX_API_TOKEN;
+      const output = await renderStatusBar();
+      expect(output).toContain("AUTH?");
+      expect(output).toContain("gw.test");
     });
   });
 });

@@ -104,8 +104,18 @@ Must stay aligned with `ViewId` in `packages/shared/src/types.ts`, sidebar items
 | `hoox tui --remote` | `remote` | `resolveGatewayUrl()` (`HOOX_GATEWAY_URL` / CF account + wrangler subdomain) | `[REMOTE] <gateway-host>` |
 | `hoox tui --api-url <url>` | `remote` | explicit URL (strips trailing `/`; overrides `--remote`) | `[REMOTE] <host>` |
 
-Env vars set on the TUI process: `HOOX_API_URL`, `HOOX_TUI_MODE` (`local` \| `remote`).  
-Shared `api-client` / `sse` read `HOOX_API_URL` at import time.
+Env vars set on the TUI process: `HOOX_API_URL`, `HOOX_TUI_MODE` (`local` \| `remote`), optional `HOOX_API_TOKEN`.  
+Shared `api-client` / `sse` read `HOOX_API_URL` + `HOOX_API_TOKEN` at import time.
+
+### Auth token UX (remote)
+
+| Surface | Behavior |
+| ------- | -------- |
+| CLI launch | Prints `Auth: set (Bearer via …)` or `missing — …`; warns if remote without token |
+| CLI flags | `--token <value>` sets `HOOX_API_TOKEN` for the child only (never logged) |
+| Status bar | Remote without token → compact `AUTH?`; 401/403 → `AUTH!` |
+| Toasts | Mode-aware connect / lost / reconnect; auth missing & auth failed messages |
+| Startup | **REMOTE never uses CLI fallback** (gateway HTTP only); LOCAL may fall back to `cliBridge.monitorStatus()` |
 
 ### Dev logging
 

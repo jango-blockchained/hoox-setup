@@ -15,6 +15,7 @@ import { setRendererRef } from "./hooks";
 import { enableAutoCopyOnSelection } from "./services/clipboard";
 import { ensureTuiStateDir } from "./services/hoox-path-service";
 import { getDevLogPath, isDevLogEnabled, tuiDevLog } from "./services/dev-log";
+import { resolveTuiConnectionEnv } from "./services/tui-connection";
 
 /** CLI `hoox tui --fps N` → env TUI_FPS; clamp to a sane range. */
 function resolveTargetFps(): number {
@@ -50,11 +51,13 @@ async function main() {
   // Ensure TUI state directory exists ($HOME/.hoox/.tui-state or fallback)
   await ensureTuiStateDir();
 
-  const tuiMode = process.env.HOOX_TUI_MODE ?? "local";
-  const apiUrl = process.env.HOOX_API_URL || "http://localhost:8787";
+  const conn = resolveTuiConnectionEnv();
   await tuiDevLog.info("startup", "TUI process starting", {
-    mode: tuiMode,
-    apiUrl,
+    mode: conn.mode,
+    apiUrl: conn.apiUrl,
+    apiHost: conn.apiHost,
+    hasToken: conn.hasToken,
+    allowCliFallback: conn.allowCliFallback,
     fps: targetFps,
     mouse: resolveUseMouse(),
     debug: isDevLogEnabled(),
